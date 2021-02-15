@@ -1,0 +1,47 @@
+apiVersion: cassandraoperator.instaclustr.com/v1alpha1
+kind: CassandraDataCenter
+metadata:
+  name: sonarcassandradatacenter
+  labels:
+    app: cassandra
+datacenter: dc1
+cluster: test-cluster
+spec:
+  prometheusSupport: false
+  optimizeKernelParams: true
+  serviceAccountName: cassandra-performance
+  deletePVCs: true
+  nodes: 1
+  # racks:
+  #   - name: "ca1"
+  #     labels:
+  #       kubernetes.io/hostname: kind-worker
+  #   - name: "ca2"
+  #     labels:
+  #       kubernetes.io/hostname: kind-worker2
+  cassandraImage: "gcr.io/cassandra-operator/cassandra-3.11.9:latest"
+  sidecarImage: "gcr.io/cassandra-operator/instaclustr-icarus:latest"
+  imagePullPolicy: Always
+  imagePullSecrets:
+    - name: regcred
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      memory: 1Gi
+  sidecarResources:
+    limits:
+      memory: 512Mi
+    requests:
+      memory: 512Mi
+  dataVolumeClaimSpec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi
+  cassandraAuth:
+    authenticator: PasswordAuthenticator
+    authorizer: CassandraAuthorizer
+    roleManager: CassandraRoleManager
+  fsGroup: 999

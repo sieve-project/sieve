@@ -1,0 +1,324 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cassandra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cassandra
+rules:
+  - apiGroups: ['policy']
+    resources: ['podsecuritypolicies']
+    verbs:     ['use']
+  - apiGroups: [""]
+    resources: ["pods", "configmaps", "secrets" ]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["get","create"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cassandra
+subjects:
+  - kind: ServiceAccount
+    name: cassandra
+roleRef:
+  kind: Role
+  name: cassandra
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: cassandra
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+  - KILL
+  - MKNOD
+  - SETUID
+  - SETGID
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1
+      max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1
+      max: 65535
+  readOnlyRootFilesystem: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cassandra-performance
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cassandra-performance
+rules:
+  - apiGroups: ['policy']
+    resources: ['podsecuritypolicies']
+    verbs:     ['use']
+  - apiGroups: [""]
+    resources: ["pods", "configmaps", "secrets" ]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["get","create"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cassandra-performance
+subjects:
+  - kind: ServiceAccount
+    name: cassandra-performance
+roleRef:
+  kind: Role
+  name: cassandra-performance
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: cassandra-performance
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+spec:
+  privileged: true
+  allowPrivilegeEscalation: true
+  allowedCapabilities:
+  - IPC_LOCK
+  - SYS_RESOURCE
+  requiredDropCapabilities:
+  - KILL
+  - MKNOD
+  - SETUID
+  - SETGID
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'RunAsAny'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1
+      max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1
+      max: 65535
+  readOnlyRootFilesystem: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cassandra-operator-default-config
+data:
+  nodes: "3"
+  cassandraImage: gcr.io/cassandra-operator/cassandra-3.11.9:latest
+  sidecarImage: gcr.io/cassandra-operator/instaclustr-icarus:latest
+  memory: 1Gi
+  disk: 1Gi
+  diskMedium: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cassandra-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: cassandra-operator
+  template:
+    metadata:
+      labels:
+        name: cassandra-operator
+    spec:
+      serviceAccountName: cassandra-operator
+      containers:
+        - name: cassandra-operator
+          image: "xudongs/cassandra-operator:latest"
+          # command:
+          # - ./cassandra-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "cassandra-operator"
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: cassandra-operator
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName:  'docker/default'
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+  - KILL
+  - MKNOD
+  - SETUID
+  - SETGID
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1
+      max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1
+      max: 65535
+  readOnlyRootFilesystem: true
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cassandra-operator
+subjects:
+- kind: ServiceAccount
+  name: cassandra-operator
+roleRef:
+  kind: Role
+  name: cassandra-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: cassandra-operator
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - services/finalizers
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  - configmaps
+  - secrets
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - '*'
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - create
+- apiGroups:
+  - apps
+  resourceNames:
+  - cassandra-operator
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  verbs:
+  - get
+- apiGroups:
+  - cassandraoperator.instaclustr.com
+  resources:
+  - '*'
+  - cassandraclusters
+  - cassandrabackups
+  verbs:
+  - '*'
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - cassandra-operator
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cassandra-operator
