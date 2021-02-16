@@ -15,7 +15,7 @@ cd cassandra-operator
 ./bootstrap.sh
 sleep 60s
 operator=`kubectl get pods | grep cassandra-operator | cut -f1 --delimiter=" "`
-kubectl exec $operator -- /bin/bash -c "MODE=sparse-read KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &"
+kubectl exec $operator -- /bin/bash -c "MODE=staleness KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &"
 
 kubectl apply -f cdc-1.yaml
 sleep 150s
@@ -39,7 +39,7 @@ kubectl get pvc -o wide >> $dir/stdout.log
 echo " " >> $dir/stdout.log
 
 kubectl exec $operator -- /bin/bash -c "pkill ./cassandra-operator"
-kubectl exec $operator -- /bin/bash -c "MODE=sparse-read KUBERNETES_SERVICE_HOST=kind-control-plane2 KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator2.log &"
+kubectl exec $operator -- /bin/bash -c "MODE=staleness KUBERNETES_SERVICE_HOST=kind-control-plane2 KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator2.log &"
 sleep 30s
 echo ">>> after restart controller and bind to apiserver2:" >> $dir/stdout.log
 kubectl get pods -o wide >> $dir/stdout.log

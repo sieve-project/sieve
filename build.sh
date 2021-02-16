@@ -19,15 +19,16 @@ fi
 if [[ "$mode" == "instr" ]]
 then
   # instrument k8s and install sonar lib
-  # instrument is not automated yet
-  cd $GOPATH/src/k8s.io/kubernetes
-  cd staging/src
-  rm -rf github.com
-  cp -r $GOPATH/src/github.com/xlab-uiuc/sonar-lib/github.com/ github.com
+  ./instrumentation/instr.sh time-travel ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
 
-  cd $GOPATH/src/k8s.io/kubernetes
-  cd vendor/github.com
-  ln -s ../../staging/src/github.com/xlab-uiuc/ xlab-uiuc
+  rm -rf fakegopath/src/k8s.io/kubernetes/staging/src/sonar.client
+  rm -f fakegopath/src/k8s.io/kubernetes/vendor/sonar.client
+
+  echo "require sonar.client v0.0.0" >> fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod
+  echo "replace sonar.client => ../../sonar.client"
+
+  cp -r sonar.client fakegopath/src/k8s.io/kubernetes/staging/src/sonar.client
+  ln -s fakegopath/src/k8s.io/kubernetes/staging/src/sonar.client fakegopath/src/k8s.io/kubernetes/vendor/sonar.client
 fi
 
 # build kind image

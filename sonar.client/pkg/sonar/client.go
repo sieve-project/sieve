@@ -11,6 +11,7 @@ import (
 var hostPort string = "kind-control-plane:12345"
 var connectionError string = "[sonar] connectionError"
 var replyError string = "[sonar] replyError"
+var hostError string = "[sonar] hostError"
 var enableSparseRead bool = checkSparseRead()
 var enableStaleness bool = checkStaleness()
 
@@ -102,7 +103,13 @@ func WaitBeforeReconcile(controllerName string) {
 	client.Close()
 }
 
-func WaitBeforeProcessEvent(eventType, resourceType, hostname string) {
+func getHostname() string {
+	hostname, err := os.Hostname()
+	checkError(err, hostError)
+	return hostname
+}
+
+func WaitBeforeProcessEvent(eventType, resourceType string) {
 	if !enableStaleness {
 		return
 	}
@@ -112,7 +119,7 @@ func WaitBeforeProcessEvent(eventType, resourceType, hostname string) {
 	request := &WaitBeforeProcessEventRequest{
 		EventType:    eventType,
 		ResourceType: resourceType,
-		Hostname:     hostname,
+		Hostname:     getHostname(),
 	}
 	var response Response
 	err = client.Call("StalenessListener.WaitBeforeProcessEvent", request, &response)
