@@ -34,6 +34,11 @@ func instrumentTimeTravel(filepath string) {
 	cacherGoFile2 := path.Join(filepath, "auto-instr", "cacher.go")
 	fmt.Printf("instrumenting %s\n", cacherGoFile1)
 	instrumentCacherGo(cacherGoFile1, cacherGoFile2)
+
+	watchCacheGoFile1 := path.Join(filepath, "vanilla", "watch_cache.go")
+	watchCacheGoFile2 := path.Join(filepath, "auto-instr", "watch_cache.go")
+	fmt.Printf("instrumenting %s\n", watchCacheGoFile1)
+	instrumentWatchCacheGo(watchCacheGoFile1, watchCacheGoFile2)
 }
 
 func main() {

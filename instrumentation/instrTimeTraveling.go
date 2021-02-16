@@ -88,3 +88,83 @@ func instrumentCacherGo(ifilepath, ofilepath string) {
 
 	writeInstrumentedFile("cacher", ofilepath, f)
 }
+
+func instrumentWatchCacheGo(ifilepath, ofilepath string) {
+	code, err := ioutil.ReadFile(ifilepath)
+	check(err)
+	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "cacher", goast.New())
+	f, err := dec.Parse(code)
+	check(err)
+
+	index, funcDecl := findFuncDecl(f, "processEvent")
+	if funcDecl == nil {
+		panic("instrumentWatchCacheGo error")
+	}
+
+	instrumentation := &dst.FuncDecl{
+		Recv: &dst.FieldList{
+			Opening: true,
+			List: []*dst.Field{
+				&dst.Field{
+					Names: []*dst.Ident{&dst.Ident{Name: "w"}},
+					Type:  &dst.StarExpr{X: &dst.Ident{Name: "watchCache"}},
+					Tag:   nil,
+				},
+			},
+			Closing: true,
+		},
+		Name: &dst.Ident{Name: "SetExpectedTypeName"},
+		Type: &dst.FuncType{
+			Func: true,
+			Params: &dst.FieldList{
+				Opening: true,
+				List: []*dst.Field{
+					&dst.Field{
+						Names: []*dst.Ident{&dst.Ident{Name: "expectedTypeName"}},
+						Type:  &dst.Ident{Name: "string"},
+						Tag:   nil,
+					},
+				},
+				Closing: true,
+			},
+			Results: &dst.FieldList{
+				Opening: false,
+				List:    []*dst.Field{},
+				Closing: false,
+			},
+		},
+		Body: &dst.BlockStmt{
+			List: []dst.Stmt{
+				&dst.AssignStmt{
+					Lhs: []dst.Expr{
+						&dst.SelectorExpr{
+							X:   &dst.Ident{Name: "w"},
+							Sel: &dst.Ident{Name: "expectedTypeName"},
+						},
+					},
+					Tok: token.ASSIGN,
+					Rhs: []dst.Expr{
+						&dst.Ident{Name: "expectedTypeName"},
+					},
+				},
+			},
+			RbraceHasNoPos: false,
+		},
+	}
+	instrumentation.Decs.Start.Append("//sonar")
+	f.Decls = append(f.Decls[:index+1], f.Decls[index:]...)
+	f.Decls[index] = instrumentation
+
+	index = 0
+	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
+	instrumentationInEventProcesss := &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun:  &dst.Ident{Name: "WaitBeforeProcessEvent", Path: "sonar.client/pkg/sonar"},
+			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "w.expectedTypeName"}},
+		},
+	}
+	instrumentationInEventProcesss.Decs.End.Append("//sonar: WaitBeforeProcessEvent")
+	funcDecl.Body.List[index] = instrumentationInEventProcesss
+
+	writeInstrumentedFile("cacher", ofilepath, f)
+}
