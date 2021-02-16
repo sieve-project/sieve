@@ -21,10 +21,10 @@ cp -r ../../sonar.client cassandra-operator/dep-sonar/src/sonar.client
 
 # modify go.mod
 echo "replace sigs.k8s.io/controller-runtime => ./dep-sonar/src/sigs.k8s.io/controller-runtime@v0.4.0" >> cassandra-operator/go.mod
-echo "require sonar.client v0.0.0-00010101000000-000000000000" >> cassandra-operator/go.mod
+echo "require sonar.client v0.0.0" >> cassandra-operator/go.mod
 echo "replace sonar.client => ./dep-sonar/src/sonar.client" >> cassandra-operator/go.mod
 
-echo "require sonar.client v0.0.0-00010101000000-000000000000" >> cassandra-operator/dep-sonar/src/sigs.k8s.io/controller-runtime@v0.4.0/go.mod
+echo "require sonar.client v0.0.0" >> cassandra-operator/dep-sonar/src/sigs.k8s.io/controller-runtime@v0.4.0/go.mod
 echo "replace sonar.client => ../../sonar.client" >> cassandra-operator/dep-sonar/src/sigs.k8s.io/controller-runtime@v0.4.0/go.mod
 
 cd cassandra-operator
@@ -32,7 +32,9 @@ git add -A && git commit -m "before instr"
 cd $OLDPWD
 
 # run the instrumentation tool
-../../instrumentation/instr.sh sparse-read ${OLDPWD}/cassandra-operator/dep-sonar/src/sigs.k8s.io/controller-runtime@v0.4.0
+cd ../../instrumentation/
+./instr.sh sparse-read ${OLDPWD}/cassandra-operator/dep-sonar/src/sigs.k8s.io/controller-runtime@v0.4.0
+cd $OLDPWD
 
 # replace the Dockerfile and build.sh
 cp hack/build.sh cassandra-operator/build.sh
