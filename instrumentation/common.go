@@ -1,6 +1,13 @@
 package main
 
-import "github.com/dave/dst"
+import (
+	"bytes"
+	"os"
+
+	"github.com/dave/dst"
+	"github.com/dave/dst/decorator"
+	"github.com/dave/dst/decorator/resolver/guess"
+)
 
 func check(e error) {
 	if e != nil {
@@ -8,13 +15,25 @@ func check(e error) {
 	}
 }
 
-func findFuncDecl(f *dst.File, funName string) *dst.FuncDecl {
-	for _, decl := range f.Decls {
+func findFuncDecl(f *dst.File, funName string) (int, *dst.FuncDecl) {
+	for i, decl := range f.Decls {
 		if funcDecl, ok := decl.(*dst.FuncDecl); ok {
 			if funcDecl.Name.Name == funName {
-				return funcDecl
+				return i, funcDecl
 			}
 		}
 	}
-	return nil
+	return -1, nil
+}
+
+func writeInstrumentedFile(path, ofilepath string, f *dst.File) {
+	res := decorator.NewRestorerWithImports(path, guess.New())
+
+	autoInstrFile, err := os.Create(ofilepath)
+	check(err)
+	defer autoInstrFile.Close()
+	var buf bytes.Buffer
+	err = res.Fprint(&buf, f)
+	autoInstrFile.Write(buf.Bytes())
+	check(err)
 }

@@ -20,7 +20,7 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 	f, err := dec.Parse(code)
 	check(err)
 
-	funcDecl := findFuncDecl(f, "reconcileHandler")
+	_, funcDecl := findFuncDecl(f, "reconcileHandler")
 	if funcDecl != nil {
 		index, targetStmt := findCallingReconcileIfStmt(funcDecl)
 		if targetStmt != nil {
@@ -37,7 +37,7 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 		}
 	}
 
-	funcDecl = findFuncDecl(f, "Start")
+	_, funcDecl = findFuncDecl(f, "Start")
 	if funcDecl != nil {
 		index, targetStmt := findCallingMakeQueue(funcDecl)
 		if targetStmt != nil {
