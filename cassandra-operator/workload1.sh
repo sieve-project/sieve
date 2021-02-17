@@ -4,7 +4,7 @@ set -ex
 
 dir=$1
 if [ -z "$dir" ]; then
-    dir="save"
+    dir="log"
 fi
 mkdir -p $dir
 
