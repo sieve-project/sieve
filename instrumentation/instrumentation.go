@@ -42,7 +42,7 @@ func main() {
 	args := os.Args
 	if args[1] == "sparse-read" {
 		instrumentSparseRead(args[2])
-	} else if args[1] == "time-travel" {
+	} else if args[1] == "staleness" {
 		instrumentTimeTravel(args[2])
 	}
 }

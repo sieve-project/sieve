@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"go/token"
 	"os"
 
 	"github.com/dave/dst"
@@ -24,6 +25,21 @@ func findFuncDecl(f *dst.File, funName string) (int, *dst.FuncDecl) {
 		}
 	}
 	return -1, nil
+}
+
+func findTypeDecl(f *dst.File, typeName string) (int, int, *dst.TypeSpec) {
+	for i, decl := range f.Decls {
+		if genDecl, ok := decl.(*dst.GenDecl); ok && genDecl.Tok == token.TYPE {
+			for j, spec := range genDecl.Specs {
+				if typeSpec, ok := spec.(*dst.TypeSpec); ok {
+					if typeSpec.Name.Name == typeName {
+						return i, j, typeSpec
+					}
+				}
+			}
+		}
+	}
+	return -1, -1, nil
 }
 
 func writeInstrumentedFile(path, ofilepath string, f *dst.File) {

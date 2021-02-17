@@ -166,5 +166,17 @@ func instrumentWatchCacheGo(ifilepath, ofilepath string) {
 	instrumentationInEventProcesss.Decs.End.Append("//sonar: WaitBeforeProcessEvent")
 	funcDecl.Body.List[index] = instrumentationInEventProcesss
 
+	_, _, typeSpec := findTypeDecl(f, "watchCache")
+	if typeSpec == nil {
+		panic("instrumentWatchCacheGo error")
+	}
+	structType := typeSpec.Type.(*dst.StructType)
+	instrumentationInWatchCacheStructure := &dst.Field{
+		Names: []*dst.Ident{&dst.Ident{Name: "expectedTypeName"}},
+		Type:  &dst.Ident{Name: "string"},
+	}
+	instrumentationInWatchCacheStructure.Decs.Start.Append("//sonar")
+	structType.Fields.List = append(structType.Fields.List, instrumentationInWatchCacheStructure)
+
 	writeInstrumentedFile("cacher", ofilepath, f)
 }
