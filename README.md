@@ -5,9 +5,9 @@
 
 [instaclustr-cassandra-operator-400](https://github.com/instaclustr/cassandra-operator/issues/400) confirmed and fixed by our patch
 
-[instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/402) confirmed and fixed by our patch
+[instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402) confirmed and fixed by our patch
 
-[instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/404) confirmed and fixed by our patch
+[instaclustr-cassandra-operator-404](https://github.com/instaclustr/cassandra-operator/issues/404) confirmed and fixed by our patch
 
 ## Reproduction:
 **Requirement: go1.13 installed and `$GOPATH` set**
