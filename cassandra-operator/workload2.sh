@@ -17,7 +17,6 @@ cd cassandra-operator
 sleep 70s
 kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
 kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
-# kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system
 operator=`kubectl get pods | grep cassandra-operator | cut -f1 --delimiter=" "`
 kubectl exec $operator -- /bin/bash -c "KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &"
 
@@ -52,7 +51,6 @@ echo " " >> $dir/stdout.log
 
 kubectl logs kube-apiserver-kind-control-plane -n kube-system > $dir/apiserver1.log
 kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > $dir/apiserver2.log
-# kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > $dir/apiserver3.log
 kubectl cp $operator:/operator1.log $dir/operator1.log
 kubectl cp $operator:/operator2.log $dir/operator2.log
 docker cp kind-control-plane:/sonar-server/sonar-server.log $dir/sonar-server.log
