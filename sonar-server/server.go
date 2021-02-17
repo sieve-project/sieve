@@ -20,12 +20,12 @@ func main() {
 	log.Println("registering rpc server...")
 	config := getConfig()
 	switch config["mode"] {
-	case "SparseRead":
-		log.Println("SparseRead")
+	case "sparse-read":
+		log.Println("sparse-read")
 		rpc.Register(NewSparseReadListener(config))
-	case "Staleness":
-		log.Println("Staleness")
-		rpc.Register(NewStalenessListener())
+	case "staleness":
+		log.Println("staleness")
+		rpc.Register(NewStalenessListener(config))
 	default:
 		log.Fatalf("Cannot recognize mode: %s\n", config["mode"])
 	}

@@ -7,10 +7,10 @@ import (
 	sonar "sonar.client/pkg/sonar"
 )
 
-func NewStalenessListener() *StalenessListener {
+func NewStalenessListener(config map[interface{}]interface{}) *StalenessListener {
 	server := &stalenessServer{
-		apiserverHostname:    "kind-control-plane2",
-		expectedResourceType: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter",
+		apiserverHostname:    config["apiserver"].(string),
+		expectedResourceType: config["resource-type"].(string),
 	}
 	listener := &StalenessListener{
 		Server: server,
@@ -42,10 +42,11 @@ func (s *stalenessServer) Start() {
 }
 
 func (s *stalenessServer) WaitBeforeProcessEvent(request *sonar.WaitBeforeProcessEventRequest, response *sonar.Response) error {
-	log.Printf("RegisterQueue: EventType: %s, ResourceType: %s, Hostname: %s\n", request.EventType, request.ResourceType, request.Hostname)
+	log.Printf("WaitBeforeProcessEvent: EventType: %s, ResourceType: %s, Hostname: %s\n", request.EventType, request.ResourceType, request.Hostname)
 	if request.EventType == "DELETED" && request.ResourceType == s.expectedResourceType && request.Hostname == s.apiserverHostname {
 		log.Printf("Should sleep here...")
-		time.Sleep(500 * time.Second)
+		time.Sleep(800 * time.Second)
+		log.Printf("sleep over")
 	}
 	*response = sonar.Response{Message: request.Hostname, Ok: true}
 	return nil
