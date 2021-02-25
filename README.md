@@ -1,5 +1,10 @@
 # Sonar: Testing Partial History Bugs
 
+## Requirements
+
+* go1.13 installed and `$GOPATH` set
+* Docker daemon must be running
+
 ## Bugs Found:
 [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398) confirmed and fixed by our patch
 
@@ -9,8 +14,8 @@
 
 [instaclustr-cassandra-operator-404](https://github.com/instaclustr/cassandra-operator/issues/404) confirmed and fixed by our patch
 
-## Reproduction:
-**Requirement: go1.13 installed and `$GOPATH` set**
+## Bug Reproduction:
+
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398):
 First,
