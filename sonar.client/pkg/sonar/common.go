@@ -3,6 +3,7 @@ package sonar
 type Response struct {
 	Message string
 	Ok      bool
+	Wait    int
 }
 
 type EchoRequest struct {

@@ -16,7 +16,7 @@ if [ -z "$conf" ]; then
 fi
 
 kind create cluster --image xudongs/node:latest --config $conf
-# docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'
+docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'
 cd sonar-server
 go build
 cd ..

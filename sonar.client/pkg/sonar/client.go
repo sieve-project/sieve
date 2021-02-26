@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/rpc"
 	"os"
+	"time"
 
 	"log"
 
@@ -142,7 +143,10 @@ func WaitBeforeReconcile(controllerName string) {
 
 func WaitBeforeProcessEvent(eventType, resourceType string) {
 	if !checkMode(staleness) {
-		log.Printf("[sonar][NOT-ready][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
+		// log.Printf("[sonar][NOT-ready][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
+		return
+	}
+	if resourceType != config["resource-type"] && resourceType != config["restart-resource-type"] {
 		return
 	}
 	log.Printf("[sonar][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
@@ -168,5 +172,9 @@ func WaitBeforeProcessEvent(eventType, resourceType string) {
 		return
 	}
 	checkResponse(response, "WaitBeforeProcessEvent")
+	if response.Wait != 0 {
+		log.Printf("[sonar][WaitBeforeProcessEvent] should sleep for %d seconds here", response.Wait)
+		time.Sleep(time.Duration(response.Wait) * time.Second)
+	}
 	client.Close()
 }

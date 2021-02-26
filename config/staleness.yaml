@@ -1,3 +1,7 @@
 mode: staleness
 apiserver: kind-control-plane2
 resource-type: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter"
+restart-event-type: ADDED
+restart-resource-type: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter"
+restart-apiserver: kind-control-plane
+restart-times: 2
