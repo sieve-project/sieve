@@ -43,7 +43,7 @@ echo " " >> $dir/stdout.log
 
 # kubectl exec $operator -- /bin/bash -c "pkill ./cassandra-operator"
 # kubectl exec $operator -- /bin/bash -c "KUBERNETES_SERVICE_HOST=kind-control-plane2 KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator2.log &"
-sleep 30s
+sleep 40s
 echo ">>> after restart controller and bind to apiserver2:" >> $dir/stdout.log
 kubectl get pods -o wide >> $dir/stdout.log
 kubectl get pvc -o wide >> $dir/stdout.log
@@ -57,4 +57,4 @@ docker cp kind-control-plane:/sonar-server/sonar-server.log $dir/sonar-server.lo
 kubectl describe CassandraDataCenter sonarcassandradatacenter > $dir/cdc.log
 
 cd ..
-# ./teardown.sh
+./teardown.sh

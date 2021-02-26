@@ -146,7 +146,7 @@ func WaitBeforeProcessEvent(eventType, resourceType string) {
 		// log.Printf("[sonar][NOT-ready][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
 		return
 	}
-	if resourceType != config["resource-type"] && resourceType != config["restart-resource-type"] {
+	if resourceType != config["freeze-resource-type"] && resourceType != config["restart-resource-type"] {
 		return
 	}
 	log.Printf("[sonar][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -9,36 +8,47 @@ import (
 	"sync"
 	"time"
 
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/deprecated/scheme"
 	"k8s.io/client-go/kubernetes"
-	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/remotecommand"
 	sonar "sonar.client/pkg/sonar"
 )
 
 var globalCntToRestart int = 0
 var mutex = &sync.Mutex{}
 
-type RestartConfig struct {
-	eventType    string
-	resourceType string
+type FreezeConfig struct {
 	apiserver    string
+	resourceType string
+	eventType    string
+	duration     int
+}
+
+type RestartConfig struct {
+	pod          string
+	apiserver    string
+	resourceType string
+	eventType    string
 	times        int
+	wait         int
 }
 
 func NewStalenessListener(config map[interface{}]interface{}) *StalenessListener {
 	server := &stalenessServer{
-		apiserverHostname:    config["apiserver"].(string),
-		expectedResourceType: config["resource-type"].(string),
+		freezeConfig: FreezeConfig{
+			apiserver:    config["freeze-apiserver"].(string),
+			resourceType: config["freeze-resource-type"].(string),
+			eventType:    config["freeze-event-type"].(string),
+			duration:     config["freeze-duration"].(int),
+		},
 		restartConfig: RestartConfig{
-			eventType:    config["restart-event-type"].(string),
-			resourceType: config["restart-resource-type"].(string),
+			pod:          config["restart-pod"].(string),
 			apiserver:    config["restart-apiserver"].(string),
+			resourceType: config["restart-resource-type"].(string),
+			eventType:    config["restart-event-type"].(string),
 			times:        config["restart-times"].(int),
+			wait:         config["restart-wait"].(int),
 		},
 	}
 	listener := &StalenessListener{
@@ -62,9 +72,8 @@ func (l *StalenessListener) WaitBeforeProcessEvent(request *sonar.WaitBeforeProc
 }
 
 type stalenessServer struct {
-	apiserverHostname    string
-	expectedResourceType string
-	restartConfig        RestartConfig
+	freezeConfig  FreezeConfig
+	restartConfig RestartConfig
 }
 
 func (s *stalenessServer) Start() {
@@ -72,24 +81,31 @@ func (s *stalenessServer) Start() {
 }
 
 func (s *stalenessServer) WaitBeforeProcessEvent(request *sonar.WaitBeforeProcessEventRequest, response *sonar.Response) error {
-	if request.ResourceType == s.expectedResourceType {
-		log.Printf("WaitBeforeProcessEvent: EventType: %s, ResourceType: %s, Hostname: %s\n", request.EventType, request.ResourceType, request.Hostname)
+	if request.ResourceType != s.freezeConfig.resourceType && request.ResourceType != s.restartConfig.resourceType {
+		*response = sonar.Response{Message: request.Hostname, Ok: true, Wait: 0}
+		return nil
 	}
+	log.Printf("WaitBeforeProcessEvent: EventType: %s, ResourceType: %s, Hostname: %s\n", request.EventType, request.ResourceType, request.Hostname)
 	if s.shouldRestart(request) {
-		go s.waitAndRestartComponent(160)
+		log.Printf("Should restart here...")
+		go s.waitAndRestartComponent()
 	}
-	if request.EventType == "DELETED" && request.ResourceType == s.expectedResourceType && request.Hostname == s.apiserverHostname {
+	if s.shouldFreeze(request) {
 		log.Printf("Should sleep here...")
-		*response = sonar.Response{Message: request.Hostname, Ok: true, Wait: 800}
+		*response = sonar.Response{Message: request.Hostname, Ok: true, Wait: s.freezeConfig.duration}
 		return nil
 	}
 	*response = sonar.Response{Message: request.Hostname, Ok: true, Wait: 0}
 	return nil
 }
 
-func (s *stalenessServer) waitAndRestartComponent(dur int) {
-	time.Sleep(time.Duration(dur) * time.Second)
-	s.restartComponent()
+func (s *stalenessServer) waitAndRestartComponent() {
+	time.Sleep(time.Duration(s.restartConfig.wait) * time.Second)
+	s.restartComponent(s.restartConfig.pod)
+}
+
+func (s *stalenessServer) shouldFreeze(request *sonar.WaitBeforeProcessEventRequest) bool {
+	return s.freezeConfig.apiserver == request.Hostname && s.freezeConfig.eventType == request.EventType && s.freezeConfig.resourceType == request.ResourceType
 }
 
 func (s *stalenessServer) shouldRestart(request *sonar.WaitBeforeProcessEventRequest) bool {
@@ -105,12 +121,12 @@ func (s *stalenessServer) shouldRestart(request *sonar.WaitBeforeProcessEventReq
 	return false
 }
 
-func (s *stalenessServer) restartComponent() {
+func (s *stalenessServer) restartComponent(podLabel string) {
 	config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"name": "cassandra-operator"}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"name": podLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
@@ -131,29 +147,4 @@ func (s *stalenessServer) restartComponent() {
 	err = cmd2.Run()
 	checkError(err)
 	fmt.Println("restart")
-}
-
-func (s *stalenessServer) execInPod(config *restclient.Config, podName string, cmd []string) {
-	clientset, err := kubernetes.NewForConfig(config)
-	checkError(err)
-	req := clientset.CoreV1().RESTClient().Post().Resource("pods").Name(podName).Namespace("default").SubResource("exec")
-	option := &v1.PodExecOptions{
-		Command: cmd,
-		Stdout:  true,
-		Stderr:  true,
-	}
-	req.VersionedParams(
-		option,
-		scheme.ParameterCodec,
-	)
-	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
-	checkError(err)
-	var buf bytes.Buffer
-	err = exec.Stream(remotecommand.StreamOptions{
-		Stdin:  nil,
-		Stdout: &buf,
-		Stderr: &buf,
-	})
-	checkError(err)
-	fmt.Printf("cmd output: %s\n", buf.String())
 }
