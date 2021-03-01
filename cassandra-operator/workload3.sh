@@ -17,7 +17,7 @@ cd cassandra-operator
 sleep 70s
 kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
 kubectl cp ../config/sts-staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
-operator=`kubectl get pods | grep cassandra-operator | cut -f1 --delimiter=" "`
+operator=`kubectl get pods | grep cassandra-operator | cut -f1 -d " "`
 kubectl exec $operator -- /bin/bash -c "KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &"
 
 kubectl apply -f cdc-1.yaml

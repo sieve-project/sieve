@@ -16,7 +16,7 @@ cd cassandra-operator
 ./bootstrap.sh
 sleep 60s
 kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
-operator=`kubectl get pods | grep cassandra-operator | cut -f1 --delimiter=" "`
+operator=`kubectl get pods | grep cassandra-operator | cut -f1 -d " "`
 kubectl cp ../config/sparse-read.yaml $operator:/sonar.yaml
 kubectl exec $operator -- /bin/bash -c "KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator.log &"
 
