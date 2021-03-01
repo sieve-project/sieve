@@ -14,7 +14,7 @@ import (
 )
 
 func instrumentControllerGo(ifilepath, ofilepath string) {
-	// we know exactly where and what to instrument.
+	// We know exactly where and what to instrument.
 	// All we need to do is to find the place (function) and inject the code.
 	code, err := ioutil.ReadFile(ifilepath)
 	check(err)
@@ -30,6 +30,7 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 		if targetStmt != nil {
 			// Just before the callsite we invoke WaitBeforeReconcile (RPC to sonar server)
 			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
+			// Generate the expression to call WaitBeforeReconcile
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
 					Fun:  &dst.Ident{Name: "WaitBeforeReconcile", Path: "sonar.client/pkg/sonar"},
@@ -41,12 +42,16 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 		}
 	}
 
+	// Find Start function
 	_, funcDecl = findFuncDecl(f, "Start")
 	if funcDecl != nil {
+		// Find the place where queue is made
 		index, targetStmt := findCallingMakeQueue(funcDecl)
 		if targetStmt != nil {
+			// Inject after making queue
 			index = index + 1
 			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
+			// Generate the expression to call RegisterQueue
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
 					Fun:  &dst.Ident{Name: "RegisterQueue", Path: "sonar.client/pkg/sonar"},
@@ -107,6 +112,7 @@ func instrumentEnqueueGo(ifilepath, ofilepath string) {
 	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "handler", goast.New())
 	f, err := dec.Parse(code)
 	check(err)
+	// Instrument before each q.Add()
 	instrumentBeforeAdd(f)
 
 	res := decorator.NewRestorerWithImports("handler", guess.New())
