@@ -14,17 +14,21 @@ import (
 )
 
 func instrumentControllerGo(ifilepath, ofilepath string) {
+	// we know exactly where and what to instrument.
+	// All we need to do is to find the place (function) and inject the code.
 	code, err := ioutil.ReadFile(ifilepath)
 	check(err)
 	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "controller", goast.New())
 	f, err := dec.Parse(code)
 	check(err)
 
+	// Reconcile() is invoked in reconcileHandler, so we first find this function.
 	_, funcDecl := findFuncDecl(f, "reconcileHandler")
 	if funcDecl != nil {
+		// Inside reconcileHandler() we find the callsite of Reconcile().
 		index, targetStmt := findCallingReconcileIfStmt(funcDecl)
 		if targetStmt != nil {
-			// fmt.Println(targetStmt)
+			// Just before the callsite we invoke WaitBeforeReconcile (RPC to sonar server)
 			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
