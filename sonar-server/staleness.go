@@ -34,6 +34,7 @@ type RestartConfig struct {
 	wait         int
 }
 
+// The listener is actually a wrapper around the server.
 func NewStalenessListener(config map[interface{}]interface{}) *StalenessListener {
 	server := &stalenessServer{
 		freezeConfig: FreezeConfig{
@@ -62,11 +63,14 @@ type StalenessListener struct {
 	Server *stalenessServer
 }
 
+// Echo is just for testing.
 func (l *StalenessListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
 	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
+// WaitBeforeProcessEvent is called when apiserver invokes `processEvent`.
+// It will decide (1) whether to freeze an apiserver and (2) whether to restart a controller
 func (l *StalenessListener) WaitBeforeProcessEvent(request *sonar.WaitBeforeProcessEventRequest, response *sonar.Response) error {
 	return l.Server.WaitBeforeProcessEvent(request, response)
 }
@@ -108,6 +112,12 @@ func (s *stalenessServer) shouldFreeze(request *sonar.WaitBeforeProcessEventRequ
 	return s.freezeConfig.apiserver == request.Hostname && s.freezeConfig.eventType == request.EventType && s.freezeConfig.resourceType == request.ResourceType
 }
 
+// Condition for restart controller:
+// [apiserver] receives the event with [eventType] for [resourceType] for the [times] times.
+// The condition is configured by users, and is relatively too low level.
+// TODO: expose a high level interface to users
+// TODO: decouple crash and restart
+// TODO: consider more information from the apiserver
 func (s *stalenessServer) shouldRestart(request *sonar.WaitBeforeProcessEventRequest) bool {
 	if s.restartConfig.apiserver == request.Hostname && s.restartConfig.eventType == request.EventType && s.restartConfig.resourceType == request.ResourceType {
 		mutex.Lock()
@@ -121,6 +131,9 @@ func (s *stalenessServer) shouldRestart(request *sonar.WaitBeforeProcessEventReq
 	return false
 }
 
+// The controller to restart is identified by `restart-pod` in the configuration.
+// `restart-pod` is a label to identify the pod where the controller is running.
+// We do not directly use pod name because the pod belongs to a deployment so its name is not fixed.
 func (s *stalenessServer) restartComponent(podLabel string) {
 	config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
 	checkError(err)
@@ -138,6 +151,13 @@ func (s *stalenessServer) restartComponent(podLabel string) {
 	pod := pods.Items[0]
 	log.Printf("get operator pod: %s", pod.Name)
 
+	// The way we crash and restart the controller is not very graceful here.
+	// The util.sh is a simple script with commands to kill the controller process
+	// and restart the controller process.
+	// Why not directly call the commands?
+	// The command needs nested quotation marks and
+	// I find parsing nested quotation marks are tricky in golang.
+	// TODO: figure out how to make nested quotation marks work
 	cmd1 := exec.Command("./util.sh", "crash", pod.Name)
 	err = cmd1.Run()
 	checkError(err)

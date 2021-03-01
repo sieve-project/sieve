@@ -85,6 +85,10 @@ func (s *sparseReadServer) WaitBeforeReconcile(request *sonar.WaitBeforeReconcil
 		*response = sonar.Response{Message: request.ControllerName, Ok: true}
 		return nil
 	}
+	// reconcile needs to wait for 10s when queuesAreCold is false.
+	// queuesAreCold will only become true when no PushIntoQueue comes for 10s.
+	// This policy is heavily timing sensitive
+	// TODO: try to eliminate the indeterminism here
 	if s.queuesAreCold {
 		log.Println("No need to wait since queuesAreCold is true")
 		*response = sonar.Response{Message: request.ControllerName, Ok: true}
@@ -96,6 +100,7 @@ func (s *sparseReadServer) WaitBeforeReconcile(request *sonar.WaitBeforeReconcil
 	return nil
 }
 
+// receivingAllQueuedEvents runs in a goroutine.
 func (s *sparseReadServer) receivingAllQueuedEvents() {
 	for {
 		select {

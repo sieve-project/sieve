@@ -66,7 +66,9 @@ func checkResponse(response Response, reqName string) {
 	}
 }
 
-// RegisterQueue registers the queue with the controller to the server
+// RegisterQueue is invoked before controller creating a queue
+// RegisterQueue lets the server know which controller creates which queue,
+// this piece of information is not utilized by server so far.
 func RegisterQueue(queue interface{}, controllerName string) {
 	if !checkMode(sparseRead) {
 		return
@@ -92,7 +94,8 @@ func RegisterQueue(queue interface{}, controllerName string) {
 	client.Close()
 }
 
-// PushIntoQueue notifies the server that one event is pushed into queue
+// PushIntoQueue is invoked before controller calling q.Add
+// PushIntoQueue lets the server know how busy the queues and controller are.
 func PushIntoQueue(queue interface{}) {
 	if !checkMode(sparseRead) {
 		return
@@ -117,7 +120,9 @@ func PushIntoQueue(queue interface{}) {
 	client.Close()
 }
 
-// WaitBeforeReconcile waits until controller is allowed to reconcile
+// WaitBeforeReconcile is invoked before controller calling Reconcile()
+// WaitBeforeReconcile lets controller know a reconcile is going to happen,
+// and the controller should decide whether to delay it.
 func WaitBeforeReconcile(controllerName string) {
 	if !checkMode(sparseRead) {
 		return
@@ -141,6 +146,9 @@ func WaitBeforeReconcile(controllerName string) {
 	client.Close()
 }
 
+// WaitBeforeProcessEvent is invoked before apiserver calling processEvent()
+// WaitBeforeProcessEvent lets the server know the apiserver is going to process an event from etcd,
+// the server should decide whether to freeze the apiserver or restart the controller.
 func WaitBeforeProcessEvent(eventType, resourceType string) {
 	if !checkMode(staleness) {
 		// log.Printf("[sonar][NOT-ready][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
