@@ -10,6 +10,7 @@ mkdir -p $dir
 
 cd ..
 cp config/staleness.yaml sonar-server/server.yaml
+./teardown.sh
 ./setup.sh kind-ha.yaml
 
 cd cassandra-operator
@@ -56,5 +57,5 @@ kubectl cp $operator:/operator2.log $dir/operator2.log
 docker cp kind-control-plane:/sonar-server/sonar-server.log $dir/sonar-server.log
 kubectl describe CassandraDataCenter sonarcassandradatacenter > $dir/cdc.log
 
-cd ..
-./teardown.sh
+# cd ..
+# ./teardown.sh
