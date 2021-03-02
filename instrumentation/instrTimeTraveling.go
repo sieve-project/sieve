@@ -159,11 +159,11 @@ func instrumentWatchCacheGo(ifilepath, ofilepath string) {
 	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 	instrumentationInEventProcesss := &dst.ExprStmt{
 		X: &dst.CallExpr{
-			Fun:  &dst.Ident{Name: "WaitBeforeProcessEvent", Path: "sonar.client/pkg/sonar"},
+			Fun:  &dst.Ident{Name: "NotifyBeforeProcessEvent", Path: "sonar.client/pkg/sonar"},
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "w.expectedTypeName"}},
 		},
 	}
-	instrumentationInEventProcesss.Decs.End.Append("//sonar: WaitBeforeProcessEvent")
+	instrumentationInEventProcesss.Decs.End.Append("//sonar: NotifyBeforeProcessEvent")
 	funcDecl.Body.List[index] = instrumentationInEventProcesss
 
 	_, _, typeSpec := findTypeDecl(f, "watchCache")

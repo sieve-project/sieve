@@ -28,16 +28,16 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 		// Inside reconcileHandler() we find the callsite of Reconcile().
 		index, targetStmt := findCallingReconcileIfStmt(funcDecl)
 		if targetStmt != nil {
-			// Just before the callsite we invoke WaitBeforeReconcile (RPC to sonar server)
+			// Just before the callsite we invoke NotifyBeforeReconcile (RPC to sonar server)
 			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-			// Generate the expression to call WaitBeforeReconcile
+			// Generate the expression to call NotifyBeforeReconcile
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "WaitBeforeReconcile", Path: "sonar.client/pkg/sonar"},
+					Fun:  &dst.Ident{Name: "NotifyBeforeReconcile", Path: "sonar.client/pkg/sonar"},
 					Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 				},
 			}
-			instrumentation.Decs.Start.Append("//sonar: WaitBeforeReconcile")
+			instrumentation.Decs.Start.Append("//sonar: NotifyBeforeReconcile")
 			funcDecl.Body.List[index] = instrumentation
 		}
 	}
@@ -51,14 +51,14 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 			// Inject after making queue
 			index = index + 1
 			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-			// Generate the expression to call RegisterQueue
+			// Generate the expression to call NotifyBeforeMakeQ
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "RegisterQueue", Path: "sonar.client/pkg/sonar"},
+					Fun:  &dst.Ident{Name: "NotifyBeforeMakeQ", Path: "sonar.client/pkg/sonar"},
 					Args: []dst.Expr{&dst.Ident{Name: "c.Queue"}, &dst.Ident{Name: "c.Name"}},
 				},
 			}
-			instrumentation.Decs.Start.Append("//sonar: RegisterQueue")
+			instrumentation.Decs.Start.Append("//sonar: NotifyBeforeMakeQ")
 			funcDecl.Body.List[index] = instrumentation
 		}
 	}
@@ -165,11 +165,11 @@ func instrumentBeforeAddInList(list *[]dst.Stmt) {
 		*list = append((*list)[:index+1], (*list)[index:]...)
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "PushIntoQueue", Path: "sonar.client/pkg/sonar"},
+				Fun:  &dst.Ident{Name: "NotifyBeforeQAdd", Path: "sonar.client/pkg/sonar"},
 				Args: []dst.Expr{&dst.Ident{Name: "q"}},
 			},
 		}
-		instrumentation.Decs.Start.Append("//sonar: PushIntoQueue")
+		instrumentation.Decs.Start.Append("//sonar: NotifyBeforeQAdd")
 		(*list)[index] = instrumentation
 	}
 }

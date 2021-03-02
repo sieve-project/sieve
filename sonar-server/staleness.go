@@ -69,10 +69,10 @@ func (l *StalenessListener) Echo(request *sonar.EchoRequest, response *sonar.Res
 	return nil
 }
 
-// WaitBeforeProcessEvent is called when apiserver invokes `processEvent`.
+// NotifyBeforeProcessEvent is called when apiserver invokes `processEvent`.
 // It will decide (1) whether to freeze an apiserver and (2) whether to restart a controller
-func (l *StalenessListener) WaitBeforeProcessEvent(request *sonar.WaitBeforeProcessEventRequest, response *sonar.Response) error {
-	return l.Server.WaitBeforeProcessEvent(request, response)
+func (l *StalenessListener) NotifyBeforeProcessEvent(request *sonar.NotifyBeforeProcessEventRequest, response *sonar.Response) error {
+	return l.Server.NotifyBeforeProcessEvent(request, response)
 }
 
 type stalenessServer struct {
@@ -84,12 +84,12 @@ func (s *stalenessServer) Start() {
 	log.Println("start stalenessServer...")
 }
 
-func (s *stalenessServer) WaitBeforeProcessEvent(request *sonar.WaitBeforeProcessEventRequest, response *sonar.Response) error {
+func (s *stalenessServer) NotifyBeforeProcessEvent(request *sonar.NotifyBeforeProcessEventRequest, response *sonar.Response) error {
 	if request.ResourceType != s.freezeConfig.resourceType && request.ResourceType != s.restartConfig.resourceType {
 		*response = sonar.Response{Message: request.Hostname, Ok: true, Wait: 0}
 		return nil
 	}
-	log.Printf("WaitBeforeProcessEvent: EventType: %s, ResourceType: %s, Hostname: %s\n", request.EventType, request.ResourceType, request.Hostname)
+	log.Printf("NotifyBeforeProcessEvent: EventType: %s, ResourceType: %s, Hostname: %s\n", request.EventType, request.ResourceType, request.Hostname)
 	if s.shouldRestart(request) {
 		log.Printf("Should restart here...")
 		go s.waitAndRestartComponent()
@@ -108,7 +108,7 @@ func (s *stalenessServer) waitAndRestartComponent() {
 	s.restartComponent(s.restartConfig.pod)
 }
 
-func (s *stalenessServer) shouldFreeze(request *sonar.WaitBeforeProcessEventRequest) bool {
+func (s *stalenessServer) shouldFreeze(request *sonar.NotifyBeforeProcessEventRequest) bool {
 	return s.freezeConfig.apiserver == request.Hostname && s.freezeConfig.eventType == request.EventType && s.freezeConfig.resourceType == request.ResourceType
 }
 
@@ -118,7 +118,7 @@ func (s *stalenessServer) shouldFreeze(request *sonar.WaitBeforeProcessEventRequ
 // TODO: expose a high level interface to users
 // TODO: decouple crash and restart
 // TODO: consider more information from the apiserver
-func (s *stalenessServer) shouldRestart(request *sonar.WaitBeforeProcessEventRequest) bool {
+func (s *stalenessServer) shouldRestart(request *sonar.NotifyBeforeProcessEventRequest) bool {
 	if s.restartConfig.apiserver == request.Hostname && s.restartConfig.eventType == request.EventType && s.restartConfig.resourceType == request.ResourceType {
 		mutex.Lock()
 		defer mutex.Unlock()

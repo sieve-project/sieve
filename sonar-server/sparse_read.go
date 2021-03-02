@@ -31,19 +31,19 @@ func (l *SparseReadListener) Echo(request *sonar.EchoRequest, response *sonar.Re
 	return nil
 }
 
-// RegisterQueue registers the queue for the desired controller name
-func (l *SparseReadListener) RegisterQueue(request *sonar.RegisterQueueRequest, response *sonar.Response) error {
-	return l.Server.RegisterQueue(request, response)
+// NotifyBeforeMakeQ registers the queue for the desired controller name
+func (l *SparseReadListener) NotifyBeforeMakeQ(request *sonar.NotifyBeforeMakeQRequest, response *sonar.Response) error {
+	return l.Server.NotifyBeforeMakeQ(request, response)
 }
 
-// PushIntoQueue records each event pushed into the queue
-func (l *SparseReadListener) PushIntoQueue(request *sonar.PushIntoQueueRequest, response *sonar.Response) error {
-	return l.Server.PushIntoQueue(request, response)
+// NotifyBeforeQAdd records each event pushed into the queue
+func (l *SparseReadListener) NotifyBeforeQAdd(request *sonar.NotifyBeforeQAddRequest, response *sonar.Response) error {
+	return l.Server.NotifyBeforeQAdd(request, response)
 }
 
-// WaitBeforeReconcile blocks until reconcile is allowed
-func (l *SparseReadListener) WaitBeforeReconcile(request *sonar.WaitBeforeReconcileRequest, response *sonar.Response) error {
-	return l.Server.WaitBeforeReconcile(request, response)
+// NotifyBeforeReconcile blocks until reconcile is allowed
+func (l *SparseReadListener) NotifyBeforeReconcile(request *sonar.NotifyBeforeReconcileRequest, response *sonar.Response) error {
+	return l.Server.NotifyBeforeReconcile(request, response)
 }
 
 type sparseReadServer struct {
@@ -58,9 +58,9 @@ func (s *sparseReadServer) Start() {
 	go s.receivingAllQueuedEvents()
 }
 
-// RegisterQueue registers the queue for the desired controller name
-func (s *sparseReadServer) RegisterQueue(request *sonar.RegisterQueueRequest, response *sonar.Response) error {
-	log.Printf("RegisterQueue: QueueId: %s and ControlleName: %s\n", request.QueueID, request.ControllerName)
+// NotifyBeforeMakeQ registers the queue for the desired controller name
+func (s *sparseReadServer) NotifyBeforeMakeQ(request *sonar.NotifyBeforeMakeQRequest, response *sonar.Response) error {
+	log.Printf("NotifyBeforeMakeQ: QueueId: %s and ControlleName: %s\n", request.QueueID, request.ControllerName)
 	if _, loaded := s.controllerToQueue.LoadOrStore(request.ControllerName, request.QueueID); loaded {
 		*response = sonar.Response{Message: "controller has already been registered", Ok: false}
 		return nil
@@ -69,24 +69,24 @@ func (s *sparseReadServer) RegisterQueue(request *sonar.RegisterQueueRequest, re
 	return nil
 }
 
-// PushIntoQueue records each event pushed into the queue
-func (s *sparseReadServer) PushIntoQueue(request *sonar.PushIntoQueueRequest, response *sonar.Response) error {
-	log.Printf("PushIntoQueue: QueueId: %s\n", request.QueueID)
+// NotifyBeforeQAdd records each event pushed into the queue
+func (s *sparseReadServer) NotifyBeforeQAdd(request *sonar.NotifyBeforeQAddRequest, response *sonar.Response) error {
+	log.Printf("NotifyBeforeQAdd: QueueId: %s\n", request.QueueID)
 	s.eventCh <- request.QueueID
 	*response = sonar.Response{Message: request.QueueID, Ok: true}
 	return nil
 }
 
-// WaitBeforeReconcile blocks until reconcile is allowed
-func (s *sparseReadServer) WaitBeforeReconcile(request *sonar.WaitBeforeReconcileRequest, response *sonar.Response) error {
-	log.Printf("WaitBeforeReconcile: ControllerName: %s\n", request.ControllerName)
+// NotifyBeforeReconcile blocks until reconcile is allowed
+func (s *sparseReadServer) NotifyBeforeReconcile(request *sonar.NotifyBeforeReconcileRequest, response *sonar.Response) error {
+	log.Printf("NotifyBeforeReconcile: ControllerName: %s\n", request.ControllerName)
 	if request.ControllerName != s.controllerName {
 		log.Printf("%s != %s (expected), no need to wait\n", request.ControllerName, s.controllerName)
 		*response = sonar.Response{Message: request.ControllerName, Ok: true}
 		return nil
 	}
 	// reconcile needs to wait for 10s when queuesAreCold is false.
-	// queuesAreCold will only become true when no PushIntoQueue comes for 10s.
+	// queuesAreCold will only become true when no NotifyBeforeQAdd comes for 10s.
 	// This policy is heavily timing sensitive
 	// TODO: try to eliminate the indeterminism here
 	if s.queuesAreCold {

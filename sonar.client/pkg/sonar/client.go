@@ -66,98 +66,98 @@ func checkResponse(response Response, reqName string) {
 	}
 }
 
-// RegisterQueue is invoked before controller creating a queue
-// RegisterQueue lets the server know which controller creates which queue,
+// NotifyBeforeMakeQ is invoked before controller creating a queue
+// NotifyBeforeMakeQ lets the server know which controller creates which queue,
 // this piece of information is not utilized by server so far.
-func RegisterQueue(queue interface{}, controllerName string) {
+func NotifyBeforeMakeQ(queue interface{}, controllerName string) {
 	if !checkMode(sparseRead) {
 		return
 	}
-	log.Printf("[sonar][RegisterQueue] queue: %p, controllerName: %s\n", queue, controllerName)
+	log.Printf("[sonar][NotifyBeforeMakeQ] queue: %p, controllerName: %s\n", queue, controllerName)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
 		return
 	}
 	queueID := fmt.Sprintf("%p", queue)
-	request := &RegisterQueueRequest{
+	request := &NotifyBeforeMakeQRequest{
 		QueueID:        queueID,
 		ControllerName: controllerName,
 	}
 	var response Response
-	err = client.Call("SparseReadListener.RegisterQueue", request, &response)
+	err = client.Call("SparseReadListener.NotifyBeforeMakeQ", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "RegisterQueue")
+	checkResponse(response, "NotifyBeforeMakeQ")
 	client.Close()
 }
 
-// PushIntoQueue is invoked before controller calling q.Add
-// PushIntoQueue lets the server know how busy the queues and controller are.
-func PushIntoQueue(queue interface{}) {
+// NotifyBeforeQAdd is invoked before controller calling q.Add
+// NotifyBeforeQAdd lets the server know how busy the queues and controller are.
+func NotifyBeforeQAdd(queue interface{}) {
 	if !checkMode(sparseRead) {
 		return
 	}
-	log.Printf("[sonar][PushIntoQueue] queue: %p\n", queue)
+	log.Printf("[sonar][NotifyBeforeQAdd] queue: %p\n", queue)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
 		return
 	}
 	queueID := fmt.Sprintf("%p", queue)
-	request := &PushIntoQueueRequest{
+	request := &NotifyBeforeQAddRequest{
 		QueueID: queueID,
 	}
 	var response Response
-	err = client.Call("SparseReadListener.PushIntoQueue", request, &response)
+	err = client.Call("SparseReadListener.NotifyBeforeQAdd", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "PushIntoQueue")
+	checkResponse(response, "NotifyBeforeQAdd")
 	client.Close()
 }
 
-// WaitBeforeReconcile is invoked before controller calling Reconcile()
-// WaitBeforeReconcile lets controller know a reconcile is going to happen,
+// NotifyBeforeReconcile is invoked before controller calling Reconcile()
+// NotifyBeforeReconcile lets controller know a reconcile is going to happen,
 // and the controller should decide whether to delay it.
-func WaitBeforeReconcile(controllerName string) {
+func NotifyBeforeReconcile(controllerName string) {
 	if !checkMode(sparseRead) {
 		return
 	}
-	log.Printf("[sonar][WaitBeforeReconcile] controllerName: %s\n", controllerName)
+	log.Printf("[sonar][NotifyBeforeReconcile] controllerName: %s\n", controllerName)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
 		return
 	}
-	request := &WaitBeforeReconcileRequest{
+	request := &NotifyBeforeReconcileRequest{
 		ControllerName: controllerName,
 	}
 	var response Response
-	err = client.Call("SparseReadListener.WaitBeforeReconcile", request, &response)
+	err = client.Call("SparseReadListener.NotifyBeforeReconcile", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "WaitBeforeReconcile")
+	checkResponse(response, "NotifyBeforeReconcile")
 	client.Close()
 }
 
-// WaitBeforeProcessEvent is invoked before apiserver calling processEvent()
-// WaitBeforeProcessEvent lets the server know the apiserver is going to process an event from etcd,
+// NotifyBeforeProcessEvent is invoked before apiserver calling processEvent()
+// NotifyBeforeProcessEvent lets the server know the apiserver is going to process an event from etcd,
 // the server should decide whether to freeze the apiserver or restart the controller.
-func WaitBeforeProcessEvent(eventType, resourceType string) {
+func NotifyBeforeProcessEvent(eventType, resourceType string) {
 	if !checkMode(staleness) {
-		// log.Printf("[sonar][NOT-ready][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
+		// log.Printf("[sonar][NOT-ready][NotifyBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
 		return
 	}
 	if resourceType != config["freeze-resource-type"] && resourceType != config["restart-resource-type"] {
 		return
 	}
-	log.Printf("[sonar][WaitBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
+	log.Printf("[sonar][NotifyBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -168,20 +168,20 @@ func WaitBeforeProcessEvent(eventType, resourceType string) {
 		printError(err, hostError)
 		return
 	}
-	request := &WaitBeforeProcessEventRequest{
+	request := &NotifyBeforeProcessEventRequest{
 		EventType:    eventType,
 		ResourceType: resourceType,
 		Hostname:     hostname,
 	}
 	var response Response
-	err = client.Call("StalenessListener.WaitBeforeProcessEvent", request, &response)
+	err = client.Call("StalenessListener.NotifyBeforeProcessEvent", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "WaitBeforeProcessEvent")
+	checkResponse(response, "NotifyBeforeProcessEvent")
 	if response.Wait != 0 {
-		log.Printf("[sonar][WaitBeforeProcessEvent] should sleep for %d seconds here", response.Wait)
+		log.Printf("[sonar][NotifyBeforeProcessEvent] should sleep for %d seconds here", response.Wait)
 		time.Sleep(time.Duration(response.Wait) * time.Second)
 	}
 	client.Close()

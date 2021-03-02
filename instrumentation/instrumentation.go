@@ -9,13 +9,13 @@ import (
 // instrment for sparse-read pattern
 func instrumentSparseRead(filepath string) {
 	// Mainly two pieces of instrumentation we should do for sparse-read:
-	// In controller.go, we need to invoke WaitBeforeReconcile before calling Reconcile(),
-	// and invoke `RegisterQueue` before creating a queue.
+	// In controller.go, we need to invoke NotifyBeforeReconcile before calling Reconcile(),
+	// and invoke NotifyBeforeMakeQ before creating a queue.
 	controllerGoFile := path.Join(filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
 	instrumentControllerGo(controllerGoFile, controllerGoFile)
 
-	// In enqueue*.go, we need to invoke PushIntoQueue before calling each q.Add().
+	// In enqueue*.go, we need to invoke NotifyBeforeQAdd before calling each q.Add().
 	enqueueGoFile := path.Join(filepath, "pkg", "handler", "enqueue.go")
 	fmt.Printf("instrumenting %s\n", enqueueGoFile)
 	instrumentEnqueueGo(enqueueGoFile, enqueueGoFile)
@@ -42,7 +42,7 @@ func instrumentTimeTravel(filepath string) {
 	fmt.Printf("instrumenting %s\n", cacherGoFile)
 	instrumentCacherGo(cacherGoFile, cacherGoFile)
 
-	// In watch_cache.go, we need to invoke WaitBeforeProcessEvent in watch_cache.go.
+	// In watch_cache.go, we need to invoke NotifyBeforeProcessEvent in watch_cache.go.
 	watchCacheGoFile := path.Join(filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
 	instrumentWatchCacheGo(watchCacheGoFile, watchCacheGoFile)
