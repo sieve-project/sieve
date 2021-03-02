@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"go/token"
 	"io/ioutil"
 	"os"
@@ -143,7 +142,7 @@ func instrumentBeforeAddInList(list *[]dst.Stmt) {
 			if callExpr, ok := exprStmt.X.(*dst.CallExpr); ok {
 				if selectorExpr, ok := callExpr.Fun.(*dst.SelectorExpr); ok {
 					if selectorExpr.Sel.Name == "Add" {
-						fmt.Println("find Add")
+						// fmt.Println("find Add")
 						toInstrument = append(toInstrument, i)
 					}
 				}
