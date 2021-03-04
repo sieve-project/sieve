@@ -1,3 +1,11 @@
 mode: staleness
-apiserver: kind-control-plane2
-resource-type: "*apps.StatefulSet"
+freeze-apiserver: kind-control-plane2
+freeze-resource-type: "*apps.StatefulSet"
+freeze-event-type: DELETED
+freeze-duration: 800
+restart-pod: cassandra-operator
+restart-apiserver: kind-control-plane
+restart-resource-type: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter"
+restart-event-type: DELETED
+restart-times: 1
+restart-wait: 50

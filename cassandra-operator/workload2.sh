@@ -2,22 +2,43 @@
 
 set -ex
 
-dir=$1
-if [ -z "$dir" ]; then
-    dir="log"
-fi
+dir="log"
+normal=false
+while getopts ":d:n" arg; do
+    case $arg in
+        d) # Specify log directory.
+        dir=${OPTARG}
+        ;;
+        n) # Test without instrumentation.
+        normal=true
+        ;;
+        h | *) # Display help.
+        usage
+        ;;
+    esac
+done
+
 mkdir -p $dir
 
 cd ..
-cp config/staleness.yaml sonar-server/server.yaml
+if [ "$normal" = false ] ; then
+  cp config/staleness.yaml sonar-server/server.yaml
+else
+  cp config/none.yaml sonar-server/server.yaml
+fi
 ./teardown.sh
 ./setup.sh kind-ha.yaml
 
 cd cassandra-operator
 ./bootstrap.sh
 sleep 70s
-kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
-kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
+if [ "$normal" = false ] ; then
+  kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
+  kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
+else
+  kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
+  kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
+fi
 operator=`kubectl get pods | grep cassandra-operator | cut -f1 -d " "`
 kubectl exec $operator -- /bin/bash -c "KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &"
 
