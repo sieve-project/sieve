@@ -2,6 +2,7 @@ import optparse
 import os
 import kubernetes
 import enum
+import time
 
 log_dir = "log"
 k8s_namespace = "default"
@@ -68,6 +69,32 @@ def compare_digest(digest_normal, digest_faulty):
         print("[FIND BUG] # alarms: %d" % (alarm))
 
 
+def cassandra_t1(normal):
+    if normal:
+        os.system("cp config/none.yaml sonar-server/server.yaml")
+    else:
+        os.system("cp config/sparse-read.yaml sonar-server/server.yaml")
+    os.system("kind delete cluster")
+    os.system("./setup.sh kind.yaml")
+
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    os.system("kubectl apply -f cassandra-operator/crds.yaml")
+    os.system("kubectl apply -f cassandra-operator/bundle.yaml")
+    time.sleep(60)
+    os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
+    pod = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name=cassandra-operator").items[0]
+    if normal:
+        os.system("kubectl cp config/none.yaml %s:/sonar.yaml" % (pod.metadata.name))
+    else:
+        os.system("kubectl cp config/sparse-read.yaml %s:/sonar.yaml" % (pod.metadata.name))
+    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator.log &\"" % (pod.metadata.name))
+    os.system("kubectl apply -f cassandra-operator/cdc-2.yaml")
+    time.sleep(200)
+    os.system("kubectl apply -f cassandra-operator/cdc-1.yaml")
+    time.sleep(150)
+
+
 
 if __name__ == "__main__":
     usage = "usage: python3 test1.py -d [DIR]"
@@ -81,10 +108,12 @@ if __name__ == "__main__":
     # os.makedirs(log_dir, exist_ok = True)
     print("dir is %s" % (log_dir))
 
-    os.system("./workload1.sh -d log-normal -n")
+    # os.system("./workload3.sh -d log-normal -n")
+    cassandra_t1(True)
     digest_normal = generate_digest()
     
-    os.system("./workload1.sh -d log-faulty")
+    # os.system("./workload3.sh -d log-faulty")
+    cassandra_t1(False)
     digest_faulty = generate_digest()
 
     compare_digest(digest_normal, digest_faulty)
