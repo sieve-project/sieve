@@ -86,6 +86,30 @@ func instrumentCacherGo(ifilepath, ofilepath string) {
 	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 	funcDecl.Body.List[index] = instrumentation
 
+	// log out type name for checking status
+	instrumentation = &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun: &dst.Ident{Name: "Infof", Path: "k8s.io/klog"},
+			Args: []dst.Expr{
+				&dst.BasicLit{
+					Kind:  token.STRING,
+					Value: "[sonar][type] %s",
+				},
+				&dst.CallExpr{
+					Fun: &dst.SelectorExpr{
+						X:   &dst.Ident{Name: "reflector"},
+						Sel: &dst.Ident{Name: "GetExpectedTypeName"},
+					},
+					Args: []dst.Expr{},
+				},
+			},
+		},
+	}
+	instrumentation.Decs.Start.Append("//sonar")
+	index = index + 1
+	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
+	funcDecl.Body.List[index] = instrumentation
+
 	writeInstrumentedFile("cacher", ofilepath, f)
 }
 

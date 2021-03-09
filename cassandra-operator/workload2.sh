@@ -20,27 +20,28 @@ done
 
 mkdir -p $dir
 
-cd ..
-if [ "$normal" = false ] ; then
-  cp config/staleness.yaml sonar-server/server.yaml
-else
-  cp config/none.yaml sonar-server/server.yaml
-fi
-./teardown.sh
-./setup.sh kind-ha.yaml
+# cd ..
+# if [ "$normal" = false ] ; then
+#   cp config/staleness.yaml sonar-server/server.yaml
+# else
+#   cp config/none.yaml sonar-server/server.yaml
+# fi
+# ./teardown.sh
+# ./setup.sh kind-ha.yaml
 
-cd cassandra-operator
-./bootstrap.sh
-sleep 70s
-if [ "$normal" = false ] ; then
-  kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
-  kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
-else
-  kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
-  kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
-fi
-operator=`kubectl get pods | grep cassandra-operator | cut -f1 -d " "`
-kubectl exec $operator -- /bin/bash -c "KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &"
+# cd cassandra-operator
+# ./bootstrap.sh
+# sleep 70s
+# if [ "$normal" = false ] ; then
+#   kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
+#   kubectl cp ../config/staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
+# else
+#   kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system
+#   kubectl cp ../config/none.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system
+# fi
+# operator=`kubectl get pods | grep cassandra-operator | cut -f1 -d " "`
+# kubectl cp ../config/none.yaml $operator:/sonar.yaml
+# kubectl exec $operator -- /bin/bash -c "KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &"
 
 kubectl apply -f cdc-1.yaml
 sleep 150s

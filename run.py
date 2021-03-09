@@ -40,7 +40,7 @@ def generate_digest():
 
 def check_len(list1, list2, ktype):
     if len(list1) != len(list2):
-        print("%s has different length: %d %d" % (ktype, len(list1), len(list2)))
+        print("%s has different length: normal: %d faulty: %d" % (ktype, len(list1), len(list2)))
         return 1
     return 0
 
@@ -56,7 +56,7 @@ def check_deletion_timestamp(list1, list2, ktype):
         if item.metadata.deletion_timestamp != None:
             terminating2 += 1
     if terminating1 != terminating2:
-        print("%s has different terminating resources: %d %d" % (ktype, terminating1, terminating2))
+        print("%s has different terminating resources: normal: %d faulty: %d" % (ktype, terminating1, terminating2))
         return 1
     return 0
 
@@ -88,12 +88,55 @@ def cassandra_t1(normal):
         os.system("kubectl cp config/none.yaml %s:/sonar.yaml" % (pod.metadata.name))
     else:
         os.system("kubectl cp config/sparse-read.yaml %s:/sonar.yaml" % (pod.metadata.name))
-    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator.log &\"" % (pod.metadata.name))
+    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &\"" % (pod.metadata.name))
     os.system("kubectl apply -f cassandra-operator/cdc-2.yaml")
     time.sleep(200)
     os.system("kubectl apply -f cassandra-operator/cdc-1.yaml")
     time.sleep(150)
 
+def cassandra_t2(normal):
+    if normal:
+        log_dir = "log_ct2_normal"
+    else:
+        log_dir = "log_ct2_faulty"
+    os.system("rm -rf %s" % (log_dir))
+    os.system("mkdir -p %s" % (log_dir))
+
+    if normal:
+        os.system("cp config/none.yaml sonar-server/server.yaml")
+    else:
+        os.system("cp config/staleness.yaml sonar-server/server.yaml")
+    os.system("kind delete cluster")
+    os.system("./setup.sh kind-ha.yaml")
+
+    os.system("kubectl apply -f cassandra-operator/crds.yaml")
+    os.system("kubectl apply -f cassandra-operator/bundle.yaml")
+    time.sleep(70)
+
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    pod = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name=cassandra-operator").items[0]
+    print("pod name %s" % pod.metadata.name)
+
+    if normal:
+        os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
+        os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system")
+    else:
+        os.system("kubectl cp config/staleness.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
+        os.system("kubectl cp config/staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system")
+
+    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &\"" % (pod.metadata.name))
+
+    org_dir = os.getcwd()
+    os.chdir(os.path.join(org_dir, "cassandra-operator"))
+    os.system("./test2.sh")
+    os.chdir(org_dir)
+
+    os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
+    os.system("kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
+    os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
+    os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod.metadata.name, log_dir))
+    os.system("kubectl cp %s:/operator2.log %s/operator2.log" % (pod.metadata.name, log_dir))
 
 
 if __name__ == "__main__":
@@ -108,20 +151,12 @@ if __name__ == "__main__":
     # os.makedirs(log_dir, exist_ok = True)
     print("dir is %s" % (log_dir))
 
-    # os.system("./workload3.sh -d log-normal -n")
-    cassandra_t1(True)
+    cassandra_t2(True)
     digest_normal = generate_digest()
-    
-    # os.system("./workload3.sh -d log-faulty")
-    cassandra_t1(False)
+    cassandra_t2(False)
     digest_faulty = generate_digest()
-
     compare_digest(digest_normal, digest_faulty)
-    # kubernetes.config.load_kube_config()
-    # core_v1 = kubernetes.client.CoreV1Api()
-    # ret = core_v1.list_namespaced_persistent_volume_claim("default", watch=False)
-    # for i in ret.items:
-    #     print("%s\t%s\t%s" % (i.metadata.name, i.status.phase, i.metadata.deletion_timestamp))
+
 
 
         
