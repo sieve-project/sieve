@@ -3,6 +3,7 @@ package main
 import (
 	"go/token"
 	"io/ioutil"
+	"os"
 
 	"github.com/dave/dst"
 
@@ -64,13 +65,15 @@ func instrumentCacherGo(ifilepath, ofilepath string) {
 	if index == -1 {
 		panic("instrumentCacherGo error")
 	}
+
+	// log out type name for checking status
 	instrumentation := &dst.ExprStmt{
 		X: &dst.CallExpr{
-			Fun: &dst.SelectorExpr{
-				X:   &dst.Ident{Name: "watchCache"},
-				Sel: &dst.Ident{Name: "SetExpectedTypeName"},
-			},
+			Fun: &dst.Ident{Name: "Infof", Path: "k8s.io/klog"},
 			Args: []dst.Expr{
+				&dst.Ident{
+					Name: "\"[sonar][type] %s\"",
+				},
 				&dst.CallExpr{
 					Fun: &dst.SelectorExpr{
 						X:   &dst.Ident{Name: "reflector"},
@@ -86,29 +89,29 @@ func instrumentCacherGo(ifilepath, ofilepath string) {
 	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 	funcDecl.Body.List[index] = instrumentation
 
-	// log out type name for checking status
-	instrumentation = &dst.ExprStmt{
-		X: &dst.CallExpr{
-			Fun: &dst.Ident{Name: "Infof", Path: "k8s.io/klog"},
-			Args: []dst.Expr{
-				&dst.BasicLit{
-					Kind:  token.STRING,
-					Value: "[sonar][type] %s",
+	if os.Args[1] == "time-travel" {
+		instrumentation = &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun: &dst.SelectorExpr{
+					X:   &dst.Ident{Name: "watchCache"},
+					Sel: &dst.Ident{Name: "SetExpectedTypeName"},
 				},
-				&dst.CallExpr{
-					Fun: &dst.SelectorExpr{
-						X:   &dst.Ident{Name: "reflector"},
-						Sel: &dst.Ident{Name: "GetExpectedTypeName"},
+				Args: []dst.Expr{
+					&dst.CallExpr{
+						Fun: &dst.SelectorExpr{
+							X:   &dst.Ident{Name: "reflector"},
+							Sel: &dst.Ident{Name: "GetExpectedTypeName"},
+						},
+						Args: []dst.Expr{},
 					},
-					Args: []dst.Expr{},
 				},
 			},
-		},
+		}
+		instrumentation.Decs.Start.Append("//sonar")
+		index = index + 1
+		funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
+		funcDecl.Body.List[index] = instrumentation
 	}
-	instrumentation.Decs.Start.Append("//sonar")
-	index = index + 1
-	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-	funcDecl.Body.List[index] = instrumentation
 
 	writeInstrumentedFile("cacher", ofilepath, f)
 }

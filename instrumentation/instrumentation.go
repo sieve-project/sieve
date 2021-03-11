@@ -52,9 +52,10 @@ func instrumentTimeTravel(filepath string) {
 
 func main() {
 	args := os.Args
+	instrumentForAll(args[2])
 	if args[1] == "sparse-read" {
-		instrumentSparseRead(args[2])
-	} else if args[1] == "staleness" {
+		instrumentSparseRead(args[3])
+	} else if args[1] == "time-travel" {
 		instrumentTimeTravel(args[2])
 	}
 }
