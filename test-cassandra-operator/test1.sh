@@ -2,7 +2,7 @@
 
 set -ex
 
-kubectl apply -f cdc-2.yaml
+kubectl apply -f config/cdc-2.yaml
 sleep 200s
-kubectl apply -f cdc-1.yaml
+kubectl apply -f config/cdc-1.yaml
 sleep 150s

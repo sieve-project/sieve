@@ -15,6 +15,8 @@ STS = "statefulSet"
 
 ktypes = [POD, PVC, DEPLOYMENT, STS]
 
+blank_config = "config/none.yaml"
+
 class Digest:
     def __init__(self, core_v1, apps_v1):
         self.resources = {}
@@ -68,131 +70,82 @@ def compare_digest(digest_normal, digest_faulty):
     if alarm != 0:
         print("[FIND BUG] # alarms: %d" % (alarm))
 
+def cassandra_run(test_script, server_config, controller_config, apiserver_config, ha, restart, log_dir):
+    os.system("rm -rf %s" % (log_dir))
+    os.system("mkdir -p %s" % (log_dir))
+    os.system("cp %s sonar-server/server.yaml" % (server_config))
+    os.system("kind delete cluster")
+    if ha:
+        os.system("./setup.sh kind-ha.yaml")
+    else:
+        os.system("./setup.sh kind.yaml")
+
+    time.sleep(60)
+    if ha:
+        time.sleep(20) # sleep 20 more seconds for HA mode since there are more nodes
+
+    os.system("kubectl cp %s kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system" % (apiserver_config))
+    if ha:
+        os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" % (apiserver_config))
+        # os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" % (apiserver_config))
+        # os.system("kubectl cp %s kube-apiserver-kind-control-plane4:/sonar.yaml -n kube-system" % (apiserver_config))
+    time.sleep(5)
+    os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
+    os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
+    time.sleep(25)
+
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    pod_name = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name=cassandra-operator").items[0].metadata.name
+    api1_addr = "https://" + core_v1.list_node(watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
+    api2_addr = "https://" + core_v1.list_node(watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
+    os.system("kubectl get CassandraDataCenter -s %s" % (api1_addr))
+    os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
+
+    os.system("kubectl cp %s %s:/sonar.yaml" % (controller_config, pod_name))
+    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &\"" % (pod_name))
+
+    org_dir = os.getcwd()
+    os.chdir(os.path.join(org_dir, "test-cassandra-operator"))
+    os.system("./%s %s" % (test_script, api1_addr))
+    os.chdir(org_dir)
+
+    os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
+    if ha:
+        os.system("kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
+        # os.system("kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
+        # os.system("kubectl logs kube-apiserver-kind-control-plane4 -n kube-system > %s/apiserver4.log" % (log_dir))
+    os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
+    os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod_name, log_dir))
+    if restart:
+        os.system("kubectl cp %s:/operator2.log %s/operator2.log" % (pod_name, log_dir))
 
 def cassandra_t1(normal):
     if normal:
-        log_dir = "log_ct1_normal"
+        log_dir = "log/ca1/normal"
+        test_config = blank_config
     else:
-        log_dir = "log_ct1_faulty"
-    os.system("rm -rf %s" % (log_dir))
-    os.system("mkdir -p %s" % (log_dir))
-
-    if normal:
-        os.system("cp config/none.yaml sonar-server/server.yaml")
-    else:
-        os.system("cp config/sparse-read.yaml sonar-server/server.yaml")
-    os.system("kind delete cluster")
-    os.system("./setup.sh kind.yaml")
-
-    os.system("kubectl apply -f cassandra-operator/crds.yaml")
-    os.system("kubectl apply -f cassandra-operator/bundle.yaml")
-    time.sleep(60)
-    os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
-    kubernetes.config.load_kube_config()
-    core_v1 = kubernetes.client.CoreV1Api()
-    pod = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name=cassandra-operator").items[0]
-    if normal:
-        os.system("kubectl cp config/none.yaml %s:/sonar.yaml" % (pod.metadata.name))
-    else:
-        os.system("kubectl cp config/sparse-read.yaml %s:/sonar.yaml" % (pod.metadata.name))
-    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &\"" % (pod.metadata.name))
-
-    org_dir = os.getcwd()
-    os.chdir(os.path.join(org_dir, "cassandra-operator"))
-    os.system("./test1.sh")
-    os.chdir(org_dir)
-
-    os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
-    os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
-    os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod.metadata.name, log_dir))
+        log_dir = "log/ca1/faulty"
+        test_config = "test-cassandra-operator/config/bug1.yaml"
+    cassandra_run("test1.sh", test_config, test_config, blank_config, False, False, log_dir)
 
 def cassandra_t2(normal):
     if normal:
-        log_dir = "log_ct2_normal"
+        log_dir = "log/ca2/normal"
+        test_config = blank_config
     else:
-        log_dir = "log_ct2_faulty"
-    os.system("rm -rf %s" % (log_dir))
-    os.system("mkdir -p %s" % (log_dir))
-
-    if normal:
-        os.system("cp config/none.yaml sonar-server/server.yaml")
-    else:
-        os.system("cp config/staleness.yaml sonar-server/server.yaml")
-    os.system("kind delete cluster")
-    os.system("./setup.sh kind-ha.yaml")
-
-    os.system("kubectl apply -f cassandra-operator/crds.yaml")
-    os.system("kubectl apply -f cassandra-operator/bundle.yaml")
-    time.sleep(70)
-
-    kubernetes.config.load_kube_config()
-    core_v1 = kubernetes.client.CoreV1Api()
-    pod = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name=cassandra-operator").items[0]
-    print("pod name %s" % pod.metadata.name)
-
-    if normal:
-        os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
-        os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system")
-    else:
-        os.system("kubectl cp config/staleness.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
-        os.system("kubectl cp config/staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system")
-
-    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &\"" % (pod.metadata.name))
-
-    org_dir = os.getcwd()
-    os.chdir(os.path.join(org_dir, "cassandra-operator"))
-    os.system("./test2.sh")
-    os.chdir(org_dir)
-
-    os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
-    os.system("kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-    os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
-    os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod.metadata.name, log_dir))
-    os.system("kubectl cp %s:/operator2.log %s/operator2.log" % (pod.metadata.name, log_dir))
+        log_dir = "log/ca2/faulty"
+        test_config = "test-cassandra-operator/config/bug2.yaml"
+    cassandra_run("test2.sh", test_config, blank_config, test_config, True, True, log_dir)
 
 def cassandra_t3(normal):
     if normal:
-        log_dir = "log_ct3_normal"
+        log_dir = "log/ca3/normal"
+        test_config = blank_config
     else:
-        log_dir = "log_ct3_faulty"
-    os.system("rm -rf %s" % (log_dir))
-    os.system("mkdir -p %s" % (log_dir))
-
-    if normal:
-        os.system("cp config/none.yaml sonar-server/server.yaml")
-    else:
-        os.system("cp config/sts-staleness.yaml sonar-server/server.yaml")
-    os.system("kind delete cluster")
-    os.system("./setup.sh kind-ha.yaml")
-
-    os.system("kubectl apply -f cassandra-operator/crds.yaml")
-    os.system("kubectl apply -f cassandra-operator/bundle.yaml")
-    time.sleep(70)
-
-    kubernetes.config.load_kube_config()
-    core_v1 = kubernetes.client.CoreV1Api()
-    pod = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name=cassandra-operator").items[0]
-    print("pod name %s" % pod.metadata.name)
-
-    if normal:
-        os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
-        os.system("kubectl cp config/none.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system")
-    else:
-        os.system("kubectl cp config/sts-staleness.yaml kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system")
-        os.system("kubectl cp config/sts-staleness.yaml kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system")
-
-    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &\"" % (pod.metadata.name))
-
-    org_dir = os.getcwd()
-    os.chdir(os.path.join(org_dir, "cassandra-operator"))
-    os.system("./test3.sh")
-    os.chdir(org_dir)
-
-    os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
-    os.system("kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-    os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
-    os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod.metadata.name, log_dir))
-    os.system("kubectl cp %s:/operator2.log %s/operator2.log" % (pod.metadata.name, log_dir))
+        log_dir = "log/ca3/faulty"
+        test_config = "test-cassandra-operator/config/bug3.yaml"
+    cassandra_run("test3.sh", test_config, blank_config, test_config, True, True, log_dir)
 
 if __name__ == "__main__":
     usage = "usage: python3 test1.py -d [DIR]"
@@ -206,8 +159,8 @@ if __name__ == "__main__":
     # os.makedirs(log_dir, exist_ok = True)
     print("dir is %s" % (log_dir))
 
-    cassandra_t1(True)
+    cassandra_t2(True)
     digest_normal = generate_digest()
-    cassandra_t1(False)
+    cassandra_t2(False)
     digest_faulty = generate_digest()
     compare_digest(digest_normal, digest_faulty)
