@@ -27,7 +27,7 @@ class Digest:
             self.resources[POD].append(pod)
         for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
             self.resources[PVC].append(pvc)
-            print("%s\t%s\t%s" % (pvc.metadata.name, pvc.status.phase, pvc.metadata.deletion_timestamp))
+            # print("%s\t%s\t%s" % (pvc.metadata.name, pvc.status.phase, pvc.metadata.deletion_timestamp))
         for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
             self.resources[DEPLOYMENT].append(dp)
         for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
@@ -39,6 +39,9 @@ def generate_digest():
     apps_v1 = kubernetes.client.AppsV1Api()
     digest = Digest(core_v1, apps_v1)
     return digest
+
+def log_digest(digest):
+    print("We should generate a json for the digest", digest)
 
 def check_len(list1, list2, ktype):
     if len(list1) != len(list2):
@@ -87,8 +90,7 @@ def cassandra_run(test_script, server_config, controller_config, apiserver_confi
     os.system("kubectl cp %s kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system" % (apiserver_config))
     if ha:
         os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" % (apiserver_config))
-        # os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" % (apiserver_config))
-        # os.system("kubectl cp %s kube-apiserver-kind-control-plane4:/sonar.yaml -n kube-system" % (apiserver_config))
+
     time.sleep(5)
     os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
     os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
@@ -113,54 +115,80 @@ def cassandra_run(test_script, server_config, controller_config, apiserver_confi
     os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
     if ha:
         os.system("kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-        # os.system("kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
-        # os.system("kubectl logs kube-apiserver-kind-control-plane4 -n kube-system > %s/apiserver4.log" % (log_dir))
+
     os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod_name, log_dir))
     if restart:
         os.system("kubectl cp %s:/operator2.log %s/operator2.log" % (pod_name, log_dir))
 
-def cassandra_t1(normal):
+def cassandra_t1(log, normal):
     if normal:
-        log_dir = "log/ca1/normal"
+        log_dir = os.path.join(log, "ca1/normal")
         test_config = blank_config
     else:
-        log_dir = "log/ca1/faulty"
+        log_dir = os.path.join(log, "ca1/faulty")
         test_config = "test-cassandra-operator/config/bug1.yaml"
     cassandra_run("test1.sh", test_config, test_config, blank_config, False, False, log_dir)
 
-def cassandra_t2(normal):
+def cassandra_t2(log, normal):
     if normal:
-        log_dir = "log/ca2/normal"
+        log_dir = os.path.join(log, "ca2/normal")
         test_config = blank_config
     else:
-        log_dir = "log/ca2/faulty"
+        log_dir = os.path.join(log, "ca2/faulty")
         test_config = "test-cassandra-operator/config/bug2.yaml"
     cassandra_run("test2.sh", test_config, blank_config, test_config, True, True, log_dir)
 
-def cassandra_t3(normal):
+def cassandra_t3(log, normal):
     if normal:
-        log_dir = "log/ca3/normal"
+        log_dir = os.path.join(log, "ca3/normal")
         test_config = blank_config
     else:
-        log_dir = "log/ca3/faulty"
+        log_dir = os.path.join(log, "ca3/faulty")
         test_config = "test-cassandra-operator/config/bug3.yaml"
     cassandra_run("test3.sh", test_config, blank_config, test_config, True, True, log_dir)
 
+def generate_test_suites():
+    test_suites = {}
+    test_suites["cassandra-operator"] = {}
+    test_suites["cassandra-operator"]["test1"] = cassandra_t1
+    test_suites["cassandra-operator"]["test2"] = cassandra_t2
+    test_suites["cassandra-operator"]["test3"] = cassandra_t3
+    return test_suites
+
+def run(test_suites, project, test, dir, mode):
+    test = test_suites[project][test]
+    if mode == "generate":
+        test(dir, True)
+        digest_normal = generate_digest()
+        log_digest(digest_normal)
+    elif mode == "compare":
+        test(dir, True)
+        digest_normal = generate_digest()
+        log_digest(digest_normal)
+        test(dir, False)
+        digest_faulty = generate_digest()
+        compare_digest(digest_normal, digest_faulty)
+    else:
+        assert False, "wrong mode option"
+
 if __name__ == "__main__":
-    usage = "usage: python3 test1.py -d [DIR]"
+    usage = "usage: python3 run.py [options]"
     parser = optparse.OptionParser(usage=usage)
+    parser.add_option("-p", "--project", dest="project",
+                  help="specify PROJECT to test", metavar="PROJECT", default="cassandra-operator")
+    parser.add_option("-t", "--test", dest="test",
+                  help="specify TEST to run", metavar="TEST", default="test2")
     parser.add_option("-d", "--dir", dest="dir",
-                  help="write report to DIR", metavar="DIR")
+                  help="write log to DIR", metavar="DIR", default="log")
+    parser.add_option("-m", "--mode", dest="mode",
+                  help="test MODE: generate or compare", metavar="MODE", default="compare")
 
     (options, args) = parser.parse_args()
-    if options.dir != None:
-        log_dir = options.dir
-    # os.makedirs(log_dir, exist_ok = True)
-    print("dir is %s" % (log_dir))
+    dir = options.dir
+    project = options.project
+    test = options.test
+    mode = options.mode
 
-    cassandra_t2(True)
-    digest_normal = generate_digest()
-    cassandra_t2(False)
-    digest_faulty = generate_digest()
-    compare_digest(digest_normal, digest_faulty)
+    test_suites = generate_test_suites()
+    run(test_suites, project, test, dir, mode)
