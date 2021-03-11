@@ -3,7 +3,7 @@ set -ex
 OLDPWD=$PWD
 usage() { echo "$0 usage:" && grep " .)\ #" $0; exit 0; }
 
-cache='none'
+reuse='none'
 mode='vanilla'
 project='cassandra-operator'
 sha='none'
@@ -26,8 +26,8 @@ install_and_import() {
     echo "replace sonar.client => ../../sonar.client" >> app/cassandra-operator/dep-sonar/src/sigs.k8s.io/controller-runtime@v0.4.0/go.mod
 
     echo "replacing the Dockerfile and build.sh..."
-    cp cassandra-operator/app/hack/build.sh app/cassandra-operator/build.sh
-    cp cassandra-operator/app/hack/Dockerfile app/cassandra-operator/docker/cassandra-operator/Dockerfile
+    cp test-cassandra-operator/build/build.sh app/cassandra-operator/build.sh
+    cp test-cassandra-operator/build/Dockerfile app/cassandra-operator/docker/cassandra-operator/Dockerfile
 
     cd app/cassandra-operator
     git add -A >> /dev/null
@@ -52,7 +52,7 @@ instrument() {
 while getopts ":m:p:r:s:" arg; do
     case $arg in
         r) # Reuse the existing kubernetes and controller code: none or all.
-        cache=${OPTARG}
+        reuse=${OPTARG}
         ;;
         m) # Specify the mode: vanilla, sparse-read or time-travel.
         mode=${OPTARG}
@@ -72,9 +72,9 @@ while getopts ":m:p:r:s:" arg; do
     esac
 done
 
-echo "cache: $cache mode: $mode project: $project"
+echo "reuse: $reuse mode: $mode project: $project"
 
-if [ $cache = 'none' ]; then
+if [ $reuse = 'none' ]; then
   # download new k8s code
   rm -rf fakegopath
   echo "cloning Kubernetes..."
