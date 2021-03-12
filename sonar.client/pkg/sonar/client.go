@@ -19,7 +19,7 @@ var hostError string = "[sonar] hostError"
 var configError string = "[sonar] configError"
 var config map[interface{}]interface{} = nil
 var sparseRead string = "sparse-read"
-var staleness string = "staleness"
+var timeTravel string = "time-travel"
 
 func checkMode(mode string) bool {
 	if config == nil {
@@ -150,7 +150,7 @@ func NotifyBeforeReconcile(controllerName string) {
 // NotifyBeforeProcessEvent lets the server know the apiserver is going to process an event from etcd,
 // the server should decide whether to freeze the apiserver or restart the controller.
 func NotifyBeforeProcessEvent(eventType, resourceType string) {
-	if !checkMode(staleness) {
+	if !checkMode(timeTravel) {
 		// log.Printf("[sonar][NOT-ready][NotifyBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
 		return
 	}
@@ -175,7 +175,7 @@ func NotifyBeforeProcessEvent(eventType, resourceType string) {
 		Hostname:     hostname,
 	}
 	var response Response
-	err = client.Call("StalenessListener.NotifyBeforeProcessEvent", request, &response)
+	err = client.Call("TimeTravelListener.NotifyBeforeProcessEvent", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return

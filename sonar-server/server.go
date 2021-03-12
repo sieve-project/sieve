@@ -28,12 +28,11 @@ func main() {
 	case "sparse-read":
 		log.Println("sparse-read")
 		rpc.Register(NewSparseReadListener(config))
-	// staleness: This actually refers to time-traveling.
-	// There is some naming issue and I will fix it.
-	// TODO: change name to time-traveling
-	case "staleness":
-		log.Println("staleness")
-		rpc.Register(NewStalenessListener(config))
+	// time-travel: Replay the partial history to the controller by
+	// injecting delay to apiservers and restarting the controllers.
+	case "time-travel":
+		log.Println("time-travel")
+		rpc.Register(NewTimeTravelListener(config))
 	default:
 		log.Fatalf("Cannot recognize mode: %s\n", config["mode"])
 	}

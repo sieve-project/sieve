@@ -35,7 +35,7 @@ type RestartConfig struct {
 }
 
 // The listener is actually a wrapper around the server.
-func NewStalenessListener(config map[interface{}]interface{}) *StalenessListener {
+func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
 	server := &stalenessServer{
 		freezeConfig: FreezeConfig{
 			apiserver:    config["freeze-apiserver"].(string),
@@ -52,26 +52,26 @@ func NewStalenessListener(config map[interface{}]interface{}) *StalenessListener
 			wait:         config["restart-wait"].(int),
 		},
 	}
-	listener := &StalenessListener{
+	listener := &TimeTravelListener{
 		Server: server,
 	}
 	listener.Server.Start()
 	return listener
 }
 
-type StalenessListener struct {
+type TimeTravelListener struct {
 	Server *stalenessServer
 }
 
 // Echo is just for testing.
-func (l *StalenessListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
+func (l *TimeTravelListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
 	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
 // NotifyBeforeProcessEvent is called when apiserver invokes `processEvent`.
 // It will decide (1) whether to freeze an apiserver and (2) whether to restart a controller
-func (l *StalenessListener) NotifyBeforeProcessEvent(request *sonar.NotifyBeforeProcessEventRequest, response *sonar.Response) error {
+func (l *TimeTravelListener) NotifyBeforeProcessEvent(request *sonar.NotifyBeforeProcessEventRequest, response *sonar.Response) error {
 	return l.Server.NotifyBeforeProcessEvent(request, response)
 }
 
