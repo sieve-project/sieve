@@ -16,7 +16,7 @@ COPY cmd ./cmd
 COPY go.mod ./
 
 # Download all dependencies.
-#RUN go mod download
+# RUN go mod download
 
 COPY . ./
 
@@ -32,10 +32,9 @@ FROM ${DOCKER_REGISTRY:+$DOCKER_REGISTRY/}alpine:${ALPINE_VERSION} AS final
 ARG PROJECT_NAME=zookeeper-operator
 
 COPY --from=go-builder /src/${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
-COPY --from=go-builder /etc/passwd /etc/passwd
+
 RUN apk update
 RUN apk upgrade
 RUN apk add bash
-# USER 999
-RUN mkdir -p /tmp
+
 CMD ["sleep", "infinity"]
