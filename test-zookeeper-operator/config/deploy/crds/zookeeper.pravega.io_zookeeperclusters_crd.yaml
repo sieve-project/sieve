@@ -251,6 +251,7 @@ spec:
                                   description: Specifies the output format of the
                                     exposed resources, defaults to "1"
                                   pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  x-kubernetes-int-or-string: true
                                 resource:
                                   description: 'Required: resource to select'
                                   type: string
@@ -397,7 +398,7 @@ spec:
                                 description: Name or number of the port to access
                                   on the container. Number must be in the range 1
                                   to 65535. Name must be an IANA_SVC_NAME.
-                                
+                                x-kubernetes-int-or-string: true
                               scheme:
                                 description: Scheme to use for connecting to the host.
                                   Defaults to HTTP.
@@ -421,7 +422,7 @@ spec:
                                 description: Number or name of the port to access
                                   on the container. Number must be in the range 1
                                   to 65535. Name must be an IANA_SVC_NAME.
-                                
+                                x-kubernetes-int-or-string: true
                             required:
                             - port
                             type: object
@@ -493,7 +494,7 @@ spec:
                                 description: Name or number of the port to access
                                   on the container. Number must be in the range 1
                                   to 65535. Name must be an IANA_SVC_NAME.
-                                
+                                x-kubernetes-int-or-string: true
                               scheme:
                                 description: Scheme to use for connecting to the host.
                                   Defaults to HTTP.
@@ -517,7 +518,7 @@ spec:
                                 description: Number or name of the port to access
                                   on the container. Number must be in the range 1
                                   to 65535. Name must be an IANA_SVC_NAME.
-                                
+                                x-kubernetes-int-or-string: true
                             required:
                             - port
                             type: object
@@ -587,7 +588,7 @@ spec:
                             description: Name or number of the port to access on the
                               container. Number must be in the range 1 to 65535. Name
                               must be an IANA_SVC_NAME.
-                            
+                            x-kubernetes-int-or-string: true
                           scheme:
                             description: Scheme to use for connecting to the host.
                               Defaults to HTTP.
@@ -628,7 +629,7 @@ spec:
                             description: Number or name of the port to access on the
                               container. Number must be in the range 1 to 65535. Name
                               must be an IANA_SVC_NAME.
-                            
+                            x-kubernetes-int-or-string: true
                         required:
                         - port
                         type: object
@@ -752,7 +753,7 @@ spec:
                             description: Name or number of the port to access on the
                               container. Number must be in the range 1 to 65535. Name
                               must be an IANA_SVC_NAME.
-                            
+                            x-kubernetes-int-or-string: true
                           scheme:
                             description: Scheme to use for connecting to the host.
                               Defaults to HTTP.
@@ -793,7 +794,7 @@ spec:
                             description: Number or name of the port to access on the
                               container. Number must be in the range 1 to 65535. Name
                               must be an IANA_SVC_NAME.
-                            
+                            x-kubernetes-int-or-string: true
                         required:
                         - port
                         type: object
@@ -814,7 +815,7 @@ spec:
                           - type: integer
                           - type: string
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                          
+                          x-kubernetes-int-or-string: true
                         description: 'Limits describes the maximum amount of compute
                           resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                         type: object
@@ -824,7 +825,7 @@ spec:
                           - type: integer
                           - type: string
                           pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                          
+                          x-kubernetes-int-or-string: true
                         description: 'Requests describes the minimum amount of compute
                           resources required. If Requests is omitted for a container,
                           it defaults to Limits if that is explicitly specified, otherwise
@@ -1031,7 +1032,7 @@ spec:
                             description: Name or number of the port to access on the
                               container. Number must be in the range 1 to 65535. Name
                               must be an IANA_SVC_NAME.
-                            
+                            x-kubernetes-int-or-string: true
                           scheme:
                             description: Scheme to use for connecting to the host.
                               Defaults to HTTP.
@@ -1072,7 +1073,7 @@ spec:
                             description: Number or name of the port to access on the
                               container. Number must be in the range 1 to 65535. Name
                               must be an IANA_SVC_NAME.
-                            
+                            x-kubernetes-int-or-string: true
                         required:
                         - port
                         type: object
@@ -1224,7 +1225,7 @@ spec:
                         default is nil which means that the limit is undefined. More
                         info: http://kubernetes.io/docs/user-guide/volumes#emptydir'
                       pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                      
+                      x-kubernetes-int-or-string: true
                   type: object
               type: object
             image:
@@ -1324,7 +1325,7 @@ spec:
                             - type: integer
                             - type: string
                             pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                            
+                            x-kubernetes-int-or-string: true
                           description: 'Limits describes the maximum amount of compute
                             resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                           type: object
@@ -1334,7 +1335,7 @@ spec:
                             - type: integer
                             - type: string
                             pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                            
+                            x-kubernetes-int-or-string: true
                           description: 'Requests describes the minimum amount of compute
                             resources required. If Requests is omitted for a container,
                             it defaults to Limits if that is explicitly specified,
@@ -2139,7 +2140,7 @@ spec:
                                 description: Specifies the output format of the exposed
                                   resources, defaults to "1"
                                 pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                
+                                x-kubernetes-int-or-string: true
                               resource:
                                 description: 'Required: resource to select'
                                 type: string
@@ -2193,7 +2194,7 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        
+                        x-kubernetes-int-or-string: true
                       description: 'Limits describes the maximum amount of compute
                         resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                       type: object
@@ -2203,7 +2204,7 @@ spec:
                         - type: integer
                         - type: string
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        
+                        x-kubernetes-int-or-string: true
                       description: 'Requests describes the minimum amount of compute
                         resources required. If Requests is omitted for a container,
                         it defaults to Limits if that is explicitly specified, otherwise
@@ -2829,7 +2830,7 @@ spec:
                                   description: Specifies the output format of the
                                     exposed resources, defaults to "1"
                                   pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                  
+                                  x-kubernetes-int-or-string: true
                                 resource:
                                   description: 'Required: resource to select'
                                   type: string
@@ -2863,7 +2864,7 @@ spec:
                           The default is nil which means that the limit is undefined.
                           More info: http://kubernetes.io/docs/user-guide/volumes#emptydir'
                         pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        
+                        x-kubernetes-int-or-string: true
                     type: object
                   fc:
                     description: FC represents a Fibre Channel resource that is attached
@@ -3327,7 +3328,7 @@ spec:
                                               of the exposed resources, defaults to
                                               "1"
                                             pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                            
+                                            x-kubernetes-int-or-string: true
                                           resource:
                                             description: 'Required: resource to select'
                                             type: string
@@ -3739,12 +3740,12 @@ spec:
                 ready:
                   items:
                     type: string
-                  
+                  nullable: true
                   type: array
                 unready:
                   items:
                     type: string
-                  
+                  nullable: true
                   type: array
               type: object
             metaRootCreated:

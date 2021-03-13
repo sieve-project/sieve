@@ -73,13 +73,14 @@ def compare_digest(digest_normal, digest_faulty):
     if alarm != 0:
         print("[FIND BUG] # alarms: %d" % (alarm))
 
-def cassandra_run(test_script, server_config, controller_config, apiserver_config, ha, restart, log_dir):
+def run_test(project, test_script, server_config, controller_config, apiserver_config, ha, restart, log_dir):
     os.system("rm -rf %s" % (log_dir))
     os.system("mkdir -p %s" % (log_dir))
     os.system("cp %s sonar-server/server.yaml" % (server_config))
     os.system("kind delete cluster")
     if ha:
         os.system("./setup.sh kind-ha.yaml")
+        os.system("./bypass-balancer.sh")
     else:
         os.system("./setup.sh kind.yaml")
 
@@ -92,30 +93,40 @@ def cassandra_run(test_script, server_config, controller_config, apiserver_confi
         os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" % (apiserver_config))
 
     time.sleep(5)
-    os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
-    os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
-    time.sleep(25)
+    if project == "cassandra-operator":
+        os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
+        os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
+        time.sleep(25)
+    elif project == "zookeeper-operator":
+        os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
+        os.system("kubectl create -f test-zookeeper-operator/config/deploy/default_ns/rbac.yaml")
+        os.system("kubectl create -f test-zookeeper-operator/config/deploy/default_ns/operator.yaml")
+        time.sleep(5)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
-    pod_name = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name=cassandra-operator").items[0].metadata.name
-    api1_addr = "https://" + core_v1.list_node(watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
-    api2_addr = "https://" + core_v1.list_node(watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
-    os.system("kubectl get CassandraDataCenter -s %s" % (api1_addr))
-    os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
+    pod_name = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name="+project).items[0].metadata.name
+    if ha:
+        api2_addr = "https://" + core_v1.list_node(watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
+        if project == "cassandra-operator":
+            os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
+        elif project == "zookeeper-operator":
+            os.system("kubectl get ZookeeperCluster -s %s" % (api2_addr))
 
     os.system("kubectl cp %s %s:/sonar.yaml" % (controller_config, pod_name))
-    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 ./cassandra-operator &> operator1.log &\"" % (pod_name))
+    if project == "cassandra-operator":
+        os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 /cassandra-operator &> operator1.log &\"" % (pod_name))
+    elif project == "zookeeper-operator":
+        os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 /usr/local/bin/zookeeper-operator &> operator1.log &\"" % (pod_name))
 
     org_dir = os.getcwd()
-    os.chdir(os.path.join(org_dir, "test-cassandra-operator"))
-    os.system("./%s %s" % (test_script, api1_addr))
+    os.chdir(os.path.join(org_dir, "test-" + project))
+    os.system("./%s" % test_script)
     os.chdir(org_dir)
 
     os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
     if ha:
         os.system("kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-
     os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod_name, log_dir))
     if restart:
@@ -128,7 +139,7 @@ def cassandra_t1(log, normal):
     else:
         log_dir = os.path.join(log, "ca1/faulty")
         test_config = "test-cassandra-operator/config/bug1.yaml"
-    cassandra_run("test1.sh", test_config, test_config, blank_config, False, False, log_dir)
+    run_test("cassandra-operator", "test1.sh", test_config, test_config, blank_config, False, False, log_dir)
 
 def cassandra_t2(log, normal):
     if normal:
@@ -137,7 +148,7 @@ def cassandra_t2(log, normal):
     else:
         log_dir = os.path.join(log, "ca2/faulty")
         test_config = "test-cassandra-operator/config/bug2.yaml"
-    cassandra_run("test2.sh", test_config, blank_config, test_config, True, True, log_dir)
+    run_test("cassandra-operator", "test2.sh", test_config, blank_config, test_config, True, True, log_dir)
 
 def cassandra_t3(log, normal):
     if normal:
@@ -146,7 +157,7 @@ def cassandra_t3(log, normal):
     else:
         log_dir = os.path.join(log, "ca3/faulty")
         test_config = "test-cassandra-operator/config/bug3.yaml"
-    cassandra_run("test3.sh", test_config, blank_config, test_config, True, True, log_dir)
+    run_test("cassandra-operator", "test3.sh", test_config, blank_config, test_config, True, True, log_dir)
 
 def generate_test_suites():
     test_suites = {}
@@ -163,12 +174,12 @@ def run(test_suites, project, test, dir, mode):
         digest_normal = generate_digest()
         log_digest(digest_normal)
     elif mode == "compare":
-        test(dir, True)
-        digest_normal = generate_digest()
-        log_digest(digest_normal)
+        # test(dir, True)
+        # digest_normal = generate_digest()
+        # log_digest(digest_normal)
         test(dir, False)
-        digest_faulty = generate_digest()
-        compare_digest(digest_normal, digest_faulty)
+        # digest_faulty = generate_digest()
+        # compare_digest(digest_normal, digest_faulty)
     else:
         assert False, "wrong mode option"
 
