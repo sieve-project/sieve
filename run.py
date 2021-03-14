@@ -139,7 +139,7 @@ def cassandra_t1(log, normal):
     else:
         log_dir = os.path.join(log, "ca1/faulty")
         test_config = "test-cassandra-operator/config/bug1.yaml"
-    run_test("cassandra-operator", "test1.sh", test_config, test_config, blank_config, False, False, log_dir)
+    run_test("cassandra-operator", "scaleDownCassandraDataCenter.sh", test_config, test_config, blank_config, False, False, log_dir)
 
 def cassandra_t2(log, normal):
     if normal:
@@ -148,7 +148,7 @@ def cassandra_t2(log, normal):
     else:
         log_dir = os.path.join(log, "ca2/faulty")
         test_config = "test-cassandra-operator/config/bug2.yaml"
-    run_test("cassandra-operator", "test2.sh", test_config, blank_config, test_config, True, True, log_dir)
+    run_test("cassandra-operator", "recreateCassandraDataCenter.sh", test_config, blank_config, test_config, True, True, log_dir)
 
 def cassandra_t3(log, normal):
     if normal:
@@ -157,7 +157,7 @@ def cassandra_t3(log, normal):
     else:
         log_dir = os.path.join(log, "ca3/faulty")
         test_config = "test-cassandra-operator/config/bug3.yaml"
-    run_test("cassandra-operator", "test3.sh", test_config, blank_config, test_config, True, True, log_dir)
+    run_test("cassandra-operator", "recreateCassandraDataCenter.sh", test_config, blank_config, test_config, True, True, log_dir)
 
 def zookeeper_t1(log, normal):
     if normal:
@@ -166,7 +166,7 @@ def zookeeper_t1(log, normal):
     else:
         log_dir = os.path.join(log, "zk1/faulty")
         test_config = "test-zookeeper-operator/config/bug1.yaml"
-    run_test("zookeeper-operator", "test1.sh", test_config, blank_config, test_config, True, True, log_dir)
+    run_test("zookeeper-operator", "recreateZookeeperCluster.sh", test_config, blank_config, test_config, True, True, log_dir)
 
 def generate_test_suites():
     test_suites = {}
