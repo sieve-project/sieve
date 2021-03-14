@@ -37,6 +37,7 @@ type RestartConfig struct {
 // The listener is actually a wrapper around the server.
 func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
 	server := &stalenessServer{
+		project: config["project"].(string),
 		freezeConfig: FreezeConfig{
 			apiserver:    config["freeze-apiserver"].(string),
 			resourceType: config["freeze-resource-type"].(string),
@@ -76,6 +77,7 @@ func (l *TimeTravelListener) NotifyBeforeProcessEvent(request *sonar.NotifyBefor
 }
 
 type stalenessServer struct {
+	project string
 	freezeConfig  FreezeConfig
 	restartConfig RestartConfig
 }
@@ -105,7 +107,7 @@ func (s *stalenessServer) NotifyBeforeProcessEvent(request *sonar.NotifyBeforePr
 
 func (s *stalenessServer) waitAndRestartComponent() {
 	time.Sleep(time.Duration(s.restartConfig.wait) * time.Second)
-	s.restartComponent(s.restartConfig.pod)
+	s.restartComponent(s.project, s.restartConfig.pod)
 }
 
 func (s *stalenessServer) shouldFreeze(request *sonar.NotifyBeforeProcessEventRequest) bool {
@@ -134,7 +136,7 @@ func (s *stalenessServer) shouldRestart(request *sonar.NotifyBeforeProcessEventR
 // The controller to restart is identified by `restart-pod` in the configuration.
 // `restart-pod` is a label to identify the pod where the controller is running.
 // We do not directly use pod name because the pod belongs to a deployment so its name is not fixed.
-func (s *stalenessServer) restartComponent(podLabel string) {
+func (s *stalenessServer) restartComponent(project, podLabel string) {
 	config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
@@ -158,12 +160,12 @@ func (s *stalenessServer) restartComponent(podLabel string) {
 	// The command needs nested quotation marks and
 	// I find parsing nested quotation marks are tricky in golang.
 	// TODO: figure out how to make nested quotation marks work
-	cmd1 := exec.Command("./util.sh", "crash", pod.Name)
+	cmd1 := exec.Command("./util.sh", project, "crash", pod.Name)
 	err = cmd1.Run()
 	checkError(err)
 	fmt.Println("crash")
 
-	cmd2 := exec.Command("./util.sh", "restart", pod.Name)
+	cmd2 := exec.Command("./util.sh", project, "restart", pod.Name)
 	err = cmd2.Run()
 	checkError(err)
 	fmt.Println("restart")

@@ -96,12 +96,12 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
     if project == "cassandra-operator":
         os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
         os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
-        time.sleep(25)
+        time.sleep(6)
     elif project == "zookeeper-operator":
         os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
         os.system("kubectl create -f test-zookeeper-operator/config/deploy/default_ns/rbac.yaml")
         os.system("kubectl create -f test-zookeeper-operator/config/deploy/default_ns/operator.yaml")
-        time.sleep(5)
+        time.sleep(6)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -159,12 +159,23 @@ def cassandra_t3(log, normal):
         test_config = "test-cassandra-operator/config/bug3.yaml"
     run_test("cassandra-operator", "test3.sh", test_config, blank_config, test_config, True, True, log_dir)
 
+def zookeeper_t1(log, normal):
+    if normal:
+        log_dir = os.path.join(log, "zk1/normal")
+        test_config = blank_config
+    else:
+        log_dir = os.path.join(log, "zk1/faulty")
+        test_config = "test-zookeeper-operator/config/bug1.yaml"
+    run_test("zookeeper-operator", "test1.sh", test_config, blank_config, test_config, True, True, log_dir)
+
 def generate_test_suites():
     test_suites = {}
     test_suites["cassandra-operator"] = {}
+    test_suites["zookeeper-operator"] = {}
     test_suites["cassandra-operator"]["test1"] = cassandra_t1
     test_suites["cassandra-operator"]["test2"] = cassandra_t2
     test_suites["cassandra-operator"]["test3"] = cassandra_t3
+    test_suites["zookeeper-operator"]["test1"] = zookeeper_t1
     return test_suites
 
 def run(test_suites, project, test, dir, mode):
@@ -174,12 +185,12 @@ def run(test_suites, project, test, dir, mode):
         digest_normal = generate_digest()
         log_digest(digest_normal)
     elif mode == "compare":
-        # test(dir, True)
-        # digest_normal = generate_digest()
-        # log_digest(digest_normal)
+        test(dir, True)
+        digest_normal = generate_digest()
+        log_digest(digest_normal)
         test(dir, False)
-        # digest_faulty = generate_digest()
-        # compare_digest(digest_normal, digest_faulty)
+        digest_faulty = generate_digest()
+        compare_digest(digest_normal, digest_faulty)
     else:
         assert False, "wrong mode option"
 
@@ -187,7 +198,7 @@ if __name__ == "__main__":
     usage = "usage: python3 run.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-p", "--project", dest="project",
-                  help="specify PROJECT to test", metavar="PROJECT", default="cassandra-operator")
+                  help="specify PROJECT to test: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-t", "--test", dest="test",
                   help="specify TEST to run", metavar="TEST", default="test2")
     parser.add_option("-d", "--dir", dest="dir",
