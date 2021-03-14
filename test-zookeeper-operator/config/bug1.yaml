@@ -1,0 +1,12 @@
+project: zookeeper-operator
+mode: time-travel
+freeze-apiserver: kind-control-plane2
+freeze-resource-type: "zookeeper.pravega.io/v1beta1, Kind=ZookeeperCluster"
+freeze-event-type: DELETED
+freeze-duration: 800
+restart-pod: zookeeper-operator
+restart-apiserver: kind-control-plane
+restart-resource-type: "zookeeper.pravega.io/v1beta1, Kind=ZookeeperCluster"
+restart-event-type: ADDED
+restart-times: 2
+restart-wait: 20
