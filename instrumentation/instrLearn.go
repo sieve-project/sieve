@@ -160,38 +160,6 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 	check(err)
 }
 
-// func findCallingReconcileIfStmtForLearn(funcDecl *dst.FuncDecl) (int, *dst.IfStmt) {
-// 	for i, stmt := range funcDecl.Body.List {
-// 		if ifStmt, ok := stmt.(*dst.IfStmt); ok {
-// 			if assignStmt, ok := ifStmt.Init.(*dst.AssignStmt); ok {
-// 				if callExpr, ok := assignStmt.Rhs[0].(*dst.CallExpr); ok {
-// 					if selectorExpr, ok := callExpr.Fun.(*dst.SelectorExpr); ok {
-// 						if selectorExpr.Sel.Name == "Reconcile" {
-// 							return i, ifStmt
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return -1, nil
-// }
-
-// func findCallingQueueForgetStmtForLearn(funcDecl *dst.FuncDecl) (int, *dst.ExprStmt) {
-// 	for i, stmt := range funcDecl.Body.List {
-// 		if exprStmt, ok := stmt.(*dst.ExprStmt); ok {
-// 			if callExpr, ok := exprStmt.X.(*dst.CallExpr); ok {
-// 				if selectorExpr, ok := callExpr.Fun.(*dst.SelectorExpr); ok {
-// 					if selectorExpr.Sel.Name == "Forget" {
-// 						return i, exprStmt
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return -1, nil
-// }
-
 func instrumentEnqueueGoForLearn(ifilepath, ofilepath string) {
 	code, err := ioutil.ReadFile(ifilepath)
 	check(err)

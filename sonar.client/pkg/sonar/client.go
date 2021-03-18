@@ -219,29 +219,6 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
 	client.Close()
 }
 
-// func NotifyLearnBeforeQAdd() {
-// 	if !checkMode(learn) {
-// 		return
-// 	}
-// 	log.Printf("[sonar][NotifyLearnBeforeQAdd]\n")
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, connectionError)
-// 		return
-// 	}
-// 	request := &NotifyLearnBeforeQAddRequest{
-// 		Nothing: "nothing",
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyBeforeQAdd", request, &response)
-// 	if err != nil {
-// 		printError(err, replyError)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnBeforeQAdd")
-// 	client.Close()
-// }
-
 func NotifyLearnBeforeReconcile() {
 	if !checkMode(learn) {
 		return

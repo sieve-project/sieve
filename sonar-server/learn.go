@@ -60,12 +60,6 @@ type eventWrapper struct {
 	eventObject string
 }
 
-// type relation struct {
-// 	eventID int32
-// 	eventType string
-// 	effects []string
-// }
-
 type learnServer struct {
 	eventCh chan eventWrapper
 	eventID int32
