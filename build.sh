@@ -17,7 +17,7 @@ install_and_import() {
   mkdir -p app/${project}/dep-sonar/src/sigs.k8s.io
   cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime${crversion} app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
   chmod +w -R app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
-  cp -r sonar.client app/${project}/dep-sonar/src/sonar.client
+  cp -r sonar-client app/${project}/dep-sonar/src/sonar.client
   if [ $mode = 'learn' ]; then
     go mod download k8s.io/client-go${cgversion} >> /dev/null
     mkdir -p app/${project}/dep-sonar/src/k8s.io
