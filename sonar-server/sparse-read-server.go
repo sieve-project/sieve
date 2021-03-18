@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	sonar "sonar.client/pkg/sonar"
+	sonar "sonar.client"
 )
 
 func NewSparseReadListener(config map[interface{}]interface{}) *SparseReadListener {

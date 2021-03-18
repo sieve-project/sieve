@@ -44,12 +44,14 @@ func findTypeDecl(f *dst.File, typeName string) (int, int, *dst.TypeSpec) {
 
 func writeInstrumentedFile(path, ofilepath string, f *dst.File) {
 	res := decorator.NewRestorerWithImports(path, guess.New())
+	fres := res.FileRestorer()
+	fres.Alias["sonar.client"] = "sonar"
 
 	autoInstrFile, err := os.Create(ofilepath)
 	check(err)
 	defer autoInstrFile.Close()
 	var buf bytes.Buffer
-	err = res.Fprint(&buf, f)
+	err = fres.Fprint(&buf, f)
 	autoInstrFile.Write(buf.Bytes())
 	check(err)
 }

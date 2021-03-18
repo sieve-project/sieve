@@ -1,15 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"go/token"
 	"io/ioutil"
-	"os"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/goast"
-	"github.com/dave/dst/decorator/resolver/guess"
 )
 
 func instrumentControllerGo(ifilepath, ofilepath string) {
@@ -32,7 +29,7 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 			// Generate the expression to call NotifyBeforeReconcile
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "NotifyBeforeReconcile", Path: "sonar.client/pkg/sonar"},
+					Fun:  &dst.Ident{Name: "NotifyBeforeReconcile", Path: "sonar.client"},
 					Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 				},
 			}
@@ -53,7 +50,7 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 			// Generate the expression to call NotifyBeforeMakeQ
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "NotifyBeforeMakeQ", Path: "sonar.client/pkg/sonar"},
+					Fun:  &dst.Ident{Name: "NotifyBeforeMakeQ", Path: "sonar.client"},
 					Args: []dst.Expr{&dst.Ident{Name: "c.Queue"}, &dst.Ident{Name: "c.Name"}},
 				},
 			}
@@ -62,15 +59,7 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 		}
 	}
 
-	res := decorator.NewRestorerWithImports("controller", guess.New())
-
-	autoInstrFile, err := os.Create(ofilepath)
-	check(err)
-	defer autoInstrFile.Close()
-	var buf bytes.Buffer
-	err = res.Fprint(&buf, f)
-	autoInstrFile.Write(buf.Bytes())
-	check(err)
+	writeInstrumentedFile("controller", ofilepath, f)
 }
 
 func findCallingReconcileIfStmt(funcDecl *dst.FuncDecl) (int, *dst.IfStmt) {
@@ -114,15 +103,7 @@ func instrumentEnqueueGo(ifilepath, ofilepath string) {
 	// Instrument before each q.Add()
 	instrumentBeforeAdd(f)
 
-	res := decorator.NewRestorerWithImports("handler", guess.New())
-
-	autoInstrFile, err := os.Create(ofilepath)
-	check(err)
-	defer autoInstrFile.Close()
-	var buf bytes.Buffer
-	err = res.Fprint(&buf, f)
-	autoInstrFile.Write(buf.Bytes())
-	check(err)
+	writeInstrumentedFile("handler", ofilepath, f)
 }
 
 func instrumentBeforeAdd(f *dst.File) {
@@ -164,7 +145,7 @@ func instrumentBeforeAddInList(list *[]dst.Stmt) {
 		*list = append((*list)[:index+1], (*list)[index:]...)
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyBeforeQAdd", Path: "sonar.client/pkg/sonar"},
+				Fun:  &dst.Ident{Name: "NotifyBeforeQAdd", Path: "sonar.client"},
 				Args: []dst.Expr{&dst.Ident{Name: "q"}},
 			},
 		}

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"encoding/json"
 
-	sonar "sonar.client/pkg/sonar"
+	sonar "sonar.client"
 )
 
 func NewLearnListener(config map[interface{}]interface{}) *LearnListener {

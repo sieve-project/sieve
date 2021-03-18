@@ -17,4 +17,4 @@ require (
 	sonar.client v0.0.0
 )
 
-replace sonar.client => ../sonar.client
+replace sonar.client => ../sonar-client

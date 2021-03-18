@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/rpc"
 
-	sonar "sonar.client/pkg/sonar"
+	sonar "sonar.client"
 )
 
 type listenerInterface interface {

@@ -186,7 +186,7 @@ func instrumentWatchCacheGo(ifilepath, ofilepath string) {
 	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 	instrumentationInEventProcesss := &dst.ExprStmt{
 		X: &dst.CallExpr{
-			Fun:  &dst.Ident{Name: "NotifyBeforeProcessEvent", Path: "sonar.client/pkg/sonar"},
+			Fun:  &dst.Ident{Name: "NotifyBeforeProcessEvent", Path: "sonar.client"},
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "w.expectedTypeName"}},
 		},
 	}

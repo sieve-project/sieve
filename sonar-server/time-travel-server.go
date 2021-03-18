@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	sonar "sonar.client/pkg/sonar"
+	sonar "sonar.client"
 )
 
 var globalCntToRestart int = 0
