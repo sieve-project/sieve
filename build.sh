@@ -58,12 +58,13 @@ install_and_import() {
 
 instrument() {
   cd instrumentation
+  go build
   if [ $mode = 'sparse-read' ]; then
-    ./instr.sh $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
+    ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
   elif [ $mode = 'time-travel' ]; then
-    ./instr.sh $mode ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
+    ./instrumentation $mode ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
   elif [ $mode = 'learn' ]; then
-    ./instr.sh $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
+    ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
   fi
   cd $OLDPWD
 }
