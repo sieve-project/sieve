@@ -8,6 +8,7 @@ mode='vanilla'
 project='none'
 sha='none'
 crversion='none'
+cgversion='none'
 org='none'
 
 install_and_import() {
@@ -17,14 +18,29 @@ install_and_import() {
   cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime${crversion} app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
   chmod +w -R app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
   cp -r sonar.client app/${project}/dep-sonar/src/sonar.client
+  if [ $mode = 'learn' ]; then
+    go mod download k8s.io/client-go${cgversion} >> /dev/null
+    mkdir -p app/${project}/dep-sonar/src/k8s.io
+    cp -r ${GOPATH}/pkg/mod/k8s.io/client-go${cgversion} app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
+    chmod +w -R app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
+  fi
+  cd app/${project}
+  git add -A >> /dev/null
+  git commit -m "download the lib" >> /dev/null
+  cd $OLDPWD
 
   echo "modifying go.mod..."
   echo "replace sigs.k8s.io/controller-runtime => ./dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}" >> app/${project}/go.mod
   echo "require sonar.client v0.0.0" >> app/${project}/go.mod
   echo "replace sonar.client => ./dep-sonar/src/sonar.client" >> app/${project}/go.mod
-
   echo "require sonar.client v0.0.0" >> app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}/go.mod
   echo "replace sonar.client => ../../sonar.client" >> app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}/go.mod
+  if [ $mode = 'learn' ]; then
+    echo "replace k8s.io/client-go => ./dep-sonar/src/k8s.io/client-go${cgversion}" >> app/${project}/go.mod
+    echo "replace k8s.io/client-go => ../../k8s.io/client-go${cgversion}" >> app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}/go.mod
+    echo "require sonar.client v0.0.0" >> app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}/go.mod
+    echo "replace sonar.client => ../../sonar.client" >> app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}/go.mod
+  fi
 
   echo "replacing the Dockerfile and build.sh..."
   if [ $project = 'cassandra-operator' ]; then
@@ -36,7 +52,7 @@ install_and_import() {
   fi
   cd app/${project}
   git add -A >> /dev/null
-  git commit -m "before instr" >> /dev/null
+  git commit -m "import the lib" >> /dev/null
   cd $OLDPWD
 }
 
@@ -46,6 +62,8 @@ instrument() {
     ./instr.sh $mode ${OLDPWD}/fakegopath/src/k8s.io/kubernetes ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
   elif [ $mode = 'time-travel' ]; then
     ./instr.sh $mode ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
+  elif [ $mode = 'learn' ]; then
+    ./instr.sh $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
   fi
   cd $OLDPWD
 }
@@ -63,10 +81,12 @@ while getopts ":m:p:r:s:" arg; do
         if [ $project = 'cassandra-operator' ]; then
           sha='fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd'
           crversion='@v0.4.0'
+          cgversion='@v0.0.0-20190918160344-1fbdaa4c8d90'
           org='instaclustr'
         elif [ $project = 'zookeeper-operator' ]; then
           sha='cda03d2f270bdfb51372192766123904f6d88278'
           crversion='@v0.5.2'
+          cgversion='@v0.17.2'
           org='pravega'
         else
           echo "wrong project: $project"
