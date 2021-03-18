@@ -117,7 +117,7 @@ if [ $reuse = 'none' ]; then
   # import sonar.client into k8s
   echo "require sonar.client v0.0.0" >> fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod
   echo "replace sonar.client => ../../sonar.client" >> fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod
-  cp -r sonar.client fakegopath/src/k8s.io/kubernetes/staging/src/sonar.client
+  cp -r sonar-client fakegopath/src/k8s.io/kubernetes/staging/src/sonar.client
   ln -s ../staging/src/sonar.client fakegopath/src/k8s.io/kubernetes/vendor/sonar.client
 
   # download new controller code
