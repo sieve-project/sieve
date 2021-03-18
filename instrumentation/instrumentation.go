@@ -50,12 +50,41 @@ func instrumentTimeTravel(filepath string) {
 	instrumentWatchCacheGo(watchCacheGoFile, watchCacheGoFile)
 }
 
+func instrumentLearn(controller_runtime_filepath, client_go_filepath string) {
+	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
+	fmt.Printf("instrumenting %s\n", controllerGoFile)
+	instrumentControllerGoForLearn(controllerGoFile, controllerGoFile)
+
+	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
+	fmt.Printf("instrumenting %s\n", clientGoFile)
+	instrumentClientGoForLearn(clientGoFile, clientGoFile)
+
+	// enqueueGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue.go")
+	// fmt.Printf("instrumenting %s\n", enqueueGoFile)
+	// instrumentEnqueueGoForLearn(enqueueGoFile, enqueueGoFile)
+
+	// enqueueMappedGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue_mapped.go")
+	// fmt.Printf("instrumenting %s\n", enqueueMappedGoFile)
+	// instrumentEnqueueGoForLearn(enqueueMappedGoFile, enqueueMappedGoFile)
+
+	// enqueueOwnerGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue_owner.go")
+	// fmt.Printf("instrumenting %s\n", enqueueOwnerGoFile)
+	// instrumentEnqueueGoForLearn(enqueueOwnerGoFile, enqueueOwnerGoFile)
+
+	reflectorGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
+	fmt.Printf("instrumenting %s\n", reflectorGoFile)
+	instrumentSharedInformerGoForLearn(reflectorGoFile, reflectorGoFile)
+}
+
 func main() {
 	args := os.Args
-	instrumentForAll(args[2])
 	if args[1] == "sparse-read" {
+		instrumentForAll(args[2])
 		instrumentSparseRead(args[3])
 	} else if args[1] == "time-travel" {
+		instrumentForAll(args[2])
 		instrumentTimeTravel(args[2])
+	} else if args[1] == "learn" {
+		instrumentLearn(args[2], args[3])
 	}
 }

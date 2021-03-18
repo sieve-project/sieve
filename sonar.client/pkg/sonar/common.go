@@ -28,3 +28,24 @@ type NotifyBeforeProcessEventRequest struct {
 	ResourceType string
 	Hostname     string
 }
+
+type NotifyLearnBeforeIndexerWriteRequest struct {
+	OperationType string
+	Object string
+}
+
+type NotifyLearnBeforeQAddRequest struct {
+	Nothing string
+}
+
+type NotifyLearnBeforeReconcileRequest struct {
+	Nothing string
+}
+
+type NotifyLearnAfterReconcileRequest struct {
+	Nothing string
+}
+
+type NotifyLearnSideEffectsRequest struct {
+	SideEffectType string
+}

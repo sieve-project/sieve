@@ -123,9 +123,9 @@ func (s *learnServer) NotifySideEffects(request *sonar.NotifyLearnSideEffectsReq
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.shouldRecordSideEffects {
-		s.recordedSideEffects = append(s.recordedSideEffects, "sideeffect")
+		s.recordedSideEffects = append(s.recordedSideEffects, request.SideEffectType)
 	}
-	*response = sonar.Response{Message: "nothing", Ok: true}
+	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 
