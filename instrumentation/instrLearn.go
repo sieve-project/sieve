@@ -1,30 +1,16 @@
 package main
 
 import (
-	"bytes"
-	"go/token"
-	"io/ioutil"
-	"os"
-
 	"github.com/dave/dst"
-	"github.com/dave/dst/decorator"
-	"github.com/dave/dst/decorator/resolver/goast"
-	"github.com/dave/dst/decorator/resolver/guess"
 )
 
 func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "cache", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
-
+	f := parseSourceFile(ifilepath, "cache")
 	_, funcDecl := findFuncDecl(f, "HandleDeltas")
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
 				index := 0
-				rangeStmt.Body.List = append(rangeStmt.Body.List[:index+1], rangeStmt.Body.List[index:]...)
 				instrumentation := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: "NotifyLearnBeforeIndexerWrite", Path: "sonar.client"},
@@ -32,92 +18,48 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 					},
 				}
 				instrumentation.Decs.End.Append("//sonar")
-				rangeStmt.Body.List[index] = instrumentation
+				insertStmt(&rangeStmt.Body.List, index, instrumentation)
 				break
 			}
 		}
 	}
-	res := decorator.NewRestorerWithImports("cache", guess.New())
-	fres := res.FileRestorer()
-	fres.Alias["sonar.client"] = "sonar"
 
-	autoInstrFile, err := os.Create(ofilepath)
-	check(err)
-	defer autoInstrFile.Close()
-	var buf bytes.Buffer
-	err = fres.Fprint(&buf, f)
-	autoInstrFile.Write(buf.Bytes())
-	check(err)
+	writeInstrumentedFile(ofilepath, "cache", f)
 }
 
 func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "controller", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
-
+	f := parseSourceFile(ifilepath, "controller")
 	_, funcDecl := findFuncDecl(f, "reconcileHandler")
 	if funcDecl != nil {
-		// index, targetIfStmt := findCallingReconcileIfStmtForLearn(funcDecl)
-		// if targetIfStmt != nil {
-			index := 0
-			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-			beforeReconcileInstrumentation := &dst.ExprStmt{
-				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "NotifyLearnBeforeReconcile", Path: "sonar.client"},
-					Args: []dst.Expr{},
-				},
-			}
-			beforeReconcileInstrumentation.Decs.End.Append("//sonar")
-			funcDecl.Body.List[index] = beforeReconcileInstrumentation
-		// }
+		index := 0
+		beforeReconcileInstrumentation := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: "NotifyLearnBeforeReconcile", Path: "sonar.client"},
+				Args: []dst.Expr{},
+			},
+		}
+		beforeReconcileInstrumentation.Decs.End.Append("//sonar")
+		insertStmt(&funcDecl.Body.List, index, beforeReconcileInstrumentation)
 
-		// index, targetExprStmt := findCallingQueueForgetStmtForLearn(funcDecl)
-		// if targetExprStmt != nil {
-			index += 1
-			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-			afterReconcileInstrumentation := &dst.DeferStmt{
-				Call: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sonar.client"},
-					Args: []dst.Expr{},
-				},
-			}
-			// instrumentation := &dst.ExprStmt{
-			// 	X: &dst.CallExpr{
-			// 		Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sonar.client"},
-			// 		Args: []dst.Expr{},
-			// 	},
-			// }
-			afterReconcileInstrumentation.Decs.End.Append("//sonar")
-			funcDecl.Body.List[index] = afterReconcileInstrumentation
-		// }
+		index += 1
+		afterReconcileInstrumentation := &dst.DeferStmt{
+			Call: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sonar.client"},
+				Args: []dst.Expr{},
+			},
+		}
+		afterReconcileInstrumentation.Decs.End.Append("//sonar")
+		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
 	}
 
-	res := decorator.NewRestorerWithImports("controller", guess.New())
-	fres := res.FileRestorer()
-	fres.Alias["sonar.client"] = "sonar"
-
-	autoInstrFile, err := os.Create(ofilepath)
-	check(err)
-	defer autoInstrFile.Close()
-	var buf bytes.Buffer
-	err = fres.Fprint(&buf, f)
-	autoInstrFile.Write(buf.Bytes())
-	check(err)
+	writeInstrumentedFile(ofilepath, "controller", f)
 }
 
 func instrumentClientGoForLearn(ifilepath, ofilepath string) {
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "client", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
-
+	f := parseSourceFile(ifilepath, "client")
 	_, funcDecl := findFuncDecl(f, "Create")
 	index := 0
 	if funcDecl != nil {
-		funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
@@ -125,12 +67,11 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 			},
 		}
 		instrumentation.Decs.End.Append("//sonar")
-		funcDecl.Body.List[index] = instrumentation
+		insertStmt(&funcDecl.Body.List, index, instrumentation)
 	}
 
 	_, funcDecl = findFuncDecl(f, "Update")
 	if funcDecl != nil {
-		funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
@@ -138,12 +79,11 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 			},
 		}
 		instrumentation.Decs.End.Append("//sonar")
-		funcDecl.Body.List[index] = instrumentation
+		insertStmt(&funcDecl.Body.List, index, instrumentation)
 	}
 
 	_, funcDecl = findFuncDecl(f, "Delete")
 	if funcDecl != nil {
-		funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
@@ -151,85 +91,8 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 			},
 		}
 		instrumentation.Decs.End.Append("//sonar")
-		funcDecl.Body.List[index] = instrumentation
+		insertStmt(&funcDecl.Body.List, index, instrumentation)
 	}
 
-	res := decorator.NewRestorerWithImports("client", guess.New())
-	fres := res.FileRestorer()
-	fres.Alias["sonar.client"] = "sonar"
-
-	autoInstrFile, err := os.Create(ofilepath)
-	check(err)
-	defer autoInstrFile.Close()
-	var buf bytes.Buffer
-	err = fres.Fprint(&buf, f)
-	autoInstrFile.Write(buf.Bytes())
-	check(err)
+	writeInstrumentedFile(ofilepath, "client", f)
 }
-
-// func instrumentEnqueueGoForLearn(ifilepath, ofilepath string) {
-// 	code, err := ioutil.ReadFile(ifilepath)
-// 	check(err)
-// 	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "handler", goast.New())
-// 	f, err := dec.Parse(code)
-// 	check(err)
-// 	// Instrument before each q.Add()
-// 	for _, decl := range f.Decls {
-// 		if funcDecl, ok := decl.(*dst.FuncDecl); ok {
-// 			instrumentBeforeAddInListForLearn(&funcDecl.Body.List)
-// 		}
-// 	}
-
-// 	res := decorator.NewRestorerWithImports("handler", guess.New())
-// 	fres := res.FileRestorer()
-// 	fres.Alias["sonar.client"] = "sonar"
-
-// 	autoInstrFile, err := os.Create(ofilepath)
-// 	check(err)
-// 	defer autoInstrFile.Close()
-// 	var buf bytes.Buffer
-// 	err = fres.Fprint(&buf, f)
-// 	autoInstrFile.Write(buf.Bytes())
-// 	check(err)
-// }
-
-// func instrumentBeforeAddInListForLearn(list *[]dst.Stmt) {
-// 	var toInstrument []int
-// 	for i, stmt := range *list {
-// 		switch stmt.(type) {
-// 		case *dst.ExprStmt:
-// 			exprStmt := stmt.(*dst.ExprStmt)
-// 			if callExpr, ok := exprStmt.X.(*dst.CallExpr); ok {
-// 				if selectorExpr, ok := callExpr.Fun.(*dst.SelectorExpr); ok {
-// 					if selectorExpr.Sel.Name == "Add" {
-// 						// fmt.Println("find Add")
-// 						toInstrument = append(toInstrument, i)
-// 					}
-// 				}
-// 			}
-// 		case *dst.IfStmt:
-// 			ifStmt := stmt.(*dst.IfStmt)
-// 			instrumentBeforeAddInListForLearn(&ifStmt.Body.List)
-// 		case *dst.ForStmt:
-// 			forStmt := stmt.(*dst.ForStmt)
-// 			instrumentBeforeAddInListForLearn(&forStmt.Body.List)
-// 		case *dst.RangeStmt:
-// 			rangeStmt := stmt.(*dst.RangeStmt)
-// 			instrumentBeforeAddInListForLearn(&rangeStmt.Body.List)
-// 		default:
-// 		}
-// 	}
-
-// 	for _, index := range toInstrument {
-// 		*list = append((*list)[:index+1], (*list)[index:]...)
-// 		instrumentation := &dst.ExprStmt{
-// 			X: &dst.CallExpr{
-// 				Fun:  &dst.Ident{Name: "NotifyLearnBeforeQAdd", Path: "sonar.client"},
-// 				Args: []dst.Expr{},
-// 			},
-// 		}
-// 		instrumentation.Decs.End.Append("//sonar")
-// 		(*list)[index] = instrumentation
-// 	}
-// }
-

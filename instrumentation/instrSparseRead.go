@@ -1,22 +1,13 @@
 package main
 
 import (
-	"go/token"
-	"io/ioutil"
-
 	"github.com/dave/dst"
-	"github.com/dave/dst/decorator"
-	"github.com/dave/dst/decorator/resolver/goast"
 )
 
 func instrumentControllerGo(ifilepath, ofilepath string) {
 	// We know exactly where and what to instrument.
 	// All we need to do is to find the place (function) and inject the code.
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "controller", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
+	f := parseSourceFile(ifilepath, "controller")
 
 	// Reconcile() is invoked in reconcileHandler, so we first find this function.
 	_, funcDecl := findFuncDecl(f, "reconcileHandler")
@@ -24,17 +15,16 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 		// Inside reconcileHandler() we find the callsite of Reconcile().
 		index, targetStmt := findCallingReconcileIfStmt(funcDecl)
 		if targetStmt != nil {
-			// Just before the callsite we invoke NotifyBeforeReconcile (RPC to sonar server)
-			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-			// Generate the expression to call NotifyBeforeReconcile
+			// Generate the expression to call NotifySparseReadBeforeReconcile
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "NotifyBeforeReconcile", Path: "sonar.client"},
+					Fun:  &dst.Ident{Name: "NotifySparseReadBeforeReconcile", Path: "sonar.client"},
 					Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 				},
 			}
-			instrumentation.Decs.Start.Append("//sonar: NotifyBeforeReconcile")
-			funcDecl.Body.List[index] = instrumentation
+			instrumentation.Decs.End.Append("//sonar")
+			// Just before the callsite we invoke NotifySparseReadBeforeReconcile (RPC to sonar server)
+			insertStmt(&funcDecl.Body.List, index, instrumentation)
 		}
 	}
 
@@ -46,20 +36,19 @@ func instrumentControllerGo(ifilepath, ofilepath string) {
 		if targetStmt != nil {
 			// Inject after making queue
 			index = index + 1
-			funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-			// Generate the expression to call NotifyBeforeMakeQ
+			// Generate the expression to call NotifySparseReadBeforeMakeQ
 			instrumentation := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: "NotifyBeforeMakeQ", Path: "sonar.client"},
+					Fun:  &dst.Ident{Name: "NotifySparseReadBeforeMakeQ", Path: "sonar.client"},
 					Args: []dst.Expr{&dst.Ident{Name: "c.Queue"}, &dst.Ident{Name: "c.Name"}},
 				},
 			}
-			instrumentation.Decs.Start.Append("//sonar: NotifyBeforeMakeQ")
-			funcDecl.Body.List[index] = instrumentation
+			instrumentation.Decs.End.Append("//sonar")
+			insertStmt(&funcDecl.Body.List, index, instrumentation)
 		}
 	}
 
-	writeInstrumentedFile("controller", ofilepath, f)
+	writeInstrumentedFile(ofilepath, "controller", f)
 }
 
 func findCallingReconcileIfStmt(funcDecl *dst.FuncDecl) (int, *dst.IfStmt) {
@@ -95,15 +84,11 @@ func findCallingMakeQueue(funcDecl *dst.FuncDecl) (int, *dst.AssignStmt) {
 }
 
 func instrumentEnqueueGo(ifilepath, ofilepath string) {
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "handler", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
+	f := parseSourceFile(ifilepath, "handler")
 	// Instrument before each q.Add()
 	instrumentBeforeAdd(f)
 
-	writeInstrumentedFile("handler", ofilepath, f)
+	writeInstrumentedFile(ofilepath, "handler", f)
 }
 
 func instrumentBeforeAdd(f *dst.File) {
@@ -145,11 +130,11 @@ func instrumentBeforeAddInList(list *[]dst.Stmt) {
 		*list = append((*list)[:index+1], (*list)[index:]...)
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyBeforeQAdd", Path: "sonar.client"},
+				Fun:  &dst.Ident{Name: "NotifySparseReadBeforeQAdd", Path: "sonar.client"},
 				Args: []dst.Expr{&dst.Ident{Name: "q"}},
 			},
 		}
-		instrumentation.Decs.Start.Append("//sonar: NotifyBeforeQAdd")
+		instrumentation.Decs.Start.Append("//sonar: NotifySparseReadBeforeQAdd")
 		(*list)[index] = instrumentation
 	}
 }

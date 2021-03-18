@@ -2,21 +2,12 @@ package main
 
 import (
 	"go/token"
-	"io/ioutil"
-	"os"
 
 	"github.com/dave/dst"
-
-	"github.com/dave/dst/decorator"
-	"github.com/dave/dst/decorator/resolver/goast"
 )
 
 func instrumentReflectorGo(ifilepath, ofilepath string) {
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "cache", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
+	f := parseSourceFile(ifilepath, "cache")
 
 	_, funcDecl := findFuncDecl(f, "LastSyncResourceVersion")
 	if funcDecl == nil {
@@ -34,18 +25,13 @@ func instrumentReflectorGo(ifilepath, ofilepath string) {
 	}}}
 	instrumentation.Decs.Start.Replace("//soanr")
 	index = index + 1
-	f.Decls = append(f.Decls[:index+1], f.Decls[index:]...)
-	f.Decls[index] = instrumentation
+	insertDecl(&f.Decls, index, instrumentation)
 
-	writeInstrumentedFile("cache", ofilepath, f)
+	writeInstrumentedFile(ofilepath, "cache", f)
 }
 
 func instrumentCacherGo(ifilepath, ofilepath string) {
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "cacher", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
+	f := parseSourceFile(ifilepath, "cacher")
 
 	_, funcDecl := findFuncDecl(f, "NewCacherFromConfig")
 	if funcDecl == nil {
@@ -84,44 +70,36 @@ func instrumentCacherGo(ifilepath, ofilepath string) {
 			},
 		},
 	}
-	instrumentation.Decs.Start.Append("//sonar")
+	instrumentation.Decs.End.Append("//sonar")
 	index = index + 1
-	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-	funcDecl.Body.List[index] = instrumentation
+	insertStmt(&funcDecl.Body.List, index, instrumentation)
 
-	if os.Args[1] == "time-travel" {
-		instrumentation = &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun: &dst.SelectorExpr{
-					X:   &dst.Ident{Name: "watchCache"},
-					Sel: &dst.Ident{Name: "SetExpectedTypeName"},
-				},
-				Args: []dst.Expr{
-					&dst.CallExpr{
-						Fun: &dst.SelectorExpr{
-							X:   &dst.Ident{Name: "reflector"},
-							Sel: &dst.Ident{Name: "GetExpectedTypeName"},
-						},
-						Args: []dst.Expr{},
+	instrumentation = &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun: &dst.SelectorExpr{
+				X:   &dst.Ident{Name: "watchCache"},
+				Sel: &dst.Ident{Name: "SetExpectedTypeName"},
+			},
+			Args: []dst.Expr{
+				&dst.CallExpr{
+					Fun: &dst.SelectorExpr{
+						X:   &dst.Ident{Name: "reflector"},
+						Sel: &dst.Ident{Name: "GetExpectedTypeName"},
 					},
+					Args: []dst.Expr{},
 				},
 			},
-		}
-		instrumentation.Decs.Start.Append("//sonar")
-		index = index + 1
-		funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
-		funcDecl.Body.List[index] = instrumentation
+		},
 	}
+	instrumentation.Decs.End.Append("//sonar")
+	index = index + 1
+	insertStmt(&funcDecl.Body.List, index, instrumentation)
 
-	writeInstrumentedFile("cacher", ofilepath, f)
+	writeInstrumentedFile(ofilepath, "cacher", f)
 }
 
 func instrumentWatchCacheGo(ifilepath, ofilepath string) {
-	code, err := ioutil.ReadFile(ifilepath)
-	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "cacher", goast.New())
-	f, err := dec.Parse(code)
-	check(err)
+	f := parseSourceFile(ifilepath, "cacher")
 
 	index, funcDecl := findFuncDecl(f, "processEvent")
 	if funcDecl == nil {
@@ -178,20 +156,17 @@ func instrumentWatchCacheGo(ifilepath, ofilepath string) {
 			RbraceHasNoPos: false,
 		},
 	}
-	instrumentation.Decs.Start.Append("//sonar")
-	f.Decls = append(f.Decls[:index+1], f.Decls[index:]...)
-	f.Decls[index] = instrumentation
+	instrumentation.Decs.End.Append("//sonar")
+	insertDecl(&f.Decls, index, instrumentation)
 
-	index = 0
-	funcDecl.Body.List = append(funcDecl.Body.List[:index+1], funcDecl.Body.List[index:]...)
 	instrumentationInEventProcesss := &dst.ExprStmt{
 		X: &dst.CallExpr{
-			Fun:  &dst.Ident{Name: "NotifyBeforeProcessEvent", Path: "sonar.client"},
+			Fun:  &dst.Ident{Name: "NotifyTimeTravelBeforeProcessEvent", Path: "sonar.client"},
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "w.expectedTypeName"}},
 		},
 	}
-	instrumentationInEventProcesss.Decs.End.Append("//sonar: NotifyBeforeProcessEvent")
-	funcDecl.Body.List[index] = instrumentationInEventProcesss
+	instrumentationInEventProcesss.Decs.End.Append("//sonar")
+	insertStmt(&funcDecl.Body.List, 0, instrumentationInEventProcesss)
 
 	_, _, typeSpec := findTypeDecl(f, "watchCache")
 	if typeSpec == nil {
@@ -202,8 +177,8 @@ func instrumentWatchCacheGo(ifilepath, ofilepath string) {
 		Names: []*dst.Ident{&dst.Ident{Name: "expectedTypeName"}},
 		Type:  &dst.Ident{Name: "string"},
 	}
-	instrumentationInWatchCacheStructure.Decs.Start.Append("//sonar")
+	instrumentationInWatchCacheStructure.Decs.End.Append("//sonar")
 	structType.Fields.List = append(structType.Fields.List, instrumentationInWatchCacheStructure)
 
-	writeInstrumentedFile("cacher", ofilepath, f)
+	writeInstrumentedFile(ofilepath, "cacher", f)
 }

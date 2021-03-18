@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"go/token"
 	"os"
+	"io/ioutil"
+	"github.com/dave/dst/decorator/resolver/goast"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
@@ -42,8 +44,27 @@ func findTypeDecl(f *dst.File, typeName string) (int, int, *dst.TypeSpec) {
 	return -1, -1, nil
 }
 
-func writeInstrumentedFile(path, ofilepath string, f *dst.File) {
-	res := decorator.NewRestorerWithImports(path, guess.New())
+func parseSourceFile(ifilepath, pkg string) *dst.File {
+	code, err := ioutil.ReadFile(ifilepath)
+	check(err)
+	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), pkg, goast.New())
+	f, err := dec.Parse(code)
+	check(err)
+	return f
+}
+
+func insertStmt(list *[]dst.Stmt, index int, instrumentation dst.Stmt) {
+	*list = append((*list)[:index+1], (*list)[index:]...)
+	(*list)[index] = instrumentation
+}
+
+func insertDecl(list *[]dst.Decl, index int, instrumentation dst.Decl) {
+	*list = append((*list)[:index+1], (*list)[index:]...)
+	(*list)[index] = instrumentation
+}
+
+func writeInstrumentedFile(ofilepath, pkg string, f *dst.File) {
+	res := decorator.NewRestorerWithImports(pkg, guess.New())
 	fres := res.FileRestorer()
 	fres.Alias["sonar.client"] = "sonar"
 
