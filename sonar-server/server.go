@@ -33,6 +33,9 @@ func main() {
 	case "time-travel":
 		log.Println("time-travel")
 		rpc.Register(NewTimeTravelListener(config))
+	case "learn":
+		log.Println("learn")
+		rpc.Register(NewLearnListener(config))
 	default:
 		log.Fatalf("Cannot recognize mode: %s\n", config["mode"])
 	}
