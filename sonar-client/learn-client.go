@@ -25,7 +25,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
 		Object: string(jsonObject),
 	}
 	var response Response
-	err = client.Call("LearnListener.NotifyBeforeIndexerWrite", request, &response)
+	err = client.Call("LearnListener.NotifyLearnBeforeIndexerWrite", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
@@ -48,7 +48,7 @@ func NotifyLearnBeforeReconcile() {
 		Nothing: "nothing",
 	}
 	var response Response
-	err = client.Call("LearnListener.NotifyBeforeReconcile", request, &response)
+	err = client.Call("LearnListener.NotifyLearnBeforeReconcile", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
@@ -71,7 +71,7 @@ func NotifyLearnAfterReconcile() {
 		Nothing: "nothing",
 	}
 	var response Response
-	err = client.Call("LearnListener.NotifyAfterReconcile", request, &response)
+	err = client.Call("LearnListener.NotifyLearnAfterReconcile", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
@@ -94,7 +94,7 @@ func NotifyLearnSideEffects(sideEffectType string) {
 		SideEffectType: sideEffectType,
 	}
 	var response Response
-	err = client.Call("LearnListener.NotifySideEffects", request, &response)
+	err = client.Call("LearnListener.NotifyLearnSideEffects", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return

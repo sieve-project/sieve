@@ -5,82 +5,82 @@ import (
 	"log"
 )
 
-// NotifyBeforeMakeQ is invoked before controller creating a queue
-// NotifyBeforeMakeQ lets the server know which controller creates which queue,
+// NotifySparseReadBeforeMakeQ is invoked before controller creating a queue
+// NotifySparseReadBeforeMakeQ lets the server know which controller creates which queue,
 // this piece of information is not utilized by server so far.
-func NotifyBeforeMakeQ(queue interface{}, controllerName string) {
+func NotifySparseReadBeforeMakeQ(queue interface{}, controllerName string) {
 	if !checkMode(sparseRead) {
 		return
 	}
-	log.Printf("[sonar][NotifyBeforeMakeQ] queue: %p, controllerName: %s\n", queue, controllerName)
+	log.Printf("[sonar][NotifySparseReadBeforeMakeQ] queue: %p, controllerName: %s\n", queue, controllerName)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
 		return
 	}
 	queueID := fmt.Sprintf("%p", queue)
-	request := &NotifyBeforeMakeQRequest{
+	request := &NotifySparseReadBeforeMakeQRequest{
 		QueueID:        queueID,
 		ControllerName: controllerName,
 	}
 	var response Response
-	err = client.Call("SparseReadListener.NotifyBeforeMakeQ", request, &response)
+	err = client.Call("SparseReadListener.NotifySparseReadBeforeMakeQ", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyBeforeMakeQ")
+	checkResponse(response, "NotifySparseReadBeforeMakeQ")
 	client.Close()
 }
 
-// NotifyBeforeQAdd is invoked before controller calling q.Add
-// NotifyBeforeQAdd lets the server know how busy the queues and controller are.
-func NotifyBeforeQAdd(queue interface{}) {
+// NotifySparseReadBeforeQAdd is invoked before controller calling q.Add
+// NotifySparseReadBeforeQAdd lets the server know how busy the queues and controller are.
+func NotifySparseReadBeforeQAdd(queue interface{}) {
 	if !checkMode(sparseRead) {
 		return
 	}
-	log.Printf("[sonar][NotifyBeforeQAdd] queue: %p\n", queue)
+	log.Printf("[sonar][NotifySparseReadBeforeQAdd] queue: %p\n", queue)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
 		return
 	}
 	queueID := fmt.Sprintf("%p", queue)
-	request := &NotifyBeforeQAddRequest{
+	request := &NotifySparseReadBeforeQAddRequest{
 		QueueID: queueID,
 	}
 	var response Response
-	err = client.Call("SparseReadListener.NotifyBeforeQAdd", request, &response)
+	err = client.Call("SparseReadListener.NotifySparseReadBeforeQAdd", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyBeforeQAdd")
+	checkResponse(response, "NotifySparseReadBeforeQAdd")
 	client.Close()
 }
 
-// NotifyBeforeReconcile is invoked before controller calling Reconcile()
-// NotifyBeforeReconcile lets controller know a reconcile is going to happen,
+// NotifySparseReadBeforeReconcile is invoked before controller calling Reconcile()
+// NotifySparseReadBeforeReconcile lets controller know a reconcile is going to happen,
 // and the controller should decide whether to delay it.
-func NotifyBeforeReconcile(controllerName string) {
+func NotifySparseReadBeforeReconcile(controllerName string) {
 	if !checkMode(sparseRead) {
 		return
 	}
-	log.Printf("[sonar][NotifyBeforeReconcile] controllerName: %s\n", controllerName)
+	log.Printf("[sonar][NotifySparseReadBeforeReconcile] controllerName: %s\n", controllerName)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
 		return
 	}
-	request := &NotifyBeforeReconcileRequest{
+	request := &NotifySparseReadBeforeReconcileRequest{
 		ControllerName: controllerName,
 	}
 	var response Response
-	err = client.Call("SparseReadListener.NotifyBeforeReconcile", request, &response)
+	err = client.Call("SparseReadListener.NotifySparseReadBeforeReconcile", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyBeforeReconcile")
+	checkResponse(response, "NotifySparseReadBeforeReconcile")
 	client.Close()
 }

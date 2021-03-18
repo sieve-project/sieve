@@ -38,20 +38,20 @@ func (l *LearnListener) Echo(request *sonar.EchoRequest, response *sonar.Respons
 	return nil
 }
 
-func (l *LearnListener) NotifyBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
-	return l.Server.NotifyBeforeIndexerWrite(request, response)
+func (l *LearnListener) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
+	return l.Server.NotifyLearnBeforeIndexerWrite(request, response)
 }
 
-func (l *LearnListener) NotifyBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
-	return l.Server.NotifyBeforeReconcile(request, response)
+func (l *LearnListener) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
+	return l.Server.NotifyLearnBeforeReconcile(request, response)
 }
 
-func (l *LearnListener) NotifyAfterReconcile(request *sonar.NotifyLearnAfterReconcileRequest, response *sonar.Response) error {
-	return l.Server.NotifyAfterReconcile(request, response)
+func (l *LearnListener) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterReconcileRequest, response *sonar.Response) error {
+	return l.Server.NotifyLearnAfterReconcile(request, response)
 }
 
-func (l *LearnListener) NotifySideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
-	return l.Server.NotifySideEffects(request, response)
+func (l *LearnListener) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
+	return l.Server.NotifyLearnSideEffects(request, response)
 }
 
 type eventWrapper struct {
@@ -78,8 +78,8 @@ func (s *learnServer) Start() {
 	go s.coordinatingEvents()
 }
 
-func (s *learnServer) NotifyBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
-	log.Printf("NotifyBeforeIndexerWrite: OperationType: %s and Object: %s\n", request.OperationType, request.Object)
+func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
+	log.Printf("NotifyLearnBeforeIndexerWrite: OperationType: %s and Object: %s\n", request.OperationType, request.Object)
 	myID := atomic.AddInt32(&s.eventID, 1)
 	myCh := make(chan int32)
 	s.eventChMap.Store(myID, myCh)
@@ -96,24 +96,24 @@ func (s *learnServer) NotifyBeforeIndexerWrite(request *sonar.NotifyLearnBeforeI
 	return nil
 }
 
-func (s *learnServer) NotifyBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
-	log.Printf("NotifyBeforeReconcile\n")
+func (s *learnServer) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
+	log.Printf("NotifyLearnBeforeReconcile\n")
 	*response = sonar.Response{Message: "nothing", Ok: true}
 	atomic.AddInt32(&s.reconcileCnt, 1)
 	s.beforeReconcileCh <- 0
 	return nil
 }
 
-func (s *learnServer) NotifyAfterReconcile(request *sonar.NotifyLearnAfterReconcileRequest, response *sonar.Response) error {
-	log.Printf("NotifyAfterReconcile\n")
+func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterReconcileRequest, response *sonar.Response) error {
+	log.Printf("NotifyLearnAfterReconcile\n")
 	*response = sonar.Response{Message: "nothing", Ok: true}
 	atomic.AddInt32(&s.reconcileCnt, -1)
 	s.afterReconcileCh <- 0
 	return nil
 }
 
-func (s *learnServer) NotifySideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
-	log.Printf("NotifySideEffects: %s\n", request.SideEffectType)
+func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
+	log.Printf("NotifyLearnSideEffects: %s\n", request.SideEffectType)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.shouldRecordSideEffects {

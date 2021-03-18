@@ -10,20 +10,20 @@ type EchoRequest struct {
 	Text string
 }
 
-type NotifyBeforeMakeQRequest struct {
+type NotifySparseReadBeforeMakeQRequest struct {
 	QueueID        string
 	ControllerName string
 }
 
-type NotifyBeforeQAddRequest struct {
+type NotifySparseReadBeforeQAddRequest struct {
 	QueueID string
 }
 
-type NotifyBeforeReconcileRequest struct {
+type NotifySparseReadBeforeReconcileRequest struct {
 	ControllerName string
 }
 
-type NotifyBeforeProcessEventRequest struct {
+type NotifyTimeTravelBeforeProcessEventRequest struct {
 	EventType    string
 	ResourceType string
 	Hostname     string
