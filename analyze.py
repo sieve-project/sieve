@@ -59,19 +59,24 @@ def findPreviousEventWithName(id, name, eventMap):
 
 def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
     toDel = []
-    for key in curObject:
-        if key not in prevObject:
+    allKeys = set(curObject.keys()).union(prevObject.keys())
+    for key in allKeys:
+        if key not in curObject:
+            # slimPrevObject[key] = "SONAR-EXISTENCE"
+            continue
+        elif key not in prevObject:
+            # slimCurObject[key] = "SONAR-EXISTENCE"
             continue
         elif key == "resourceVersion" or key == "time" or key == "managedFields" or key == "lastTransitionTime" or key == "generation":
-            slimCurObject[key] = None
-            slimPrevObject[key] = None
+            # slimCurObject[key] = None
+            # slimPrevObject[key] = None
             toDel.append(key)
         elif str(curObject[key]) != str(prevObject[key]):
             if isinstance(curObject[key], dict):
                 res = compressObject(prevObject[key], curObject[key], slimPrevObject[key], slimCurObject[key])
                 if res:
-                    slimCurObject[key] = None
-                    slimPrevObject[key] = None
+                    # slimCurObject[key] = None
+                    # slimPrevObject[key] = None
                     toDel.append(key)
             elif isinstance(curObject[key], list):
                 for i in range(len(curObject[key])):
@@ -81,20 +86,20 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
                         if isinstance(curObject[key][i], dict):
                             res = compressObject(prevObject[key][i], curObject[key][i], slimPrevObject[key][i], slimCurObject[key][i])
                             if res:
-                                slimCurObject[key][i] = None
-                                slimPrevObject[key][i] = None
+                                slimCurObject[key][i] = "SONAR-SKIP"
+                                slimPrevObject[key][i] = "SONAR-SKIP"
                         elif isinstance(curObject[key][i], list):
                             assert False
                         else:
                             continue
                     else:
-                        slimCurObject[key][i] = None
-                        slimPrevObject[key][i] = None
+                        slimCurObject[key][i] = "SONAR-SKIP"
+                        slimPrevObject[key][i] = "SONAR-SKIP"
             else:
                 continue
         else:
-            slimCurObject[key] = None
-            slimPrevObject[key] = None
+            # slimCurObject[key] = None
+            # slimPrevObject[key] = None
             toDel.append(key)
     for key in toDel:
         del slimCurObject[key]
