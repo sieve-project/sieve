@@ -57,41 +57,6 @@ def findPreviousEventWithName(id, name, eventMap):
             else:
                 return eventMap[name][i-1], eventMap[name][i]
 
-# def diffMetadata(prevMetadata, curMetadata):
-#     diff = {}
-#     for key in curMetadata:
-#         if key == "resourceVersion" or key == "managedFields":
-#             continue
-#         elif key not in prevMetadata:
-#             diff[key] = [None, curMetadata[key]]
-#         elif str(curMetadata[key]) != str(prevMetadata[key]):
-#             diff[key] = [prevMetadata[key], curMetadata[key]]
-#     return diff
-
-# def diffObject(prevObject, curObject, diff):
-#     for key in curObject:
-#         if key not in prevObject:
-#             diff[key] = curObject[key]
-#         elif str(curObject[key]) != str(prevObject[key]):
-#             if isinstance(curObject[key], dict):
-#                 diff[key] = {}
-#                 diffObject(prevObject[key], curObject[key], diff[key])
-#             elif isinstance(curObject[key], list):
-#                 diff[key] = []
-#                 for i in range(len(curObject[key])):
-#                     if i >= len(prevObject):
-#                         diff[key][i] = curObject[key][i]
-#                     elif str(curObject[key][i]) != str(prevObject[key][i]):
-#                         if isinstance(curObject[key][i], dict):
-#                             diff[key][i] = {}
-#                             diffObject(prevObject[key][i], curObject[key][i], diff[key][i])
-#                         elif isinstance(curObject[key][i], list):
-#                             assert False
-#                         else:
-#                             diff[key][i] = curObject[key][i]
-#             else:
-#                 diff[key] = curObject[key]
-
 def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
     toDel = []
     for key in curObject:
@@ -152,19 +117,31 @@ def diffEvents(prevEvent, curEvent):
 
 
 def traverseRecordsWithName(records, eventMap, name):
+    triggeringPoints = []
     for record in records:
         if record["name"] != name:
             continue
         prevEvent, curEvent = findPreviousEventWithName(record["eventID"], record["name"], eventMap)
-        print("Object name:", name)
-        print("Triggered effects:", record["effects"])
+        tp = {  "name": name, "namespace": curEvent["eventObject"]["metadata"]["namespace"],
+                "otype": curEvent["eventObject"]["metadata"]["selfLink"].split("/")[5],
+                "effects": record["effects"]}
+        print("Object name(space):", tp["name"], tp["namespace"])
+        print("Object type:", tp["otype"])
+        print("Triggered effects:", tp["effects"])
         if prevEvent is None:
+            tp["ttype"] = "event"
             print("Triggering event:", record["eventType"], record["eventObject"])
         else:
             if prevEvent["eventType"] != curEvent["eventType"]:
+                tp["ttype"] = "event-type-delta"
+                tp["prevEventType"] = prevEvent["eventType"]
+                tp["curEventType"] = curEvent["eventType"]
                 print("Triggering type:", prevEvent["eventType"], curEvent["eventType"])
             else:
                 slimPrevObject, slimCurObject = diffEvents(prevEvent, curEvent)
+                tp["ttype"] = "event-content-delta"
+                tp["prevEvent"] = slimPrevObject
+                tp["curEvent"] = slimCurObject
                 print("Triggering diff:")
                 print("Prev:")
                 print(slimPrevObject)
@@ -172,6 +149,8 @@ def traverseRecordsWithName(records, eventMap, name):
                 print("Cur:")
                 print(slimCurObject)
         print("==========================================================")
+        triggeringPoints.append(tp)
+    return triggeringPoints
 
 if __name__ == "__main__":
     path = "log/ca2/learn/sonar-server.log"
@@ -180,5 +159,8 @@ if __name__ == "__main__":
     json.dump(eventMap, open("event-map.json", "w"), indent=4)
     json.dump(records, open("records.json", "w"), indent=4)
     
+    triggeringPoints = []
     for name in eventMap:
-        traverseRecordsWithName(records, eventMap, name)
+        triggeringPoints = triggeringPoints + traverseRecordsWithName(records, eventMap, name)
+    json.dump(triggeringPoints, open("triggering-points.json", "w"), indent=4)
+
