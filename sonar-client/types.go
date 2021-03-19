@@ -48,4 +48,5 @@ type NotifyLearnAfterReconcileRequest struct {
 
 type NotifyLearnSideEffectsRequest struct {
 	SideEffectType string
+	Gvk string
 }

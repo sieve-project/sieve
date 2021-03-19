@@ -80,7 +80,7 @@ func NotifyLearnAfterReconcile() {
 	client.Close()
 }
 
-func NotifyLearnSideEffects(sideEffectType string) {
+func NotifyLearnSideEffects(sideEffectType, gvk string) {
 	if !checkMode(learn) {
 		return
 	}
@@ -92,6 +92,7 @@ func NotifyLearnSideEffects(sideEffectType string) {
 	}
 	request := &NotifyLearnSideEffectsRequest{
 		SideEffectType: sideEffectType,
+		Gvk: gvk,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnSideEffects", request, &response)

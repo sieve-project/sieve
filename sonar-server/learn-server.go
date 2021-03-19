@@ -20,7 +20,7 @@ func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
 		reconcileCnt: 0,
 		shouldRecordSideEffects: false,
 		recordedEvents: []eventWrapper{},
-		recordedSideEffects: []string{},
+		recordedSideEffects: [][]string{},
 	}
 	listener := &LearnListener{
 		Server: server,
@@ -69,7 +69,7 @@ type learnServer struct {
 	reconcileCnt int32
 	shouldRecordSideEffects bool
 	recordedEvents []eventWrapper
-	recordedSideEffects []string
+	recordedSideEffects [][]string
 	mu sync.Mutex
 }
 
@@ -88,6 +88,7 @@ func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBe
 		eventType: request.OperationType,
 		eventObject: request.Object,
 	}
+	log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObject)
 	s.eventCh <- ew
 	log.Printf("my ID is: %d, waiting now...\n", myID)
 	<-myCh
@@ -113,11 +114,12 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterR
 }
 
 func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
-	log.Printf("NotifyLearnSideEffects: %s\n", request.SideEffectType)
+	log.Printf("NotifyLearnSideEffects: %s %s\n", request.SideEffectType, request.Gvk)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.shouldRecordSideEffects {
-		s.recordedSideEffects = append(s.recordedSideEffects, request.SideEffectType)
+		newSideEffect := []string{request.SideEffectType, request.Gvk}
+		s.recordedSideEffects = append(s.recordedSideEffects, newSideEffect)
 	}
 	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
 	return nil
@@ -141,11 +143,11 @@ func (s *learnServer) coordinatingEvents() {
 						if err != nil {
 							log.Fatal("error in json")
 						}
-						log.Printf("[LEARN]\t%s\t%s\t%s", string(jsonOutput), recordedEvent.eventType, recordedEvent.eventObject)
+						log.Printf("[SONAR-RECORD]\t%s\t%d\t%s\t%s", string(jsonOutput), recordedEvent.eventID, recordedEvent.eventType, recordedEvent.eventObject)
 					}
 				}
 				s.recordedEvents = []eventWrapper{}
-				s.recordedSideEffects = []string{}
+				s.recordedSideEffects = [][]string{}
 				s.mu.Unlock()
 				s.allowEvent()
 			} else if newVal < 0 {
