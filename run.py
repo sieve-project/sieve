@@ -16,6 +16,7 @@ STS = "statefulSet"
 ktypes = [POD, PVC, DEPLOYMENT, STS]
 
 blank_config = "config/none.yaml"
+learn_config = "config/learn.yaml"
 
 class Digest:
     def __init__(self, core_v1, apps_v1):
@@ -133,40 +134,76 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
         os.system("kubectl cp %s:/operator2.log %s/operator2.log" % (pod_name, log_dir))
 
 def cassandra_t1(log, normal):
-    if normal:
+    if mode == "normal":
         log_dir = os.path.join(log, "ca1/normal")
-        test_config = blank_config
-    else:
+        server_config = blank_config
+        controller_config = blank_config
+        apiserver_config = blank_config
+    elif mode == "faulty":
         log_dir = os.path.join(log, "ca1/faulty")
-        test_config = "test-cassandra-operator/config/bug1.yaml"
-    run_test("cassandra-operator", "scaleDownCassandraDataCenter.sh", test_config, test_config, blank_config, False, False, log_dir)
+        server_config = "test-cassandra-operator/config/bug1.yaml"
+        controller_config = "test-cassandra-operator/config/bug1.yaml"
+        apiserver_config = "test-cassandra-operator/config/bug1.yaml"
+    elif mode == "learn":
+        log_dir = os.path.join(log, "ca1/learn")
+        server_config = learn_config
+        controller_config = learn_config
+        apiserver_config = learn_config
+    run_test("cassandra-operator", "scaleDownCassandraDataCenter.sh", server_config, controller_config, apiserver_config, False, False, log_dir)
 
-def cassandra_t2(log, normal):
-    if normal:
+def cassandra_t2(log, mode):
+    if mode == "normal":
         log_dir = os.path.join(log, "ca2/normal")
-        test_config = blank_config
-    else:
+        server_config = blank_config
+        controller_config = blank_config
+        apiserver_config = blank_config
+    elif mode == "faulty":
         log_dir = os.path.join(log, "ca2/faulty")
-        test_config = "test-cassandra-operator/config/bug2.yaml"
-    run_test("cassandra-operator", "recreateCassandraDataCenter.sh", test_config, blank_config, test_config, True, True, log_dir)
+        server_config = "test-cassandra-operator/config/bug2.yaml"
+        controller_config = "test-cassandra-operator/config/bug2.yaml"
+        apiserver_config = "test-cassandra-operator/config/bug2.yaml"
+    elif mode == "learn":
+        log_dir = os.path.join(log, "ca2/learn")
+        server_config = learn_config
+        controller_config = learn_config
+        apiserver_config = learn_config
+    run_test("cassandra-operator", "recreateCassandraDataCenter.sh", server_config, controller_config, apiserver_config, True, True, log_dir)
 
-def cassandra_t3(log, normal):
-    if normal:
+def cassandra_t3(log, mode):
+    if mode == "normal":
         log_dir = os.path.join(log, "ca3/normal")
-        test_config = blank_config
-    else:
+        server_config = blank_config
+        controller_config = blank_config
+        apiserver_config = blank_config
+    elif mode == "faulty":
         log_dir = os.path.join(log, "ca3/faulty")
-        test_config = "test-cassandra-operator/config/bug3.yaml"
-    run_test("cassandra-operator", "recreateCassandraDataCenter.sh", test_config, blank_config, test_config, True, True, log_dir)
+        server_config = "test-cassandra-operator/config/bug3.yaml"
+        controller_config = "test-cassandra-operator/config/bug3.yaml"
+        apiserver_config = "test-cassandra-operator/config/bug3.yaml"
+    elif mode == "learn":
+        log_dir = os.path.join(log, "ca3/learn")
+        server_config = learn_config
+        controller_config = learn_config
+        apiserver_config = learn_config
+    run_test("cassandra-operator", "recreateCassandraDataCenter.sh", server_config, controller_config, apiserver_config, True, True, log_dir)
 
 def zookeeper_t1(log, normal):
-    if normal:
+    if mode == "normal":
         log_dir = os.path.join(log, "zk1/normal")
-        test_config = blank_config
-    else:
+        server_config = blank_config
+        controller_config = blank_config
+        apiserver_config = blank_config
+    elif mode == "faulty":
         log_dir = os.path.join(log, "zk1/faulty")
-        test_config = "test-zookeeper-operator/config/bug1.yaml"
-    run_test("zookeeper-operator", "recreateZookeeperCluster.sh", test_config, blank_config, test_config, True, True, log_dir)
+        server_config = "test-zookeeper-operator/config/bug1.yaml"
+        controller_config = "test-zookeeper-operator/config/bug1.yaml"
+        apiserver_config = "test-zookeeper-operator/config/bug1.yaml"
+    elif mode == "learn":
+        log_dir = os.path.join(log, "zk1/learn")
+        server_config = learn_config
+        controller_config = learn_config
+        apiserver_config = learn_config
+    run_test("zookeeper-operator", "recreateZookeeperCluster.sh", server_config, controller_config, apiserver_config, True, True, log_dir)
 
 def generate_test_suites():
     test_suites = {}
@@ -181,16 +218,18 @@ def generate_test_suites():
 def run(test_suites, project, test, dir, mode):
     test = test_suites[project][test]
     if mode == "generate":
-        test(dir, True)
+        test(dir, "normal")
         digest_normal = generate_digest()
         log_digest(digest_normal)
     elif mode == "compare":
-        test(dir, True)
+        test(dir, "normal")
         digest_normal = generate_digest()
         log_digest(digest_normal)
-        test(dir, False)
+        test(dir, "faulty")
         digest_faulty = generate_digest()
         compare_digest(digest_normal, digest_faulty)
+    elif mode == "learn":
+        test(dir, "learn")
     else:
         assert False, "wrong mode option"
 
