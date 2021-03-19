@@ -4,19 +4,6 @@ import copy
 SONAR_EVENT_MARK = "[SONAR-EVENT]"
 SONAR_RECORD_MARK = "[SONAR-RECORD]"
 
-
-def compare(map1, map2, ex):
-    for key in map2:
-        if key in ex:
-            continue
-        if key not in map1:
-            print(key + " is different here")
-        elif str(map1[key]) != str(map2[key]):
-            print(key + " is different here")
-            if key == "conditions" or key == "phase":
-                print(str(map1[key]))
-                print(str(map2[key]))
-
 def constructEventMap(path):
     eventMap = {}
     for line in open(path).readlines():
@@ -62,21 +49,15 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
     allKeys = set(curObject.keys()).union(prevObject.keys())
     for key in allKeys:
         if key not in curObject:
-            # slimPrevObject[key] = "SONAR-EXISTENCE"
             continue
         elif key not in prevObject:
-            # slimCurObject[key] = "SONAR-EXISTENCE"
             continue
         elif key == "resourceVersion" or key == "time" or key == "managedFields" or key == "lastTransitionTime" or key == "generation":
-            # slimCurObject[key] = None
-            # slimPrevObject[key] = None
             toDel.append(key)
         elif str(curObject[key]) != str(prevObject[key]):
             if isinstance(curObject[key], dict):
                 res = compressObject(prevObject[key], curObject[key], slimPrevObject[key], slimCurObject[key])
                 if res:
-                    # slimCurObject[key] = None
-                    # slimPrevObject[key] = None
                     toDel.append(key)
             elif isinstance(curObject[key], list):
                 for i in range(len(curObject[key])):
@@ -98,8 +79,6 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
             else:
                 continue
         else:
-            # slimCurObject[key] = None
-            # slimPrevObject[key] = None
             toDel.append(key)
     for key in toDel:
         del slimCurObject[key]
