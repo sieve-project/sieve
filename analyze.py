@@ -1,5 +1,7 @@
 import json
 import copy
+import sys
+import os
 
 SONAR_EVENT_MARK = "[SONAR-EVENT]"
 SONAR_RECORD_MARK = "[SONAR-RECORD]"
@@ -88,8 +90,8 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
     return False
 
 def diffEvents(prevEvent, curEvent):
-    assert prevEvent["eventType"] == "Updated"
-    assert curEvent["eventType"] == "Updated"
+    # assert prevEvent["eventType"] == "Updated"
+    # assert curEvent["eventType"] == "Updated"
     prevObject = prevEvent["eventObject"]
     curObject = curEvent["eventObject"]
     assert prevObject["metadata"]["name"] == curObject["metadata"]["name"]
@@ -107,7 +109,7 @@ def traverseRecordsWithName(records, eventMap, name):
             continue
         prevEvent, curEvent = findPreviousEventWithName(record["eventID"], record["name"], eventMap)
         tp = {  "name": name, "namespace": curEvent["eventObject"]["metadata"]["namespace"],
-                "otype": curEvent["eventObject"]["metadata"]["selfLink"].split("/")[5],
+                "otype": curEvent["eventObject"]["metadata"]["selfLink"][curEvent["eventObject"]["metadata"]["selfLink"].find("namespaces/"):].split("/")[2],
                 "effects": record["effects"]}
         print("Object name(space):", tp["name"], tp["namespace"])
         print("Object type:", tp["otype"])
@@ -137,14 +139,16 @@ def traverseRecordsWithName(records, eventMap, name):
     return triggeringPoints
 
 if __name__ == "__main__":
-    path = "log/ca2/learn/sonar-server.log"
+    dir = sys.argv[1]
+    path = os.path.join(dir, "sonar-server.log")
+    # path = "log/zk1/learn/sonar-server.log"
     eventMap = constructEventMap(path)
     records = constructRecords(path)
-    json.dump(eventMap, open("event-map.json", "w"), indent=4)
-    json.dump(records, open("records.json", "w"), indent=4)
-    
+    json.dump(eventMap, open(os.path.join(dir, "event-map.json"), "w"), indent=4)
+    json.dump(records, open(os.path.join(dir, "records.json"), "w"), indent=4)
+
     triggeringPoints = []
     for name in eventMap:
         triggeringPoints = triggeringPoints + traverseRecordsWithName(records, eventMap, name)
-    json.dump(triggeringPoints, open("triggering-points.json", "w"), indent=4)
+    json.dump(triggeringPoints, open(os.path.join(dir, "triggering-points.json"), "w"), indent=4)
 

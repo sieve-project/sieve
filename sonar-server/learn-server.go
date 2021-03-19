@@ -102,6 +102,7 @@ func (s *learnServer) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBefor
 	*response = sonar.Response{Message: "nothing", Ok: true}
 	atomic.AddInt32(&s.reconcileCnt, 1)
 	s.beforeReconcileCh <- 0
+	log.Printf("NotifyLearnBeforeReconcile End\n")
 	return nil
 }
 
@@ -110,6 +111,7 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterR
 	*response = sonar.Response{Message: "nothing", Ok: true}
 	atomic.AddInt32(&s.reconcileCnt, -1)
 	s.afterReconcileCh <- 0
+	log.Printf("NotifyLearnAfterReconcile End\n")
 	return nil
 }
 
@@ -158,13 +160,18 @@ func (s *learnServer) coordinatingEvents() {
 }
 
 func (s *learnServer) allowEvent() {
-	ew := <-s.eventCh
-	curID := ew.eventID
-	if obj, ok := s.eventChMap.Load(curID); ok {
-		ch := obj.(chan int32)
-		ch <- curID
-		s.recordedEvents = append(s.recordedEvents, ew)
-	} else {
-		log.Fatal("invalid object in eventCh")
+	select {
+	case ew := <-s.eventCh:
+		curID := ew.eventID
+		log.Printf("timeout! let %d event go\n", curID)
+		if obj, ok := s.eventChMap.Load(curID); ok {
+			ch := obj.(chan int32)
+			ch <- curID
+			s.recordedEvents = append(s.recordedEvents, ew)
+		} else {
+			log.Fatal("invalid object in eventCh")
+		}
+	default:
+		log.Println("no event happening")
 	}
 }
