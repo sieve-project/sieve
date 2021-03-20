@@ -1,0 +1,12 @@
+project: cassandra-operator
+mode: time-travel
+freeze-apiserver: kind-control-plane3
+freeze-resource-type: "*core.Pod"
+freeze-event-type: DELETED
+freeze-duration: 800
+restart-pod: cassandra-operator
+restart-apiserver: kind-control-plane
+restart-resource-type: "*core.PersistentVolumeClaim"
+restart-event-type: ADDED
+restart-times: 3
+restart-wait: 100
