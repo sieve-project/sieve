@@ -92,6 +92,7 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
     os.system("kubectl cp %s kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system" % (apiserver_config))
     if ha:
         os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" % (apiserver_config))
+        os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" % (apiserver_config))
 
     time.sleep(5)
     if project == "cassandra-operator":
@@ -109,10 +110,13 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
     pod_name = core_v1.list_namespaced_pod(k8s_namespace, watch=False, label_selector="name="+project).items[0].metadata.name
     if ha:
         api2_addr = "https://" + core_v1.list_node(watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
+        api3_addr = "https://" + core_v1.list_node(watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
         if project == "cassandra-operator":
             os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
+            os.system("kubectl get CassandraDataCenter -s %s" % (api3_addr))
         elif project == "zookeeper-operator":
             os.system("kubectl get ZookeeperCluster -s %s" % (api2_addr))
+            os.system("kubectl get ZookeeperCluster -s %s" % (api3_addr))
 
     os.system("kubectl cp %s %s:/sonar.yaml" % (controller_config, pod_name))
     if project == "cassandra-operator":
@@ -128,6 +132,7 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
     os.system("kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
     if ha:
         os.system("kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
+        os.system("kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
     os.system("docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system("kubectl cp %s:/operator1.log %s/operator1.log" % (pod_name, log_dir))
     if restart:
@@ -187,6 +192,24 @@ def cassandra_t3(log, mode):
         apiserver_config = learn_config
     run_test("cassandra-operator", "recreateCassandraDataCenter.sh", server_config, controller_config, apiserver_config, True, True, log_dir)
 
+def cassandra_t4(log, mode):
+    if mode == "normal":
+        log_dir = os.path.join(log, "ca4/normal")
+        server_config = blank_config
+        controller_config = blank_config
+        apiserver_config = blank_config
+    elif mode == "faulty":
+        log_dir = os.path.join(log, "ca4/faulty")
+        server_config = "test-cassandra-operator/config/bug4.yaml"
+        controller_config = "test-cassandra-operator/config/bug4.yaml"
+        apiserver_config = "test-cassandra-operator/config/bug4.yaml"
+    elif mode == "learn":
+        log_dir = os.path.join(log, "ca4/learn")
+        server_config = learn_config
+        controller_config = learn_config
+        apiserver_config = learn_config
+    run_test("cassandra-operator", "scaleDownUpCassandraDataCenter.sh", server_config, controller_config, apiserver_config, True, True, log_dir)
+
 def zookeeper_t1(log, normal):
     if mode == "normal":
         log_dir = os.path.join(log, "zk1/normal")
@@ -212,6 +235,7 @@ def generate_test_suites():
     test_suites["cassandra-operator"]["test1"] = cassandra_t1
     test_suites["cassandra-operator"]["test2"] = cassandra_t2
     test_suites["cassandra-operator"]["test3"] = cassandra_t3
+    test_suites["cassandra-operator"]["test4"] = cassandra_t4
     test_suites["zookeeper-operator"]["test1"] = zookeeper_t1
     return test_suites
 
