@@ -4,21 +4,56 @@ import (
 	"os"
 	"time"
 	"log"
+	"encoding/json"
 )
 
 // NotifyTimeTravelBeforeProcessEvent is invoked before apiserver calling processEvent()
 // NotifyTimeTravelBeforeProcessEvent lets the server know the apiserver is going to process an event from etcd,
 // the server should decide whether to freeze the apiserver or restart the controller.
-func NotifyTimeTravelBeforeProcessEvent(eventType, resourceType string) {
+func NotifyTimeTravelBeforeProcessEvent(eventType, resourceType string, object interface{}) {
 	if !checkMode(timeTravel) {
-		// log.Printf("[sonar][NOT-ready][NotifyTimeTravelBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
 		return
 	}
-	log.Printf("[sonar][test][NotifyTimeTravelBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
-	if resourceType != config["freeze-resource-type"] && resourceType != config["restart-resource-type"] {
+	if resourceType == config["freeze-resource-type"] && eventType == config["freeze-event-type"] {
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			printError(err, jsonError)
+			return
+		}
+		jsonMap := make(map[string]interface{})
+		err = json.Unmarshal(jsonObject, &jsonMap)
+		if err != nil {
+			printError(err, jsonError)
+			return
+		}
+		log.Printf("[soanr][jsonmap] %v\n", jsonMap)
+		ret := true
+		if meta, ok := jsonMap["metadata"]; ok {
+			if metaMap, ok := meta.(map[string]interface{}); ok {
+				if name, ok := metaMap["name"]; ok {
+					if nameStr, ok := name.(string); ok {
+						if nameStr == config["freeze-resource-name"] {
+							ret = false
+						}
+					}
+				}	
+			}
+		} else if name, ok := jsonMap["name"]; ok {
+			if nameStr, ok := name.(string); ok {
+				if nameStr == config["freeze-resource-name"] {
+					ret = false
+				}
+			}
+		}
+		if ret {
+			return
+		}
+		log.Printf("[sonar][NotifyTimeTravelBeforeProcessEvent][freeze] eventType: %s, resourceType: %s\n", eventType, resourceType)
+	} else if resourceType == config["restart-resource-type"] && eventType == config["restart-event-type"] {
+		log.Printf("[sonar][NotifyTimeTravelBeforeProcessEvent][restart] eventType: %s, resourceType: %s\n", eventType, resourceType)
+	} else {
 		return
 	}
-	log.Printf("[sonar][NotifyTimeTravelBeforeProcessEvent] eventType: %s, resourceType: %s\n", eventType, resourceType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)

@@ -162,7 +162,7 @@ func instrumentWatchCacheGo(ifilepath, ofilepath string) {
 	instrumentationInEventProcesss := &dst.ExprStmt{
 		X: &dst.CallExpr{
 			Fun:  &dst.Ident{Name: "NotifyTimeTravelBeforeProcessEvent", Path: "sonar.client"},
-			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "w.expectedTypeName"}},
+			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "w.expectedTypeName"}, &dst.Ident{Name: "event.Object"}},
 		},
 	}
 	instrumentationInEventProcesss.Decs.End.Append("//sonar")
