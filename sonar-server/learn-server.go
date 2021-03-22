@@ -1,26 +1,26 @@
 package main
 
 import (
-	"log"
-	"time"
-	"sync/atomic"
-	"sync"
 	"encoding/json"
+	"log"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	sonar "sonar.client"
 )
 
 func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
 	server := &learnServer{
-		eventCh:  	make(chan eventWrapper, 500),
-		eventID: 	-1,
-		eventChMap: sync.Map{},
-		beforeReconcileCh: make(chan int32),
-		afterReconcileCh: make(chan int32),
-		reconcileCnt: 0,
+		eventCh:                 make(chan eventWrapper, 500),
+		eventID:                 -1,
+		eventChMap:              sync.Map{},
+		beforeReconcileCh:       make(chan int32),
+		afterReconcileCh:        make(chan int32),
+		reconcileCnt:            0,
 		shouldRecordSideEffects: false,
-		recordedEvents: []eventWrapper{},
-		recordedSideEffects: [][]string{},
+		recordedEvents:          []eventWrapper{},
+		recordedSideEffects:     [][]string{},
 	}
 	listener := &LearnListener{
 		Server: server,
@@ -55,22 +55,22 @@ func (l *LearnListener) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEff
 }
 
 type eventWrapper struct {
-	eventID int32
-	eventType string
+	eventID     int32
+	eventType   string
 	eventObject string
 }
 
 type learnServer struct {
-	eventCh chan eventWrapper
-	eventID int32
-	eventChMap sync.Map
-	beforeReconcileCh chan int32
-	afterReconcileCh chan int32
-	reconcileCnt int32
+	eventCh                 chan eventWrapper
+	eventID                 int32
+	eventChMap              sync.Map
+	beforeReconcileCh       chan int32
+	afterReconcileCh        chan int32
+	reconcileCnt            int32
 	shouldRecordSideEffects bool
-	recordedEvents []eventWrapper
-	recordedSideEffects [][]string
-	mu sync.Mutex
+	recordedEvents          []eventWrapper
+	recordedSideEffects     [][]string
+	mu                      sync.Mutex
 }
 
 func (s *learnServer) Start() {
@@ -83,9 +83,9 @@ func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBe
 	myID := atomic.AddInt32(&s.eventID, 1)
 	myCh := make(chan int32)
 	s.eventChMap.Store(myID, myCh)
-	ew := eventWrapper {
-		eventID: myID,
-		eventType: request.OperationType,
+	ew := eventWrapper{
+		eventID:     myID,
+		eventType:   request.OperationType,
 		eventObject: request.Object,
 	}
 	log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObject)

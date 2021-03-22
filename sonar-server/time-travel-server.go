@@ -39,8 +39,10 @@ type RestartConfig struct {
 // The listener is actually a wrapper around the server.
 func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
 	server := &stalenessServer{
-		project:    config["project"].(string),
-		afterPause: false,
+		project:   config["project"].(string),
+		paused:    false,
+		restarted: false,
+		pauseCh: make(chan int),
 		freezeConfig: FreezeConfig{
 			apiserver: config["freeze-apiserver"].(string),
 			// resourceType: config["freeze-resource-type"].(string),
@@ -84,7 +86,9 @@ func (l *TimeTravelListener) NotifyTimeTravelSideEffect(request *sonar.NotifyTim
 
 type stalenessServer struct {
 	project       string
-	afterPause    bool
+	paused        bool
+	restarted     bool
+	pauseCh       chan int
 	freezeConfig  FreezeConfig
 	restartConfig RestartConfig
 }
@@ -148,9 +152,10 @@ func (s *stalenessServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTime
 	log.Printf("[sonar][crucialEvent] %s\n", request.Object)
 	log.Printf("[sonar][currentEvent] %s\n", s.freezeConfig.crucial)
 	if s.shouldPause(crucialEvent, currentEvent) {
-		s.afterPause = true
+		s.paused = true
 		log.Println("[sonar] should sleep here")
-		time.Sleep(time.Duration(s.freezeConfig.duration) * time.Second)
+		// time.Sleep(time.Duration(s.freezeConfig.duration) * time.Second)
+		<- s.pauseCh
 		log.Println("[sonar] sleep over")
 	}
 	*response = sonar.Response{Message: request.Hostname, Ok: true}
@@ -166,7 +171,7 @@ func (s *stalenessServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTr
 	log.Printf("[sonar][sideeffect] %s %s %s %s", request.Name, request.Namespace, request.ResourceType, request.EventType)
 	if s.shouldRestart() {
 		log.Println("[sonar] should restart here")
-		s.afterPause = false
+		s.restarted = true
 		go s.waitAndRestartComponent()
 	}
 	*response = sonar.Response{Message: request.Hostname, Ok: true}
@@ -176,14 +181,16 @@ func (s *stalenessServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTr
 func (s *stalenessServer) waitAndRestartComponent() {
 	time.Sleep(time.Duration(10) * time.Second)
 	s.restartComponent(s.project, s.restartConfig.pod)
+	time.Sleep(time.Duration(10) * time.Second)
+	s.pauseCh <- 0
 }
 
 func (s *stalenessServer) shouldPause(crucialEvent, currentEvent map[string]interface{}) bool {
-	return s.equivalentEvent(crucialEvent, currentEvent)
+	return !s.paused && s.equivalentEvent(crucialEvent, currentEvent)
 }
 
 func (s *stalenessServer) shouldRestart() bool {
-	return s.afterPause
+	return s.paused && !s.restarted
 }
 
 // The controller to restart is identified by `restart-pod` in the configuration.
