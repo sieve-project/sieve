@@ -1,84 +1,86 @@
 package sonar
 
 import (
-	"os"
-	"time"
-	"log"
 	"encoding/json"
+	"log"
+	"os"
+	"strings"
 )
 
-// NotifyTimeTravelBeforeProcessEvent is invoked before apiserver calling processEvent()
-// NotifyTimeTravelBeforeProcessEvent lets the server know the apiserver is going to process an event from etcd,
-// the server should decide whether to freeze the apiserver or restart the controller.
-func NotifyTimeTravelBeforeProcessEvent(eventType, resourceType string, object interface{}) {
+func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
 	if !checkMode(timeTravel) {
 		return
 	}
-	if resourceType == config["freeze-resource-type"] && eventType == config["freeze-event-type"] {
-		jsonObject, err := json.Marshal(object)
-		if err != nil {
-			printError(err, jsonError)
-			return
-		}
-		jsonMap := make(map[string]interface{})
-		err = json.Unmarshal(jsonObject, &jsonMap)
-		if err != nil {
-			printError(err, jsonError)
-			return
-		}
-		log.Printf("[soanr][jsonmap] %v\n", jsonMap)
-		ret := true
-		if meta, ok := jsonMap["metadata"]; ok {
-			if metaMap, ok := meta.(map[string]interface{}); ok {
-				if name, ok := metaMap["name"]; ok {
-					if nameStr, ok := name.(string); ok {
-						if nameStr == config["freeze-resource-name"] {
-							ret = false
-						}
-					}
-				}	
-			}
-		} else if name, ok := jsonMap["name"]; ok {
-			if nameStr, ok := name.(string); ok {
-				if nameStr == config["freeze-resource-name"] {
-					ret = false
-				}
-			}
-		}
-		if ret {
-			return
-		}
-		log.Printf("[sonar][NotifyTimeTravelBeforeProcessEvent][freeze] eventType: %s, resourceType: %s\n", eventType, resourceType)
-	} else if resourceType == config["restart-resource-type"] && eventType == config["restart-event-type"] {
-		log.Printf("[sonar][NotifyTimeTravelBeforeProcessEvent][restart] eventType: %s, resourceType: %s\n", eventType, resourceType)
+	tokens := strings.Split(key, "/")
+	name := ""
+	namespace := ""
+	resourceType := ""
+	if len(tokens) == 4 {
+		resourceType = tokens[1]
+		namespace = tokens[2]
+		name = tokens[3]
+	} else if len(tokens) == 5 {
+		resourceType = tokens[2]
+		namespace = tokens[3]
+		name = tokens[4]
 	} else {
 		return
 	}
-	client, err := newClient()
-	if err != nil {
-		printError(err, connectionError)
-		return
+	if name == config["freeze-resource-name"].(string) && namespace == config["freeze-resource-namespace"].(string) && resourceType == config["freeze-resource-type"].(string) {
+		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			printError(err, jsonError)
+		}
+		client, err := newClient()
+		if err != nil {
+			printError(err, connectionError)
+			return
+		}
+		hostname, err := os.Hostname()
+		if err != nil {
+			printError(err, hostError)
+			return
+		}
+		request := &NotifyTimeTravelCrucialEventRequest{
+			Hostname:  hostname,
+			EventType: eventType,
+			Object:    string(jsonObject),
+		}
+		var response Response
+		err = client.Call("TimeTravelListener.NotifyTimeTravelCrucialEvent", request, &response)
+		if err != nil {
+			printError(err, replyError)
+			return
+		}
+		checkResponse(response, "NotifyTimeTravelCrucialEvent")
+		client.Close()
+	} else if name == config["restart-resource-name"].(string) && namespace == config["restart-resource-namespace"].(string) && resourceType == config["restart-resource-type"].(string) && eventType == config["restart-event-type"] {
+		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
+		client, err := newClient()
+		if err != nil {
+			printError(err, connectionError)
+			return
+		}
+		hostname, err := os.Hostname()
+		if err != nil {
+			printError(err, hostError)
+			return
+		}
+		request := &NotifyTimeTravelSideEffectRequest{
+			Hostname:     hostname,
+			EventType:    eventType,
+			ResourceType: resourceType,
+			Name:         name,
+			Namespace:    namespace,
+		}
+		var response Response
+		err = client.Call("TimeTravelListener.NotifyTimeTravelSideEffect", request, &response)
+		if err != nil {
+			printError(err, replyError)
+			return
+		}
+		checkResponse(response, "NotifyTimeTravelSideEffect")
+		client.Close()
 	}
-	hostname, err := os.Hostname()
-	if err != nil {
-		printError(err, hostError)
-		return
-	}
-	request := &NotifyTimeTravelBeforeProcessEventRequest{
-		EventType:    eventType,
-		ResourceType: resourceType,
-		Hostname:     hostname,
-	}
-	var response Response
-	err = client.Call("TimeTravelListener.NotifyTimeTravelBeforeProcessEvent", request, &response)
-	if err != nil {
-		printError(err, replyError)
-		return
-	}
-	checkResponse(response, "NotifyTimeTravelBeforeProcessEvent")
-	if response.Wait != 0 {
-		log.Printf("[sonar][NotifyTimeTravelBeforeProcessEvent] should sleep for %d seconds here", response.Wait)
-		time.Sleep(time.Duration(response.Wait) * time.Second)
-	}
-	client.Close()
 }

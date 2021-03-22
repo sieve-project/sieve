@@ -14,7 +14,7 @@ var replyError string = "[sonar] replyError"
 var hostError string = "[sonar] hostError"
 var configError string = "[sonar] configError"
 var jsonError string = "[sonar] jsonError"
-var config map[interface{}]interface{} = nil
+var config map[string]interface{} = nil
 var sparseRead string = "sparse-read"
 var timeTravel string = "time-travel"
 var learn string = "learn"
@@ -38,12 +38,12 @@ func newClient() (*rpc.Client, error) {
 	return client, nil
 }
 
-func getConfig() (map[interface{}]interface{}, error) {
+func getConfig() (map[string]interface{}, error) {
 	data, err := ioutil.ReadFile("/sonar.yaml")
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[interface{}]interface{})
+	m := make(map[string]interface{})
 	err = yaml.Unmarshal([]byte(data), &m)
 	if err != nil {
 		return nil, err

@@ -2,12 +2,13 @@ project: cassandra-operator
 mode: time-travel
 freeze-apiserver: kind-control-plane3
 freeze-resource-name: sonar-cassandra-datacenter
-freeze-resource-type: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter"
-freeze-event-type: DELETED
+freeze-resource-namespace: default
+freeze-resource-type: cassandradatacenters
+freeze-crucial: "{\"metadata\": {\"deletionTimestamp\": \"sonar-exist\", \"deletionGracePeriodSeconds\": 0}}"
 freeze-duration: 800
 restart-pod: cassandra-operator
 restart-apiserver: kind-control-plane
-restart-resource-type: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter"
+restart-resource-name: data-volume-cassandra-test-cluster-dc1-rack1-0
+restart-resource-namespace: default
+restart-resource-type: persistentvolumeclaims
 restart-event-type: ADDED
-restart-times: 2
-restart-wait: 160

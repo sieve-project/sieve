@@ -29,9 +29,23 @@ type NotifyTimeTravelBeforeProcessEventRequest struct {
 	Hostname     string
 }
 
+type NotifyTimeTravelCrucialEventRequest struct {
+	Hostname  string
+	EventType string
+	Object    string
+}
+
+type NotifyTimeTravelSideEffectRequest struct {
+	Hostname     string
+	EventType    string
+	ResourceType string
+	Name         string
+	Namespace    string
+}
+
 type NotifyLearnBeforeIndexerWriteRequest struct {
 	OperationType string
-	Object string
+	Object        string
 }
 
 type NotifyLearnBeforeQAddRequest struct {
@@ -48,5 +62,5 @@ type NotifyLearnAfterReconcileRequest struct {
 
 type NotifyLearnSideEffectsRequest struct {
 	SideEffectType string
-	Gvk string
+	Gvk            string
 }
