@@ -1,10 +1,12 @@
 import json
+import yaml
 import copy
 import sys
 import os
 
 SONAR_EVENT_MARK = "[SONAR-EVENT]"
 SONAR_RECORD_MARK = "[SONAR-RECORD]"
+
 
 def constructEventMap(path):
     eventMap = {}
@@ -19,8 +21,10 @@ def constructEventMap(path):
         name = eventObject["metadata"]["name"]
         if name not in eventMap:
             eventMap[name] = []
-        eventMap[name].append({"eventID": eventID, "eventType": eventType, "eventObject": eventObject})
+        eventMap[name].append(
+            {"eventID": eventID, "eventType": eventType, "eventObject": eventObject})
     return eventMap
+
 
 def constructRecords(path):
     records = []
@@ -34,8 +38,10 @@ def constructRecords(path):
         eventType = tokens[3]
         eventObject = json.loads(tokens[4])
         name = eventObject["metadata"]["name"]
-        records.append({"effects": effects, "name": name, "eventID": eventID, "eventType": eventType, "eventObject": eventObject})
+        records.append({"effects": effects, "name": name, "eventID": eventID,
+                       "eventType": eventType, "eventObject": eventObject})
     return records
+
 
 def findPreviousEventWithName(id, name, eventMap):
     assert name in eventMap, "invalid name %s, not found in eventMap" % (name)
@@ -45,6 +51,7 @@ def findPreviousEventWithName(id, name, eventMap):
                 return None, eventMap[name][i]
             else:
                 return eventMap[name][i-1], eventMap[name][i]
+
 
 def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
     toDel = []
@@ -58,7 +65,8 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
             toDel.append(key)
         elif str(curObject[key]) != str(prevObject[key]):
             if isinstance(curObject[key], dict):
-                res = compressObject(prevObject[key], curObject[key], slimPrevObject[key], slimCurObject[key])
+                res = compressObject(
+                    prevObject[key], curObject[key], slimPrevObject[key], slimCurObject[key])
                 if res:
                     toDel.append(key)
             elif isinstance(curObject[key], list):
@@ -67,7 +75,8 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
                         break
                     elif str(curObject[key][i]) != str(prevObject[key][i]):
                         if isinstance(curObject[key][i], dict):
-                            res = compressObject(prevObject[key][i], curObject[key][i], slimPrevObject[key][i], slimCurObject[key][i])
+                            res = compressObject(
+                                prevObject[key][i], curObject[key][i], slimPrevObject[key][i], slimCurObject[key][i])
                             if res:
                                 slimCurObject[key][i] = "SONAR-SKIP"
                                 slimPrevObject[key][i] = "SONAR-SKIP"
@@ -89,6 +98,7 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
         return True
     return False
 
+
 def diffEvents(prevEvent, curEvent):
     # assert prevEvent["eventType"] == "Updated"
     # assert curEvent["eventType"] == "Updated"
@@ -102,27 +112,40 @@ def diffEvents(prevEvent, curEvent):
     return slimPrevObject, slimCurObject
 
 
+def canonicalization(event):
+    for key in event:
+        if isinstance(event[key], dict):
+            canonicalization(event[key])
+        else:
+            if "time" in key.lower():
+                event[key] = "sonar-exist"
+    return event
+
+
 def traverseRecordsWithName(records, eventMap, name):
     triggeringPoints = []
     for record in records:
         if record["name"] != name:
             continue
-        prevEvent, curEvent = findPreviousEventWithName(record["eventID"], record["name"], eventMap)
-        tp = {  "name": name, "namespace": curEvent["eventObject"]["metadata"]["namespace"],
-                "otype": curEvent["eventObject"]["metadata"]["selfLink"][curEvent["eventObject"]["metadata"]["selfLink"].find("namespaces/"):].split("/")[2],
-                "effects": record["effects"]}
+        prevEvent, curEvent = findPreviousEventWithName(
+            record["eventID"], record["name"], eventMap)
+        tp = {"name": name, "namespace": curEvent["eventObject"]["metadata"]["namespace"],
+              "otype": curEvent["eventObject"]["metadata"]["selfLink"].split("/")[-2],
+              "effects": record["effects"]}
         print("Object name(space):", tp["name"], tp["namespace"])
         print("Object type:", tp["otype"])
         print("Triggered effects:", tp["effects"])
         if prevEvent is None:
             tp["ttype"] = "event"
-            print("Triggering event:", record["eventType"], record["eventObject"])
+            print("Triggering event:",
+                  record["eventType"], record["eventObject"])
         else:
             if prevEvent["eventType"] != curEvent["eventType"]:
                 tp["ttype"] = "event-type-delta"
                 tp["prevEventType"] = prevEvent["eventType"]
                 tp["curEventType"] = curEvent["eventType"]
-                print("Triggering type:", prevEvent["eventType"], curEvent["eventType"])
+                print("Triggering type:",
+                      prevEvent["eventType"], curEvent["eventType"])
             else:
                 slimPrevObject, slimCurObject = diffEvents(prevEvent, curEvent)
                 tp["ttype"] = "event-content-delta"
@@ -138,17 +161,49 @@ def traverseRecordsWithName(records, eventMap, name):
         triggeringPoints.append(tp)
     return triggeringPoints
 
+
+def generateYaml(triggeringPoints, path):
+    yamlMap = {}
+    yamlMap["project"] = "cassandra-operator"
+    yamlMap["mode"] = "time-travel"
+    yamlMap["freeze-apiserver"] = "kind-control-plane3"
+    yamlMap["restart-apiserver"] = "kind-control-plane"
+    yamlMap["restart-pod"] = "cassandra-operator"
+    i = 0
+    os.makedirs(path, exist_ok=True)
+    for triggeringPoint in triggeringPoints:
+        if triggeringPoint["ttype"] == "event-content-delta":
+            for effect in triggeringPoint["effects"]:
+                if effect["etype"] == "delete" or effect["etype"] == "create":
+                    i += 1
+                    yamlMap["freeze-resource-name"] = triggeringPoint["name"]
+                    yamlMap["freeze-resource-namespace"] = triggeringPoint["namespace"]
+                    yamlMap["freeze-resource-type"] = triggeringPoint["otype"]
+                    yamlMap["freeze-crucial"] = json.dumps(
+                        canonicalization(copy.deepcopy(triggeringPoint["curEvent"])))
+                    yamlMap["restart-resource-name"] = effect["name"]
+                    yamlMap["restart-resource-namespace"] = effect["namespace"]
+                    yamlMap["restart-resource-type"] = effect["rtype"]
+                    yamlMap["restart-event-type"] = "ADDED" if effect["etype"] == "delete" else "DELETED"
+                    yaml.dump(yamlMap, open(
+                        os.path.join(path, "%s.yaml" % (str(i))), "w"))
+
+
 if __name__ == "__main__":
     dir = sys.argv[1]
     path = os.path.join(dir, "sonar-server.log")
     # path = "log/zk1/learn/sonar-server.log"
     eventMap = constructEventMap(path)
     records = constructRecords(path)
-    json.dump(eventMap, open(os.path.join(dir, "event-map.json"), "w"), indent=4)
+    json.dump(eventMap, open(os.path.join(
+        dir, "event-map.json"), "w"), indent=4)
     json.dump(records, open(os.path.join(dir, "records.json"), "w"), indent=4)
 
     triggeringPoints = []
     for name in eventMap:
-        triggeringPoints = triggeringPoints + traverseRecordsWithName(records, eventMap, name)
-    json.dump(triggeringPoints, open(os.path.join(dir, "triggering-points.json"), "w"), indent=4)
-
+        triggeringPoints = triggeringPoints + \
+            traverseRecordsWithName(records, eventMap, name)
+    json.dump(triggeringPoints, open(os.path.join(
+        dir, "triggering-points.json"), "w"), indent=4)
+    path = os.path.join(dir, "generated-config")
+    generateYaml(triggeringPoints, path)
