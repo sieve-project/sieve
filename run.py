@@ -192,6 +192,9 @@ def generate_test_suites():
 
 def run(test_suites, project, test, dir, mode, config):
     suite = test_suites[project][test]
+    test_config = suite.config
+    if config != "none":
+        test_config = config
     if mode == "normal":
         log_dir = os.path.join(dir, project, test, mode)
         run_test(project, suite.workload,
@@ -199,18 +202,20 @@ def run(test_suites, project, test, dir, mode, config):
         digest_normal = generate_digest()
         log_digest(digest_normal)
     elif mode == "faulty":
+        print("test config: %s" % test_config)
         log_dir = os.path.join(dir, project, test, mode)
         run_test(project, suite.workload,
-                 suite.config, suite.config, suite.config, suite.ha, suite.restart, log_dir)
+                 test_config, test_config, test_config, suite.ha, suite.restart, log_dir)
     elif mode == "compare":
         log_dir = os.path.join(dir, project, test, "normal")
         run_test(project, suite.workload,
                  blank_config, blank_config, blank_config, suite.ha, suite.restart, log_dir)
         digest_normal = generate_digest()
         log_digest(digest_normal)
+        print("test config: %s" % test_config)
         log_dir = os.path.join(dir, project, test, "faulty")
         run_test(project, suite.workload,
-                 suite.config, suite.config, suite.config, suite.ha, suite.restart, log_dir)
+                 test_config, test_config, test_config, suite.ha, suite.restart, log_dir)
         digest_faulty = generate_digest()
         compare_digest(digest_normal, digest_faulty)
     elif mode == "learn":
@@ -233,7 +238,7 @@ if __name__ == "__main__":
     parser.add_option("-m", "--mode", dest="mode",
                       help="test MODE: normal, faulty, learn or compare", metavar="MODE", default="faulty")
     parser.add_option("-c", "--config", dest="config",
-                      help="test CONFIG", metavar="CONFIG", default=None)
+                      help="test CONFIG", metavar="CONFIG", default="none")
 
     (options, args) = parser.parse_args()
     dir = options.dir
