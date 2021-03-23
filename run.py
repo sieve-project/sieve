@@ -165,67 +165,6 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
                   (pod_name, log_dir))
 
 
-# def cassandra_t1(log, mode, config=None):
-#     log_dir = os.path.join(log, "ca1/" + mode)
-#     if mode == "normal":
-#         test_config = blank_config
-#     elif mode == "faulty":
-#         test_config = "test-cassandra-operator/config/bug1.yaml" if config is None else config
-#     elif mode == "learn":
-#         test_config = learn_config
-#     run_test("cassandra-operator", "scaleDownCassandraDataCenter.sh",
-#              test_config, test_config, test_config, False, False, log_dir)
-
-
-# def cassandra_t2(log, mode, config=None):
-#     log_dir = os.path.join(log, "ca2/" + mode)
-#     if mode == "normal":
-#         test_config = blank_config
-#     elif mode == "faulty":
-#         test_config = "test-cassandra-operator/config/bug2.yaml" if config is None else config
-#     elif mode == "learn":
-#         test_config = learn_config
-#     print("[sonar] using config: " + test_config)
-#     run_test("cassandra-operator", "recreateCassandraDataCenter.sh",
-#              test_config, test_config, test_config, True, True, log_dir)
-
-
-# def cassandra_t3(log, mode, config=None):
-#     log_dir = os.path.join(log, "ca3/" + mode)
-#     if mode == "normal":
-#         test_config = blank_config
-#     elif mode == "faulty":
-#         test_config = "test-cassandra-operator/config/bug3.yaml" if config is None else config
-#     elif mode == "learn":
-#         test_config = learn_config
-#     run_test("cassandra-operator", "recreateCassandraDataCenter.sh",
-#              test_config, test_config, test_config, True, True, log_dir)
-
-
-# def cassandra_t4(log, mode, config=None):
-#     log_dir = os.path.join(log, "ca4/" + mode)
-#     if mode == "normal":
-#         test_config = blank_config
-#     elif mode == "faulty":
-#         test_config = "test-cassandra-operator/config/bug4.yaml" if config is None else config
-#     elif mode == "learn":
-#         test_config = learn_config
-#     run_test("cassandra-operator", "scaleDownUpCassandraDataCenter.sh",
-#              test_config, test_config, test_config, True, True, log_dir)
-
-
-# def zookeeper_t1(log, normal, config=None):
-#     log_dir = os.path.join(log, "zk1/" + mode)
-#     if mode == "normal":
-#         test_config = blank_config
-#     elif mode == "faulty":
-#         test_config = "test-zookeeper-operator/config/bug1.yaml" if config is None else config
-#     elif mode == "learn":
-#         test_config = learn_config
-#     run_test("zookeeper-operator", "recreateZookeeperCluster.sh",
-#              test_config, test_config, test_config, True, True, log_dir)
-
-
 class Suite:
     def __init__(self, workload, config, ha, restart):
         self.workload = workload
