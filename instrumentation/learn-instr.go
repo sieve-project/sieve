@@ -63,7 +63,7 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"create\""}, &dst.Ident{Name: "obj.GetObjectKind().GroupVersionKind().String()"}},
+				Args: []dst.Expr{&dst.Ident{Name: "\"create\""}, &dst.Ident{Name: "obj"}},
 			},
 		}
 		instrumentation.Decs.End.Append("//sonar")
@@ -75,7 +75,7 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"update\""}, &dst.Ident{Name: "obj.GetObjectKind().GroupVersionKind().String()"}},
+				Args: []dst.Expr{&dst.Ident{Name: "\"update\""}, &dst.Ident{Name: "obj"}},
 			},
 		}
 		instrumentation.Decs.End.Append("//sonar")
@@ -87,7 +87,7 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 		instrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"delete\""}, &dst.Ident{Name: "obj.GetObjectKind().GroupVersionKind().String()"}},
+				Args: []dst.Expr{&dst.Ident{Name: "\"delete\""}, &dst.Ident{Name: "obj"}},
 			},
 		}
 		instrumentation.Decs.End.Append("//sonar")

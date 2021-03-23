@@ -3,6 +3,7 @@ package sonar
 import (
 	"log"
 	"encoding/json"
+	"reflect"
 )
 
 func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
@@ -80,11 +81,15 @@ func NotifyLearnAfterReconcile() {
 	client.Close()
 }
 
-func NotifyLearnSideEffects(sideEffectType, gvk string) {
+func NotifyLearnSideEffects(sideEffectType string, object interface{}) {
 	if !checkMode(learn) {
 		return
 	}
-	log.Printf("[sonar][NotifyLearnSideEffects]\n")
+	log.Printf("[sonar][NotifyLearnSideEffects] %v\n", reflect.TypeOf(object))
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, jsonError)
+	}
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -92,7 +97,7 @@ func NotifyLearnSideEffects(sideEffectType, gvk string) {
 	}
 	request := &NotifyLearnSideEffectsRequest{
 		SideEffectType: sideEffectType,
-		Gvk: gvk,
+		Object: string(jsonObject),
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnSideEffects", request, &response)

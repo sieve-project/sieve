@@ -6,6 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"strings"
 
 	sonar "sonar.client"
 )
@@ -20,7 +21,7 @@ func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
 		reconcileCnt:            0,
 		shouldRecordSideEffects: false,
 		recordedEvents:          []eventWrapper{},
-		recordedSideEffects:     [][]string{},
+		recordedSideEffects:     []map[string]string{},
 	}
 	listener := &LearnListener{
 		Server: server,
@@ -69,7 +70,7 @@ type learnServer struct {
 	reconcileCnt            int32
 	shouldRecordSideEffects bool
 	recordedEvents          []eventWrapper
-	recordedSideEffects     [][]string
+	recordedSideEffects     []map[string]string
 	mu                      sync.Mutex
 }
 
@@ -115,12 +116,35 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterR
 	return nil
 }
 
+func (s *learnServer) extractNameNamespaceRType(Object string) (string, string, string) {
+	objectMap := strToMap(Object)
+	name := ""
+	namespace := ""
+	rtype := ""
+	if _, ok := objectMap["metadata"]; ok {
+		if metadataMap, ok := objectMap["metadata"].(map[string]interface{}); ok {
+			if _, ok := metadataMap["name"]; ok {
+				name = metadataMap["name"].(string)
+			}
+			if _, ok := metadataMap["namespace"]; ok {
+				namespace = metadataMap["namespace"].(string)
+			}
+			if _, ok := metadataMap["selfLink"]; ok {
+				tokens := strings.Split(metadataMap["selfLink"].(string), "/")
+				rtype = tokens[len(tokens) - 2]
+			}
+		}
+	}
+	return name, namespace, rtype
+}
+
 func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
-	log.Printf("NotifyLearnSideEffects: %s %s\n", request.SideEffectType, request.Gvk)
+	log.Printf("NotifyLearnSideEffects: %s %s\n", request.SideEffectType, request.Object)
+	name, namespace, rtype := s.extractNameNamespaceRType(request.Object)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.shouldRecordSideEffects {
-		newSideEffect := []string{request.SideEffectType, request.Gvk}
+		newSideEffect := map[string]string{"etype": request.SideEffectType, "name": name, "namespace": namespace, "rtype": rtype}
 		s.recordedSideEffects = append(s.recordedSideEffects, newSideEffect)
 	}
 	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
@@ -149,7 +173,7 @@ func (s *learnServer) coordinatingEvents() {
 					}
 				}
 				s.recordedEvents = []eventWrapper{}
-				s.recordedSideEffects = [][]string{}
+				s.recordedSideEffects = []map[string]string{}
 				s.mu.Unlock()
 				s.allowEvent()
 			} else if newVal < 0 {

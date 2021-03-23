@@ -23,7 +23,7 @@ type FreezeConfig struct {
 	apiserver string
 	// resourceType string
 	// eventType    string
-	duration int
+	// duration int
 	crucial  string
 }
 
@@ -47,7 +47,7 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 			apiserver: config["freeze-apiserver"].(string),
 			// resourceType: config["freeze-resource-type"].(string),
 			// eventType:    config["freeze-event-type"].(string),
-			duration: config["freeze-duration"].(int),
+			// duration: config["freeze-duration"].(int),
 			crucial:  config["freeze-crucial"].(string),
 		},
 		restartConfig: RestartConfig{
