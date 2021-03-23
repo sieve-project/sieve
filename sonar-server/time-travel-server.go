@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os/exec"
 	"sync"
@@ -141,6 +140,25 @@ func (s *stalenessServer) equivalentEvent(crucialEvent, currentEvent map[string]
 	return true
 }
 
+func (s *stalenessServer) equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
+	if _, ok := currentEvent["metadata"]; ok {
+		return false
+	}
+	if metadataMap, ok := crucialEvent["metadata"]; ok {
+		if m, ok := metadataMap.(map[string]interface{}); ok {
+			for key := range m {
+				crucialEvent[key] = m[key]
+			}
+			delete(crucialEvent, "metadata")
+			return s.equivalentEvent(crucialEvent, currentEvent)
+		} else {
+			return false
+		}
+	} else {
+		return false
+	}
+}
+
 func (s *stalenessServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
 	log.Printf("NotifyTimeTravelCrucialEvent: Hostname: %s\n", request.Hostname)
 	if s.freezeConfig.apiserver != request.Hostname {
@@ -186,7 +204,16 @@ func (s *stalenessServer) waitAndRestartComponent() {
 }
 
 func (s *stalenessServer) shouldPause(crucialEvent, currentEvent map[string]interface{}) bool {
-	return !s.paused && s.equivalentEvent(crucialEvent, currentEvent)
+	if !s.paused {
+		if s.equivalentEvent(crucialEvent, currentEvent) {
+			log.Println("equivalent")
+			return true
+		} else if s.equivalentEventSecondTry(crucialEvent, currentEvent) {
+			log.Println("equivalent second try")
+			return true
+		}
+	}
+	return false
 }
 
 func (s *stalenessServer) shouldRestart() bool {
@@ -223,10 +250,10 @@ func (s *stalenessServer) restartComponent(project, podLabel string) {
 	cmd1 := exec.Command("./util.sh", project, "crash", pod.Name)
 	err = cmd1.Run()
 	checkError(err)
-	fmt.Println("crash")
+	log.Println("crash")
 
 	cmd2 := exec.Command("./util.sh", project, "restart", pod.Name)
 	err = cmd2.Run()
 	checkError(err)
-	fmt.Println("restart")
+	log.Println("restart")
 }
