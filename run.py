@@ -187,6 +187,8 @@ def generate_test_suites():
         "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/bug4.yaml", True, True)
     test_suites["zookeeper-operator"]["test1"] = Suite(
         "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/bug1.yaml", True, True)
+    test_suites["zookeeper-operator"]["test2"] = Suite(
+        "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/bug2.yaml", True, True)
     return test_suites
 
 
