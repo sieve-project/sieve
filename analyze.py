@@ -103,8 +103,6 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
 
 
 def diffEvents(prevEvent, curEvent):
-    # assert prevEvent["eventType"] == "Updated"
-    # assert curEvent["eventType"] == "Updated"
     prevObject = prevEvent["eventObject"]
     curObject = curEvent["eventObject"]
     assert prevObject["metadata"]["selfLink"] == curObject["metadata"]["selfLink"]
@@ -135,32 +133,18 @@ def traverseRecordsWithSelfLink(records, eventMap, selfLink):
         tp = {"name": curEvent["eventObject"]["metadata"]["name"], "namespace": curEvent["eventObject"]["metadata"]["namespace"],
               "otype": curEvent["eventObject"]["metadata"]["selfLink"].split("/")[-2],
               "effects": record["effects"]}
-        print("Object name(space):", tp["name"], tp["namespace"])
-        print("Object type:", tp["otype"])
-        print("Triggered effects:", tp["effects"])
         if prevEvent is None:
             tp["ttype"] = "event"
-            print("Triggering event:",
-                  record["eventType"], record["eventObject"])
         else:
             if prevEvent["eventType"] != curEvent["eventType"]:
                 tp["ttype"] = "event-type-delta"
                 tp["prevEventType"] = prevEvent["eventType"]
                 tp["curEventType"] = curEvent["eventType"]
-                print("Triggering type:",
-                      prevEvent["eventType"], curEvent["eventType"])
             else:
                 slimPrevObject, slimCurObject = diffEvents(prevEvent, curEvent)
                 tp["ttype"] = "event-content-delta"
                 tp["prevEvent"] = slimPrevObject
                 tp["curEvent"] = slimCurObject
-                print("Triggering diff:")
-                print("Prev:")
-                print(slimPrevObject)
-                print("")
-                print("Cur:")
-                print(slimCurObject)
-        print("==========================================================")
         triggeringPoints.append(tp)
     return triggeringPoints
 
