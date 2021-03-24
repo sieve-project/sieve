@@ -23,7 +23,8 @@ type FreezeConfig struct {
 	// resourceType string
 	// eventType    string
 	// duration int
-	crucial  string
+	crucialCur  string
+	crucialPrev string
 }
 
 type RestartConfig struct {
@@ -39,6 +40,7 @@ type RestartConfig struct {
 func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
 	server := &stalenessServer{
 		project:   config["project"].(string),
+		seenPrev:  false,
 		paused:    false,
 		restarted: false,
 		pauseCh: make(chan int),
@@ -47,7 +49,8 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 			// resourceType: config["freeze-resource-type"].(string),
 			// eventType:    config["freeze-event-type"].(string),
 			// duration: config["freeze-duration"].(int),
-			crucial:  config["freeze-crucial"].(string),
+			crucialCur:  config["freeze-crucial-current"].(string),
+			crucialPrev:  config["freeze-crucial-previous"].(string),
 		},
 		restartConfig: RestartConfig{
 			pod:       config["restart-pod"].(string),
@@ -85,6 +88,7 @@ func (l *TimeTravelListener) NotifyTimeTravelSideEffect(request *sonar.NotifyTim
 
 type stalenessServer struct {
 	project       string
+	seenPrev      bool
 	paused        bool
 	restarted     bool
 	pauseCh       chan int
@@ -113,15 +117,27 @@ func (s *stalenessServer) equivalentEvent(crucialEvent, currentEvent map[string]
 		switch v := val.(type) {
 		case int:
 			if e, ok := currentEvent[key].(int); ok {
-				return v == e
+				if v != e {
+					return false
+				}
+			} else {
+				return false
+			}
+		case float64:
+			if e, ok := currentEvent[key].(float64); ok {
+				if v != e {
+					return false
+				}
 			} else {
 				return false
 			}
 		case string:
 			if v == "sonar-exist" {
-				return true
+				continue
 			} else if e, ok := currentEvent[key].(string); ok {
-				return v == e
+				if v != e {
+					return false
+				}
 			} else {
 				return false
 			}
@@ -134,7 +150,7 @@ func (s *stalenessServer) equivalentEvent(crucialEvent, currentEvent map[string]
 				return false
 			}
 		default:
-			log.Printf("Unsupported type: %v", v)
+			log.Printf("Unsupported type: %v %T", v, v)
 		}
 	}
 	return true
@@ -159,6 +175,19 @@ func (s *stalenessServer) equivalentEventSecondTry(crucialEvent, currentEvent ma
 	}
 }
 
+
+func (s *stalenessServer) isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
+	if s.equivalentEvent(crucialEvent, currentEvent) {
+		log.Println("Meet")
+		return true
+	} else if s.equivalentEventSecondTry(crucialEvent, currentEvent) {
+		log.Println("Meet for the second try")
+		return true
+	} else {
+		return false
+	}
+}
+
 func (s *stalenessServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
 	log.Printf("NotifyTimeTravelCrucialEvent: Hostname: %s\n", request.Hostname)
 	if s.freezeConfig.apiserver != request.Hostname {
@@ -166,13 +195,11 @@ func (s *stalenessServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTime
 		return nil
 	}
 	currentEvent := strToMap(request.Object)
-	crucialEvent := strToMap(s.freezeConfig.crucial)
-	log.Printf("[sonar][crucialEvent] %s\n", request.Object)
-	log.Printf("[sonar][currentEvent] %s\n", s.freezeConfig.crucial)
-	if s.shouldPause(crucialEvent, currentEvent) {
-		s.paused = true
+	crucialCurEvent := strToMap(s.freezeConfig.crucialCur)
+	crucialPrevEvent := strToMap(s.freezeConfig.crucialPrev)
+	log.Printf("[sonar][currentEvent] %s\n", request.Object)
+	if s.shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		log.Println("[sonar] should sleep here")
-		// time.Sleep(time.Duration(s.freezeConfig.duration) * time.Second)
 		<- s.pauseCh
 		log.Println("[sonar] sleep over")
 	}
@@ -189,7 +216,6 @@ func (s *stalenessServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTr
 	log.Printf("[sonar][sideeffect] %s %s %s %s", request.Name, request.Namespace, request.ResourceType, request.EventType)
 	if s.shouldRestart() {
 		log.Println("[sonar] should restart here")
-		s.restarted = true
 		go s.waitAndRestartComponent()
 	}
 	*response = sonar.Response{Message: request.Hostname, Ok: true}
@@ -199,25 +225,42 @@ func (s *stalenessServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTr
 func (s *stalenessServer) waitAndRestartComponent() {
 	time.Sleep(time.Duration(10) * time.Second)
 	s.restartComponent(s.project, s.restartConfig.pod)
-	time.Sleep(time.Duration(10) * time.Second)
+	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }
 
-func (s *stalenessServer) shouldPause(crucialEvent, currentEvent map[string]interface{}) bool {
+func (s *stalenessServer) shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
 	if !s.paused {
-		if s.equivalentEvent(crucialEvent, currentEvent) {
-			log.Println("equivalent")
-			return true
-		} else if s.equivalentEventSecondTry(crucialEvent, currentEvent) {
-			log.Println("equivalent second try")
-			return true
+		if !s.seenPrev {
+			if s.isCrucial(crucialPrevEvent, currentEvent) {
+				log.Println("Meet crucialPrevEvent: set seenPrev to true")
+				s.seenPrev = true
+			}
+		} else {
+			if s.isCrucial(crucialCurEvent, currentEvent) {
+				log.Println("Meet crucialCurEvent: set paused to true and start to pause")
+				s.paused = true
+				return true
+			}
+			// else if s.isCrucial(crucialPrevEvent, currentEvent) {
+			// 	log.Println("Meet crucialPrevEvent: keep seenPrev as true")
+			// 	// s.seenPrev = true
+			// } else {
+			// 	log.Println("Not meet anything: set seenPrev back to false")
+			// 	s.seenPrev = false
+			// }
 		}
 	}
 	return false
 }
 
 func (s *stalenessServer) shouldRestart() bool {
-	return s.paused && !s.restarted
+	if s.paused && !s.restarted {
+		s.restarted = true
+		return true
+	} else {
+		return false
+	}
 }
 
 // The controller to restart is identified by `restart-pod` in the configuration.
