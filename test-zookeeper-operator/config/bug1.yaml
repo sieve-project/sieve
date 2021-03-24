@@ -1,12 +1,15 @@
-project: zookeeper-operator
-mode: time-travel
 freeze-apiserver: kind-control-plane3
-freeze-resource-type: "zookeeper.pravega.io/v1beta1, Kind=ZookeeperCluster"
-freeze-event-type: DELETED
-freeze-duration: 800
-restart-pod: zookeeper-operator
+freeze-crucial-current: '{"metadata": {"deletionTimestamp": "sonar-exist", "deletionGracePeriodSeconds":
+  0}}'
+freeze-crucial-previous: '{"metadata": {}}'
+freeze-resource-name: sonar-zookeeper-cluster
+freeze-resource-namespace: default
+freeze-resource-type: zookeeperclusters
+mode: time-travel
+project: zookeeper-operator
 restart-apiserver: kind-control-plane
-restart-resource-type: "zookeeper.pravega.io/v1beta1, Kind=ZookeeperCluster"
 restart-event-type: ADDED
-restart-times: 2
-restart-wait: 20
+restart-pod: zookeeper-operator
+restart-resource-name: data-sonar-zookeeper-cluster-0
+restart-resource-namespace: default
+restart-resource-type: persistentvolumeclaims
