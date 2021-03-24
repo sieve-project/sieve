@@ -1,13 +1,15 @@
-project: cassandra-operator
-mode: time-travel
 freeze-apiserver: kind-control-plane3
+freeze-crucial-current: '{"metadata": {"deletionTimestamp": "sonar-exist", "deletionGracePeriodSeconds":
+  0}}'
+freeze-crucial-previous: '{"metadata": {}}'
 freeze-resource-name: sonar-cassandra-datacenter
 freeze-resource-namespace: default
 freeze-resource-type: cassandradatacenters
-freeze-crucial: "{\"metadata\": {\"deletionTimestamp\": \"sonar-exist\", \"deletionGracePeriodSeconds\": 0}}"
-restart-pod: cassandra-operator
+mode: time-travel
+project: cassandra-operator
 restart-apiserver: kind-control-plane
+restart-event-type: ADDED
+restart-pod: cassandra-operator
 restart-resource-name: data-volume-cassandra-test-cluster-dc1-rack1-0
 restart-resource-namespace: default
 restart-resource-type: persistentvolumeclaims
-restart-event-type: ADDED
