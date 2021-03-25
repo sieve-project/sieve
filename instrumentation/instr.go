@@ -7,26 +7,30 @@ import (
 )
 
 // instrment for sparse-read pattern
-func instrumentSparseRead(filepath string) {
+func instrumentSparseRead(controller_runtime_filepath string) {
 	// Mainly two pieces of instrumentation we should do for sparse-read:
 	// In controller.go, we need to invoke NotifySparseReadBeforeReconcile before calling Reconcile(),
 	// and invoke NotifySparseReadBeforeMakeQ before creating a queue.
-	controllerGoFile := path.Join(filepath, "pkg", "internal", "controller", "controller.go")
+	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
 	instrumentControllerGo(controllerGoFile, controllerGoFile)
 
 	// In enqueue*.go, we need to invoke NotifySparseReadBeforeQAdd before calling each q.Add().
-	enqueueGoFile := path.Join(filepath, "pkg", "handler", "enqueue.go")
+	enqueueGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue.go")
 	fmt.Printf("instrumenting %s\n", enqueueGoFile)
 	instrumentEnqueueGo(enqueueGoFile, enqueueGoFile)
 
-	enqueueMappedGoFile := path.Join(filepath, "pkg", "handler", "enqueue_mapped.go")
+	enqueueMappedGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue_mapped.go")
 	fmt.Printf("instrumenting %s\n", enqueueMappedGoFile)
 	instrumentEnqueueGo(enqueueMappedGoFile, enqueueMappedGoFile)
 
-	enqueueOwnerGoFile := path.Join(filepath, "pkg", "handler", "enqueue_owner.go")
+	enqueueOwnerGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue_owner.go")
 	fmt.Printf("instrumenting %s\n", enqueueOwnerGoFile)
 	instrumentEnqueueGo(enqueueOwnerGoFile, enqueueOwnerGoFile)
+
+	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
+	fmt.Printf("instrumenting %s\n", clientGoFile)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "SparseRead")
 }
 
 // instrument for time-traveling pattern
@@ -49,7 +53,7 @@ func instrumentTimeTravel(controller_runtime_filepath, k8s_filepath string) {
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForTimeTravel(clientGoFile, clientGoFile)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel")
 }
 
 func instrumentLearn(controller_runtime_filepath, client_go_filepath string) {

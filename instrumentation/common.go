@@ -76,3 +76,46 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File) {
 	autoInstrFile.Write(buf.Bytes())
 	check(err)
 }
+
+func instrumentClientGoForAll(ifilepath, ofilepath, mode string) {
+	funName := "Notify" + mode + "SideEffects"
+	f := parseSourceFile(ifilepath, "client")
+	_, funcDecl := findFuncDecl(f, "Create")
+	index := 0
+	if funcDecl != nil {
+		instrumentation := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "\"create\""}, &dst.Ident{Name: "obj"}},
+			},
+		}
+		instrumentation.Decs.End.Append("//sonar")
+		insertStmt(&funcDecl.Body.List, index, instrumentation)
+	}
+
+	_, funcDecl = findFuncDecl(f, "Update")
+	if funcDecl != nil {
+		instrumentation := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "\"update\""}, &dst.Ident{Name: "obj"}},
+			},
+		}
+		instrumentation.Decs.End.Append("//sonar")
+		insertStmt(&funcDecl.Body.List, index, instrumentation)
+	}
+
+	_, funcDecl = findFuncDecl(f, "Delete")
+	if funcDecl != nil {
+		instrumentation := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "\"delete\""}, &dst.Ident{Name: "obj"}},
+			},
+		}
+		instrumentation.Decs.End.Append("//sonar")
+		insertStmt(&funcDecl.Body.List, index, instrumentation)
+	}
+
+	writeInstrumentedFile(ofilepath, "client", f)
+}
