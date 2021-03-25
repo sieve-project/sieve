@@ -33,6 +33,11 @@ First, build the operators:
 ```
 python3 run.py -p cassandra-operator -t test2 -m compare
 ```
+If reproduced, you will find
+```
+persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
+[FIND BUG] # alarms: 1
+```
 
 ### [instaclustr-cassandra-operator-404](https://github.com/instaclustr/cassandra-operator/issues/404)
 work in progress
@@ -41,15 +46,30 @@ work in progress
 ```
 python3 run.py -p cassandra-operator -t test4 -m compare
 ```
+If reproduced, you will find
+```
+persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
+[FIND BUG] # alarms: 1
+```
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
 python3 run.py -p zookeeper-operator -t test1 -m compare
 ```
+If reproduced, you will find
+```
+persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
+[FIND BUG] # alarms: 1
+```
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
 python3 run.py -p zookeeper-operator -t test2 -m compare
+```
+If reproduced, you will find
+```
+persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
+[FIND BUG] # alarms: 1
 ```
 
 ### Observability gaps
@@ -61,6 +81,11 @@ First, build the operators:
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
 python3 run.py -p cassandra-operator -t test1 -m compare
+```
+If reproduced, you will find
+```
+persistentVolumeClaim has different length: normal: 1 faulty: 2
+[FIND BUG] # alarms: 1
 ```
 
 ### Others
