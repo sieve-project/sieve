@@ -62,7 +62,7 @@ instrument() {
   if [ $mode = 'sparse-read' ]; then
     ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
   elif [ $mode = 'time-travel' ]; then
-    ./instrumentation $mode ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
+    ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
   elif [ $mode = 'learn' ]; then
     ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
   fi

@@ -30,7 +30,7 @@ func instrumentSparseRead(filepath string) {
 }
 
 // instrument for time-traveling pattern
-func instrumentTimeTravel(filepath string) {
+func instrumentTimeTravel(controller_runtime_filepath, k8s_filepath string) {
 	// In reflector.go, we need to create GetExpectedTypeName() in reflector.go
 	// because sonar server needs this information.
 	// reflectorGoFile := path.Join(filepath, "staging", "src", "k8s.io", "client-go", "tools", "cache", "reflector.go")
@@ -43,9 +43,13 @@ func instrumentTimeTravel(filepath string) {
 	// instrumentCacherGo(cacherGoFile, cacherGoFile)
 
 	// In watch_cache.go, we need to invoke NotifyTimeTravelBeforeProcessEvent in watch_cache.go.
-	watchCacheGoFile := path.Join(filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
+	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-	instrumentWatchCacheGo(watchCacheGoFile, watchCacheGoFile)
+	instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
+
+	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
+	fmt.Printf("instrumenting %s\n", clientGoFile)
+	instrumentClientGoForTimeTravel(clientGoFile, clientGoFile)
 }
 
 func instrumentLearn(controller_runtime_filepath, client_go_filepath string) {
@@ -67,7 +71,7 @@ func main() {
 	if args[1] == "sparse-read" {
 		instrumentSparseRead(args[2])
 	} else if args[1] == "time-travel" {
-		instrumentTimeTravel(args[2])
+		instrumentTimeTravel(args[2], args[3])
 	} else if args[1] == "learn" {
 		instrumentLearn(args[2], args[3])
 	}

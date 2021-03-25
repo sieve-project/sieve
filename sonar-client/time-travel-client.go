@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"reflect"
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
@@ -83,4 +84,11 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 		checkResponse(response, "NotifyTimeTravelSideEffect")
 		client.Close()
 	}
+}
+
+func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}) {
+	if !checkMode(timeTravel) {
+		return
+	}
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()))
 }
