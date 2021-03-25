@@ -125,7 +125,7 @@ func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string
 				return false
 			}
 		case string:
-			if v == "sonar-exist" {
+			if v == "SONAR-EXIST" {
 				continue
 			} else if e, ok := currentEvent[key].(string); ok {
 				if v != e {
