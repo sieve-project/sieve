@@ -11,70 +11,8 @@ log_dir = "log"
 k8s_namespace = "default"
 
 
-# POD = "pods"
-# PVC = "persistentvolumeclaims"
-# DEPLOYMENT = "deployments"
-# STS = "statefulsets"
-
-# ktypes = [POD, PVC, DEPLOYMENT, STS]
-
 blank_config = "config/none.yaml"
 learn_config = "config/learn.yaml"
-
-
-# class Digest:
-#     def __init__(self, core_v1, apps_v1):
-#         self.resources = {}
-#         for ktype in ktypes:
-#             # print("list for " + ktype)
-#             self.resources[ktype] = []
-#         for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
-#             self.resources[POD].append(pod)
-#         for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
-#             self.resources[PVC].append(pvc)
-#             # print("%s\t%s\t%s" % (pvc.metadata.name, pvc.status.phase, pvc.metadata.deletion_timestamp))
-#         for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
-#             self.resources[DEPLOYMENT].append(dp)
-#         for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
-#             self.resources[STS].append(sts)
-
-
-# def generate_digest():
-#     kubernetes.config.load_kube_config()
-#     core_v1 = kubernetes.client.CoreV1Api()
-#     apps_v1 = kubernetes.client.AppsV1Api()
-#     digest = Digest(core_v1, apps_v1)
-#     return digest
-
-
-# def log_digest(digest):
-#     print("We should generate a json for the digest", digest)
-
-
-# def check_len(list1, list2, ktype):
-#     if len(list1) != len(list2):
-#         print("%s has different length: normal: %d faulty: %d" %
-#               (ktype, len(list1), len(list2)))
-#         return 1
-#     return 0
-
-
-# def check_deletion_timestamp(list1, list2, ktype):
-#     terminating1 = 0
-#     for item in list1:
-#         # print("dts of %s is %s" % (item.metadata.name, item.metadata.deletion_timestamp))
-#         if item.metadata.deletion_timestamp != None:
-#             terminating1 += 1
-#     terminating2 = 0
-#     for item in list2:
-#         # print("dts of %s is %s" % (item.metadata.name, item.metadata.deletion_timestamp))
-#         if item.metadata.deletion_timestamp != None:
-#             terminating2 += 1
-#     if terminating1 != terminating2:
-#         print("%s has different terminating resources: normal: %d faulty: %d" %
-#               (ktype, terminating1, terminating2))
-#         return 1
-#     return 0
 
 
 def compare_digest(digest_normal, digest_faulty):
@@ -174,9 +112,6 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system("kubectl cp %s:/operator.log %s/operator.log" %
               (pod_name, log_dir))
-    # if restart:
-    #     os.system("kubectl cp %s:/operator2.log %s/operator2.log" %
-    #               (pod_name, log_dir))
 
 
 class Suite:
@@ -215,8 +150,6 @@ def run(test_suites, project, test, dir, mode, config):
         log_dir = os.path.join(dir, project, test, mode)
         run_test(project, suite.workload,
                  blank_config, blank_config, blank_config, suite.ha, suite.restart, log_dir)
-        # digest_normal = generate_digest()
-        # log_digest(digest_normal)
     elif mode == "faulty":
         print("test config: %s" % test_config)
         log_dir = os.path.join(dir, project, test, mode)
@@ -229,18 +162,6 @@ def run(test_suites, project, test, dir, mode, config):
         compare_digest(learned_digest, digest_faulty)
         json.dump(digest_faulty, open(os.path.join(
             log_dir, "digest.json"), "w"), indent=4)
-    # elif mode == "compare":
-    #     log_dir = os.path.join(dir, project, test, "normal")
-    #     run_test(project, suite.workload,
-    #              blank_config, blank_config, blank_config, suite.ha, suite.restart, log_dir)
-    #     digest_normal = generate_digest()
-    #     log_digest(digest_normal)
-    #     print("test config: %s" % test_config)
-    #     log_dir = os.path.join(dir, project, test, "faulty")
-    #     run_test(project, suite.workload,
-    #              test_config, test_config, test_config, suite.ha, suite.restart, log_dir)
-    #     digest_faulty = generate_digest()
-    #     compare_digest(digest_normal, digest_faulty)
     elif mode == "learn":
         log_dir = os.path.join(dir, project, test, mode)
         run_test(project, suite.workload,
