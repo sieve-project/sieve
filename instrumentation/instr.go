@@ -33,14 +33,14 @@ func instrumentSparseRead(filepath string) {
 func instrumentTimeTravel(filepath string) {
 	// In reflector.go, we need to create GetExpectedTypeName() in reflector.go
 	// because sonar server needs this information.
-	reflectorGoFile := path.Join(filepath, "staging", "src", "k8s.io", "client-go", "tools", "cache", "reflector.go")
-	fmt.Printf("instrumenting %s\n", reflectorGoFile)
-	instrumentReflectorGo(reflectorGoFile, reflectorGoFile)
+	// reflectorGoFile := path.Join(filepath, "staging", "src", "k8s.io", "client-go", "tools", "cache", "reflector.go")
+	// fmt.Printf("instrumenting %s\n", reflectorGoFile)
+	// instrumentReflectorGo(reflectorGoFile, reflectorGoFile)
 
 	// In cacher.go, we need to pass the expectedTypeName from reflector to watch_cache.
-	cacherGoFile := path.Join(filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "cacher.go")
-	fmt.Printf("instrumenting %s\n", cacherGoFile)
-	instrumentCacherGo(cacherGoFile, cacherGoFile)
+	// cacherGoFile := path.Join(filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "cacher.go")
+	// fmt.Printf("instrumenting %s\n", cacherGoFile)
+	// instrumentCacherGo(cacherGoFile, cacherGoFile)
 
 	// In watch_cache.go, we need to invoke NotifyTimeTravelBeforeProcessEvent in watch_cache.go.
 	watchCacheGoFile := path.Join(filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
