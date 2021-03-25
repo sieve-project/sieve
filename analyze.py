@@ -4,12 +4,21 @@ import copy
 import sys
 import os
 import shutil
+import kubernetes
 
 SONAR_EVENT_MARK = "[SONAR-EVENT]"
+SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
 SONAR_RECORD_MARK = "[SONAR-RECORD]"
 
+POD = "pods"
+PVC = "persistentvolumeclaims"
+DEPLOYMENT = "deployments"
+STS = "statefulsets"
 
-def constructEventMap(path):
+ktypes = [POD, PVC, DEPLOYMENT, STS]
+
+
+def generateEventMap(path):
     eventMap = {}
     for line in open(path).readlines():
         if SONAR_EVENT_MARK not in line:
@@ -29,7 +38,7 @@ def constructEventMap(path):
     return eventMap
 
 
-def constructRecords(path):
+def generateRecords(path):
     records = []
     for line in open(path).readlines():
         if SONAR_RECORD_MARK not in line:
@@ -151,7 +160,7 @@ def traverseRecords(records, eventMap, ntn):
     return triggeringPoints
 
 
-def generateYaml(triggeringPoints, path, project):
+def generateTimaTravelYaml(triggeringPoints, path, project):
     yamlMap = {}
     yamlMap["project"] = project
     yamlMap["mode"] = "time-travel"
@@ -179,10 +188,51 @@ def generateYaml(triggeringPoints, path, project):
                         os.path.join(path, "%s.yaml" % (str(i))), "w"), sort_keys=False)
 
 
-if __name__ == "__main__":
-    project = sys.argv[1]
-    test = sys.argv[2]
-    dir = os.path.join("log", project, test, "learn")
+def generateDigest(path):
+    digest = {}
+    empty_entry = {"size": -1, "terminating": -1,
+                   "create": 0, "delete": 0}
+    for line in open(path).readlines():
+        if SONAR_SIDE_EFFECT_MARK not in line:
+            continue
+        line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip()
+        tokens = line.split("\t")
+        effectType = tokens[1]
+        if effectType == "update":
+            continue
+        rType = tokens[2]
+        if rType not in digest:
+            digest[rType] = copy.deepcopy(empty_entry)
+        digest[rType][effectType] += 1
+
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    apps_v1 = kubernetes.client.AppsV1Api()
+    k8s_namespace = "default"
+    resources = {}
+    for ktype in ktypes:
+        resources[ktype] = []
+        if ktype not in digest:
+            digest[ktype] = copy.deepcopy(empty_entry)
+    for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
+        resources[POD].append(pod)
+    for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
+        resources[PVC].append(pvc)
+    for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
+        resources[DEPLOYMENT].append(dp)
+    for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
+        resources[STS].append(sts)
+    for ktype in ktypes:
+        digest[ktype]["size"] = len(resources[ktype])
+        terminating = 0
+        for item in resources[ktype]:
+            if item.metadata.deletion_timestamp != None:
+                terminating += 1
+        digest[ktype]["terminating"] = terminating
+    return digest
+
+
+def analyzeTrace(project, dir):
     log_path = os.path.join(dir, "sonar-server.log")
     json_dir = os.path.join(dir, "generated-json")
     conf_dir = os.path.join(dir, "generated-config")
@@ -192,16 +242,26 @@ if __name__ == "__main__":
         shutil.rmtree(conf_dir)
     os.makedirs(json_dir, exist_ok=True)
     os.makedirs(conf_dir, exist_ok=True)
-    eventMap = constructEventMap(log_path)
-    records = constructRecords(log_path)
+    eventMap = generateEventMap(log_path)
+    records = generateRecords(log_path)
+    digest = generateDigest(log_path)
     json.dump(eventMap, open(os.path.join(
         json_dir, "event-map.json"), "w"), indent=4)
     json.dump(records, open(os.path.join(
         json_dir, "records.json"), "w"), indent=4)
+    json.dump(digest, open(os.path.join(
+        dir, "digest.json"), "w"), indent=4)
     triggeringPoints = []
     for ntn in eventMap:
         triggeringPoints = triggeringPoints + \
             traverseRecords(records, eventMap, ntn)
     json.dump(triggeringPoints, open(os.path.join(
         json_dir, "triggering-points.json"), "w"), indent=4)
-    generateYaml(triggeringPoints, conf_dir, project)
+    generateTimaTravelYaml(triggeringPoints, conf_dir, project)
+
+
+if __name__ == "__main__":
+    project = sys.argv[1]
+    test = sys.argv[2]
+    dir = os.path.join("log", project, test, "learn")
+    analyzeTrace(project, dir)

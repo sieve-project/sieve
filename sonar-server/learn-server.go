@@ -142,6 +142,7 @@ func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffec
 	log.Printf("NotifyLearnSideEffects: %s %s\n", request.SideEffectType, request.Object)
 	rtype := request.ResourceType
 	name, namespace := s.extractNameNamespaceRType(request.Object)
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\n", request.SideEffectType, rtype, namespace, name)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.shouldRecordSideEffects {
