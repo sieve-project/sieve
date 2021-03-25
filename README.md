@@ -68,8 +68,9 @@ python3 run.py -p zookeeper-operator -t test2 -m compare
 ```
 If reproduced, you will find
 ```
+pod has different terminating resources: normal: 0 faulty: 1
 persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
-[FIND BUG] # alarms: 1
+[FIND BUG] # alarms: 2
 ```
 
 ### Observability gaps
