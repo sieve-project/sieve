@@ -6,7 +6,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"strings"
 
 	sonar "sonar.client"
 )
@@ -59,6 +58,7 @@ type eventWrapper struct {
 	eventID     int32
 	eventType   string
 	eventObject string
+	eventObjectType string
 }
 
 type learnServer struct {
@@ -88,8 +88,9 @@ func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBe
 		eventID:     myID,
 		eventType:   request.OperationType,
 		eventObject: request.Object,
+		eventObjectType: request.ResourceType,
 	}
-	log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObject)
+	log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
 	s.eventCh <- ew
 	log.Printf("my ID is: %d, waiting now...\n", myID)
 	<-myCh
@@ -116,11 +117,10 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterR
 	return nil
 }
 
-func (s *learnServer) extractNameNamespaceRType(Object string) (string, string, string) {
+func (s *learnServer) extractNameNamespaceRType(Object string) (string, string) {
 	objectMap := strToMap(Object)
 	name := ""
 	namespace := ""
-	rtype := ""
 	if _, ok := objectMap["metadata"]; ok {
 		if metadataMap, ok := objectMap["metadata"].(map[string]interface{}); ok {
 			if _, ok := metadataMap["name"]; ok {
@@ -129,18 +129,19 @@ func (s *learnServer) extractNameNamespaceRType(Object string) (string, string, 
 			if _, ok := metadataMap["namespace"]; ok {
 				namespace = metadataMap["namespace"].(string)
 			}
-			if _, ok := metadataMap["selfLink"]; ok {
-				tokens := strings.Split(metadataMap["selfLink"].(string), "/")
-				rtype = tokens[len(tokens) - 2]
-			}
+			// if _, ok := metadataMap["selfLink"]; ok {
+			// 	tokens := strings.Split(metadataMap["selfLink"].(string), "/")
+			// 	rtype = tokens[len(tokens) - 2]
+			// }
 		}
 	}
-	return name, namespace, rtype
+	return name, namespace
 }
 
 func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
 	log.Printf("NotifyLearnSideEffects: %s %s\n", request.SideEffectType, request.Object)
-	name, namespace, rtype := s.extractNameNamespaceRType(request.Object)
+	rtype := request.ResourceType
+	name, namespace := s.extractNameNamespaceRType(request.Object)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.shouldRecordSideEffects {
@@ -169,7 +170,7 @@ func (s *learnServer) coordinatingEvents() {
 						if err != nil {
 							log.Fatal("error in json")
 						}
-						log.Printf("[SONAR-RECORD]\t%s\t%d\t%s\t%s", string(jsonOutput), recordedEvent.eventID, recordedEvent.eventType, recordedEvent.eventObject)
+						log.Printf("[SONAR-RECORD]\t%s\t%d\t%s\t%s\t%s", string(jsonOutput), recordedEvent.eventID, recordedEvent.eventType, recordedEvent.eventObjectType, recordedEvent.eventObject)
 					}
 				}
 				s.recordedEvents = []eventWrapper{}

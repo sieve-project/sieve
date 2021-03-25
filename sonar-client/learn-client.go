@@ -24,6 +24,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
 	request := &NotifyLearnBeforeIndexerWriteRequest{
 		OperationType: operationType,
 		Object: string(jsonObject),
+		ResourceType: regularizeType(reflect.TypeOf(object).String()),
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeIndexerWrite", request, &response)
@@ -98,6 +99,7 @@ func NotifyLearnSideEffects(sideEffectType string, object interface{}) {
 	request := &NotifyLearnSideEffectsRequest{
 		SideEffectType: sideEffectType,
 		Object: string(jsonObject),
+		ResourceType: regularizeType(reflect.TypeOf(object).String()),
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnSideEffects", request, &response)

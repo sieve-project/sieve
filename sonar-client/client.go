@@ -1,6 +1,7 @@
 package sonar
 
 import (
+	"strings"
 	"io/ioutil"
 	"net/rpc"
 	"log"
@@ -62,4 +63,9 @@ func checkResponse(response Response, reqName string) {
 	} else {
 		log.Printf("[sonar][error][%s] receives bad response: %s\n", reqName, response.Message)
 	}
+}
+
+func regularizeType(rtype string) string {
+	tokens := strings.Split(rtype, ".")
+	return strings.ToLower(tokens[len(tokens) - 1]) + "s"
 }

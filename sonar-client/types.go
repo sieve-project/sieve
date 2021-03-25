@@ -46,6 +46,7 @@ type NotifyTimeTravelSideEffectRequest struct {
 type NotifyLearnBeforeIndexerWriteRequest struct {
 	OperationType string
 	Object        string
+	ResourceType  string
 }
 
 type NotifyLearnBeforeQAddRequest struct {
@@ -63,4 +64,5 @@ type NotifyLearnAfterReconcileRequest struct {
 type NotifyLearnSideEffectsRequest struct {
 	SideEffectType string
 	Object         string
+	ResourceType   string
 }

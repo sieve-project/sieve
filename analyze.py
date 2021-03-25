@@ -18,13 +18,14 @@ def constructEventMap(path):
         tokens = line.split("\t")
         eventID = tokens[1]
         eventType = tokens[2]
-        eventObject = json.loads(tokens[3])
-        # we should not rely on selfLink
-        selfLink = eventObject["metadata"]["selfLink"]
-        if selfLink not in eventMap:
-            eventMap[selfLink] = []
-        eventMap[selfLink].append(
-            {"eventID": eventID, "eventType": eventType, "eventObject": eventObject})
+        eventObjectType = tokens[3]
+        eventObject = json.loads(tokens[4])
+        ntn = eventObject["metadata"]["namespace"] + "/" + \
+            eventObjectType + "/" + eventObject["metadata"]["name"]
+        if ntn not in eventMap:
+            eventMap[ntn] = []
+        eventMap[ntn].append(
+            {"eventID": eventID, "eventType": eventType, "eventObjectType": eventObjectType, "eventObject": eventObject})
     return eventMap
 
 
@@ -38,22 +39,24 @@ def constructRecords(path):
         effects = json.loads(tokens[1])
         eventID = tokens[2]
         eventType = tokens[3]
-        eventObject = json.loads(tokens[4])
-        selfLink = eventObject["metadata"]["selfLink"]
-        records.append({"effects": effects, "selfLink": selfLink, "eventID": eventID,
+        eventObjectType = tokens[4]
+        eventObject = json.loads(tokens[5])
+        ntn = eventObject["metadata"]["namespace"] + "/" + \
+            eventObjectType + "/" + eventObject["metadata"]["name"]
+        records.append({"effects": effects, "ntn": ntn, "eventID": eventID,
                        "eventType": eventType, "eventObject": eventObject})
     return records
 
 
-def findPreviousEventWithSelfLink(id, selfLink, eventMap):
-    assert selfLink in eventMap, "invalid selfLink %s, not found in eventMap" % (
-        selfLink)
-    for i in range(len(eventMap[selfLink])):
-        if eventMap[selfLink][i]["eventID"] == id:
+def findPreviousEvent(id, ntn, eventMap):
+    assert ntn in eventMap, "invalid ntn %s, not found in eventMap" % (
+        ntn)
+    for i in range(len(eventMap[ntn])):
+        if eventMap[ntn][i]["eventID"] == id:
             if i == 0:
-                return None, eventMap[selfLink][i]
+                return None, eventMap[ntn][i]
             else:
-                return eventMap[selfLink][i-1], eventMap[selfLink][i]
+                return eventMap[ntn][i-1], eventMap[ntn][i]
 
 
 def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
@@ -105,7 +108,6 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
 def diffEvents(prevEvent, curEvent):
     prevObject = prevEvent["eventObject"]
     curObject = curEvent["eventObject"]
-    assert prevObject["metadata"]["selfLink"] == curObject["metadata"]["selfLink"]
 
     slimPrevObject = copy.deepcopy(prevObject)
     slimCurObject = copy.deepcopy(curObject)
@@ -123,15 +125,15 @@ def canonicalization(event):
     return event
 
 
-def traverseRecordsWithSelfLink(records, eventMap, selfLink):
+def traverseRecords(records, eventMap, ntn):
     triggeringPoints = []
     for record in records:
-        if record["selfLink"] != selfLink:
+        if record["ntn"] != ntn:
             continue
-        prevEvent, curEvent = findPreviousEventWithSelfLink(
-            record["eventID"], record["selfLink"], eventMap)
+        prevEvent, curEvent = findPreviousEvent(
+            record["eventID"], record["ntn"], eventMap)
         tp = {"name": curEvent["eventObject"]["metadata"]["name"], "namespace": curEvent["eventObject"]["metadata"]["namespace"],
-              "otype": curEvent["eventObject"]["metadata"]["selfLink"].split("/")[-2],
+              "otype": curEvent["eventObjectType"],
               "effects": record["effects"]}
         if prevEvent is None:
             tp["ttype"] = "event"
@@ -174,7 +176,7 @@ def generateYaml(triggeringPoints, path, project):
                     yamlMap["restart-resource-type"] = effect["rtype"]
                     yamlMap["restart-event-type"] = "ADDED" if effect["etype"] == "delete" else "DELETED"
                     yaml.dump(yamlMap, open(
-                        os.path.join(path, "%s.yaml" % (str(i))), "w"))
+                        os.path.join(path, "%s.yaml" % (str(i))), "w"), sort_keys=False)
 
 
 if __name__ == "__main__":
@@ -197,9 +199,9 @@ if __name__ == "__main__":
     json.dump(records, open(os.path.join(
         json_dir, "records.json"), "w"), indent=4)
     triggeringPoints = []
-    for selfLink in eventMap:
+    for ntn in eventMap:
         triggeringPoints = triggeringPoints + \
-            traverseRecordsWithSelfLink(records, eventMap, selfLink)
+            traverseRecords(records, eventMap, ntn)
     json.dump(triggeringPoints, open(os.path.join(
         json_dir, "triggering-points.json"), "w"), indent=4)
     generateYaml(triggeringPoints, conf_dir, project)
