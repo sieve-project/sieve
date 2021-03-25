@@ -26,7 +26,7 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 	} else {
 		return
 	}
-	if name == config["freeze-resource-name"].(string) && namespace == config["freeze-resource-namespace"].(string) && resourceType == config["freeze-resource-type"].(string) {
+	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
 		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
@@ -55,7 +55,7 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 		}
 		checkResponse(response, "NotifyTimeTravelCrucialEvent")
 		client.Close()
-	} else if name == config["restart-resource-name"].(string) && namespace == config["restart-resource-namespace"].(string) && resourceType == config["restart-resource-type"].(string) && eventType == config["restart-event-type"] {
+	} else if name == config["se-name"].(string) && namespace == config["se-namespace"].(string) && resourceType == config["se-rtype"].(string) && eventType == config["se-etype"] {
 		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
 		client, err := newClient()
 		if err != nil {

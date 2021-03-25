@@ -155,26 +155,26 @@ def generateYaml(triggeringPoints, path, project):
     yamlMap = {}
     yamlMap["project"] = project
     yamlMap["mode"] = "time-travel"
-    yamlMap["freeze-apiserver"] = "kind-control-plane3"
-    yamlMap["restart-apiserver"] = "kind-control-plane"
-    yamlMap["restart-pod"] = project
+    yamlMap["straggler"] = "kind-control-plane3"
+    yamlMap["front-runner"] = "kind-control-plane"
+    yamlMap["operator-pod"] = project
     i = 0
     for triggeringPoint in triggeringPoints:
         if triggeringPoint["ttype"] == "event-content-delta":
             for effect in triggeringPoint["effects"]:
                 if effect["etype"] == "delete" or effect["etype"] == "create":
                     i += 1
-                    yamlMap["freeze-resource-name"] = triggeringPoint["name"]
-                    yamlMap["freeze-resource-namespace"] = triggeringPoint["namespace"]
-                    yamlMap["freeze-resource-type"] = triggeringPoint["otype"]
-                    yamlMap["freeze-crucial-current"] = json.dumps(
+                    yamlMap["ce-name"] = triggeringPoint["name"]
+                    yamlMap["ce-namespace"] = triggeringPoint["namespace"]
+                    yamlMap["ce-rtype"] = triggeringPoint["otype"]
+                    yamlMap["ce-diff-current"] = json.dumps(
                         canonicalization(copy.deepcopy(triggeringPoint["curEvent"])))
-                    yamlMap["freeze-crucial-previous"] = json.dumps(
+                    yamlMap["ce-diff-previous"] = json.dumps(
                         canonicalization(copy.deepcopy(triggeringPoint["prevEvent"])))
-                    yamlMap["restart-resource-name"] = effect["name"]
-                    yamlMap["restart-resource-namespace"] = effect["namespace"]
-                    yamlMap["restart-resource-type"] = effect["rtype"]
-                    yamlMap["restart-event-type"] = "ADDED" if effect["etype"] == "delete" else "DELETED"
+                    yamlMap["se-name"] = effect["name"]
+                    yamlMap["se-namespace"] = effect["namespace"]
+                    yamlMap["se-rtype"] = effect["rtype"]
+                    yamlMap["se-etype"] = "ADDED" if effect["etype"] == "delete" else "DELETED"
                     yaml.dump(yamlMap, open(
                         os.path.join(path, "%s.yaml" % (str(i))), "w"), sort_keys=False)
 

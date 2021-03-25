@@ -1,15 +1,15 @@
 project: cassandra-operator
 mode: time-travel
-freeze-apiserver: kind-control-plane3
-restart-apiserver: kind-control-plane
-restart-pod: cassandra-operator
-freeze-resource-name: sonar-cassandra-datacenter
-freeze-resource-namespace: default
-freeze-resource-type: cassandradatacenters
-freeze-crucial-current: '{"metadata": {"deletionTimestamp": "sonar-exist", "deletionGracePeriodSeconds":
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod: cassandra-operator
+ce-name: sonar-cassandra-datacenter
+ce-namespace: default
+ce-rtype: cassandradatacenters
+ce-diff-current: '{"metadata": {"deletionTimestamp": "sonar-exist", "deletionGracePeriodSeconds":
   0}}'
-freeze-crucial-previous: '{"metadata": {}}'
-restart-resource-name: data-volume-cassandra-test-cluster-dc1-rack1-0
-restart-resource-namespace: default
-restart-resource-type: persistentvolumeclaims
-restart-event-type: ADDED
+ce-diff-previous: '{"metadata": {}}'
+se-name: data-volume-cassandra-test-cluster-dc1-rack1-0
+se-namespace: default
+se-rtype: persistentvolumeclaims
+se-etype: ADDED

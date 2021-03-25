@@ -1,15 +1,15 @@
 project: zookeeper-operator
 mode: time-travel
-freeze-apiserver: kind-control-plane3
-restart-apiserver: kind-control-plane
-restart-pod: zookeeper-operator
-freeze-resource-name: sonar-zookeeper-cluster
-freeze-resource-namespace: default
-freeze-resource-type: zookeeperclusters
-freeze-crucial-current: '{"metadata": {"deletionTimestamp": "sonar-exist", "deletionGracePeriodSeconds":
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod: zookeeper-operator
+ce-name: sonar-zookeeper-cluster
+ce-namespace: default
+ce-rtype: zookeeperclusters
+ce-diff-current: '{"metadata": {"deletionTimestamp": "sonar-exist", "deletionGracePeriodSeconds":
   0}}'
-freeze-crucial-previous: '{"metadata": {}}'
-restart-resource-name: data-sonar-zookeeper-cluster-0
-restart-resource-namespace: default
-restart-resource-type: persistentvolumeclaims
-restart-event-type: ADDED
+ce-diff-previous: '{"metadata": {}}'
+se-name: data-sonar-zookeeper-cluster-0
+se-namespace: default
+se-rtype: persistentvolumeclaims
+se-etype: ADDED

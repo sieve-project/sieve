@@ -1,13 +1,13 @@
 project: cassandra-operator
 mode: time-travel
-freeze-apiserver: kind-control-plane3
-freeze-resource-name: cassandra-test-cluster-dc1-rack1
-freeze-resource-type: "*apps.StatefulSet"
+straggler: kind-control-plane3
+ce-name: cassandra-test-cluster-dc1-rack1
+ce-rtype: "*apps.StatefulSet"
 freeze-event-type: DELETED
 freeze-duration: 800
-restart-pod: cassandra-operator
-restart-apiserver: kind-control-plane
-restart-resource-type: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter"
-restart-event-type: DELETED
+operator-pod: cassandra-operator
+front-runner: kind-control-plane
+se-rtype: "cassandraoperator.instaclustr.com/v1alpha1, Kind=CassandraDataCenter"
+se-etype: DELETED
 restart-times: 1
 restart-wait: 50

@@ -38,27 +38,20 @@ type RestartConfig struct {
 
 // The listener is actually a wrapper around the server.
 func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
-	server := &stalenessServer{
+	server := &timeTravelServer{
 		project:   config["project"].(string),
 		seenPrev:  false,
 		paused:    false,
 		restarted: false,
 		pauseCh: make(chan int),
 		freezeConfig: FreezeConfig{
-			apiserver: config["freeze-apiserver"].(string),
-			// resourceType: config["freeze-resource-type"].(string),
-			// eventType:    config["freeze-event-type"].(string),
-			// duration: config["freeze-duration"].(int),
-			crucialCur:  config["freeze-crucial-current"].(string),
-			crucialPrev:  config["freeze-crucial-previous"].(string),
+			apiserver: config["straggler"].(string),
+			crucialCur:  config["ce-diff-current"].(string),
+			crucialPrev:  config["ce-diff-previous"].(string),
 		},
 		restartConfig: RestartConfig{
-			pod:       config["restart-pod"].(string),
-			apiserver: config["restart-apiserver"].(string),
-			// resourceType: config["restart-resource-type"].(string),
-			// eventType:    config["restart-event-type"].(string),
-			// times:        config["restart-times"].(int),
-			// wait:         config["restart-wait"].(int),
+			pod:       config["operator-pod"].(string),
+			apiserver: config["front-runner"].(string),
 		},
 	}
 	listener := &TimeTravelListener{
@@ -69,7 +62,7 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 }
 
 type TimeTravelListener struct {
-	Server *stalenessServer
+	Server *timeTravelServer
 }
 
 // Echo is just for testing.
@@ -86,7 +79,7 @@ func (l *TimeTravelListener) NotifyTimeTravelSideEffect(request *sonar.NotifyTim
 	return l.Server.NotifyTimeTravelSideEffect(request, response)
 }
 
-type stalenessServer struct {
+type timeTravelServer struct {
 	project       string
 	seenPrev      bool
 	paused        bool
@@ -96,8 +89,8 @@ type stalenessServer struct {
 	restartConfig RestartConfig
 }
 
-func (s *stalenessServer) Start() {
-	log.Println("start stalenessServer...")
+func (s *timeTravelServer) Start() {
+	log.Println("start timeTravelServer...")
 }
 
 func strToMap(str string) map[string]interface{} {
@@ -109,7 +102,7 @@ func strToMap(str string) map[string]interface{} {
 	return m
 }
 
-func (s *stalenessServer) equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
+func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	for key, val := range crucialEvent {
 		if _, ok := currentEvent[key]; !ok {
 			return false
@@ -156,7 +149,7 @@ func (s *stalenessServer) equivalentEvent(crucialEvent, currentEvent map[string]
 	return true
 }
 
-func (s *stalenessServer) equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
+func (s *timeTravelServer) equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
 	if _, ok := currentEvent["metadata"]; ok {
 		return false
 	}
@@ -176,7 +169,7 @@ func (s *stalenessServer) equivalentEventSecondTry(crucialEvent, currentEvent ma
 }
 
 
-func (s *stalenessServer) isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
+func (s *timeTravelServer) isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
 	if s.equivalentEvent(crucialEvent, currentEvent) {
 		log.Println("Meet")
 		return true
@@ -188,7 +181,7 @@ func (s *stalenessServer) isCrucial(crucialEvent, currentEvent map[string]interf
 	}
 }
 
-func (s *stalenessServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
+func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
 	log.Printf("NotifyTimeTravelCrucialEvent: Hostname: %s\n", request.Hostname)
 	if s.freezeConfig.apiserver != request.Hostname {
 		*response = sonar.Response{Message: request.Hostname, Ok: true}
@@ -207,7 +200,7 @@ func (s *stalenessServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTime
 	return nil
 }
 
-func (s *stalenessServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTravelSideEffectRequest, response *sonar.Response) error {
+func (s *timeTravelServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTravelSideEffectRequest, response *sonar.Response) error {
 	log.Printf("NotifyTimeTravelSideEffect: Hostname: %s\n", request.Hostname)
 	if s.restartConfig.apiserver != request.Hostname {
 		*response = sonar.Response{Message: request.Hostname, Ok: true}
@@ -222,14 +215,14 @@ func (s *stalenessServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTr
 	return nil
 }
 
-func (s *stalenessServer) waitAndRestartComponent() {
+func (s *timeTravelServer) waitAndRestartComponent() {
 	time.Sleep(time.Duration(10) * time.Second)
 	s.restartComponent(s.project, s.restartConfig.pod)
 	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }
 
-func (s *stalenessServer) shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
+func (s *timeTravelServer) shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
 	if !s.paused {
 		if !s.seenPrev {
 			if s.isCrucial(crucialPrevEvent, currentEvent) {
@@ -254,7 +247,7 @@ func (s *stalenessServer) shouldPause(crucialCurEvent, crucialPrevEvent, current
 	return false
 }
 
-func (s *stalenessServer) shouldRestart() bool {
+func (s *timeTravelServer) shouldRestart() bool {
 	if s.paused && !s.restarted {
 		s.restarted = true
 		return true
@@ -263,10 +256,10 @@ func (s *stalenessServer) shouldRestart() bool {
 	}
 }
 
-// The controller to restart is identified by `restart-pod` in the configuration.
-// `restart-pod` is a label to identify the pod where the controller is running.
+// The controller to restart is identified by `operator-pod` in the configuration.
+// `operator-pod` is a label to identify the pod where the controller is running.
 // We do not directly use pod name because the pod belongs to a deployment so its name is not fixed.
-func (s *stalenessServer) restartComponent(project, podLabel string) {
+func (s *timeTravelServer) restartComponent(project, podLabel string) {
 	config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
