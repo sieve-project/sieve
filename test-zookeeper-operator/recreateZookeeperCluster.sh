@@ -3,9 +3,9 @@
 set -ex
 
 kubectl apply -f config/zkc-1.yaml
-sleep 30s
+if [ $1 = 'learn' ]; then sleep 300s; else sleep 30s; fi
 kubectl delete ZookeeperCluster sonar-zookeeper-cluster
-sleep 25s
+if [ $1 = 'learn' ]; then sleep 300s; else sleep 25; fi
 kubectl apply -f config/zkc-1.yaml
-sleep 50s
+if [ $1 = 'learn' ]; then sleep 300s; else sleep 30s; fi
 
