@@ -6,6 +6,7 @@ import time
 import json
 from analyze import analyzeTrace
 from analyze import generateDigest
+import controllers
 
 log_dir = "log"
 k8s_namespace = "default"
@@ -31,35 +32,29 @@ def compare_digest(digest_normal, digest_faulty):
             for attr in digest_normal[rtype]:
                 if digest_normal[rtype][attr] != digest_faulty[rtype][attr]:
                     print(
-                        "[WARN] %s.%s inconsistent: learned %s, testing: %s" % (rtype, attr, str(digest_normal[rtype][attr]), str(digest_faulty[rtype][attr])))
+                        "[WARN] %s.%s inconsistent: learned: %s, testing: %s" % (rtype, attr, str(digest_normal[rtype][attr]), str(digest_faulty[rtype][attr])))
                     alarm += 1
     if alarm != 0:
         print("[FIND BUG] # alarms: %d" % (alarm))
 
 
-def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, ha, restart, log_dir):
+def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir):
     os.system("rm -rf %s" % (log_dir))
     os.system("mkdir -p %s" % (log_dir))
     os.system("cp %s sonar-server/server.yaml" % (server_config))
     os.system("kind delete cluster")
-    if ha:
-        os.system("./setup.sh kind-ha.yaml")
-        os.system("./bypass-balancer.sh")
-    else:
-        os.system("./setup.sh kind.yaml")
 
-    time.sleep(50)
-    if ha:
-        # sleep 40 more seconds for HA mode since there are more nodes
-        time.sleep(40)
+    os.system("./setup.sh kind-ha.yaml")
+    os.system("./bypass-balancer.sh")
+
+    time.sleep(90)
 
     os.system("kubectl cp %s kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system" %
               (apiserver_config))
-    if ha:
-        os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" %
-                  (apiserver_config))
-        os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
-                  (apiserver_config))
+    os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" %
+              (apiserver_config))
+    os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
+              (apiserver_config))
 
     time.sleep(5)
     if project == "cassandra-operator":
@@ -78,17 +73,17 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
     core_v1 = kubernetes.client.CoreV1Api()
     pod_name = core_v1.list_namespaced_pod(
         k8s_namespace, watch=False, label_selector="name="+project).items[0].metadata.name
-    if ha:
-        api2_addr = "https://" + core_v1.list_node(
-            watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
-        api3_addr = "https://" + core_v1.list_node(
-            watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
-        if project == "cassandra-operator":
-            os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
-            os.system("kubectl get CassandraDataCenter -s %s" % (api3_addr))
-        elif project == "zookeeper-operator":
-            os.system("kubectl get ZookeeperCluster -s %s" % (api2_addr))
-            os.system("kubectl get ZookeeperCluster -s %s" % (api3_addr))
+
+    api2_addr = "https://" + core_v1.list_node(
+        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
+    api3_addr = "https://" + core_v1.list_node(
+        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
+    if project == "cassandra-operator":
+        os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
+        os.system("kubectl get CassandraDataCenter -s %s" % (api3_addr))
+    elif project == "zookeeper-operator":
+        os.system("kubectl get ZookeeperCluster -s %s" % (api2_addr))
+        os.system("kubectl get ZookeeperCluster -s %s" % (api3_addr))
 
     os.system("kubectl cp %s %s:/sonar.yaml" % (controller_config, pod_name))
     if project == "cassandra-operator":
@@ -103,42 +98,41 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
     os.system(
         "kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
-    if ha:
-        os.system(
-            "kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-        os.system(
-            "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
+    os.system(
+        "kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
+    os.system(
+        "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
     os.system(
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system("kubectl cp %s:/operator.log %s/operator.log" %
               (pod_name, log_dir))
 
 
-class Suite:
-    def __init__(self, workload, config, ha, restart):
-        self.workload = workload
-        self.config = config
-        self.ha = ha
-        self.restart = restart
+# class Suite:
+#     def __init__(self, workload, config, ha, restart):
+#         self.workload = workload
+#         self.config = config
+#         self.ha = ha
+#         self.restart = restart
 
 
-def generate_test_suites():
-    test_suites = {}
-    test_suites["cassandra-operator"] = {}
-    test_suites["zookeeper-operator"] = {}
-    test_suites["cassandra-operator"]["test1"] = Suite(
-        "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/bug1.yaml", False, False)
-    test_suites["cassandra-operator"]["test2"] = Suite(
-        "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug2.yaml", True, True)
-    test_suites["cassandra-operator"]["test3"] = Suite(
-        "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml", True, True)
-    test_suites["cassandra-operator"]["test4"] = Suite(
-        "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/bug4.yaml", True, True)
-    test_suites["zookeeper-operator"]["test1"] = Suite(
-        "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/bug1.yaml", True, True)
-    test_suites["zookeeper-operator"]["test2"] = Suite(
-        "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/bug2.yaml", True, True)
-    return test_suites
+# def generate_test_suites():
+#     test_suites = {}
+#     test_suites["cassandra-operator"] = {}
+#     test_suites["zookeeper-operator"] = {}
+#     test_suites["cassandra-operator"]["test1"] = Suite(
+#         "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/bug1.yaml", False, False)
+#     test_suites["cassandra-operator"]["test2"] = Suite(
+#         "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug2.yaml", True, True)
+#     test_suites["cassandra-operator"]["test3"] = Suite(
+#         "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml", True, True)
+#     test_suites["cassandra-operator"]["test4"] = Suite(
+#         "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/bug4.yaml", True, True)
+#     test_suites["zookeeper-operator"]["test1"] = Suite(
+#         "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/bug1.yaml", True, True)
+#     test_suites["zookeeper-operator"]["test2"] = Suite(
+#         "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/bug2.yaml", True, True)
+#     return test_suites
 
 
 def run(test_suites, project, test, dir, mode, config):
@@ -149,14 +143,14 @@ def run(test_suites, project, test, dir, mode, config):
     if mode == "normal":
         log_dir = os.path.join(dir, project, test, mode)
         run_test(project, mode, suite.workload,
-                 blank_config, blank_config, blank_config, suite.ha, suite.restart, log_dir)
+                 blank_config, blank_config, blank_config, log_dir)
     elif mode == "faulty":
         print("test config: %s" % test_config)
         log_dir = os.path.join(dir, project, test, mode)
         learned_digest = json.load(open(os.path.join(
             "data", project, test, "digest.json")))
         run_test(project, mode, suite.workload,
-                 test_config, test_config, test_config, suite.ha, suite.restart, log_dir)
+                 test_config, test_config, test_config, log_dir)
         digest_faulty = generateDigest(
             os.path.join(log_dir, "operator.log"))
         compare_digest(learned_digest, digest_faulty)
@@ -165,7 +159,7 @@ def run(test_suites, project, test, dir, mode, config):
     elif mode == "learn":
         log_dir = os.path.join(dir, project, test, mode)
         run_test(project, mode, suite.workload,
-                 learn_config, learn_config, learn_config, suite.ha, suite.restart, log_dir)
+                 learn_config, learn_config, learn_config, log_dir)
         analyzeTrace(project, log_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "digest.json"), os.path.join(
             "data", project, test, "digest.json")))
@@ -194,5 +188,5 @@ if __name__ == "__main__":
     mode = options.mode
     config = options.config
 
-    test_suites = generate_test_suites()
-    run(test_suites, project, test, dir, mode, config)
+    # test_suites = generate_test_suites()
+    run(controllers.test_suites, project, test, dir, mode, config)
