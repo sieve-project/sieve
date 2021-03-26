@@ -3,6 +3,7 @@ package sonar
 import (
 	"fmt"
 	"log"
+	"reflect"
 )
 
 // NotifySparseReadBeforeMakeQ is invoked before controller creating a queue
@@ -83,4 +84,11 @@ func NotifySparseReadBeforeReconcile(controllerName string) {
 	}
 	checkResponse(response, "NotifySparseReadBeforeReconcile")
 	client.Close()
+}
+
+func NotifySparseReadSideEffects(sideEffectType string, object interface{}) {
+	if !checkMode(timeTravel) {
+		return
+	}
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()))
 }
