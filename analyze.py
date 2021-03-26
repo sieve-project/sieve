@@ -5,6 +5,7 @@ import sys
 import os
 import shutil
 import kubernetes
+import controllers
 
 SONAR_EVENT_MARK = "[SONAR-EVENT]"
 SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
@@ -167,6 +168,7 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
     yamlMap["straggler"] = "kind-control-plane3"
     yamlMap["front-runner"] = "kind-control-plane"
     yamlMap["operator-pod"] = project
+    yamlMap["command"] = controllers.command[project]
     i = 0
     for triggeringPoint in triggeringPoints:
         if triggeringPoint["ttype"] == "event-content-delta":

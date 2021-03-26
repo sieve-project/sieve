@@ -18,41 +18,20 @@ import (
 var globalCntToRestart int = 0
 var mutex = &sync.Mutex{}
 
-type FreezeConfig struct {
-	apiserver string
-	// resourceType string
-	// eventType    string
-	// duration int
-	crucialCur  string
-	crucialPrev string
-}
-
-type RestartConfig struct {
-	pod       string
-	apiserver string
-	// resourceType string
-	// eventType    string
-	// times        int
-	// wait         int
-}
-
 // The listener is actually a wrapper around the server.
 func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
 	server := &timeTravelServer{
-		project:   config["project"].(string),
-		seenPrev:  false,
-		paused:    false,
-		restarted: false,
-		pauseCh: make(chan int),
-		freezeConfig: FreezeConfig{
-			apiserver: config["straggler"].(string),
-			crucialCur:  config["ce-diff-current"].(string),
-			crucialPrev:  config["ce-diff-previous"].(string),
-		},
-		restartConfig: RestartConfig{
-			pod:       config["operator-pod"].(string),
-			apiserver: config["front-runner"].(string),
-		},
+		project:     config["project"].(string),
+		seenPrev:    false,
+		paused:      false,
+		restarted:   false,
+		pauseCh:     make(chan int),
+		straggler:   config["straggler"].(string),
+		crucialCur:  config["ce-diff-current"].(string),
+		crucialPrev: config["ce-diff-previous"].(string),
+		podLable:    config["operator-pod"].(string),
+		frontRunner: config["front-runner"].(string),
+		command:     config["command"].(string),
 	}
 	listener := &TimeTravelListener{
 		Server: server,
@@ -80,13 +59,17 @@ func (l *TimeTravelListener) NotifyTimeTravelSideEffect(request *sonar.NotifyTim
 }
 
 type timeTravelServer struct {
-	project       string
-	seenPrev      bool
-	paused        bool
-	restarted     bool
-	pauseCh       chan int
-	freezeConfig  FreezeConfig
-	restartConfig RestartConfig
+	project     string
+	straggler   string
+	frontRunner string
+	crucialCur  string
+	crucialPrev string
+	podLable    string
+	seenPrev    bool
+	paused      bool
+	restarted   bool
+	pauseCh     chan int
+	command     string
 }
 
 func (s *timeTravelServer) Start() {
@@ -168,7 +151,6 @@ func (s *timeTravelServer) equivalentEventSecondTry(crucialEvent, currentEvent m
 	}
 }
 
-
 func (s *timeTravelServer) isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
 	if s.equivalentEvent(crucialEvent, currentEvent) {
 		log.Println("Meet")
@@ -183,17 +165,17 @@ func (s *timeTravelServer) isCrucial(crucialEvent, currentEvent map[string]inter
 
 func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
 	log.Printf("NotifyTimeTravelCrucialEvent: Hostname: %s\n", request.Hostname)
-	if s.freezeConfig.apiserver != request.Hostname {
+	if s.straggler != request.Hostname {
 		*response = sonar.Response{Message: request.Hostname, Ok: true}
 		return nil
 	}
 	currentEvent := strToMap(request.Object)
-	crucialCurEvent := strToMap(s.freezeConfig.crucialCur)
-	crucialPrevEvent := strToMap(s.freezeConfig.crucialPrev)
+	crucialCurEvent := strToMap(s.crucialCur)
+	crucialPrevEvent := strToMap(s.crucialPrev)
 	log.Printf("[sonar][currentEvent] %s\n", request.Object)
 	if s.shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		log.Println("[sonar] should sleep here")
-		<- s.pauseCh
+		<-s.pauseCh
 		log.Println("[sonar] sleep over")
 	}
 	*response = sonar.Response{Message: request.Hostname, Ok: true}
@@ -202,7 +184,7 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTim
 
 func (s *timeTravelServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTravelSideEffectRequest, response *sonar.Response) error {
 	log.Printf("NotifyTimeTravelSideEffect: Hostname: %s\n", request.Hostname)
-	if s.restartConfig.apiserver != request.Hostname {
+	if s.frontRunner != request.Hostname {
 		*response = sonar.Response{Message: request.Hostname, Ok: true}
 		return nil
 	}
@@ -217,7 +199,7 @@ func (s *timeTravelServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeT
 
 func (s *timeTravelServer) waitAndRestartComponent() {
 	time.Sleep(time.Duration(10) * time.Second)
-	s.restartComponent(s.project, s.restartConfig.pod)
+	s.restartComponent(s.project, s.podLable)
 	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }
@@ -283,13 +265,13 @@ func (s *timeTravelServer) restartComponent(project, podLabel string) {
 	// The command needs nested quotation marks and
 	// I find parsing nested quotation marks are tricky in golang.
 	// TODO: figure out how to make nested quotation marks work
-	cmd1 := exec.Command("./util.sh", project, "crash", pod.Name)
-	err = cmd1.Run()
+	cmd := exec.Command("./util.sh", s.command, pod.Name, s.straggler)
+	err = cmd.Run()
 	checkError(err)
-	log.Println("crash")
+	log.Println("restart successfully")
 
-	cmd2 := exec.Command("./util.sh", project, "restart", pod.Name)
-	err = cmd2.Run()
-	checkError(err)
-	log.Println("restart")
+	// cmd2 := exec.Command("./util.sh", s.command, pod.Name)
+	// err = cmd2.Run()
+	// checkError(err)
+	// log.Println("restart")
 }
