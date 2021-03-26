@@ -38,6 +38,12 @@ def compare_digest(digest_normal, digest_faulty):
         print("[FIND BUG] # alarms: %d" % (alarm))
 
 
+def watchCRD(project, addrs):
+    for addr in addrs:
+        for CRD in controllers.CRDs[project]:
+            os.system("kubectl get %s -s %s" % (CRD, addr))
+
+
 def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir):
     os.system("rm -rf %s" % (log_dir))
     os.system("mkdir -p %s" % (log_dir))
@@ -57,33 +63,38 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
               (apiserver_config))
 
     time.sleep(5)
-    if project == "cassandra-operator":
-        os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
-        os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
-        time.sleep(6)
-    elif project == "zookeeper-operator":
-        os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
-        os.system(
-            "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/rbac.yaml")
-        os.system(
-            "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/operator.yaml")
-        time.sleep(6)
+    controllers.bootstrap[project]()
+    time.sleep(6)
+    # if project == "cassandra-operator":
+    #     os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
+    #     os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
+    #     time.sleep(6)
+    # elif project == "zookeeper-operator":
+    #     os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
+    #     os.system(
+    #         "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/rbac.yaml")
+    #     os.system(
+    #         "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/operator.yaml")
+    #     time.sleep(6)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pod_name = core_v1.list_namespaced_pod(
         k8s_namespace, watch=False, label_selector="name="+project).items[0].metadata.name
 
+    # api1_addr = "https://" + core_v1.list_node(
+    #     watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
     api2_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
     api3_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
-    if project == "cassandra-operator":
-        os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
-        os.system("kubectl get CassandraDataCenter -s %s" % (api3_addr))
-    elif project == "zookeeper-operator":
-        os.system("kubectl get ZookeeperCluster -s %s" % (api2_addr))
-        os.system("kubectl get ZookeeperCluster -s %s" % (api3_addr))
+    watchCRD(project, [api2_addr, api3_addr])
+    # if project == "cassandra-operator":
+    #     os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
+    #     os.system("kubectl get CassandraDataCenter -s %s" % (api3_addr))
+    # elif project == "zookeeper-operator":
+    #     os.system("kubectl get ZookeeperCluster -s %s" % (api2_addr))
+    #     os.system("kubectl get ZookeeperCluster -s %s" % (api3_addr))
 
     os.system("kubectl cp %s %s:/sonar.yaml" % (controller_config, pod_name))
     if project == "cassandra-operator":
@@ -106,33 +117,6 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system("kubectl cp %s:/operator.log %s/operator.log" %
               (pod_name, log_dir))
-
-
-# class Suite:
-#     def __init__(self, workload, config, ha, restart):
-#         self.workload = workload
-#         self.config = config
-#         self.ha = ha
-#         self.restart = restart
-
-
-# def generate_test_suites():
-#     test_suites = {}
-#     test_suites["cassandra-operator"] = {}
-#     test_suites["zookeeper-operator"] = {}
-#     test_suites["cassandra-operator"]["test1"] = Suite(
-#         "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/bug1.yaml", False, False)
-#     test_suites["cassandra-operator"]["test2"] = Suite(
-#         "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug2.yaml", True, True)
-#     test_suites["cassandra-operator"]["test3"] = Suite(
-#         "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml", True, True)
-#     test_suites["cassandra-operator"]["test4"] = Suite(
-#         "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/bug4.yaml", True, True)
-#     test_suites["zookeeper-operator"]["test1"] = Suite(
-#         "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/bug1.yaml", True, True)
-#     test_suites["zookeeper-operator"]["test2"] = Suite(
-#         "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/bug2.yaml", True, True)
-#     return test_suites
 
 
 def run(test_suites, project, test, dir, mode, config):
@@ -188,5 +172,4 @@ if __name__ == "__main__":
     mode = options.mode
     config = options.config
 
-    # test_suites = generate_test_suites()
     run(controllers.test_suites, project, test, dir, mode, config)
