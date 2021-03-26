@@ -31,6 +31,11 @@ CRDs = {
     "zookeeper-operator": ["zookeeperclusters"]
 }
 
+command = {
+    "cassandra-operator": "/cassandra-operator",
+    "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
+}
+
 
 def cassandraOperatorBootstrap():
     os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")

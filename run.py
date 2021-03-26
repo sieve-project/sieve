@@ -52,7 +52,6 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
     os.system("./setup.sh kind-ha.yaml")
     os.system("./bypass-balancer.sh")
-
     time.sleep(90)
 
     os.system("kubectl cp %s kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system" %
@@ -61,46 +60,26 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
               (apiserver_config))
     os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
               (apiserver_config))
-
     time.sleep(5)
     controllers.bootstrap[project]()
-    time.sleep(6)
-    # if project == "cassandra-operator":
-    #     os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
-    #     os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
-    #     time.sleep(6)
-    # elif project == "zookeeper-operator":
-    #     os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
-    #     os.system(
-    #         "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/rbac.yaml")
-    #     os.system(
-    #         "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/operator.yaml")
-    #     time.sleep(6)
+    time.sleep(5)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pod_name = core_v1.list_namespaced_pod(
         k8s_namespace, watch=False, label_selector="name="+project).items[0].metadata.name
 
-    # api1_addr = "https://" + core_v1.list_node(
-    #     watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
+    api1_addr = "https://" + core_v1.list_node(
+        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
     api2_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
     api3_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
-    watchCRD(project, [api2_addr, api3_addr])
-    # if project == "cassandra-operator":
-    #     os.system("kubectl get CassandraDataCenter -s %s" % (api2_addr))
-    #     os.system("kubectl get CassandraDataCenter -s %s" % (api3_addr))
-    # elif project == "zookeeper-operator":
-    #     os.system("kubectl get ZookeeperCluster -s %s" % (api2_addr))
-    #     os.system("kubectl get ZookeeperCluster -s %s" % (api3_addr))
+    watchCRD(project, [api1_addr, api2_addr, api3_addr])
 
     os.system("kubectl cp %s %s:/sonar.yaml" % (controller_config, pod_name))
-    if project == "cassandra-operator":
-        os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 /cassandra-operator &> operator.log &\"" % (pod_name))
-    elif project == "zookeeper-operator":
-        os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 /usr/local/bin/zookeeper-operator &> operator.log &\"" % (pod_name))
+    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
+              (pod_name, controllers.command[project]))
 
     org_dir = os.getcwd()
     os.chdir(os.path.join(org_dir, "test-" + project))
