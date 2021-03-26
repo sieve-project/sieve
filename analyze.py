@@ -191,15 +191,15 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
 def generateDigest(path):
     digest = {}
     empty_entry = {"size": -1, "terminating": -1,
-                   "create": 0, "delete": 0}
+                   "create": 0, "update": 0, "delete": 0}
     for line in open(path).readlines():
         if SONAR_SIDE_EFFECT_MARK not in line:
             continue
         line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip()
         tokens = line.split("\t")
         effectType = tokens[1]
-        if effectType == "update":
-            continue
+        # if effectType == "update":
+        #     continue
         rType = tokens[2]
         if rType not in digest:
             digest[rType] = copy.deepcopy(empty_entry)

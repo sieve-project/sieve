@@ -37,7 +37,7 @@ def compare_digest(digest_normal, digest_faulty):
         print("[FIND BUG] # alarms: %d" % (alarm))
 
 
-def run_test(project, test_script, server_config, controller_config, apiserver_config, ha, restart, log_dir):
+def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, ha, restart, log_dir):
     os.system("rm -rf %s" % (log_dir))
     os.system("mkdir -p %s" % (log_dir))
     os.system("cp %s sonar-server/server.yaml" % (server_config))
@@ -98,7 +98,7 @@ def run_test(project, test_script, server_config, controller_config, apiserver_c
 
     org_dir = os.getcwd()
     os.chdir(os.path.join(org_dir, "test-" + project))
-    os.system("./%s" % test_script)
+    os.system("./%s %s" % (test_script, mode))
     os.chdir(org_dir)
 
     os.system(
@@ -148,14 +148,14 @@ def run(test_suites, project, test, dir, mode, config):
         test_config = config
     if mode == "normal":
         log_dir = os.path.join(dir, project, test, mode)
-        run_test(project, suite.workload,
+        run_test(project, mode, suite.workload,
                  blank_config, blank_config, blank_config, suite.ha, suite.restart, log_dir)
     elif mode == "faulty":
         print("test config: %s" % test_config)
         log_dir = os.path.join(dir, project, test, mode)
         learned_digest = json.load(open(os.path.join(
-            dir, project, test, "learn", "digest.json")))
-        run_test(project, suite.workload,
+            "data", project, test, "digest.json")))
+        run_test(project, mode, suite.workload,
                  test_config, test_config, test_config, suite.ha, suite.restart, log_dir)
         digest_faulty = generateDigest(
             os.path.join(log_dir, "operator.log"))
@@ -164,9 +164,11 @@ def run(test_suites, project, test, dir, mode, config):
             log_dir, "digest.json"), "w"), indent=4)
     elif mode == "learn":
         log_dir = os.path.join(dir, project, test, mode)
-        run_test(project, suite.workload,
+        run_test(project, mode, suite.workload,
                  learn_config, learn_config, learn_config, suite.ha, suite.restart, log_dir)
         analyzeTrace(project, log_dir)
+        os.system("cp %s %s" % (os.path.join(log_dir, "digest.json"), os.path.join(
+            "data", project, test, "digest.json")))
     else:
         assert False, "wrong mode option"
 
