@@ -9,7 +9,8 @@ project='none'
 sha='none'
 crversion='none'
 cgversion='none'
-org='none'
+githublink='none'
+dockerfile='none'
 
 install_and_import() {
   echo "installing the required lib..."
@@ -43,13 +44,8 @@ install_and_import() {
   fi
 
   echo "replacing the Dockerfile and build.sh..."
-  if [ $project = 'cassandra-operator' ]; then
-    cp test-cassandra-operator/build/build.sh app/cassandra-operator/build.sh
-    cp test-cassandra-operator/build/Dockerfile app/cassandra-operator/docker/cassandra-operator/Dockerfile
-  elif [ $project = 'zookeeper-operator' ]; then
-    cp test-zookeeper-operator/build/build.sh app/zookeeper-operator/build.sh
-    cp test-zookeeper-operator/build/Dockerfile app/zookeeper-operator/Dockerfile
-  fi
+  cp test-${project}/build/build.sh app/${project}/build.sh
+  cp test-${project}/build/Dockerfile app/${project}/${dockerfile}
   cd app/${project}
   git add -A >> /dev/null
   git commit -m "import the lib" >> /dev/null
@@ -79,20 +75,10 @@ while getopts ":m:p:r:s:" arg; do
         ;;
         p) # Specify the project to test: cassandra-operator or zookeeper-operator.
         project=${OPTARG}
-        if [ $project = 'cassandra-operator' ]; then
-          sha='fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd'
-          crversion='@v0.4.0'
-          cgversion='@v0.0.0-20190918160344-1fbdaa4c8d90'
-          org='instaclustr'
-        elif [ $project = 'zookeeper-operator' ]; then
-          sha='cda03d2f270bdfb51372192766123904f6d88278'
-          crversion='@v0.5.2'
-          cgversion='@v0.17.2'
-          org='pravega'
-        else
-          echo "wrong project: $project"
-          exit 1
-        fi
+        crversion=${CRV}
+        cgversion=${CGV}
+        githublink=${GL}
+        dockerfile=${DF}
         ;;
         s) # Specify the commit ID of the project
         sha=${OPTARG}
@@ -124,7 +110,7 @@ if [ $reuse = 'none' ]; then
   # download new controller code
   rm -rf app/$project
   echo "cloning $project..."
-  git clone git@github.com:${org}/${project}.git app/${project} >> /dev/null
+  git clone ${githublink} app/${project} >> /dev/null
   cd app/$project
   git checkout $sha >> /dev/null
   git checkout -b sonar >> /dev/null

@@ -7,6 +7,13 @@ class Suite:
         self.config = config
 
 
+docker_repo = "xudongs"
+
+github_link = {
+    "cassandra-operator": "git@github.com:instaclustr/cassandra-operator.git",
+    "zookeeper-operator": "git@github.com:pravega/zookeeper-operator.git",
+}
+
 test_suites = {
     "cassandra-operator": {
         "test1": Suite(
@@ -34,6 +41,26 @@ CRDs = {
 command = {
     "cassandra-operator": "/cassandra-operator",
     "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
+}
+
+controller_runtime_version = {
+    "cassandra-operator": "@v0.4.0",
+    "zookeeper-operator": "@v0.5.2"
+}
+
+client_go_version = {
+    "cassandra-operator": "@v0.0.0-20190918160344-1fbdaa4c8d90",
+    "zookeeper-operator": "@v0.17.2"
+}
+
+sha = {
+    "cassandra-operator": "fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd",
+    "zookeeper-operator": "cda03d2f270bdfb51372192766123904f6d88278"
+}
+
+docker_file = {
+    "cassandra-operator": "docker/cassandra-operator/Dockerfile",
+    "zookeeper-operator": "Dockerfile"
 }
 
 
