@@ -64,17 +64,37 @@ docker_file = {
 }
 
 
-def cassandraOperatorBootstrap():
+def replaceDockerRepo(path, dr):
+    fin = open(path)
+    data = fin.read()
+    data = data.replace("${SONAR-DR}", dr)
+    fin.close()
+    tokens = path.rsplit('.', 1)
+    new_path = tokens[0] + "-" + dr + '.' + tokens[1]
+    fin = open(new_path, "w")
+    fin.write(data)
+    fin.close()
+    return new_path
+
+
+def cassandraOperatorBootstrap(dr):
+    new_path = replaceDockerRepo(
+        "test-cassandra-operator/config/bundle.yaml", dr)
     os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
-    os.system("kubectl apply -f test-cassandra-operator/config/bundle.yaml")
+    os.system(
+        "kubectl apply -f %s" % new_path)
+    os.system("rm %s" % new_path)
 
 
-def zookeeperOperatorBootstrap():
+def zookeeperOperatorBootstrap(dr):
+    new_path = replaceDockerRepo(
+        "test-zookeeper-operator/config/deploy/default_ns/operator.yaml", dr)
     os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
     os.system(
         "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/rbac.yaml")
     os.system(
-        "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/operator.yaml")
+        "kubectl create -f %s" % new_path)
+    os.system("rm %s" % new_path)
 
 
 bootstrap = {

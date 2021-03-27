@@ -11,6 +11,7 @@ crversion='none'
 cgversion='none'
 githublink='none'
 dockerfile='none'
+dockerrepo='none'
 
 install_and_import() {
   echo "installing the required lib..."
@@ -79,6 +80,7 @@ while getopts ":m:p:r:s:" arg; do
         cgversion=${CGV}
         githublink=${GL}
         dockerfile=${DF}
+        dockerrepo=${DR}
         ;;
         s) # Specify the commit ID of the project
         sha=${OPTARG}
@@ -127,10 +129,10 @@ fi
 cd fakegopath/src/k8s.io/kubernetes
 GOPATH=${OLDPWD}/fakegopath KUBE_GIT_VERSION=v1.18.9-sr-`git rev-parse HEAD` kind build node-image
 cd $OLDPWD
-docker build --no-cache -t xudongs/node:latest .
+docker build --no-cache -t ${dockerrepo}/node:latest .
 
 # build controller image
 echo "building the operator..."
 cd app/$project
-./build.sh
+./build.sh ${dockerrepo}
 

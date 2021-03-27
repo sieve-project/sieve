@@ -20,6 +20,7 @@ if __name__ == "__main__":
     cgv = controllers.client_go_version[project]
     link = controllers.github_link[project]
     df = controllers.docker_file[project]
+    dr = controllers.docker_repo
 
-    os.system("CRV=%s CGV=%s GL=%s DF=%s ./build.sh -p %s -m %s -s %s " %
-              (crv, cgv, link, df, project, mode, sha))
+    os.system("CRV=%s CGV=%s GL=%s DF=%s DR=%s ./build.sh -p %s -m %s -s %s " %
+              (crv, cgv, link, df, dr, project, mode, sha))
