@@ -16,7 +16,7 @@ spec:
       containers:
         - name: zookeeper-operator
           # Replace this with the built image name
-          image: xudongs/zookeeper-operator:latest
+          image: ${SONAR-DR}/zookeeper-operator:latest
           ports:
           - containerPort: 60000
             name: metrics

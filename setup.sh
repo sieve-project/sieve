@@ -15,7 +15,12 @@ if [ -z "$conf" ]; then
     conf="kind.yaml"
 fi
 
-kind create cluster --image xudongs/node:latest --config $conf
+dockerrepo=$2
+if [ -z "$dockerrepo" ]; then
+    dockerrepo="sonar"
+fi
+
+kind create cluster --image ${dockerrepo}/node:latest --config $conf
 docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'
 cd sonar-server
 go build
