@@ -50,7 +50,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
     os.system("cp %s sonar-server/server.yaml" % (server_config))
     os.system("kind delete cluster")
 
-    os.system("./setup.sh kind-ha.yaml")
+    os.system("./setup.sh kind-ha.yaml %s" % controllers.docker_repo)
     os.system("./bypass-balancer.sh")
     time.sleep(90)
 
@@ -61,7 +61,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
     os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
               (apiserver_config))
     time.sleep(5)
-    controllers.bootstrap[project]()
+    controllers.bootstrap[project](controllers.docker_repo)
     time.sleep(5)
 
     kubernetes.config.load_kube_config()
@@ -130,7 +130,18 @@ def run(test_suites, project, test, dir, mode, config):
         assert False, "wrong mode option"
 
 
+def run_batch(project, test, mode):
+    dir = os.path.join("log", project, test, "learn", "generated-config")
+    for i in range(1, 12):
+        config = os.path.join(dir, str(i)+".yaml")
+        log_dir = "log" + str(i)
+        print("[sonar] config is %s" % config)
+        print("[sonar] log dir is %s" % log_dir)
+        run(controllers.test_suites, project, test, log_dir, mode, config)
+
+
 if __name__ == "__main__":
+    s = time.time()
     usage = "usage: python3 run.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-p", "--project", dest="project",
@@ -143,6 +154,8 @@ if __name__ == "__main__":
                       help="test MODE: normal, faulty, learn or compare", metavar="MODE", default="faulty")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
+    parser.add_option("-b", "--batch", dest="batch", action="store_true",
+                      help="BATCH mode or not", default=False)
 
     (options, args) = parser.parse_args()
     dir = options.dir
@@ -151,4 +164,8 @@ if __name__ == "__main__":
     mode = options.mode
     config = options.config
 
-    run(controllers.test_suites, project, test, dir, mode, config)
+    if options.batch:
+        run_batch(project, test, mode)
+    else:
+        run(controllers.test_suites, project, test, dir, mode, config)
+    print("total time: {} seconds".format(time.time() - s))
