@@ -25,18 +25,17 @@
 ### Time travel
 First, build the operators:
 ```
-./build.sh -p cassandra-operator -m time-travel
-./build.sh -p zookeeper-operator -m time-travel
+python3 build.py -p cassandra-operator -m time-travel
+python3 build.py -p zookeeper-operator -m time-travel
 ```
 
 ### [instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402)
 ```
-python3 run.py -p cassandra-operator -t test2 -m compare
+python3 run.py -p cassandra-operator -t test2
 ```
-If reproduced, you will find
+If reproduced, you will find in `log/cassandra-operator/test2/faulty/bug-report.txt` that:
 ```
-persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
-[FIND BUG] # alarms: 1
+[ERROR] persistentvolumeclaims.terminating inconsistent: learning: 0, testing: 1
 ```
 
 ### [instaclustr-cassandra-operator-404](https://github.com/instaclustr/cassandra-operator/issues/404)
@@ -44,44 +43,40 @@ work in progress
 
 ### [instaclustr-cassandra-operator-407](https://github.com/instaclustr/cassandra-operator/issues/407)
 ```
-python3 run.py -p cassandra-operator -t test4 -m compare
+python3 run.py -p cassandra-operator -t test4
 ```
-If reproduced, you will find
+If reproduced, you will find in `log/cassandra-operator/test4/faulty/bug-report.txt` that:
 ```
-persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
-[FIND BUG] # alarms: 1
+[ERROR] persistentvolumeclaims.terminating inconsistent: learning: 0, testing: 1
 ```
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
 python3 run.py -p zookeeper-operator -t test1 -m compare
 ```
-If reproduced, you will find
+If reproduced, you will find in `log/zookeeper-operator/test1/faulty/bug-report.txt` that:
 ```
-persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
-[FIND BUG] # alarms: 1
+[ERROR] persistentvolumeclaims.terminating inconsistent: learning: 0, testing: 1
 ```
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
 python3 run.py -p zookeeper-operator -t test2 -m compare
 ```
-If reproduced, you will find
+If reproduced, you will find in `log/zookeeper-operator/test2/faulty/bug-report.txt` that:
 ```
-pod has different terminating resources: normal: 0 faulty: 1
-persistentVolumeClaim has different terminating resources: normal: 0 faulty: 1
-[FIND BUG] # alarms: 2
+[ERROR] persistentvolumeclaims.terminating inconsistent: learning: 0, testing: 1
 ```
 
 ### Observability gaps
 First, build the operators:
 ```
-./build.sh -p cassandra-operator -m sparse-read
+python3 build.py -p cassandra-operator -m sparse-read
 ```
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
-python3 run.py -p cassandra-operator -t test1 -m compare
+python3 run.py -p cassandra-operator -t test1
 ```
 If reproduced, you will find
 ```
