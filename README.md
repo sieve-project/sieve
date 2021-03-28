@@ -3,6 +3,7 @@
 ## Requirements
 
 * Docker daemon must be running
+* A docker repo that you have write access to
 * go1.13 installed and `$GOPATH` set
 * python3 installed and `kubernetes` and `pyyaml` installed (`pip3 install kubernetes` and `pip3 install pyyaml`)
 
@@ -25,13 +26,14 @@
 ### Time travel
 First, build the operators:
 ```
-python3 build.py -p cassandra-operator -m time-travel
-python3 build.py -p zookeeper-operator -m time-travel
+python3 build.py -p cassandra-operator -m time-travel -d DOCKER-REPO-NAME
+python3 build.py -p zookeeper-operator -m time-travel -d DOCKER-REPO-NAME
 ```
+Please specify the `DOCKER-REPO-NAME` that you have write access to -- sonar needs to push controller image to the repo.
 
 ### [instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402)
 ```
-python3 run.py -p cassandra-operator -t test2
+python3 run.py -p cassandra-operator -t test2 -d DOCKER-REPO-NAME
 ```
 If reproduced, you will find in `log/cassandra-operator/test2/faulty/bug-report.txt` that:
 ```
@@ -43,7 +45,7 @@ work in progress
 
 ### [instaclustr-cassandra-operator-407](https://github.com/instaclustr/cassandra-operator/issues/407)
 ```
-python3 run.py -p cassandra-operator -t test4
+python3 run.py -p cassandra-operator -t test4 -d DOCKER-REPO-NAME
 ```
 If reproduced, you will find in `log/cassandra-operator/test4/faulty/bug-report.txt` that:
 ```
@@ -52,7 +54,7 @@ If reproduced, you will find in `log/cassandra-operator/test4/faulty/bug-report.
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
-python3 run.py -p zookeeper-operator -t test1 -m compare
+python3 run.py -p zookeeper-operator -t test1 -d DOCKER-REPO-NAME
 ```
 If reproduced, you will find in `log/zookeeper-operator/test1/faulty/bug-report.txt` that:
 ```
@@ -61,7 +63,7 @@ If reproduced, you will find in `log/zookeeper-operator/test1/faulty/bug-report.
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
-python3 run.py -p zookeeper-operator -t test2 -m compare
+python3 run.py -p zookeeper-operator -t test2 -d DOCKER-REPO-NAME
 ```
 If reproduced, you will find in `log/zookeeper-operator/test2/faulty/bug-report.txt` that:
 ```
@@ -71,12 +73,12 @@ If reproduced, you will find in `log/zookeeper-operator/test2/faulty/bug-report.
 ### Observability gaps
 First, build the operators:
 ```
-python3 build.py -p cassandra-operator -m sparse-read
+python3 build.py -p cassandra-operator -m sparse-read -d DOCKER-REPO-NAME
 ```
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
-python3 run.py -p cassandra-operator -t test1
+python3 run.py -p cassandra-operator -t test1 -d DOCKER-REPO-NAME
 ```
 If reproduced, you will find
 ```
