@@ -4,6 +4,7 @@ import kubernetes
 import enum
 import time
 import json
+import glob
 from analyze import analyzeTrace
 from analyze import generateDigest
 import controllers
@@ -134,10 +135,12 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
 def run_batch(project, test, dir, mode, docker):
     config_dir = os.path.join("log", project, test,
                               "learn", "generated-config")
-    for i in range(1, 44):
-        config = os.path.join(config_dir, str(i)+".yaml")
+    configs = glob.glob(os.path.join(config_dir, "*.yaml"))
+    print("configs", configs)
+    for config in configs:
+        num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(
-            dir, project, test, mode, str(i))
+            dir, project, test, mode, num)
         print("[sonar] config is %s" % config)
         print("[sonar] log dir is %s" % log_dir)
         run(controllers.test_suites, project,
@@ -153,27 +156,22 @@ if __name__ == "__main__":
     parser.add_option("-t", "--test", dest="test",
                       help="specify TEST to run", metavar="TEST", default="test2")
     parser.add_option("-d", "--docker", dest="docker",
-                      help="DOCKER repo that you have access", metavar="DOCKER", default="none")
-    parser.add_option("-d", "--dir", dest="dir",
-                      help="write log to DIR", metavar="DIR", default="log")
+                      help="DOCKER repo that you have access", metavar="DOCKER", default=controllers.docker_repo)
+    parser.add_option("-l", "--log", dest="log",
+                      help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: normal, faulty, learn or compare", metavar="MODE", default="faulty")
+                      help="test MODE: normal, faulty, learn", metavar="MODE", default="faulty")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
-                      help="BATCH mode or not", default=False)
+                      help="batch mode or not", default=False)
 
     (options, args) = parser.parse_args()
-    dir = options.dir
-    project = options.project
-    test = options.test
-    mode = options.mode
-    config = options.config
-    docker = options.docker if options.docker != "none" else controllers.docker_repo
 
     if options.batch:
-        run_batch(project, test, "log-batch", mode, docker)
+        run_batch(options.project, options.test,
+                  "log-batch", options.mode, options.docker)
     else:
-        run(controllers.test_suites, project, test, os.path.join(
-            dir, project, test, mode), mode, config, docker)
+        run(controllers.test_suites, options.project, options.test, os.path.join(
+            options.log, options.project, options.test, options.mode), options.mode, options.config, options.docker)
     print("total time: {} seconds".format(time.time() - s))
