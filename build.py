@@ -11,16 +11,18 @@ if __name__ == "__main__":
                       help="build MODE: learn, time-travel, sparse-read", metavar="MODE", default="learn")
     parser.add_option("-s", "--sha", dest="sha",
                       help="SHA of the project", metavar="SHA", default="none")
+    parser.add_option("-d", "--docker", dest="docker",
+                      help="DOCKER repo that you have access", metavar="DOCKER", default="none")
     (options, args) = parser.parse_args()
 
     project = options.project
     mode = options.mode
     sha = options.sha if options.sha != "none" else controllers.sha[project]
+    dr = options.docker if options.docker != "none" else controllers.docker_repo
     crv = controllers.controller_runtime_version[project]
     cgv = controllers.client_go_version[project]
     link = controllers.github_link[project]
     df = controllers.docker_file[project]
-    dr = controllers.docker_repo
 
     os.system("CRV=%s CGV=%s GL=%s DF=%s DR=%s ./build.sh -p %s -m %s -s %s " %
               (crv, cgv, link, df, dr, project, mode, sha))
