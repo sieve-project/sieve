@@ -17,7 +17,7 @@ fi
 
 dockerrepo=$2
 if [ -z "$dockerrepo" ]; then
-    dockerrepo="sonar"
+    dockerrepo="xudongs"
 fi
 
 kind create cluster --image ${dockerrepo}/node:latest --config $conf

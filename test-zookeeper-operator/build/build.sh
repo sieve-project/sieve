@@ -3,7 +3,7 @@ set -x
 
 dockerrepo=$1
 if [ -z "$dockerrepo" ]; then
-    dockerrepo="sonar"
+    dockerrepo="xudongs"
 fi
 
 make build-go -j10
