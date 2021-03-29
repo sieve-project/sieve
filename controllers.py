@@ -12,6 +12,7 @@ docker_repo = "xudongs"
 github_link = {
     "cassandra-operator": "git@github.com:instaclustr/cassandra-operator.git",
     "zookeeper-operator": "git@github.com:pravega/zookeeper-operator.git",
+    "rabbitmq-operator": "git@github.com:rabbitmq/cluster-operator.git",
 }
 
 test_suites = {
@@ -36,31 +37,37 @@ test_suites = {
 CRDs = {
     "cassandra-operator": ["cassandradatacenters", "cassandraclusters", "cassandrabackups"],
     "zookeeper-operator": ["zookeeperclusters"],
+    "rabbitmq-operator": ["rabbitmqclusters"],
 }
 
 command = {
     "cassandra-operator": "/cassandra-operator",
     "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
+    "rabbitmq-operator": "/manager",
 }
 
 controller_runtime_version = {
     "cassandra-operator": "@v0.4.0",
     "zookeeper-operator": "@v0.5.2",
+    "rabbitmq-operator": "@v0.8.3",
 }
 
 client_go_version = {
     "cassandra-operator": "@v0.0.0-20190918160344-1fbdaa4c8d90",
     "zookeeper-operator": "@v0.17.2",
+    "rabbitmq-operator": "@v0.20.2",
 }
 
 sha = {
     "cassandra-operator": "fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd",
     "zookeeper-operator": "cda03d2f270bdfb51372192766123904f6d88278",
+    "rabbitmq-operator": "4f13b9a942ad34fece0171d2174aa0264b10e947",
 }
 
 docker_file = {
     "cassandra-operator": "docker/cassandra-operator/Dockerfile",
     "zookeeper-operator": "Dockerfile",
+    "rabbitmq-operator": "Dockerfile",
 }
 
 
