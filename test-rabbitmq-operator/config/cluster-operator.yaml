@@ -3704,7 +3704,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rabbitmq-cluster-operator
-  namespace: rabbitmq-system
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -3714,7 +3714,7 @@ metadata:
     app.kubernetes.io/name: rabbitmq-cluster-operator
     app.kubernetes.io/part-of: rabbitmq
   name: rabbitmq-cluster-leader-election-role
-  namespace: rabbitmq-system
+  namespace: default
 rules:
 - apiGroups:
   - coordination.k8s.io
@@ -3888,7 +3888,7 @@ metadata:
     app.kubernetes.io/name: rabbitmq-cluster-operator
     app.kubernetes.io/part-of: rabbitmq
   name: rabbitmq-cluster-leader-election-rolebinding
-  namespace: rabbitmq-system
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -3896,7 +3896,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: rabbitmq-cluster-operator
-  namespace: rabbitmq-system
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -3913,7 +3913,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: rabbitmq-cluster-operator
-  namespace: rabbitmq-system
+  namespace: default
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3922,29 +3922,31 @@ metadata:
     app.kubernetes.io/component: rabbitmq-cluster-operator
     app.kubernetes.io/name: rabbitmq-cluster-operator
     app.kubernetes.io/part-of: rabbitmq
-  name: rabbitmq-cluster-operator
-  namespace: rabbitmq-system
+  name: rabbitmq-operator
+  namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
+      name: rabbitmq-operator
       app.kubernetes.io/name: rabbitmq-cluster-operator
   template:
     metadata:
       labels:
+        name: rabbitmq-operator
         app.kubernetes.io/component: rabbitmq-cluster-operator
         app.kubernetes.io/name: rabbitmq-cluster-operator
         app.kubernetes.io/part-of: rabbitmq
     spec:
       containers:
       - command:
-        - /manager
+        - sleep infinity
         env:
         - name: OPERATOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: rabbitmqoperator/cluster-operator:1.5.0
+        image: ${SONAR-DR}/rabbitmq-operator:latest
         name: operator
         ports:
         - containerPort: 9782
@@ -3957,9 +3959,9 @@ spec:
           requests:
             cpu: 200m
             memory: 500Mi
-      securityContext:
-        fsGroup: 1000
-        runAsGroup: 1000
-        runAsUser: 1000
+      # securityContext:
+      #   fsGroup: 1000
+      #   runAsGroup: 1000
+      #   runAsUser: 1000
       serviceAccountName: rabbitmq-cluster-operator
       terminationGracePeriodSeconds: 10
