@@ -104,9 +104,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
 def run(test_suites, project, test, log_dir, mode, config, docker):
     suite = test_suites[project][test]
-    test_config = suite.config
-    if config != "none":
-        test_config = config
+    test_config = config if config != "none" else suite.config
     if mode == "normal":
         run_test(project, mode, suite.workload,
                  blank_config, blank_config, blank_config, log_dir, docker)
@@ -126,6 +124,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         run_test(project, mode, suite.workload,
                  learn_config, learn_config, learn_config, log_dir, docker)
         analyzeTrace(project, log_dir)
+        os.system("mkdir -p %s" % os.path.join("data", project, test))
         os.system("cp %s %s" % (os.path.join(log_dir, "digest.json"), os.path.join(
             "data", project, test, "digest.json")))
     else:
