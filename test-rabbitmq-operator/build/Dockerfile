@@ -21,4 +21,4 @@ RUN apk update
 RUN apk upgrade
 RUN apk add bash
 
-ENTRYPOINT ["sleep", "infinity"]
+CMD ["sleep", "infinity"]
