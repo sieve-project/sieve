@@ -57,11 +57,11 @@ instrument() {
   cd instrumentation
   go build
   if [ $mode = 'sparse-read' ]; then
-    ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
+    ./instrumentation $project $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion}
   elif [ $mode = 'time-travel' ]; then
-    ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
+    ./instrumentation $project $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/fakegopath/src/k8s.io/kubernetes
   elif [ $mode = 'learn' ]; then
-    ./instrumentation $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
+    ./instrumentation $project $mode ${OLDPWD}/app/${project}/dep-sonar/src/sigs.k8s.io/controller-runtime${crversion} ${OLDPWD}/app/${project}/dep-sonar/src/k8s.io/client-go${cgversion}
   fi
   cd $OLDPWD
 }
@@ -93,7 +93,7 @@ done
 echo "reuse: $reuse mode: $mode project: $project"
 
 set -ex
-if [ $reuse = 'none' ]; then
+if [ $project = 'kubernetes' ]; then
   # download new k8s code
   rm -rf fakegopath
   echo "cloning Kubernetes..."
@@ -109,6 +109,15 @@ if [ $reuse = 'none' ]; then
   cp -r sonar-client fakegopath/src/k8s.io/kubernetes/staging/src/sonar.client
   ln -s ../staging/src/sonar.client fakegopath/src/k8s.io/kubernetes/vendor/sonar.client
 
+  # instrument k8s
+  instrument
+
+  # build kind image
+  cd fakegopath/src/k8s.io/kubernetes
+  GOPATH=${OLDPWD}/fakegopath KUBE_GIT_VERSION=v1.18.9-sr-`git rev-parse HEAD` kind build node-image
+  cd $OLDPWD
+  docker build --no-cache -t ${dockerrepo}/node:latest .
+else
   # download new controller code
   rm -rf app/$project
   echo "cloning $project..."
@@ -121,18 +130,12 @@ if [ $reuse = 'none' ]; then
   # install libs and import sonar.client into controller
   install_and_import
 
-  # instrument k8s and controller code according to the mode
+  # instrument controller liberaries
   instrument
+
+  # build controller image
+  echo "building the operator..."
+  cd app/$project
+  ./build.sh ${dockerrepo}
 fi
-
-# build kind image
-cd fakegopath/src/k8s.io/kubernetes
-GOPATH=${OLDPWD}/fakegopath KUBE_GIT_VERSION=v1.18.9-sr-`git rev-parse HEAD` kind build node-image
-cd $OLDPWD
-docker build --no-cache -t ${dockerrepo}/node:latest .
-
-# build controller image
-echo "building the operator..."
-cd app/$project
-./build.sh ${dockerrepo}
 

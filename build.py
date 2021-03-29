@@ -15,14 +15,15 @@ if __name__ == "__main__":
                       help="DOCKER repo that you have access", metavar="DOCKER", default="none")
     (options, args) = parser.parse_args()
 
-    project = options.project
-    mode = options.mode
-    sha = options.sha if options.sha != "none" else controllers.sha[project]
     dr = options.docker if options.docker != "none" else controllers.docker_repo
-    crv = controllers.controller_runtime_version[project]
-    cgv = controllers.client_go_version[project]
-    link = controllers.github_link[project]
-    df = controllers.docker_file[project]
-
-    os.system("CRV=%s CGV=%s GL=%s DF=%s DR=%s ./build.sh -p %s -m %s -s %s " %
-              (crv, cgv, link, df, dr, project, mode, sha))
+    if options.project == "kubernetes":
+        os.system("DR=%s ./build.sh -p %s -m %s" %
+                  (dr, options.project, options.mode))
+    else:
+        sha = options.sha if options.sha != "none" else controllers.sha[options.project]
+        crv = controllers.controller_runtime_version[options.project]
+        cgv = controllers.client_go_version[options.project]
+        link = controllers.github_link[options.project]
+        df = controllers.docker_file[options.project]
+        os.system("CRV=%s CGV=%s GL=%s DF=%s DR=%s ./build.sh -p %s -m %s -s %s " %
+                  (crv, cgv, link, df, dr, options.project, options.mode, sha))

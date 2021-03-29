@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"strings"
 	"go/token"
 	"os"
 	"io/ioutil"
@@ -67,6 +68,7 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File) {
 	res := decorator.NewRestorerWithImports(pkg, guess.New())
 	fres := res.FileRestorer()
 	fres.Alias["sonar.client"] = "sonar"
+	fres.Alias["k8s.io/klog/v2"] = "klog"
 
 	autoInstrFile, err := os.Create(ofilepath)
 	check(err)
@@ -118,4 +120,12 @@ func instrumentClientGoForAll(ifilepath, ofilepath, mode string) {
 	}
 
 	writeInstrumentedFile(ofilepath, "client", f)
+}
+
+func preprocess(path string) {
+	read, err := ioutil.ReadFile(path)
+	check(err)
+	newContents := strings.Replace(string(read), "\"k8s.io/klog/v2\"", "klog \"k8s.io/klog/v2\"", 1)
+	err = ioutil.WriteFile(path, []byte(newContents), 0)
+	check(err)
 }

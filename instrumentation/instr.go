@@ -7,7 +7,8 @@ import (
 )
 
 // instrment for sparse-read pattern
-func instrumentSparseRead(controller_runtime_filepath string) {
+func instrumentSparseRead(project, controller_runtime_filepath string) {
+	if project != "kubernetes" {
 	// Mainly two pieces of instrumentation we should do for sparse-read:
 	// In controller.go, we need to invoke NotifySparseReadBeforeReconcile before calling Reconcile(),
 	// and invoke NotifySparseReadBeforeMakeQ before creating a queue.
@@ -31,10 +32,11 @@ func instrumentSparseRead(controller_runtime_filepath string) {
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
 	instrumentClientGoForAll(clientGoFile, clientGoFile, "SparseRead")
+	}
 }
 
 // instrument for time-traveling pattern
-func instrumentTimeTravel(controller_runtime_filepath, k8s_filepath string) {
+func instrumentTimeTravel(project, controller_runtime_filepath, k8s_filepath string) {
 	// In reflector.go, we need to create GetExpectedTypeName() in reflector.go
 	// because sonar server needs this information.
 	// reflectorGoFile := path.Join(filepath, "staging", "src", "k8s.io", "client-go", "tools", "cache", "reflector.go")
@@ -47,16 +49,19 @@ func instrumentTimeTravel(controller_runtime_filepath, k8s_filepath string) {
 	// instrumentCacherGo(cacherGoFile, cacherGoFile)
 
 	// In watch_cache.go, we need to invoke NotifyTimeTravelBeforeProcessEvent in watch_cache.go.
-	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
-	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-	instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
-
-	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
-	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel")
+	if project == "kubernetes" {
+		watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
+		fmt.Printf("instrumenting %s\n", watchCacheGoFile)
+		instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
+	} else {
+		clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
+		fmt.Printf("instrumenting %s\n", clientGoFile)
+		instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel")
+	}
 }
 
-func instrumentLearn(controller_runtime_filepath, client_go_filepath string) {
+func instrumentLearn(project, controller_runtime_filepath, client_go_filepath string) {
+	if project != "kubernetes" {
 	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
 	instrumentControllerGoForLearn(controllerGoFile, controllerGoFile)
@@ -65,18 +70,21 @@ func instrumentLearn(controller_runtime_filepath, client_go_filepath string) {
 	fmt.Printf("instrumenting %s\n", clientGoFile)
 	instrumentClientGoForLearn(clientGoFile, clientGoFile)
 
-	reflectorGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
-	fmt.Printf("instrumenting %s\n", reflectorGoFile)
-	instrumentSharedInformerGoForLearn(reflectorGoFile, reflectorGoFile)
+	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
+	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
+	preprocess(sharedInformerGoFile)
+	instrumentSharedInformerGoForLearn(sharedInformerGoFile, sharedInformerGoFile)
+	}
 }
 
 func main() {
 	args := os.Args
-	if args[1] == "sparse-read" {
-		instrumentSparseRead(args[2])
-	} else if args[1] == "time-travel" {
-		instrumentTimeTravel(args[2], args[3])
-	} else if args[1] == "learn" {
-		instrumentLearn(args[2], args[3])
+	project := args[1]
+	if args[2] == "sparse-read" {
+		instrumentSparseRead(project, args[3])
+	} else if args[2] == "time-travel" {
+		instrumentTimeTravel(project, args[3], args[4])
+	} else if args[2] == "learn" {
+		instrumentLearn(project,args[3], args[4])
 	}
 }
