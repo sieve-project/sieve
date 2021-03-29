@@ -32,6 +32,10 @@ test_suites = {
         "test2": Suite(
             "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/bug2.yaml"),
     },
+    "rabbitmq-operator": {
+        "test1": Suite(
+            "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/config/bug1.yaml"),
+    },
 }
 
 CRDs = {
@@ -71,7 +75,7 @@ docker_file = {
 }
 
 
-def replaceDockerRepo(path, dr):
+def replace_docker_repo(path, dr):
     fin = open(path)
     data = fin.read()
     data = data.replace("${SONAR-DR}", dr)
@@ -84,8 +88,8 @@ def replaceDockerRepo(path, dr):
     return new_path
 
 
-def cassandraOperatorBootstrap(dr):
-    new_path = replaceDockerRepo(
+def cassandra_operator_bootstrap(dr):
+    new_path = replace_docker_repo(
         "test-cassandra-operator/config/bundle.yaml", dr)
     os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
     os.system(
@@ -93,8 +97,8 @@ def cassandraOperatorBootstrap(dr):
     os.system("rm %s" % new_path)
 
 
-def zookeeperOperatorBootstrap(dr):
-    new_path = replaceDockerRepo(
+def zookeeper_operator_bootstrap(dr):
+    new_path = replace_docker_repo(
         "test-zookeeper-operator/config/deploy/default_ns/operator.yaml", dr)
     os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
     os.system(
@@ -104,7 +108,15 @@ def zookeeperOperatorBootstrap(dr):
     os.system("rm %s" % new_path)
 
 
+def rabbitmq_operator_bootstrap(dr):
+    new_path = replace_docker_repo(
+        "test-rabbitmq-operator/config/cluster-operator.yaml", dr)
+    os.system("kubectl apply -f %s" % new_path)
+    os.system("rm %s" % new_path)
+
+
 bootstrap = {
-    "cassandra-operator": cassandraOperatorBootstrap,
-    "zookeeper-operator": zookeeperOperatorBootstrap,
+    "cassandra-operator": cassandra_operator_bootstrap,
+    "zookeeper-operator": zookeeper_operator_bootstrap,
+    "rabbitmq-operator": rabbitmq_operator_bootstrap,
 }
