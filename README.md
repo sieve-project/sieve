@@ -26,6 +26,7 @@
 ### Time travel
 First, build the operators:
 ```
+python3 build.py -p kubernetes -m time-travel -d DOCKER-REPO-NAME
 python3 build.py -p cassandra-operator -m time-travel -d DOCKER-REPO-NAME
 python3 build.py -p zookeeper-operator -m time-travel -d DOCKER-REPO-NAME
 ```
@@ -73,6 +74,7 @@ If reproduced, you will find in `log/zookeeper-operator/test2/faulty/bug-report.
 ### Observability gaps
 First, build the operators:
 ```
+python3 build.py -p kubernetes -m sparse-read -d DOCKER-REPO-NAME
 python3 build.py -p cassandra-operator -m sparse-read -d DOCKER-REPO-NAME
 ```
 
