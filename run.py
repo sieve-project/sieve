@@ -33,7 +33,7 @@ def compare_digest(digest_normal, digest_faulty):
         else:
             for attr in digest_normal[rtype]:
                 if digest_normal[rtype][attr] != digest_faulty[rtype][attr]:
-                    level = "ERROR" if attr == "size" or attr == "terminating" else "WARN"
+                    level = "WARN" if attr == "update" else "ERROR"
                     bug_report += "[%s] %s.%s inconsistent: learning: %s, testing: %s\n" % (
                         level, rtype, attr, str(digest_normal[rtype][attr]), str(digest_faulty[rtype][attr]))
                     alarm += 1
