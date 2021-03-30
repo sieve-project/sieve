@@ -81,19 +81,26 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
             toDel.append(key)
         elif str(curObject[key]) != str(prevObject[key]):
             if isinstance(curObject[key], dict):
+                if not isinstance(prevObject[key], dict):
+                    continue
                 res = compressObject(
                     prevObject[key], curObject[key], slimPrevObject[key], slimCurObject[key])
                 if res:
                     toDel.append(key)
             elif isinstance(curObject[key], list):
+                if not isinstance(prevObject[key], list):
+                    continue
                 for i in range(len(curObject[key])):
                     if i >= len(prevObject[key]):
                         break
                     elif str(curObject[key][i]) != str(prevObject[key][i]):
                         if isinstance(curObject[key][i], dict):
+                            if not isinstance(prevObject[key][i], dict):
+                                continue
                             res = compressObject(
                                 prevObject[key][i], curObject[key][i], slimPrevObject[key][i], slimCurObject[key][i])
                             if res:
+                                # SONAR_SKIP means we can skip the value in list when later comparing to the events in testing run
                                 slimCurObject[key][i] = "SONAR-SKIP"
                                 slimPrevObject[key][i] = "SONAR-SKIP"
                         elif isinstance(curObject[key][i], list):
