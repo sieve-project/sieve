@@ -11,10 +11,10 @@ SONAR_EVENT_MARK = "[SONAR-EVENT]"
 SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
 SONAR_RECORD_MARK = "[SONAR-RECORD]"
 
-POD = "pods"
-PVC = "persistentvolumeclaims"
-DEPLOYMENT = "deployments"
-STS = "statefulsets"
+POD = "pod"
+PVC = "persistentvolumeclaim"
+DEPLOYMENT = "deployment"
+STS = "statefulset"
 
 ktypes = [POD, PVC, DEPLOYMENT, STS]
 

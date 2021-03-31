@@ -67,5 +67,15 @@ func checkResponse(response Response, reqName string) {
 
 func regularizeType(rtype string) string {
 	tokens := strings.Split(rtype, ".")
-	return strings.ToLower(tokens[len(tokens) - 1]) + "s"
+	return strings.ToLower(tokens[len(tokens) - 1])
+}
+
+func pluralToSingle(rtype string) string {
+	if rtype == "endpoints" {
+		return rtype
+	} else if strings.HasSuffix(rtype, "s") {
+		return rtype[:len(rtype)-1]
+	} else {
+		return rtype
+	}
 }

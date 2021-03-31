@@ -39,9 +39,9 @@ test_suites = {
 }
 
 CRDs = {
-    "cassandra-operator": ["cassandradatacenters", "cassandraclusters", "cassandrabackups"],
-    "zookeeper-operator": ["zookeeperclusters"],
-    "rabbitmq-operator": ["rabbitmqclusters"],
+    "cassandra-operator": ["cassandradatacenter", "cassandracluster", "cassandrabackup"],
+    "zookeeper-operator": ["zookeepercluster"],
+    "rabbitmq-operator": ["rabbitmqcluster"],
 }
 
 command = {

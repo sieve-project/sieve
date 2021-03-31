@@ -17,11 +17,11 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 	namespace := ""
 	resourceType := ""
 	if len(tokens) == 4 {
-		resourceType = tokens[1]
+		resourceType = pluralToSingle(tokens[1])
 		namespace = tokens[2]
 		name = tokens[3]
 	} else if len(tokens) == 5 {
-		resourceType = tokens[2]
+		resourceType = pluralToSingle(tokens[2])
 		namespace = tokens[3]
 		name = tokens[4]
 	} else {
