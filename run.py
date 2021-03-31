@@ -14,7 +14,6 @@ k8s_namespace = "default"
 
 
 blank_config = "config/none.yaml"
-learn_config = "config/learn.yaml"
 
 
 def compare_digest(digest_normal, digest_faulty):
@@ -121,6 +120,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         json.dump(digest_faulty, open(os.path.join(
             log_dir, "digest.json"), "w"), indent=4)
     elif mode == "learn":
+        learn_config = os.path.join("test-" + project, "config", "learn.yaml")
         run_test(project, mode, suite.workload,
                  learn_config, learn_config, learn_config, log_dir, docker)
         analyzeTrace(project, log_dir)
