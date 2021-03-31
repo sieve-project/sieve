@@ -4,10 +4,44 @@ import (
 	"log"
 	"encoding/json"
 	"reflect"
+	"strings"
+	"k8s.io/apimachinery/pkg/api/meta"
 )
+
+func isCRD(rType string, crds []string) bool {
+	for _, crd := range crds {
+		if rType == crd {
+			return true
+		}
+	}
+	return false
+}
+
+func triggerReconcile(object interface{}) bool {
+	crds := getCRDs()
+	rType := regularizeType(reflect.TypeOf(object).String())
+	if isCRD(rType, crds) {
+		return true
+	}
+	if o, err := meta.Accessor(object); err == nil {
+		for _, ref := range o.GetOwnerReferences() {
+			if isCRD(strings.ToLower(ref.Kind), crds) {
+				taintMap.Store(o.GetNamespace() + "-" + rType + "-" + o.GetName(), "")
+				return true
+			} else if _, ok := taintMap.Load(o.GetNamespace() + "-" + strings.ToLower(ref.Kind) + "-" + ref.Name); ok {
+				taintMap.Store(o.GetNamespace() + "-" + rType + "-" + o.GetName(), "")
+				return true
+			}
+		}
+	}
+	return false
+}
 
 func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
 	if !checkMode(learn) {
+		return
+	}
+	if !triggerReconcile(object) {
 		return
 	}
 	log.Printf("[sonar][NotifyLearnBeforeIndexerWrite] operationType: %s\n", operationType)

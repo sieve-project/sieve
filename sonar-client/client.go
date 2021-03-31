@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/rpc"
 	"log"
+	"sync"
 
 	"gopkg.in/yaml.v2"
 )
@@ -19,6 +20,7 @@ var config map[string]interface{} = nil
 var sparseRead string = "sparse-read"
 var timeTravel string = "time-travel"
 var learn string = "learn"
+var taintMap sync.Map = sync.Map{}
 
 func checkMode(mode string) bool {
 	if config == nil {
@@ -28,6 +30,17 @@ func checkMode(mode string) bool {
 		return false
 	}
 	return config["mode"] == mode
+}
+
+func getCRDs() []string {
+	crds := []string{}
+	if cs, ok := config["crds"]; ok {
+		cs := cs.([]interface{})
+		for _, c := range cs {
+			crds = append(crds, c.(string))
+		}
+	}
+	return crds
 }
 
 func newClient() (*rpc.Client, error) {
