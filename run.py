@@ -9,10 +9,7 @@ from analyze import analyzeTrace
 from analyze import generateDigest
 import controllers
 
-log_dir = "log"
 k8s_namespace = "default"
-
-
 blank_config = "config/none.yaml"
 
 
@@ -38,6 +35,7 @@ def compare_digest(digest_normal, digest_faulty):
                     alarm += 1
     if alarm != 0:
         bug_report += "[BUGGY] # alarms: %d\n" % (alarm)
+    print(bug_report)
     return bug_report
 
 
