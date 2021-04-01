@@ -13,20 +13,12 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 		return
 	}
 	tokens := strings.Split(key, "/")
-	name := ""
-	namespace := ""
-	resourceType := ""
-	if len(tokens) == 4 {
-		resourceType = pluralToSingle(tokens[1])
-		namespace = tokens[2]
-		name = tokens[3]
-	} else if len(tokens) == 5 {
-		resourceType = pluralToSingle(tokens[2])
-		namespace = tokens[3]
-		name = tokens[4]
-	} else {
+	if len(tokens) < 4 {
 		return
 	}
+	resourceType := pluralToSingle(tokens[len(tokens) - 3])
+	namespace := tokens[len(tokens) - 2]
+	name := tokens[len(tokens) - 1]
 	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
 		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
