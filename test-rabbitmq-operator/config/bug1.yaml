@@ -9,8 +9,15 @@ ce-namespace: default
 ce-rtype: rabbitmqcluster
 ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds":
   0}}'
-ce-diff-previous: '{"metadata": {}}'
+ce-diff-previous: '{}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
 se-name: sonar-rabbitmq-cluster-server
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
+description: 'Pause kind-control-plane3 after it processes a default/rabbitmqcluster/sonar-rabbitmq-cluster
+  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-EXIST",
+  "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
+  the controller rabbitmq-operator after kind-control-plane processes a ADDED default/statefulset/sonar-rabbitmq-cluster-server
+  event.'
