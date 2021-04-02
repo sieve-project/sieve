@@ -20,21 +20,21 @@ test_suites = {
         "test1": Suite(
             "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/bug1.yaml"),
         "test2": Suite(
-            "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug2.yaml"),
+            "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-1.yaml"),
         "test3": Suite(
             "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml"),
         "test4": Suite(
-            "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/bug4.yaml"),
+            "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-2.yaml"),
     },
     "zookeeper-operator": {
         "test1": Suite(
-            "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/bug1.yaml"),
+            "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/time-travel-1.yaml"),
         "test2": Suite(
-            "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/bug2.yaml"),
+            "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/time-travel-2.yaml"),
     },
     "rabbitmq-operator": {
         "test1": Suite(
-            "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/config/bug1.yaml"),
+            "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/config/time-travel-1.yaml"),
     },
 }
 
