@@ -149,7 +149,8 @@ def traverseRecords(records, eventMap, ntn):
             continue
         prevEvent, curEvent = findPreviousEvent(
             record["eventID"], record["ntn"], eventMap)
-        tp = {"name": curEvent["eventObject"]["metadata"]["name"], "namespace": curEvent["eventObject"]["metadata"]["namespace"],
+        tp = {"name": curEvent["eventObject"]["metadata"]["name"],
+              "namespace": curEvent["eventObject"]["metadata"]["namespace"],
               "otype": curEvent["eventObjectType"],
               "effects": record["effects"]}
         if prevEvent is None:
@@ -166,6 +167,17 @@ def traverseRecords(records, eventMap, ntn):
                 tp["curEvent"] = slimCurObject
         triggeringPoints.append(tp)
     return triggeringPoints
+
+
+def timeTravelDescription(yamlMap):
+    return "pause %s after it processes a %s event E. "\
+        "E should match the pattern %s and the events before E should match %s. "\
+        "And restart the controller %s after %s processes a %s %s event." % (
+            yamlMap["straggler"], "/".join([yamlMap["ce-namespace"],
+                                           yamlMap["ce-rtype"], yamlMap["ce-name"]]),
+            yamlMap["ce-diff-current"], yamlMap["ce-diff-previous"], yamlMap["operator-pod"],
+            yamlMap["front-runner"], yamlMap["se-etype"], "/".join([yamlMap["se-namespace"],
+                                                                    yamlMap["se-rtype"], yamlMap["se-name"]]))
 
 
 def generateTimaTravelYaml(triggeringPoints, path, project):
@@ -193,6 +205,7 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
                     yamlMap["se-namespace"] = effect["namespace"]
                     yamlMap["se-rtype"] = effect["rtype"]
                     yamlMap["se-etype"] = "ADDED" if effect["etype"] == "delete" else "DELETED"
+                    yamlMap["description"] = timeTravelDescription(yamlMap)
                     yaml.dump(yamlMap, open(
                         os.path.join(path, "%s.yaml" % (str(i))), "w"), sort_keys=False)
 
