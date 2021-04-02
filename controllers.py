@@ -18,7 +18,7 @@ github_link = {
 test_suites = {
     "cassandra-operator": {
         "test1": Suite(
-            "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/bug1.yaml"),
+            "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/sparse-read-1.yaml"),
         "test2": Suite(
             "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-1.yaml"),
         "test3": Suite(
