@@ -71,6 +71,8 @@ def findPreviousEvent(id, ntn, eventMap):
 
 def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
     toDel = []
+    toDelCur = []
+    toDelPrev = []
     allKeys = set(curObject.keys()).union(prevObject.keys())
     for key in allKeys:
         if key not in curObject:
@@ -117,6 +119,18 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
     for key in toDel:
         del slimCurObject[key]
         del slimPrevObject[key]
+    for key in slimCurObject:
+        if isinstance(slimCurObject[key], dict):
+            if len(slimCurObject[key]) == 0:
+                toDelCur.append(key)
+    for key in slimPrevObject:
+        if isinstance(slimPrevObject[key], dict):
+            if len(slimPrevObject[key]) == 0:
+                toDelPrev.append(key)
+    for key in toDelCur:
+        del slimCurObject[key]
+    for key in toDelPrev:
+        del slimPrevObject[key]
     if len(slimCurObject) == 0 and len(slimPrevObject) == 0:
         return True
     return False
@@ -125,7 +139,6 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
 def diffEvents(prevEvent, curEvent):
     prevObject = prevEvent["eventObject"]
     curObject = curEvent["eventObject"]
-
     slimPrevObject = copy.deepcopy(prevObject)
     slimCurObject = copy.deepcopy(curObject)
     compressObject(prevObject, curObject, slimPrevObject, slimCurObject)
@@ -154,23 +167,24 @@ def traverseRecords(records, eventMap, ntn):
               "otype": curEvent["eventObjectType"],
               "effects": record["effects"]}
         if prevEvent is None:
-            tp["ttype"] = "event"
+            tp["ttype"] = "todo"
+            continue  # TODO: consider single event cases
+        elif prevEvent["eventType"] != curEvent["eventType"]:
+            tp["ttype"] = "todo"
+            continue  # TODO: consider ADDED/UPDATED cases
         else:
-            if prevEvent["eventType"] != curEvent["eventType"]:
-                tp["ttype"] = "event-type-delta"
-                tp["prevEventType"] = prevEvent["eventType"]
-                tp["curEventType"] = curEvent["eventType"]
-            else:
-                slimPrevObject, slimCurObject = diffEvents(prevEvent, curEvent)
-                tp["ttype"] = "event-content-delta"
-                tp["prevEvent"] = slimPrevObject
-                tp["curEvent"] = slimCurObject
+            slimPrevObject, slimCurObject = diffEvents(prevEvent, curEvent)
+            tp["ttype"] = "event-delta"
+            tp["prevEvent"] = slimPrevObject
+            tp["curEvent"] = slimCurObject
+            tp["prevEventType"] = prevEvent["eventType"]
+            tp["curEventType"] = curEvent["eventType"]
         triggeringPoints.append(tp)
     return triggeringPoints
 
 
 def timeTravelDescription(yamlMap):
-    return "pause %s after it processes a %s event E. "\
+    return "Pause %s after it processes a %s event E. "\
         "E should match the pattern %s and the events before E should match %s. "\
         "And restart the controller %s after %s processes a %s %s event." % (
             yamlMap["straggler"], "/".join([yamlMap["ce-namespace"],
@@ -190,8 +204,9 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
     yamlMap["command"] = controllers.command[project]
     i = 0
     for triggeringPoint in triggeringPoints:
-        if triggeringPoint["ttype"] == "event-content-delta":
+        if triggeringPoint["ttype"] == "event-delta":
             for effect in triggeringPoint["effects"]:
+                # TODO: consider update side effects and even app-specific side effects
                 if effect["etype"] == "delete" or effect["etype"] == "create":
                     i += 1
                     yamlMap["ce-name"] = triggeringPoint["name"]
@@ -201,6 +216,8 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
                         canonicalization(copy.deepcopy(triggeringPoint["curEvent"])))
                     yamlMap["ce-diff-previous"] = json.dumps(
                         canonicalization(copy.deepcopy(triggeringPoint["prevEvent"])))
+                    yamlMap["ce-etype-current"] = triggeringPoint["curEventType"]
+                    yamlMap["ce-etype-previous"] = triggeringPoint["prevEventType"]
                     yamlMap["se-name"] = effect["name"]
                     yamlMap["se-namespace"] = effect["namespace"]
                     yamlMap["se-rtype"] = effect["rtype"]
@@ -208,6 +225,9 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
                     yamlMap["description"] = timeTravelDescription(yamlMap)
                     yaml.dump(yamlMap, open(
                         os.path.join(path, "%s.yaml" % (str(i))), "w"), sort_keys=False)
+        else:
+            print("ignoring single event trigger")
+            # TODO: handle the single event trigger
 
 
 def generateDigest(path):
