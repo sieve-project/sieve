@@ -113,7 +113,7 @@ def replace_docker_repo(path, dr, dt):
     return new_path
 
 
-def cassandra_operator_bootstrap(dr, dt):
+def cassandra_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-cassandra-operator/deploy/bundle.yaml", dr, dt)
     os.system("kubectl apply -f test-cassandra-operator/deploy/crds.yaml")
@@ -122,7 +122,7 @@ def cassandra_operator_bootstrap(dr, dt):
     os.system("rm %s" % new_path)
 
 
-def zookeeper_operator_bootstrap(dr, dt):
+def zookeeper_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-zookeeper-operator/deploy/default_ns/operator.yaml", dr, dt)
     os.system("kubectl create -f test-zookeeper-operator/deploy/crds")
@@ -133,15 +133,15 @@ def zookeeper_operator_bootstrap(dr, dt):
     os.system("rm %s" % new_path)
 
 
-def rabbitmq_operator_bootstrap(dr, dt):
+def rabbitmq_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt)
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
-bootstrap = {
-    "cassandra-operator": cassandra_operator_bootstrap,
-    "zookeeper-operator": zookeeper_operator_bootstrap,
-    "rabbitmq-operator": rabbitmq_operator_bootstrap,
+deploy = {
+    "cassandra-operator": cassandra_operator_deploy,
+    "zookeeper-operator": zookeeper_operator_deploy,
+    "rabbitmq-operator": rabbitmq_operator_deploy,
 }

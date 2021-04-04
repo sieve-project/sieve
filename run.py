@@ -59,7 +59,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
     os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
               apiserver_config)
     time.sleep(5)
-    controllers.bootstrap[project](docker_repo, docker_tag)
+    controllers.deploy[project](docker_repo, docker_tag)
     time.sleep(5)
 
     kubernetes.config.load_kube_config()
