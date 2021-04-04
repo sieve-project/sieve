@@ -9,9 +9,6 @@ from analyze import analyzeTrace
 from analyze import generateDigest
 import controllers
 
-k8s_namespace = "default"
-blank_config = "config/none.yaml"
-
 
 def compare_digest(digest_normal, digest_faulty):
     alarm = 0
@@ -46,9 +43,10 @@ def watch_crd(project, addrs):
 
 
 def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag):
-    os.system("rm -rf %s" % (log_dir))
-    os.system("mkdir -p %s" % (log_dir))
-    os.system("cp %s sonar-server/server.yaml" % (server_config))
+    log_dir = os.path.join(log_dir, mode)
+    os.system("rm -rf %s" % log_dir)
+    os.system("mkdir -p %s" % log_dir)
+    os.system("cp %s sonar-server/server.yaml" % server_config)
     os.system("kind delete cluster")
 
     os.system("./setup.sh kind-ha.yaml %s %s" % (docker_repo, docker_tag))
@@ -56,11 +54,11 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
     time.sleep(90)
 
     os.system("kubectl cp %s kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system" %
-              (apiserver_config))
+              apiserver_config)
     os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" %
-              (apiserver_config))
+              apiserver_config)
     os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
-              (apiserver_config))
+              apiserver_config)
     time.sleep(5)
     controllers.bootstrap[project](docker_repo, docker_tag)
     time.sleep(5)
@@ -68,7 +66,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pod_name = core_v1.list_namespaced_pod(
-        k8s_namespace, watch=False, label_selector="name="+project).items[0].metadata.name
+        "default", watch=False, label_selector="name="+project).items[0].metadata.name
 
     api1_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
@@ -101,32 +99,33 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
 def run(test_suites, project, test, log_dir, mode, config, docker):
     suite = test_suites[project][test]
-    test_config = config if config != "none" else suite.config
-    if mode == "normal":
+    if mode == "vanilla":
+        blank_config = "config/none.yaml"
         run_test(project, mode, suite.workload,
-                 blank_config, blank_config, blank_config, log_dir, docker, "vanilla")
-    elif mode == "faulty":
-        print("test config: %s" % test_config)
+                 blank_config, blank_config, blank_config, log_dir, docker, mode)
+    elif mode == "learn":
+        learn_config = controllers.learning_configs[project]
+        run_test(project, mode, suite.workload,
+                 learn_config, learn_config, learn_config, log_dir, docker, mode)
+        analyzeTrace(project, log_dir, suite.double_sides)
+        os.system("mkdir -p %s" % os.path.join("data", project, test))
+        os.system("cp %s %s" % (os.path.join(log_dir, "digest.json"), os.path.join(
+            "data", project, test, "digest.json")))
+    else:
+        test_config = config if config != "none" else suite.config
+        test_mode = mode if mode != "none" else suite.mode
+        assert test_mode in controllers.testing_modes, "wrong mode option"
+        print("testing mode: %s config: %s" % (test_mode, test_config))
         learned_digest = json.load(open(os.path.join(
             "data", project, test, "digest.json")))
-        run_test(project, mode, suite.workload,
-                 test_config, test_config, test_config, log_dir, docker, suite.mode)
+        run_test(project, test_mode, suite.workload,
+                 test_config, test_config, test_config, log_dir, docker, test_mode)
         digest_faulty = generateDigest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
             compare_digest(learned_digest, digest_faulty))
         json.dump(digest_faulty, open(os.path.join(
             log_dir, "digest.json"), "w"), indent=4)
-    elif mode == "learn":
-        learn_config = os.path.join("test-" + project, "config", "learn.yaml")
-        run_test(project, mode, suite.workload,
-                 learn_config, learn_config, learn_config, log_dir, docker, "learn")
-        analyzeTrace(project, log_dir)
-        os.system("mkdir -p %s" % os.path.join("data", project, test))
-        os.system("cp %s %s" % (os.path.join(log_dir, "digest.json"), os.path.join(
-            "data", project, test, "digest.json")))
-    else:
-        assert False, "wrong mode option"
 
 
 def run_batch(project, test, dir, mode, docker):
@@ -137,7 +136,7 @@ def run_batch(project, test, dir, mode, docker):
     for config in configs:
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(
-            dir, project, test, mode, num)
+            dir, project, test, num)
         print("[sonar] config is %s" % config)
         print("[sonar] log dir is %s" % log_dir)
         run(controllers.test_suites, project,
@@ -157,7 +156,7 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: normal, faulty, learn", metavar="MODE", default="faulty")
+                      help="test MODE: vanilla, learn, time-travel, sparse-read", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
@@ -170,5 +169,5 @@ if __name__ == "__main__":
                   "log-batch", options.mode, options.docker)
     else:
         run(controllers.test_suites, options.project, options.test, os.path.join(
-            options.log, options.project, options.test, options.mode), options.mode, options.config, options.docker)
+            options.log, options.project, options.test), options.mode, options.config, options.docker)
     print("total time: {} seconds".format(time.time() - s))

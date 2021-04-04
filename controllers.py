@@ -2,13 +2,16 @@ import os
 
 
 class Suite:
-    def __init__(self, workload, config, mode):
+    def __init__(self, workload, config, mode, double_sides=False):
         self.workload = workload
         self.config = config
         self.mode = mode
+        self.double_sides = double_sides
 
 
 docker_repo = "xudongs"
+
+testing_modes = ["time-travel", "sparse-read"]
 
 github_link = {
     "cassandra-operator": "git@github.com:instaclustr/cassandra-operator.git",
@@ -37,7 +40,7 @@ test_suites = {
         "test1": Suite(
             "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/config/time-travel-1.yaml", "time-travel"),
         "test2": Suite(
-            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/config/time-travel-2.yaml", "time-travel"),
+            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/config/time-travel-2.yaml", "time-travel", True),
     },
 }
 
@@ -75,6 +78,12 @@ docker_file = {
     "cassandra-operator": "docker/cassandra-operator/Dockerfile",
     "zookeeper-operator": "Dockerfile",
     "rabbitmq-operator": "Dockerfile",
+}
+
+learning_configs = {
+    "cassandra-operator": "test-cassandra-operator/config/learn.yaml",
+    "zookeeper-operator": "test-zookeeper-operator/config/learn.yaml",
+    "rabbitmq-operator": "test-rabbitmq-operator/config/learn.yaml",
 }
 
 
