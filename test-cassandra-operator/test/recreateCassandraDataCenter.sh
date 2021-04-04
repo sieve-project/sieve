@@ -2,10 +2,10 @@
 
 set -ex
 
-kubectl apply -f config/cdc-1.yaml
+kubectl apply -f cdc-1.yaml
 sleep 150s
 kubectl delete CassandraDataCenter sonar-cassandra-datacenter
 sleep 50s
-kubectl apply -f config/cdc-1.yaml
+kubectl apply -f cdc-1.yaml
 sleep 190s
 
