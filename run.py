@@ -43,7 +43,6 @@ def watch_crd(project, addrs):
 
 
 def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag):
-    log_dir = os.path.join(log_dir, mode)
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
     os.system("cp %s sonar-server/server.yaml" % server_config)
@@ -100,10 +99,12 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 def run(test_suites, project, test, log_dir, mode, config, docker):
     suite = test_suites[project][test]
     if mode == "vanilla":
+        log_dir = os.path.join(log_dir, mode)
         blank_config = "config/none.yaml"
         run_test(project, mode, suite.workload,
                  blank_config, blank_config, blank_config, log_dir, docker, mode)
     elif mode == "learn":
+        log_dir = os.path.join(log_dir, mode)
         learn_config = controllers.learning_configs[project]
         run_test(project, mode, suite.workload,
                  learn_config, learn_config, learn_config, log_dir, docker, mode)
@@ -116,6 +117,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         test_mode = mode if mode != "none" else suite.mode
         assert test_mode in controllers.testing_modes, "wrong mode option"
         print("testing mode: %s config: %s" % (test_mode, test_config))
+        log_dir = os.path.join(log_dir, test_mode)
         learned_digest = json.load(open(os.path.join(
             "data", project, test, "digest.json")))
         run_test(project, test_mode, suite.workload,
