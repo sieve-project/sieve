@@ -12,14 +12,23 @@ func instrumentWatchCacheGoForTimeTravel(ifilepath, ofilepath string) {
 		panic("instrumentWatchCacheGo error")
 	}
 
-	instrumentationInEventProcesss := &dst.DeferStmt{
+	instrumentationInProcessEventAfterReconcile := &dst.DeferStmt{
 		Call: &dst.CallExpr{
 			Fun:  &dst.Ident{Name: "NotifyTimeTravelAfterProcessEvent", Path: "sonar.client"},
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
 		},
 	}
-	instrumentationInEventProcesss.Decs.End.Append("//sonar")
-	insertStmt(&funcDecl.Body.List, 2, instrumentationInEventProcesss)
+	instrumentationInProcessEventAfterReconcile.Decs.End.Append("//sonar")
+	insertStmt(&funcDecl.Body.List, 2, instrumentationInProcessEventAfterReconcile)
+
+	instrumentationInProcessEventBeforeReconcile := &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun:  &dst.Ident{Name: "NotifyTimeTravelBeforeProcessEvent", Path: "sonar.client"},
+			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
+		},
+	}
+	instrumentationInProcessEventBeforeReconcile.Decs.End.Append("//sonar")
+	insertStmt(&funcDecl.Body.List, 3, instrumentationInProcessEventBeforeReconcile)
 
 	writeInstrumentedFile(ofilepath, "cacher", f)
 }

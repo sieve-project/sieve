@@ -2,9 +2,10 @@ import os
 
 
 class Suite:
-    def __init__(self, workload, config):
+    def __init__(self, workload, config, mode):
         self.workload = workload
         self.config = config
+        self.mode = mode
 
 
 docker_repo = "xudongs"
@@ -18,23 +19,25 @@ github_link = {
 test_suites = {
     "cassandra-operator": {
         "test1": Suite(
-            "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/sparse-read-1.yaml"),
+            "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/sparse-read-1.yaml", "sparse-read"),
         "test2": Suite(
-            "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-1.yaml"),
+            "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-1.yaml", "time-travel"),
         "test3": Suite(
-            "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml"),
+            "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml", "time-travel"),
         "test4": Suite(
-            "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-2.yaml"),
+            "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-2.yaml", "time-travel"),
     },
     "zookeeper-operator": {
         "test1": Suite(
-            "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/time-travel-1.yaml"),
+            "recreateZookeeperCluster.sh", "test-zookeeper-operator/config/time-travel-1.yaml", "time-travel"),
         "test2": Suite(
-            "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/time-travel-2.yaml"),
+            "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/config/time-travel-2.yaml", "time-travel"),
     },
     "rabbitmq-operator": {
         "test1": Suite(
-            "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/config/time-travel-1.yaml"),
+            "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/config/time-travel-1.yaml", "time-travel"),
+        "test2": Suite(
+            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/config/time-travel-2.yaml", "time-travel"),
     },
 }
 
@@ -75,10 +78,11 @@ docker_file = {
 }
 
 
-def replace_docker_repo(path, dr):
+def replace_docker_repo(path, dr, dt):
     fin = open(path)
     data = fin.read()
     data = data.replace("${SONAR-DR}", dr)
+    data = data.replace("${SONAR-DT}", dt)
     fin.close()
     tokens = path.rsplit('.', 1)
     new_path = tokens[0] + "-" + dr + '.' + tokens[1]
@@ -88,18 +92,18 @@ def replace_docker_repo(path, dr):
     return new_path
 
 
-def cassandra_operator_bootstrap(dr):
+def cassandra_operator_bootstrap(dr, dt):
     new_path = replace_docker_repo(
-        "test-cassandra-operator/config/bundle.yaml", dr)
+        "test-cassandra-operator/config/bundle.yaml", dr, dt)
     os.system("kubectl apply -f test-cassandra-operator/config/crds.yaml")
     os.system(
         "kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
-def zookeeper_operator_bootstrap(dr):
+def zookeeper_operator_bootstrap(dr, dt):
     new_path = replace_docker_repo(
-        "test-zookeeper-operator/config/deploy/default_ns/operator.yaml", dr)
+        "test-zookeeper-operator/config/deploy/default_ns/operator.yaml", dr, dt)
     os.system("kubectl create -f test-zookeeper-operator/config/deploy/crds")
     os.system(
         "kubectl create -f test-zookeeper-operator/config/deploy/default_ns/rbac.yaml")
@@ -108,9 +112,9 @@ def zookeeper_operator_bootstrap(dr):
     os.system("rm %s" % new_path)
 
 
-def rabbitmq_operator_bootstrap(dr):
+def rabbitmq_operator_bootstrap(dr, dt):
     new_path = replace_docker_repo(
-        "test-rabbitmq-operator/config/cluster-operator.yaml", dr)
+        "test-rabbitmq-operator/config/cluster-operator.yaml", dr, dt)
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 

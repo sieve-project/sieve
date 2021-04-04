@@ -9,9 +9,20 @@ import (
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
-	if !checkMode(timeTravel) {
-		return
+	if checkTimeTravelTiming("after") {
+		log.Printf("[sonar] NotifyTimeTravelAfterProcessEvent")
+		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
 	}
+}
+
+func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{}) {
+	if checkTimeTravelTiming("before") {
+		log.Printf("[sonar] NotifyTimeTravelBeforeProcessEvent")
+		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
+	}
+}
+
+func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}) {
 	tokens := strings.Split(key, "/")
 	if len(tokens) < 4 {
 		return

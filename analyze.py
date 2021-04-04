@@ -194,7 +194,7 @@ def timeTravelDescription(yamlMap):
                                                                     yamlMap["se-rtype"], yamlMap["se-name"]]))
 
 
-def generateTimaTravelYaml(triggeringPoints, path, project):
+def generateTimaTravelYaml(triggeringPoints, path, project, timing="after"):
     yamlMap = {}
     yamlMap["project"] = project
     yamlMap["mode"] = "time-travel"
@@ -202,6 +202,7 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
     yamlMap["front-runner"] = "kind-control-plane"
     yamlMap["operator-pod"] = project
     yamlMap["command"] = controllers.command[project]
+    yamlMap["timing"] = timing
     i = 0
     for triggeringPoint in triggeringPoints:
         if triggeringPoint["ttype"] == "event-delta":
@@ -224,7 +225,7 @@ def generateTimaTravelYaml(triggeringPoints, path, project):
                     yamlMap["se-etype"] = "ADDED" if effect["etype"] == "delete" else "DELETED"
                     yamlMap["description"] = timeTravelDescription(yamlMap)
                     yaml.dump(yamlMap, open(
-                        os.path.join(path, "%s.yaml" % (str(i))), "w"), sort_keys=False)
+                        os.path.join(path, "%s-%s.yaml" % (str(i), timing)), "w"), sort_keys=False)
         else:
             print("ignoring single event trigger")
             # TODO: handle the single event trigger
@@ -274,7 +275,7 @@ def generateDigest(path):
     return digest
 
 
-def analyzeTrace(project, dir):
+def analyzeTrace(project, dir, double_sides=False):
     log_path = os.path.join(dir, "sonar-server.log")
     json_dir = os.path.join(dir, "generated-json")
     conf_dir = os.path.join(dir, "generated-config")
@@ -300,6 +301,8 @@ def analyzeTrace(project, dir):
     json.dump(triggeringPoints, open(os.path.join(
         json_dir, "triggering-points.json"), "w"), indent=4)
     generateTimaTravelYaml(triggeringPoints, conf_dir, project)
+    if double_sides:
+        generateTimaTravelYaml(triggeringPoints, conf_dir, project, "before")
 
 
 if __name__ == "__main__":

@@ -29,7 +29,23 @@ func checkMode(mode string) bool {
 	if config == nil {
 		return false
 	}
-	return config["mode"] == mode
+	if modeInConfig, ok := config["mode"]; ok {
+		return modeInConfig.(string) == mode
+	} else {
+		log.Println("[sonar] no mode field in config")
+		return false
+	}
+}
+
+func checkTimeTravelTiming(timing string) bool {
+	if checkMode(timeTravel) {
+		if timingInConfig, ok := config["timing"]; ok {
+			return timingInConfig.(string) == timing
+		} else {
+			return "after" == timing
+		}
+	}
+	return false
 }
 
 func getCRDs() []string {
