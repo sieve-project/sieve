@@ -25,8 +25,8 @@ test_suites = {
             "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/config/sparse-read-1.yaml", "sparse-read"),
         "test2": Suite(
             "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-1.yaml", "time-travel"),
-        "test3": Suite(
-            "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml", "time-travel"),
+        # "test3": Suite(
+        #     "recreateCassandraDataCenter.sh", "test-cassandra-operator/config/bug3.yaml", "time-travel"),
         "test4": Suite(
             "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/config/time-travel-2.yaml", "time-travel"),
     },
