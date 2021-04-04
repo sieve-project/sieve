@@ -45,13 +45,13 @@ def watch_crd(project, addrs):
             os.system("kubectl get %s -s %s" % (crd, addr))
 
 
-def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker):
+def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag):
     os.system("rm -rf %s" % (log_dir))
     os.system("mkdir -p %s" % (log_dir))
     os.system("cp %s sonar-server/server.yaml" % (server_config))
     os.system("kind delete cluster")
 
-    os.system("./setup.sh kind-ha.yaml %s" % docker)
+    os.system("./setup.sh kind-ha.yaml %s %s" % (docker_repo, docker_tag))
     os.system("./bypass-balancer.sh")
     time.sleep(90)
 
@@ -62,7 +62,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
     os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
               (apiserver_config))
     time.sleep(5)
-    controllers.bootstrap[project](docker)
+    controllers.bootstrap[project](docker_repo, docker_tag)
     time.sleep(5)
 
     kubernetes.config.load_kube_config()
@@ -104,13 +104,13 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
     test_config = config if config != "none" else suite.config
     if mode == "normal":
         run_test(project, mode, suite.workload,
-                 blank_config, blank_config, blank_config, log_dir, docker)
+                 blank_config, blank_config, blank_config, log_dir, docker, "vanilla")
     elif mode == "faulty":
         print("test config: %s" % test_config)
         learned_digest = json.load(open(os.path.join(
             "data", project, test, "digest.json")))
         run_test(project, mode, suite.workload,
-                 test_config, test_config, test_config, log_dir, docker)
+                 test_config, test_config, test_config, log_dir, docker, suite.mode)
         digest_faulty = generateDigest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
@@ -120,7 +120,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
     elif mode == "learn":
         learn_config = os.path.join("test-" + project, "config", "learn.yaml")
         run_test(project, mode, suite.workload,
-                 learn_config, learn_config, learn_config, log_dir, docker)
+                 learn_config, learn_config, learn_config, log_dir, docker, "learn")
         analyzeTrace(project, log_dir)
         os.system("mkdir -p %s" % os.path.join("data", project, test))
         os.system("cp %s %s" % (os.path.join(log_dir, "digest.json"), os.path.join(

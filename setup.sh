@@ -11,16 +11,19 @@ raise_log_level() {
 }
 
 conf=$1
-if [ -z "$conf" ]; then
-    conf="kind.yaml"
-fi
-
 dockerrepo=$2
+dockertag=$3
+if [ -z "$conf" ]; then
+    exit 1
+fi
 if [ -z "$dockerrepo" ]; then
-    dockerrepo="xudongs"
+    exit 1
+fi
+if [ -z "$dockertag" ]; then
+    exit 1
 fi
 
-kind create cluster --image ${dockerrepo}/node:latest --config $conf
+kind create cluster --image ${dockerrepo}/node:${dockertag} --config $conf
 docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'
 cd sonar-server
 go build

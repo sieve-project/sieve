@@ -177,7 +177,7 @@ spec:
       serviceAccountName: cassandra-operator
       containers:
         - name: cassandra-operator
-          image: ${SONAR-DR}/cassandra-operator:latest
+          image: ${SONAR-DR}/cassandra-operator:${SONAR-DT}
           # command:
           # - ./cassandra-operator
           imagePullPolicy: Always

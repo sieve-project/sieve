@@ -16,14 +16,15 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     dr = options.docker if options.docker != "none" else controllers.docker_repo
+    dt = options.mode
     if options.project == "kubernetes":
-        os.system("DR=%s ./build.sh -p %s -m %s" %
-                  (dr, options.project, options.mode))
+        os.system("DR=%s DT=%s ./build.sh -p %s -m %s" %
+                  (dr, dt, options.project, options.mode))
     else:
         sha = options.sha if options.sha != "none" else controllers.sha[options.project]
         crv = controllers.controller_runtime_version[options.project]
         cgv = controllers.client_go_version[options.project]
         link = controllers.github_link[options.project]
         df = controllers.docker_file[options.project]
-        os.system("CRV=%s CGV=%s GL=%s DF=%s DR=%s ./build.sh -p %s -m %s -s %s " %
-                  (crv, cgv, link, df, dr, options.project, options.mode, sha))
+        os.system("CRV=%s CGV=%s GL=%s DF=%s DR=%s DT=%s ./build.sh -p %s -m %s -s %s " %
+                  (crv, cgv, link, df, dr, dt, options.project, options.mode, sha))

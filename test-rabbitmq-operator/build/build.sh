@@ -2,10 +2,15 @@
 set -x
 
 dockerrepo=$1
+dockertag=$2
 if [ -z "$dockerrepo" ]; then
-    dockerrepo="xudongs"
+    exit 1
+fi
+if [ -z "$dockertag" ]; then
+    exit 1
 fi
 
 
 DOCKER_REGISTRY_SERVER=${dockerrepo} OPERATOR_IMAGE=rabbitmq-operator make docker-build
-docker push ${dockerrepo}/rabbitmq-operator:latest
+docker tag ${dockerrepo}/rabbitmq-operator:latest ${dockerrepo}/rabbitmq-operator:${dockertag}
+docker push ${dockerrepo}/rabbitmq-operator:${dockertag}

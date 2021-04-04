@@ -7,11 +7,12 @@ reuse='none'
 mode='vanilla'
 project='none'
 sha='none'
-crversion='none'
-cgversion='none'
-githublink='none'
-dockerfile='none'
-dockerrepo='none'
+crversion=${CRV}
+cgversion=${CGV}
+githublink=${GL}
+dockerfile=${DF}
+dockerrepo=${DR}
+dockertag=${DT}
 
 install_and_import() {
   echo "installing the required lib..."
@@ -76,11 +77,6 @@ while getopts ":m:p:r:s:" arg; do
         ;;
         p) # Specify the project to test: cassandra-operator or zookeeper-operator.
         project=${OPTARG}
-        crversion=${CRV}
-        cgversion=${CGV}
-        githublink=${GL}
-        dockerfile=${DF}
-        dockerrepo=${DR}
         ;;
         s) # Specify the commit ID of the project
         sha=${OPTARG}
@@ -116,7 +112,7 @@ if [ $project = 'kubernetes' ]; then
   cd fakegopath/src/k8s.io/kubernetes
   GOPATH=${OLDPWD}/fakegopath KUBE_GIT_VERSION=v1.18.9-sr-`git rev-parse HEAD` kind build node-image
   cd $OLDPWD
-  docker build --no-cache -t ${dockerrepo}/node:latest .
+  docker build --no-cache -t ${dockerrepo}/node:${dockertag} .
 else
   # download new controller code
   rm -rf app/$project
@@ -136,6 +132,6 @@ else
   # build controller image
   echo "building the operator..."
   cd app/$project
-  ./build.sh ${dockerrepo}
+  ./build.sh ${dockerrepo} ${dockertag}
 fi
 
