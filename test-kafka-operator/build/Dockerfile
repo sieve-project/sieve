@@ -1,21 +1,23 @@
 # Build the manager binary
-FROM golang:1.15 as builder
+FROM golang:1.14 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+# COPY go.mod go.mod
+# COPY go.sum go.sum
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
-COPY pkg/sdk pkg/sdk
-COPY properties properties
-RUN go mod download
+# COPY pkg/sdk pkg/sdk
+# COPY properties properties
+# RUN go mod download
 
 # Copy the go source
-COPY main.go main.go
-COPY controllers/ controllers/
-COPY internal/ internal/
-COPY pkg/ pkg/
+# COPY main.go main.go
+# COPY controllers/ controllers/
+# COPY internal/ internal/
+# COPY pkg/ pkg/
+# COPY dep-sonar/ dep-sonar/
+COPY . ./
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go

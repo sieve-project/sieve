@@ -7,6 +7,8 @@ WORKDIR /workspace
 COPY . ./
 
 # Build
+RUN go mod download k8s.io/apimachinery
+RUN go mod download k8s.io/klog
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -tags timetzdata -o manager main.go
 
 # ---------------------------------------
