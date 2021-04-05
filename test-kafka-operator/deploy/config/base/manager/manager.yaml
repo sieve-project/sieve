@@ -9,18 +9,16 @@ spec:
   selector:
     matchLabels:
       control-plane: controller-manager
+      name: kafka-operator
   replicas: 1
   template:
     metadata:
       labels:
         control-plane: controller-manager
+        name: kafka-operator
     spec:
       containers:
-      - command:
-        - /manager
-        # args:
-        # - --enable-leader-election
-        image: ghcr.io/banzaicloud/kafka-operator:latest
+      - image: ghcr.io/banzaicloud/kafka-operator:latest
         name: manager
         ports:
         - containerPort: 9001

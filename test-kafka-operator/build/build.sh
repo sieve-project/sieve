@@ -12,5 +12,3 @@ fi
 
 make docker-build IMG=${dockerrepo}/kafka-operator:${dockertag}
 make docker-push IMG=${dockerrepo}/kafka-operator:${dockertag}
-
-# make deploy IMG=${dockerrepo}/kafka-operator:${dockertag}
