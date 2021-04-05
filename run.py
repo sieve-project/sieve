@@ -80,7 +80,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
               (pod_name, controllers.command[project]))
 
     org_dir = os.getcwd()
-    os.chdir(os.path.join(org_dir, "test-" + project))
+    os.chdir(controllers.test_dir[project])
     os.system("./%s %s" % (test_script, mode))
     os.chdir(org_dir)
 
