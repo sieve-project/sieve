@@ -20,13 +20,15 @@ github_link = {
     "zookeeper-operator": "git@github.com:pravega/zookeeper-operator.git",
     "rabbitmq-operator": "git@github.com:rabbitmq/cluster-operator.git",
     "kafka-operator": "git@github.com:banzaicloud/kafka-operator.git",
+    "mongodb-operator": "git@github.com:percona/percona-server-mongodb-operator.git",
 }
 
 app_dir = {
     "cassandra-operator": "app/cassandra-operator",
-    "zookeeper-operator": "app/zookeeper-operator/test",
-    "rabbitmq-operator": "app/rabbitmq-operator/test",
-    "kafka-operator": "app/kafka-operator/test",
+    "zookeeper-operator": "app/zookeeper-operator",
+    "rabbitmq-operator": "app/rabbitmq-operator",
+    "kafka-operator": "app/kafka-operator",
+    "mongodb-operator": "app/mongodb-operator",
 }
 
 test_dir = {
@@ -34,6 +36,7 @@ test_dir = {
     "zookeeper-operator": "test-zookeeper-operator/test",
     "rabbitmq-operator": "test-rabbitmq-operator/test",
     "kafka-operator": "test-kafka-operator/test",
+    "mongodb-operator": "test-mongodb-operator/test",
 }
 
 test_suites = {
@@ -70,6 +73,7 @@ CRDs = {
     "zookeeper-operator": ["zookeepercluster"],
     "rabbitmq-operator": ["rabbitmqcluster"],
     "kafka-operator": ["kafkacluster", "kafkatopic", "kafkauser"],
+    "mongodb-operator": ["perconaservermongodb", "perconaservermongodbbackup", "perconaservermongodbrestore"],
 }
 
 command = {
@@ -77,20 +81,23 @@ command = {
     "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
     "rabbitmq-operator": "/manager",
     "kafka-operator": "/manager",
+    "mongodb-operator": "percona-server-mongodb-operator",
 }
 
 controller_runtime_version = {
     "cassandra-operator": "@v0.4.0",
     "zookeeper-operator": "@v0.5.2",
     "rabbitmq-operator": "@v0.8.3",
-    "kafka-operator": "@v0.6.5"
+    "kafka-operator": "@v0.6.5",
+    "mongodb-operator": "@v0.5.2",
 }
 
 client_go_version = {
     "cassandra-operator": "@v0.0.0-20190918160344-1fbdaa4c8d90",
     "zookeeper-operator": "@v0.17.2",
     "rabbitmq-operator": "@v0.20.2",
-    "kafka-operator": "@v0.18.9"
+    "kafka-operator": "@v0.18.9",
+    "mongodb-operator": "@v0.17.2",
 }
 
 sha = {
@@ -98,6 +105,7 @@ sha = {
     "zookeeper-operator": "cda03d2f270bdfb51372192766123904f6d88278",
     "rabbitmq-operator": "4f13b9a942ad34fece0171d2174aa0264b10e947",
     "kafka-operator": "60caff461c5372e5fdb8e117f83fa1b6b4a9e53b",
+    "mongodb-operator": "c12b69e2c41efc67336a890039394250420f60bb",
 }
 
 docker_file = {
@@ -105,6 +113,7 @@ docker_file = {
     "zookeeper-operator": "Dockerfile",
     "rabbitmq-operator": "Dockerfile",
     "kafka-operator": "Dockerfile",
+    "mongodb-operator": "build/Dockerfile",
 }
 
 learning_configs = {
@@ -112,6 +121,7 @@ learning_configs = {
     "zookeeper-operator": "test-zookeeper-operator/test/learn.yaml",
     "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
     "kafka-operator": "test-kafka-operator/test/learn.yaml",
+    "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
 }
 
 
