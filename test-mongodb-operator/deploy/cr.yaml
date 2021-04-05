@@ -1,0 +1,336 @@
+apiVersion: psmdb.percona.com/v1-7-0
+kind: PerconaServerMongoDB
+metadata:
+  name: my-cluster-name
+#  finalizers:
+#    - delete-psmdb-pvc
+spec:
+#  platform: openshift
+#  clusterServiceDNSSuffix: svc.cluster.local
+#  pause: true
+  crVersion: 1.7.0
+  image: percona/percona-server-mongodb:4.4.3-5
+  imagePullPolicy: Always
+#  imagePullSecrets:
+#    - name: private-registry-credentials
+#  runUid: 1001
+  allowUnsafeConfigurations: false
+  updateStrategy: SmartUpdate
+  upgradeOptions:
+    versionServiceEndpoint: https://check.percona.com
+    apply: recommended
+    schedule: "0 2 * * *"
+  secrets:
+    users: my-cluster-name-secrets
+  pmm:
+    enabled: false
+    image: percona/pmm-client:2.12.0
+    serverHost: monitoring-service
+#    mongodParams: --environment=ENVIRONMENT
+#    mongosParams: --environment=ENVIRONMENT
+  replsets:
+
+  - name: rs0
+    size: 3
+#    storage:
+#      engine: wiredTiger
+#      inMemory:
+#        engineConfig:
+#          inMemorySizeRatio: 0.9
+#      wiredTiger:
+#        engineConfig:
+#          cacheSizeRatio: 0.5
+#          directoryForIndexes: false
+#          journalCompressor: snappy
+#        collectionConfig:
+#          blockCompressor: snappy
+#        indexConfig:
+#          prefixCompression: true
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+#      advanced:
+#        nodeAffinity:
+#          requiredDuringSchedulingIgnoredDuringExecution:
+#            nodeSelectorTerms:
+#            - matchExpressions:
+#              - key: kubernetes.io/e2e-az-name
+#                operator: In
+#                values:
+#                - e2e-az1
+#                - e2e-az2
+#    tolerations:
+#    - key: "node.alpha.kubernetes.io/unreachable"
+#      operator: "Exists"
+#      effect: "NoExecute"
+#      tolerationSeconds: 6000
+#    priorityClassName: high-priority
+#    annotations:
+#      iam.amazonaws.com/role: role-arn
+#    labels:
+#      rack: rack-22
+#    nodeSelector:
+#      disktype: ssd
+#    livenessProbe:
+#      failureThreshold: 4
+#      initialDelaySeconds: 60
+#      periodSeconds: 30
+#      successThreshold: 1
+#      timeoutSeconds: 5
+#      startupDelaySeconds: 7200
+#    runtimeClassName: image-rc
+#    sidecars:
+#    - image: busybox
+#      command: ["/bin/sh"]
+#      args: ["-c", "while true; do echo echo $(date -u) 'test' >> /dev/null; sleep 5;done"]
+#      name: rs-sidecar-1
+    podDisruptionBudget:
+      maxUnavailable: 1
+#      minAvailable: 0
+    expose:
+      enabled: false
+      exposeType: LoadBalancer
+#      loadBalancerSourceRanges:
+#        - 10.0.0.0/8
+#      serviceAnnotations:
+#        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    arbiter:
+      enabled: false
+      size: 1
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+#        advanced:
+#          nodeAffinity:
+#            requiredDuringSchedulingIgnoredDuringExecution:
+#              nodeSelectorTerms:
+#              - matchExpressions:
+#                - key: kubernetes.io/e2e-az-name
+#                  operator: In
+#                  values:
+#                  - e2e-az1
+#                  - e2e-az2
+#      tolerations:
+#      - key: "node.alpha.kubernetes.io/unreachable"
+#        operator: "Exists"
+#        effect: "NoExecute"
+#        tolerationSeconds: 6000
+#      priorityClassName: high-priority
+#      annotations:
+#        iam.amazonaws.com/role: role-arn
+#      labels:
+#        rack: rack-22
+#      nodeSelector:
+#        disktype: ssd
+#    schedulerName: "default"
+    resources:
+      limits:
+        cpu: "300m"
+        memory: "0.5G"
+      requests:
+        cpu: "300m"
+        memory: "0.5G"
+    volumeSpec:
+#      emptyDir: {}
+#      hostPath:
+#        path: /data
+#        type: Directory
+      persistentVolumeClaim:
+#        storageClassName: standard
+#        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 3Gi
+
+  sharding:
+    enabled: true
+
+    configsvrReplSet:
+      size: 3
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+#        advanced:
+#          nodeAffinity:
+#            requiredDuringSchedulingIgnoredDuringExecution:
+#              nodeSelectorTerms:
+#              - matchExpressions:
+#                - key: kubernetes.io/e2e-az-name
+#                  operator: In
+#                  values:
+#                  - e2e-az1
+#                  - e2e-az2
+#      tolerations:
+#      - key: "node.alpha.kubernetes.io/unreachable"
+#        operator: "Exists"
+#        effect: "NoExecute"
+#        tolerationSeconds: 6000
+#      priorityClassName: high-priority
+#      annotations:
+#        iam.amazonaws.com/role: role-arn
+#      labels:
+#        rack: rack-22
+#      nodeSelector:
+#        disktype: ssd
+#      storage:
+#        engine: wiredTiger
+#        wiredTiger:
+#          engineConfig:
+#            cacheSizeRatio: 0.5
+#            directoryForIndexes: false
+#            journalCompressor: snappy
+#          collectionConfig:
+#            blockCompressor: snappy
+#          indexConfig:
+#            prefixCompression: true
+#      runtimeClassName: image-rc
+#      sidecars:
+#      - image: busybox
+#        command: ["/bin/sh"]
+#        args: ["-c", "while true; do echo echo $(date -u) 'test' >> /dev/null; sleep 5;done"]
+#        name: rs-sidecar-1
+      podDisruptionBudget:
+        maxUnavailable: 1
+      resources:
+        limits:
+          cpu: "300m"
+          memory: "0.5G"
+        requests:
+          cpu: "300m"
+          memory: "0.5G"
+      volumeSpec:
+#       emptyDir: {}
+#       hostPath:
+#         path: /data
+#         type: Directory
+        persistentVolumeClaim:
+#          storageClassName: standard
+#          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 3Gi
+
+    mongos:
+      size: 3
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+#        advanced:
+#          nodeAffinity:
+#            requiredDuringSchedulingIgnoredDuringExecution:
+#              nodeSelectorTerms:
+#              - matchExpressions:
+#                - key: kubernetes.io/e2e-az-name
+#                  operator: In
+#                  values:
+#                  - e2e-az1
+#                  - e2e-az2
+#      tolerations:
+#      - key: "node.alpha.kubernetes.io/unreachable"
+#        operator: "Exists"
+#        effect: "NoExecute"
+#        tolerationSeconds: 6000
+#      priorityClassName: high-priority
+#      annotations:
+#        iam.amazonaws.com/role: role-arn
+#      labels:
+#        rack: rack-22
+#      nodeSelector:
+#        disktype: ssd
+#      runtimeClassName: image-rc
+#      sidecars:
+#      - image: busybox
+#        command: ["/bin/sh"]
+#        args: ["-c", "while true; do echo echo $(date -u) 'test' >> /dev/null; sleep 5;done"]
+#        name: rs-sidecar-1
+      podDisruptionBudget:
+        maxUnavailable: 1
+      resources:
+        limits:
+          cpu: "300m"
+          memory: "0.5G"
+        requests:
+          cpu: "300m"
+          memory: "0.5G"
+      expose:
+        exposeType: ClusterIP
+#        loadBalancerSourceRanges:
+#          - 10.0.0.0/8
+#        serviceAnnotations:
+#          service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+#      auditLog:
+#        destination: file
+#        format: BSON
+#        filter: '{}'
+
+  mongod:
+    net:
+      port: 27017
+      hostPort: 0
+    security:
+      redactClientLogData: false
+      enableEncryption: true
+      encryptionKeySecret: my-cluster-name-mongodb-encryption-key
+      encryptionCipherMode: AES256-CBC
+    setParameter:
+      ttlMonitorSleepSecs: 60
+      wiredTigerConcurrentReadTransactions: 128
+      wiredTigerConcurrentWriteTransactions: 128
+    storage:
+      engine: wiredTiger
+      inMemory:
+        engineConfig:
+          inMemorySizeRatio: 0.9
+      wiredTiger:
+        engineConfig:
+          cacheSizeRatio: 0.5
+          directoryForIndexes: false
+          journalCompressor: snappy
+        collectionConfig:
+          blockCompressor: snappy
+        indexConfig:
+          prefixCompression: true
+    operationProfiling:
+      mode: slowOp
+      slowOpThresholdMs: 100
+      rateLimit: 100
+#    auditLog:
+#      destination: file
+#      format: BSON
+#      filter: '{}'
+
+  backup:
+    enabled: true
+    restartOnFailure: true
+    image: percona/percona-server-mongodb-operator:1.7.0-backup
+    serviceAccountName: percona-server-mongodb-operator
+#    resources:
+#      limits:
+#        cpu: "300m"
+#        memory: "0.5G"
+#      requests:
+#        cpu: "300m"
+#        memory: "0.5G"
+    storages:
+#      s3-us-west:
+#        type: s3
+#        s3:
+#          bucket: S3-BACKUP-BUCKET-NAME-HERE
+#          credentialsSecret: my-cluster-name-backup-s3
+#          region: us-west-2
+#      minio:
+#        type: s3
+#        s3:
+#          bucket: MINIO-BACKUP-BUCKET-NAME-HERE
+#          region: us-east-1
+#          credentialsSecret: my-cluster-name-backup-minio
+#          endpointUrl: http://minio.psmdb.svc.cluster.local:9000/minio/
+    tasks:
+#      - name: daily-s3-us-west
+#        enabled: true
+#        schedule: "0 0 * * *"
+#        keep: 3
+#        storageName: s3-us-west
+#        compressionType: gzip
+#      - name: weekly-s3-us-west
+#        enabled: false
+#        schedule: "0 0 * * 0"
+#        keep: 5
+#        storageName: s3-us-west
+#        compressionType: gzip
