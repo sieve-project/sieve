@@ -20,6 +20,20 @@ github_link = {
     "kafka-operator": "git@github.com:banzaicloud/kafka-operator.git",
 }
 
+app_dir = {
+    "cassandra-operator": "app/cassandra-operator",
+    "zookeeper-operator": "app/zookeeper-operator/test",
+    "rabbitmq-operator": "app/rabbitmq-operator/test",
+    "kafka-operator": "app/kafka-operator/test",
+}
+
+test_dir = {
+    "cassandra-operator": "test-cassandra-operator/test",
+    "zookeeper-operator": "test-zookeeper-operator/test",
+    "rabbitmq-operator": "test-rabbitmq-operator/test",
+    "kafka-operator": "test-kafka-operator/test",
+}
+
 test_suites = {
     "cassandra-operator": {
         "test1": Suite(
@@ -138,6 +152,13 @@ def rabbitmq_operator_deploy(dr, dt):
         "test-rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt)
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
+
+
+def kafka_operator_deploy(dr, dt):
+    org_dir = os.getcwd()
+    os.chdir(os.path.join("app", "kafka-operator"))
+    os.system("make deploy IMG=%s/kafka-operator:%s" % (dr, dt))
+    os.chdir(org_dir)
 
 
 deploy = {
