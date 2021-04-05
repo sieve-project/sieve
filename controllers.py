@@ -1,4 +1,6 @@
 import os
+import kubernetes
+import time
 
 
 class Suite:
@@ -59,7 +61,7 @@ test_suites = {
     },
     "kafka-operator": {
         "test1": Suite(
-            "todo.sh", "test-kafka-operator/test/time-travel-1.yaml", "time-travel"),
+            "resizeKafkaCluster.sh", "test-kafka-operator/test/time-travel-1.yaml", "time-travel"),
     }
 }
 
@@ -156,13 +158,29 @@ def rabbitmq_operator_deploy(dr, dt):
 
 def kafka_operator_deploy(dr, dt):
     org_dir = os.getcwd()
+    os.system("mv app/kafka-operator/config app/kafka-operator/config-original")
+    os.system("cp -r test-kafka-operator/deploy/config app/kafka-operator/config")
     os.chdir(os.path.join("app", "kafka-operator"))
     os.system("make deploy IMG=%s/kafka-operator:%s" % (dr, dt))
     os.chdir(org_dir)
+
+    # zookeeper cluster is necessary for running kafka
+    # zookeeper_operator_deploy(dr, "vanilla")
+    # time.sleep(10)
+    # kubernetes.config.load_kube_config()
+    # core_v1 = kubernetes.client.CoreV1Api()
+    # zk_pod_name = core_v1.list_namespaced_pod(
+    #     "default", watch=False, label_selector="name=zookeeper-operator").items[0].metadata.name
+    # os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
+    #           (zk_pod_name, command["zookeeper-operator"]))
+    os.system("helm install zookeeper-operator --namespace=zookeeper --create-namespace pravega/zookeeper-operator")
+    os.system("kubectl create -f test-kafka-operator/deploy/zkc.yaml")
+    time.sleep(60)
 
 
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
     "zookeeper-operator": zookeeper_operator_deploy,
     "rabbitmq-operator": rabbitmq_operator_deploy,
+    "kafka-operator": kafka_operator_deploy,
 }
