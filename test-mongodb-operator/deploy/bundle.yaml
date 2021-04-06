@@ -249,21 +249,19 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: percona-server-mongodb-operator
+      name: mongodb-operator
   template:
     metadata:
       labels:
-        name: percona-server-mongodb-operator
+        name: mongodb-operator
     spec:
       serviceAccountName: percona-server-mongodb-operator
       containers:
         - name: percona-server-mongodb-operator
-          image: percona/percona-server-mongodb-operator:1.7.0
+          image: ${SONAR-DR}/mongodb-operator:${SONAR-DT}
           ports:
           - containerPort: 60000
             name: metrics
-          command:
-          - percona-server-mongodb-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
