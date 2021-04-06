@@ -65,7 +65,11 @@ test_suites = {
     "kafka-operator": {
         "test1": Suite(
             "resizeKafkaCluster.sh", "test-kafka-operator/test/time-travel-1.yaml", "time-travel"),
-    }
+    },
+    "mongodb-operator": {
+        "test1": Suite(
+            "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel"),
+    },
 }
 
 CRDs = {
@@ -188,9 +192,17 @@ def kafka_operator_deploy(dr, dt):
     time.sleep(60)
 
 
+def mongodb_operator_deploy(dr, dt):
+    new_path = replace_docker_repo(
+        "test-mongodb-operator/deploy/bundle.yaml", dr, dt)
+    os.system("kubectl apply -f %s" % new_path)
+    os.system("rm %s" % new_path)
+
+
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
     "zookeeper-operator": zookeeper_operator_deploy,
     "rabbitmq-operator": rabbitmq_operator_deploy,
     "kafka-operator": kafka_operator_deploy,
+    "mongodb-operator": mongodb_operator_deploy,
 }
