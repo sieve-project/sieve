@@ -21,6 +21,7 @@ github_link = {
     "rabbitmq-operator": "git@github.com:rabbitmq/cluster-operator.git",
     "kafka-operator": "git@github.com:banzaicloud/kafka-operator.git",
     "mongodb-operator": "git@github.com:percona/percona-server-mongodb-operator.git",
+    "cass-operator": "git@github.com:datastax/cass-operator.git",
 }
 
 app_dir = {
@@ -29,6 +30,7 @@ app_dir = {
     "rabbitmq-operator": "app/rabbitmq-operator",
     "kafka-operator": "app/kafka-operator",
     "mongodb-operator": "app/mongodb-operator",
+    "cass-operator": "app/cass-operator",
 }
 
 test_dir = {
@@ -37,6 +39,7 @@ test_dir = {
     "rabbitmq-operator": "test-rabbitmq-operator/test",
     "kafka-operator": "test-kafka-operator/test",
     "mongodb-operator": "test-mongodb-operator/test",
+    "cass-operator": "test-cass-operator/test",
 }
 
 test_suites = {
@@ -70,6 +73,10 @@ test_suites = {
         "test1": Suite(
             "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel"),
     },
+    "cass-operator": {
+        "test1": Suite(
+            "recreateCassandraDataCenter.sh", "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+    },
 }
 
 CRDs = {
@@ -78,6 +85,7 @@ CRDs = {
     "rabbitmq-operator": ["rabbitmqcluster"],
     "kafka-operator": ["kafkacluster", "kafkatopic", "kafkauser"],
     "mongodb-operator": ["perconaservermongodb", "perconaservermongodbbackup", "perconaservermongodbrestore"],
+    "cass-operator": ["cassandradatacenter"],
 }
 
 command = {
@@ -86,6 +94,7 @@ command = {
     "rabbitmq-operator": "/manager",
     "kafka-operator": "/manager",
     "mongodb-operator": "percona-server-mongodb-operator",
+    "cass-operator": "/go/bin/operator",
 }
 
 controller_runtime_version = {
@@ -94,6 +103,7 @@ controller_runtime_version = {
     "rabbitmq-operator": "@v0.8.3",
     "kafka-operator": "@v0.6.5",
     "mongodb-operator": "@v0.5.2",
+    "cass-operator": "@v0.5.2",
 }
 
 client_go_version = {
@@ -102,6 +112,7 @@ client_go_version = {
     "rabbitmq-operator": "@v0.20.2",
     "kafka-operator": "@v0.18.9",
     "mongodb-operator": "@v0.17.2",
+    "cass-operator": "@v0.17.4",
 }
 
 sha = {
@@ -110,6 +121,7 @@ sha = {
     "rabbitmq-operator": "4f13b9a942ad34fece0171d2174aa0264b10e947",
     "kafka-operator": "60caff461c5372e5fdb8e117f83fa1b6b4a9e53b",
     "mongodb-operator": "c12b69e2c41efc67336a890039394250420f60bb",
+    "cass-operator": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
 }
 
 docker_file = {
@@ -118,6 +130,7 @@ docker_file = {
     "rabbitmq-operator": "Dockerfile",
     "kafka-operator": "Dockerfile",
     "mongodb-operator": "build/Dockerfile",
+    "cass-operator": "operator/docker/base/Dockerfile",
 }
 
 learning_configs = {
@@ -126,6 +139,7 @@ learning_configs = {
     "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
     "kafka-operator": "test-kafka-operator/test/learn.yaml",
     "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
+    "cass-operator": "test-cass-operator/test/learn.yaml",
 }
 
 
@@ -198,6 +212,13 @@ def mongodb_operator_deploy(dr, dt):
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
+def cass_operator_deploy(dr, dt):
+    new_path = replace_docker_repo(
+        "test-cass-operator/deploy/controller-manifest.yaml", dr, dt)
+    os.system("kubectl apply -f %s" % new_path)
+    os.system("kubectl apply -f test-cass-operator/deploy/storageClass.yaml")
+    os.system("rm %s" % new_path)
+
 
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
@@ -205,4 +226,5 @@ deploy = {
     "rabbitmq-operator": rabbitmq_operator_deploy,
     "kafka-operator": kafka_operator_deploy,
     "mongodb-operator": mongodb_operator_deploy,
+    "cass-operator": cass_operator_deploy,
 }
