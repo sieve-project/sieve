@@ -7,8 +7,7 @@ import (
 )
 
 // instrment for sparse-read pattern
-func instrumentSparseRead(project, controller_runtime_filepath string) {
-	if project != "kubernetes" {
+func instrumentControllerForSparseRead(controller_runtime_filepath string) {
 	// Mainly two pieces of instrumentation we should do for sparse-read:
 	// In controller.go, we need to invoke NotifySparseReadBeforeReconcile before calling Reconcile(),
 	// and invoke NotifySparseReadBeforeMakeQ before creating a queue.
@@ -32,11 +31,9 @@ func instrumentSparseRead(project, controller_runtime_filepath string) {
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
 	instrumentClientGoForAll(clientGoFile, clientGoFile, "SparseRead")
-	}
 }
 
-// instrument for time-traveling pattern
-func instrumentTimeTravel(project, controller_runtime_filepath, k8s_filepath string) {
+func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 	// In reflector.go, we need to create GetExpectedTypeName() in reflector.go
 	// because sonar server needs this information.
 	// reflectorGoFile := path.Join(filepath, "staging", "src", "k8s.io", "client-go", "tools", "cache", "reflector.go")
@@ -48,20 +45,18 @@ func instrumentTimeTravel(project, controller_runtime_filepath, k8s_filepath str
 	// fmt.Printf("instrumenting %s\n", cacherGoFile)
 	// instrumentCacherGo(cacherGoFile, cacherGoFile)
 
-	// In watch_cache.go, we need to invoke NotifyTimeTravelBeforeProcessEvent in watch_cache.go.
-	if project == "kubernetes" {
-		watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
-		fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-		instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
-	} else {
-		clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
-		fmt.Printf("instrumenting %s\n", clientGoFile)
-		instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel")
-	}
+	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
+	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
+	instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
 }
 
-func instrumentLearn(project, controller_runtime_filepath, client_go_filepath string) {
-	if project != "kubernetes" {
+func instrumentControllerForTimeTravel(controller_runtime_filepath string) {
+	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
+	fmt.Printf("instrumenting %s\n", clientGoFile)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel")
+}
+
+func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
 	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
 	instrumentControllerGoForLearn(controllerGoFile, controllerGoFile)
@@ -74,17 +69,24 @@ func instrumentLearn(project, controller_runtime_filepath, client_go_filepath st
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
 	preprocess(sharedInformerGoFile)
 	instrumentSharedInformerGoForLearn(sharedInformerGoFile, sharedInformerGoFile)
-	}
 }
 
 func main() {
 	args := os.Args
 	project := args[1]
-	if args[2] == "sparse-read" {
-		instrumentSparseRead(project, args[3])
-	} else if args[2] == "time-travel" {
-		instrumentTimeTravel(project, args[3], args[4])
-	} else if args[2] == "learn" {
-		instrumentLearn(project,args[3], args[4])
+	mode := args[2]
+	if project == "kubernetes" {
+		if mode == "time-travel" {
+			instrumentKubernetesForTimeTravel(args[3])
+		}
+	} else {
+		if mode == "time-travel" {
+			instrumentControllerForTimeTravel(args[3])
+		} else if mode == "sparse-read" {
+			instrumentControllerForSparseRead(args[3])
+		} else if mode == "learn" {
+			instrumentControllerForLearn(args[3], args[4])
+		}
+
 	}
 }
