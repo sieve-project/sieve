@@ -21,10 +21,10 @@ COPY go.mod go.sum ./
 
 # Download go deps (including mage)
 
-# Remove RUN go mod download -> prevent "go.mod: no such file or directory" build ERROR
-
+# COPY instrumented controller-runtime and client-go
 COPY . ./
 
+# Still need to go mod download for mage
 RUN go mod download
 
 # At this point, we have the top level go.mod, the ./mage level go.mod,
