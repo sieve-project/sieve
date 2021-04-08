@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func isCRD(rType string, crds []string) bool {
@@ -70,7 +72,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
 	client.Close()
 }
 
-func NotifyLearnBeforeReconcile() {
+func NotifyLearnBeforeReconcile(controllerName string) {
 	if !checkMode(learn) {
 		return
 	}
@@ -81,7 +83,7 @@ func NotifyLearnBeforeReconcile() {
 		return
 	}
 	request := &NotifyLearnBeforeReconcileRequest{
-		Nothing: "nothing",
+		ControllerName: controllerName,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeReconcile", request, &response)
@@ -93,7 +95,7 @@ func NotifyLearnBeforeReconcile() {
 	client.Close()
 }
 
-func NotifyLearnAfterReconcile() {
+func NotifyLearnAfterReconcile(controllerName string) {
 	if !checkMode(learn) {
 		return
 	}
@@ -104,7 +106,7 @@ func NotifyLearnAfterReconcile() {
 		return
 	}
 	request := &NotifyLearnAfterReconcileRequest{
-		Nothing: "nothing",
+		ControllerName: controllerName,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterReconcile", request, &response)
@@ -116,7 +118,7 @@ func NotifyLearnAfterReconcile() {
 	client.Close()
 }
 
-func NotifyLearnSideEffects(sideEffectType string, object interface{}) {
+func NotifyLearnSideEffects(sideEffectType string, object interface{}, k8sErr error) {
 	if !checkMode(learn) {
 		return
 	}
@@ -130,10 +132,15 @@ func NotifyLearnSideEffects(sideEffectType string, object interface{}) {
 		printError(err, connectionError)
 		return
 	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
 	request := &NotifyLearnSideEffectsRequest{
 		SideEffectType: sideEffectType,
 		Object: string(jsonObject),
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		Error: errorString,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnSideEffects", request, &response)
@@ -142,5 +149,61 @@ func NotifyLearnSideEffects(sideEffectType string, object interface{}) {
 		return
 	}
 	checkResponse(response, "NotifyLearnSideEffects")
+	client.Close()
+}
+
+func NotifyLearnCacheGet(readType string, key types.NamespacedName, object interface{}, k8sErr error) {
+	if !checkMode(learn) {
+		return
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
+		return
+	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	request := &NotifyLearnCacheGetRequest{
+		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		Namespace: key.Namespace,
+		Name: key.Name,
+		Error: errorString,
+	}
+	var response Response
+	err = client.Call("LearnListener.NotifyLearnCacheGet", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return
+	}
+	checkResponse(response, "NotifyLearnCacheGet")
+	client.Close()
+}
+
+func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
+	if !checkMode(learn) {
+		return
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
+		return
+	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	request := &NotifyLearnCacheListRequest{
+		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		Error: errorString,
+	}
+	var response Response
+	err = client.Call("LearnListener.NotifyLearnCacheList", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return
+	}
+	checkResponse(response, "NotifyLearnCacheList")
 	client.Close()
 }

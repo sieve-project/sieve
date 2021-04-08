@@ -54,15 +54,28 @@ type NotifyLearnBeforeQAddRequest struct {
 }
 
 type NotifyLearnBeforeReconcileRequest struct {
-	Nothing string
+	ControllerName string
 }
 
 type NotifyLearnAfterReconcileRequest struct {
-	Nothing string
+	ControllerName string
 }
 
 type NotifyLearnSideEffectsRequest struct {
 	SideEffectType string
 	Object         string
 	ResourceType   string
+	Error          string
+}
+
+type NotifyLearnCacheGetRequest struct {
+	ResourceType 	string
+	Namespace 		string
+	Name 			string
+	Error          string
+}
+
+type NotifyLearnCacheListRequest struct {
+	ResourceType 	string
+	Error          string
 }
