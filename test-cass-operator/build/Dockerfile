@@ -64,6 +64,6 @@ RUN apk update \
         && apk upgrade \
         && apk add bash
 
-CMD ["sleep", "infinity"]
+CMD ["sleep", "365d"]
 
 # CMD [ "/go/bin/operator" ]
