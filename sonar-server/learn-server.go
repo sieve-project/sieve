@@ -210,9 +210,9 @@ func (s *learnServer) allowEvent() {
 	case ew := <-s.eventCh:
 		curID := ew.eventID
 		if obj, ok := s.eventChMap.Load(curID); ok {
+			log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
 			ch := obj.(chan int32)
 			ch <- curID
-			log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
 		} else {
 			log.Fatal("invalid object in eventCh")
 		}
