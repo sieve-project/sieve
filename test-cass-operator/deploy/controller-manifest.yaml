@@ -6651,25 +6651,25 @@ spec:
           value: "FALSE"
         image: ${SONAR-DR}/cass-operator:${SONAR-DT}
         imagePullPolicy: IfNotPresent
-        livenessProbe:
-          exec:
-            command:
-            - pgrep
-            - .*operator
-          failureThreshold: 3
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 5
+#        livenessProbe:
+#          exec:
+#            command:
+#            - pgrep
+#            - .*operator
+#          failureThreshold: 3
+#          initialDelaySeconds: 5
+#          periodSeconds: 5
+#          timeoutSeconds: 5
         name: cass-operator
-        readinessProbe:
-          exec:
-            command:
-            - stat
-            - /tmp/operator-sdk-ready
-          failureThreshold: 1
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 5
+#        readinessProbe:
+#          exec:
+#            command:
+#            - stat
+#            - /tmp/operator-sdk-ready
+#          failureThreshold: 1
+#          initialDelaySeconds: 5
+#          periodSeconds: 5
+#          timeoutSeconds: 5
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
