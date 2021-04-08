@@ -58,19 +58,19 @@ class CacheRead:
 
 def parseEvent(line):
     assert SONAR_EVENT_MARK in line
-    tokens = line[line.find(SONAR_EVENT_MARK):].strip().split("\t")
+    tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
     return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
 
 
 def parseSideEffect(line):
     assert SONAR_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip().split("\t")
+    tokens = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
 def parseCacheRead(line):
     assert SONAR_CACHE_READ_MARK in line
-    tokens = line[line.find(SONAR_CACHE_READ_MARK):].strip().split("\t")
+    tokens = line[line.find(SONAR_CACHE_READ_MARK):].strip("\n").split("\t")
     if tokens[1] == "Get":
         return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
     else:
@@ -105,10 +105,10 @@ def affect_read(event, event_ts, reads_cur_round):
 
 def find_related_events(sideEffect, events_cur_round, events_prev_round, reads_cur_round):
     final_related_events = []
-    related_events = list(events_cur_round.values)
+    related_events = list(events_cur_round.values())
     unrelated_events = set()
     if CROSS_BOUNDARY_FLAG:
-        related_events.extend(list(events_prev_round.values))
+        related_events.extend(list(events_prev_round.values()))
     if WRITE_READ_FLAG:
         for event_ts in events_prev_round:
             if not affect_read(events_prev_round[event_ts], event_ts, reads_cur_round):
@@ -145,25 +145,6 @@ def generate_causality_pairs(path):
             events_prev_round = copy.deepcopy(events_cur_round)
             events_cur_round = {}
     return causality_pairs
-
-
-def generateRecords(path):
-    records = []
-    for line in open(path).readlines():
-        if SONAR_RECORD_MARK not in line:
-            continue
-        line = line[line.find(SONAR_RECORD_MARK):].strip()
-        tokens = line.split("\t")
-        effects = json.loads(tokens[1])
-        eventID = tokens[2]
-        eventType = tokens[3]
-        eventObjectType = tokens[4]
-        eventObject = json.loads(tokens[5])
-        ntn = eventObject["metadata"]["namespace"] + "/" + \
-            eventObjectType + "/" + eventObject["metadata"]["name"]
-        records.append({"effects": effects, "ntn": ntn, "eventID": eventID,
-                       "eventType": eventType, "eventObject": eventObject})
-    return records
 
 
 def find_previous_event(event, event_map):
@@ -246,8 +227,8 @@ def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
 
 
 def diffEvents(prevEvent, curEvent):
-    prevObject = prevEvent["eventObject"]
-    curObject = curEvent["eventObject"]
+    prevObject = prevEvent.obj
+    curObject = curEvent.obj
     slimPrevObject = copy.deepcopy(prevObject)
     slimCurObject = copy.deepcopy(curObject)
     compressObject(prevObject, curObject, slimPrevObject, slimCurObject)
@@ -268,37 +249,30 @@ def generate_triggering_points(event_map, causality_pairs):
     triggering_points = []
     for pair in causality_pairs:
         side_effect = pair[0]
+        if ERROR_FILTER:
+            if side_effect.error == "NotFound":
+                continue
         events = pair[1]
         for event in events:
             prev_event, cur_event = find_previous_event(event, event_map)
-
-
-def traverseRecords(records, event_map, ntn):
-    triggeringPoints = []
-    for record in records:
-        if record["ntn"] != ntn:
-            continue
-        prevEvent, curEvent = findPreviousEvent(
-            record["eventID"], record["ntn"], event_map)
-        tp = {"name": curEvent["eventObject"]["metadata"]["name"],
-              "namespace": curEvent["eventObject"]["metadata"]["namespace"],
-              "otype": curEvent["eventObjectType"],
-              "effects": record["effects"]}
-        if prevEvent is None:
-            tp["ttype"] = "todo"
-            continue  # TODO: consider single event cases
-        elif prevEvent["eventType"] != curEvent["eventType"]:
-            tp["ttype"] = "todo"
-            continue  # TODO: consider ADDED/UPDATED cases
-        else:
-            slimPrevObject, slimCurObject = diffEvents(prevEvent, curEvent)
-            tp["ttype"] = "event-delta"
-            tp["prevEvent"] = slimPrevObject
-            tp["curEvent"] = slimCurObject
-            tp["prevEventType"] = prevEvent["eventType"]
-            tp["curEventType"] = curEvent["eventType"]
-        triggeringPoints.append(tp)
-    return triggeringPoints
+            triggering_point = {"name": cur_event.obj["metadata"]["name"],
+                                "namespace": cur_event.obj["metadata"]["namespace"],
+                                "rtype": cur_event.rtype,
+                                "effect": side_effect.__dict__}
+            if prev_event is None:
+                triggering_point["ttype"] = "todo"
+            elif prev_event.etype != cur_event.etype:
+                triggering_point["ttype"] = "todo"
+            else:
+                slim_prev_obj, slim_cur_obj = diffEvents(
+                    prev_event, cur_event)
+                triggering_point["ttype"] = "event-delta"
+                triggering_point["prevEvent"] = slim_prev_obj
+                triggering_point["curEvent"] = slim_cur_obj
+                triggering_point["prevEventType"] = prev_event.etype
+                triggering_point["curEventType"] = cur_event.etype
+            triggering_points.append(triggering_point)
+    return triggering_points
 
 
 def timeTravelDescription(yamlMap):
@@ -323,30 +297,31 @@ def generateTimaTravelYaml(triggeringPoints, path, project, timing="after"):
     yamlMap["timing"] = timing
     i = 0
     for triggeringPoint in triggeringPoints:
-        if triggeringPoint["ttype"] == "event-delta":
-            for effect in triggeringPoint["effects"]:
-                # TODO: consider update side effects and even app-specific side effects
-                if effect["etype"] == "delete" or effect["etype"] == "create":
-                    i += 1
-                    yamlMap["ce-name"] = triggeringPoint["name"]
-                    yamlMap["ce-namespace"] = triggeringPoint["namespace"]
-                    yamlMap["ce-rtype"] = triggeringPoint["otype"]
-                    yamlMap["ce-diff-current"] = json.dumps(
-                        canonicalization(copy.deepcopy(triggeringPoint["curEvent"])))
-                    yamlMap["ce-diff-previous"] = json.dumps(
-                        canonicalization(copy.deepcopy(triggeringPoint["prevEvent"])))
-                    yamlMap["ce-etype-current"] = triggeringPoint["curEventType"]
-                    yamlMap["ce-etype-previous"] = triggeringPoint["prevEventType"]
-                    yamlMap["se-name"] = effect["name"]
-                    yamlMap["se-namespace"] = effect["namespace"]
-                    yamlMap["se-rtype"] = effect["rtype"]
-                    yamlMap["se-etype"] = "ADDED" if effect["etype"] == "delete" else "DELETED"
-                    yamlMap["description"] = timeTravelDescription(yamlMap)
-                    yaml.dump(yamlMap, open(
-                        os.path.join(path, "%s-%s.yaml" % (str(i), timing)), "w"), sort_keys=False)
-        else:
+        if triggeringPoint["ttype"] != "event-delta":
             print("ignoring single event trigger")
             # TODO: handle the single event trigger
+            continue
+        effect = triggeringPoint["effect"]
+        # TODO: consider update side effects and even app-specific side effects
+        if effect["etype"] != "Delete" and effect["etype"] != "Create":
+            continue
+        i += 1
+        yamlMap["ce-name"] = triggeringPoint["name"]
+        yamlMap["ce-namespace"] = triggeringPoint["namespace"]
+        yamlMap["ce-rtype"] = triggeringPoint["rtype"]
+        yamlMap["ce-diff-current"] = json.dumps(
+            canonicalization(copy.deepcopy(triggeringPoint["curEvent"])))
+        yamlMap["ce-diff-previous"] = json.dumps(
+            canonicalization(copy.deepcopy(triggeringPoint["prevEvent"])))
+        yamlMap["ce-etype-current"] = triggeringPoint["curEventType"]
+        yamlMap["ce-etype-previous"] = triggeringPoint["prevEventType"]
+        yamlMap["se-name"] = effect["name"]
+        yamlMap["se-namespace"] = effect["namespace"]
+        yamlMap["se-rtype"] = effect["rtype"]
+        yamlMap["se-etype"] = "ADDED" if effect["etype"] == "Delete" else "DELETED"
+        yamlMap["description"] = timeTravelDescription(yamlMap)
+        yaml.dump(yamlMap, open(
+            os.path.join(path, "%s-%s.yaml" % (str(i), timing)), "w"), sort_keys=False)
 
 
 def generateDigest(path):
@@ -356,9 +331,9 @@ def generateDigest(path):
     for line in open(path).readlines():
         if SONAR_SIDE_EFFECT_MARK not in line:
             continue
-        line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip()
+        line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n")
         tokens = line.split("\t")
-        effectType = tokens[1]
+        effectType = tokens[1].lower()
         # if effectType == "update":
         #     continue
         rType = tokens[2]
@@ -393,17 +368,19 @@ def generateDigest(path):
     return digest
 
 
-def dump_files(dir, event_map, causality_pairs, digest):
+def dump_files(dir, event_map, causality_pairs, digest, triggeringPoints):
     json_dir = os.path.join(dir, "generated-json")
     if os.path.exists(json_dir):
         shutil.rmtree(json_dir)
     os.makedirs(json_dir, exist_ok=True)
-    json.dump(event_map, open(os.path.join(
-        json_dir, "event-map.json"), "w"), indent=4)
-    json.dump(causality_pairs, open(os.path.join(
-        json_dir, "causality-pairs.json"), "w"), indent=4)
+    # json.dump(event_map, open(os.path.join(
+    #     json_dir, "event-map.json"), "w"), indent=4)
+    # json.dump(causality_pairs, open(os.path.join(
+    #     json_dir, "causality-pairs.json"), "w"), indent=4)
     json.dump(digest, open(os.path.join(
         dir, "digest.json"), "w"), indent=4)
+    json.dump(triggeringPoints, open(os.path.join(
+        json_dir, "triggering-points.json"), "w"), indent=4)
 
 
 def analyzeTrace(project, dir, double_sides=False):
@@ -415,14 +392,8 @@ def analyzeTrace(project, dir, double_sides=False):
     event_map = generate_event_map(log_path)
     causality_pairs = generate_causality_pairs(log_path)
     digest = generateDigest(log_path)
-    dump_files(dir, event_map, causality_pairs, digest)
-
-    triggeringPoints = []
-    for key in event_map:
-        triggeringPoints = triggeringPoints + \
-            traverseRecords(records, event_map, key)
-    json.dump(triggeringPoints, open(os.path.join(
-        json_dir, "triggering-points.json"), "w"), indent=4)
+    triggeringPoints = generate_triggering_points(event_map, causality_pairs)
+    dump_files(dir, event_map, causality_pairs, digest, triggeringPoints)
     generateTimaTravelYaml(triggeringPoints, conf_dir, project)
     if double_sides:
         generateTimaTravelYaml(triggeringPoints, conf_dir, project, "before")
