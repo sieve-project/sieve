@@ -63,7 +63,7 @@ func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepat
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForLearn(clientGoFile, clientGoFile)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "Learn")
 
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)

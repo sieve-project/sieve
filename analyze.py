@@ -7,9 +7,9 @@ import shutil
 import kubernetes
 import controllers
 
-CROSS_BOUNDARY_FLAG = True
 WRITE_READ_FLAG = True
 ERROR_FILTER = True
+CROSS_BOUNDARY_FLAG = True
 ONLY_DELETE = True
 
 SONAR_EVENT_MARK = "[SONAR-EVENT]"
