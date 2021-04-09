@@ -144,7 +144,7 @@ def setup_controller(project, mode, img_repo, img_tag, link, sha, controller_run
 
 
 if __name__ == "__main__":
-    usage = "usage: python3 run.py [options]"
+    usage = "usage: python3 build.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to build: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
