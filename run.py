@@ -50,23 +50,34 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
     os.system("./setup.sh kind-ha.yaml %s %s" % (docker_repo, docker_tag))
     os.system("./bypass-balancer.sh")
-    time.sleep(90)
-
-    os.system("kubectl cp %s kube-apiserver-kind-control-plane:/sonar.yaml -n kube-system" %
-              apiserver_config)
-    os.system("kubectl cp %s kube-apiserver-kind-control-plane2:/sonar.yaml -n kube-system" %
-              apiserver_config)
-    os.system("kubectl cp %s kube-apiserver-kind-control-plane3:/sonar.yaml -n kube-system" %
-              apiserver_config)
-    time.sleep(5)
-    controllers.deploy[project](docker_repo, docker_tag)
-    time.sleep(5)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
+
+    # Then we wait apiservers to be ready
+    apiserver_list = ['kube-apiserver-kind-control-plane', 'kube-apiserver-kind-control-plane2', 'kube-apiserver-kind-control-plane3']
+    
+    while True:
+        created = core_v1.list_namespaced_pod("kube-system", watch=False, label_selector="component=kube-apiserver").items
+        if len(created) == len(apiserver_list) and len(created) == len([item for item in created if item.status.phase == "Running"]):
+            break
+        time.sleep(1)
+    
+    for apiserver in apiserver_list:
+        os.system("kubectl cp %s %s:/sonar.yaml -n kube-system" %(apiserver_config, apiserver))
+
+    controllers.deploy[project](docker_repo, docker_tag)
+
+    # Wait for project pod ready
+    w = kubernetes.watch.Watch()
+    for event in w.stream(core_v1.list_namespaced_pod, namespace="default", label_selector="name="+project):
+        if event['object'].status.phase == "Running":
+            w.stop()
+
+
     pod_name = core_v1.list_namespaced_pod(
         "default", watch=False, label_selector="name="+project).items[0].metadata.name
-
+    
     api1_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
     api2_addr = "https://" + core_v1.list_node(
