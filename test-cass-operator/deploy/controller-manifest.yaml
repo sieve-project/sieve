@@ -6671,10 +6671,10 @@ spec:
 #          periodSeconds: 5
 #          timeoutSeconds: 5
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: true
           readOnlyRootFilesystem: false
-          runAsGroup: 65534
-          runAsUser: 65534
+          #runAsGroup: 65534
+          runAsUser: 0
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cass-operator-certs-volume
