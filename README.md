@@ -147,7 +147,7 @@ What you need to do is to slightly modify the Dockerfile to:
 3. If the orignal Dockerfile sets some user account/permission stuff, remove them to make your life easier.
 
 Besides, you need to prepare a `build.sh` which contains all the commands to build an image and push it to your docker repo.
-As an example, here is the modified Dockerfile and `build.sh` for the rabbitmq-operator: https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator/build.
+As an example, here is the modified Dockerfile and `build.sh` for the [zookeeper-operator](https://github.com/xlab-uiuc/sonar/tree/main/test-zookeeper-operator/build).
 Your Dockerfile will replace the original one, and the `build.sh` will be run in the operator directory to build the image. These are done by `build.py`, and you only need to specify related entries in `controllers.py`. Instrumentation will also be automatically done by `build.py` according to the mode you specify.
 
 ### Deploy
@@ -155,16 +155,16 @@ The second step is to be able to deploy (or install) the (instrumented) operator
 Sometimes manual deploy steps are clearly listed in the readme (e.g., https://github.com/pravega/zookeeper-operator#manual-deployment) and you just need to type them one by one,
 while sometimes you need to read the developer documentation to find out how to deploy the operator.
 Concretely, deploying the operator often consists of:
-1. Installing the CRDs and related RBAC config. For example, `kubectl create -f deploy/crds` and `kubectl create -f deploy/default_ns/rbac.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator).
-2. Starting the deployment of the operator. For example, `kubectl create -f deploy/default_ns/operator.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator).
+1. Installing the CRDs and related RBAC config. For example, `kubectl create -f deploy/crds` and `kubectl create -f deploy/default_ns/rbac.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator#manual-deployment).
+2. Starting the deployment of the operator. For example, `kubectl create -f deploy/default_ns/operator.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator#manual-deployment).
 
 For a new controller, you need to find the correct commands (and configs) to do the above.
 Besides, you also need to modify the deployment config of the operator to do the following:
-1. Add a label: `sonartag: YOUR_OPERATOR_NAME`. So sonar can later find the pod.
-2. Replace the operator image repo name with `${SONAR-DR}`, and replace the tag with `${SONAR-DT}`. So sonar can use correct repo and tag when running the tests.
-3. If `command` is specified, remove it. So sonar we can decide when to start/stop the operator without breaking the pod.
+1. Add a label: `sonartag: YOUR_OPERATOR_NAME`. So sonar can later find the pod. See [zookeeper-operator](https://github.com/xlab-uiuc/sonar/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L10).
+2. Replace the operator image repo name with `${SONAR-DR}`, and replace the tag with `${SONAR-DT}`. So sonar can use correct repo and tag when running the tests. See [zookeeper-operator](https://github.com/xlab-uiuc/sonar/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L21).
+3. If `command` is specified, remove it. So sonar we can decide when to start/stop the operator without breaking the pod. See [zookeeper-operator](https://github.com/xlab-uiuc/sonar/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L25).
 
-See https://github.com/xlab-uiuc/sonar/blob/main/test-zookeeper-operator/deploy/default_ns/operator.yaml as an example.
+See https://github.com/xlab-uiuc/sonar/blob/main/test-zookeeper-operator/deploy/default_ns/operator.yaml as a complete example.
 After figuring out how to deploy the operator, write them down in `controllers.py` as the [zookeeper-operator](https://github.com/xlab-uiuc/sonar/blob/32c003016cb95e05487b9609115efa6325a36606/controllers.py#L155).
 
 ### Test
