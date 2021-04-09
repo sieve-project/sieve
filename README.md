@@ -142,8 +142,9 @@ The first thing is to be able to build the operator into a container image and m
 Oftentimes, you will find how to build the operator in the readme or developer documentation.
 The image build command is often in their Makefile, and you can easily find the Dockerfile.
 What you need to do is to slightly modify the Dockerfile to:
-1. Replace the initial CMD as `["sleep", "infinity"]`.
-2. Install bash.
+1. Set the initial CMD as `["sleep", "infinity"]`. See [zookeeper-operator](https://github.com/xlab-uiuc/sonar/blob/1606d324c509f0d4841629e3107ce78cc0e324cb/test-zookeeper-operator/build/Dockerfile#L40).
+2. Install bash (or other necessary tools for you) in the image. See [zookeeper-operator](https://github.com/xlab-uiuc/sonar/blob/1606d324c509f0d4841629e3107ce78cc0e324cb/test-zookeeper-operator/build/Dockerfile#L38).
+3. If the orignal Dockerfile sets some user account/permission stuff, remove them to make your life easier.
 
 Besides, you need to prepare a `build.sh` which contains all the commands to build an image and push it to your docker repo.
 As an example, here is the modified Dockerfile and `build.sh` for the rabbitmq-operator: https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator/build.
