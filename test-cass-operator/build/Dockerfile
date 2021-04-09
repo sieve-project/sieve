@@ -49,21 +49,22 @@ RUN MO_VERSION=${VERSION_STAMP} mage operator:buildGo
 
 # Second stage
 # Produce a smaller image than the one used to build the code
-FROM alpine:3.9 as cass-operator
-ENV GOPATH=/go
+FROM alpine:3.11.2 as cass-operator
+ENV GOPATH=.
 
 RUN mkdir -p /var/lib/cass-operator/
 RUN touch /var/lib/cass-operator/base_os
-WORKDIR /go
+# WORKDIR /go
 
 # All we need from the builder image is operator executable
 ARG TARGETARCH
-COPY --from=builder /cass-operator/build/bin/cass-operator-linux-${TARGETARCH} bin/operator
+COPY --from=builder /cass-operator/build/bin/cass-operator-linux-${TARGETARCH} /bin/operator
 
 RUN apk update \
         && apk upgrade \
         && apk add bash
 
-CMD ["sleep", "365d"]
+# Use alpine:3.11.2 solves infinity invalid issue
+CMD ["sleep", "infinity"]
 
-# CMD [ "/go/bin/operator" ]
+# CMD [ "/bin/operator" ]

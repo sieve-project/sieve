@@ -94,7 +94,7 @@ command = {
     "rabbitmq-operator": "/manager",
     "kafka-operator": "/manager",
     "mongodb-operator": "percona-server-mongodb-operator",
-    "cass-operator": "/go/bin/operator",
+    "cass-operator": "/bin/operator",
 }
 
 controller_runtime_version = {
