@@ -335,6 +335,9 @@ def generateDigest(path):
         line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n")
         tokens = line.split("\t")
         effectType = tokens[1].lower()
+        if ERROR_FILTER:
+            if tokens[5] == "NotFound":
+                continue
         # if effectType == "update":
         #     continue
         rType = tokens[2]
