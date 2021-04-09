@@ -86,12 +86,12 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
     # Wait for project pod ready
     w = kubernetes.watch.Watch()
-    for event in w.stream(core_v1.list_namespaced_pod, namespace="default", label_selector="name="+project):
+    for event in w.stream(core_v1.list_namespaced_pod, namespace="default", label_selector="sonartag="+project):
         if event['object'].status.phase == "Running":
             w.stop()
 
     pod_name = core_v1.list_namespaced_pod(
-        "default", watch=False, label_selector="name="+project).items[0].metadata.name
+        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
     api1_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"

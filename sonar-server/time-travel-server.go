@@ -246,7 +246,7 @@ func (s *timeTravelServer) restartComponent(project, podLabel string) {
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"name": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sonartag": podLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
