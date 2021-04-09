@@ -155,8 +155,8 @@ The second step is to be able to deploy (or install) the (instrumented) operator
 Sometimes manual deploy steps are clearly listed in the readme (e.g., https://github.com/pravega/zookeeper-operator#manual-deployment) and you just need to type them one by one,
 while sometimes you need to read the developer documentation to find out how to deploy the operator.
 Concretely, deploying the operator often consists of:
-1. installing the CRDs and related RBAC config. For example, `kubectl create -f deploy/crds` and `kubectl create -f deploy/default_ns/rbac.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator).
-2. starting the deployment of the operator. For example, `kubectl create -f deploy/default_ns/operator.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator).
+1. Installing the CRDs and related RBAC config. For example, `kubectl create -f deploy/crds` and `kubectl create -f deploy/default_ns/rbac.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator).
+2. Starting the deployment of the operator. For example, `kubectl create -f deploy/default_ns/operator.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator).
 
 For a new controller, you need to find the correct commands (and configs) to do the above.
 Besides, you also need to modify the deployment config of the operator to do the following:
