@@ -10,26 +10,37 @@ from analyze import generateDigest
 import controllers
 
 
-def compare_digest(digest_normal, digest_faulty):
+def compare_map(learned_map, testing_map, map_type):
     alarm = 0
-    all_keys = set(digest_normal.keys()).union(digest_faulty.keys())
-    bug_report = "[BUG REPORT]\n"
+    all_keys = set(learned_map.keys()).union(
+        testing_map.keys())
+    bug_report = "[BUG REPORT] %s\n" % map_type
     for rtype in all_keys:
-        if rtype not in digest_normal:
-            bug_report += "[ERROR] %s not in learning digest\n" % (rtype)
+        if rtype not in learned_map:
+            bug_report += "[ERROR] %s not in %s digest\n" % (rtype, map_type)
             alarm += 1
             continue
-        elif rtype not in digest_faulty:
-            bug_report += "[ERROR] %s not in testing digest\n" % (rtype)
+        elif rtype not in testing_map:
+            bug_report += "[ERROR] %s not in %s digest\n" % (rtype, map_type)
             alarm += 1
             continue
         else:
-            for attr in digest_normal[rtype]:
-                if digest_normal[rtype][attr] != digest_faulty[rtype][attr]:
+            for attr in learned_map[rtype]:
+                if learned_map[rtype][attr] != testing_map[rtype][attr]:
                     level = "WARN" if attr == "update" else "ERROR"
+                    alarm += 0 if attr == "update" else 1
                     bug_report += "[%s] %s.%s inconsistent: learning: %s, testing: %s\n" % (
-                        level, rtype, attr, str(digest_normal[rtype][attr]), str(digest_faulty[rtype][attr]))
-                    alarm += 1
+                        level, rtype, attr, str(learned_map[rtype][attr]), str(testing_map[rtype][attr]))
+    return alarm, bug_report
+
+
+def compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status):
+    alarm_side_effect, bug_report_side_effect = compare_map(
+        learned_side_effect, testing_side_effect, "side effect")
+    alarm_status, bug_report_status = compare_map(
+        learned_status, testing_status, "status")
+    alarm = alarm_side_effect + alarm_status
+    bug_report = bug_report_side_effect + bug_report_status
     if alarm != 0:
         bug_report += "[BUGGY] # alarms: %d\n" % (alarm)
     print(bug_report)
@@ -98,6 +109,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
 def run(test_suites, project, test, log_dir, mode, config, docker):
     suite = test_suites[project][test]
+    data_dir = os.path.join("data", project, test, "learn")
     if mode == "vanilla":
         log_dir = os.path.join(log_dir, mode)
         blank_config = "config/none.yaml"
@@ -109,24 +121,30 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         run_test(project, mode, suite.workload,
                  learn_config, learn_config, learn_config, log_dir, docker, mode)
         analyzeTrace(project, log_dir, suite.double_sides)
-        os.system("mkdir -p %s" % os.path.join("data", project, test))
-        os.system("cp %s %s" % (os.path.join(log_dir, "digest.json"), os.path.join(
-            "data", project, test, "digest.json")))
+        os.system("mkdir -p %s" % data_dir)
+        os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
+            data_dir, "status.json")))
+        os.system("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
+            data_dir, "side-effect.json")))
+        os.system("cp %s %s" % (os.path.join(log_dir, "sonar-server.log"), os.path.join(
+            data_dir, "sonar-server.log")))
     else:
         test_config = config if config != "none" else suite.config
         test_mode = mode if mode != "none" else suite.mode
         assert test_mode in controllers.testing_modes, "wrong mode option"
         print("testing mode: %s config: %s" % (test_mode, test_config))
         log_dir = os.path.join(log_dir, test_mode)
-        learned_digest = json.load(open(os.path.join(
-            "data", project, test, "digest.json")))
+        learned_side_effect = json.load(open(os.path.join(
+            data_dir, "side-effect.json")))
+        learned_status = json.load(open(os.path.join(
+            data_dir, "status.json")))
         run_test(project, test_mode, suite.workload,
                  test_config, test_config, test_config, log_dir, docker, test_mode)
-        digest_faulty = generateDigest(
+        testing_side_effect, testing_status = generateDigest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-            compare_digest(learned_digest, digest_faulty))
-        json.dump(digest_faulty, open(os.path.join(
+            compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status))
+        json.dump(testing_side_effect, open(os.path.join(
             log_dir, "digest.json"), "w"), indent=4)
 
 
