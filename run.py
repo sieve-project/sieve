@@ -17,11 +17,13 @@ def compare_map(learned_map, testing_map, map_type):
     bug_report = "[BUG REPORT] %s\n" % map_type
     for rtype in all_keys:
         if rtype not in learned_map:
-            bug_report += "[ERROR] %s not in %s digest\n" % (rtype, map_type)
+            bug_report += "[ERROR] %s not in learning %s digest\n" % (
+                rtype, map_type)
             alarm += 1
             continue
         elif rtype not in testing_map:
-            bug_report += "[ERROR] %s not in %s digest\n" % (rtype, map_type)
+            bug_report += "[ERROR] %s not in testing %s digest\n" % (
+                rtype, map_type)
             alarm += 1
             continue
         else:
