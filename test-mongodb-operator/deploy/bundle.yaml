@@ -225,11 +225,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: mongodb-operator
+      sonartag: mongodb-operator
+      name: percona-server-mongodb-operator
   template:
     metadata:
       labels:
-        name: mongodb-operator
+        sonartag: mongodb-operator
+        name: percona-server-mongodb-operator
     spec:
       serviceAccountName: percona-server-mongodb-operator
       containers:

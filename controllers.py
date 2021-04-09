@@ -98,21 +98,21 @@ command = {
 }
 
 controller_runtime_version = {
-    "cassandra-operator": "@v0.4.0",
-    "zookeeper-operator": "@v0.5.2",
-    "rabbitmq-operator": "@v0.8.3",
-    "kafka-operator": "@v0.6.5",
-    "mongodb-operator": "@v0.5.2",
-    "cass-operator": "@v0.5.2",
+    "cassandra-operator": "v0.4.0",
+    "zookeeper-operator": "v0.5.2",
+    "rabbitmq-operator": "v0.8.3",
+    "kafka-operator": "v0.6.5",
+    "mongodb-operator": "v0.5.2",
+    "cass-operator": "v0.5.2",
 }
 
 client_go_version = {
-    "cassandra-operator": "@v0.0.0-20190918160344-1fbdaa4c8d90",
-    "zookeeper-operator": "@v0.17.2",
-    "rabbitmq-operator": "@v0.20.2",
-    "kafka-operator": "@v0.18.9",
-    "mongodb-operator": "@v0.17.2",
-    "cass-operator": "@v0.17.4",
+    "cassandra-operator": "v0.0.0-20190918160344-1fbdaa4c8d90",
+    "zookeeper-operator": "v0.17.2",
+    "rabbitmq-operator": "v0.20.2",
+    "kafka-operator": "v0.18.9",
+    "mongodb-operator": "v0.17.2",
+    "cass-operator": "v0.17.4",
 }
 
 sha = {

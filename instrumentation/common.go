@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"go/token"
 	"os"
@@ -79,49 +80,6 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File) {
 	check(err)
 }
 
-func instrumentClientGoForAll(ifilepath, ofilepath, mode string) {
-	funName := "Notify" + mode + "SideEffects"
-	f := parseSourceFile(ifilepath, "client")
-	_, funcDecl := findFuncDecl(f, "Create")
-	index := 0
-	if funcDecl != nil {
-		instrumentation := &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"create\""}, &dst.Ident{Name: "obj"}},
-			},
-		}
-		instrumentation.Decs.End.Append("//sonar")
-		insertStmt(&funcDecl.Body.List, index, instrumentation)
-	}
-
-	_, funcDecl = findFuncDecl(f, "Update")
-	if funcDecl != nil {
-		instrumentation := &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"update\""}, &dst.Ident{Name: "obj"}},
-			},
-		}
-		instrumentation.Decs.End.Append("//sonar")
-		insertStmt(&funcDecl.Body.List, index, instrumentation)
-	}
-
-	_, funcDecl = findFuncDecl(f, "Delete")
-	if funcDecl != nil {
-		instrumentation := &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"delete\""}, &dst.Ident{Name: "obj"}},
-			},
-		}
-		instrumentation.Decs.End.Append("//sonar")
-		insertStmt(&funcDecl.Body.List, index, instrumentation)
-	}
-
-	writeInstrumentedFile(ofilepath, "client", f)
-}
-
 func preprocess(path string) {
 	read, err := ioutil.ReadFile(path)
 	check(err)
@@ -129,3 +87,82 @@ func preprocess(path string) {
 	err = ioutil.WriteFile(path, []byte(newContents), 0)
 	check(err)
 }
+
+func instrumentClientGoForAll(ifilepath, ofilepath, mode string) {
+	funName := "Notify" + mode + "SideEffects"
+	f := parseSourceFile(ifilepath, "client")
+
+	instrumentSideEffect(f, "Create", funName)
+	instrumentSideEffect(f, "Update", funName)
+	instrumentSideEffect(f, "Delete", funName)
+	instrumentSideEffect(f, "DeleteAllOf", funName)
+	instrumentSideEffect(f, "Patch", funName)
+
+	writeInstrumentedFile(ofilepath, "client", f)
+}
+
+func instrumentSideEffect(f *dst.File, etype, funName string) {
+	_, funcDecl := findFuncDecl(f, etype)
+	if funcDecl != nil {
+		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List) - 1].(*dst.ReturnStmt); ok {
+			modifiedInstruction := &dst.AssignStmt{
+				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
+				Tok: token.DEFINE,
+				Rhs: returnStmt.Results,
+			}
+			modifiedInstruction.Decs.End.Append("//sonar")
+			funcDecl.Body.List[len(funcDecl.Body.List) - 1] = modifiedInstruction
+
+			instrumentationExpr := &dst.ExprStmt{
+				X: &dst.CallExpr{
+					Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+				},
+			}
+			instrumentationExpr.Decs.End.Append("//sonar")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+
+			instrumentationReturn := &dst.ReturnStmt{
+				Results: []dst.Expr{&dst.Ident{Name: "err"}},
+			}
+			instrumentationReturn.Decs.End.Append("//sonar")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
+		} else if switchStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List) - 1].(*dst.TypeSwitchStmt); ok {
+			defaultCaseClause, ok := switchStmt.Body.List[len(switchStmt.Body.List) - 1].(*dst.CaseClause)
+			if !ok {
+				panic(fmt.Errorf("Last stmt in SwitchStmt is not CaseClause"))
+			}
+			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body) - 1].(*dst.ReturnStmt); ok {
+				modifiedInstruction := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
+					Tok: token.DEFINE,
+					Rhs: innerReturnStmt.Results,
+				}
+				modifiedInstruction.Decs.End.Append("//sonar")
+				defaultCaseClause.Body[len(defaultCaseClause.Body) - 1] = modifiedInstruction
+	
+				instrumentationExpr := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					},
+				}
+				instrumentationExpr.Decs.End.Append("//sonar")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
+	
+				instrumentationReturn := &dst.ReturnStmt{
+					Results: []dst.Expr{&dst.Ident{Name: "err"}},
+				}
+				instrumentationReturn.Decs.End.Append("//sonar")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationReturn)
+			} else {
+				panic(fmt.Errorf("Last stmt inside default case of %s is not return", etype))
+			}
+		} else {
+			panic(fmt.Errorf("Last stmt of %s is neither return nor typeswitch", etype))
+		}
+	} else {
+		panic(fmt.Errorf("Cannot find function %s", etype))
+	}
+}
+

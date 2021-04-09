@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"reflect"
+
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
@@ -89,9 +91,13 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	}
 }
 
-func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}) {
+func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sErr error) {
 	if !checkMode(timeTravel) {
 		return
 	}
-	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()))
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()), "todo", "todo", errorString)
 }

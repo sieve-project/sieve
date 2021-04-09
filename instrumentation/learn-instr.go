@@ -1,6 +1,8 @@
 package main
 
 import (
+	"go/token"
+	"fmt"
 	"github.com/dave/dst"
 )
 
@@ -35,7 +37,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		beforeReconcileInstrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnBeforeReconcile", Path: "sonar.client"},
-				Args: []dst.Expr{},
+				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
 		beforeReconcileInstrumentation.Decs.End.Append("//sonar")
@@ -45,7 +47,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		afterReconcileInstrumentation := &dst.DeferStmt{
 			Call: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sonar.client"},
-				Args: []dst.Expr{},
+				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
 		afterReconcileInstrumentation.Decs.End.Append("//sonar")
@@ -55,44 +57,58 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 	writeInstrumentedFile(ofilepath, "controller", f)
 }
 
-func instrumentClientGoForLearn(ifilepath, ofilepath string) {
+func instrumentSplitGoForLearn(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "client")
-	_, funcDecl := findFuncDecl(f, "Create")
-	index := 0
-	if funcDecl != nil {
-		instrumentation := &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"create\""}, &dst.Ident{Name: "obj"}},
-			},
-		}
-		instrumentation.Decs.End.Append("//sonar")
-		insertStmt(&funcDecl.Body.List, index, instrumentation)
-	}
 
-	_, funcDecl = findFuncDecl(f, "Update")
-	if funcDecl != nil {
-		instrumentation := &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"update\""}, &dst.Ident{Name: "obj"}},
-			},
-		}
-		instrumentation.Decs.End.Append("//sonar")
-		insertStmt(&funcDecl.Body.List, index, instrumentation)
-	}
-
-	_, funcDecl = findFuncDecl(f, "Delete")
-	if funcDecl != nil {
-		instrumentation := &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyLearnSideEffects", Path: "sonar.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "\"delete\""}, &dst.Ident{Name: "obj"}},
-			},
-		}
-		instrumentation.Decs.End.Append("//sonar")
-		insertStmt(&funcDecl.Body.List, index, instrumentation)
-	}
+	instrumentCacheRead(f, "Get")
+	instrumentCacheRead(f, "List")
 
 	writeInstrumentedFile(ofilepath, "client", f)
+}
+
+func instrumentCacheRead(f *dst.File, etype string) {
+	_, funcDecl := findFuncDecl(f, etype)
+	if funcDecl != nil {
+		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List) - 1].(*dst.ReturnStmt); ok {
+			modifiedInstruction := &dst.AssignStmt{
+				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
+				Tok: token.DEFINE,
+				Rhs: returnStmt.Results,
+			}
+			modifiedInstruction.Decs.End.Append("//sonar")
+			funcDecl.Body.List[len(funcDecl.Body.List) - 1] = modifiedInstruction
+
+			if etype == "Get" {
+				instrumentationExpr := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: "NotifyLearnCacheGet", Path: "sonar.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					},
+				}
+				instrumentationExpr.Decs.End.Append("//sonar")
+				funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+			} else if etype == "List" {
+				instrumentationExpr := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: "NotifyLearnCacheList", Path: "sonar.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
+					},
+				}
+				instrumentationExpr.Decs.End.Append("//sonar")
+				funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+			} else {
+				panic(fmt.Errorf("Wrong type %s for CacheRead", etype))
+			}
+
+			instrumentationReturn := &dst.ReturnStmt{
+				Results: []dst.Expr{&dst.Ident{Name: "err"}},
+			}
+			instrumentationReturn.Decs.End.Append("//sonar")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
+		} else {
+			panic(fmt.Errorf("Last stmt of %s is not return", etype))
+		}
+	} else {
+		panic(fmt.Errorf("Cannot find function %s", etype))
+	}
 }

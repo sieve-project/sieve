@@ -72,19 +72,19 @@ def remove_replacement_in_go_mod_file(file):
 def install_lib_for_controller(project, controller_runtime_version, client_go_version, docker_file_path):
     # download controller_runtime and client_go libs
     os.system(
-        "go mod download sigs.k8s.io/controller-runtime%s >> /dev/null" % controller_runtime_version)
+        "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null" % controller_runtime_version)
     os.system("mkdir -p app/%s/dep-sonar/src/sigs.k8s.io" % project)
-    os.system("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime%s app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime%s" %
+    os.system("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
               (controller_runtime_version, project, controller_runtime_version))
-    os.system("chmod +w -R app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime%s" %
+    os.system("chmod +w -R app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
               (project, controller_runtime_version))
-    os.system("go mod download k8s.io/client-go%s >> /dev/null" %
+    os.system("go mod download k8s.io/client-go@%s >> /dev/null" %
               client_go_version)
     os.system("mkdir -p app/%s/dep-sonar/src/k8s.io" % project)
     os.system(
-        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go%s app/%s/dep-sonar/src/k8s.io/client-go%s" % (client_go_version, project, client_go_version))
+        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s app/%s/dep-sonar/src/k8s.io/client-go@%s" % (client_go_version, project, client_go_version))
     os.system(
-        "chmod +w -R app/%s/dep-sonar/src/k8s.io/client-go%s" % (project, client_go_version))
+        "chmod +w -R app/%s/dep-sonar/src/k8s.io/client-go@%s" % (project, client_go_version))
     os.system("cp -r sonar-client app/%s/dep-sonar/src/sonar.client" % project)
     os.chdir("app/%s" % project)
     os.system("git add -A >> /dev/null")
@@ -98,15 +98,15 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
         go_mod_file.write(
             "replace sonar.client => ./dep-sonar/src/sonar.client\n")
         go_mod_file.write(
-            "replace sigs.k8s.io/controller-runtime => ./dep-sonar/src/sigs.k8s.io/controller-runtime%s\n" % controller_runtime_version)
+            "replace sigs.k8s.io/controller-runtime => ./dep-sonar/src/sigs.k8s.io/controller-runtime@%s\n" % controller_runtime_version)
         go_mod_file.write(
-            "replace k8s.io/client-go => ./dep-sonar/src/k8s.io/client-go%s\n" % client_go_version)
-    with open("app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime%s/go.mod" % (project, controller_runtime_version), "a") as go_mod_file:
+            "replace k8s.io/client-go => ./dep-sonar/src/k8s.io/client-go@%s\n" % client_go_version)
+    with open("app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s/go.mod" % (project, controller_runtime_version), "a") as go_mod_file:
         go_mod_file.write("require sonar.client v0.0.0\n")
         go_mod_file.write("replace sonar.client => ../../sonar.client\n")
         go_mod_file.write(
-            "replace k8s.io/client-go => ../../k8s.io/client-go%s\n" % client_go_version)
-    with open("app/%s/dep-sonar/src/k8s.io/client-go%s/go.mod" % (project, client_go_version), "a") as go_mod_file:
+            "replace k8s.io/client-go => ../../k8s.io/client-go@%s\n" % client_go_version)
+    with open("app/%s/dep-sonar/src/k8s.io/client-go@%s/go.mod" % (project, client_go_version), "a") as go_mod_file:
         go_mod_file.write("require sonar.client v0.0.0\n")
         go_mod_file.write("replace sonar.client => ../../sonar.client\n")
 
@@ -124,7 +124,7 @@ def instrument_controller(project, mode, controller_runtime_version, client_go_v
     os.chdir("instrumentation")
     os.system("go build")
     os.system(
-        "./instrumentation %s %s %s/app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime%s %s/app/%s/dep-sonar/src/k8s.io/client-go%s" % (project, mode, ORIGINAL_DIR, project, controller_runtime_version, ORIGINAL_DIR, project, client_go_version))
+        "./instrumentation %s %s %s/app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s %s/app/%s/dep-sonar/src/k8s.io/client-go@%s" % (project, mode, ORIGINAL_DIR, project, controller_runtime_version, ORIGINAL_DIR, project, client_go_version))
     os.chdir(ORIGINAL_DIR)
 
 
@@ -144,7 +144,7 @@ def setup_controller(project, mode, img_repo, img_tag, link, sha, controller_run
 
 
 if __name__ == "__main__":
-    usage = "usage: python3 run.py [options]"
+    usage = "usage: python3 build.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to build: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
