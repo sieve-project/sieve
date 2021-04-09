@@ -326,9 +326,8 @@ def generateTimaTravelYaml(triggeringPoints, path, project, timing="after"):
 
 
 def generateDigest(path):
-    digest = {}
-    empty_entry = {"size": -1, "terminating": -1,
-                   "create": 0, "update": 0, "delete": 0}
+    side_effect = {}
+    side_effect_empty_entry = {"create": 0, "update": 0, "delete": 0}
     for line in open(path).readlines():
         if SONAR_SIDE_EFFECT_MARK not in line:
             continue
@@ -338,13 +337,13 @@ def generateDigest(path):
         if ERROR_FILTER:
             if tokens[5] == "NotFound":
                 continue
-        # if effectType == "update":
-        #     continue
         rType = tokens[2]
-        if rType not in digest:
-            digest[rType] = copy.deepcopy(empty_entry)
-        digest[rType][effectType] += 1
+        if rType not in side_effect:
+            side_effect[rType] = copy.deepcopy(side_effect_empty_entry)
+        side_effect[rType][effectType] += 1
 
+    status = {}
+    status_empty_entry = {"size": 0, "terminating": 0}
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
@@ -352,8 +351,8 @@ def generateDigest(path):
     resources = {}
     for ktype in ktypes:
         resources[ktype] = []
-        if ktype not in digest:
-            digest[ktype] = copy.deepcopy(empty_entry)
+        if ktype not in status:
+            status[ktype] = copy.deepcopy(status_empty_entry)
     for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
         resources[POD].append(pod)
     for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
@@ -363,16 +362,16 @@ def generateDigest(path):
     for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
         resources[STS].append(sts)
     for ktype in ktypes:
-        digest[ktype]["size"] = len(resources[ktype])
+        status[ktype]["size"] = len(resources[ktype])
         terminating = 0
         for item in resources[ktype]:
             if item.metadata.deletion_timestamp != None:
                 terminating += 1
-        digest[ktype]["terminating"] = terminating
-    return digest
+        status[ktype]["terminating"] = terminating
+    return side_effect, status
 
 
-def dump_files(dir, event_map, causality_pairs, digest, triggeringPoints):
+def dump_files(dir, event_map, causality_pairs, side_effect, status, triggeringPoints):
     json_dir = os.path.join(dir, "generated-json")
     if os.path.exists(json_dir):
         shutil.rmtree(json_dir)
@@ -381,8 +380,10 @@ def dump_files(dir, event_map, causality_pairs, digest, triggeringPoints):
     #     json_dir, "event-map.json"), "w"), indent=4)
     # json.dump(causality_pairs, open(os.path.join(
     #     json_dir, "causality-pairs.json"), "w"), indent=4)
-    json.dump(digest, open(os.path.join(
-        dir, "digest.json"), "w"), indent=4)
+    json.dump(side_effect, open(os.path.join(
+        dir, "side-effect.json"), "w"), indent=4, sort_keys=True)
+    json.dump(status, open(os.path.join(
+        dir, "status.json"), "w"), indent=4, sort_keys=True)
     json.dump(triggeringPoints, open(os.path.join(
         json_dir, "triggering-points.json"), "w"), indent=4)
 
@@ -395,9 +396,10 @@ def analyzeTrace(project, dir, double_sides=False):
     os.makedirs(conf_dir, exist_ok=True)
     event_map = generate_event_map(log_path)
     causality_pairs = generate_causality_pairs(log_path)
-    digest = generateDigest(log_path)
+    side_effect, status = generateDigest(log_path)
     triggeringPoints = generate_triggering_points(event_map, causality_pairs)
-    dump_files(dir, event_map, causality_pairs, digest, triggeringPoints)
+    dump_files(dir, event_map, causality_pairs,
+               side_effect, status, triggeringPoints)
     generateTimaTravelYaml(triggeringPoints, conf_dir, project)
     if double_sides:
         generateTimaTravelYaml(triggeringPoints, conf_dir, project, "before")
@@ -408,3 +410,24 @@ if __name__ == "__main__":
     test = sys.argv[2]
     dir = os.path.join("log", project, test, "learn")
     analyzeTrace(project, dir)
+
+    # dir = os.path.join("data", project, test, "learn")
+    # path = os.path.join(dir, "digest.json")
+    # # analyzeTrace(project, dir)
+    # digest = json.load(open(path))
+    # status = {}
+    # side_effect = {}
+    # for key in digest:
+    #     if digest[key]["size"] != -1 and digest[key]["terminating"] != -1:
+    #         status[key] = {}
+    #         status[key]["size"] = digest[key]["size"]
+    #         status[key]["terminating"] = digest[key]["terminating"]
+    #     if digest[key]["create"] != 0 or digest[key]["update"] != 0 or digest[key]["delete"] != 0:
+    #         side_effect[key] = {}
+    #         side_effect[key]["create"] = digest[key]["create"]
+    #         side_effect[key]["update"] = digest[key]["update"]
+    #         side_effect[key]["delete"] = digest[key]["delete"]
+    # json.dump(status, open(os.path.join(dir, "status.json"), "w"),
+    #           indent=4, sort_keys=True)
+    # json.dump(side_effect, open(os.path.join(dir, "side-effect.json"), "w"),
+    #           indent=4, sort_keys=True)
