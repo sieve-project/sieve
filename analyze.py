@@ -327,19 +327,20 @@ def generateTimaTravelYaml(triggeringPoints, path, project, timing="after"):
 
 def generateDigest(path):
     side_effect = {}
-    side_effect_empty_entry = {"create": 0, "update": 0, "delete": 0}
     for line in open(path).readlines():
         if SONAR_SIDE_EFFECT_MARK not in line:
             continue
         line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n")
         tokens = line.split("\t")
         effectType = tokens[1].lower()
+        rType = tokens[2]
         if ERROR_FILTER:
             if tokens[5] == "NotFound":
                 continue
-        rType = tokens[2]
         if rType not in side_effect:
-            side_effect[rType] = copy.deepcopy(side_effect_empty_entry)
+            side_effect[rType] = {}
+        if effectType not in side_effect[rType]:
+            side_effect[rType][effectType] = 0
         side_effect[rType][effectType] += 1
 
     status = {}
