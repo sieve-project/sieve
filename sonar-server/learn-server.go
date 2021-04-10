@@ -15,6 +15,7 @@ func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
 		eventCh:                 make(chan eventWrapper, 500),
 		eventID:                 -1,
 		eventChMap:              sync.Map{},
+		reconcileChMap:		     sync.Map{},
 		notificationCh:       	 make(chan notificationWrapper, 100),
 		ongoingReconcileCnt:     0,
 		reconcileCntMap:	     map[string]int{},
@@ -38,6 +39,10 @@ func (l *LearnListener) Echo(request *sonar.EchoRequest, response *sonar.Respons
 
 func (l *LearnListener) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
 	return l.Server.NotifyLearnBeforeIndexerWrite(request, response)
+}
+
+func (l *LearnListener) NotifyLearnAfterIndexerWrite(request *sonar.NotifyLearnAfterIndexerWriteRequest, response *sonar.Response) error {
+	return l.Server.NotifyLearnAfterIndexerWrite(request, response)
 }
 
 func (l *LearnListener) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
@@ -74,6 +79,7 @@ const (
 	reconcileFinish
 	sideEffect
 	cacheRead
+	eventApplied
 )
 
 type notificationWrapper struct {
@@ -85,6 +91,7 @@ type learnServer struct {
 	eventCh                 chan eventWrapper
 	eventID                 int32
 	eventChMap              sync.Map
+	reconcileChMap          sync.Map
 	notificationCh          chan notificationWrapper
 	ongoingReconcileCnt     int
 	reconcileCntMap			map[string]int
@@ -98,37 +105,43 @@ func (s *learnServer) Start() {
 }
 
 func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
-	// log.Printf("NotifyLearnBeforeIndexerWrite: OperationType: %s and Object: %s\n", request.OperationType, request.Object)
-	myID := atomic.AddInt32(&s.eventID, 1)
-	myCh := make(chan int32)
-	s.eventChMap.Store(myID, myCh)
+	eID := atomic.AddInt32(&s.eventID, 1)
+	waitingCh := make(chan int32)
+	s.eventChMap.Store(eID, waitingCh)
 	ew := eventWrapper{
-		eventID:     myID,
+		eventID:     eID,
 		eventType:   request.OperationType,
 		eventObject: request.Object,
 		eventObjectType: request.ResourceType,
 	}
 	s.eventCh <- ew
-	// log.Printf("my ID is: %d, waiting now...\n", myID)
-	<-myCh
-	// log.Printf("my ID is: %d, I can go now\n", myID)
-	*response = sonar.Response{Message: request.OperationType, Ok: true}
+	<- waitingCh
+	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
+	return nil
+}
+
+func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sonar.NotifyLearnAfterIndexerWriteRequest, response *sonar.Response) error {
+	s.notificationCh <- notificationWrapper{ntype: eventApplied, payload: fmt.Sprintf("%d", request.EventID)}
+	*response = sonar.Response{Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
-	// log.Printf("NotifyLearnBeforeReconcile\n")
-	s.notificationCh <- notificationWrapper{ntype: reconcileStart, payload: request.ControllerName}
-	// log.Printf("NotifyLearnBeforeReconcile End\n")
-	*response = sonar.Response{Message: "nothing", Ok: true}
+	recID := request.ControllerName
+	waitingCh := make(chan int32)
+	// use LoadOrStore here because the same controller may have mulitple workers concurrently running reconcile
+	// So the same recID may be stored before
+	obj, _ := s.reconcileChMap.LoadOrStore(recID, waitingCh);
+	waitingCh = obj.(chan int32)
+	s.notificationCh <- notificationWrapper{ntype: reconcileStart, payload: recID}
+	<- waitingCh
+	*response = sonar.Response{Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterReconcileRequest, response *sonar.Response) error {
-	// log.Printf("NotifyLearnAfterReconcile\n")
 	s.notificationCh <- notificationWrapper{ntype: reconcileFinish, payload: request.ControllerName}
-	// log.Printf("NotifyLearnAfterReconcile End\n")
-	*response = sonar.Response{Message: "nothing", Ok: true}
+	*response = sonar.Response{Ok: true}
 	return nil
 }
 
@@ -150,12 +163,10 @@ func (s *learnServer) extractNameNamespaceRType(Object string) (string, string) 
 }
 
 func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
-	// log.Printf("NotifyLearnSideEffects: %s %s\n", request.SideEffectType, request.Object)
 	rtype := request.ResourceType
 	name, namespace := s.extractNameNamespaceRType(request.Object)
 	s.notificationCh <- notificationWrapper{ntype: sideEffect, payload: request.SideEffectType + "\t" + rtype + "\t" + namespace + "\t" + name + "\t" + request.Error}
 	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
-	// log.Printf("NotifyLearnSideEffects: %s %s End\n", request.SideEffectType, request.Object)
 	return nil
 }
 
@@ -185,7 +196,13 @@ func (s *learnServer) coordinatingEvents() {
 				} else {
 					s.reconcileCntMap[nw.payload] = 0
 				}
-				log.Printf("[SONAR-START-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
+				if obj, ok := s.reconcileChMap.Load(nw.payload); ok {
+					log.Printf("[SONAR-START-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
+					ch := obj.(chan int32)
+					ch <- 0
+				} else {
+					log.Fatal("invalid object in reconcileChMap")
+				}
 			case reconcileFinish:
 				s.ongoingReconcileCnt -= 1
 				if s.ongoingReconcileCnt == 0 {
@@ -198,8 +215,12 @@ func (s *learnServer) coordinatingEvents() {
 				if s.ongoingReconcileCnt > 0 {
 					log.Printf("[SONAR-SIDE-EFFECT]\t%s\n", nw.payload)
 				}
+			case eventApplied:
+				log.Printf("[SONAR-EVENT-APPLIED]\t%s\n", nw.payload)
 			case cacheRead:
-				log.Printf("[SONAR-CACHE-READ]\t%s", nw.payload)
+				log.Printf("[SONAR-CACHE-READ]\t%s\n", nw.payload)
+			default:
+				log.Fatal("invalid notification type")
 			}
 		}
 	}
@@ -214,7 +235,7 @@ func (s *learnServer) allowEvent() {
 			ch := obj.(chan int32)
 			ch <- curID
 		} else {
-			log.Fatal("invalid object in eventCh")
+			log.Fatal("invalid object in eventChMap")
 		}
 	default:
 		log.Println("no event happening")

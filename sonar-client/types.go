@@ -3,7 +3,7 @@ package sonar
 type Response struct {
 	Message string
 	Ok      bool
-	Wait    int
+	Number    int
 }
 
 type EchoRequest struct {
@@ -49,6 +49,10 @@ type NotifyLearnBeforeIndexerWriteRequest struct {
 	ResourceType  string
 }
 
+type NotifyLearnAfterIndexerWriteRequest struct {
+	EventID int
+}
+
 type NotifyLearnBeforeQAddRequest struct {
 	Nothing string
 }
@@ -72,7 +76,7 @@ type NotifyLearnCacheGetRequest struct {
 	ResourceType 	string
 	Namespace 		string
 	Name 			string
-	Error          string
+	Error           string
 }
 
 type NotifyLearnCacheListRequest struct {

@@ -17,7 +17,7 @@ SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
 SONAR_CACHE_READ_MARK = "[SONAR-CACHE-READ]"
 SONAR_START_RECONCILE_MARK = "[SONAR-START-RECONCILE]"
 SONAR_FINISH_RECONCILE_MARK = "[SONAR-FINISH-RECONCILE]"
-SONAR_RECORD_MARK = "[SONAR-RECORD]"
+SONAR_EVENT_APPLIED_MARK = "[SONAR-EVENT-APPLIED]"
 
 POD = "pod"
 PVC = "persistentvolumeclaim"
@@ -57,6 +57,11 @@ class CacheRead:
         self.key = self.rtype + "/" + self.namespace + "/" + self.name
 
 
+class EventIDOnly:
+    def __init__(self, id):
+        self.id = id
+
+
 def parseEvent(line):
     assert SONAR_EVENT_MARK in line
     tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
@@ -78,8 +83,19 @@ def parseCacheRead(line):
         return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
 
 
+def parseEventIDOnly(line):
+    assert SONAR_EVENT_APPLIED_MARK in line or SONAR_EVENT_MARK in line
+    if SONAR_EVENT_APPLIED_MARK in line:
+        tokens = line[line.find(SONAR_EVENT_APPLIED_MARK):].strip("\n").split("\t")
+        return EventIDOnly(tokens[1])
+    else:
+        tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
+        return EventIDOnly(tokens[1])
+
+
 def generate_event_map(path):
     event_map = {}
+    event_id_map = {}
     for line in open(path).readlines():
         if SONAR_EVENT_MARK not in line:
             continue
@@ -87,64 +103,74 @@ def generate_event_map(path):
         if event.key not in event_map:
             event_map[event.key] = []
         event_map[event.key].append(event)
-    return event_map
+        event_id_map[event.id] = event
+    return event_map, event_id_map
 
 
-def event_read_intersect(event, cacheRead):
+def event_read_intersect(event_id_map, event_id, cacheRead):
     if cacheRead.etype == "Get":
-        return event.key == cacheRead.key
+        return event_id_map[event_id].key == cacheRead.key
     else:
-        return event.rtype == cacheRead.rtype
+        return event_id_map[event_id].rtype == cacheRead.rtype
 
 
-def affect_read(event, event_ts, reads_cur_round):
+def affect_read(event_id_map, event_id, event_ts, reads_cur_round):
     for read_ts in reads_cur_round:
-        if read_ts > event_ts and event_read_intersect(event, reads_cur_round[read_ts]):
+        if read_ts > event_ts and event_read_intersect(event_id_map, event_id, reads_cur_round[read_ts]):
             return True
     return False
 
 
-def find_related_events(sideEffect, events_cur_round, events_prev_round, reads_cur_round):
+def find_related_events(event_id_map, sideEffect, events_cur_round, events_prev_round, reads_cur_round, events_applied_cur_round, events_applied_prev_round):
     final_related_events = []
-    related_events = list(events_cur_round.values())
+    related_events = set(events_cur_round.values())
     unrelated_events = set()
     if CROSS_BOUNDARY_FLAG:
-        related_events.extend(list(events_prev_round.values()))
+        related_events.update(set(events_applied_prev_round.values()))
+        related_events.update(set(events_prev_round.values()))
     if WRITE_READ_FLAG:
         for event_ts in events_prev_round:
-            if not affect_read(events_prev_round[event_ts], event_ts, reads_cur_round):
-                unrelated_events.add(events_prev_round[event_ts].id)
+            if not affect_read(event_id_map, events_prev_round[event_ts], event_ts, reads_cur_round):
+                unrelated_events.add(events_prev_round[event_ts])
         for event_ts in events_cur_round:
-            if not affect_read(events_cur_round[event_ts], event_ts, reads_cur_round):
-                unrelated_events.add(events_cur_round[event_ts].id)
-    for event in related_events:
-        if event.id in unrelated_events:
+            if not affect_read(event_id_map, events_cur_round[event_ts], event_ts, reads_cur_round):
+                unrelated_events.add(events_cur_round[event_ts])
+    for event_id in related_events:
+        if event_id in unrelated_events:
             continue
-        final_related_events.append(event)
+        final_related_events.append(event_id_map[event_id])
     return final_related_events
 
 
-def generate_causality_pairs(path):
+def generate_causality_pairs(path, event_id_map):
     causality_pairs = []
     reads_cur_round = {}
     events_cur_round = {}
     events_prev_round = {}
+    events_applied_cur_round = {}
+    events_applied_prev_round = {}
     lines = open(path).readlines()
     for i in range(len(lines)):
         # we use the line number as the logic timestamp since all the logs are printed in the same thread
         line = lines[i]
         if SONAR_EVENT_MARK in line:
-            events_cur_round[i] = parseEvent(line)
+            events_cur_round[i] = parseEventIDOnly(line).id
+        elif SONAR_EVENT_APPLIED_MARK in line:
+            events_applied_cur_round[i] = parseEventIDOnly(line).id
         elif SONAR_CACHE_READ_MARK in line:
             reads_cur_round[i] = parseCacheRead(line)
         elif SONAR_SIDE_EFFECT_MARK in line:
             side_effect = parseSideEffect(line)
-            events = find_related_events(side_effect, events_cur_round,
-                                         events_prev_round, reads_cur_round)
+            events = find_related_events(event_id_map, side_effect,
+                                         events_cur_round, events_prev_round,
+                                         reads_cur_round,
+                                         events_applied_cur_round, events_applied_prev_round)
             causality_pairs.append([side_effect, events])
         elif SONAR_FINISH_RECONCILE_MARK in line:
             events_prev_round = copy.deepcopy(events_cur_round)
             events_cur_round = {}
+            events_applied_prev_round = copy.deepcopy(events_applied_cur_round)
+            events_applied_cur_round = {}
     return causality_pairs
 
 
@@ -395,8 +421,8 @@ def analyzeTrace(project, dir, double_sides=False):
     if os.path.exists(conf_dir):
         shutil.rmtree(conf_dir)
     os.makedirs(conf_dir, exist_ok=True)
-    event_map = generate_event_map(log_path)
-    causality_pairs = generate_causality_pairs(log_path)
+    event_map, event_id_map = generate_event_map(log_path)
+    causality_pairs = generate_causality_pairs(log_path, event_id_map)
     side_effect, status = generateDigest(log_path)
     triggeringPoints = generate_triggering_points(event_map, causality_pairs)
     dump_files(dir, event_map, causality_pairs,
