@@ -39,23 +39,23 @@ func triggerReconcile(object interface{}) bool {
 	return false
 }
 
-func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
+func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int {
 	if !checkMode(learn) {
-		return
+		return -1
 	}
 	if !triggerReconcile(object) {
-		return
+		return -1
 	}
 	log.Printf("[sonar][NotifyLearnBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
-		return
+		return -1
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, jsonError)
-		return
+		return -1
 	}
 	request := &NotifyLearnBeforeIndexerWriteRequest{
 		OperationType: operationType,
@@ -66,9 +66,36 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) {
 	err = client.Call("LearnListener.NotifyLearnBeforeIndexerWrite", request, &response)
 	if err != nil {
 		printError(err, replyError)
-		return
+		return -1
 	}
 	checkResponse(response, "NotifyLearnBeforeIndexerWrite")
+	client.Close()
+	return response.Number
+}
+
+func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
+	if !checkMode(learn) {
+		return
+	}
+	if !triggerReconcile(object) {
+		return
+	}
+	log.Printf("[sonar][NotifyLearnAfterIndexerWrite]\n")
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
+		return
+	}
+	request := &NotifyLearnAfterIndexerWriteRequest{
+		EventID: eventID,
+	}
+	var response Response
+	err = client.Call("LearnListener.NotifyLearnAfterIndexerWrite", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterIndexerWrite")
 	client.Close()
 }
 

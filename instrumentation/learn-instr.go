@@ -12,18 +12,30 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
-				index := 0
-				instrumentation := &dst.ExprStmt{
-					X: &dst.CallExpr{
+				instrNotifyLearnBeforeIndexerWrite := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "sonarEventID"}},
+					Rhs: []dst.Expr{&dst.CallExpr{
 						Fun:  &dst.Ident{Name: "NotifyLearnBeforeIndexerWrite", Path: "sonar.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
+					}},
+					Tok: token.DEFINE,
+				}
+				instrNotifyLearnBeforeIndexerWrite.Decs.End.Append("//sonar")
+				insertStmt(&rangeStmt.Body.List, 0, instrNotifyLearnBeforeIndexerWrite)
+
+				instrNotifyLearnAfterIndexerWrite := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: "NotifyLearnAfterIndexerWrite", Path: "sonar.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "sonarEventID"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrumentation.Decs.End.Append("//sonar")
-				insertStmt(&rangeStmt.Body.List, index, instrumentation)
+				instrNotifyLearnAfterIndexerWrite.Decs.End.Append("//sonar")
+				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyLearnAfterIndexerWrite)
 				break
 			}
 		}
+	} else {
+		panic(fmt.Errorf("Cannot find function HandleDeltas"))
 	}
 
 	writeInstrumentedFile(ofilepath, "cache", f)
@@ -52,6 +64,8 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		}
 		afterReconcileInstrumentation.Decs.End.Append("//sonar")
 		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
+	} else {
+		panic(fmt.Errorf("Cannot find function reconcileHandler"))
 	}
 
 	writeInstrumentedFile(ofilepath, "controller", f)
