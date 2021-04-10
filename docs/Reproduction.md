@@ -109,10 +109,6 @@ persistentVolumeClaim has different length: normal: 1 faulty: 2
 ### [instaclustr-cassandra-operator-400](https://github.com/instaclustr/cassandra-operator/issues/400)
 This one is not a partial history bug. It can also be reproduced as [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398), but we do not ensure deterministic reproduction since it is caused by randomness in the underlying data structures.
 
-
-## Port a new operator:
-Please refer to https://github.com/xlab-uiuc/sonar/issues/54
-
 ## Notes:
 1. reproduction scripts run typicall slow (may take several minutes to finish one run) because I intentionally add some sleep in the scripts to make sure the controller can finish its job and goes back to stable state before we manipulate its partial history. Sometimes it takes quite long time for a controller to start/delete a pod so the sleep is set to long.
 2. [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398) may not always be reproduced because the policy used does not manipulate the timing very well. Currently the bug can be successfully reproduced in more than 90% cases. If not see the expected output, just run it again. **This is a TODO that I will implement a new policy to 100% reproduce [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398) every time.**
