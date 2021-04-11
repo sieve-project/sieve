@@ -366,7 +366,7 @@ def generateDigest(path):
             if tokens[5] == "NotFound":
                 continue
         if rType not in side_effect:
-            side_effect[rType] = status_empty_entry
+            side_effect[rType] = copy.deepcopy(status_empty_entry)
         side_effect[rType][effectType] += 1
 
     status = {}
