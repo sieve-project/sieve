@@ -69,6 +69,8 @@ test_suites = {
     "mongodb-operator": {
         "test1": Suite(
             "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel"),
+        "test2": Suite(
+            "disableEnableShard.sh", "test-mongodb-operator/test/time-travel-2.yaml", "time-travel"),
     },
 }
 
