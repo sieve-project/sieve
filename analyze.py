@@ -288,8 +288,8 @@ def generate_triggering_points(event_map, causality_pairs):
                                 "effect": side_effect.__dict__}
             if prev_event is None:
                 triggering_point["ttype"] = "todo"
-            elif prev_event.etype != cur_event.etype:
-                triggering_point["ttype"] = "todo"
+            # elif prev_event.etype != cur_event.etype:
+            #     triggering_point["ttype"] = "todo"
             else:
                 slim_prev_obj, slim_cur_obj = diffEvents(
                     prev_event, cur_event)
