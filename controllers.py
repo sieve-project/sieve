@@ -76,6 +76,8 @@ test_suites = {
     "cass-operator": {
         "test1": Suite(
             "recreateCassandraDataCenter.sh", "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+        "test2": Suite(
+            "scaleDownUpCassandraDataCenter.sh", "test-cass-operator/test/time-travel-3.yaml", "time-travel"),
     },
 }
 
