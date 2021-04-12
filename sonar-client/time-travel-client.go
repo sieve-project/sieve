@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
@@ -91,6 +92,15 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	}
 }
 
+func extractNameNamespaceFromObj(object interface{}) (string, string) {
+	name := "unknown"
+	namespace := "unknown"
+	if o, err := meta.Accessor(object); err == nil {
+		return o.GetName(), o.GetNamespace()
+	}
+	return name, namespace
+}
+
 func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sErr error) {
 	if !checkMode(timeTravel) {
 		return
@@ -99,5 +109,6 @@ func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sE
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()), "todo", "todo", errorString)
+	name, namespace := extractNameNamespaceFromObj(object)
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()), namespace, name, errorString)
 }
