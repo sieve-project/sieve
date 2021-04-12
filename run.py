@@ -160,7 +160,9 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
             compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status))
         json.dump(testing_side_effect, open(os.path.join(
-            log_dir, "digest.json"), "w"), indent=4)
+            log_dir, "side-effect.json"), "w"), indent=4)
+        json.dump(testing_status, open(os.path.join(
+            log_dir, "status.json"), "w"), indent=4)
 
 
 def run_batch(project, test, dir, mode, docker):

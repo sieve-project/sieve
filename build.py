@@ -134,12 +134,13 @@ def build_controller(project, img_repo, img_tag):
     os.chdir(ORIGINAL_DIR)
 
 
-def setup_controller(project, mode, img_repo, img_tag, link, sha, controller_runtime_version, client_go_version, docker_file_path):
-    download_controller(project, link, sha)
-    install_lib_for_controller(
-        project, controller_runtime_version, client_go_version, docker_file_path)
-    instrument_controller(
-        project, mode, controller_runtime_version, client_go_version)
+def setup_controller(project, mode, img_repo, img_tag, link, sha, controller_runtime_version, client_go_version, docker_file_path, build_only):
+    if not build_only:
+        download_controller(project, link, sha)
+        install_lib_for_controller(
+            project, controller_runtime_version, client_go_version, docker_file_path)
+        instrument_controller(
+            project, mode, controller_runtime_version, client_go_version)
     build_controller(project, img_repo, img_tag)
 
 
@@ -154,6 +155,8 @@ if __name__ == "__main__":
                       help="SHA of the project", metavar="SHA", default="none")
     parser.add_option("-d", "--docker", dest="docker",
                       help="DOCKER repo that you have access", metavar="DOCKER", default="none")
+    parser.add_option("-b", "--build", dest="build_only", action="store_true",
+                      help="build only", default=False)
     (options, args) = parser.parse_args()
 
     img_repo = options.docker if options.docker != "none" else controllers.docker_repo
@@ -163,4 +166,7 @@ if __name__ == "__main__":
     else:
         sha = options.sha if options.sha != "none" else controllers.sha[options.project]
         setup_controller(options.project, options.mode, img_repo,
-                         img_tag, controllers.github_link[options.project], sha, controllers.controller_runtime_version[options.project], controllers.client_go_version[options.project], controllers.docker_file[options.project])
+                         img_tag, controllers.github_link[options.project], sha,
+                         controllers.controller_runtime_version[options.project],
+                         controllers.client_go_version[options.project],
+                         controllers.docker_file[options.project], options.build_only)
