@@ -9,7 +9,7 @@ spec:
   image: percona/percona-server-mongodb:4.4.3-5
   imagePullPolicy: Always
   allowUnsafeConfigurations: false
-  updateStrategy: SmartUpdate
+  updateStrategy: RollingUpdate
   upgradeOptions:
     versionServiceEndpoint: https://check.percona.com
     apply: recommended
