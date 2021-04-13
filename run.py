@@ -55,13 +55,14 @@ def watch_crd(project, addrs):
             os.system("kubectl get %s -s %s" % (crd, addr))
 
 
-def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag):
+def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config):
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
     os.system("cp %s sonar-server/server.yaml" % server_config)
     os.system("kind delete cluster")
 
-    os.system("./setup.sh kind-ha.yaml %s %s" % (docker_repo, docker_tag))
+    os.system("./setup.sh %s %s %s" %
+              (cluster_config, docker_repo, docker_tag))
     os.system("./bypass-balancer.sh")
 
     kubernetes.config.load_kube_config()
@@ -129,12 +130,12 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         log_dir = os.path.join(log_dir, mode)
         blank_config = "config/none.yaml"
         run_test(project, mode, suite.workload,
-                 blank_config, blank_config, blank_config, log_dir, docker, mode)
+                 blank_config, blank_config, blank_config, log_dir, docker, mode, suite.cluster_config)
     elif mode == "learn":
         log_dir = os.path.join(log_dir, mode)
         learn_config = controllers.learning_configs[project]
         run_test(project, mode, suite.workload,
-                 learn_config, learn_config, learn_config, log_dir, docker, mode)
+                 learn_config, learn_config, learn_config, log_dir, docker, mode, suite.cluster_config)
         analyzeTrace(project, log_dir, suite.double_sides)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
@@ -154,7 +155,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         learned_status = json.load(open(os.path.join(
             data_dir, "status.json")))
         run_test(project, test_mode, suite.workload,
-                 test_config, test_config, test_config, log_dir, docker, test_mode)
+                 test_config, test_config, test_config, log_dir, docker, test_mode, suite.cluster_config)
         testing_side_effect, testing_status = generateDigest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(

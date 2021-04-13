@@ -4,11 +4,12 @@ import time
 
 
 class Suite:
-    def __init__(self, workload, config, mode, double_sides=False):
+    def __init__(self, workload, config, mode, double_sides=False, cluster_config="kind-ha.yaml"):
         self.workload = workload
         self.config = config
         self.mode = mode
         self.double_sides = double_sides
+        self.cluster_config = cluster_config
 
 
 docker_repo = "xudongs"
@@ -55,13 +56,15 @@ test_suites = {
         "test1": Suite(
             "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
         "test2": Suite(
-            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", True),
+            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),
     },
     "mongodb-operator": {
         "test1": Suite(
-            "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel"),
+            "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
         "test2": Suite(
-            "disableEnableShard.sh", "test-mongodb-operator/test/time-travel-2.yaml", "time-travel"),
+            "disableEnableShard.sh", "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+        "test3": Suite(
+            "disableEnableArbiter.sh", "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
     },
 }
 
