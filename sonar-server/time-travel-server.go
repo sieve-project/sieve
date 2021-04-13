@@ -85,14 +85,70 @@ func strToMap(str string) map[string]interface{} {
 	return m
 }
 
+func (s *timeTravelServer) equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
+	if len(crucialEvent) != len(currentEvent) {
+		return false
+	}
+	for i, val := range crucialEvent {
+		switch v := val.(type) {
+		case int64:
+			if e, ok := currentEvent[i].(int64); ok {
+				if v != e {
+					return false
+				}
+			} else {
+				return false
+			}
+		case float64:
+			if e, ok := currentEvent[i].(float64); ok {
+				if v != e {
+					return false
+				}
+			} else {
+				return false
+			}
+		case bool:
+			if e, ok := currentEvent[i].(bool); ok {
+				if v != e {
+					return false
+				}
+			} else {
+				return false
+			}
+		case string:
+			if v == "SONAR-EXIST" || v == "SONAR-SKIP" {
+				continue
+			} else if e, ok := currentEvent[i].(string); ok {
+				if v != e {
+					return false
+				}
+			} else {
+				return false
+			}
+		case map[string]interface{}:
+			if e, ok := currentEvent[i].(map[string]interface{}); ok {
+				if !s.equivalentEvent(v, e) {
+					return false
+				}
+			} else {
+				return false
+			}
+		default:
+			log.Printf("Unsupported type: %v %T", v, v)
+			return false
+		}
+	}
+	return true
+}
+
 func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	for key, val := range crucialEvent {
 		if _, ok := currentEvent[key]; !ok {
 			return false
 		}
 		switch v := val.(type) {
-		case int:
-			if e, ok := currentEvent[key].(int); ok {
+		case int64:
+			if e, ok := currentEvent[key].(int64); ok {
 				if v != e {
 					return false
 				}
@@ -133,8 +189,17 @@ func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string
 			} else {
 				return false
 			}
+		case []interface{}:
+			if e, ok := currentEvent[key].([]interface{}); ok {
+				if !s.equivalentEventList(v, e) {
+					return false
+				}
+			} else {
+				return false
+			}
 		default:
 			log.Printf("Unsupported type: %v %T", v, v)
+			return false
 		}
 	}
 	return true
