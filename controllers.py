@@ -4,11 +4,12 @@ import time
 
 
 class Suite:
-    def __init__(self, workload, config, mode, double_sides=False):
+    def __init__(self, workload, config, mode, double_sides=False, cluster_config="kind-ha.yaml"):
         self.workload = workload
         self.config = config
         self.mode = mode
         self.double_sides = double_sides
+        self.cluster_config = cluster_config
 
 
 docker_repo = "xudongs"
@@ -19,7 +20,6 @@ github_link = {
     "cassandra-operator": "git@github.com:instaclustr/cassandra-operator.git",
     "zookeeper-operator": "git@github.com:pravega/zookeeper-operator.git",
     "rabbitmq-operator": "git@github.com:rabbitmq/cluster-operator.git",
-    "kafka-operator": "git@github.com:banzaicloud/kafka-operator.git",
     "mongodb-operator": "git@github.com:percona/percona-server-mongodb-operator.git",
     "cass-operator": "git@github.com:datastax/cass-operator.git",
 }
@@ -28,7 +28,6 @@ app_dir = {
     "cassandra-operator": "app/cassandra-operator",
     "zookeeper-operator": "app/zookeeper-operator",
     "rabbitmq-operator": "app/rabbitmq-operator",
-    "kafka-operator": "app/kafka-operator",
     "mongodb-operator": "app/mongodb-operator",
     "cass-operator": "app/cass-operator",
 }
@@ -37,7 +36,6 @@ test_dir = {
     "cassandra-operator": "test-cassandra-operator/test",
     "zookeeper-operator": "test-zookeeper-operator/test",
     "rabbitmq-operator": "test-rabbitmq-operator/test",
-    "kafka-operator": "test-kafka-operator/test",
     "mongodb-operator": "test-mongodb-operator/test",
     "cass-operator": "test-cass-operator/test",
 }
@@ -48,8 +46,6 @@ test_suites = {
             "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/test/sparse-read-1.yaml", "sparse-read"),
         "test2": Suite(
             "recreateCassandraDataCenter.sh", "test-cassandra-operator/test/time-travel-1.yaml", "time-travel"),
-        # "test3": Suite(
-        #     "recreateCassandraDataCenter.sh", "test-cassandra-operator/test/bug3.yaml", "time-travel"),
         "test4": Suite(
             "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/test/time-travel-2.yaml", "time-travel"),
     },
@@ -63,15 +59,15 @@ test_suites = {
         "test1": Suite(
             "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
         "test2": Suite(
-            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", True),
-    },
-    "kafka-operator": {
-        "test1": Suite(
-            "resizeKafkaCluster.sh", "test-kafka-operator/test/time-travel-1.yaml", "time-travel"),
+            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),
     },
     "mongodb-operator": {
         "test1": Suite(
-            "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel"),
+            "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+        "test2": Suite(
+            "disableEnableShard.sh", "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+        "test3": Suite(
+            "disableEnableArbiter.sh", "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
     },
     "cass-operator": {
         "test1": Suite(
@@ -87,7 +83,6 @@ CRDs = {
     "cassandra-operator": ["cassandradatacenter", "cassandracluster", "cassandrabackup"],
     "zookeeper-operator": ["zookeepercluster"],
     "rabbitmq-operator": ["rabbitmqcluster"],
-    "kafka-operator": ["kafkacluster", "kafkatopic", "kafkauser"],
     "mongodb-operator": ["perconaservermongodb", "perconaservermongodbbackup", "perconaservermongodbrestore"],
     "cass-operator": ["cassandradatacenter"],
 }
@@ -96,7 +91,6 @@ command = {
     "cassandra-operator": "/cassandra-operator",
     "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
     "rabbitmq-operator": "/manager",
-    "kafka-operator": "/manager",
     "mongodb-operator": "percona-server-mongodb-operator",
     "cass-operator": "/bin/operator",
 }
@@ -105,7 +99,6 @@ controller_runtime_version = {
     "cassandra-operator": "v0.4.0",
     "zookeeper-operator": "v0.5.2",
     "rabbitmq-operator": "v0.8.3",
-    "kafka-operator": "v0.6.5",
     "mongodb-operator": "v0.5.2",
     "cass-operator": "v0.5.2",
 }
@@ -114,7 +107,6 @@ client_go_version = {
     "cassandra-operator": "v0.0.0-20190918160344-1fbdaa4c8d90",
     "zookeeper-operator": "v0.17.2",
     "rabbitmq-operator": "v0.20.2",
-    "kafka-operator": "v0.18.9",
     "mongodb-operator": "v0.17.2",
     "cass-operator": "v0.17.4",
 }
@@ -123,7 +115,6 @@ sha = {
     "cassandra-operator": "fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd",
     "zookeeper-operator": "cda03d2f270bdfb51372192766123904f6d88278",
     "rabbitmq-operator": "4f13b9a942ad34fece0171d2174aa0264b10e947",
-    "kafka-operator": "60caff461c5372e5fdb8e117f83fa1b6b4a9e53b",
     "mongodb-operator": "c12b69e2c41efc67336a890039394250420f60bb",
     "cass-operator": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
 }
@@ -132,7 +123,6 @@ docker_file = {
     "cassandra-operator": "docker/cassandra-operator/Dockerfile",
     "zookeeper-operator": "Dockerfile",
     "rabbitmq-operator": "Dockerfile",
-    "kafka-operator": "Dockerfile",
     "mongodb-operator": "build/Dockerfile",
     "cass-operator": "operator/docker/base/Dockerfile",
 }
@@ -141,7 +131,6 @@ learning_configs = {
     "cassandra-operator": "test-cassandra-operator/test/learn.yaml",
     "zookeeper-operator": "test-zookeeper-operator/test/learn.yaml",
     "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
-    "kafka-operator": "test-kafka-operator/test/learn.yaml",
     "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
     "cass-operator": "test-cass-operator/test/learn.yaml",
 }
@@ -188,28 +177,6 @@ def rabbitmq_operator_deploy(dr, dt):
     os.system("rm %s" % new_path)
 
 
-def kafka_operator_deploy(dr, dt):
-    org_dir = os.getcwd()
-    os.system("mv app/kafka-operator/config app/kafka-operator/config-original")
-    os.system("cp -r test-kafka-operator/deploy/config app/kafka-operator/config")
-    os.chdir(os.path.join("app", "kafka-operator"))
-    os.system("make deploy IMG=%s/kafka-operator:%s" % (dr, dt))
-    os.chdir(org_dir)
-
-    # zookeeper cluster is necessary for running kafka
-    # zookeeper_operator_deploy(dr, "vanilla")
-    # time.sleep(10)
-    # kubernetes.config.load_kube_config()
-    # core_v1 = kubernetes.client.CoreV1Api()
-    # zk_pod_name = core_v1.list_namespaced_pod(
-    #     "default", watch=False, label_selector="name=zookeeper-operator").items[0].metadata.name
-    # os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
-    #           (zk_pod_name, command["zookeeper-operator"]))
-    os.system("helm install zookeeper-operator --namespace=zookeeper --create-namespace pravega/zookeeper-operator")
-    os.system("kubectl create -f test-kafka-operator/deploy/zkc.yaml")
-    time.sleep(60)
-
-
 def mongodb_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-mongodb-operator/deploy/bundle.yaml", dr, dt)
@@ -228,7 +195,6 @@ deploy = {
     "cassandra-operator": cassandra_operator_deploy,
     "zookeeper-operator": zookeeper_operator_deploy,
     "rabbitmq-operator": rabbitmq_operator_deploy,
-    "kafka-operator": kafka_operator_deploy,
     "mongodb-operator": mongodb_operator_deploy,
     "cass-operator": cass_operator_deploy,
 }

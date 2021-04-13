@@ -22,7 +22,7 @@ spec:
     serverHost: monitoring-service
   replsets:
   - name: rs0
-    size: 3
+    size: 4
     affinity:
       antiAffinityTopologyKey: "kubernetes.io/hostname"
     podDisruptionBudget:
@@ -31,7 +31,7 @@ spec:
       enabled: false
       exposeType: LoadBalancer
     arbiter:
-      enabled: false
+      enabled: true
       size: 1
       affinity:
         antiAffinityTopologyKey: "kubernetes.io/hostname"

@@ -1,0 +1,23 @@
+project: mongodb-operator
+mode: time-travel
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod: mongodb-operator
+command: percona-server-mongodb-operator
+timing: after
+ce-name: sonar-mongodb-cluster
+ce-namespace: default
+ce-rtype: perconaservermongodb
+ce-diff-current: '{"spec": {"sharding": {"enabled": false}}}'
+ce-diff-previous: '{"spec": {"sharding": {"enabled": true}}}'
+ce-etype-current: Updated
+ce-etype-previous: Added
+se-name: sonar-mongodb-cluster-cfg
+se-namespace: default
+se-rtype: statefulset
+se-etype: ADDED
+description: 'Pause kind-control-plane3 after it processes a default/perconaservermongodb/sonar-mongodb-cluster
+  event E. E should match the pattern {"spec": {"sharding": {"enabled": false}}} and
+  the events before E should match {"spec": {"sharding": {"enabled": true}}}. And
+  restart the controller mongodb-operator after kind-control-plane processes a ADDED
+  default/statefulset/sonar-mongodb-cluster-cfg event.'
