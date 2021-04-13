@@ -1,0 +1,120 @@
+apiVersion: psmdb.percona.com/v1-7-0
+kind: PerconaServerMongoDB
+metadata:
+  name: sonar-mongodb-cluster
+  finalizers:
+    - delete-psmdb-pvc
+spec:
+  crVersion: 1.7.0
+  image: percona/percona-server-mongodb:4.4.3-5
+  imagePullPolicy: Always
+  allowUnsafeConfigurations: false
+  updateStrategy: RollingUpdate
+  upgradeOptions:
+    versionServiceEndpoint: https://check.percona.com
+    apply: recommended
+    schedule: "0 2 * * *"
+  secrets:
+    users: sonar-mongodb-cluster-secrets
+  pmm:
+    enabled: false
+    image: percona/pmm-client:2.12.0
+    serverHost: monitoring-service
+  replsets:
+  - name: rs0
+    size: 4
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+    podDisruptionBudget:
+      maxUnavailable: 1
+    expose:
+      enabled: false
+      exposeType: LoadBalancer
+    arbiter:
+      enabled: true
+      size: 1
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+    resources:
+      limits:
+        cpu: "300m"
+        memory: "0.5G"
+      requests:
+        cpu: "300m"
+        memory: "0.5G"
+    volumeSpec:
+      persistentVolumeClaim:
+        resources:
+          requests:
+            storage: 3Gi
+  sharding:
+    enabled: false
+    configsvrReplSet:
+      size: 1
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+      podDisruptionBudget:
+        maxUnavailable: 1
+      resources:
+        limits:
+          cpu: "300m"
+          memory: "0.5G"
+        requests:
+          cpu: "300m"
+          memory: "0.5G"
+      volumeSpec:
+        persistentVolumeClaim:
+          resources:
+            requests:
+              storage: 3Gi
+    mongos:
+      size: 1
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+      podDisruptionBudget:
+        maxUnavailable: 1
+      resources:
+        limits:
+          cpu: "300m"
+          memory: "0.5G"
+        requests:
+          cpu: "300m"
+          memory: "0.5G"
+      expose:
+        exposeType: ClusterIP
+  mongod:
+    net:
+      port: 27017
+      hostPort: 0
+    security:
+      redactClientLogData: false
+      enableEncryption: true
+      encryptionKeySecret: sonar-mongodb-cluster-mongodb-encryption-key
+      encryptionCipherMode: AES256-CBC
+    setParameter:
+      ttlMonitorSleepSecs: 60
+      wiredTigerConcurrentReadTransactions: 128
+      wiredTigerConcurrentWriteTransactions: 128
+    storage:
+      engine: wiredTiger
+      inMemory:
+        engineConfig:
+          inMemorySizeRatio: 0.9
+      wiredTiger:
+        engineConfig:
+          cacheSizeRatio: 0.5
+          directoryForIndexes: false
+          journalCompressor: snappy
+        collectionConfig:
+          blockCompressor: snappy
+        indexConfig:
+          prefixCompression: true
+    operationProfiling:
+      mode: slowOp
+      slowOpThresholdMs: 100
+      rateLimit: 100
+  backup:
+    enabled: false
+    restartOnFailure: true
+    image: percona/percona-server-mongodb-operator:1.7.0-backup
+    serviceAccountName: percona-server-mongodb-operator
