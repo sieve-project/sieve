@@ -1,0 +1,143 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cassandrarestores.db.orange.com
+spec:
+  group: db.orange.com
+  names:
+    kind: CassandraRestore
+    listKind: CassandraRestoreList
+    plural: cassandrarestores
+    singular: cassandrarestore
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: CassandraRestore is a Casskop Operator resource that represents
+          the restoration of a backup of a Cassandra cluster
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CassandraRestoreSpec defines the specification for a restore
+              of a Cassandra backup.
+            properties:
+              cassandraBackup:
+                description: Name of the CassandraBackup to restore
+                type: string
+              cassandraCluster:
+                description: Name of the CassandraCluster the restore belongs to
+                type: string
+              cassandraDirectory:
+                description: Directory of Cassandra where data folder resides. Defaults
+                  to /var/lib/cassandra
+                type: string
+              concurrentConnection:
+                description: Maximum number of threads used to download files from
+                  the cloud. Defaults to 10
+                format: int32
+                type: integer
+              entities:
+                description: Database entities to restore, it might be either only
+                  keyspaces or only tables prefixed by their respective keyspace,
+                  e.g. 'k1,k2' if one wants to backup whole keyspaces or 'ks1.t1,ks2.t2'
+                  if one wants to restore specific tables. These formats are mutually
+                  exclusive so 'k1,k2.t2' is invalid. An empty field will restore
+                  all keyspaces
+                type: string
+              exactSchemaVersion:
+                description: When set a running node's schema version must match the
+                  snapshot's schema version. There might be cases when we want to
+                  restore a table for which its CQL schema has not changed but it
+                  has changed for other table / keyspace but a schema for that node
+                  has changed by doing that. Defaults to False
+                type: boolean
+              noDeleteTruncates:
+                description: When set do not delete truncated SSTables after they've
+                  been restored during CLEANUP phase. Defaults to false
+                type: boolean
+              rename:
+                additionalProperties:
+                  type: string
+                type: object
+              schemaVersion:
+                description: Version of the schema to restore from. Upon backup, a
+                  schema version is automatically appended to a snapshot name and
+                  its manifest is uploaded under that name. In case we have two snapshots
+                  having same name, we might distinguish between the two of them by
+                  using the schema version. If schema version is not specified, we
+                  expect a unique backup taken with respective snapshot name. This
+                  schema version has to match the version of a Cassandra node we are
+                  doing restore for (hence, by proxy, when global request mode is
+                  used, all nodes have to be on exact same schema version). Defaults
+                  to False
+                type: string
+              secret:
+                description: Name of Secret to use when accessing cloud storage providers
+                type: string
+            required:
+            - cassandraBackup
+            - cassandraCluster
+            type: object
+          status:
+            properties:
+              condition:
+                description: BackRestCondition describes the observed state of a Restore
+                  at a certain point
+                properties:
+                  failureCause:
+                    items:
+                      properties:
+                        message:
+                          description: message explaining the error
+                          type: string
+                        source:
+                          description: hostame of a node where this error has occurred
+                          type: string
+                      type: object
+                    type: array
+                  lastTransitionTime:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - type
+                type: object
+              coordinatorMember:
+                description: Name of the pod the restore operation is executed on
+                type: string
+              id:
+                description: unique identifier of an operation, a random id is assigned
+                  to each operation after a request is submitted, from caller's perspective,
+                  an id is sent back as a response to his request so he can further
+                  query state of that operation, referencing id, by operations/{id}
+                  endpoint
+                type: string
+              progress:
+                description: Progress is a percentage, 100% means the operation is
+                  completed, either successfully or with errors
+                type: string
+              timeCompleted:
+                type: string
+              timeCreated:
+                type: string
+              timeStarted:
+                type: string
+            type: object
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cassandra-configmap-v1
+data:
+
+  pre_run.sh: |-
+    echo "  ** this is pre_run.sh script executed before run.sh **"
+    #Examples:
+    echo "Change default Authenticator & Authorizer"
+    sed -ri 's/(authenticator:).*/\1 PasswordAuthenticator/' /etc/cassandra/cassandra.yaml
+    sed -ri 's/(authorizer:).*/\1 CassandraAuthorizer/' /etc/cassandra/cassandra.yaml
+    #test "$(hostname)" == 'cassandra-demo-dc1-rack2-0' && echo "update param" && sed -i 's/windows_timer_interval: 1/windows_timer_interval: 2/' /etc/cassandra/cassandra.yaml
+    #test "$(hostname)" == 'cassandra-demo-dc1-rack3-0' && echo "-Dcassandra.replace_address_first_boot=172.31.183.209" > /etc/cassandra/jvm.options
+    #test "$(hostname)" == 'cassandra-demo-dc2-rack1-0' && echo "-Dcassandra.override_decommission=true" > /etc/cassandra/jvm.options    
+    echo "  ** end of pre_run.sh script, continue with run.sh **"
+
+  post_run.sh: |-
+    echo "Check Configured seeds by bootstrap"
+    grep "seeds:" /etc/cassandra/cassandra.yaml

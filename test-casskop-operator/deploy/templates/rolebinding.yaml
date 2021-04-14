@@ -1,0 +1,37 @@
+{{- if .Values.rbacEnable }}
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    app: {{ template "cassandra-operator.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "cassandra-operator.name" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "cassandra-operator.name" . }}
+roleRef:
+  kind: Role
+  name: {{ template "cassandra-operator.name" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- range .Values.clusterServiceAccountsName }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    app: {{ template "cassandra-operator.name" $ }}
+    chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    heritage: {{ $.Release.Service }}
+    release: {{ $.Release.Name }}
+  name: {{ . }}-cluster-node
+subjects:
+  - kind: ServiceAccount
+    name: {{ . }}
+roleRef:
+  kind: Role
+  name: {{ template "cassandra-operator.name" $ }}-cluster-node
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
