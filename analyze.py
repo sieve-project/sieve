@@ -62,19 +62,19 @@ class EventIDOnly:
         self.id = id
 
 
-def parseEvent(line):
+def parse_event(line):
     assert SONAR_EVENT_MARK in line
     tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
     return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
 
 
-def parseSideEffect(line):
+def parse_side_effect(line):
     assert SONAR_SIDE_EFFECT_MARK in line
     tokens = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
-def parseCacheRead(line):
+def parse_cache_read(line):
     assert SONAR_CACHE_READ_MARK in line
     tokens = line[line.find(SONAR_CACHE_READ_MARK):].strip("\n").split("\t")
     if tokens[1] == "Get":
@@ -83,7 +83,7 @@ def parseCacheRead(line):
         return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
 
 
-def parseEventIDOnly(line):
+def parse_event_id_only(line):
     assert SONAR_EVENT_APPLIED_MARK in line or SONAR_EVENT_MARK in line
     if SONAR_EVENT_APPLIED_MARK in line:
         tokens = line[line.find(SONAR_EVENT_APPLIED_MARK):].strip("\n").split("\t")
@@ -99,7 +99,7 @@ def generate_event_map(path):
     for line in open(path).readlines():
         if SONAR_EVENT_MARK not in line:
             continue
-        event = parseEvent(line)
+        event = parse_event(line)
         if event.key not in event_map:
             event_map[event.key] = []
         event_map[event.key].append(event)
@@ -154,13 +154,13 @@ def generate_causality_pairs(path, event_id_map):
         # we use the line number as the logic timestamp since all the logs are printed in the same thread
         line = lines[i]
         if SONAR_EVENT_MARK in line:
-            events_cur_round[i] = parseEventIDOnly(line).id
+            events_cur_round[i] = parse_event_id_only(line).id
         elif SONAR_EVENT_APPLIED_MARK in line:
-            events_applied_cur_round[i] = parseEventIDOnly(line).id
+            events_applied_cur_round[i] = parse_event_id_only(line).id
         elif SONAR_CACHE_READ_MARK in line:
-            reads_cur_round[i] = parseCacheRead(line)
+            reads_cur_round[i] = parse_cache_read(line)
         elif SONAR_SIDE_EFFECT_MARK in line:
-            side_effect = parseSideEffect(line)
+            side_effect = parse_side_effect(line)
             events = find_related_events(event_id_map, side_effect,
                                          events_cur_round, events_prev_round,
                                          reads_cur_round,
@@ -186,80 +186,80 @@ def find_previous_event(event, event_map):
                 return event_map[key][i-1], event_map[key][i]
 
 
-def compressObject(prevObject, curObject, slimPrevObject, slimCurObject):
-    toDel = []
-    toDelCur = []
-    toDelPrev = []
-    allKeys = set(curObject.keys()).union(prevObject.keys())
+def compress_object(prev_object, cur_object, slim_prev_object, slim_cur_object):
+    to_del = []
+    to_del_cur = []
+    to_del_prev = []
+    allKeys = set(cur_object.keys()).union(prev_object.keys())
     for key in allKeys:
-        if key not in curObject:
+        if key not in cur_object:
             continue
-        elif key not in prevObject:
+        elif key not in prev_object:
             continue
         elif key == "resourceVersion" or key == "time" or key == "managedFields" or key == "lastTransitionTime" or key == "generation":
-            toDel.append(key)
-        elif str(curObject[key]) != str(prevObject[key]):
-            if isinstance(curObject[key], dict):
-                if not isinstance(prevObject[key], dict):
+            to_del.append(key)
+        elif str(cur_object[key]) != str(prev_object[key]):
+            if isinstance(cur_object[key], dict):
+                if not isinstance(prev_object[key], dict):
                     continue
-                res = compressObject(
-                    prevObject[key], curObject[key], slimPrevObject[key], slimCurObject[key])
+                res = compress_object(
+                    prev_object[key], cur_object[key], slim_prev_object[key], slim_cur_object[key])
                 if res:
-                    toDel.append(key)
-            elif isinstance(curObject[key], list):
-                if not isinstance(prevObject[key], list):
+                    to_del.append(key)
+            elif isinstance(cur_object[key], list):
+                if not isinstance(prev_object[key], list):
                     continue
-                for i in range(len(curObject[key])):
-                    if i >= len(prevObject[key]):
+                for i in range(len(cur_object[key])):
+                    if i >= len(prev_object[key]):
                         break
-                    elif str(curObject[key][i]) != str(prevObject[key][i]):
-                        if isinstance(curObject[key][i], dict):
-                            if not isinstance(prevObject[key][i], dict):
+                    elif str(cur_object[key][i]) != str(prev_object[key][i]):
+                        if isinstance(cur_object[key][i], dict):
+                            if not isinstance(prev_object[key][i], dict):
                                 continue
-                            res = compressObject(
-                                prevObject[key][i], curObject[key][i], slimPrevObject[key][i], slimCurObject[key][i])
+                            res = compress_object(
+                                prev_object[key][i], cur_object[key][i], slim_prev_object[key][i], slim_cur_object[key][i])
                             if res:
                                 # SONAR_SKIP means we can skip the value in list when later comparing to the events in testing run
-                                slimCurObject[key][i] = "SONAR-SKIP"
-                                slimPrevObject[key][i] = "SONAR-SKIP"
-                        elif isinstance(curObject[key][i], list):
+                                slim_cur_object[key][i] = "SONAR-SKIP"
+                                slim_prev_object[key][i] = "SONAR-SKIP"
+                        elif isinstance(cur_object[key][i], list):
                             assert False
                         else:
                             continue
                     else:
-                        slimCurObject[key][i] = "SONAR-SKIP"
-                        slimPrevObject[key][i] = "SONAR-SKIP"
+                        slim_cur_object[key][i] = "SONAR-SKIP"
+                        slim_prev_object[key][i] = "SONAR-SKIP"
             else:
                 continue
         else:
-            toDel.append(key)
-    for key in toDel:
-        del slimCurObject[key]
-        del slimPrevObject[key]
-    for key in slimCurObject:
-        if isinstance(slimCurObject[key], dict):
-            if len(slimCurObject[key]) == 0:
-                toDelCur.append(key)
-    for key in slimPrevObject:
-        if isinstance(slimPrevObject[key], dict):
-            if len(slimPrevObject[key]) == 0:
-                toDelPrev.append(key)
-    for key in toDelCur:
-        del slimCurObject[key]
-    for key in toDelPrev:
-        del slimPrevObject[key]
-    if len(slimCurObject) == 0 and len(slimPrevObject) == 0:
+            to_del.append(key)
+    for key in to_del:
+        del slim_cur_object[key]
+        del slim_prev_object[key]
+    for key in slim_cur_object:
+        if isinstance(slim_cur_object[key], dict):
+            if len(slim_cur_object[key]) == 0:
+                to_del_cur.append(key)
+    for key in slim_prev_object:
+        if isinstance(slim_prev_object[key], dict):
+            if len(slim_prev_object[key]) == 0:
+                to_del_prev.append(key)
+    for key in to_del_cur:
+        del slim_cur_object[key]
+    for key in to_del_prev:
+        del slim_prev_object[key]
+    if len(slim_cur_object) == 0 and len(slim_prev_object) == 0:
         return True
     return False
 
 
-def diffEvents(prevEvent, curEvent):
-    prevObject = prevEvent.obj
-    curObject = curEvent.obj
-    slimPrevObject = copy.deepcopy(prevObject)
-    slimCurObject = copy.deepcopy(curObject)
-    compressObject(prevObject, curObject, slimPrevObject, slimCurObject)
-    return slimPrevObject, slimCurObject
+def diff_events(prevEvent, curEvent):
+    prev_object = prevEvent.obj
+    cur_object = curEvent.obj
+    slim_prev_object = copy.deepcopy(prev_object)
+    slim_cur_object = copy.deepcopy(cur_object)
+    compress_object(prev_object, cur_object, slim_prev_object, slim_cur_object)
+    return slim_prev_object, slim_cur_object
 
 
 def canonicalization(event):
@@ -291,7 +291,7 @@ def generate_triggering_points(event_map, causality_pairs):
             # elif prev_event.etype != cur_event.etype:
             #     triggering_point["ttype"] = "todo"
             else:
-                slim_prev_obj, slim_cur_obj = diffEvents(
+                slim_prev_obj, slim_cur_obj = diff_events(
                     prev_event, cur_event)
                 triggering_point["ttype"] = "event-delta"
                 triggering_point["prevEvent"] = slim_prev_obj
@@ -302,56 +302,56 @@ def generate_triggering_points(event_map, causality_pairs):
     return triggering_points
 
 
-def timeTravelDescription(yamlMap):
+def time_travel_description(yaml_map):
     return "Pause %s after it processes a %s event E. "\
         "E should match the pattern %s and the events before E should match %s. "\
         "And restart the controller %s after %s processes a %s %s event." % (
-            yamlMap["straggler"], "/".join([yamlMap["ce-namespace"],
-                                           yamlMap["ce-rtype"], yamlMap["ce-name"]]),
-            yamlMap["ce-diff-current"], yamlMap["ce-diff-previous"], yamlMap["operator-pod"],
-            yamlMap["front-runner"], yamlMap["se-etype"], "/".join([yamlMap["se-namespace"],
-                                                                    yamlMap["se-rtype"], yamlMap["se-name"]]))
+            yaml_map["straggler"], "/".join([yaml_map["ce-namespace"],
+                                             yaml_map["ce-rtype"], yaml_map["ce-name"]]),
+            yaml_map["ce-diff-current"], yaml_map["ce-diff-previous"], yaml_map["operator-pod"],
+            yaml_map["front-runner"], yaml_map["se-etype"], "/".join([yaml_map["se-namespace"],
+                                                                      yaml_map["se-rtype"], yaml_map["se-name"]]))
 
 
-def generateTimaTravelYaml(triggeringPoints, path, project, timing="after"):
-    yamlMap = {}
-    yamlMap["project"] = project
-    yamlMap["mode"] = "time-travel"
-    yamlMap["straggler"] = "kind-control-plane3"
-    yamlMap["front-runner"] = "kind-control-plane"
-    yamlMap["operator-pod"] = project
-    yamlMap["command"] = controllers.command[project]
-    yamlMap["timing"] = timing
+def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
+    yaml_map = {}
+    yaml_map["project"] = project
+    yaml_map["mode"] = "time-travel"
+    yaml_map["straggler"] = "kind-control-plane3"
+    yaml_map["front-runner"] = "kind-control-plane"
+    yaml_map["operator-pod"] = project
+    yaml_map["command"] = controllers.command[project]
+    yaml_map["timing"] = timing
     i = 0
-    for triggeringPoint in triggeringPoints:
-        if triggeringPoint["ttype"] != "event-delta":
+    for triggering_point in triggering_points:
+        if triggering_point["ttype"] != "event-delta":
             # TODO: handle the single event trigger
             continue
-        effect = triggeringPoint["effect"]
+        effect = triggering_point["effect"]
         # TODO: consider update side effects and even app-specific side effects
         if effect["etype"] != "Delete" and (ONLY_DELETE or effect["etype"] != "Create"):
             continue
         i += 1
-        yamlMap["ce-name"] = triggeringPoint["name"]
-        yamlMap["ce-namespace"] = triggeringPoint["namespace"]
-        yamlMap["ce-rtype"] = triggeringPoint["rtype"]
-        yamlMap["ce-diff-current"] = json.dumps(
-            canonicalization(copy.deepcopy(triggeringPoint["curEvent"])))
-        yamlMap["ce-diff-previous"] = json.dumps(
-            canonicalization(copy.deepcopy(triggeringPoint["prevEvent"])))
-        yamlMap["ce-etype-current"] = triggeringPoint["curEventType"]
-        yamlMap["ce-etype-previous"] = triggeringPoint["prevEventType"]
-        yamlMap["se-name"] = effect["name"]
-        yamlMap["se-namespace"] = effect["namespace"]
-        yamlMap["se-rtype"] = effect["rtype"]
-        yamlMap["se-etype"] = "ADDED" if effect["etype"] == "Delete" else "DELETED"
-        yamlMap["description"] = timeTravelDescription(yamlMap)
-        yaml.dump(yamlMap, open(
+        yaml_map["ce-name"] = triggering_point["name"]
+        yaml_map["ce-namespace"] = triggering_point["namespace"]
+        yaml_map["ce-rtype"] = triggering_point["rtype"]
+        yaml_map["ce-diff-current"] = json.dumps(
+            canonicalization(copy.deepcopy(triggering_point["curEvent"])))
+        yaml_map["ce-diff-previous"] = json.dumps(
+            canonicalization(copy.deepcopy(triggering_point["prevEvent"])))
+        yaml_map["ce-etype-current"] = triggering_point["curEventType"]
+        yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
+        yaml_map["se-name"] = effect["name"]
+        yaml_map["se-namespace"] = effect["namespace"]
+        yaml_map["se-rtype"] = effect["rtype"]
+        yaml_map["se-etype"] = "ADDED" if effect["etype"] == "Delete" else "DELETED"
+        yaml_map["description"] = time_travel_description(yaml_map)
+        yaml.dump(yaml_map, open(
             os.path.join(path, "%s-%s.yaml" % (str(i), timing)), "w"), sort_keys=False)
     print("Generated %d time-travel configs" % i)
 
 
-def generateDigest(path):
+def generate_digest(path):
     side_effect = {}
     side_effect_empty_entry = {"create": 0, "update": 0,
                                "delete": 0, "patch": 0, "deleteallof": 0}
@@ -398,24 +398,20 @@ def generateDigest(path):
     return side_effect, status
 
 
-def dump_files(dir, event_map, causality_pairs, side_effect, status, triggeringPoints):
+def dump_files(dir, event_map, causality_pairs, side_effect, status, triggering_points):
     json_dir = os.path.join(dir, "generated-json")
     if os.path.exists(json_dir):
         shutil.rmtree(json_dir)
     os.makedirs(json_dir, exist_ok=True)
-    # json.dump(event_map, open(os.path.join(
-    #     json_dir, "event-map.json"), "w"), indent=4)
-    # json.dump(causality_pairs, open(os.path.join(
-    #     json_dir, "causality-pairs.json"), "w"), indent=4)
     json.dump(side_effect, open(os.path.join(
         dir, "side-effect.json"), "w"), indent=4, sort_keys=True)
     json.dump(status, open(os.path.join(
         dir, "status.json"), "w"), indent=4, sort_keys=True)
-    json.dump(triggeringPoints, open(os.path.join(
+    json.dump(triggering_points, open(os.path.join(
         json_dir, "triggering-points.json"), "w"), indent=4)
 
 
-def analyzeTrace(project, dir, double_sides=False):
+def analyze_trace(project, dir, double_sides=False):
     log_path = os.path.join(dir, "sonar-server.log")
     conf_dir = os.path.join(dir, "generated-config")
     if os.path.exists(conf_dir):
@@ -423,38 +419,18 @@ def analyzeTrace(project, dir, double_sides=False):
     os.makedirs(conf_dir, exist_ok=True)
     event_map, event_id_map = generate_event_map(log_path)
     causality_pairs = generate_causality_pairs(log_path, event_id_map)
-    side_effect, status = generateDigest(log_path)
-    triggeringPoints = generate_triggering_points(event_map, causality_pairs)
+    side_effect, status = generate_digest(log_path)
+    triggering_points = generate_triggering_points(event_map, causality_pairs)
     dump_files(dir, event_map, causality_pairs,
-               side_effect, status, triggeringPoints)
-    generateTimaTravelYaml(triggeringPoints, conf_dir, project)
+               side_effect, status, triggering_points)
+    generate_time_travel_yaml(triggering_points, conf_dir, project)
     if double_sides:
-        generateTimaTravelYaml(triggeringPoints, conf_dir, project, "before")
+        generate_time_travel_yaml(
+            triggering_points, conf_dir, project, "before")
 
 
 if __name__ == "__main__":
     project = sys.argv[1]
     test = sys.argv[2]
     dir = os.path.join("log", project, test, "learn")
-    analyzeTrace(project, dir)
-
-    # dir = os.path.join("data", project, test, "learn")
-    # path = os.path.join(dir, "digest.json")
-    # # analyzeTrace(project, dir)
-    # digest = json.load(open(path))
-    # status = {}
-    # side_effect = {}
-    # for key in digest:
-    #     if digest[key]["size"] != -1 and digest[key]["terminating"] != -1:
-    #         status[key] = {}
-    #         status[key]["size"] = digest[key]["size"]
-    #         status[key]["terminating"] = digest[key]["terminating"]
-    #     if digest[key]["create"] != 0 or digest[key]["update"] != 0 or digest[key]["delete"] != 0:
-    #         side_effect[key] = {}
-    #         side_effect[key]["create"] = digest[key]["create"]
-    #         side_effect[key]["update"] = digest[key]["update"]
-    #         side_effect[key]["delete"] = digest[key]["delete"]
-    # json.dump(status, open(os.path.join(dir, "status.json"), "w"),
-    #           indent=4, sort_keys=True)
-    # json.dump(side_effect, open(os.path.join(dir, "side-effect.json"), "w"),
-    #           indent=4, sort_keys=True)
+    analyze_trace(project, dir)
