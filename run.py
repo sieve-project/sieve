@@ -28,6 +28,9 @@ def compare_map(learned_map, testing_map, map_type):
             continue
         else:
             for attr in learned_map[rtype]:
+                if attr not in testing_map[rtype]:
+                    print("[WARN] attr: %s not int rtype: %s: "%(attr, rtype), testing_map[rtype])
+                    continue
                 if learned_map[rtype][attr] != testing_map[rtype][attr]:
                     level = "WARN" if attr == "update" else "ERROR"
                     alarm += 0 if attr == "update" else 1
@@ -93,6 +96,9 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
     pod_name = core_v1.list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+    
+    container_num = len(core_v1.list_namespaced_pod("default", watch=False, label_selector="sonartag="+project).items[0].status.container_statuses)
+    container_flag = "" if container_num == 1 else "-c manager" # Assume the container name is called "manager"
 
     api1_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
@@ -102,9 +108,9 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
     watch_crd(project, [api1_addr, api2_addr, api3_addr])
 
-    os.system("kubectl cp %s %s:/sonar.yaml" % (controller_config, pod_name))
-    os.system("kubectl exec %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
-              (pod_name, controllers.command[project]))
+    os.system("kubectl cp %s %s %s:/sonar.yaml" % (container_flag, controller_config, pod_name))
+    os.system("kubectl exec %s %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
+              (container_flag, pod_name, controllers.command[project]))
 
     org_dir = os.getcwd()
     os.chdir(controllers.test_dir[project])
@@ -119,8 +125,8 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
         "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
     os.system(
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
-    os.system("kubectl cp %s:/operator.log %s/operator.log" %
-              (pod_name, log_dir))
+    os.system("kubectl cp %s %s:/operator.log %s/operator.log" %
+              (container_flag, pod_name, log_dir))
 
 
 def run(test_suites, project, test, log_dir, mode, config, docker):
