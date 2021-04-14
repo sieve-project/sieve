@@ -19,7 +19,6 @@ LABEL org.label-schema.docker.cmd.debug="N/A"
 LABEL org.label-schema.docker.params="LOG_LEVEL=define loglevel,RESYNC_PERIOD=period in second to execute resynchronisation,WATCH_NAMESPACE=namespace to watch for cassandraclusters,OPERATOR_NAME=name of the operator instance pod"
 
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 RUN apk update
 RUN apk upgrade
 RUN apk add bash

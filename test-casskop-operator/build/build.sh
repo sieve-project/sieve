@@ -10,5 +10,6 @@ if [ -z "$dockertag" ]; then
     exit 1
 fi
 
-/usr/bin/env BUILD_IMAGE=laphets/casskop-build REPOSITORY=${dockerrepo}/casskop-operator VERSION=${dockertag} make docker-build
+/usr/bin/env PUSHLATEST=true BUILD_IMAGE=laphets/casskop-build make docker-build
+docker tag orangeopensource/casskop:latest ${dockerrepo}/casskop-operator:${dockertag} 
 docker push ${dockerrepo}/casskop-operator:${dockertag}
