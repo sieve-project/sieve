@@ -112,6 +112,7 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
 
     # copy the build.sh and Dockerfile
     os.system("cp test-%s/build/build.sh app/%s/build.sh" % (project, project))
+    os.system("cp test-%s/build/Makefile app/%s/Makefile" % (project, project))
     os.system("cp test-%s/build/Dockerfile app/%s/%s" %
               (project, project, docker_file_path))
     os.chdir("app/%s" % project)

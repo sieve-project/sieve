@@ -1,0 +1,136 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cassandrabackups.db.orange.com
+spec:
+  group: db.orange.com
+  names:
+    kind: CassandraBackup
+    listKind: CassandraBackupList
+    plural: cassandrabackups
+    singular: cassandrabackup
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Defines a backup operation and its details
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              bandwidth:
+                description: Specify the bandwidth to not exceed when uploading files
+                  to the cloud. Format supported is \d+[KMG] case insensitive. You
+                  can use values like 10M (meaning 10MB), 1024, 1024K, 2G, etc...
+                type: string
+              cassandraCluster:
+                description: Name of the CassandraCluster to backup
+                type: string
+              concurrentConnections:
+                description: Maximum number of threads used to download files from
+                  the cloud. Defaults to 10
+                format: int32
+                type: integer
+              datacenter:
+                description: Cassandra DC name to back up, used to find the cassandra
+                  nodes in the CassandraCluster
+                type: string
+              duration:
+                description: Specify a duration the backup should try to last. See
+                  https://golang.org/pkg/time/#ParseDuration for an exhaustive list
+                  of the supported units. You can use values like .25h, 15m, 900s
+                  all meaning 15 minutes
+                type: string
+              entities:
+                description: Database entities to backup, it might be either only
+                  keyspaces or only tables prefixed by their respective keyspace,
+                  e.g. 'k1,k2' if one wants to backup whole keyspaces or 'ks1.t1,ks2.t2'
+                  if one wants to restore specific tables. These formats are mutually
+                  exclusive so 'k1,k2.t2' is invalid. An empty field will backup all
+                  keyspaces
+                type: string
+              schedule:
+                description: Specify a schedule to assigned to the backup. The schedule
+                  doesn't enforce anything so if you schedule multiple backups around
+                  the same time they would conflict. See https://godoc.org/github.com/robfig/cron
+                  for more information regarding the supported formats
+                type: string
+              secret:
+                description: Name of Secret to use when accessing cloud storage providers
+                type: string
+              snapshotTag:
+                description: name of snapshot to make so this snapshot will be uploaded
+                  to storage location. If not specified, the name of snapshot will
+                  be automatically generated and it will have name 'autosnap-milliseconds-since-epoch'
+                type: string
+              storageLocation:
+                description: URI for the backup target location e.g. s3 bucket, filepath
+                type: string
+            required:
+            - cassandraCluster
+            - datacenter
+            - snapshotTag
+            - storageLocation
+            type: object
+          status:
+            properties:
+              condition:
+                description: BackRestCondition describes the observed state of a Restore
+                  at a certain point
+                properties:
+                  failureCause:
+                    items:
+                      properties:
+                        message:
+                          description: message explaining the error
+                          type: string
+                        source:
+                          description: hostame of a node where this error has occurred
+                          type: string
+                      type: object
+                    type: array
+                  lastTransitionTime:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - type
+                type: object
+              coordinatorMember:
+                description: Name of the pod the restore operation is executed on
+                type: string
+              id:
+                description: unique identifier of an operation, a random id is assigned
+                  to each operation after a request is submitted, from caller's perspective,
+                  an id is sent back as a response to his request so he can further
+                  query state of that operation, referencing id, by operations/{id}
+                  endpoint
+                type: string
+              progress:
+                description: Progress is a percentage, 100% means the operation is
+                  completed, either successfully or with errors
+                type: string
+              timeCompleted:
+                type: string
+              timeCreated:
+                type: string
+              timeStarted:
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
