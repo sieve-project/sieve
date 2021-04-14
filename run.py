@@ -5,8 +5,8 @@ import enum
 import time
 import json
 import glob
-from analyze import analyzeTrace
-from analyze import generateDigest
+from analyze import analyze_trace
+from analyze import generate_digest
 import controllers
 
 
@@ -136,7 +136,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         learn_config = controllers.learning_configs[project]
         run_test(project, mode, suite.workload,
                  learn_config, learn_config, learn_config, log_dir, docker, mode, suite.cluster_config)
-        analyzeTrace(project, log_dir, suite.double_sides)
+        analyze_trace(project, log_dir, suite.double_sides)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
@@ -156,7 +156,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
             data_dir, "status.json")))
         run_test(project, test_mode, suite.workload,
                  test_config, test_config, test_config, log_dir, docker, test_mode, suite.cluster_config)
-        testing_side_effect, testing_status = generateDigest(
+        testing_side_effect, testing_status = generate_digest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
             compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status))
