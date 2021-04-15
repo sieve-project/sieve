@@ -33,8 +33,10 @@ class Event:
         self.etype = etype
         self.rtype = rtype
         self.obj = obj
+        # TODO: In some case the metadata doesn't carry in namespace field, may dig into that later
+        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "default" 
         self.key = self.rtype + "/" + \
-            self.obj["metadata"]["namespace"] + \
+            self.namespace + \
             "/" + self.obj["metadata"]["name"]
 
 
