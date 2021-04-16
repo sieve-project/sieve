@@ -34,7 +34,7 @@ class Event:
         self.rtype = rtype
         self.obj = obj
         # TODO: In some case the metadata doesn't carry in namespace field, may dig into that later
-        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "default" 
+        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "default"
         self.key = self.rtype + "/" + \
             self.namespace + \
             "/" + self.obj["metadata"]["name"]
@@ -88,7 +88,8 @@ def parse_cache_read(line):
 def parse_event_id_only(line):
     assert SONAR_EVENT_APPLIED_MARK in line or SONAR_EVENT_MARK in line
     if SONAR_EVENT_APPLIED_MARK in line:
-        tokens = line[line.find(SONAR_EVENT_APPLIED_MARK):].strip("\n").split("\t")
+        tokens = line[line.find(SONAR_EVENT_APPLIED_MARK)
+                                :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
         tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
@@ -324,6 +325,7 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map["operator-pod"] = project
     yaml_map["command"] = controllers.command[project]
     yaml_map["timing"] = timing
+    suffix = "-b" if timing == "before" else ""
     i = 0
     for triggering_point in triggering_points:
         if triggering_point["ttype"] != "event-delta":
@@ -349,8 +351,8 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
         yaml_map["se-etype"] = "ADDED" if effect["etype"] == "Delete" else "DELETED"
         yaml_map["description"] = time_travel_description(yaml_map)
         yaml.dump(yaml_map, open(
-            os.path.join(path, "%s-%s.yaml" % (str(i), timing)), "w"), sort_keys=False)
-    print("Generated %d time-travel configs" % i)
+            os.path.join(path, "time-travel-%s%s.yaml" % (str(i), suffix)), "w"), sort_keys=False)
+    print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
 def generate_digest(path):
