@@ -5,4 +5,4 @@ set -ex
 kubectl apply -f rmqc-1.yaml
 sleep 50s
 kubectl apply -f rmqc-1-15Gi.yaml
-sleep 50s
+if [ $1 = 'learn' ]; then sleep 100s; else sleep 50s; fi
