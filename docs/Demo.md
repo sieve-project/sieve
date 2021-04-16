@@ -41,6 +41,7 @@ When it finishes, you will see a bug is detected by sonar that:
 [BUGGY] # alarms: 3
 ```
 Sonar detects that the controller mistakenly deletes a statefulset during testing.
+The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and gets fixed using our patch.
 
 ### What happened during the testing?
 
