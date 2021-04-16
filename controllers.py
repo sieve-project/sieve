@@ -75,6 +75,7 @@ test_suites = {
     "cass-operator": {
         "test1": Suite(
             "recreateCassandraDataCenter.sh", "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+    },
     "casskop-operator": {
         "test1": Suite(
             "recreateCassandraCluster.sh", "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
@@ -114,7 +115,7 @@ client_go_version = {
     "rabbitmq-operator": "v0.20.2",
     "mongodb-operator": "v0.17.2",
     "cass-operator": "v0.17.4",
-    "casskop-operator": "v0.18.2"
+    "casskop-operator": "v0.18.2",
 }
 
 sha = {
@@ -123,7 +124,7 @@ sha = {
     "rabbitmq-operator": "4f13b9a942ad34fece0171d2174aa0264b10e947",
     "mongodb-operator": "c12b69e2c41efc67336a890039394250420f60bb",
     "cass-operator": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
-    "casskop-operator": "f87c8e05c1a2896732fc5f3a174f1eb99e936907"
+    "casskop-operator": "f87c8e05c1a2896732fc5f3a174f1eb99e936907",
 }
 
 docker_file = {
@@ -132,7 +133,7 @@ docker_file = {
     "rabbitmq-operator": "Dockerfile",
     "mongodb-operator": "build/Dockerfile",
     "cass-operator": "operator/docker/base/Dockerfile",
-    "casskop-operator": "build/Dockerfile"
+    "casskop-operator": "build/Dockerfile",
 }
 
 learning_configs = {
@@ -141,7 +142,7 @@ learning_configs = {
     "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
     "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
     "cass-operator": "test-cass-operator/test/learn.yaml",
-    "casskop-operator": "test-casskop-operator/test/learn.yaml"
+    "casskop-operator": "test-casskop-operator/test/learn.yaml",
 }
 
 
@@ -213,5 +214,5 @@ deploy = {
     "rabbitmq-operator": rabbitmq_operator_deploy,
     "mongodb-operator": mongodb_operator_deploy,
     "cass-operator": cass_operator_deploy,
-    "casskop-operator": casskop_operator_deploy
+    "casskop-operator": casskop_operator_deploy,
 }
