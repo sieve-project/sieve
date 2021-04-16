@@ -6,25 +6,7 @@ import os
 import shutil
 import kubernetes
 import controllers
-
-WRITE_READ_FLAG = True
-ERROR_FILTER = True
-CROSS_BOUNDARY_FLAG = True
-ONLY_DELETE = True
-
-SONAR_EVENT_MARK = "[SONAR-EVENT]"
-SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
-SONAR_CACHE_READ_MARK = "[SONAR-CACHE-READ]"
-SONAR_START_RECONCILE_MARK = "[SONAR-START-RECONCILE]"
-SONAR_FINISH_RECONCILE_MARK = "[SONAR-FINISH-RECONCILE]"
-SONAR_EVENT_APPLIED_MARK = "[SONAR-EVENT-APPLIED]"
-
-POD = "pod"
-PVC = "persistentvolumeclaim"
-DEPLOYMENT = "deployment"
-STS = "statefulset"
-
-ktypes = [POD, PVC, DEPLOYMENT, STS]
+import constant
 
 
 class Event:
@@ -65,20 +47,21 @@ class EventIDOnly:
 
 
 def parse_event(line):
-    assert SONAR_EVENT_MARK in line
-    tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
+    assert constant.SONAR_EVENT_MARK in line
+    tokens = line[line.find(constant.SONAR_EVENT_MARK):].strip("\n").split("\t")
     return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
 
 
 def parse_side_effect(line):
-    assert SONAR_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n").split("\t")
+    assert constant.SONAR_SIDE_EFFECT_MARK in line
+    tokens = line[line.find(constant.SONAR_SIDE_EFFECT_MARK):].strip(
+        "\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
 def parse_cache_read(line):
-    assert SONAR_CACHE_READ_MARK in line
-    tokens = line[line.find(SONAR_CACHE_READ_MARK):].strip("\n").split("\t")
+    assert constant.SONAR_CACHE_READ_MARK in line
+    tokens = line[line.find(constant.SONAR_CACHE_READ_MARK):].strip("\n").split("\t")
     if tokens[1] == "Get":
         return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
     else:
@@ -86,13 +69,13 @@ def parse_cache_read(line):
 
 
 def parse_event_id_only(line):
-    assert SONAR_EVENT_APPLIED_MARK in line or SONAR_EVENT_MARK in line
-    if SONAR_EVENT_APPLIED_MARK in line:
-        tokens = line[line.find(SONAR_EVENT_APPLIED_MARK)
-                                :].strip("\n").split("\t")
+    assert constant.SONAR_EVENT_APPLIED_MARK in line or constant.SONAR_EVENT_MARK in line
+    if constant.SONAR_EVENT_APPLIED_MARK in line:
+        tokens = line[line.find(constant.SONAR_EVENT_APPLIED_MARK):].strip(
+            "\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
+        tokens = line[line.find(constant.SONAR_EVENT_MARK):].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
 
 
@@ -100,7 +83,7 @@ def generate_event_map(path):
     event_map = {}
     event_id_map = {}
     for line in open(path).readlines():
-        if SONAR_EVENT_MARK not in line:
+        if constant.SONAR_EVENT_MARK not in line:
             continue
         event = parse_event(line)
         if event.key not in event_map:
@@ -128,10 +111,10 @@ def find_related_events(event_id_map, sideEffect, events_cur_round, events_prev_
     final_related_events = []
     related_events = set(events_cur_round.values())
     unrelated_events = set()
-    if CROSS_BOUNDARY_FLAG:
+    if constant.CROSS_BOUNDARY_FLAG:
         related_events.update(set(events_applied_prev_round.values()))
         related_events.update(set(events_prev_round.values()))
-    if WRITE_READ_FLAG:
+    if constant.WRITE_READ_FLAG:
         for event_ts in events_prev_round:
             if not affect_read(event_id_map, events_prev_round[event_ts], event_ts, reads_cur_round):
                 unrelated_events.add(events_prev_round[event_ts])
@@ -156,20 +139,20 @@ def generate_causality_pairs(path, event_id_map):
     for i in range(len(lines)):
         # we use the line number as the logic timestamp since all the logs are printed in the same thread
         line = lines[i]
-        if SONAR_EVENT_MARK in line:
+        if constant.SONAR_EVENT_MARK in line:
             events_cur_round[i] = parse_event_id_only(line).id
-        elif SONAR_EVENT_APPLIED_MARK in line:
+        elif constant.SONAR_EVENT_APPLIED_MARK in line:
             events_applied_cur_round[i] = parse_event_id_only(line).id
-        elif SONAR_CACHE_READ_MARK in line:
+        elif constant.SONAR_CACHE_READ_MARK in line:
             reads_cur_round[i] = parse_cache_read(line)
-        elif SONAR_SIDE_EFFECT_MARK in line:
+        elif constant.SONAR_SIDE_EFFECT_MARK in line:
             side_effect = parse_side_effect(line)
             events = find_related_events(event_id_map, side_effect,
                                          events_cur_round, events_prev_round,
                                          reads_cur_round,
                                          events_applied_cur_round, events_applied_prev_round)
             causality_pairs.append([side_effect, events])
-        elif SONAR_FINISH_RECONCILE_MARK in line:
+        elif constant.SONAR_FINISH_RECONCILE_MARK in line:
             events_prev_round = copy.deepcopy(events_cur_round)
             events_cur_round = {}
             events_applied_prev_round = copy.deepcopy(events_applied_cur_round)
@@ -279,7 +262,7 @@ def generate_triggering_points(event_map, causality_pairs):
     triggering_points = []
     for pair in causality_pairs:
         side_effect = pair[0]
-        if ERROR_FILTER:
+        if constant.ERROR_FILTER:
             if side_effect.error == "NotFound":
                 continue
         events = pair[1]
@@ -333,7 +316,7 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
             continue
         effect = triggering_point["effect"]
         # TODO: consider update side effects and even app-specific side effects
-        if effect["etype"] != "Delete" and (ONLY_DELETE or effect["etype"] != "Create"):
+        if effect["etype"] != "Delete" and (constant.ONLY_DELETE or effect["etype"] != "Create"):
             continue
         i += 1
         yaml_map["ce-name"] = triggering_point["name"]
@@ -360,13 +343,13 @@ def generate_digest(path):
     side_effect_empty_entry = {"create": 0, "update": 0,
                                "delete": 0, "patch": 0, "deleteallof": 0}
     for line in open(path).readlines():
-        if SONAR_SIDE_EFFECT_MARK not in line:
+        if constant.SONAR_SIDE_EFFECT_MARK not in line:
             continue
-        line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n")
+        line = line[line.find(constant.SONAR_SIDE_EFFECT_MARK):].strip("\n")
         tokens = line.split("\t")
         effectType = tokens[1].lower()
         rType = tokens[2]
-        if ERROR_FILTER:
+        if constant.ERROR_FILTER:
             if tokens[5] == "NotFound":
                 continue
         if rType not in side_effect:
@@ -380,19 +363,19 @@ def generate_digest(path):
     apps_v1 = kubernetes.client.AppsV1Api()
     k8s_namespace = "default"
     resources = {}
-    for ktype in ktypes:
+    for ktype in constant.KTYPES:
         resources[ktype] = []
         if ktype not in status:
             status[ktype] = copy.deepcopy(status_empty_entry)
     for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
-        resources[POD].append(pod)
+        resources[constant.POD].append(pod)
     for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
-        resources[PVC].append(pvc)
+        resources[constant.PVC].append(pvc)
     for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
-        resources[DEPLOYMENT].append(dp)
+        resources[constant.DEPLOYMENT].append(dp)
     for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
-        resources[STS].append(sts)
-    for ktype in ktypes:
+        resources[constant.STS].append(sts)
+    for ktype in constant.KTYPES:
         status[ktype]["size"] = len(resources[ktype])
         terminating = 0
         for item in resources[ktype]:
