@@ -23,6 +23,7 @@ github_link = {
     "mongodb-operator": "git@github.com:percona/percona-server-mongodb-operator.git",
     "cass-operator": "git@github.com:datastax/cass-operator.git",
     "casskop-operator": "git@github.com:Orange-OpenSource/casskop.git",
+    "xtradb-operator": "git@github.com:percona/percona-xtradb-cluster-operator.git",
 }
 
 app_dir = {
@@ -32,6 +33,7 @@ app_dir = {
     "mongodb-operator": "app/mongodb-operator",
     "cass-operator": "app/cass-operator",
     "casskop-operator": "app/casskop-operator",
+    "xtradb-operator": "app/xtradb-operator",
 }
 
 test_dir = {
@@ -41,6 +43,7 @@ test_dir = {
     "mongodb-operator": "test-mongodb-operator/test",
     "cass-operator": "test-cass-operator/test",
     "casskop-operator": "test-casskop-operator/test",
+    "xtradb-operator": "test-xtradb-operator/test",
 }
 
 test_suites = {
@@ -80,6 +83,10 @@ test_suites = {
         "test1": Suite(
             "recreateCassandraCluster.sh", "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
     },
+    "xtradb-operator": {
+        "test1": Suite(
+            "recreateCassandraCluster.sh", "", "time-travel", cluster_config="kind-ha-4w.yaml"),
+    },
 }
 
 CRDs = {
@@ -89,6 +96,7 @@ CRDs = {
     "mongodb-operator": ["perconaservermongodb", "perconaservermongodbbackup", "perconaservermongodbrestore"],
     "cass-operator": ["cassandradatacenter"],
     "casskop-operator": ["cassandracluster", "cassandrarestore", "cassandrabackup"],
+    "xtradb-operator": ["perconaxtradbcluster", "perconaxtradbclusterbackup", "perconaxtradbclusterrestore", "perconaxtradbbackup"],
 }
 
 command = {
@@ -97,7 +105,8 @@ command = {
     "rabbitmq-operator": "/manager",
     "mongodb-operator": "percona-server-mongodb-operator",
     "cass-operator": "/bin/operator",
-    "casskop-operator": "/usr/local/bin/casskop"
+    "casskop-operator": "/usr/local/bin/casskop",
+    "xtradb-operator": "percona-xtradb-cluster-operator",
 }
 
 controller_runtime_version = {
@@ -107,6 +116,7 @@ controller_runtime_version = {
     "mongodb-operator": "v0.5.2",
     "cass-operator": "v0.5.2",
     "casskop-operator": "v0.6.0",
+    "xtradb-operator": "v0.6.2",
 }
 
 client_go_version = {
@@ -116,6 +126,7 @@ client_go_version = {
     "mongodb-operator": "v0.17.2",
     "cass-operator": "v0.17.4",
     "casskop-operator": "v0.18.2",
+    "xtradb-operator": "v0.18.6",
 }
 
 sha = {
@@ -125,6 +136,7 @@ sha = {
     "mongodb-operator": "c12b69e2c41efc67336a890039394250420f60bb",
     "cass-operator": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
     "casskop-operator": "f87c8e05c1a2896732fc5f3a174f1eb99e936907",
+    "xtradb-operator": "29092c9b145af6eaf5cbff534287483bec4167b6",
 }
 
 docker_file = {
@@ -134,6 +146,7 @@ docker_file = {
     "mongodb-operator": "build/Dockerfile",
     "cass-operator": "operator/docker/base/Dockerfile",
     "casskop-operator": "build/Dockerfile",
+    "xtradb-operator": "build/Dockerfile",
 }
 
 learning_configs = {
@@ -143,6 +156,7 @@ learning_configs = {
     "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
     "cass-operator": "test-cass-operator/test/learn.yaml",
     "casskop-operator": "test-casskop-operator/test/learn.yaml",
+    "xtradb-operator": "test-xtradb-operator/test/learn.yaml",
 }
 
 
@@ -207,6 +221,11 @@ def casskop_operator_deploy(dr, dt):
         "test-casskop-operator/deploy/values.yaml", dr, dt)
     os.system("helm install -f %s casskop-operator test-casskop-operator/deploy"%(new_path))
 
+def xtradb_operator_deploy(dr, dt):
+    new_path = replace_docker_repo(
+        "test-xtradb-operator/deploy/bundle.yaml", dr, dt)
+    os.system("kubectl apply -f %s" % new_path)
+    os.system("rm %s" % new_path)
 
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
@@ -215,4 +234,5 @@ deploy = {
     "mongodb-operator": mongodb_operator_deploy,
     "cass-operator": cass_operator_deploy,
     "casskop-operator": casskop_operator_deploy,
+    "xtradb-operator": xtradb_operator_deploy,
 }
