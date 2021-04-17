@@ -7,6 +7,7 @@ import shutil
 import kubernetes
 import controllers
 import constant
+import oracle
 
 
 class Event:
@@ -338,53 +339,6 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
-def generate_digest(path):
-    side_effect = {}
-    side_effect_empty_entry = {"create": 0, "update": 0,
-                               "delete": 0, "patch": 0, "deleteallof": 0}
-    for line in open(path).readlines():
-        if constant.SONAR_SIDE_EFFECT_MARK not in line:
-            continue
-        line = line[line.find(constant.SONAR_SIDE_EFFECT_MARK):].strip("\n")
-        tokens = line.split("\t")
-        effectType = tokens[1].lower()
-        rType = tokens[2]
-        if constant.ERROR_FILTER:
-            if tokens[5] == "NotFound":
-                continue
-        if rType not in side_effect:
-            side_effect[rType] = copy.deepcopy(side_effect_empty_entry)
-        side_effect[rType][effectType] += 1
-
-    status = {}
-    status_empty_entry = {"size": 0, "terminating": 0}
-    kubernetes.config.load_kube_config()
-    core_v1 = kubernetes.client.CoreV1Api()
-    apps_v1 = kubernetes.client.AppsV1Api()
-    k8s_namespace = "default"
-    resources = {}
-    for ktype in constant.KTYPES:
-        resources[ktype] = []
-        if ktype not in status:
-            status[ktype] = copy.deepcopy(status_empty_entry)
-    for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
-        resources[constant.POD].append(pod)
-    for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
-        resources[constant.PVC].append(pvc)
-    for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
-        resources[constant.DEPLOYMENT].append(dp)
-    for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
-        resources[constant.STS].append(sts)
-    for ktype in constant.KTYPES:
-        status[ktype]["size"] = len(resources[ktype])
-        terminating = 0
-        for item in resources[ktype]:
-            if item.metadata.deletion_timestamp != None:
-                terminating += 1
-        status[ktype]["terminating"] = terminating
-    return side_effect, status
-
-
 def dump_files(dir, event_map, causality_pairs, side_effect, status, triggering_points):
     json_dir = os.path.join(dir, "generated-json")
     if os.path.exists(json_dir):
@@ -406,7 +360,7 @@ def analyze_trace(project, dir, double_sides=False):
     os.makedirs(conf_dir, exist_ok=True)
     event_map, event_id_map = generate_event_map(log_path)
     causality_pairs = generate_causality_pairs(log_path, event_id_map)
-    side_effect, status = generate_digest(log_path)
+    side_effect, status = oracle.generate_digest(log_path)
     triggering_points = generate_triggering_points(event_map, causality_pairs)
     dump_files(dir, event_map, causality_pairs,
                side_effect, status, triggering_points)

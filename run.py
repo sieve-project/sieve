@@ -5,52 +5,9 @@ import enum
 import time
 import json
 import glob
-from analyze import analyze_trace
-from analyze import generate_digest
+import analyze
 import controllers
-
-
-def compare_map(learned_map, testing_map, map_type):
-    alarm = 0
-    all_keys = set(learned_map.keys()).union(
-        testing_map.keys())
-    bug_report = "[BUG REPORT] %s\n" % map_type
-    for rtype in all_keys:
-        if rtype not in learned_map:
-            bug_report += "[ERROR] %s not in learning %s digest\n" % (
-                rtype, map_type)
-            alarm += 1
-            continue
-        elif rtype not in testing_map:
-            bug_report += "[ERROR] %s not in testing %s digest\n" % (
-                rtype, map_type)
-            alarm += 1
-            continue
-        else:
-            for attr in learned_map[rtype]:
-                if attr not in testing_map[rtype]:
-                    print("[WARN] attr: %s not int rtype: %s: " %
-                          (attr, rtype), testing_map[rtype])
-                    continue
-                if learned_map[rtype][attr] != testing_map[rtype][attr]:
-                    level = "WARN" if attr == "update" else "ERROR"
-                    alarm += 0 if attr == "update" else 1
-                    bug_report += "[%s] %s.%s inconsistent: learning: %s, testing: %s\n" % (
-                        level, rtype, attr, str(learned_map[rtype][attr]), str(testing_map[rtype][attr]))
-    return alarm, bug_report
-
-
-def compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status):
-    alarm_side_effect, bug_report_side_effect = compare_map(
-        learned_side_effect, testing_side_effect, "side effect")
-    alarm_status, bug_report_status = compare_map(
-        learned_status, testing_status, "status")
-    alarm = alarm_side_effect + alarm_status
-    bug_report = bug_report_side_effect + bug_report_status
-    if alarm != 0:
-        bug_report += "[BUGGY] # alarms: %d\n" % (alarm)
-    print(bug_report)
-    return bug_report
+import oracle
 
 
 def watch_crd(project, addrs):
@@ -146,7 +103,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         learn_config = controllers.learning_configs[project]
         run_test(project, mode, suite.workload,
                  learn_config, learn_config, learn_config, log_dir, docker, mode, suite.cluster_config)
-        analyze_trace(project, log_dir, suite.double_sides)
+        analyze.analyze_trace(project, log_dir, suite.double_sides)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
@@ -166,10 +123,10 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
             data_dir, "status.json")))
         run_test(project, test_mode, suite.workload,
                  test_config, test_config, test_config, log_dir, docker, test_mode, suite.cluster_config)
-        testing_side_effect, testing_status = generate_digest(
+        testing_side_effect, testing_status = oracle.generate_digest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-            compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status))
+            oracle.compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status))
         json.dump(testing_side_effect, open(os.path.join(
             log_dir, "side-effect.json"), "w"), indent=4)
         json.dump(testing_status, open(os.path.join(
