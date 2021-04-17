@@ -324,12 +324,12 @@ spec:
           value: percona-xtradb-cluster-operator
         image: ${SONAR-DR}/percona-xtradb-cluster-operator:${SONAR-DT}
         imagePullPolicy: Always
-        # livenessProbe:
-        #   failureThreshold: 3
-        #   httpGet:
-        #     path: /metrics
-        #     port: metrics
-        #     scheme: HTTP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: metrics
+            scheme: HTTP
         name: percona-xtradb-cluster-operator
         ports:
         - containerPort: 8080
