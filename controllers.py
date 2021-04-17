@@ -85,7 +85,7 @@ test_suites = {
     },
     "xtradb-operator": {
         "test1": Suite(
-            "recreateCassandraCluster.sh", "", "time-travel", cluster_config="kind-ha-4w.yaml"),
+            "recreateXtradbCluster.sh", "", "time-travel", cluster_config="kind-ha-4w.yaml"),
     },
 }
 
