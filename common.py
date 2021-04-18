@@ -1,4 +1,5 @@
 import json
+import re
 
 WRITE_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -24,6 +25,7 @@ BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
                               "managedFields", "lastTransitionTime", "generation"]
 SONAR_SKIP_MARKER = "SONAR-SKIP"
 SONAR_CANONICALIZATION_MARKER = "SONAR-EXIST"
+TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 
 
 class Event:

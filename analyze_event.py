@@ -1,5 +1,6 @@
 import common
 import copy
+import re
 
 
 def find_previous_event(event, event_map):
@@ -92,12 +93,25 @@ def diff_events(prev_event, cur_event):
     return slim_prev_object, slim_cur_object
 
 
+def canonicalize_event_for_list(event_list):
+    for i in range(len(event_list)):
+        if isinstance(event_list[i], list):
+            canonicalize_event_for_list(event_list[i])
+        elif isinstance(event_list[i], dict):
+            canonicalize_event(event_list[i])
+        elif isinstance(event_list[i], str):
+            if re.match(common.TIME_REG, str(event_list[i])):
+                event_list[i] = common.SONAR_CANONICALIZATION_MARKER
+    return event_list
+
+
 def canonicalize_event(event):
     for key in event:
         if isinstance(event[key], dict):
             canonicalize_event(event[key])
-        else:
-            # TODO: we should check value and see if it is time format
-            if "time" in key.lower():
+        elif isinstance(event[key], list):
+            canonicalize_event_for_list(event[key])
+        elif isinstance(event[key], str):
+            if re.match(common.TIME_REG, str(event[key])):
                 event[key] = common.SONAR_CANONICALIZATION_MARKER
     return event
