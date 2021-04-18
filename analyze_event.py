@@ -16,10 +16,8 @@ def find_previous_event(event, event_map):
 
 
 def compress_event_object_for_list(prev_object, cur_object, slim_prev_object, slim_cur_object):
-    for i in range(len(cur_object)):
-        if i >= len(prev_object):
-            break
-        elif str(cur_object[i]) != str(prev_object[i]):
+    for i in range(min(len(cur_object), len(prev_object))):
+        if str(cur_object[i]) != str(prev_object[i]):
             if isinstance(cur_object[i], dict):
                 if not isinstance(prev_object[i], dict):
                     continue
@@ -53,13 +51,9 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
     to_del = []
     to_del_cur = []
     to_del_prev = []
-    allKeys = set(cur_object.keys()).union(prev_object.keys())
-    for key in allKeys:
-        if key not in cur_object:
-            continue
-        elif key not in prev_object:
-            continue
-        elif key in common.BORING_EVENT_OBJECT_FIELDS:
+    common_keys = set(cur_object.keys()).intersection(prev_object.keys())
+    for key in common_keys:
+        if key in common.BORING_EVENT_OBJECT_FIELDS:
             to_del.append(key)
         elif str(cur_object[key]) != str(prev_object[key]):
             if isinstance(cur_object[key], dict):

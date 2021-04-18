@@ -150,6 +150,8 @@ def generate_triggering_points(event_map, event_effect_pairs):
         else:
             slim_prev_obj, slim_cur_obj = analyze_event.diff_events(
                 prev_event, cur_event)
+            if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
+                continue
             triggering_point["ttype"] = "event-delta"
             triggering_point["prevEvent"] = slim_prev_obj
             triggering_point["curEvent"] = slim_cur_obj
