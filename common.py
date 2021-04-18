@@ -1,9 +1,10 @@
 import json
 
-WRITE_READ_FLAG = True
-ERROR_FILTER = True
-CROSS_BOUNDARY_FLAG = True
-ONLY_DELETE = True
+WRITE_READ_FILTER_FLAG = True
+ERROR_MSG_FILTER_FLAG = True
+# TODO: for now, only consider Delete
+INTERESTING_SIDE_EFFECT_TYPE = ["Delete"]
+FILTERED_ERROR_TYPE = ["NotFound"]
 
 SONAR_EVENT_MARK = "[SONAR-EVENT]"
 SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
@@ -26,11 +27,18 @@ class Event:
         self.etype = etype
         self.rtype = rtype
         self.obj = obj
-        # TODO: In some case the metadata doesn't carry in namespace field, may dig into that later
+        # TODO(Wenqing): In some case the metadata doesn't carry in namespace field, may dig into that later
         self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "default"
-        self.key = self.rtype + "/" + \
-            self.namespace + \
-            "/" + self.obj["metadata"]["name"]
+        self.name = self.obj["metadata"]["name"]
+        self.start_timestamp = -1
+        self.end_timestamp = -1
+        self.key = self.rtype + "/" + self.namespace + "/" + self.name
+
+    def set_start_timestamp(self, start_timestamp):
+        self.start_timestamp = start_timestamp
+
+    def set_end_timestamp(self, end_timestamp):
+        self.end_timestamp = end_timestamp
 
 
 class SideEffect:
@@ -40,6 +48,57 @@ class SideEffect:
         self.namespace = namespace
         self.name = name
         self.error = error
+        self.end_timestamp = -1
+        self.read_types = set()
+        self.read_keys = set()
+        self.range_start_timestamp = -1
+        self.range_end_timestamp = -1
+        self.in_first_reconcile = False
+        self.owner_controllers = set()
+
+    def to_dict(self):
+        side_effect_as_dict = {}
+        side_effect_as_dict["etype"] = self.etype
+        side_effect_as_dict["rtype"] = self.rtype
+        side_effect_as_dict["namespace"] = self.namespace
+        side_effect_as_dict["name"] = self.name
+        side_effect_as_dict["error"] = self.error
+        return side_effect_as_dict
+
+    def set_in_first_reconcile(self, in_first_reconcile):
+        self.in_first_reconcile = in_first_reconcile
+
+    def set_end_timestamp(self, end_timestamp):
+        self.end_timestamp = end_timestamp
+
+    def set_read_types(self, read_types):
+        self.read_types = read_types
+
+    def set_read_keys(self, read_keys):
+        self.read_keys = read_keys
+
+    def set_range(self, start_timestamp, end_timestamp):
+        self.range_start_timestamp = start_timestamp
+        self.range_end_timestamp = end_timestamp
+
+    def range_overlap(self, event):
+        assert self.range_start_timestamp != -1
+        assert self.range_end_timestamp != -1
+        assert event.start_timestamp != -1
+        if self.in_first_reconcile:
+            # the side effect is in the first reconcile and there is no prev reconcile;
+            # return true when event starts eariler than side effect ends
+            return self.range_end_timestamp > event.start_timestamp
+        else:
+            if event.end_timestamp == -1:
+                # we have not met the end of the event; return true when event starts eariler than side effect ends
+                return self.range_end_timestamp > event.start_timestamp
+            else:
+                # return true when event ends later than the prev reconcile start and event starts eariler than side effect ends
+                return self.range_start_timestamp < event.end_timestamp and self.range_end_timestamp > event.start_timestamp
+
+    def interest_overlap(self, event):
+        return event.key in self.read_keys or event.rtype in self.read_types
 
 
 class CacheRead:
