@@ -18,7 +18,7 @@ def generate_side_effect(path):
         if common.SONAR_SIDE_EFFECT_MARK not in line:
             continue
         side_effect = common.parse_side_effect(line)
-        if common.ERROR_FILTER:
+        if common.ERROR_MSG_FILTER_FLAG:
             if side_effect.error == "NotFound":
                 continue
         rtype = side_effect.rtype
