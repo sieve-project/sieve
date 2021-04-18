@@ -1,6 +1,7 @@
-import constant
 import copy
 import kubernetes
+import common
+import yaml
 
 
 def generate_digest(path):
@@ -10,23 +11,29 @@ def generate_digest(path):
 
 
 def generate_side_effect(path):
-    side_effect = {}
-    side_effect_empty_entry = {"create": 0, "update": 0,
-                               "delete": 0, "patch": 0, "deleteallof": 0}
+    side_effect_map = {}
+    side_effect_empty_entry = {"Create": 0, "Update": 0,
+                               "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
     for line in open(path).readlines():
-        if constant.SONAR_SIDE_EFFECT_MARK not in line:
+        if common.SONAR_SIDE_EFFECT_MARK not in line:
             continue
-        line = line[line.find(constant.SONAR_SIDE_EFFECT_MARK):].strip("\n")
-        tokens = line.split("\t")
-        effectType = tokens[1].lower()
-        rType = tokens[2]
-        if constant.ERROR_FILTER:
-            if tokens[5] == "NotFound":
+        side_effect = common.parse_side_effect(line)
+        if common.ERROR_FILTER:
+            if side_effect.error == "NotFound":
                 continue
-        if rType not in side_effect:
-            side_effect[rType] = copy.deepcopy(side_effect_empty_entry)
-        side_effect[rType][effectType] += 1
-    return side_effect
+        rtype = side_effect.rtype
+        namespace = side_effect.namespace
+        name = side_effect.name
+        etype = side_effect.etype
+        if rtype not in side_effect_map:
+            side_effect_map[rtype] = {}
+        if namespace not in side_effect_map[rtype]:
+            side_effect_map[rtype][namespace] = {}
+        if name not in side_effect_map[rtype][namespace]:
+            side_effect_map[rtype][namespace][name] = copy.deepcopy(
+                side_effect_empty_entry)
+        side_effect_map[rtype][namespace][name][etype] += 1
+    return side_effect_map
 
 
 def generate_status():
@@ -37,19 +44,19 @@ def generate_status():
     apps_v1 = kubernetes.client.AppsV1Api()
     k8s_namespace = "default"
     resources = {}
-    for ktype in constant.KTYPES:
+    for ktype in common.KTYPES:
         resources[ktype] = []
         if ktype not in status:
             status[ktype] = copy.deepcopy(status_empty_entry)
     for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
-        resources[constant.POD].append(pod)
+        resources[common.POD].append(pod)
     for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
-        resources[constant.PVC].append(pvc)
+        resources[common.PVC].append(pvc)
     for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
-        resources[constant.DEPLOYMENT].append(dp)
+        resources[common.DEPLOYMENT].append(dp)
     for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
-        resources[constant.STS].append(sts)
-    for ktype in constant.KTYPES:
+        resources[common.STS].append(sts)
+    for ktype in common.KTYPES:
         status[ktype]["size"] = len(resources[ktype])
         terminating = 0
         for item in resources[ktype]:
@@ -59,41 +66,73 @@ def generate_status():
     return status
 
 
-def compare_map(learned_map, testing_map, map_type):
+def check_status(learning_status, testing_status):
     alarm = 0
-    all_keys = set(learned_map.keys()).union(
-        testing_map.keys())
-    bug_report = "[BUG REPORT] %s\n" % map_type
+    all_keys = set(learning_status.keys()).union(
+        testing_status.keys())
+    bug_report = ""
     for rtype in all_keys:
-        if rtype not in learned_map:
-            bug_report += "[ERROR] %s not in learning %s digest\n" % (
-                rtype, map_type)
+        if rtype not in learning_status:
+            bug_report += "[ERROR] %s not in learning status digest\n" % (
+                rtype)
             alarm += 1
             continue
-        elif rtype not in testing_map:
-            bug_report += "[ERROR] %s not in testing %s digest\n" % (
-                rtype, map_type)
+        elif rtype not in testing_status:
+            bug_report += "[ERROR] %s not in testing status digest\n" % (
+                rtype)
             alarm += 1
             continue
         else:
-            for attr in learned_map[rtype]:
-                if attr not in testing_map[rtype]:
-                    print("[WARN] attr: %s not int rtype: %s: " %
-                          (attr, rtype), testing_map[rtype])
-                    continue
-                if learned_map[rtype][attr] != testing_map[rtype][attr]:
-                    level = "WARN" if attr == "update" else "ERROR"
-                    alarm += 0 if attr == "update" else 1
-                    bug_report += "[%s] %s.%s inconsistent: learning: %s, testing: %s\n" % (
-                        level, rtype, attr, str(learned_map[rtype][attr]), str(testing_map[rtype][attr]))
-    return alarm, bug_report
+            for attr in learning_status[rtype]:
+                if learning_status[rtype][attr] != testing_status[rtype][attr]:
+                    alarm += 1
+                    bug_report += "[ERROR] %s %s inconsistency: learning: %s, testing: %s\n" % (
+                        rtype, attr, str(learning_status[rtype][attr]), str(testing_status[rtype][attr]))
+    return alarm, "[BUG REPORT] status\n" + bug_report
 
 
-def compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status):
-    alarm_side_effect, bug_report_side_effect = compare_map(
-        learned_side_effect, testing_side_effect, "side effect")
-    alarm_status, bug_report_status = compare_map(
-        learned_status, testing_status, "status")
+def check_side_effect(learning_side_effect, testing_side_effect, interest_objects, selective=True):
+    alarm = 0
+    bug_report = ""
+    for interest in interest_objects:
+        rtype = interest["rtype"]
+        namespace = interest["namespace"]
+        name = interest["name"]
+        exist = True
+        if rtype not in learning_side_effect or namespace not in learning_side_effect[rtype] or name not in learning_side_effect[rtype][namespace]:
+            bug_report += "[ERROR] %s/%s/%s not in learning side effect digest\n" % (
+                rtype, namespace, name)
+            alarm += 1
+            exist = False
+        if rtype not in testing_side_effect or namespace not in testing_side_effect[rtype] or name not in testing_side_effect[rtype][namespace]:
+            bug_report += "[ERROR] %s/%s/%s not in testing side effect digest\n" % (
+                rtype, namespace, name)
+            alarm += 1
+            exist = False
+        if exist:
+            learning_entry = learning_side_effect[rtype][namespace][name]
+            testing_entry = testing_side_effect[rtype][namespace][name]
+            for attr in learning_entry:
+                if selective:
+                    if attr == "Update" or attr == "Patch":
+                        continue
+                if learning_entry[attr] != testing_entry[attr]:
+                    alarm += 1
+                    bug_report += "[ERROR] %s/%s/%s %s inconsistency: learning: %s, testing: %s\n" % (
+                        rtype, namespace, name, attr, str(learning_entry[attr]), str(testing_entry[attr]))
+    return alarm, "[BUG REPORT] side effect\n" + bug_report
+
+
+def compare_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
+    testing_config = yaml.safe_load(open(config))
+    interest_objects = []
+    if testing_config["mode"] == "time-travel":
+        interest_objects.append(
+            {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
+    alarm_status, bug_report_status = check_status(
+        learning_status, testing_status)
+    alarm_side_effect, bug_report_side_effect = check_side_effect(
+        learning_side_effect, testing_side_effect, interest_objects)
     alarm = alarm_side_effect + alarm_status
     bug_report = bug_report_side_effect + bug_report_status
     if alarm != 0:

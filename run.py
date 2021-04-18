@@ -126,7 +126,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker):
         testing_side_effect, testing_status = oracle.generate_digest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-            oracle.compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status))
+            oracle.compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config))
         json.dump(testing_side_effect, open(os.path.join(
             log_dir, "side-effect.json"), "w"), indent=4)
         json.dump(testing_status, open(os.path.join(

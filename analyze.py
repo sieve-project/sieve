@@ -6,87 +6,17 @@ import os
 import shutil
 import kubernetes
 import controllers
-import constant
+import common
 import oracle
-
-
-class Event:
-    def __init__(self, id, etype, rtype, obj):
-        self.id = id
-        self.etype = etype
-        self.rtype = rtype
-        self.obj = obj
-        # TODO: In some case the metadata doesn't carry in namespace field, may dig into that later
-        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "default"
-        self.key = self.rtype + "/" + \
-            self.namespace + \
-            "/" + self.obj["metadata"]["name"]
-
-
-class SideEffect:
-    def __init__(self, etype, rtype, namespace, name, error):
-        self.etype = etype
-        self.rtype = rtype
-        self.namespace = namespace
-        self.name = name
-        self.error = error
-
-
-class CacheRead:
-    def __init__(self, etype, rtype, namespace, name, error):
-        self.etype = etype
-        self.rtype = rtype
-        self.namespace = namespace
-        self.name = name
-        self.error = error
-        self.key = self.rtype + "/" + self.namespace + "/" + self.name
-
-
-class EventIDOnly:
-    def __init__(self, id):
-        self.id = id
-
-
-def parse_event(line):
-    assert constant.SONAR_EVENT_MARK in line
-    tokens = line[line.find(constant.SONAR_EVENT_MARK):].strip("\n").split("\t")
-    return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
-
-
-def parse_side_effect(line):
-    assert constant.SONAR_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(constant.SONAR_SIDE_EFFECT_MARK):].strip(
-        "\n").split("\t")
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
-
-
-def parse_cache_read(line):
-    assert constant.SONAR_CACHE_READ_MARK in line
-    tokens = line[line.find(constant.SONAR_CACHE_READ_MARK):].strip("\n").split("\t")
-    if tokens[1] == "Get":
-        return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
-    else:
-        return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
-
-
-def parse_event_id_only(line):
-    assert constant.SONAR_EVENT_APPLIED_MARK in line or constant.SONAR_EVENT_MARK in line
-    if constant.SONAR_EVENT_APPLIED_MARK in line:
-        tokens = line[line.find(constant.SONAR_EVENT_APPLIED_MARK):].strip(
-            "\n").split("\t")
-        return EventIDOnly(tokens[1])
-    else:
-        tokens = line[line.find(constant.SONAR_EVENT_MARK):].strip("\n").split("\t")
-        return EventIDOnly(tokens[1])
 
 
 def generate_event_map(path):
     event_map = {}
     event_id_map = {}
     for line in open(path).readlines():
-        if constant.SONAR_EVENT_MARK not in line:
+        if common.SONAR_EVENT_MARK not in line:
             continue
-        event = parse_event(line)
+        event = common.parse_event(line)
         if event.key not in event_map:
             event_map[event.key] = []
         event_map[event.key].append(event)
@@ -112,10 +42,10 @@ def find_related_events(event_id_map, sideEffect, events_cur_round, events_prev_
     final_related_events = []
     related_events = set(events_cur_round.values())
     unrelated_events = set()
-    if constant.CROSS_BOUNDARY_FLAG:
+    if common.CROSS_BOUNDARY_FLAG:
         related_events.update(set(events_applied_prev_round.values()))
         related_events.update(set(events_prev_round.values()))
-    if constant.WRITE_READ_FLAG:
+    if common.WRITE_READ_FLAG:
         for event_ts in events_prev_round:
             if not affect_read(event_id_map, events_prev_round[event_ts], event_ts, reads_cur_round):
                 unrelated_events.add(events_prev_round[event_ts])
@@ -140,20 +70,20 @@ def generate_causality_pairs(path, event_id_map):
     for i in range(len(lines)):
         # we use the line number as the logic timestamp since all the logs are printed in the same thread
         line = lines[i]
-        if constant.SONAR_EVENT_MARK in line:
-            events_cur_round[i] = parse_event_id_only(line).id
-        elif constant.SONAR_EVENT_APPLIED_MARK in line:
-            events_applied_cur_round[i] = parse_event_id_only(line).id
-        elif constant.SONAR_CACHE_READ_MARK in line:
-            reads_cur_round[i] = parse_cache_read(line)
-        elif constant.SONAR_SIDE_EFFECT_MARK in line:
-            side_effect = parse_side_effect(line)
+        if common.SONAR_EVENT_MARK in line:
+            events_cur_round[i] = common.parse_event_id_only(line).id
+        elif common.SONAR_EVENT_APPLIED_MARK in line:
+            events_applied_cur_round[i] = common.parse_event_id_only(line).id
+        elif common.SONAR_CACHE_READ_MARK in line:
+            reads_cur_round[i] = common.parse_cache_read(line)
+        elif common.SONAR_SIDE_EFFECT_MARK in line:
+            side_effect = common.parse_side_effect(line)
             events = find_related_events(event_id_map, side_effect,
                                          events_cur_round, events_prev_round,
                                          reads_cur_round,
                                          events_applied_cur_round, events_applied_prev_round)
             causality_pairs.append([side_effect, events])
-        elif constant.SONAR_FINISH_RECONCILE_MARK in line:
+        elif common.SONAR_FINISH_RECONCILE_MARK in line:
             events_prev_round = copy.deepcopy(events_cur_round)
             events_cur_round = {}
             events_applied_prev_round = copy.deepcopy(events_applied_cur_round)
@@ -263,7 +193,7 @@ def generate_triggering_points(event_map, causality_pairs):
     triggering_points = []
     for pair in causality_pairs:
         side_effect = pair[0]
-        if constant.ERROR_FILTER:
+        if common.ERROR_FILTER:
             if side_effect.error == "NotFound":
                 continue
         events = pair[1]
@@ -317,7 +247,7 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
             continue
         effect = triggering_point["effect"]
         # TODO: consider update side effects and even app-specific side effects
-        if effect["etype"] != "Delete" and (constant.ONLY_DELETE or effect["etype"] != "Create"):
+        if effect["etype"] != "Delete" and (common.ONLY_DELETE or effect["etype"] != "Create"):
             continue
         i += 1
         yaml_map["ce-name"] = triggering_point["name"]
