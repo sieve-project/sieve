@@ -15,6 +15,40 @@ def find_previous_event(event, event_map):
                 return event_map[key][i-1], event_map[key][i]
 
 
+def compress_event_object_for_list(prev_object, cur_object, slim_prev_object, slim_cur_object):
+    for i in range(len(cur_object)):
+        if i >= len(prev_object):
+            break
+        elif str(cur_object[i]) != str(prev_object[i]):
+            if isinstance(cur_object[i], dict):
+                if not isinstance(prev_object[i], dict):
+                    continue
+                if compress_event_object(
+                        prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
+                    # SONAR_SKIP means we can skip the value in list when later comparing to the events in testing run
+                    slim_cur_object[i] = common.SONAR_SKIP_MARKER
+                    slim_prev_object[i] = common.SONAR_SKIP_MARKER
+            elif isinstance(cur_object[i], list):
+                if not isinstance(prev_object[i], list):
+                    continue
+                if compress_event_object_for_list(
+                        prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
+                    slim_cur_object[i] = common.SONAR_SKIP_MARKER
+                    slim_prev_object[i] = common.SONAR_SKIP_MARKER
+            else:
+                continue
+        else:
+            slim_cur_object[i] = common.SONAR_SKIP_MARKER
+            slim_prev_object[i] = common.SONAR_SKIP_MARKER
+
+    if len(slim_cur_object) != len(slim_prev_object):
+        return False
+    for i in range(len(slim_cur_object)):
+        if slim_cur_object[i] != common.SONAR_SKIP_MARKER:
+            return False
+    return True
+
+
 def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_object):
     to_del = []
     to_del_cur = []
@@ -31,34 +65,15 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
             if isinstance(cur_object[key], dict):
                 if not isinstance(prev_object[key], dict):
                     continue
-                res = compress_event_object(
-                    prev_object[key], cur_object[key], slim_prev_object[key], slim_cur_object[key])
-                if res:
+                if compress_event_object(
+                        prev_object[key], cur_object[key], slim_prev_object[key], slim_cur_object[key]):
                     to_del.append(key)
             elif isinstance(cur_object[key], list):
                 if not isinstance(prev_object[key], list):
                     continue
-                for i in range(len(cur_object[key])):
-                    if i >= len(prev_object[key]):
-                        break
-                    elif str(cur_object[key][i]) != str(prev_object[key][i]):
-                        if isinstance(cur_object[key][i], dict):
-                            if not isinstance(prev_object[key][i], dict):
-                                continue
-                            res = compress_event_object(
-                                prev_object[key][i], cur_object[key][i], slim_prev_object[key][i], slim_cur_object[key][i])
-                            if res:
-                                # SONAR_SKIP means we can skip the value in list when later comparing to the events in testing run
-                                slim_cur_object[key][i] = common.SONAR_SKIP_MARKER
-                                slim_prev_object[key][i] = common.SONAR_SKIP_MARKER
-                        elif isinstance(cur_object[key][i], list):
-                            # TODO: we need to consider list in list
-                            assert False
-                        else:
-                            continue
-                    else:
-                        slim_cur_object[key][i] = common.SONAR_SKIP_MARKER
-                        slim_prev_object[key][i] = common.SONAR_SKIP_MARKER
+                if compress_event_object_for_list(
+                        prev_object[key], cur_object[key], slim_prev_object[key], slim_cur_object[key]):
+                    to_del.append(key)
             else:
                 continue
         else:
