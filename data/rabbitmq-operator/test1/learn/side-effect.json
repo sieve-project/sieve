@@ -1,65 +1,122 @@
 {
     "configmap": {
-        "create": 4,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-rabbitmq-cluster-plugins-conf": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-rabbitmq-cluster-server-conf": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "pod": {
-        "create": 0,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 1
+        "default": {
+            "sonar-rabbitmq-cluster-server-0": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 1
+            }
+        }
     },
     "rabbitmqcluster": {
-        "create": 0,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 3
+        "default": {
+            "sonar-rabbitmq-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 3
+            }
+        }
     },
     "role": {
-        "create": 2,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-rabbitmq-cluster-peer-discovery": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "rolebinding": {
-        "create": 2,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-rabbitmq-cluster-server": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "secret": {
-        "create": 4,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-rabbitmq-cluster-default-user": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-rabbitmq-cluster-erlang-cookie": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "service": {
-        "create": 4,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-rabbitmq-cluster": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-rabbitmq-cluster-nodes": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "serviceaccount": {
-        "create": 2,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-rabbitmq-cluster-server": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "statefulset": {
-        "create": 2,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 5
+        "default": {
+            "sonar-rabbitmq-cluster-server": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 11
+            }
+        }
     }
 }

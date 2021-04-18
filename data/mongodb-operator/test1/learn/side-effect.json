@@ -1,51 +1,128 @@
 {
     "issuer": {
-        "create": 3,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-mongodb-cluster-psmdb-ca": {
+                "Create": 3,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "perconaservermongodb": {
-        "create": 0,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 2
+        "default": {
+            "sonar-mongodb-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 2
+            }
+        }
     },
     "persistentvolumeclaim": {
-        "create": 0,
-        "delete": 3,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "mongod-data-sonar-mongodb-cluster-rs0-0": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongod-data-sonar-mongodb-cluster-rs0-1": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongod-data-sonar-mongodb-cluster-rs0-2": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "poddisruptionbudget": {
-        "create": 1,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-mongodb-cluster-mongod-rs0": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "secret": {
-        "create": 12,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "internal-sonar-mongodb-cluster-users": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-mongodb-cluster-mongodb-encryption-key": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-mongodb-cluster-mongodb-keyfile": {
+                "Create": 3,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-mongodb-cluster-secrets": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-mongodb-cluster-ssl": {
+                "Create": 3,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-mongodb-cluster-ssl-internal": {
+                "Create": 3,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "service": {
-        "create": 2,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-mongodb-cluster-rs0": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "statefulset": {
-        "create": 2,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 1
+        "default": {
+            "sonar-mongodb-cluster-rs0": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 1
+            }
+        }
     }
 }
