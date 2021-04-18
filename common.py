@@ -20,6 +20,11 @@ STS = "statefulset"
 
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
+BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
+                              "managedFields", "lastTransitionTime", "generation"]
+SONAR_SKIP_MARKER = "SONAR-SKIP"
+SONAR_CANONICALIZATION_MARKER = "SONAR-EXIST"
+
 
 class Event:
     def __init__(self, id, etype, rtype, obj):
