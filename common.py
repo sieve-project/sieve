@@ -60,7 +60,6 @@ class SideEffect:
         self.read_keys = set()
         self.range_start_timestamp = -1
         self.range_end_timestamp = -1
-        self.in_first_reconcile = False
         self.owner_controllers = set()
 
     def to_dict(self):
@@ -72,9 +71,6 @@ class SideEffect:
         side_effect_as_dict["error"] = self.error
         return side_effect_as_dict
 
-    def set_in_first_reconcile(self, in_first_reconcile):
-        self.in_first_reconcile = in_first_reconcile
-
     def set_end_timestamp(self, end_timestamp):
         self.end_timestamp = end_timestamp
 
@@ -85,24 +81,18 @@ class SideEffect:
         self.read_keys = read_keys
 
     def set_range(self, start_timestamp, end_timestamp):
+        assert start_timestamp < end_timestamp
         self.range_start_timestamp = start_timestamp
         self.range_end_timestamp = end_timestamp
 
     def range_overlap(self, event):
-        assert self.range_start_timestamp != -1
+        # This is the key method to generate the (event, side_effect) pairs
         assert self.range_end_timestamp != -1
         assert event.start_timestamp != -1
-        if self.in_first_reconcile:
-            # the side effect is in the first reconcile and there is no prev reconcile;
-            # return true when event starts eariler than side effect ends
-            return self.range_end_timestamp > event.start_timestamp
-        else:
-            if event.end_timestamp == -1:
-                # we have not met the end of the event; return true when event starts eariler than side effect ends
-                return self.range_end_timestamp > event.start_timestamp
-            else:
-                # return true when event ends later than the prev reconcile start and event starts eariler than side effect ends
-                return self.range_start_timestamp < event.end_timestamp and self.range_end_timestamp > event.start_timestamp
+        assert event.end_timestamp != -1
+        assert self.range_start_timestamp < self.range_end_timestamp
+        assert event.start_timestamp < event.end_timestamp
+        return self.range_start_timestamp < event.end_timestamp and self.range_end_timestamp > event.start_timestamp
 
     def interest_overlap(self, event):
         return event.key in self.read_keys or event.rtype in self.read_types
@@ -121,6 +111,12 @@ class CacheRead:
 class EventIDOnly:
     def __init__(self, id):
         self.id = id
+
+
+class Reconcile:
+    def __init__(self, controller_name, round_id):
+        self.controller_name = controller_name
+        self.round_id = round_id
 
 
 def parse_event(line):
@@ -154,3 +150,15 @@ def parse_event_id_only(line):
     else:
         tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
+
+
+def parse_reconcile(line):
+    assert SONAR_START_RECONCILE_MARK in line or SONAR_FINISH_RECONCILE_MARK in line
+    if SONAR_START_RECONCILE_MARK in line:
+        tokens = line[line.find(SONAR_START_RECONCILE_MARK)
+                                :].strip("\n").split("\t")
+        return Reconcile(tokens[1], tokens[2])
+    else:
+        tokens = line[line.find(SONAR_FINISH_RECONCILE_MARK):].strip(
+            "\n").split("\t")
+        return Reconcile(tokens[1], tokens[2])

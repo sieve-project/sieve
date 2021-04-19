@@ -19,11 +19,16 @@ def parse_events(path):
     event_key_map = {}
     event_list = []
     lines = open(path).readlines()
+    largest_timestamp = len(lines)
     for i in range(len(lines)):
         line = lines[i]
         if common.SONAR_EVENT_MARK in line:
             event = common.parse_event(line)
             event.set_start_timestamp(i)
+            # We initially set the event end time as the largest timestamp
+            # so that if we never meet SONAR_EVENT_APPLIED_MARK for this event,
+            # we will not pose any constraint on its end time in range_overlap
+            event.set_end_timestamp(largest_timestamp)
             event_id_map[event.id] = event
         elif common.SONAR_EVENT_APPLIED_MARK in line:
             event_id_only = common.parse_event_id_only(line)
@@ -40,35 +45,39 @@ def parse_events(path):
 
 
 def parse_side_effects(path):
-    # TODO: we need to consider the mulit-controller situation
     side_effect_list = []
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
-    prev_reconcile_start_timestamp = -1
-    cur_reconcile_start_timestamp = -1
+    prev_reconcile_start_timestamp = {}
+    cur_reconcile_start_timestamp = {}
+    # there could be multiple controllers running concurrently
+    # we need to record all the ongoing controllers
+    ongoing_reconciles = set()
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
         if common.SONAR_SIDE_EFFECT_MARK in line:
-            # if we have not met any reconcile yet, skip the side effect since it is not caused by reconcile
-            # though it should not happen at all
-            if cur_reconcile_start_timestamp == -1:
+            # If we have not met any reconcile yet, skip the side effect since it is not caused by reconcile
+            # though it should not happen at all.
+            if len(ongoing_reconciles) == 0:
                 continue
             side_effect = common.parse_side_effect(line)
-            # do deepcopy here to ensure the later changes to the two sets
-            # will not affect this side effect
+            # Do deepcopy here to ensure the later changes to the two sets
+            # will not affect this side effect.
             side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile))
             side_effect.set_read_types(
                 copy.deepcopy(read_types_this_reconcile))
             side_effect.set_end_timestamp(i)
-            # if the side effect happens in the first reconcile
-            # the range should be [cur_reconcile_start_timestamp, side_effect_end_timestamp]
-            if prev_reconcile_start_timestamp == -1:
-                side_effect.set_in_first_reconcile(True)
-                side_effect.set_range(cur_reconcile_start_timestamp, i)
-            # otherwise, it should be [prev_reconcile_start_timestamp, side_effect_end_timestamp]
-            else:
-                side_effect.set_range(prev_reconcile_start_timestamp, i)
+            # We want to find the earilest timestamp before which any event will not affect the side effect.
+            # The earlies timestamp should be min(the timestamp of the previous reconcile start of all ongoing reconiles).
+            # One special case is that at least one of the ongoing reconcile is the first reconcile of that controller.
+            # In that case we will use -1 as the earliest timestamp:
+            # we do not pose constraint on event end time in range_overlap.
+            earliest_timestamp = i
+            for controller_name in ongoing_reconciles:
+                if prev_reconcile_start_timestamp[controller_name] < earliest_timestamp:
+                    earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
+            side_effect.set_range(earliest_timestamp, i)
             side_effect_list.append(side_effect)
         elif common.SONAR_CACHE_READ_MARK in line:
             cache_read = common.parse_cache_read(line)
@@ -77,11 +86,23 @@ def parse_side_effects(path):
             else:
                 read_types_this_reconcile.add(cache_read.rtype)
         elif common.SONAR_START_RECONCILE_MARK in line:
-            prev_reconcile_start_timestamp = cur_reconcile_start_timestamp
-            cur_reconcile_start_timestamp = i
-            # clear the read keys and types set for the new reconcile
-            read_keys_this_reconcile = set()
-            read_types_this_reconcile = set()
+            reconcile = common.parse_reconcile(line)
+            controller_name = reconcile.controller_name
+            ongoing_reconciles.add(controller_name)
+            # We use -1 as the initial value in any prev_reconcile_start_timestamp[controller_name]
+            # which is super important.
+            if controller_name not in cur_reconcile_start_timestamp:
+                cur_reconcile_start_timestamp[controller_name] = -1
+            prev_reconcile_start_timestamp[controller_name] = cur_reconcile_start_timestamp[controller_name]
+            cur_reconcile_start_timestamp[controller_name] = i
+        elif common.SONAR_FINISH_RECONCILE_MARK in line:
+            reconcile = common.parse_reconcile(line)
+            controller_name = reconcile.controller_name
+            ongoing_reconciles.remove(controller_name)
+            # Clear the read keys and types set since all the ongoing reconciles are done
+            if len(ongoing_reconciles) == 0:
+                read_keys_this_reconcile = set()
+                read_types_this_reconcile = set()
     return side_effect_list
 
 
