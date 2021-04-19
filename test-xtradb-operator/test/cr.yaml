@@ -1,18 +1,18 @@
 apiVersion: pxc.percona.com/v1-7-0
 kind: PerconaXtraDBCluster
 metadata:
-  name: cluster1
+  name: sonar-xtradb-cluster
   finalizers:
     - delete-pxc-pods-in-order
     - delete-proxysql-pvc
     - delete-pxc-pvc
 spec:
   crVersion: 1.7.0
-  secretsName: my-cluster-secrets
+  secretsName: sonar-cluster-secrets
   vaultSecretName: keyring-secret-vault
-  sslSecretName: my-cluster-ssl
-  sslInternalSecretName: my-cluster-ssl-internal
-  logCollectorSecretName: my-log-collector-secrets
+  sslSecretName: sonar-cluster-ssl
+  sslInternalSecretName: sonar-cluster-ssl-internal
+  logCollectorSecretName: sonar-log-collector-secrets
   allowUnsafeConfigurations: false
   updateStrategy: RollingUpdate
   upgradeOptions:
@@ -69,40 +69,10 @@ spec:
       maxUnavailable: 1
     gracePeriod: 30
   logcollector:
-    enabled: true
+    enabled: false
     image: percona/percona-xtradb-cluster-operator:1.7.0-logcollector
   pmm:
     enabled: false
     image: percona/pmm-client:2.12.0
     serverHost: monitoring-service
     serverUser: pmm
-  backup:
-    image: percona/percona-xtradb-cluster-operator:1.7.0-pxc8.0-backup
-    pitr:
-      enabled: false
-      storageName: STORAGE-NAME-HERE
-      timeBetweenUploads: 60
-    storages:
-      s3-us-west:
-        type: s3
-        s3:
-          bucket: S3-BACKUP-BUCKET-NAME-HERE
-          credentialsSecret: my-cluster-name-backup-s3
-          region: us-west-2
-      fs-pvc:
-        type: filesystem
-        volume:
-          persistentVolumeClaim:
-            accessModes: [ "ReadWriteOnce" ]
-            resources:
-              requests:
-                storage: 6Gi
-    schedule:
-      - name: "sat-night-backup"
-        schedule: "0 0 * * 6"
-        keep: 3
-        storageName: s3-us-west
-      - name: "daily-backup"
-        schedule: "0 0 * * *"
-        keep: 5
-        storageName: fs-pvc
