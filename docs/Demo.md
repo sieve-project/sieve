@@ -7,11 +7,19 @@ For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have a
 
 ### What is time-travel bug?
 
-<img src="time-travel-1.png" width="100">
+Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and takes unexpected behavior accordingly. Consider the following scenario:
 
-<img src="time-travel-2.png" width="100">
+In a HA (mulitple apiservers) kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `s1`, and the controller perform reconciliation according to the state read from apiserver1.
 
-<img src="time-travel-3.png" width="100">
+<img src="time-travel-1.png" width="300">
+
+Now some network disruption isolates apiserver2 from the underlying etcd, and apisever2 will not be able to get updated by etcd. Apisever1 is not affected, and its locally cached cluster status gets updated to `s2`.
+
+<img src="time-travel-2.png" width="300">
+
+The controller restarts after experiencing a node failure, and connects to apiserver2 this time. The isolated apiserver2 still holds the stale view `s1` though the actual status should be `s2`. The controller will read `s1`, and perform reconciliation accordingly. The reconciliation triggered by reading `s1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
+
+<img src="time-travel-3.png" width="300">
 
 ### Finding the crucial event
 Time-travel bugs has the pattern that the controller will perform some unexpected side effects
