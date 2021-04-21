@@ -2,13 +2,13 @@
 
 ### What is Sonar?
 
-Sonar is a bug detection tool for finding partial-history bugs in various kubernetes controllers. There are multiple partial-history bug patterns. This demo will mainly focus on finding paritial history bugs caused by time traveling behavior (time-travel bugs).
+Sonar is a bug detection tool for finding partial-history bugs in kubernetes controllers. There are multiple partial-history bug patterns. This demo will mainly focus on finding paritial history bugs caused by time traveling behavior (i.e., time-travel bugs).
 
-### What is time-travel bug?
+### What is a time-travel bug?
 
-Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and behaves unexpectedly. Consider the following (simplified) scenario:
+Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and behaves unexpectedly. Consider the following scenario:
 
-In a HA (mulitple apiservers) kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller perform reconciliation according to the state read from apiserver1.
+In a HA (mulitple apiservers) kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
 <img src="time-travel-1.png" width="300">
 
@@ -16,27 +16,27 @@ Now some network disruption isolates apiserver2 from the underlying etcd, and ap
 
 <img src="time-travel-2.png" width="300">
 
-The controller restarts after experiencing a node failure, and connects to apiserver2 this time. The isolated apiserver2 still holds the stale view `S1` though the actual status should be `S2`. The controller will read `S1`, and perform reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
+The controller restarts after experiencing a node failure and connects to apiserver2. The isolated apiserver2 still holds the stale view `S1` though the actual status should be `S2`. The controller will read `S1` and perform reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
 <img src="time-travel-3.png" width="300">
 
 ### How does Sonar work (at a high level)?
 To detect time-travel bugs, Sonar will create the above time travel scenario to trigger the bugs.
-The most difficult part, is to find out the approriate "harmful" status `S` that can lead to bugs when consumed by the controller.
-The following sections will explain concretely how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
+The key challenge is to find out the approriate "harmful" status `S` that can lead to bugs when consumed by the controller.
+The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
 
 ### Prerequiste
-There is some porting effort required before using Sonar to test any controller.
+Some porting effort is required to use Sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/Porting.md.
-For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have already done the porting work (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) so no extra porting effort is required to test it.
+We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) in (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator).
 
 ### Finding the "harmful" status to trigger bugs
-Not every stale status `S` will lead to bugs in reality, and Sonar is able to find out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
+Not every stale status `S` will lead to bugs in reality. Sonar finds out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
 In kubernetes, all the cluster status is materialized by events belonging to different resources.
 The first step is to find out the crucial event `E` which can lead to such a "harmful" status `S`.
 We define an event `E` is crucial if it can trigger some side effects (create/update/delete some resources) invoked by the controller.
 Sonar has a `learn` mode to infer the causality between events and side effects,
-and Sonar will pick each potentially causal-related <crucial event, side effect> pair to guide the testing.
+and Sonar then picks each potentially causal-related <crucial event, side effect> pair to guide the testing.
 
 To do so, run:
 ```
@@ -53,13 +53,13 @@ The config contains many details about when to inject pause and node failure to 
 We will look into the details later.
 
 ### Testing the controller with time travel config
-Now let's test rabbitmq-operator with the generated time travel config.
+Now, let's test rabbitmq-operator with the generated time-travel config.
 ```
 python3 run.py -p rabbitmq-operator -t test1 -c log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml
 ```
 By typing the command, Sonar will:
-1. run a very simple test workload (written by us). The workload will create, delete and recreate a rabbitmq cluster in the kind kubernetes cluster;
-2. meanwhile Sonar will create the time travel scenario during the test running according to the generated time travel config.
+1. run a very simple test workload which creates, deletes, and then recreates a rabbitmq cluster in the kind kubernetes cluster;
+2. meanwhile, Sonar will create the time-travel scenario during the test run according to the generated time-travel config.
 
 When it finishes, you will see a bug is detected by Sonar that:
 ```
@@ -68,12 +68,12 @@ When it finishes, you will see a bug is detected by Sonar that:
 [ERROR] statefulset/default/sonar-rabbitmq-cluster-server Delete inconsistency: learning: 1, testing: 2
 [BUGGY] # alarms: 2
 ```
-Sonar detects that the controller mistakenly deletes a statefulset during testing.
-The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and gets fixed using our patch.
+Sonar detects that the controller mistakenly deletes a statefulset during the test.
+The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
 
-### What happened during the testing?
+### What happened during the test?
 
-Now we can look into the generated time travel config `log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml`:
+Let's look into the generated time-travel config `log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml`:
 ```
 project: rabbitmq-operator
 mode: time-travel
