@@ -1,30 +1,35 @@
-## Demo: Using sonar to detect a time-travel bug in rabbitmq-operator
+## Using Sonar to detect a time-travel bug in rabbitmq-operator
+
+### What is Sonar?
+
+Sonar is a bug detection tool for finding partial-history bugs in various kubernetes controllers. There are multiple partial-history bug patterns. This demo will mainly focus on finding paritial history bugs caused by time traveling behavior (time-travel bugs).
+
+### What is time-travel bug?
+
+Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and takes unexpected behavior accordingly. Consider the following scenario:
+
+In a HA (mulitple apiservers) kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller perform reconciliation according to the state read from apiserver1.
+
+<img src="time-travel-1.png" width="300">
+
+Now some network disruption isolates apiserver2 from the underlying etcd, and apisever2 will not be able to get updated by etcd. Apisever1 is not affected, and its locally cached cluster status gets updated to `S2`.
+
+<img src="time-travel-2.png" width="300">
+
+The controller restarts after experiencing a node failure, and connects to apiserver2 this time. The isolated apiserver2 still holds the stale view `S1` though the actual status should be `S2`. The controller will read `S1`, and perform reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
+
+<img src="time-travel-3.png" width="300">
 
 ### Prerequiste
 There is some porting effort required before using sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/Porting.md.
 For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have already done the porting work (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) so no extra porting is required to test it.
 
-### What is time-travel bug?
-
-Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and takes unexpected behavior accordingly. Consider the following scenario:
-
-In a HA (mulitple apiservers) kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `s1`, and the controller perform reconciliation according to the state read from apiserver1.
-
-<img src="time-travel-1.png" width="300">
-
-Now some network disruption isolates apiserver2 from the underlying etcd, and apisever2 will not be able to get updated by etcd. Apisever1 is not affected, and its locally cached cluster status gets updated to `s2`.
-
-<img src="time-travel-2.png" width="300">
-
-The controller restarts after experiencing a node failure, and connects to apiserver2 this time. The isolated apiserver2 still holds the stale view `s1` though the actual status should be `s2`. The controller will read `s1`, and perform reconciliation accordingly. The reconciliation triggered by reading `s1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
-
-<img src="time-travel-3.png" width="300">
-
-### Finding the crucial event
-Time-travel bugs has the pattern that the controller will perform some unexpected side effects
-if certain events are replayed (by sonar) to the controller.
-So the first step to detect time travel bug is to find out the (potential) crucial event.
+### Finding the "harmful" status to trigger bugs
+Not every stale status `S1` will lead to bugs in reality, and Sonar is able to find out the stale status `S*` which is more likely to lead to bugs if consumed by the controller.
+In kubernetes, all the cluster status is materialized by events belonging to different resources.
+The first step is to find out the crucial event `E*` which can lead to such a "harmful" status `S*`.
+We define an event `E*` is crucial if it can trigger some side effects (create/update/delete some resources) invoked by the controller.
 Sonar has a `learn` mode to infer the causality between events and side effects,
 and sonar will pick each potentially causal-related <crucial event, side effect> pair to guide the testing.
 
@@ -73,8 +78,7 @@ timing: after
 ce-name: sonar-rabbitmq-cluster
 ce-namespace: default
 ce-rtype: rabbitmqcluster
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds":
-  0}}'
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds": 0}}'
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
