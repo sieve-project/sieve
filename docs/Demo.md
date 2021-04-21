@@ -20,24 +20,29 @@ The controller restarts after experiencing a node failure, and connects to apise
 
 <img src="time-travel-3.png" width="300">
 
+### How does Sonar work (at a high level)?
+To detect time-travel bugs, Sonar will create the above time travel scenario to trigger the bugs.
+The most difficult part, is to find out the approriate "harmful" status `S` that can lead to bugs when consumed by the controller.
+The following sections will explain concretely how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
+
 ### Prerequiste
-There is some porting effort required before using sonar to test any controller.
+There is some porting effort required before using Sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/Porting.md.
 For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have already done the porting work (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) so no extra porting is required to test it.
 
 ### Finding the "harmful" status to trigger bugs
-Not every stale status `S1` will lead to bugs in reality, and Sonar is able to find out the stale status `S*` which is more likely to lead to bugs if consumed by the controller.
+Not every stale status `S1` will lead to bugs in reality, and Sonar is able to find out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
 In kubernetes, all the cluster status is materialized by events belonging to different resources.
-The first step is to find out the crucial event `E*` which can lead to such a "harmful" status `S*`.
-We define an event `E*` is crucial if it can trigger some side effects (create/update/delete some resources) invoked by the controller.
+The first step is to find out the crucial event `E` which can lead to such a "harmful" status `S`.
+We define an event `E` is crucial if it can trigger some side effects (create/update/delete some resources) invoked by the controller.
 Sonar has a `learn` mode to infer the causality between events and side effects,
-and sonar will pick each potentially causal-related <crucial event, side effect> pair to guide the testing.
+and Sonar will pick each potentially causal-related <crucial event, side effect> pair to guide the testing.
 
 To do so, run:
 ```
 python3 run.py -p rabbitmq-operator -t test1 -m learn
 ```
-The command may take a few minutes to finish. It will run test workload `test1` in sonar `learn` mode.
+The command may take a few minutes to finish. It will run test workload `test1` in Sonar `learn` mode.
 `test1` is a simple test workload written by us that creates, deletes and recreates the rabbitmq cluster.
 After it finishes, you will see
 ```
@@ -48,11 +53,15 @@ The config contains many details about when to inject pause and node failure to 
 We will look into the details later.
 
 ### Testing the controller with time travel config
-Now let's first test rabbitmq-operator with the generated time travel config.
+Now let's test rabbitmq-operator with the generated time travel config.
 ```
 python3 run.py -p rabbitmq-operator -t test1 -c log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml
 ```
-When it finishes, you will see a bug is detected by sonar that:
+By typing the command, Sonar will:
+1. run a very simple test workload (written by us). The workload will create, delete and recreate a rabbitmq cluster in the kind kubernetes cluster;
+2. meanwhile Sonar will create the time travel scenario during the test running according to the generated time travel config.
+
+When it finishes, you will see a bug is detected by Sonar that:
 ```
 [BUG REPORT] side effect
 [ERROR] statefulset.create inconsistent: learning: 2, testing: 3
@@ -112,16 +121,16 @@ ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGra
   0}}'
 ce-diff-previous: '{}'
 ```
-This is how sonar decides when to pause the apiserver3. When sonar sees an event belonging to `rabbitmqcluster/default/sonar-rabbitmq-cluster` and contains the sub-map in `ce-diff-current`, and a previous event contains the sub-map in `ce-diff-previous`,
-sonar will pause the apiserver3. Here, `ce-diff-current` basically means the event sets a `deletionTimestamp`, and `ce-diff-previous` does not pose any constraint since it is empty.
+This is how Sonar decides when to pause the apiserver3. When Sonar sees an event belonging to `rabbitmqcluster/default/sonar-rabbitmq-cluster` and contains the sub-map in `ce-diff-current`, and a previous event contains the sub-map in `ce-diff-previous`,
+Sonar will pause the apiserver3. Here, `ce-diff-current` basically means the event sets a `deletionTimestamp`, and `ce-diff-previous` does not pose any constraint since it is empty.
 
-Finally, sonar needs to decide when to restart the controller
+Finally, Sonar needs to decide when to restart the controller
 ```
 se-name: sonar-rabbitmq-cluster-server
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
 ```
-When sonar sees an `ADDED` event belonging to `statefulset/default/sonar-rabbitmq-cluster-server`, it will restart the controller and connect the controller to the paused apiserver3.
+When Sonar sees an `ADDED` event belonging to `statefulset/default/sonar-rabbitmq-cluster-server`, it will restart the controller and connect the controller to the paused apiserver3.
 
-You will also find the explanation from the `description` field. By pausing apiserver3 and restarting controller at the timing above, the controller will behave incorrectly and the unexpected behavior (delete statefulset) gets captured by sonar as a bug report.
+You will also find the explanation from the `description` field. By pausing apiserver3 and restarting controller at the timing above, the controller will behave incorrectly and the unexpected behavior (delete statefulset) gets captured by Sonar as a bug report.
