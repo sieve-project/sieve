@@ -22,10 +22,10 @@ The controller restarts after experiencing a node failure and connects to apiser
 
 ### How does Sonar work (at a high level)?
 To detect time-travel bugs, Sonar will create the above time travel scenario in a [kind](https://kind.sigs.k8s.io/) cluster to trigger the bugs.
-The key challenge is to find out the approriate "harmful" status `S` that can lead to bugs when consumed by the controller.
+The key challenge is to find out the appropriate "harmful" status `S` that can lead to bugs when consumed by the controller.
 The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
 
-### Prerequiste
+### Prerequisite
 Some porting effort is required to use Sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/port.md.
 We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator).
