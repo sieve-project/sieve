@@ -21,16 +21,16 @@ The controller restarts after experiencing a node failure and connects to apiser
 <img src="time-travel-3.png" width="300">
 
 ### How does Sonar work (at a high level)?
-To detect time-travel bugs, Sonar will create the above time travel scenario to trigger the bugs.
+To detect time-travel bugs, Sonar will create the above time travel scenario in a [kind](https://kind.sigs.k8s.io/) cluster to trigger the bugs.
 The key challenge is to find out the approriate "harmful" status `S` that can lead to bugs when consumed by the controller.
 The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
 
 ### Prerequiste
 Some porting effort is required to use Sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/port.md.
-We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) in (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator).
+We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator).
 
-Before testing, we also need to build the kubernetes and rabbitmq-operator images:
+Before testing, we need to build the kubernetes and rabbitmq-operator images:
 ```
 python3 build.py -p kubernetes -m learn
 python3 build.py -p rabbitmq-operator -m learn
@@ -42,7 +42,8 @@ python3 build.py -p rabbitmq-operator -m time-travel
 Not every stale status `S` will lead to bugs in reality. Sonar finds out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
 In kubernetes, all the cluster status is materialized by events belonging to different resources.
 The first step is to find out the crucial event `E` which can lead to such a "harmful" status `S`.
-We define an event `E` is crucial if it can trigger some side effects (create/update/delete some resources) invoked by the controller.
+
+We define an event `E` is crucial if it can trigger some side effects (resource creation/update/deletion) invoked by the controller.
 Sonar has a `learn` mode to infer the causality between events and side effects,
 and Sonar then picks each potentially causal-related <crucial event, side effect> pair to guide the testing.
 
