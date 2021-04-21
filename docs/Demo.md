@@ -5,6 +5,12 @@ There is some porting effort required before using sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/Porting.md.
 For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have already done the porting work (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) so no extra porting is required to test it.
 
+### What is time-travel bug?
+
+![time travel 1](time-travel-1.pdf)
+![time travel 2](time-travel-2.pdf)
+![time travel 3](time-travel-3.pdf)
+
 ### Finding the crucial event
 Time-travel bugs has the pattern that the controller will perform some unexpected side effects
 if certain events are replayed (by sonar) to the controller.
