@@ -88,7 +88,9 @@ def check_status(learning_status, testing_status):
                     alarm += 1
                     bug_report += "[ERROR] %s %s inconsistency: learning: %s, testing: %s\n" % (
                         rtype, attr, str(learning_status[rtype][attr]), str(testing_status[rtype][attr]))
-    return alarm, "[BUG REPORT] status\n" + bug_report
+    final_bug_report = "[BUG REPORT] status\n" + \
+        bug_report if bug_report != "" else ""
+    return alarm, final_bug_report
 
 
 def check_side_effect(learning_side_effect, testing_side_effect, interest_objects, selective=True):
@@ -120,7 +122,9 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
                     alarm += 1
                     bug_report += "[ERROR] %s/%s/%s %s inconsistency: learning: %s, testing: %s\n" % (
                         rtype, namespace, name, attr, str(learning_entry[attr]), str(testing_entry[attr]))
-    return alarm, "[BUG REPORT] side effect\n" + bug_report
+    final_bug_report = "[BUG REPORT] side effect\n" + \
+        bug_report if bug_report != "" else ""
+    return alarm, final_bug_report
 
 
 def compare_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
