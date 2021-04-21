@@ -6,7 +6,7 @@ Sonar is a bug detection tool for finding partial-history bugs in various kubern
 
 ### What is time-travel bug?
 
-Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and takes unexpected behavior accordingly. Consider the following scenario:
+Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and behaves unexpectedly. Consider the following (simplified) scenario:
 
 In a HA (mulitple apiservers) kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller perform reconciliation according to the state read from apiserver1.
 
@@ -28,10 +28,10 @@ The following sections will explain concretely how Sonar detects a time-travel b
 ### Prerequiste
 There is some porting effort required before using Sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/Porting.md.
-For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have already done the porting work (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) so no extra porting is required to test it.
+For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have already done the porting work (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) so no extra porting effort is required to test it.
 
 ### Finding the "harmful" status to trigger bugs
-Not every stale status `S1` will lead to bugs in reality, and Sonar is able to find out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
+Not every stale status `S` will lead to bugs in reality, and Sonar is able to find out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
 In kubernetes, all the cluster status is materialized by events belonging to different resources.
 The first step is to find out the crucial event `E` which can lead to such a "harmful" status `S`.
 We define an event `E` is crucial if it can trigger some side effects (create/update/delete some resources) invoked by the controller.
@@ -64,11 +64,9 @@ By typing the command, Sonar will:
 When it finishes, you will see a bug is detected by Sonar that:
 ```
 [BUG REPORT] side effect
-[ERROR] statefulset.create inconsistent: learning: 2, testing: 3
-[ERROR] statefulset.delete inconsistent: learning: 1, testing: 2
-[BUG REPORT] status
-[ERROR] pod.size inconsistent: learning: 2, testing: 1
-[BUGGY] # alarms: 3
+[ERROR] statefulset/default/sonar-rabbitmq-cluster-server Create inconsistency: learning: 2, testing: 3
+[ERROR] statefulset/default/sonar-rabbitmq-cluster-server Delete inconsistency: learning: 1, testing: 2
+[BUGGY] # alarms: 2
 ```
 Sonar detects that the controller mistakenly deletes a statefulset during testing.
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and gets fixed using our patch.
@@ -108,7 +106,7 @@ First,
 straggler: kind-control-plane3
 front-runner: kind-control-plane
 ```
-means during testing we want to pause apiserver3 (which runs on `kind-control-plane3`) at **certain timing** to create the stale value.
+means during testing we want to pause apiserver3 (which runs on `kind-control-plane3`) at **certain timing** to create the stale status.
 And we use apiserver1 (which runs on `kind-control-plane`) as a referrence to restart the controller at **certain timing**.
 The difficult part is how to decide the **timing** here.
 
@@ -117,8 +115,7 @@ Now let's look at
 ce-name: sonar-rabbitmq-cluster
 ce-namespace: default
 ce-rtype: rabbitmqcluster
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds":
-  0}}'
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds": 0}}'
 ce-diff-previous: '{}'
 ```
 This is how Sonar decides when to pause the apiserver3. When Sonar sees an event belonging to `rabbitmqcluster/default/sonar-rabbitmq-cluster` and contains the sub-map in `ce-diff-current`, and a previous event contains the sub-map in `ce-diff-previous`,
