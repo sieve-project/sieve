@@ -7,9 +7,11 @@ For [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator), we have a
 
 ### What is time-travel bug?
 
-![time travel 1](time-travel-1.png | width=100)
-![time travel 2](time-travel-2.png | width=100)
-![time travel 3](time-travel-3.png | width=100)
+<img src="time-travel-1.png" width="100">
+
+<img src="time-travel-2.png" width="100">
+
+<img src="time-travel-3.png" width="100">
 
 ### Finding the crucial event
 Time-travel bugs has the pattern that the controller will perform some unexpected side effects
