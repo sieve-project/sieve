@@ -30,6 +30,14 @@ Some porting effort is required to use Sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/Porting.md.
 We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) in (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator).
 
+We also need to build the kubernetes and rabbitmq-operator images:
+```
+python3 build.py -p kubernetes -m learn
+python3 build.py -p rabbitmq-operator -m learn
+python3 build.py -p kubernetes -m time-travel
+python3 build.py -p rabbitmq-operator -m time-travel
+```
+
 ### Finding the "harmful" status to trigger bugs
 Not every stale status `S` will lead to bugs in reality. Sonar finds out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
 In kubernetes, all the cluster status is materialized by events belonging to different resources.
