@@ -30,7 +30,7 @@ Some porting effort is required to use Sonar to test any controller.
 The detailed steps are in https://github.com/xlab-uiuc/sonar/blob/main/docs/port.md.
 We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) in (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator).
 
-We also need to build the kubernetes and rabbitmq-operator images:
+Before testing, we also need to build the kubernetes and rabbitmq-operator images:
 ```
 python3 build.py -p kubernetes -m learn
 python3 build.py -p rabbitmq-operator -m learn
