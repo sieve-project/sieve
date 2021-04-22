@@ -9,15 +9,15 @@ One of the bug patterns Sonar targets is time-travel bug, i.e., the bug caused b
 
 Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and behaves unexpectedly. Consider the following scenario:
 
-In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
-
 <p float="middle">
   <img src="time-travel.png" width="80%">
-<p float="left">
+</p>
 
-Now some network disruption isolates apiserver2 from the underlying etcd, and apisever2 will not be able to get updated by etcd. Apisever1 is not affected, and its locally cached cluster status gets updated to `S2`.
+1. In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
-The controller restarts after experiencing a node failure and connects to apiserver2. The isolated apiserver2 still holds the stale view `S1` though the actual status should be `S2`. The controller will read `S1` and perform reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
+2. Now apiserver2's locally cached status gets updated by etcd to `S2`, while apiserver2's does not get updated in time and still holds the stale status `S1` (due to various reasons like network disruption or temporary resouce contention).
+
+3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and perform reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
 
 ### How does Sonar work (at a high level)?
