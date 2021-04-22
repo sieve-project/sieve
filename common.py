@@ -28,11 +28,11 @@ SONAR_CANONICALIZATION_MARKER = "SONAR-NON-NIL"
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 
 
-def reverse_side_effect(side_effect):
+def translate_side_effect(side_effect, reverse=False):
     if side_effect == "ADDED":
-        return "deletion"
+        return "deletion" if reverse else "creation"
     elif side_effect == "DELETED":
-        return "creation"
+        return "creation" if reverse else "deletion"
     else:
         assert False
 
@@ -164,7 +164,8 @@ def parse_event_id_only(line):
 def parse_reconcile(line):
     assert SONAR_START_RECONCILE_MARK in line or SONAR_FINISH_RECONCILE_MARK in line
     if SONAR_START_RECONCILE_MARK in line:
-        tokens = line[line.find(SONAR_START_RECONCILE_MARK)                      :].strip("\n").split("\t")
+        tokens = line[line.find(SONAR_START_RECONCILE_MARK)
+                                :].strip("\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
     else:
         tokens = line[line.find(SONAR_FINISH_RECONCILE_MARK):].strip(

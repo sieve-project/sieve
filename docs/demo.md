@@ -39,7 +39,13 @@ Now, let's test the rabbitmq-operator
 ```
 python3 run.py -p rabbitmq-operator -t test1 -c log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml
 ```
-`test1` is the test workload (written by us) Sonar will run. The workload simply creates, deletes, and then recreates a rabbitmq cluster. `log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml` is the time-travel config which guides the failure testing (we will explain how the config works later).
+`test1` is the test workload (written by us) Sonar will run.
+The workload simply does three things:
+1. it creates a rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
+2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster sonar-rabbitmq-cluster`
+3. it recreates the rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
+
+`log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml` is the time-travel config which guides the failure testing (we will explain how the config works later).
 
 By typing the command, Sonar will:
 1. run a `test1` in the kind kubernetes cluster;
@@ -51,9 +57,27 @@ When it finishes, you will see a bug is detected by Sonar that:
 [ERROR] statefulset/default/sonar-rabbitmq-cluster-server Create inconsistency: normal: 2, testing: 3
 [ERROR] statefulset/default/sonar-rabbitmq-cluster-server Delete inconsistency: normal: 1, testing: 2
 [BUG REPORT] # alarms: 2
-[DEBUG SUGGESTION] Please check how controller reacts when seeing rabbitmqcluster/default/sonar-rabbitmq-cluster event showing {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}, the controller may issue deletion to statefulset/default/sonar-rabbitmq-cluster-server without proper checking
+[TIME TRAVEL DESC] Sonar makes the controller time travel back to the history to see the status just after rabbitmqcluster/default/sonar-rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}} (from kind-control-plane3)
+[DEBUG SUGGESTION] Please check how controller reacts when seeing rabbitmqcluster/default/sonar-rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}, the controller may issue deletion to statefulset/default/sonar-rabbitmq-cluster-server without proper checking
 ```
-Sonar detects that the controller mistakenly deletes a statefulset during the test.
+Sonar generates a bug report saying the controller issues more creation and deletion of `statefulset/default/sonar-rabbitmq-cluster-server` than normal, and suggest that this inconsistency is probably caused by controller issuing deletion without proper checking when seeing the non-nil `deletionTimestamp` of `rabbitmqcluster/default/sonar-rabbitmq-cluster`.
+
+### Debugging with Sonar report
+Sonar gives us a hint about the bug, but cannot automatically tell the root cause. Debugging still requires some manual efforts. Here is my experience:
+
+I searched `deletionTimestamp` in the controller code to see how the controller reacts to it and I found:
+```go
+	// Check if the resource has been marked for deletion
+	if !rabbitmqCluster.ObjectMeta.DeletionTimestamp.IsZero() {
+		logger.Info("Deleting")
+		return ctrl.Result{}, r.prepareForDeletion(ctx, rabbitmqCluster)
+	}
+```
+The controller tries to delete the statefulset when seeing non-nil `deletionTimestamp` without checking the ownership of the statefulset.
+
+Combining the `TIME TRAVEL DESC` and the `DEBUG SUGGESTION` from Sonar, the bug is identified:
+After the rabbitmq cluster gets recreated by `test1`, Sonar makes the controller time travel back to see the non-nil `deletionTimestamp` (caused by the previous rabbitmq cluster deletion). Since the controller does not check statefuset ownership `prepareForDeletion`, it immediately deletes the currently running statefulset as a reaction of seeing the stale `deletionTimestamp`.
+
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
 
 ### What happened during the test?
@@ -119,11 +143,6 @@ You will also find the explanation from the `description` field. By pausing apis
 
 
 ### Finding the "harmful" status to trigger bugs
-Not every stale status `S` will lead to bugs in reality. Sonar finds out the stale status `S` which is more likely to lead to bugs if consumed by the controller.
-In kubernetes, all the cluster status is materialized by events belonging to different resources.
-The first step is to find out the crucial event `E` which can lead to such a "harmful" status `S`.
-
-We define an event `E` is crucial if it can trigger some side effects (resource creation/update/deletion) invoked by the controller.
 Sonar has a `learn` mode to infer the causality between events and side effects,
 and Sonar then picks each potentially causal-related <crucial event, side effect> pair to guide the testing.
 

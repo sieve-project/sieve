@@ -127,12 +127,25 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
     return alarm, final_bug_report
 
 
-def generate_debug_suggestion(testing_config):
-    return "Please check how controller reacts when seeing %s event showing %s, the controller may issue %s to %s without proper checking" % (
+def generate_generate_time_travel_description(testing_config):
+    return "Sonar makes the controller time travel back to the history to see the status just %s %s: %s (at %s)" % (
+        testing_config["timing"],
         testing_config["ce-rtype"] + "/" +
         testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
         testing_config["ce-diff-current"],
-        common.reverse_side_effect(testing_config["se-etype"]),
+        testing_config["straggler"],
+        # testing_config["se-rtype"] + "/" +
+        # testing_config["se-namespace"] + "/" + testing_config["se-name"],
+        # common.translate_side_effect(testing_config["se-etype"])
+    )
+
+
+def generate_debug_suggestion(testing_config):
+    return "Please check how controller reacts when seeing %s: %s, the controller may issue %s to %s without proper checking" % (
+        testing_config["ce-rtype"] + "/" +
+        testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
+        testing_config["ce-diff-current"],
+        common.translate_side_effect(testing_config["se-etype"], True),
         testing_config["se-rtype"] + "/" +
         testing_config["se-namespace"] + "/" + testing_config["se-name"])
 
@@ -152,7 +165,8 @@ def compare_digest(learning_side_effect, learning_status, testing_side_effect, t
     if alarm != 0:
         bug_report += "[BUG REPORT] # alarms: %d\n" % (alarm)
         if testing_config["mode"] == "time-travel":
-            # bug_report += "[DESC] %s\n" % testing_config["description"]
+            bug_report += "[TIME TRAVEL DESC] %s\n" % generate_generate_time_travel_description(
+                testing_config)
             bug_report += "[DEBUG SUGGESTION] %s\n" % generate_debug_suggestion(
                 testing_config)
     print(bug_report)
