@@ -51,8 +51,7 @@ When it finishes, you will see a bug is detected by Sonar that:
 [ERROR] statefulset/default/sonar-rabbitmq-cluster-server Create inconsistency: normal: 2, testing: 3
 [ERROR] statefulset/default/sonar-rabbitmq-cluster-server Delete inconsistency: normal: 1, testing: 2
 [BUG REPORT] # alarms: 2
-[DESC] Pause kind-control-plane3 after it processes a default/rabbitmqcluster/sonar-rabbitmq-cluster event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart the controller rabbitmq-operator after kind-control-plane processes a ADDED default/statefulset/sonar-rabbitmq-cluster-server event.
-[DEBUG SUGGESTION] Controller may behave wrongly when seeing event {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}
+[DEBUG SUGGESTION] Please check how controller reacts when seeing rabbitmqcluster/default/sonar-rabbitmq-cluster event showing {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}, the controller may issue deletion to statefulset/default/sonar-rabbitmq-cluster-server without proper checking
 ```
 Sonar detects that the controller mistakenly deletes a statefulset during the test.
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
