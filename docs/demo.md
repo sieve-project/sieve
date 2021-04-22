@@ -9,9 +9,7 @@ One of the bug patterns Sonar targets is time-travel bug, i.e., the bug caused b
 
 Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and behaves unexpectedly. Consider the following scenario:
 
-<p float="middle">
-  <img src="time-travel.png" width="80%">
-</p>
+<img src="time-travel.png" width="80%">
 
 1. In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
@@ -26,11 +24,9 @@ To detect time-travel bugs, Sonar will create the above time travel scenario in 
 The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
 
 ### Prerequisite
-#### Kind cluster is required
-Sonar tests the controller in a kind cluster, so kind needs to be installed for testing.
+**Kind cluster is required**. Sonar tests the controller in a kind cluster, so kind needs to be installed for testing.
 
-#### controller needs to be recompiled
-Some porting effort is required to use Sonar to test any controller.
+**The controller needs to be recompiled**. Some porting effort is required to use Sonar to test any controller.
 We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) and rebuilt the images.
 
 ### Testing the controller with time travel config
@@ -79,7 +75,9 @@ After the rabbitmq cluster gets recreated by `test1`, Sonar makes the controller
 
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
 
-### What happened during the test?
+### What is in the time travel config?
+
+The time travel config specified when running the test is used to guide Sonar to create the time travel scenario. Recall that we need to pause the apiserver and restart the controller at **certain timing**, and the time travel config specifies the important timing for pause/restart.
 
 Let's look into the generated time-travel config `log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml`:
 ```
@@ -138,23 +136,24 @@ se-etype: ADDED
 ```
 When Sonar sees an `ADDED` event belonging to `statefulset/default/sonar-rabbitmq-cluster-server`, it will restart the controller and connect the controller to the paused apiserver3.
 
-You will also find the explanation from the `description` field. By pausing apiserver3 and restarting controller at the timing above, the controller will behave incorrectly and the unexpected behavior (delete statefulset) gets captured by Sonar as a bug report.
+You will also find the explanation from the `description` field.
 
 
-### Finding the "harmful" status to trigger bugs
-Sonar has a `learn` mode to infer the causality between events and side effects,
-and Sonar then picks each potentially causal-related <crucial event, side effect> pair to guide the testing.
+### How is the time travel config generated?
+The biggest challenge to generate the above time travel config is to find out the appropriate timing for injecting pause/restart.
+
+Sonar has a `learn` mode to infer the causality between events triggering `reconcile()` and side effects (resource creation/update/deletion) issued during `reconcile()`,
+and Sonar then picks each potentially causal-related <event, side effect> pair to decide the timing. 
 
 To do so, run:
 ```
 python3 run.py -p rabbitmq-operator -t test1 -m learn
 ```
-The command may take a few minutes to finish. It will run test workload `test1` in Sonar `learn` mode.
-`test1` is a simple test workload written by us that creates, deletes and recreates the rabbitmq cluster.
+The command will run test workload `test1` in Sonar `learn` mode, collect the events and side effects, infer the causality and generate the promising timing to for pausing apiserver/restarting controller.
+
 After it finishes, you will see
 ```
 Generated 1 time-travel config(s) in log/rabbitmq-operator/test1/learn/generated-config
 ```
 
-The config contains many details about when to inject pause and node failure to make the controller go back to history.
-We will look into the details later.
+The generated config is exactly the one shown before.
