@@ -16,7 +16,7 @@ def watch_crd(project, addrs):
             os.system("kubectl get %s -s %s" % (crd, addr))
 
 
-def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config):
+def setup_cluster(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config):
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
     os.system("cp %s sonar-server/server.yaml" % server_config)
@@ -57,7 +57,7 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
 
     container_num = len(core_v1.list_namespaced_pod("default", watch=False,
                         label_selector="sonartag="+project).items[0].status.container_statuses)
-    # Assume the container name is called "manager"
+    # TODO: we should either make it configurable or give up the hacky approach
     container_flag = "" if container_num == 1 else "-c manager"
 
     api1_addr = "https://" + core_v1.list_node(
@@ -72,6 +72,17 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
               (container_flag, controller_config, pod_name))
     os.system("kubectl exec %s %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
               (container_flag, pod_name, controllers.command[project]))
+
+
+def run_workload(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config):
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    pod_name = core_v1.list_namespaced_pod(
+        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+    container_num = len(core_v1.list_namespaced_pod("default", watch=False,
+                        label_selector="sonartag="+project).items[0].status.container_statuses)
+    # TODO: we should either make it configurable or give up the hacky approach
+    container_flag = "" if container_num == 1 else "-c manager"
 
     org_dir = os.getcwd()
     os.chdir(controllers.test_dir[project])
@@ -88,6 +99,14 @@ def run_test(project, mode, test_script, server_config, controller_config, apise
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system("kubectl cp %s %s:/operator.log %s/operator.log" %
               (container_flag, pod_name, log_dir))
+
+
+def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config):
+    setup_cluster(project, mode, test_script, server_config, controller_config,
+                  apiserver_config, log_dir, docker_repo, docker_tag, cluster_config)
+
+    run_workload(project, mode, test_script, server_config, controller_config,
+                 apiserver_config, log_dir, docker_repo, docker_tag, cluster_config)
 
 
 def run(test_suites, project, test, log_dir, mode, config, docker):
