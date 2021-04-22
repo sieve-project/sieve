@@ -11,10 +11,10 @@ Time-travel bugs happen when the controller reads stale cluster status from a st
 
 In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
-<p float="left">
-  <img src="time-travel-1.png" width="29%" alt="Fig.1">
-  <img src="time-travel-2.png" width="29%" alt="Fig.2">
-  <img src="time-travel-3.png" width="29%" alt="Fig.3">
+<p float="middle">
+  <img src="time-travel-1.png" width="29%">
+  <img src="time-travel-2.png" width="29%">
+  <img src="time-travel-3.png" width="29%">
 </p>
 
 
