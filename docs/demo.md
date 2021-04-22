@@ -11,15 +11,15 @@ Time-travel bugs happen when the controller reads stale cluster status from a st
 
 In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
-<img src="time-travel-1.png" width="300">
+<img src="time-travel-1.png" width="300" title="Fig.1">
 
 Now some network disruption isolates apiserver2 from the underlying etcd, and apisever2 will not be able to get updated by etcd. Apisever1 is not affected, and its locally cached cluster status gets updated to `S2`.
 
-<img src="time-travel-2.png" width="300">
+<img src="time-travel-2.png" width="300" title="Fig.2">
 
 The controller restarts after experiencing a node failure and connects to apiserver2. The isolated apiserver2 still holds the stale view `S1` though the actual status should be `S2`. The controller will read `S1` and perform reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
-<img src="time-travel-3.png" width="300">
+<img src="time-travel-3.png" width="300" title="Fig.3">
 
 ### How does Sonar work (at a high level)?
 To detect time-travel bugs, Sonar will create the above time travel scenario in a [kind](https://kind.sigs.k8s.io/) cluster to trigger the bug. In other words, Sonar perform failure testing by pausing the apiserver and restarting the controller at certain timing to make the controller experience a time traveling.
