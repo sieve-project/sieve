@@ -151,7 +151,7 @@ def canonicalization(event):
             canonicalization(event[key])
         else:
             if "time" in key.lower():
-                event[key] = "SONAR-EXIST"
+                event[key] = "SONAR-NON-NIL"
     return event
 
 

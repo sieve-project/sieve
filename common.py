@@ -24,7 +24,7 @@ KTYPES = [POD, PVC, DEPLOYMENT, STS]
 BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
                               "managedFields", "lastTransitionTime", "generation"]
 SONAR_SKIP_MARKER = "SONAR-SKIP"
-SONAR_CANONICALIZATION_MARKER = "SONAR-EXIST"
+SONAR_CANONICALIZATION_MARKER = "SONAR-NON-NIL"
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 
 
