@@ -11,11 +11,7 @@ Time-travel bugs happen when the controller reads stale cluster status from a st
 
 In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
-<p float="middle">
-  <img src="time-travel-1.png" width="29%">
-  <img src="time-travel-2.png" width="29%">
-  <img src="time-travel-3.png" width="29%">
-</p>
+<img src="time-travel.png" width="95%">
 
 
 Now some network disruption isolates apiserver2 from the underlying etcd, and apisever2 will not be able to get updated by etcd. Apisever1 is not affected, and its locally cached cluster status gets updated to `S2`.
