@@ -16,10 +16,10 @@ def watch_crd(project, addrs):
             os.system("kubectl get %s -s %s" % (crd, addr))
 
 
-def setup_cluster(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config):
+def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config):
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
-    os.system("cp %s sonar-server/server.yaml" % server_config)
+    os.system("cp %s sonar-server/server.yaml" % test_config)
     os.system("kind delete cluster")
 
     os.system("./setup.sh %s %s %s" %
@@ -42,7 +42,7 @@ def setup_cluster(project, mode, test_script, server_config, controller_config, 
 
     for apiserver in apiserver_list:
         os.system("kubectl cp %s %s:/sonar.yaml -n kube-system" %
-                  (apiserver_config, apiserver))
+                  (test_config, apiserver))
 
     controllers.deploy[project](docker_repo, docker_tag)
 
@@ -69,12 +69,12 @@ def setup_cluster(project, mode, test_script, server_config, controller_config, 
     watch_crd(project, [api1_addr, api2_addr, api3_addr])
 
     os.system("kubectl cp %s %s %s:/sonar.yaml" %
-              (container_flag, controller_config, pod_name))
+              (container_flag, test_config, pod_name))
     os.system("kubectl exec %s %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
               (container_flag, pod_name, controllers.command[project]))
 
 
-def run_workload(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config):
+def run_workload(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pod_name = core_v1.list_namespaced_pod(
@@ -101,7 +101,7 @@ def run_workload(project, mode, test_script, server_config, controller_config, a
               (container_flag, pod_name, log_dir))
 
 
-def post_process(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
+def post_process(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
     if mode == "vanilla":
         pass
     elif mode == "learn":
@@ -119,21 +119,21 @@ def post_process(project, mode, test_script, server_config, controller_config, a
         testing_side_effect, testing_status = oracle.generate_digest(
             os.path.join(log_dir, "operator.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-            oracle.compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status, server_config))
+            oracle.compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config))
         json.dump(testing_side_effect, open(os.path.join(
             log_dir, "side-effect.json"), "w"), indent=4)
         json.dump(testing_status, open(os.path.join(
             log_dir, "status.json"), "w"), indent=4)
 
 
-def run_test(project, mode, test_script, server_config, controller_config, apiserver_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
+def run_test(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
     if run == "all" or run == "setup":
-        setup_cluster(project, mode, test_script, server_config, controller_config,
-                      apiserver_config, log_dir, docker_repo, docker_tag, cluster_config)
+        setup_cluster(project, mode, test_script, test_config,
+                      log_dir, docker_repo, docker_tag, cluster_config)
     if run == "all" or run == "workload":
-        run_workload(project, mode, test_script, server_config, controller_config,
-                     apiserver_config, log_dir, docker_repo, docker_tag, cluster_config)
-        post_process(project, mode, test_script, server_config, controller_config, apiserver_config,
+        run_workload(project, mode, test_script, test_config,
+                     log_dir, docker_repo, docker_tag, cluster_config)
+        post_process(project, mode, test_script, test_config,
                      log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run)
 
 
@@ -145,12 +145,12 @@ def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
         log_dir = os.path.join(log_dir, mode)
         blank_config = "config/none.yaml"
         run_test(project, mode, suite.workload,
-                 blank_config, blank_config, blank_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
+                 blank_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
     elif mode == "learn":
         log_dir = os.path.join(log_dir, mode)
         learn_config = controllers.learning_configs[project]
         run_test(project, mode, suite.workload,
-                 learn_config, learn_config, learn_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
+                 learn_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
     else:
         test_config = config if config != "none" else suite.config
         test_mode = mode if mode != "none" else suite.mode
@@ -158,7 +158,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
         print("testing mode: %s config: %s" % (test_mode, test_config))
         log_dir = os.path.join(log_dir, test_mode)
         run_test(project, test_mode, suite.workload,
-                 test_config, test_config, test_config, log_dir, docker, test_mode, suite.cluster_config, data_dir, suite.double_sides, run)
+                 test_config, log_dir, docker, test_mode, suite.cluster_config, data_dir, suite.double_sides, run)
 
 
 def run_batch(project, test, dir, mode, docker):
