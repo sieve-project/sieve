@@ -8,12 +8,31 @@ import glob
 import analyze
 import controllers
 import oracle
+import yaml
 
 
 def watch_crd(project, addrs):
     for addr in addrs:
         for crd in controllers.CRDs[project]:
             os.system("kubectl get %s -s %s" % (crd, addr))
+
+
+def generate_configmap(test_config):
+    yaml_map = yaml.safe_load(open(test_config))
+    configmap = {}
+    configmap["apiVersion"] = "v1"
+    configmap["kind"] = "ConfigMap"
+    configmap["metadata"] = {"name": "sonar-testing-global-config"}
+    configmap["data"] = {}
+    for key in yaml_map:
+        if isinstance(yaml_map[key], list):
+            assert key.endswith("-list")
+            configmap["data"]["SONAR-" + key.upper()] = ",".join(yaml_map[key])
+        else:
+            configmap["data"]["SONAR-" + key.upper()] = yaml_map[key]
+    configmap_path = "%s-configmap.yaml" % test_config[:-5]
+    yaml.dump(configmap, open(configmap_path, "w"), sort_keys=False)
+    return configmap_path
 
 
 def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config):
@@ -25,6 +44,9 @@ def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo,
     os.system("./setup.sh %s %s %s" %
               (cluster_config, docker_repo, docker_tag))
     os.system("./bypass-balancer.sh")
+
+    configmap = generate_configmap(test_config)
+    os.system("kubectl apply -f %s" % configmap)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -101,6 +123,14 @@ def run_workload(project, mode, test_script, test_config, log_dir, docker_repo, 
               (container_flag, pod_name, log_dir))
 
 
+def pre_process(project, mode, test_config):
+    if mode == "learn":
+        learn_config = {}
+        learn_config["mode"] = "learn"
+        learn_config["crd-list"] = controllers.CRDs[project]
+        yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
+
+
 def post_process(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
     if mode == "vanilla":
         pass
@@ -128,6 +158,7 @@ def post_process(project, mode, test_script, test_config, log_dir, docker_repo, 
 
 def run_test(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
     if run == "all" or run == "setup":
+        pre_process(project, mode, test_config)
         setup_cluster(project, mode, test_script, test_config,
                       log_dir, docker_repo, docker_tag, cluster_config)
     if run == "all" or run == "workload":
