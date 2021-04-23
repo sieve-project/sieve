@@ -277,6 +277,7 @@ func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sonar.NotifyTim
 func (s *timeTravelServer) NotifyTimeTravelSideEffects(request *sonar.NotifyTimeTravelSideEffectsRequest, response *sonar.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
+	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 
