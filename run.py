@@ -117,7 +117,7 @@ def post_process(project, mode, test_script, test_config, log_dir, docker_repo, 
         learned_status = json.load(open(os.path.join(
             data_dir, "status.json")))
         testing_side_effect, testing_status = oracle.generate_digest(
-            os.path.join(log_dir, "operator.log"))
+            os.path.join(log_dir, "sonar-server.log"))
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
             oracle.compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config))
         json.dump(testing_side_effect, open(os.path.join(

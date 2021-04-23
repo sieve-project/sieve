@@ -53,3 +53,20 @@ func checkError(err error) {
 		log.Fatalf("Fail due to error: %v\n", err)
 	}
 }
+
+func extractNameNamespace(Object string) (string, string) {
+	objectMap := strToMap(Object)
+	name := ""
+	namespace := ""
+	if _, ok := objectMap["metadata"]; ok {
+		if metadataMap, ok := objectMap["metadata"].(map[string]interface{}); ok {
+			if _, ok := metadataMap["name"]; ok {
+				name = metadataMap["name"].(string)
+			}
+			if _, ok := metadataMap["namespace"]; ok {
+				namespace = metadataMap["namespace"].(string)
+			}
+		}
+	}
+	return name, namespace
+}

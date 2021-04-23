@@ -54,8 +54,12 @@ func (l *TimeTravelListener) NotifyTimeTravelCrucialEvent(request *sonar.NotifyT
 	return l.Server.NotifyTimeTravelCrucialEvent(request, response)
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTravelSideEffectRequest, response *sonar.Response) error {
-	return l.Server.NotifyTimeTravelSideEffect(request, response)
+func (l *TimeTravelListener) NotifyTimeTravelRestartPoint(request *sonar.NotifyTimeTravelRestartPointRequest, response *sonar.Response) error {
+	return l.Server.NotifyTimeTravelRestartPoint(request, response)
+}
+
+func (l *TimeTravelListener) NotifyTimeTravelSideEffects(request *sonar.NotifyTimeTravelSideEffectsRequest, response *sonar.Response) error {
+	return l.Server.NotifyTimeTravelSideEffects(request, response)
 }
 
 type timeTravelServer struct {
@@ -134,7 +138,7 @@ func (s *timeTravelServer) equivalentEventList(crucialEvent, currentEvent []inte
 				return false
 			}
 		default:
-			log.Printf("Unsupported type: %v %T", v, v)
+			log.Printf("Unsupported type: %v %T\n", v, v)
 			return false
 		}
 	}
@@ -198,7 +202,7 @@ func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string
 				return false
 			}
 		default:
-			log.Printf("Unsupported type: %v %T", v, v)
+			log.Printf("Unsupported type: %v %T\n", v, v)
 			return false
 		}
 	}
@@ -245,7 +249,7 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTim
 	currentEvent := strToMap(request.Object)
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
-	log.Printf("[sonar][currentEvent] %s\n", request.Object)
+	log.Printf("[sonar][current-event] %s\n", request.Object)
 	if s.shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		log.Println("[sonar] should sleep here")
 		<-s.pauseCh
@@ -255,18 +259,24 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTim
 	return nil
 }
 
-func (s *timeTravelServer) NotifyTimeTravelSideEffect(request *sonar.NotifyTimeTravelSideEffectRequest, response *sonar.Response) error {
+func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sonar.NotifyTimeTravelRestartPointRequest, response *sonar.Response) error {
 	log.Printf("NotifyTimeTravelSideEffect: Hostname: %s\n", request.Hostname)
 	if s.frontRunner != request.Hostname {
 		*response = sonar.Response{Message: request.Hostname, Ok: true}
 		return nil
 	}
-	log.Printf("[sonar][sideeffect] %s %s %s %s", request.Name, request.Namespace, request.ResourceType, request.EventType)
+	log.Printf("[sonar][restart-point] %s %s %s %s\n", request.Name, request.Namespace, request.ResourceType, request.EventType)
 	if s.shouldRestart() {
 		log.Println("[sonar] should restart here")
 		go s.waitAndRestartComponent()
 	}
 	*response = sonar.Response{Message: request.Hostname, Ok: true}
+	return nil
+}
+
+func (s *timeTravelServer) NotifyTimeTravelSideEffects(request *sonar.NotifyTimeTravelSideEffectsRequest, response *sonar.Response) error {
+	name, namespace := extractNameNamespace(request.Object)
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
 	return nil
 }
 
@@ -329,7 +339,7 @@ func (s *timeTravelServer) restartComponent(project, podLabel string) {
 		log.Fatalln("didn't get any pod")
 	}
 	pod := pods.Items[0]
-	log.Printf("get operator pod: %s", pod.Name)
+	log.Printf("get operator pod: %s\n", pod.Name)
 
 	// The way we crash and restart the controller is not very graceful here.
 	// The util.sh is a simple script with commands to kill the controller process
