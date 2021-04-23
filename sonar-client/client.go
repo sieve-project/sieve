@@ -6,6 +6,7 @@ import (
 	"net/rpc"
 	"log"
 	"sync"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -50,10 +51,18 @@ func checkTimeTravelTiming(timing string) bool {
 
 func getCRDs() []string {
 	crds := []string{}
-	if cs, ok := config["crds"]; ok {
-		cs := cs.([]interface{})
-		for _, c := range cs {
-			crds = append(crds, c.(string))
+	if cs, ok := config["crd-list"]; ok {
+		switch v := cs.(type) {
+		case []interface{}:
+			for _, c := range v {
+				crds = append(crds, c.(string))
+			}
+		case []string:
+			for _, c := range v {
+				crds = append(crds, c)
+			}
+		default:
+			log.Println("crd-list wrong type")
 		}
 	}
 	return crds
@@ -68,18 +77,45 @@ func newClient() (*rpc.Client, error) {
 	return client, nil
 }
 
+func getConfigFromEnv() (map[string]interface{}) {
+	if _, ok := os.LookupEnv("SONAR-MODE"); ok {
+		configFromEnv := make(map[string]interface{})
+		for _, e := range os.Environ() {
+			pair := strings.SplitN(e, "=", 2)
+			envKey := pair[0]
+			envVal := pair[1]
+			if strings.HasPrefix(envKey, "SONAR-") {
+				newKey := strings.ToLower(strings.TrimPrefix(envKey, "SONAR-"))
+				if strings.HasSuffix(newKey, "-list") {
+					configFromEnv[newKey] = strings.Split(envVal, ",")
+				} else {
+					configFromEnv[newKey] = envVal
+				}
+			}
+		}
+		return configFromEnv
+	} else {
+		return nil
+	}
+}
+
 func getConfig() (map[string]interface{}, error) {
+	configFromEnv := getConfigFromEnv()
+	if configFromEnv != nil {
+		log.Printf("[sonar] configFromEnv:\n%v\n", configFromEnv)
+		return configFromEnv, nil
+	}
 	data, err := ioutil.ReadFile("/sonar.yaml")
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[string]interface{})
-	err = yaml.Unmarshal([]byte(data), &m)
+	configFromYaml := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(data), &configFromYaml)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("[sonar] config:\n%v\n", m)
-	return m, nil
+	log.Printf("[sonar] configFromYaml:\n%v\n", configFromYaml)
+	return configFromYaml, nil
 }
 
 func printError(err error, text string) {
