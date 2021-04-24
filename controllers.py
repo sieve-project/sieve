@@ -92,10 +92,12 @@ CRDs = {
 }
 
 deployment_name = {
+    "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
 }
 
 operator_pod_label = {
+    "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
 }
 
