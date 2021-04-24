@@ -1,44 +1,82 @@
 {
     "configmap": {
-        "create": 12,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 838
+        "default": {
+            "zookeeper-cluster-configmap": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 170
+            }
+        }
     },
     "persistentvolumeclaim": {
-        "create": 12,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 838
+        "default": {
+            "data-zookeeper-cluster-0": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "poddisruptionbudget": {
-        "create": 12,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 838
+        "default": {
+            "zookeeper-cluster": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "service": {
-        "create": 12,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 838
+        "default": {
+            "zookeeper-cluster-admin-server": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 161
+            },
+            "zookeeper-cluster-client": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 161
+            },
+            "zookeeper-cluster-headless": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 161
+            }
+        }
     },
     "statefulset": {
-        "create": 12,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 838
+        "default": {
+            "zookeeper-cluster": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 170
+            }
+        }
     },
     "zookeepercluster": {
-        "create": 12,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 838
+        "default": {
+            "zookeeper-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 5
+            }
+        }
     }
 }
