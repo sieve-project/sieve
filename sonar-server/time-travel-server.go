@@ -29,9 +29,10 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		straggler:   config["straggler"].(string),
 		crucialCur:  config["ce-diff-current"].(string),
 		crucialPrev: config["ce-diff-previous"].(string),
-		podLable:    config["operator-pod"].(string),
+		podLable:    config["operator-pod-label"].(string),
 		frontRunner: config["front-runner"].(string),
-		command:     config["command"].(string),
+		deployName:  config["deployment-name"].(string),
+		namespace:   "default",
 	}
 	listener := &TimeTravelListener{
 		Server: server,
@@ -73,7 +74,8 @@ type timeTravelServer struct {
 	paused      bool
 	restarted   bool
 	pauseCh     chan int
-	command     string
+	deployName  string
+	namespace   string
 }
 
 func (s *timeTravelServer) Start() {
@@ -283,7 +285,7 @@ func (s *timeTravelServer) NotifyTimeTravelSideEffects(request *sonar.NotifyTime
 
 func (s *timeTravelServer) waitAndRestartComponent() {
 	time.Sleep(time.Duration(10) * time.Second)
-	s.restartComponent(s.project, s.podLable)
+	s.restartComponent()
 	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }
@@ -325,36 +327,28 @@ func (s *timeTravelServer) shouldRestart() bool {
 // The controller to restart is identified by `operator-pod` in the configuration.
 // `operator-pod` is a label to identify the pod where the controller is running.
 // We do not directly use pod name because the pod belongs to a deployment so its name is not fixed.
-func (s *timeTravelServer) restartComponent(project, podLabel string) {
+func (s *timeTravelServer) restartComponent() {
 	config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-	// pods, err := clientset.CoreV1().Pods("default").List(context.TODO(), listOptions)
-	// checkError(err)
-	// if len(pods.Items) == 0 {
-	// 	log.Fatalln("didn't get any pod")
-	// }
-	// pod := pods.Items[0]
-	// log.Printf("get operator pod: %s\n", pod.Name)
 
-	deployment, err := clientset.AppsV1().Deployments("default").Get(context.TODO(), "rabbitmq-operator", metav1.GetOptions{})
+	deployment, err := clientset.AppsV1().Deployments(s.namespace).Get(context.TODO(), s.deployName, metav1.GetOptions{})
 	checkError(err)
-	// log.Println(deployment)
 	log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
 
-	clientset.AppsV1().Deployments("default").Delete(context.TODO(), "rabbitmq-operator", metav1.DeleteOptions{})
+	clientset.AppsV1().Deployments(s.namespace).Delete(context.TODO(), s.deployName, metav1.DeleteOptions{})
 
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sonartag": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sonartag": s.podLable}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
 	for true {
 		time.Sleep(time.Duration(1) * time.Second)
-		pods, err := clientset.CoreV1().Pods("default").List(context.TODO(), listOptions)
+		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
 		checkError(err)
-		if len(pods.Items) !=0 {
+		if len(pods.Items) != 0 {
 			log.Printf("operator pod not deleted yet\n")
 		} else {
 			log.Printf("operator pod gets deleted\n")
@@ -382,7 +376,29 @@ func (s *timeTravelServer) restartComponent(project, podLabel string) {
 			}
 		}
 	}
-	newDeployment, err = clientset.AppsV1().Deployments("default").Create(context.TODO(), newDeployment, metav1.CreateOptions{})
+	newDeployment, err = clientset.AppsV1().Deployments(s.namespace).Create(context.TODO(), newDeployment, metav1.CreateOptions{})
 	checkError(err)
 	log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
+
+	for true {
+		time.Sleep(time.Duration(1) * time.Second)
+		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
+		checkError(err)
+		if len(pods.Items) == 0 {
+			log.Printf("operator pod not created yet\n")
+		} else {
+			ready := true
+			for i := 0; i < len(pods.Items); i++ {
+				if pods.Items[i].Status.Phase == "Running" {
+					log.Printf("operator pod %d ready now\n", i)
+				} else {
+					log.Printf("operator pod %d not ready yet\n", i)
+					ready = false
+				}
+			}
+			if ready {
+				break
+			}
+		}
+	}
 }
