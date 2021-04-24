@@ -92,11 +92,13 @@ CRDs = {
 }
 
 deployment_name = {
+    "cassandra-operator": "cassandra-operator",
     "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
 }
 
 operator_pod_label = {
+    "cassandra-operator": "cassandra-operator",
     "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
 }
