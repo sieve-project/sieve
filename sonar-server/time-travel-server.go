@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"os/exec"
 	"sync"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
@@ -330,32 +330,59 @@ func (s *timeTravelServer) restartComponent(project, podLabel string) {
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
+	// pods, err := clientset.CoreV1().Pods("default").List(context.TODO(), listOptions)
+	// checkError(err)
+	// if len(pods.Items) == 0 {
+	// 	log.Fatalln("didn't get any pod")
+	// }
+	// pod := pods.Items[0]
+	// log.Printf("get operator pod: %s\n", pod.Name)
+
+	deployment, err := clientset.AppsV1().Deployments("default").Get(context.TODO(), "rabbitmq-operator", metav1.GetOptions{})
+	checkError(err)
+	// log.Println(deployment)
+	log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
+
+	clientset.AppsV1().Deployments("default").Delete(context.TODO(), "rabbitmq-operator", metav1.DeleteOptions{})
+
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sonartag": podLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
-	pods, err := clientset.CoreV1().Pods("default").List(context.TODO(), listOptions)
-	checkError(err)
-	if len(pods.Items) == 0 {
-		log.Fatalln("didn't get any pod")
+
+	for true {
+		time.Sleep(time.Duration(1) * time.Second)
+		pods, err := clientset.CoreV1().Pods("default").List(context.TODO(), listOptions)
+		checkError(err)
+		if len(pods.Items) !=0 {
+			log.Printf("operator pod not deleted yet\n")
+		} else {
+			log.Printf("operator pod gets deleted\n")
+			break
+		}
 	}
-	pod := pods.Items[0]
-	log.Printf("get operator pod: %s\n", pod.Name)
 
-	// The way we crash and restart the controller is not very graceful here.
-	// The util.sh is a simple script with commands to kill the controller process
-	// and restart the controller process.
-	// Why not directly call the commands?
-	// The command needs nested quotation marks and
-	// I find parsing nested quotation marks are tricky in golang.
-	// TODO: figure out how to make nested quotation marks work
-	cmd := exec.Command("./util.sh", s.command, pod.Name, s.straggler)
-	err = cmd.Run()
+	newDeployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: deployment.ObjectMeta.Name,
+			Namespace: deployment.ObjectMeta.Namespace,
+			Labels: deployment.ObjectMeta.Labels,
+		},
+		Spec: deployment.Spec,
+	}
+
+	containersNum := len(newDeployment.Spec.Template.Spec.Containers)
+	for i := 0; i < containersNum; i++ {
+		envNum := len(newDeployment.Spec.Template.Spec.Containers[i].Env)
+		for j := 0; j < envNum; j++ {
+			if newDeployment.Spec.Template.Spec.Containers[i].Env[j].Name == "KUBERNETES_SERVICE_HOST" {
+				log.Printf("change api to %s\n", s.straggler)
+				newDeployment.Spec.Template.Spec.Containers[i].Env[j].Value = s.straggler
+				break
+			}
+		}
+	}
+	newDeployment, err = clientset.AppsV1().Deployments("default").Create(context.TODO(), newDeployment, metav1.CreateOptions{})
 	checkError(err)
-	log.Println("restart successfully")
-
-	// cmd2 := exec.Command("./util.sh", s.command, pod.Name)
-	// err = cmd2.Run()
-	// checkError(err)
-	// log.Println("restart")
+	log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
 }
