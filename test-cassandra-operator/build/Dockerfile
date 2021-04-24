@@ -21,17 +21,14 @@ COPY . ./
 # Build binary
 RUN cd cmd/manager \
     && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-        -ldflags "-w -X main.version=${version}" \
-        -o /tmp/cassandra-operator
+    -ldflags "-w -X main.version=${version}" \
+    -o /tmp/cassandra-operator
 
 # Build final image
 FROM alpine:3.11.2
 
 COPY --from=builder /tmp/cassandra-operator .
 COPY --from=builder /etc/passwd /etc/passwd
-RUN apk update
-RUN apk upgrade
-RUN apk add bash
-# USER 999
+USER 999
 RUN mkdir -p /tmp
-CMD ["sleep", "infinity"]
+CMD ["./cassandra-operator"]
