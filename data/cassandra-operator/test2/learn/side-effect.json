@@ -1,37 +1,71 @@
 {
     "cassandradatacenter": {
-        "create": 10,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 19
+        "default": {
+            "cassandra-datacenter": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 3
+            }
+        }
     },
     "configmap": {
-        "create": 10,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 19
+        "default": {
+            "cassandra-test-cluster-dc1-operator-config": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "cassandra-test-cluster-dc1-rack-config-rack1": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "persistentvolumeclaim": {
-        "create": 10,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 19
+        "default": {
+            "data-volume-cassandra-test-cluster-dc1-rack1-0": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "service": {
-        "create": 10,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 19
+        "default": {
+            "cassandra-test-cluster-dc1-nodes": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 6
+            },
+            "cassandra-test-cluster-dc1-seeds": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 6
+            }
+        }
     },
     "statefulset": {
-        "create": 10,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 19
+        "default": {
+            "cassandra-test-cluster-dc1-rack1": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     }
 }
