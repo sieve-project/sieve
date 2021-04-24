@@ -91,14 +91,22 @@ CRDs = {
     "casskop-operator": ["cassandracluster", "cassandrarestore", "cassandrabackup"],
 }
 
-command = {
-    "cassandra-operator": "/cassandra-operator",
-    "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
-    "rabbitmq-operator": "/manager",
-    "mongodb-operator": "percona-server-mongodb-operator",
-    "cass-operator": "/bin/operator",
-    "casskop-operator": "/usr/local/bin/casskop"
+deployment_name = {
+    "rabbitmq-operator": "rabbitmq-operator",
 }
+
+operator_pod_label = {
+    "rabbitmq-operator": "rabbitmq-operator",
+}
+
+# command = {
+#     "cassandra-operator": "/cassandra-operator",
+#     "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
+#     "rabbitmq-operator": "/manager",
+#     "mongodb-operator": "percona-server-mongodb-operator",
+#     "cass-operator": "/bin/operator",
+#     "casskop-operator": "/usr/local/bin/casskop"
+# }
 
 controller_runtime_version = {
     "cassandra-operator": "v0.4.0",
@@ -193,6 +201,7 @@ def mongodb_operator_deploy(dr, dt):
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
+
 def cass_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-cass-operator/deploy/controller-manifest.yaml", dr, dt)
@@ -205,7 +214,8 @@ def casskop_operator_deploy(dr, dt):
     # Using helm
     new_path = replace_docker_repo(
         "test-casskop-operator/deploy/values.yaml", dr, dt)
-    os.system("helm install -f %s casskop-operator test-casskop-operator/deploy"%(new_path))
+    os.system(
+        "helm install -f %s casskop-operator test-casskop-operator/deploy" % (new_path))
 
 
 deploy = {

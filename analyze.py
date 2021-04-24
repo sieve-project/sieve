@@ -188,7 +188,7 @@ def time_travel_description(yaml_map):
         "And restart the controller %s after %s processes a %s %s event." % (
             yaml_map["straggler"], "/".join([yaml_map["ce-namespace"],
                                              yaml_map["ce-rtype"], yaml_map["ce-name"]]),
-            yaml_map["ce-diff-current"], yaml_map["ce-diff-previous"], yaml_map["operator-pod"],
+            yaml_map["ce-diff-current"], yaml_map["ce-diff-previous"], yaml_map["operator-pod-label"],
             yaml_map["front-runner"], yaml_map["se-etype"], "/".join([yaml_map["se-namespace"],
                                                                       yaml_map["se-rtype"], yaml_map["se-name"]]))
 
@@ -199,8 +199,8 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map["mode"] = "time-travel"
     yaml_map["straggler"] = "kind-control-plane3"
     yaml_map["front-runner"] = "kind-control-plane"
-    yaml_map["operator-pod"] = project
-    yaml_map["command"] = controllers.command[project]
+    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
+    yaml_map["deployment-name"] = controllers.deployment_name[project]
     yaml_map["timing"] = timing
     suffix = "-b" if timing == "before" else ""
     i = 0
