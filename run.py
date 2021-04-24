@@ -74,13 +74,13 @@ def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo,
         if event['object'].status.phase == "Running":
             w.stop()
 
-    pod_name = core_v1.list_namespaced_pod(
-        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+    # pod_name = core_v1.list_namespaced_pod(
+    #     "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
-    container_num = len(core_v1.list_namespaced_pod("default", watch=False,
-                        label_selector="sonartag="+project).items[0].status.container_statuses)
+    # container_num = len(core_v1.list_namespaced_pod("default", watch=False,
+    #                     label_selector="sonartag="+project).items[0].status.container_statuses)
     # TODO: we should either make it configurable or give up the hacky approach
-    container_flag = "" if container_num == 1 else "-c manager"
+    # container_flag = "" if container_num == 1 else "-c manager"
 
     api1_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
@@ -90,26 +90,26 @@ def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo,
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
     watch_crd(project, [api1_addr, api2_addr, api3_addr])
 
-    os.system("kubectl cp %s %s %s:/sonar.yaml" %
-              (container_flag, test_config, pod_name))
-    os.system("kubectl exec %s %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
-              (container_flag, pod_name, controllers.command[project]))
+    # os.system("kubectl cp %s %s %s:/sonar.yaml" %
+    #           (container_flag, test_config, pod_name))
+    # os.system("kubectl exec %s %s -- /bin/bash -c \"KUBERNETES_SERVICE_HOST=kind-control-plane KUBERNETES_SERVICE_PORT=6443 %s &> operator.log &\"" %
+    #           (container_flag, pod_name, controllers.command[project]))
 
 
 def run_workload(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config):
-    kubernetes.config.load_kube_config()
-    core_v1 = kubernetes.client.CoreV1Api()
-    pod_name = core_v1.list_namespaced_pod(
-        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
-    container_num = len(core_v1.list_namespaced_pod("default", watch=False,
-                        label_selector="sonartag="+project).items[0].status.container_statuses)
+    # container_num = len(core_v1.list_namespaced_pod("default", watch=False,
+    #                     label_selector="sonartag="+project).items[0].status.container_statuses)
     # TODO: we should either make it configurable or give up the hacky approach
-    container_flag = "" if container_num == 1 else "-c manager"
+    # container_flag = "" if container_num == 1 else "-c manager"
 
     org_dir = os.getcwd()
     os.chdir(controllers.test_dir[project])
     os.system("./%s %s" % (test_script, mode))
     os.chdir(org_dir)
+
+    kubernetes.config.load_kube_config()
+    pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
+        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
     os.system(
         "kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
@@ -119,8 +119,10 @@ def run_workload(project, mode, test_script, test_config, log_dir, docker_repo, 
         "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
     os.system(
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
-    os.system("kubectl cp %s %s:/operator.log %s/operator.log" %
-              (container_flag, pod_name, log_dir))
+    os.system(
+        "kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
+    # os.system("kubectl cp %s %s:/operator.log %s/operator.log" %
+    #           (container_flag, pod_name, log_dir))
 
 
 def pre_process(project, mode, test_config):
