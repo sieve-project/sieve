@@ -22,8 +22,8 @@ spec:
           ports:
           - containerPort: 60000
             name: metrics
-          # command:
-          # - zookeeper-operator
+          command:
+          - zookeeper-operator
           imagePullPolicy: Always
           env:
           - name: WATCH_NAMESPACE
@@ -36,3 +36,10 @@ spec:
                 fieldPath: metadata.name
           - name: OPERATOR_NAME
             value: "zookeeper-operator"
+          - name: KUBERNETES_SERVICE_HOST
+            value: "kind-control-plane"
+          - name: KUBERNETES_SERVICE_PORT
+            value: "6443"
+          envFrom:
+          - configMapRef:
+              name: sonar-testing-global-config
