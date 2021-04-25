@@ -85,7 +85,7 @@ def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo,
 
 def run_workload(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config):
     org_dir = os.getcwd()
-    os.chdir(controllers.test_dir[project])
+    os.chdir(os.path.join(controllers.test_dir[project], "test"))
     os.system("./%s %s" % (test_script, mode))
     os.chdir(org_dir)
 
@@ -161,7 +161,8 @@ def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
                  blank_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
     elif mode == "learn":
         log_dir = os.path.join(log_dir, mode)
-        learn_config = controllers.learning_configs[project]
+        learn_config = os.path.join(
+            controllers.test_dir[project], "test", "learn.yaml")
         run_test(project, mode, suite.workload,
                  learn_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
     else:

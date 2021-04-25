@@ -13,6 +13,8 @@ class Suite:
 
 
 docker_repo = "xudongs"
+front_runner = "kind-control-plane"
+straggler = "kind-control-plane3"
 
 testing_modes = ["time-travel", "sparse-read"]
 
@@ -35,12 +37,12 @@ app_dir = {
 }
 
 test_dir = {
-    "cassandra-operator": "test-cassandra-operator/test",
-    "zookeeper-operator": "test-zookeeper-operator/test",
-    "rabbitmq-operator": "test-rabbitmq-operator/test",
-    "mongodb-operator": "test-mongodb-operator/test",
-    "cass-operator": "test-cass-operator/test",
-    "casskop-operator": "test-casskop-operator/test",
+    "cassandra-operator": "test-cassandra-operator",
+    "zookeeper-operator": "test-zookeeper-operator",
+    "rabbitmq-operator": "test-rabbitmq-operator",
+    "mongodb-operator": "test-mongodb-operator",
+    "cass-operator": "test-cass-operator",
+    "casskop-operator": "test-casskop-operator",
 }
 
 test_suites = {
@@ -150,14 +152,14 @@ docker_file = {
     "casskop-operator": "build/Dockerfile",
 }
 
-learning_configs = {
-    "cassandra-operator": "test-cassandra-operator/test/learn.yaml",
-    "zookeeper-operator": "test-zookeeper-operator/test/learn.yaml",
-    "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
-    "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
-    "cass-operator": "test-cass-operator/test/learn.yaml",
-    "casskop-operator": "test-casskop-operator/test/learn.yaml",
-}
+# learning_configs = {
+#     "cassandra-operator": "test-cassandra-operator/test/learn.yaml",
+#     "zookeeper-operator": "test-zookeeper-operator/test/learn.yaml",
+#     "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
+#     "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
+#     "cass-operator": "test-cass-operator/test/learn.yaml",
+#     "casskop-operator": "test-casskop-operator/test/learn.yaml",
+# }
 
 
 def replace_docker_repo(path, dr, dt):
