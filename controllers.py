@@ -95,12 +95,14 @@ deployment_name = {
     "cassandra-operator": "cassandra-operator",
     "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
+    "mongodb-operator": "percona-server-mongodb-operator",
 }
 
 operator_pod_label = {
     "cassandra-operator": "cassandra-operator",
     "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
+    "mongodb-operator": "mongodb-operator",
 }
 
 # command = {
