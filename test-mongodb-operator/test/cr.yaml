@@ -1,7 +1,7 @@
 apiVersion: psmdb.percona.com/v1-7-0
 kind: PerconaServerMongoDB
 metadata:
-  name: sonar-mongodb-cluster
+  name: mongodb-cluster
   finalizers:
     - delete-psmdb-pvc
 spec:
@@ -15,7 +15,7 @@ spec:
     apply: recommended
     schedule: "0 2 * * *"
   secrets:
-    users: sonar-mongodb-cluster-secrets
+    users: mongodb-cluster-secrets
   pmm:
     enabled: false
     image: percona/pmm-client:2.12.0
@@ -89,7 +89,7 @@ spec:
     security:
       redactClientLogData: false
       enableEncryption: true
-      encryptionKeySecret: sonar-mongodb-cluster-mongodb-encryption-key
+      encryptionKeySecret: mongodb-cluster-mongodb-encryption-key
       encryptionCipherMode: AES256-CBC
     setParameter:
       ttlMonitorSleepSecs: 60
