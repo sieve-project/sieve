@@ -48,9 +48,10 @@ def setup_kubernetes(mode, img_repo, img_tag):
 
 
 def download_controller(project, link, sha):
-    os.system("rm -rf app/%s" % project)
-    os.system("git clone %s app/%s >> /dev/null" % (link, project))
-    os.chdir("app/%s" % project)
+    os.system("rm -rf %s" % controllers.app_dir[project])
+    os.system("git clone %s %s >> /dev/null" %
+              (link, controllers.app_dir[project]))
+    os.chdir(controllers.app_dir[project])
     os.system("git checkout %s >> /dev/null" % sha)
     os.system("git checkout -b sonar >> /dev/null")
     os.chdir(ORIGINAL_DIR)
@@ -73,27 +74,31 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
     # download controller_runtime and client_go libs
     os.system(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null" % controller_runtime_version)
-    os.system("mkdir -p app/%s/dep-sonar/src/sigs.k8s.io" % project)
-    os.system("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
-              (controller_runtime_version, project, controller_runtime_version))
-    os.system("chmod +w -R app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
-              (project, controller_runtime_version))
+    os.system("mkdir -p %s/dep-sonar/src/sigs.k8s.io" %
+              controllers.app_dir[project])
+    os.system("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
+              (controller_runtime_version, controllers.app_dir[project], controller_runtime_version))
+    os.system("chmod +w -R %s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
+              (controllers.app_dir[project], controller_runtime_version))
     os.system("go mod download k8s.io/client-go@%s >> /dev/null" %
               client_go_version)
-    os.system("mkdir -p app/%s/dep-sonar/src/k8s.io" % project)
+    os.system("mkdir -p %s/dep-sonar/src/k8s.io" %
+              controllers.app_dir[project])
     os.system(
-        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s app/%s/dep-sonar/src/k8s.io/client-go@%s" % (client_go_version, project, client_go_version))
+        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sonar/src/k8s.io/client-go@%s" % (client_go_version, controllers.app_dir[project], client_go_version))
     os.system(
-        "chmod +w -R app/%s/dep-sonar/src/k8s.io/client-go@%s" % (project, client_go_version))
-    os.system("cp -r sonar-client app/%s/dep-sonar/src/sonar.client" % project)
-    os.chdir("app/%s" % project)
+        "chmod +w -R %s/dep-sonar/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
+    os.system("cp -r sonar-client %s/dep-sonar/src/sonar.client" %
+              controllers.app_dir[project])
+    os.chdir(controllers.app_dir[project])
     os.system("git add -A >> /dev/null")
     os.system("git commit -m \"download the lib\" >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
     # modify the go.mod to import the libs
-    remove_replacement_in_go_mod_file("app/%s/go.mod" % project)
-    with open("app/%s/go.mod" % project, "a") as go_mod_file:
+    remove_replacement_in_go_mod_file(
+        "%s/go.mod" % controllers.app_dir[project])
+    with open("%s/go.mod" % controllers.app_dir[project], "a") as go_mod_file:
         go_mod_file.write("require sonar.client v0.0.0\n")
         go_mod_file.write(
             "replace sonar.client => ./dep-sonar/src/sonar.client\n")
@@ -101,20 +106,21 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
             "replace sigs.k8s.io/controller-runtime => ./dep-sonar/src/sigs.k8s.io/controller-runtime@%s\n" % controller_runtime_version)
         go_mod_file.write(
             "replace k8s.io/client-go => ./dep-sonar/src/k8s.io/client-go@%s\n" % client_go_version)
-    with open("app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s/go.mod" % (project, controller_runtime_version), "a") as go_mod_file:
+    with open("%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s/go.mod" % (controllers.app_dir[project], controller_runtime_version), "a") as go_mod_file:
         go_mod_file.write("require sonar.client v0.0.0\n")
         go_mod_file.write("replace sonar.client => ../../sonar.client\n")
         go_mod_file.write(
             "replace k8s.io/client-go => ../../k8s.io/client-go@%s\n" % client_go_version)
-    with open("app/%s/dep-sonar/src/k8s.io/client-go@%s/go.mod" % (project, client_go_version), "a") as go_mod_file:
+    with open("%s/dep-sonar/src/k8s.io/client-go@%s/go.mod" % (controllers.app_dir[project], client_go_version), "a") as go_mod_file:
         go_mod_file.write("require sonar.client v0.0.0\n")
         go_mod_file.write("replace sonar.client => ../../sonar.client\n")
 
     # copy the build.sh and Dockerfile
-    os.system("cp test-%s/build/build.sh app/%s/build.sh" % (project, project))
-    os.system("cp test-%s/build/Dockerfile app/%s/%s" %
-              (project, project, docker_file_path))
-    os.chdir("app/%s" % project)
+    os.system("cp %s/build/build.sh %s/build.sh" %
+              (controllers.test_dir[project], controllers.app_dir[project]))
+    os.system("cp %s/build/Dockerfile %s/%s" %
+              (controllers.test_dir[project], controllers.app_dir[project], docker_file_path))
+    os.chdir(controllers.app_dir[project])
     os.system("git add -A >> /dev/null")
     os.system("git commit -m \"import the lib\" >> /dev/null")
     os.chdir(ORIGINAL_DIR)
@@ -124,12 +130,12 @@ def instrument_controller(project, mode, controller_runtime_version, client_go_v
     os.chdir("instrumentation")
     os.system("go build")
     os.system(
-        "./instrumentation %s %s %s/app/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s %s/app/%s/dep-sonar/src/k8s.io/client-go@%s" % (project, mode, ORIGINAL_DIR, project, controller_runtime_version, ORIGINAL_DIR, project, client_go_version))
+        "./instrumentation %s %s %s/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sonar/src/k8s.io/client-go@%s" % (project, mode, ORIGINAL_DIR, controllers.app_dir[project], controller_runtime_version, ORIGINAL_DIR, controllers.app_dir[project], client_go_version))
     os.chdir(ORIGINAL_DIR)
 
 
 def build_controller(project, img_repo, img_tag):
-    os.chdir("app/%s" % project)
+    os.chdir(controllers.app_dir[project])
     os.system("./build.sh %s %s" % (img_repo, img_tag))
     os.chdir(ORIGINAL_DIR)
 
