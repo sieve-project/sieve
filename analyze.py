@@ -202,7 +202,7 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
     yaml_map["timing"] = timing
-    suffix = "-b" if timing == "before" else ""
+    suffix = "-b" if timing == "ds" else ""
     i = 0
     for triggering_point in triggering_points:
         if triggering_point["ttype"] != "event-delta":
@@ -225,7 +225,7 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
         yaml_map["se-etype"] = "ADDED" if effect["etype"] == "Delete" else "DELETED"
         yaml_map["description"] = time_travel_description(yaml_map)
         yaml.dump(yaml_map, open(
-            os.path.join(path, "time-travel-%s%s.yaml" % (str(i), suffix)), "w"), sort_keys=False)
+            os.path.join(path, "time-travel-config-%s%s.yaml" % (str(i), suffix)), "w"), sort_keys=False)
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
