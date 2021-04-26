@@ -37,7 +37,7 @@ python3 run.py -p rabbitmq-operator -t test1 -c log/rabbitmq-operator/test1/lear
 `test1` is the test workload (written by us) that Sonar will run.
 The workload simply does three things:
 1. it creates a rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
-2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster sonar-rabbitmq-cluster`
+2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster rabbitmq-cluster`
 3. it recreates the rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 
 `log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml` is a configuration file which guides the failure testing (for example, the schedule for restarting controllers or lagging apiservers). We will later explain how this configuration file is generated.
@@ -49,11 +49,11 @@ By typing the above command, Sonar will:
 When it finishes, you will see a bug is detected by Sonar that:
 ```
 [CHECKING] side effect
-[ERROR] statefulset/default/sonar-rabbitmq-cluster-server Create inconsistency: normal: 2, testing: 3
-[ERROR] statefulset/default/sonar-rabbitmq-cluster-server Delete inconsistency: normal: 1, testing: 2
+[ERROR] statefulset/default/rabbitmq-cluster-server Create inconsistency: normal: 2, testing: 3
+[ERROR] statefulset/default/rabbitmq-cluster-server Delete inconsistency: normal: 1, testing: 2
 [BUG REPORT] # alarms: 2
-[TIME TRAVEL DESC] Sonar makes the controller time travel back to the history to see the status just after rabbitmqcluster/default/sonar-rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}} (from kind-control-plane3)
-[DEBUG SUGGESTION] Please check how controller reacts when seeing rabbitmqcluster/default/sonar-rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}, the controller may issue deletion to statefulset/default/sonar-rabbitmq-cluster-server without proper checking
+[TIME TRAVEL DESC] Sonar makes the controller time travel back to the history to see the status just after rabbitmqcluster/default/rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}} (at kind-control-plane3)
+[DEBUG SUGGESTION] Please check how controller reacts when seeing rabbitmqcluster/default/rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}, the controller may issue deletion to statefulset/default/rabbitmq-cluster-server without proper checking
 ```
 Sonar generates a bug report saying that the controller issues more `CREATE` and `DELETE` operations for the resource named `statefulset/default/sonar-rabbitmq-cluster-server` than normal. It suggests that this inconsistency is probably caused by the controller issuing deletions without proper checking when seeing the non-nil `deletionTimestamp` of the resource named `rabbitmqcluster/default/sonar-rabbitmq-cluster`.
 
@@ -85,24 +85,24 @@ project: rabbitmq-operator
 mode: time-travel
 straggler: kind-control-plane3
 front-runner: kind-control-plane
-operator-pod: rabbitmq-operator
-command: /manager
+operator-pod-label: rabbitmq-operator
+deployment-name: rabbitmq-operator
 timing: after
-ce-name: sonar-rabbitmq-cluster
+ce-name: rabbitmq-cluster
 ce-namespace: default
 ce-rtype: rabbitmqcluster
 ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}'
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-se-name: sonar-rabbitmq-cluster-server
+se-name: rabbitmq-cluster-server
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/rabbitmqcluster/sonar-rabbitmq-cluster
+description: 'Pause kind-control-plane3 after it processes a default/rabbitmqcluster/rabbitmq-cluster
   event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-NON-NIL",
   "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
-  the controller rabbitmq-operator after kind-control-plane processes a ADDED default/statefulset/sonar-rabbitmq-cluster-server
+  the controller rabbitmq-operator after kind-control-plane processes a ADDED default/statefulset/rabbitmq-cluster-server
   event.'
 ```
 It looks a little bit complicated here. But don't worry. For now, you only need to understand a few fields here.
@@ -118,23 +118,23 @@ The difficult part is how to decide the **timing** here.
 
 Now let's look at
 ```
-ce-name: sonar-rabbitmq-cluster
+ce-name: rabbitmq-cluster
 ce-namespace: default
 ce-rtype: rabbitmqcluster
 ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}'
 ce-diff-previous: '{}'
 ```
-This is how Sonar decides when to pause the apiserver3. When Sonar sees an event belonging to `rabbitmqcluster/default/sonar-rabbitmq-cluster` and contains the sub-map in `ce-diff-current`, and a previous event contains the sub-map in `ce-diff-previous`,
+This is how Sonar decides when to pause the apiserver3. When Sonar sees an event belonging to `rabbitmqcluster/default/rabbitmq-cluster` and contains the sub-map in `ce-diff-current`, and a previous event contains the sub-map in `ce-diff-previous`,
 Sonar will pause the apiserver3. Here, `ce-diff-current` basically means the event sets a `deletionTimestamp`, and `ce-diff-previous` does not pose any constraint since it is empty.
 
 Finally, Sonar needs to decide when to restart the controller
 ```
-se-name: sonar-rabbitmq-cluster-server
+se-name: rabbitmq-cluster-server
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
 ```
-When Sonar sees an `ADDED` event belonging to `statefulset/default/sonar-rabbitmq-cluster-server`, it will restart the controller and connect the controller to the paused apiserver3.
+When Sonar sees an `ADDED` event belonging to `statefulset/default/rabbitmq-cluster-server`, it will restart the controller and connect the controller to the paused apiserver3.
 
 You will also find the explanation from the `description` field.
 
