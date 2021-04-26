@@ -58,7 +58,7 @@ Sonar generates a bug report saying that the controller issues more `CREATE` and
 ### Debugging with Sonar report
 Sonar gives us a hint about the bug, but cannot automatically tell us the root cause. Debugging still requires some manual effort. Here is my experience:
 
-I searched `deletionTimestamp` in the controller code to see how the controller reacts to it and I found:
+I searched for `deletionTimestamp` in the controller code to see how the controller reacts to it and I found:
 ```go
 	// Check if the resource has been marked for deletion
 	if !rabbitmqCluster.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -68,8 +68,8 @@ I searched `deletionTimestamp` in the controller code to see how the controller 
 ```
 The controller immediatelly deletes the statefulset when seeing non-nil `deletionTimestamp` without checking the ownership of the statefulset in `prepareForDeletion`.
 
-Combining the `TIME TRAVEL DESC` and the `DEBUG SUGGESTION` from Sonar, the bug is identified:
-After the rabbitmq cluster gets recreated by `recreate-rabbitmq-cluster`, Sonar makes the controller time travel back to see the non-nil `deletionTimestamp` (caused by the previous rabbitmq cluster deletion). Since the controller does not check statefuset ownership in `prepareForDeletion`, it immediately deletes the currently running statefulset as a reaction of seeing the stale `deletionTimestamp`.
+Combining the `TIME TRAVEL DESCRIPTION` and the `DEBUGGING SUGGESTION` from Sonar, the bug is identified:
+After the rabbitmq cluster gets recreated, Sonar makes the controller time travel back to see the non-nil `deletionTimestamp` (caused by the previous rabbitmq cluster deletion). Since the controller does not check statefuset ownership in `prepareForDeletion`, it immediately deletes the currently running statefulset as a reaction of seeing the stale `deletionTimestamp`.
 
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
 
