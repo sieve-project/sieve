@@ -229,39 +229,33 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
-def dump_files(dir, event_map, causality_pairs, side_effect, status, triggering_points):
-    json_dir = os.path.join(dir, "generated-json")
-    if os.path.exists(json_dir):
-        shutil.rmtree(json_dir)
-    os.makedirs(json_dir, exist_ok=True)
-    json.dump(side_effect, open(os.path.join(
-        dir, "side-effect.json"), "w"), indent=4, sort_keys=True)
-    json.dump(status, open(os.path.join(
-        dir, "status.json"), "w"), indent=4, sort_keys=True)
-    json.dump(triggering_points, open(os.path.join(
-        json_dir, "triggering-points.json"), "w"), indent=4)
+def dump_json_file(dir, data, json_file_name):
+    json.dump(data, open(os.path.join(
+        dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def analyze_trace(project, dir, double_sides=False):
+def analyze_trace(project, dir, double_sides=False, generate_oracle=True):
     log_path = os.path.join(dir, "sonar-server.log")
     conf_dir = os.path.join(dir, "generated-config")
     if os.path.exists(conf_dir):
         shutil.rmtree(conf_dir)
     os.makedirs(conf_dir, exist_ok=True)
     causality_pairs, event_key_map = generate_event_effect_pairs(log_path)
-    side_effect, status = oracle.generate_digest(log_path)
     triggering_points = generate_triggering_points(
         event_key_map, causality_pairs)
-    dump_files(dir, event_key_map, causality_pairs,
-               side_effect, status, triggering_points)
+    dump_json_file(dir, triggering_points, "triggering-points.json")
     generate_time_travel_yaml(triggering_points, conf_dir, project)
     if double_sides:
         generate_time_travel_yaml(
             triggering_points, conf_dir, project, "before")
+    if generate_oracle:
+        side_effect, status = oracle.generate_digest(log_path)
+        dump_json_file(dir, side_effect, "side-effect.json")
+        dump_json_file(dir, status, "status.json")
 
 
 if __name__ == "__main__":
     project = sys.argv[1]
     test = sys.argv[2]
     dir = os.path.join("log", project, test, "learn")
-    analyze_trace(project, dir)
+    analyze_trace(project, dir, double_sides=False, generate_oracle=False)
