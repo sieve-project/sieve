@@ -24,10 +24,11 @@ To detect time-travel bugs, Sonar will create the above time travel scenario in 
 The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
 
 ### Prerequisite
-**Kind cluster is required**. Sonar tests the controller in a kind cluster, so kind needs to be installed for testing.
+**Kind cluster is required**. Sonar tests the controller in a kind cluster.
 
-**The controller needs to be recompiled**. Some porting effort is required to use Sonar to test any controller.
-We have already ported [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) (as in https://github.com/xlab-uiuc/sonar/tree/main/test-rabbitmq-operator) and rebuilt the images.
+**The controller needs to be recompiled**. Sonar needs to instrument the `controller_runtime` and `client_go` libraries and rebuild the controller image. The instrumentation is automatically done.
+
+**Test workloads are required.** Sonar doesn't generate test workloads to run. Sonar can reuse any existing e2e test workload that doesn't perform cluster set up (Sonar will set up the cluster for testing). We also wrote some simple workloads for Sonar.
 
 ### Testing the controller with time travel config
 Now, let's test the rabbitmq-operator
