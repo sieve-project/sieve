@@ -17,15 +17,8 @@ Time-travel bugs happen when the controller reads stale cluster state from a *st
 
 3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and performs reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
-<<<<<<< HEAD
 
-### How does Sonar work (at a high level)?
-To detect time-travel bugs, Sonar will create the above time travel scenario in a [kind cluster](https://kind.sigs.k8s.io/) to trigger the bug. In other words, Sonar performs failure testing by pausing the apiserver and restarting the controller at certain timing to make the controller experience time travel.
-
-The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
-=======
-We will use [a real-world example](https://github.com/rabbitmq/cluster-operator/issues/648), a time-travel bug from [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) found by us, to show the end-to-end experience of using Sonar to test controllers.
->>>>>>> move sonar workflow to later in demo
+We will use [a time-travel bug](https://github.com/rabbitmq/cluster-operator/issues/648) in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) found by Sonar to show the end-to-end experience of testing the controller using Sonar.
 
 ### Prerequisite
 **Kind cluster is required**. Sonar tests the controller in a kind cluster.
