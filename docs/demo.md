@@ -17,11 +17,15 @@ Time-travel bugs happen when the controller reads stale cluster state from a *st
 
 3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and performs reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
+<<<<<<< HEAD
 
 ### How does Sonar work (at a high level)?
 To detect time-travel bugs, Sonar will create the above time travel scenario in a [kind cluster](https://kind.sigs.k8s.io/) to trigger the bug. In other words, Sonar performs failure testing by pausing the apiserver and restarting the controller at certain timing to make the controller experience time travel.
 
 The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
+=======
+We will use [a real-world example](https://github.com/rabbitmq/cluster-operator/issues/648), a time-travel bug from [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) found by us, to show the end-to-end experience of using Sonar to test controllers.
+>>>>>>> move sonar workflow to later in demo
 
 ### Prerequisite
 **Kind cluster is required**. Sonar tests the controller in a kind cluster.
@@ -76,7 +80,15 @@ After the rabbitmq cluster gets recreated by `test1`, Sonar makes the controller
 
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
 
-### What is in the time travel config?
+### How does Sonar find bugs?
+To detect time-travel bugs, Sonar runs in two phases to force the controller experience time travel by injecting apiserver pause and controller restart.
+
+The first phase is called *learing phase* where Sonar runs the test workload (without any injection) and records the events triggering controller reconciliation and side effects (resource creation/deletion/update) invoked by the controller. Sonar analyzes the controller trace and finds out the causality between events and side effects, and generate the time-travel config (i.e., `log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml`) to guide the following testing phase. Sonar also records the cluster status and controller behavior as part of the testing oracle.
+
+The second phase is called *testing phase* where Sonar runs the test workload and injects apiserver pause and controller restart at certain timing according to the time-travel config. Sonar compares the cluster status and controller behavior in the testing run and the learning run, and generates a bug report if any inconsistency is detected.
+
+
+### What is in the time-travel config?
 
 Recall that we need to pause the apiserver and restart the controller with **a certain timing**. The time travel configuration file specifies the required timing for pausing the apiservers or restarting the controller.
 
@@ -106,16 +118,16 @@ description: 'Pause kind-control-plane3 after it processes a default/rabbitmqclu
   the controller rabbitmq-operator after kind-control-plane processes a ADDED default/statefulset/rabbitmq-cluster-server
   event.'
 ```
-It looks a little bit complicated here. But don't worry. For now, you only need to understand a few fields here.
+It looks quite complicated. But don't worry. For now, you only need to understand a few fields here.
 
 First,
 ```
 straggler: kind-control-plane3
 front-runner: kind-control-plane
 ```
-means during testing we want to pause apiserver3 (which runs on `kind-control-plane3`) at **certain timing** to create the stale status.
-And we use apiserver1 (which runs on `kind-control-plane`) as a referrence to restart the controller at **certain timing**.
-The difficult part is how to decide the **timing** here.
+means during testing we want to pause apiserver3 (which runs on `kind-control-plane3`) at *certain timing* to create the stale status.
+And we use apiserver1 (which runs on `kind-control-plane`) as a referrence to restart the controller at *certain timing*.
+The difficult part is how to decide the *timing* here.
 
 Now let's look at
 ```
@@ -140,17 +152,17 @@ When Sonar sees an `ADDED` event belonging to `statefulset/default/rabbitmq-clus
 You will also find the explanation from the `description` field.
 
 
-### How is the time travel config generated?
-The biggest challenge to generate the above time travel config is to find out the appropriate timing for injecting pause/restart.
+### How is the time-travel config generated?
+The biggest challenge to generate the above time-travel config is to find out the appropriate timing for injecting pause/restart.
 
-Sonar has a `learn` mode to infer the causality between events triggering `reconcile()` and side effects (resource creation/update/deletion) issued during `reconcile()`,
+As mentioned above, Sonar has a learning phase to infer the causality between events triggering `reconcile()` and side effects (resource creation/update/deletion) issued during `reconcile()`,
 and Sonar then picks each potentially causal-related <event, side effect> pair to decide the timing. 
 
 To do so, run:
 ```
 python3 run.py -p rabbitmq-operator -t test1 -m learn
 ```
-The command will run test workload `test1` in Sonar `learn` mode, collect the events and side effects, infer the causality and generate the promising timing to for pausing apiserver/restarting controller.
+The command will run test workload `test1`, collect the events and side effects, infer the causality and generate the time-travel config.
 
 After it finishes, you will see
 ```
