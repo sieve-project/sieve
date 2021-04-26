@@ -11,6 +11,7 @@ def generate_digest(path):
 
 
 def generate_side_effect(path):
+    print("Generating controller side effect digest...")
     side_effect_map = {}
     side_effect_empty_entry = {"Create": 0, "Update": 0,
                                "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
@@ -37,6 +38,7 @@ def generate_side_effect(path):
 
 
 def generate_status():
+    print("Generating cluster status digest...")
     status = {}
     status_empty_entry = {"size": 0, "terminating": 0}
     kubernetes.config.load_kube_config()

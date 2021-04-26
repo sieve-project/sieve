@@ -107,6 +107,7 @@ def parse_side_effects(path):
 
 
 def base_pass(event_list, side_effect_list):
+    print("Running base pass...")
     event_effect_pairs = []
     for side_effect in side_effect_list:
         if side_effect.etype not in common.INTERESTING_SIDE_EFFECT_TYPE:
@@ -118,6 +119,7 @@ def base_pass(event_list, side_effect_list):
 
 
 def write_read_overlap_filtering_pass(event_effect_pairs):
+    print("Running optional pass: write-read-overlap-filtering ...")
     reduced_event_effect_pairs = []
     for pair in event_effect_pairs:
         event = pair[0]
@@ -128,6 +130,7 @@ def write_read_overlap_filtering_pass(event_effect_pairs):
 
 
 def error_msg_filtering_pass(event_effect_pairs):
+    print("Running optional pass: error-message-filtering ...")
     reduced_event_effect_pairs = []
     for pair in event_effect_pairs:
         side_effect = pair[1]
@@ -148,6 +151,7 @@ def pipelined_passes(event_effect_pairs):
 
 
 def generate_event_effect_pairs(path):
+    print("Analyzing %s to generate <event, side-effect> pairs..." % path)
     event_list, event_key_map = parse_events(path)
     side_effect_list = parse_side_effects(path)
     event_effect_pairs = base_pass(event_list, side_effect_list)
@@ -156,6 +160,7 @@ def generate_event_effect_pairs(path):
 
 
 def generate_triggering_points(event_map, event_effect_pairs):
+    print("Generating time-travel configs from <event, side-effect> pairs...")
     triggering_points = []
     for pair in event_effect_pairs:
         event = pair[0]
@@ -235,6 +240,10 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def analyze_trace(project, dir, double_sides=False, generate_oracle=True):
+    print("double-sides feature is %s" %
+          ("enabled" if double_sides else "disabled"))
+    print("generate-oracle feature is %s" %
+          ("enabled" if generate_oracle else "disabled"))
     log_path = os.path.join(dir, "sonar-server.log")
     conf_dir = os.path.join(dir, "generated-config")
     if os.path.exists(conf_dir):
@@ -257,5 +266,7 @@ def analyze_trace(project, dir, double_sides=False, generate_oracle=True):
 if __name__ == "__main__":
     project = sys.argv[1]
     test = sys.argv[2]
+    print("Analyzing controller trace for %s's test workload %s..." %
+          (project, test))
     dir = os.path.join("log", project, test, "learn")
     analyze_trace(project, dir, double_sides=False, generate_oracle=False)
