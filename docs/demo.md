@@ -13,7 +13,7 @@ Time-travel bugs happen when the controller reads stale cluster state from a *st
 
 1. In a HA kubernetes cluster, the controller is connected to apiserver1. Initially each apiserver is updated with the current cluster state `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
-2. Now apiserver2's locally cached status gets updated by etcd to `S2`, while apiserver2's does not get updated in time and still holds the stale state `S1` (due to various reasons like apiserver2 being slow, experiencing a network disruption or temporary resource contention).
+2. Now apiserver1's locally cached status gets updated by etcd to `S2`, while apiserver2's does not get updated in time and still holds the stale state `S1` (due to various reasons like apiserver2 being slow, experiencing a network disruption or temporary resource contention).
 
 3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and performs reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
