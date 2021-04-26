@@ -11,9 +11,9 @@ Time-travel bugs happen when the controller reads stale cluster state from a *st
 
 <img src="time-travel.png" width="80%">
 
-1. In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster state `S1`, and the controller performs reconciliation according to the state read from apiserver1.
+1. In a HA kubernetes cluster, the controller is connected to apiserver1. Initially each apiserver is updated with the current cluster state `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
-2. Now apiserver2's locally cached status gets updated by etcd to `S2`, while apiserver2's does not get updated in time and still holds the stale state `S1` (due to various reasons like apiserver2 being slow, experiencing a network disruption or temporary resouce contention).
+2. Now apiserver2's locally cached status gets updated by etcd to `S2`, while apiserver2's does not get updated in time and still holds the stale state `S1` (due to various reasons like apiserver2 being slow, experiencing a network disruption or temporary resource contention).
 
 3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and performs reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
@@ -66,7 +66,7 @@ I searched for `deletionTimestamp` in the controller code to see how the control
 		return ctrl.Result{}, r.prepareForDeletion(ctx, rabbitmqCluster)
 	}
 ```
-The controller immediatelly deletes the statefulset when seeing non-nil `deletionTimestamp` without checking the ownership of the statefulset in `prepareForDeletion`.
+The controller immediately deletes the statefulset when seeing non-nil `deletionTimestamp` without checking the ownership of the statefulset in `prepareForDeletion`.
 
 Combining the `TIME TRAVEL DESCRIPTION` and the `DEBUGGING SUGGESTION` from Sonar, the bug is identified:
 After the rabbitmq cluster gets recreated, Sonar makes the controller time travel back to see the non-nil `deletionTimestamp` (caused by the previous rabbitmq cluster deletion). Since the controller does not check statefuset ownership in `prepareForDeletion`, it immediately deletes the currently running statefulset as a reaction of seeing the stale `deletionTimestamp`.
@@ -74,9 +74,9 @@ After the rabbitmq cluster gets recreated, Sonar makes the controller time trave
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
 
 ### How does Sonar find bugs?
-To detect time-travel bugs, Sonar runs in two phases to force the controller experience time travel by injecting apiserver pause and controller restart.
+To detect time-travel bugs, Sonar runs in two phases to force the controller to experience time travel by injecting apiserver pause and controller restart.
 
-The first phase is called *learing phase* where Sonar runs the test workload (without any injection) and records the events triggering controller reconciliation and side effects (resource creation/deletion/update) invoked by the controller. Sonar analyzes the controller trace and finds out the causality between events and side effects, and generate the time-travel config (i.e., `log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config/time-travel-config-1.yaml`) to guide the following testing phase. Sonar also records the cluster status and controller behavior as part of the testing oracle.
+The first phase is called *learning phase* where Sonar runs the test workload (without any injection) and records the events triggering controller reconciliation and side effects (resource creation/deletion/update) invoked by the controller. Sonar analyzes the controller trace and generates the time-travel config to guide the following testing phase. Sonar also records the cluster status and controller behavior as part of the testing oracle.
 
 The second phase is called *testing phase* where Sonar runs the test workload and injects apiserver pause and controller restart at certain timing according to the time-travel config. Sonar compares the cluster status and controller behavior in the testing run and the learning run, and generates a bug report if any inconsistency is detected.
 
@@ -119,7 +119,7 @@ straggler: kind-control-plane3
 front-runner: kind-control-plane
 ```
 means during testing we want to pause apiserver3 (which runs on `kind-control-plane3`) at *certain timing* to create the stale status.
-And we use apiserver1 (which runs on `kind-control-plane`) as a referrence to restart the controller at *certain timing*.
+And we use apiserver1 (which runs on `kind-control-plane`) as a reference to restart the controller at *certain timing*.
 The difficult part is how to decide the *timing* here.
 
 Now let's look at
@@ -155,7 +155,7 @@ To do so, run:
 ```
 python3 run.py -p rabbitmq-operator -t recreate-rabbitmq-cluster -m learn
 ```
-The command will run test workload `recreate-rabbitmq-cluster`, collect the events and side effects, infer the causality and generate the time-travel config.
+The command will run the test workload `recreate-rabbitmq-cluster`, collect the events and side effects, infer the causality and generate the time-travel config.
 
 After it finishes, you will see
 ```
