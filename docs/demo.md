@@ -3,23 +3,23 @@
 ### What is Sonar?
 
 Sonar is a bug detection tool for finding bugs in kubernetes controllers.
-One of the bug patterns Sonar targets is time-travel bug, i.e., the bug caused by controller experiencing time traveling.
+One of the bug patterns Sonar targets is a time-travel bug, i.e., bugs caused by a controller "going back in time" after restarts.
 
 ### What is a time-travel bug?
 
-Time-travel bugs happen when the controller reads stale cluster status from a stale apiserver and behaves unexpectedly. Consider the following scenario:
+Time-travel bugs happen when the controller reads stale cluster state from a *stale* apiserver and behaves unexpectedly. Consider the following scenario:
 
 <img src="time-travel.png" width="80%">
 
-1. In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster status `S1`, and the controller performs reconciliation according to the state read from apiserver1.
+1. In a HA kubernetes cluster, the controller is connecting to apiserver1. Initially each apiserver is updated with the current cluster state `S1`, and the controller performs reconciliation according to the state read from apiserver1.
 
-2. Now apiserver2's locally cached status gets updated by etcd to `S2`, while apiserver2's does not get updated in time and still holds the stale status `S1` (due to various reasons like network disruption or temporary resouce contention).
+2. Now apiserver2's locally cached status gets updated by etcd to `S2`, while apiserver2's does not get updated in time and still holds the stale state `S1` (due to various reasons like apiserver2 being slow, experiencing a network disruption or temporary resouce contention).
 
-3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and perform reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
+3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and performs reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
 
 ### How does Sonar work (at a high level)?
-To detect time-travel bugs, Sonar will create the above time travel scenario in a [kind](https://kind.sigs.k8s.io/) cluster to trigger the bug. In other words, Sonar perform failure testing by pausing the apiserver and restarting the controller at certain timing to make the controller experience a time traveling.
+To detect time-travel bugs, Sonar will create the above time travel scenario in a [kind cluster](https://kind.sigs.k8s.io/) to trigger the bug. In other words, Sonar performs failure testing by pausing the apiserver and restarting the controller at certain timing to make the controller experience time travel.
 
 The following explains how Sonar detects a time-travel bug in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator).
 
@@ -34,17 +34,17 @@ Now, let's test the rabbitmq-operator
 ```
 python3 run.py -p rabbitmq-operator -t test1 -c log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml
 ```
-`test1` is the test workload (written by us) Sonar will run.
+`test1` is the test workload (written by us) that Sonar will run.
 The workload simply does three things:
 1. it creates a rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster sonar-rabbitmq-cluster`
 3. it recreates the rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 
-`log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml` is the time-travel config which guides the failure testing (we will explain how the config works later).
+`log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml` is a configuration file which guides the failure testing (for example, the schedule for restarting controllers or lagging apiservers). We will later explain how this configuration file is generated.
 
-By typing the command, Sonar will:
-1. run a `test1` in the kind kubernetes cluster;
-2. create the time-travel scenario during the test run according to `time-travel-1.yaml`.
+By typing the above command, Sonar will:
+1. run the `test1` workload against the kind kubernetes cluster;
+2. create the time-travel scenario during the test run according to the configuration file, `time-travel-1.yaml`.
 
 When it finishes, you will see a bug is detected by Sonar that:
 ```
@@ -55,10 +55,10 @@ When it finishes, you will see a bug is detected by Sonar that:
 [TIME TRAVEL DESC] Sonar makes the controller time travel back to the history to see the status just after rabbitmqcluster/default/sonar-rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}} (from kind-control-plane3)
 [DEBUG SUGGESTION] Please check how controller reacts when seeing rabbitmqcluster/default/sonar-rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}, the controller may issue deletion to statefulset/default/sonar-rabbitmq-cluster-server without proper checking
 ```
-Sonar generates a bug report saying the controller issues more creation and deletion of `statefulset/default/sonar-rabbitmq-cluster-server` than normal, and suggest that this inconsistency is probably caused by controller issuing deletion without proper checking when seeing the non-nil `deletionTimestamp` of `rabbitmqcluster/default/sonar-rabbitmq-cluster`.
+Sonar generates a bug report saying that the controller issues more `CREATE` and `DELETE` operations for the resource named `statefulset/default/sonar-rabbitmq-cluster-server` than normal. It suggests that this inconsistency is probably caused by the controller issuing deletions without proper checking when seeing the non-nil `deletionTimestamp` of the resource named `rabbitmqcluster/default/sonar-rabbitmq-cluster`.
 
 ### Debugging with Sonar report
-Sonar gives us a hint about the bug, but cannot automatically tell the root cause. Debugging still requires some manual efforts. Here is my experience:
+Sonar gives us a hint about the bug, but cannot automatically tell us the root cause. Debugging still requires some manual effort. Here is my experience:
 
 I searched `deletionTimestamp` in the controller code to see how the controller reacts to it and I found:
 ```go
@@ -77,7 +77,7 @@ The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues
 
 ### What is in the time travel config?
 
-The time travel config specified when running the test is used to guide Sonar to create the time travel scenario. Recall that we need to pause the apiserver and restart the controller at **certain timing**, and the time travel config specifies the important timing for pause/restart.
+Recall that we need to pause the apiserver and restart the controller with **a certain timing**. The time travel configuration file specifies the required timing for pausing the apiservers or restarting the controller.
 
 Let's look into the generated time-travel config `log/rabbitmq-operator/test1/learn/generated-config/time-travel-1.yaml`:
 ```
