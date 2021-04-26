@@ -61,7 +61,7 @@ test_suites = {
             "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/test/time-travel-2.yaml", "time-travel"),
     },
     "rabbitmq-operator": {
-        "test1": Suite(
+        "recreate-rabbitmq-cluster": Suite(
             "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
         "test2": Suite(
             "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),

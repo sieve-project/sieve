@@ -86,9 +86,9 @@ def check_status(learning_status, testing_status):
             for attr in learning_status[rtype]:
                 if learning_status[rtype][attr] != testing_status[rtype][attr]:
                     alarm += 1
-                    bug_report += "[ERROR] %s %s inconsistency: normal: %s, testing: %s\n" % (
-                        rtype, attr, str(learning_status[rtype][attr]), str(testing_status[rtype][attr]))
-    final_bug_report = "[CHECKING] status\n" + \
+                    bug_report += "[ERROR] %s %s inconsistency: %s seen after normal run, but %s seen after testing run\n" % (
+                        rtype, attr.upper(), str(learning_status[rtype][attr]), str(testing_status[rtype][attr]))
+    final_bug_report = "Checking for cluster resource states...\n" + \
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
@@ -120,9 +120,9 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
-                    bug_report += "[ERROR] %s/%s/%s %s inconsistency: normal: %s, testing: %s\n" % (
-                        rtype, namespace, name, attr, str(learning_entry[attr]), str(testing_entry[attr]))
-    final_bug_report = "[CHECKING] side effect\n" + \
+                    bug_report += "[ERROR] %s/%s/%s %s inconsistency: %s events seen during normal run, but %s seen during testing run\n" % (
+                        rtype, namespace, name, attr.upper(), str(learning_entry[attr]), str(testing_entry[attr]))
+    final_bug_report = "Checking for controller side effects (resource creation/deletion)...\n" + \
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
@@ -163,11 +163,11 @@ def compare_digest(learning_side_effect, learning_status, testing_side_effect, t
     alarm = alarm_side_effect + alarm_status
     bug_report = bug_report_side_effect + bug_report_status
     if alarm != 0:
-        bug_report += "[BUG REPORT] # alarms: %d\n" % (alarm)
+        # bug_report += "[BUG REPORT] # alarms: %d\n" % (alarm)
         if testing_config["mode"] == "time-travel":
-            bug_report += "[TIME TRAVEL DESC] %s\n" % generate_generate_time_travel_description(
+            bug_report += "[TIME TRAVEL DESCRIPTION] %s\n" % generate_generate_time_travel_description(
                 testing_config)
-            bug_report += "[DEBUG SUGGESTION] %s\n" % generate_debug_suggestion(
+            bug_report += "[DEBUGGING SUGGESTION] %s\n" % generate_debug_suggestion(
                 testing_config)
     print(bug_report)
     return bug_report
