@@ -107,7 +107,7 @@ def parse_side_effects(path):
 
 
 def base_pass(event_list, side_effect_list):
-    print("Running base pass...")
+    print("Running base pass ...")
     event_effect_pairs = []
     for side_effect in side_effect_list:
         if side_effect.etype not in common.INTERESTING_SIDE_EFFECT_TYPE:
@@ -151,7 +151,7 @@ def pipelined_passes(event_effect_pairs):
 
 
 def generate_event_effect_pairs(path):
-    print("Analyzing %s to generate <event, side-effect> pairs..." % path)
+    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
     event_list, event_key_map = parse_events(path)
     side_effect_list = parse_side_effects(path)
     event_effect_pairs = base_pass(event_list, side_effect_list)
@@ -160,7 +160,7 @@ def generate_event_effect_pairs(path):
 
 
 def generate_triggering_points(event_map, event_effect_pairs):
-    print("Generating time-travel configs from <event, side-effect> pairs...")
+    print("Generating time-travel configs from <event, side-effect> pairs ...")
     triggering_points = []
     for pair in event_effect_pairs:
         event = pair[0]
@@ -266,7 +266,7 @@ def analyze_trace(project, dir, double_sides=False, generate_oracle=True):
 if __name__ == "__main__":
     project = sys.argv[1]
     test = sys.argv[2]
-    print("Analyzing controller trace for %s's test workload %s..." %
+    print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
     dir = os.path.join("log", project, test, "learn")
     analyze_trace(project, dir, double_sides=False, generate_oracle=False)
