@@ -2,8 +2,8 @@
 
 ### What is Sonar?
 
-Sonar is a bug detection tool for finding bugs in kubernetes controllers.
-One of the bug patterns Sonar targets is a time-travel bug, i.e., bugs caused by a controller "going back in time" after restarts.
+Sonar is a bug detection tool for finding various bugs, including time-travel bugs, in kubernetes controllers.
+Time-travel bugs refer to the bugs caused by a controller "going back in time" after restarts.
 
 ### What is a time-travel bug?
 
