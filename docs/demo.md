@@ -41,7 +41,7 @@ The workload simply does three things:
 2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster rabbitmq-cluster`
 3. it recreates the rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 
-`-c log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config/time-travel-config-1.yaml` is a configuration file which guides the failure testing (for example, the schedule for restarting controllers or lagging apiservers). We will later explain how this configuration file is generated.
+`-c log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config/time-travel-config-1.yaml` is a configuration file which guides the failure testing (for example, the schedule for restarting controllers or lagging apiservers). Triggering a time-travel bug requires injecting pause/restart with particular timing. The time-travel configuration file encodes the particular timing so no manual intervention is required during testing.
 
 By typing the above command, Sonar will:
 1. run the `recreate-rabbitmq-cluster` workload against the kind kubernetes cluster;
