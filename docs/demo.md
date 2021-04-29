@@ -33,13 +33,15 @@ Now, let's test the rabbitmq-operator
 ```
 python3 sonar.py -p rabbitmq-operator -t recreate-rabbitmq-cluster -c log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config/time-travel-config-1.yaml
 ```
-`recreate-rabbitmq-cluster` is the test workload (written by us) that Sonar will run.
+`-p rabbitmq-operator` specifies the operator that Sonar will test. We have already done some porting effort before testing rabbitmq-operator so Sonar can accept this option.
+
+`-t recreate-rabbitmq-cluster` is the test workload (written by us) that Sonar will run.
 The workload simply does three things:
 1. it creates a rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster rabbitmq-cluster`
 3. it recreates the rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 
-`log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config/time-travel-config-1.yaml` is a configuration file which guides the failure testing (for example, the schedule for restarting controllers or lagging apiservers). We will later explain how this configuration file is generated.
+`-c log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config/time-travel-config-1.yaml` is a configuration file which guides the failure testing (for example, the schedule for restarting controllers or lagging apiservers). We will later explain how this configuration file is generated.
 
 By typing the above command, Sonar will:
 1. run the `recreate-rabbitmq-cluster` workload against the kind kubernetes cluster;
