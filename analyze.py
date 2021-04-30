@@ -10,6 +10,7 @@ import common
 import oracle
 import analyze_event
 import sqlite3
+import json
 
 
 def parse_events(path):
@@ -58,7 +59,7 @@ def dump_to_sqlite(event_list):
         (
            id varchar(100) not null,
            event_type varchar(100) not null,
-           resource_Type varchar(100) not null,
+           resource_type varchar(100) not null,
            json_object text not null,
            namespace varchar(100) not null,
            name varchar(100) not null,
@@ -68,8 +69,9 @@ def dump_to_sqlite(event_list):
         )
     ''')
     for e in event_list:
+       json_form = json.dumps(e.obj)
        conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (e.id, e.etype, e.rtype, "%s" % (e.obj), e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+                    (e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
     conn.commit()
     return conn
 
