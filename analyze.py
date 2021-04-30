@@ -58,6 +58,7 @@ def create_sqlite_db():
         create table events
         (
            id integer not null primary key,
+           sonar_event_id integer not null,
            event_type text not null,
            resource_type text not null,
            json_object text not null,
@@ -92,8 +93,8 @@ def record_event_list_in_sqlite(event_list, conn):
     for e in event_list:
        json_form = json.dumps(e.obj)
        # Skip the first column: Sqlite will use an auto-incrementing ID
-       conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (None, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+       conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (None, e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
     conn.commit()
 
 def record_side_effect_list_in_sqlite(side_effect_list, conn):
