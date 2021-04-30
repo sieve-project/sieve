@@ -12,8 +12,7 @@ import analyze_event
 import sqlite3
 import json
 
-
-def parse_events(path):
+def parse_events(path, conn):
     # { event id -> event }
     event_id_map = {}
     # { event key -> [events belonging to the key] }
@@ -43,39 +42,72 @@ def parse_events(path):
                 event_key_map[event.key] = []
             event_key_map[event.key].append(event_id_map[event.id])
             event_list.append(event_id_map[event.id])
-    dump_to_sqlite(event_list)
+    record_event_list_in_sqlite(event_list, conn)
     return event_list, event_key_map
 
 
-def dump_to_sqlite(event_list):
+def create_sqlite_db():
     database = "/tmp/test.db"
     conn = sqlite3.connect(database)
     conn.execute("drop table if exists events")
+    conn.execute("drop table if exists side_effects")
     
     # TODO: SQlite3 does not type check by default, but
     # tighten the column types later
     conn.execute('''
         create table events
         (
-           id varchar(100) not null,
-           event_type varchar(100) not null,
-           resource_type varchar(100) not null,
+           id integer not null primary key,
+           event_type text not null,
+           resource_type text not null,
            json_object text not null,
-           namespace varchar(100) not null,
-           name varchar(100) not null,
+           namespace text not null,
+           name text not null,
            event_arrival_time integer not null,
            event_cache_update_time integer not null,
-           fully_qualified_name varchar(100) not null
+           fully_qualified_name text not null
         )
     ''')
-    for e in event_list:
-       json_form = json.dumps(e.obj)
-       conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
-    conn.commit()
+    conn.execute('''
+        create table side_effects
+        (
+           id integer not null primary key,
+           event_type text not null,
+           resource_type text not null,
+           namespace text not null,
+           name text not null,
+           error text not null,
+           read_types text not null,
+           read_fully_qualified_names text not null,
+           range_start_timestamp integer not null,
+           range_end_timestamp integer not null,
+           end_timestamp integer not null,
+           owner_controllers text not null
+        )
+    ''')
     return conn
 
-def parse_side_effects(path):
+
+def record_event_list_in_sqlite(event_list, conn):
+    for e in event_list:
+       json_form = json.dumps(e.obj)
+       # Skip the first column: Sqlite will use an auto-incrementing ID
+       conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (None, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+    conn.commit()
+
+def record_side_effect_list_in_sqlite(side_effect_list, conn):
+    for e in side_effect_list:
+       json_read_types = json.dumps(list(e.read_types))
+       json_read_keys = json.dumps(list(e.read_keys))
+       json_owner_controllers = json.dumps(list(e.owner_controllers))
+       # Skip the first column: Sqlite will use an auto-incrementing ID
+       conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (None, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
+    conn.commit()
+
+
+def parse_side_effects(path, conn):
     side_effect_list = []
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
@@ -134,6 +166,7 @@ def parse_side_effects(path):
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()
                 read_types_this_reconcile = set()
+    record_side_effect_list_in_sqlite(side_effect_list, conn)
     return side_effect_list
 
 
@@ -183,8 +216,9 @@ def pipelined_passes(event_effect_pairs):
 
 def generate_event_effect_pairs(path):
     print("Analyzing %s to generate <event, side-effect> pairs..." % path)
-    event_list, event_key_map = parse_events(path)
-    side_effect_list = parse_side_effects(path)
+    conn = create_sqlite_db()
+    event_list, event_key_map = parse_events(path, conn)
+    side_effect_list = parse_side_effects(path, conn)
     event_effect_pairs = base_pass(event_list, side_effect_list)
     reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
     return reduced_event_effect_pairs, event_key_map
