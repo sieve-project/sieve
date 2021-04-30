@@ -9,6 +9,7 @@ import controllers
 import common
 import oracle
 import analyze_event
+import sqlite3
 
 
 def parse_events(path):
@@ -41,8 +42,36 @@ def parse_events(path):
                 event_key_map[event.key] = []
             event_key_map[event.key].append(event_id_map[event.id])
             event_list.append(event_id_map[event.id])
+    dump_to_sqlite(event_list)
     return event_list, event_key_map
 
+
+def dump_to_sqlite(event_list):
+    database = "/tmp/test.db"
+    conn = sqlite3.connect(database)
+    conn.execute("drop table if exists events")
+    
+    # TODO: SQlite3 does not type check by default, but
+    # tighten the column types later
+    conn.execute('''
+        create table events
+        (
+           id varchar(100) not null,
+           event_type varchar(100) not null,
+           resource_Type varchar(100) not null,
+           json_object text not null,
+           namespace varchar(100) not null,
+           name varchar(100) not null,
+           event_arrival_time integer not null,
+           event_cache_update_time integer not null,
+           fully_qualified_name varchar(100) not null
+        )
+    ''')
+    for e in event_list:
+       conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (e.id, e.etype, e.rtype, "%s" % (e.obj), e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+    conn.commit()
+    return conn
 
 def parse_side_effects(path):
     side_effect_list = []
