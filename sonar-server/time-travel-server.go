@@ -91,6 +91,23 @@ func strToMap(str string) map[string]interface{} {
 	return m
 }
 
+func deepCopyMap(src map[string]interface{}, dest map[string]interface{}) {
+    if src == nil {
+        log.Fatalf("src is nil. You cannot read from a nil map")
+    }
+    if dest == nil {
+        log.Fatalf("dest is nil. You cannot insert to a nil map")
+    }
+    jsonStr, err := json.Marshal(src)
+    if err != nil {
+        log.Fatalf(err.Error())
+    }
+    err = json.Unmarshal(jsonStr, &dest)
+    if err != nil {
+        log.Fatalf(err.Error())
+    }
+}
+
 func (s *timeTravelServer) equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
 	if len(crucialEvent) != len(currentEvent) {
 		return false
@@ -215,13 +232,16 @@ func (s *timeTravelServer) equivalentEventSecondTry(crucialEvent, currentEvent m
 	if _, ok := currentEvent["metadata"]; ok {
 		return false
 	}
-	if metadataMap, ok := crucialEvent["metadata"]; ok {
+	if _, ok := crucialEvent["metadata"]; ok {
+		copiedCrucialEvent := make(map[string]interface{})
+		deepCopyMap(crucialEvent, copiedCrucialEvent)
+		metadataMap := copiedCrucialEvent["metadata"]
 		if m, ok := metadataMap.(map[string]interface{}); ok {
 			for key := range m {
-				crucialEvent[key] = m[key]
+				copiedCrucialEvent[key] = m[key]
 			}
-			delete(crucialEvent, "metadata")
-			return s.equivalentEvent(crucialEvent, currentEvent)
+			delete(copiedCrucialEvent, "metadata")
+			return s.equivalentEvent(copiedCrucialEvent, currentEvent)
 		} else {
 			return false
 		}
@@ -293,12 +313,12 @@ func (s *timeTravelServer) waitAndRestartComponent() {
 func (s *timeTravelServer) shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
 	if !s.paused {
 		if !s.seenPrev {
-			if s.isCrucial(crucialPrevEvent, currentEvent) {
+			if s.isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !s.isCrucial(crucialCurEvent, currentEvent)) {
 				log.Println("Meet crucialPrevEvent: set seenPrev to true")
 				s.seenPrev = true
 			}
 		} else {
-			if s.isCrucial(crucialCurEvent, currentEvent) {
+			if s.isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !s.isCrucial(crucialPrevEvent, currentEvent)) {
 				log.Println("Meet crucialCurEvent: set paused to true and start to pause")
 				s.paused = true
 				return true
