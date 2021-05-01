@@ -12,6 +12,7 @@ import analyze_event
 import sqlite3
 import json
 
+
 def parse_events(path, conn):
     # { event id -> event }
     event_id_map = {}
@@ -51,7 +52,7 @@ def create_sqlite_db():
     conn = sqlite3.connect(database)
     conn.execute("drop table if exists events")
     conn.execute("drop table if exists side_effects")
-    
+
     # TODO: SQlite3 does not type check by default, but
     # tighten the column types later
     conn.execute('''
@@ -91,20 +92,21 @@ def create_sqlite_db():
 
 def record_event_list_in_sqlite(event_list, conn):
     for e in event_list:
-       json_form = json.dumps(e.obj)
-       # Skip the first column: Sqlite will use an auto-incrementing ID
-       conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (None, e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+        json_form = json.dumps(e.obj)
+        # Skip the first column: Sqlite will use an auto-incrementing ID
+        conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (None, e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
     conn.commit()
+
 
 def record_side_effect_list_in_sqlite(side_effect_list, conn):
     for e in side_effect_list:
-       json_read_types = json.dumps(list(e.read_types))
-       json_read_keys = json.dumps(list(e.read_keys))
-       json_owner_controllers = json.dumps(list(e.owner_controllers))
-       # Skip the first column: Sqlite will use an auto-incrementing ID
-       conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (None, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
+        json_read_types = json.dumps(list(e.read_types))
+        json_read_keys = json.dumps(list(e.read_keys))
+        json_owner_controllers = json.dumps(list(e.owner_controllers))
+        # Skip the first column: Sqlite will use an auto-incrementing ID
+        conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (None, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
     conn.commit()
 
 
