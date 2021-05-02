@@ -19,6 +19,10 @@ PVC = "persistentvolumeclaim"
 DEPLOYMENT = "deployment"
 STS = "statefulset"
 
+PENDING = "Pending"
+RUNNING = "Running"
+TERMINATED = "Terminated"
+
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
 BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
