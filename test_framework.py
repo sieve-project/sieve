@@ -10,6 +10,7 @@ class TestCmd:
 
     def run(self):
         print(self.cmd)
+        # TODO: need to check the return code of the os.system
         os.system(self.cmd)
         return 0
 
@@ -85,9 +86,11 @@ class BuiltInWorkLoad:
         self.work_list.append(test_wait)
         return self
 
-    def run(self):
+    def run(self, mode="ignore"):
         for work in self.work_list:
-            work.run()
+            if work.run() != 0:
+                print("[ERROR] cannot fullfill workload")
+                return 1
 
 
 def new_built_in_workload():
@@ -96,12 +99,18 @@ def new_built_in_workload():
 
 
 class ExtendedWorkload:
-    def __init__(self, test_dir, test_cmd):
+    def __init__(self, test_dir, test_cmd, check_mode=False):
         self.test_dir = test_dir
         self.test_cmd = test_cmd
+        self.check_mode = check_mode
 
-    def run(self):
+    def run(self, mode):
         org_dir = os.getcwd()
         os.chdir(self.test_dir)
-        os.system(self.test_cmd)
+        # TODO: need to check the return code of the os.system
+        if self.check_mode:
+            os.system(self.test_cmd + " " + mode)
+        else:
+            os.system(self.test_cmd)
         os.chdir(org_dir)
+        return 0
