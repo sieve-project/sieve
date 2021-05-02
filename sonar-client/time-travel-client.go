@@ -105,7 +105,7 @@ func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sE
 	if !checkMode(timeTravel) {
 		return
 	}
-	log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
+	// log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, jsonError)
