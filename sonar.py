@@ -35,7 +35,7 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config):
+def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config):
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
     os.system("cp %s sonar-server/server.yaml" % test_config)
@@ -83,11 +83,8 @@ def setup_cluster(project, mode, test_script, test_config, log_dir, docker_repo,
     watch_crd(project, [api1_addr, api2_addr, api3_addr])
 
 
-def run_workload(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config):
-    org_dir = os.getcwd()
-    os.chdir(os.path.join(controllers.test_dir[project], "test"))
-    os.system("./%s %s" % (test_script, mode))
-    os.chdir(org_dir)
+def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config):
+    test_workload.run(mode)
 
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
@@ -113,7 +110,7 @@ def pre_process(project, mode, test_config):
         yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
 
 
-def post_process(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
+def post_process(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
     if mode == "vanilla":
         pass
     elif mode == "learn":
@@ -138,15 +135,15 @@ def post_process(project, mode, test_script, test_config, log_dir, docker_repo, 
             log_dir, "status.json"), "w"), indent=4)
 
 
-def run_test(project, mode, test_script, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
+def run_test(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
     if run == "all" or run == "setup":
         pre_process(project, mode, test_config)
-        setup_cluster(project, mode, test_script, test_config,
+        setup_cluster(project, mode, test_workload, test_config,
                       log_dir, docker_repo, docker_tag, cluster_config)
     if run == "all" or run == "workload":
-        run_workload(project, mode, test_script, test_config,
+        run_workload(project, mode, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, cluster_config)
-        post_process(project, mode, test_script, test_config,
+        post_process(project, mode, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run)
 
 
