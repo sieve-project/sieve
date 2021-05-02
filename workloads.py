@@ -4,6 +4,13 @@ import common
 
 
 workloads = {
+    "cassandra-operator": {
+        "recreate": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-cassandra-operator/test/cdc-1.yaml").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", common.RUNNING)
+        .cmd("kubectl delete CassandraDataCenter cassandra-datacenter").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", common.TERMINATED)
+        .cmd("kubectl apply -f test-cassandra-operator/test/cdc-1.yaml").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", common.RUNNING)
+        .wait(50),
+    },
     "zookeeper-operator": {
         "recreate": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-zookeeper-operator/test/zkc-1.yaml").wait_for_pod_status("zookeeper-cluster-0", common.RUNNING)
