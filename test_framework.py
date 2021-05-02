@@ -9,7 +9,19 @@ class TestCmd:
         self.cmd = cmd
 
     def run(self):
+        print(self.cmd)
         os.system(self.cmd)
+        return 0
+
+
+class TestWait:
+    def __init__(self, time_out):
+        self.time_out = time_out
+
+    def run(self):
+        print("wait for %s seconds" % str(self.time_out))
+        time.sleep(self.time_out)
+        return 0
 
 
 class TestWaitForStatus:
@@ -22,31 +34,74 @@ class TestWaitForStatus:
         self.time_out = time_out
 
     def run(self):
+        s = time.time()
         if self.resource_type == common.POD:
+            print("wait until pod %s becomes %s..." %
+                  (self.resource_name, self.status))
             kubernetes.config.load_kube_config()
             core_v1 = kubernetes.client.CoreV1Api()
             while True:
-                pod = core_v1.read_namespaced_pod(
-                    name=self.resource_name, namespace="default")
-                if pod is not None and pod.status.phase == self.status:
-                    break
+                if time.time() - s > float(self.time_out):
+                    print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
+                          (self.resource_name, self.status, self.time_out))
+                    return 1
+                pods = core_v1.list_namespaced_pod(
+                    namespace="default", watch=False).items
+                not_found = True
+                status = ""
+                for pod in pods:
+                    if pod.metadata.name == self.resource_name:
+                        not_found = False
+                        status = pod.status.phase
+                if self.status == common.TERMINATED:
+                    if not_found:
+                        break
+                else:
+                    if status == self.status:
+                        break
                 time.sleep(5)
         else:
             assert False, "types other than pod not supported yet"
+        print("wait takes %f seconds" % (time.time() - s))
+        return 0
 
 
-class TestWorkLoad:
+class BuiltInWorkLoad:
     def __init__(self):
         self.work_list = []
 
     def cmd(self, cmd):
         test_cmd = TestCmd(cmd)
         self.work_list.append(test_cmd)
+        return self
 
     def wait_for_pod_status(self, pod_name, status):
         test_wait = TestWaitForStatus(common.POD, pod_name, status)
         self.work_list.append(test_wait)
+        return self
+
+    def wait(self, time):
+        test_wait = TestWait(time)
+        self.work_list.append(test_wait)
+        return self
 
     def run(self):
         for work in self.work_list:
             work.run()
+
+
+def new_built_in_workload():
+    workload = BuiltInWorkLoad()
+    return workload
+
+
+class ExtendedWorkload:
+    def __init__(self, test_dir, test_cmd):
+        self.test_dir = test_dir
+        self.test_cmd = test_cmd
+
+    def run(self):
+        org_dir = os.getcwd()
+        os.chdir(self.test_dir)
+        os.system(self.test_cmd)
+        os.chdir(org_dir)
