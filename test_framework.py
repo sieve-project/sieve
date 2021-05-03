@@ -34,35 +34,49 @@ class TestWaitForStatus:
         self.namespace = "default"
         self.time_out = time_out
 
+    def get_pod(self):
+        kubernetes.config.load_kube_config()
+        core_v1 = kubernetes.client.CoreV1Api()
+        pods = core_v1.list_namespaced_pod(
+            namespace="default", watch=False).items
+        target_pod = None
+        for pod in pods:
+            if pod.metadata.name == self.resource_name:
+                target_pod = pod
+        return target_pod
+
+    def check_pod(self):
+        pod = self.get_pod()
+        if self.status == common.TERMINATED:
+            if pod is None:
+                return True
+        elif self.status == common.RUNNING:
+            if pod is not None and pod.status.phase == self.status:
+                all_ready = True
+                for container_status in pod.status.container_statuses:
+                    if not container_status.ready:
+                        all_ready = False
+                if all_ready:
+                    return True
+        else:
+            assert False, "status not supported yet"
+        return False
+
     def run(self):
         s = time.time()
-        if self.resource_type == common.POD:
-            print("wait until pod %s becomes %s..." %
-                  (self.resource_name, self.status))
-            kubernetes.config.load_kube_config()
-            core_v1 = kubernetes.client.CoreV1Api()
-            while True:
-                if time.time() - s > float(self.time_out):
-                    print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
-                          (self.resource_name, self.status, self.time_out))
-                    return 1
-                pods = core_v1.list_namespaced_pod(
-                    namespace="default", watch=False).items
-                not_found = True
-                status = ""
-                for pod in pods:
-                    if pod.metadata.name == self.resource_name:
-                        not_found = False
-                        status = pod.status.phase
-                if self.status == common.TERMINATED:
-                    if not_found:
-                        break
-                else:
-                    if status == self.status:
-                        break
-                time.sleep(5)
-        else:
-            assert False, "types other than pod not supported yet"
+        print("wait until %s %s becomes %s..." %
+              (self.resource_type, self.resource_name, self.status))
+        while True:
+            if time.time() - s > float(self.time_out):
+                print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
+                      (self.resource_name, self.status, self.time_out))
+                return 1
+            if self.resource_type == common.POD:
+                if self.check_pod():
+                    break
+            else:
+                assert False, "types other than pod not supported yet"
+            time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
         return 0
 
