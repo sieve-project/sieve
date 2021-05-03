@@ -207,7 +207,7 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
     yaml_map["timing"] = timing
-    suffix = "-b" if timing == "ds" else ""
+    suffix = "-b" if timing == "before" else ""
     i = 0
     for triggering_point in triggering_points:
         if triggering_point["ttype"] != "event-delta":
