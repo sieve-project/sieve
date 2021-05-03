@@ -1,15 +1,4 @@
 {
-    "deployment": {
-        "default": {
-            "mongodb-cluster-mongos": {
-                "Create": 1,
-                "Delete": 1,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
-            }
-        }
-    },
     "issuer": {
         "default": {
             "mongodb-cluster-psmdb-ca": {
@@ -34,19 +23,19 @@
     },
     "poddisruptionbudget": {
         "default": {
-            "mongodb-cluster-mongod-rs0": {
+            "mongodb-cluster-arbiter-rs0": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
                 "Update": 0
             },
-            "mongodb-cluster-mongos-": {
+            "mongodb-cluster-mongod-rs0": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 0
+                "Update": 3
             }
         }
     },
@@ -98,20 +87,6 @@
     },
     "service": {
         "default": {
-            "mongodb-cluster-cfg": {
-                "Create": 1,
-                "Delete": 1,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
-            },
-            "mongodb-cluster-mongos": {
-                "Create": 1,
-                "Delete": 1,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
-            },
             "mongodb-cluster-rs0": {
                 "Create": 1,
                 "Delete": 0,
@@ -123,16 +98,16 @@
     },
     "statefulset": {
         "default": {
-            "mongodb-cluster-cfg": {
-                "Create": 1,
-                "Delete": 1,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
-            },
             "mongodb-cluster-rs0": {
                 "Create": 1,
                 "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 4
+            },
+            "mongodb-cluster-rs0-arbiter": {
+                "Create": 2,
+                "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
                 "Update": 1
