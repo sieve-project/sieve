@@ -4,6 +4,42 @@ import common
 import time
 
 
+def get_pod(resource_name):
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    pods = core_v1.list_namespaced_pod(
+        namespace="default", watch=False).items
+    target_pod = None
+    for pod in pods:
+        if pod.metadata.name == resource_name:
+            target_pod = pod
+    return target_pod
+
+
+def get_sts(resource_name):
+    kubernetes.config.load_kube_config()
+    apps_v1 = kubernetes.client.AppsV1Api()
+    statefulsets = apps_v1.list_namespaced_stateful_set(
+        namespace="default", watch=False).items
+    target_sts = None
+    for sts in statefulsets:
+        if sts.metadata.name == resource_name:
+            target_sts = sts
+    return target_sts
+
+
+def get_pvc(resource_name):
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    pvcs = core_v1.list_namespaced_persistent_volume_claim(
+        namespace="default", watch=False).items
+    target_pvc = None
+    for pvc in pvcs:
+        if pvc.metadata.name == resource_name:
+            target_pvc = pvc
+    return target_pvc
+
+
 class TestCmd:
     def __init__(self, cmd):
         self.cmd = cmd
@@ -33,30 +69,8 @@ class TestWaitForStatus:
         self.namespace = "default"
         self.time_out = time_out
 
-    def get_pod(self):
-        kubernetes.config.load_kube_config()
-        core_v1 = kubernetes.client.CoreV1Api()
-        pods = core_v1.list_namespaced_pod(
-            namespace="default", watch=False).items
-        target_pod = None
-        for pod in pods:
-            if pod.metadata.name == self.resource_name:
-                target_pod = pod
-        return target_pod
-
-    def get_pvc(self):
-        kubernetes.config.load_kube_config()
-        core_v1 = kubernetes.client.CoreV1Api()
-        pvcs = core_v1.list_namespaced_persistent_volume_claim(
-            namespace="default", watch=False).items
-        target_pvc = None
-        for pvc in pvcs:
-            if pvc.metadata.name == self.resource_name:
-                target_pvc = pvc
-        return target_pvc
-
     def check_pod(self):
-        pod = self.get_pod()
+        pod = get_pod(self.resource_name)
         if self.status == common.TERMINATED:
             if pod is None:
                 return True
@@ -73,7 +87,7 @@ class TestWaitForStatus:
         return False
 
     def check_pvc(self):
-        pvc = self.get_pvc()
+        pvc = get_pvc(self.resource_name)
         if self.status == common.TERMINATED:
             if pvc is None:
                 return True
@@ -106,6 +120,42 @@ class TestWaitForStatus:
         return 0
 
 
+class TestWaitForStorage:
+    def __init__(self, resource_type, resource_name, storage_size, time_out="600"):
+        self.resource_type = resource_type
+        self.resource_name = resource_name
+        self.storage_size = storage_size
+        self.namespace = "default"
+        self.time_out = time_out
+
+    def check_sts(self):
+        sts = get_sts(self.resource_name)
+        if sts is None:
+            return False
+        for volume_claim_template in sts.spec.volume_claim_templates:
+            if volume_claim_template.spec.resources.requests["storage"] == self.storage_size:
+                return True
+        return True
+
+    def run(self):
+        s = time.time()
+        print("wait until %s %s has storage size %s..." %
+              (self.resource_type, self.resource_name, self.storage_size))
+        while True:
+            if time.time() - s > float(self.time_out):
+                print("[ERROR] waiting timeout: %s does not have storage size %s within %d seconds" %
+                      (self.resource_name, self.storage_size, self.time_out))
+                return 1
+            if self.resource_type == common.STS:
+                if self.check_sts():
+                    break
+            else:
+                assert False, "type not supported yet"
+            time.sleep(5)
+        print("wait takes %f seconds" % (time.time() - s))
+        return 0
+
+
 class BuiltInWorkLoad:
     def __init__(self):
         self.work_list = []
@@ -122,6 +172,11 @@ class BuiltInWorkLoad:
 
     def wait_for_pvc_status(self, pvc_name, status):
         test_wait = TestWaitForStatus(common.PVC, pvc_name, status)
+        self.work_list.append(test_wait)
+        return self
+
+    def wait_for_sts_storage_size(self, sts_name, storage_size):
+        test_wait = TestWaitForStorage(common.STS, sts_name, storage_size)
         self.work_list.append(test_wait)
         return self
 
