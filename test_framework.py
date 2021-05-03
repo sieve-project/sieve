@@ -27,7 +27,6 @@ class TestWait:
 
 class TestWaitForStatus:
     def __init__(self, resource_type, resource_name, status, time_out="600"):
-        assert resource_type == common.POD  # TODO: support other types
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.status = status
@@ -44,6 +43,17 @@ class TestWaitForStatus:
             if pod.metadata.name == self.resource_name:
                 target_pod = pod
         return target_pod
+
+    def get_pvc(self):
+        kubernetes.config.load_kube_config()
+        core_v1 = kubernetes.client.CoreV1Api()
+        pvcs = core_v1.list_namespaced_persistent_volume_claim(
+            namespace="default", watch=False).items
+        target_pvc = None
+        for pvc in pvcs:
+            if pvc.metadata.name == self.resource_name:
+                target_pvc = pvc
+        return target_pvc
 
     def check_pod(self):
         pod = self.get_pod()
@@ -62,6 +72,18 @@ class TestWaitForStatus:
             assert False, "status not supported yet"
         return False
 
+    def check_pvc(self):
+        pvc = self.get_pvc()
+        if self.status == common.TERMINATED:
+            if pvc is None:
+                return True
+        elif self.status == common.BOUND:
+            if pvc is not None and pvc.status.phase == self.status:
+                return True
+        else:
+            assert False, "status not supported yet"
+        return False
+
     def run(self):
         s = time.time()
         print("wait until %s %s becomes %s..." %
@@ -74,8 +96,11 @@ class TestWaitForStatus:
             if self.resource_type == common.POD:
                 if self.check_pod():
                     break
+            elif self.resource_type == common.PVC:
+                if self.check_pvc():
+                    break
             else:
-                assert False, "types other than pod not supported yet"
+                assert False, "type not supported yet"
             time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
         return 0
@@ -92,6 +117,11 @@ class BuiltInWorkLoad:
 
     def wait_for_pod_status(self, pod_name, status):
         test_wait = TestWaitForStatus(common.POD, pod_name, status)
+        self.work_list.append(test_wait)
+        return self
+
+    def wait_for_pvc_status(self, pvc_name, status):
+        test_wait = TestWaitForStatus(common.PVC, pvc_name, status)
         self.work_list.append(test_wait)
         return self
 
