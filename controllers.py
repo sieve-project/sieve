@@ -77,15 +77,19 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["rabbitmq-operator"]["recreate"], "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
         "resize-pvc": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["rabbitmq-operator"], "./resizePVCRabbitmqCluster.sh", True), "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),
+            # test_framework.ExtendedWorkload(test_dir_test["rabbitmq-operator"], "./resizePVCRabbitmqCluster.sh", True), "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),
     },
     "mongodb-operator": {
         "recreate": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["mongodb-operator"], "./recreateMongodbCluster.sh", True), "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+            # test_framework.ExtendedWorkload(test_dir_test["mongodb-operator"], "./recreateMongodbCluster.sh", True), "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+            workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-3w.yaml"),
         "disable-enable-shard": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["mongodb-operator"], "./disableEnableShard.sh", True), "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+            # test_framework.ExtendedWorkload(test_dir_test["mongodb-operator"], "./disableEnableShard.sh", True), "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-3w.yaml"),
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-3w.yaml"),
         "disable-enable-arbiter": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["mongodb-operator"], "./disableEnableArbiter.sh", True), "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+            # test_framework.ExtendedWorkload(test_dir_test["mongodb-operator"], "./disableEnableArbiter.sh", True), "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", cluster_config="kind-ha-5w.yaml"),
+            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", cluster_config="kind-ha-5w.yaml"),
     },
     "cass-operator": {
         "test1": Suite(
