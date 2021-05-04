@@ -6,12 +6,12 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, double_sides=False, cluster_config="kind-ha.yaml"):
+    def __init__(self, workload, config, mode, double_sides=False, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
         self.double_sides = double_sides
-        self.cluster_config = cluster_config
+        self.num_workers = num_workers
 
 
 docker_repo = "xudongs"
@@ -63,7 +63,7 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["cassandra-operator"]["recreate"], "test-cassandra-operator/test/time-travel-1.yaml", "time-travel"),
         "scaledown-scaleup": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["cassandra-operator"], "./scaleDownUpCassandraDataCenter.sh", True), "test-cassandra-operator/test/time-travel-2.yaml", "time-travel"),
+            workloads.workloads["cassandra-operator"]["scaledown-scaleup"], "test-cassandra-operator/test/time-travel-2.yaml", "time-travel"),
     },
     "zookeeper-operator": {
         "recreate": Suite(
@@ -79,11 +79,11 @@ test_suites = {
     },
     "mongodb-operator": {
         "recreate": Suite(
-            workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-3w.yaml"),
+            workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", num_workers=3),
         "disable-enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-3w.yaml"),
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3),
         "disable-enable-arbiter": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", cluster_config="kind-ha-5w.yaml"),
+            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
     },
     "cass-operator": {
         "test1": Suite(
