@@ -344,11 +344,10 @@ func (s *timeTravelServer) shouldRestart() bool {
 	}
 }
 
-// The controller to restart is identified by `operator-pod` in the configuration.
-// `operator-pod` is a label to identify the pod where the controller is running.
-// We do not directly use pod name because the pod belongs to a deployment so its name is not fixed.
+
 func (s *timeTravelServer) restartComponent() {
-	config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
+	masterUrl := "https://" + s.frontRunner + ":6443"
+	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
