@@ -182,7 +182,7 @@ spec:
           image: ${SONAR-DR}/cassandra-operator:${SONAR-DT}
           command:
           - ./cassandra-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
               valueFrom:

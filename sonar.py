@@ -97,6 +97,15 @@ def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_rep
         os.system("kubectl cp %s %s:/sonar.yaml -n kube-system" %
                   (test_config, apiserver))
 
+    # Preload operator image to kind nodes
+    image = "%s/%s:%s" %(docker_repo, project, docker_tag)
+    kind_load_cmd = "kind load docker-image %s" %(image)
+    print("we are loading image %s to kind nodes..." %(image))
+    if os.WEXITSTATUS(os.system(kind_load_cmd)):
+        print("cannot load image %s locally, try to pull from remote"%(image))
+        os.system("docker pull %s" %(image))
+        os.system(kind_load_cmd)
+    
     controllers.deploy[project](docker_repo, docker_tag)
 
     # Wait for project pod ready
@@ -220,7 +229,7 @@ def run_batch(project, test, dir, mode, docker):
 
 if __name__ == "__main__":
     s = time.time()
-    usage = "usage: python3 run.py [options]"
+    usage = "usage: python3 sonar.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to test: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")

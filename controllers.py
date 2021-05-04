@@ -1,6 +1,7 @@
 import os
 import kubernetes
 import time
+import re
 import workloads
 import test_framework
 
@@ -21,12 +22,12 @@ straggler = "kind-control-plane3"
 testing_modes = ["time-travel", "sparse-read"]
 
 github_link = {
-    "cassandra-operator": "git@github.com:instaclustr/cassandra-operator.git",
-    "zookeeper-operator": "git@github.com:pravega/zookeeper-operator.git",
-    "rabbitmq-operator": "git@github.com:rabbitmq/cluster-operator.git",
-    "mongodb-operator": "git@github.com:percona/percona-server-mongodb-operator.git",
-    "cass-operator": "git@github.com:datastax/cass-operator.git",
-    "casskop-operator": "git@github.com:Orange-OpenSource/casskop.git",
+    "cassandra-operator": "https://github.com/instaclustr/cassandra-operator.git",
+    "zookeeper-operator": "https://github.com/pravega/zookeeper-operator.git",
+    "rabbitmq-operator": "https://github.com/rabbitmq/cluster-operator.git",
+    "mongodb-operator": "https://github.com/percona/percona-server-mongodb-operator.git",
+    "cass-operator": "https://github.com/datastax/cass-operator.git",
+    "casskop-operator": "https://github.com/Orange-OpenSource/casskop.git",
 }
 
 app_dir = {
@@ -109,6 +110,7 @@ deployment_name = {
     "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
     "mongodb-operator": "percona-server-mongodb-operator",
+    "casskop-operator": "casskop-operator",
 }
 
 operator_pod_label = {
@@ -116,6 +118,7 @@ operator_pod_label = {
     "zookeeper-operator": "zookeeper-operator",
     "rabbitmq-operator": "rabbitmq-operator",
     "mongodb-operator": "mongodb-operator",
+    "casskop-operator": "casskop-operator",
 }
 
 # command = {
@@ -172,6 +175,8 @@ docker_file = {
 #     "casskop-operator": "test-casskop-operator/test/learn.yaml",
 # }
 
+def make_safe_filename(filename):
+    return re.sub(r'[^\w\d-]','_', filename)
 
 def replace_docker_repo(path, dr, dt):
     fin = open(path)
@@ -180,7 +185,7 @@ def replace_docker_repo(path, dr, dt):
     data = data.replace("${SONAR-DT}", dt)
     fin.close()
     tokens = path.rsplit('.', 1)
-    new_path = tokens[0] + "-" + dr + '.' + tokens[1]
+    new_path = tokens[0] + "-" + make_safe_filename(dr) + '.' + tokens[1]
     fin = open(new_path, "w")
     fin.write(data)
     fin.close()

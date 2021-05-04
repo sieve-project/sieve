@@ -8,7 +8,7 @@ ORIGINAL_DIR = os.getcwd()
 def download_kubernetes():
     os.system("rm -rf fakegopath")
     os.system("mkdir -p fakegopath/src/k8s.io")
-    os.system("git clone --single-branch --branch v1.18.9 git@github.com:kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
+    os.system("git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     os.system("git checkout -b sonar >> /dev/null")
     os.chdir(ORIGINAL_DIR)
@@ -38,6 +38,7 @@ def build_kubernetes(img_repo, img_tag):
         "GOPATH=%s/fakegopath KUBE_GIT_VERSION=v1.18.9-sonar-`git rev-parse HEAD` kind build node-image" % ORIGINAL_DIR)
     os.chdir(ORIGINAL_DIR)
     os.system("docker build --no-cache -t %s/node:%s ." % (img_repo, img_tag))
+    os.system("docker push %s/node:%s" % (img_repo, img_tag))
 
 
 def setup_kubernetes(mode, img_repo, img_tag):
@@ -48,7 +49,10 @@ def setup_kubernetes(mode, img_repo, img_tag):
 
 
 def download_controller(project, link, sha):
-    os.system("rm -rf %s" % controllers.app_dir[project])
+    # If for some permission issue that we can't remove the operator, try sudo
+    if os.WEXITSTATUS(os.system("rm -rf %s" % controllers.app_dir[project])):
+        print("We cannot remove %s, try sudo instead" % controllers.app_dir[project])
+        os.system("sudo rm -rf %s" % controllers.app_dir[project])
     os.system("git clone %s %s >> /dev/null" %
               (link, controllers.app_dir[project]))
     os.chdir(controllers.app_dir[project])

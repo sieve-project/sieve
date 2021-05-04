@@ -24,7 +24,7 @@ spec:
             name: metrics
           command:
           - zookeeper-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
           - name: WATCH_NAMESPACE
             valueFrom:

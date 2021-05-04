@@ -1,0 +1,43 @@
+name: Kubernetes
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        required: true
+        default: 'Mona the Octocat'
+      home:
+        description: 'location'
+        required: false
+        default: 'The Octoverse'
+
+
+env:
+  IMAGE_NAMESPACE: docker.pkg.github.com/xlab-uiuc/sonar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install kubernetes
+          pip install pyyaml
+      - name: Build Image
+        run: |
+          python3 build.py -p kubernetes -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p kubernetes -m time-travel -d $IMAGE_NAMESPACE
