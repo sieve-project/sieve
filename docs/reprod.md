@@ -23,7 +23,7 @@ If reproduced, you will see:
 ### [instaclustr-cassandra-operator-407](https://github.com/instaclustr/cassandra-operator/issues/407)
 This one is special. Please build in this way
 ```
-python3 build.py -p cassandra-operator -m time-travel -s 26958ef772dd192d4a7083d04d2a23c8ea821558 -d YOUR_DOCKER_REPO_NAME
+python3 build.py -p cassandra-operator -m time-travel -s bd8077a478997f63862848d66d4912c59e4c46ff -d YOUR_DOCKER_REPO_NAME
 ```
 and then
 ```
