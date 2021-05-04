@@ -19,7 +19,7 @@ workloads = {
     "zookeeper-operator": {
         "recreate": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-zookeeper-operator/test/zkc-1.yaml").wait_for_pod_status("zookeeper-cluster-0", common.RUNNING)
-        .cmd("kubectl delete ZookeeperCluster zookeeper-cluster").wait_for_pod_status("zookeeper-cluster-0", common.TERMINATED)
+        .cmd("kubectl delete ZookeeperCluster zookeeper-cluster").wait_for_pod_status("zookeeper-cluster-0", common.TERMINATED).wait_for_pvc_status("data-zookeeper-cluster-0", common.TERMINATED)
         .cmd("kubectl apply -f test-zookeeper-operator/test/zkc-1.yaml").wait_for_pod_status("zookeeper-cluster-0", common.RUNNING)
         .wait(50),
         "scaledown-scaleup": test_framework.new_built_in_workload()
