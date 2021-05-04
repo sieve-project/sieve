@@ -35,14 +35,45 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config):
+def kind_config(num_workers):
+    # we should generate the kind config automatically
+    if num_workers == 2:
+        return "kind-ha.yaml"
+    elif num_workers == 3:
+        return "kind-ha-3w.yaml"
+    elif num_workers == 4:
+        return "kind-ha-4w.yaml"
+    elif num_workers == 5:
+        return "kind-ha-5w.yaml"
+    else:
+        assert False
+
+
+def redirect_if_necessary(mode, num_workers):
+    # TODO: we may also need to redirect the controller-managers and schedulers
+    if mode != "time-travel":
+        return
+    redirect_workers(mode, num_workers)
+
+
+def redirect_workers(mode, num_workers):
+    target_master = controllers.front_runner
+    for i in range(num_workers):
+        worker = "kind-worker" + (str(i+1) if i > 0 else "")
+        os.system("docker exec %s bash -c \"sed -i 's/kind-external-load-balancer/%s/g' /etc/kubernetes/kubelet.conf\"" %
+                  (worker, target_master))
+        os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
+
+
+def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
     os.system("cp %s sonar-server/server.yaml" % test_config)
     os.system("kind delete cluster")
 
     os.system("./setup.sh %s %s %s" %
-              (cluster_config, docker_repo, docker_tag))
+              (kind_config(num_workers), docker_repo, docker_tag))
+    redirect_if_necessary(mode, num_workers)
     os.system("./bypass-balancer.sh")
 
     configmap = generate_configmap(test_config)
@@ -83,7 +114,7 @@ def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_rep
     watch_crd(project, [api1_addr, api2_addr, api3_addr])
 
 
-def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config):
+def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
     test_workload.run(mode)
 
     kubernetes.config.load_kube_config()
@@ -110,7 +141,7 @@ def pre_process(project, mode, test_config):
         yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
 
 
-def post_process(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
+def post_process(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, double_sides, run):
     if mode == "vanilla":
         pass
     elif mode == "learn":
@@ -135,16 +166,16 @@ def post_process(project, mode, test_workload, test_config, log_dir, docker_repo
             log_dir, "status.json"), "w"), indent=4)
 
 
-def run_test(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run):
+def run_test(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, double_sides, run):
     if run == "all" or run == "setup":
         pre_process(project, mode, test_config)
         setup_cluster(project, mode, test_workload, test_config,
-                      log_dir, docker_repo, docker_tag, cluster_config)
+                      log_dir, docker_repo, docker_tag, num_workers)
     if run == "all" or run == "workload":
         run_workload(project, mode, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, cluster_config)
+                     log_dir, docker_repo, docker_tag, num_workers)
         post_process(project, mode, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, cluster_config, data_dir, double_sides, run)
+                     log_dir, docker_repo, docker_tag, num_workers, data_dir, double_sides, run)
 
 
 def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
@@ -155,13 +186,13 @@ def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
         log_dir = os.path.join(log_dir, mode)
         blank_config = "config/none.yaml"
         run_test(project, mode, suite.workload,
-                 blank_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
+                 blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.double_sides, run)
     elif mode == "learn":
         log_dir = os.path.join(log_dir, mode)
         learn_config = os.path.join(
             controllers.test_dir[project], "test", "learn.yaml")
         run_test(project, mode, suite.workload,
-                 learn_config, log_dir, docker, mode, suite.cluster_config, data_dir, suite.double_sides, run)
+                 learn_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.double_sides, run)
     else:
         test_config = config if config != "none" else suite.config
         test_mode = mode if mode != "none" else suite.mode
@@ -169,7 +200,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
         print("testing mode: %s config: %s" % (test_mode, test_config))
         log_dir = os.path.join(log_dir, test_mode)
         run_test(project, test_mode, suite.workload,
-                 test_config, log_dir, docker, test_mode, suite.cluster_config, data_dir, suite.double_sides, run)
+                 test_config, log_dir, docker, test_mode, suite.num_workers, data_dir, suite.double_sides, run)
 
 
 def run_batch(project, test, dir, mode, docker):
