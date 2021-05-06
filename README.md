@@ -1,4 +1,4 @@
-# Sonar: Testing Partial History Bugs
+# Sieve: Testing Partial History Bugs
 
 ## Requirements
 * Docker daemon must be running
@@ -10,13 +10,13 @@
     * `pip3 install pyyaml`
 
 ## Demo:
-Please refer to https://github.com/xlab-uiuc/sonar/blob/main/docs/demo.md
+Please refer to https://github.com/sieve-project/sieve/blob/main/docs/demo.md
 
-## Bugs found by Sonar:
-Please refer to https://github.com/xlab-uiuc/sonar/blob/main/docs/bugs.md
+## Bugs found by sieve:
+Please refer to https://github.com/sieve-project/sieve/blob/main/docs/bugs.md
 
 ## Bug reproduction:
-Please refer to https://github.com/xlab-uiuc/sonar/blob/main/docs/reprod.md
+Please refer to https://github.com/sieve-project/sieve/blob/main/docs/reprod.md
 
 ## Port a new operator:
-Please refer to https://github.com/xlab-uiuc/sonar/blob/main/docs/port.md
+Please refer to https://github.com/sieve-project/sieve/blob/main/docs/port.md
