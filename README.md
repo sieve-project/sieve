@@ -5,7 +5,9 @@
 * A docker repo that you have write access to
 * go1.13 installed and `$GOPATH` set
 * [kind](https://kind.sigs.k8s.io/) installed and `$KUBECONFIG` set
-* python3 installed and `kubernetes` and `pyyaml` installed
+* [sqlite3](https://help.dreamhost.com/hc/en-us/articles/360028047592-Installing-a-custom-version-of-SQLite3) (>=3.32) installed
+* python3 installed and `sqlite3`, `kubernetes` and `pyyaml` installed
+    * `pip3 install pysqlite3`
     * `pip3 install kubernetes`
     * `pip3 install pyyaml`
 

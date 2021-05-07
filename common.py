@@ -32,6 +32,8 @@ SONAR_SKIP_MARKER = "SONAR-SKIP"
 SONAR_CANONICALIZATION_MARKER = "SONAR-NON-NIL"
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 
+SQL_QUERY = "select e.sonar_event_id, se.sonar_side_effect_id from events e join side_effects se on se.range_start_timestamp < e.event_cache_update_time and se.range_end_timestamp > e.event_arrival_time where se.event_type = 'Delete' and se.error != 'NotFound' and (exists(select * from json_each(se.read_fully_qualified_names) where json_each.value = e.fully_qualified_name) or exists(select * from json_each(se.read_types) where json_each.value = e.resource_type));"
+
 
 def translate_side_effect(side_effect, reverse=False):
     if side_effect == "ADDED":
@@ -44,7 +46,8 @@ def translate_side_effect(side_effect, reverse=False):
 
 class Event:
     def __init__(self, id, etype, rtype, obj):
-        self.id = id
+        # make the id integer to keep consistent with SideEffect
+        self.id = int(id)
         self.etype = etype
         self.rtype = rtype
         self.obj = obj
@@ -63,7 +66,11 @@ class Event:
 
 
 class SideEffect:
+    side_effect_cnt = 0
+
     def __init__(self, etype, rtype, namespace, name, error):
+        self.id = SideEffect.side_effect_cnt
+        SideEffect.side_effect_cnt += 1
         self.etype = etype
         self.rtype = rtype
         self.namespace = namespace
@@ -124,7 +131,8 @@ class CacheRead:
 
 class EventIDOnly:
     def __init__(self, id):
-        self.id = id
+        # make the id integer to keep consistent with SideEffect
+        self.id = int(id)
 
 
 class Reconcile:

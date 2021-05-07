@@ -9,9 +9,11 @@ import controllers
 import common
 import oracle
 import analyze_event
+import sqlite3
+import json
 
 
-def parse_events(path):
+def parse_events(path, conn):
     # { event id -> event }
     event_id_map = {}
     # { event key -> [events belonging to the key] }
@@ -41,10 +43,76 @@ def parse_events(path):
                 event_key_map[event.key] = []
             event_key_map[event.key].append(event_id_map[event.id])
             event_list.append(event_id_map[event.id])
-    return event_list, event_key_map
+    record_event_list_in_sqlite(event_list, conn)
+    return event_list, event_key_map, event_id_map
 
 
-def parse_side_effects(path):
+def create_sqlite_db():
+    database = "/tmp/test.db"
+    conn = sqlite3.connect(database)
+    conn.execute("drop table if exists events")
+    conn.execute("drop table if exists side_effects")
+
+    # TODO: SQlite3 does not type check by default, but
+    # tighten the column types later
+    conn.execute('''
+        create table events
+        (
+           id integer not null primary key,
+           sonar_event_id integer not null,
+           event_type text not null,
+           resource_type text not null,
+           json_object text not null,
+           namespace text not null,
+           name text not null,
+           event_arrival_time integer not null,
+           event_cache_update_time integer not null,
+           fully_qualified_name text not null
+        )
+    ''')
+    conn.execute('''
+        create table side_effects
+        (
+           id integer not null primary key,
+           sonar_side_effect_id integer not null,
+           event_type text not null,
+           resource_type text not null,
+           namespace text not null,
+           name text not null,
+           error text not null,
+           read_types text not null,
+           read_fully_qualified_names text not null,
+           range_start_timestamp integer not null,
+           range_end_timestamp integer not null,
+           end_timestamp integer not null,
+           owner_controllers text not null
+        )
+    ''')
+    return conn
+
+
+def record_event_list_in_sqlite(event_list, conn):
+    for e in event_list:
+        json_form = json.dumps(e.obj)
+        # Skip the first column: Sqlite will use an auto-incrementing ID
+        conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (None, e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+    conn.commit()
+
+
+def record_side_effect_list_in_sqlite(side_effect_list, conn):
+    for e in side_effect_list:
+        json_read_types = json.dumps(list(e.read_types))
+        json_read_keys = json.dumps(list(e.read_keys))
+        json_owner_controllers = json.dumps(list(e.owner_controllers))
+        # Skip the first column: Sqlite will use an auto-incrementing ID
+        conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (None, e.id, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
+    conn.commit()
+
+
+def parse_side_effects(path, conn):
+    side_effect_id_map = {}
     side_effect_list = []
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
@@ -79,6 +147,7 @@ def parse_side_effects(path):
                     earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
             side_effect.set_range(earliest_timestamp, i)
             side_effect_list.append(side_effect)
+            side_effect_id_map[side_effect.id] = side_effect
         elif common.SONAR_CACHE_READ_MARK in line:
             cache_read = common.parse_cache_read(line)
             if cache_read.etype == "Get":
@@ -103,7 +172,8 @@ def parse_side_effects(path):
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()
                 read_types_this_reconcile = set()
-    return side_effect_list
+    record_side_effect_list_in_sqlite(side_effect_list, conn)
+    return side_effect_list, side_effect_id_map
 
 
 def base_pass(event_list, side_effect_list):
@@ -150,12 +220,26 @@ def pipelined_passes(event_effect_pairs):
     return reduced_event_effect_pairs
 
 
-def generate_event_effect_pairs(path):
-    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
-    event_list, event_key_map = parse_events(path)
-    side_effect_list = parse_side_effects(path)
-    event_effect_pairs = base_pass(event_list, side_effect_list)
-    reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
+def generate_event_effect_pairs(path, use_sql=True):
+    print("Analyzing %s to generate <event, side-effect> pairs..." % path)
+    print("use-sql feature is %s" %
+          ("enabled" if use_sql else "disabled"))
+    conn = create_sqlite_db()
+    event_list, event_key_map, event_id_map = parse_events(path, conn)
+    side_effect_list, side_effect_id_map = parse_side_effects(path, conn)
+    reduced_event_effect_pairs = []
+    if use_sql:
+        cur = conn.cursor()
+        cur.execute(common.SQL_QUERY)
+        rows = cur.fetchall()
+        for row in rows:
+            event_id = row[0]
+            side_effect_id = row[1]
+            reduced_event_effect_pairs.append(
+                [event_id_map[event_id], side_effect_id_map[side_effect_id]])
+    else:
+        event_effect_pairs = base_pass(event_list, side_effect_list)
+        reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
     return reduced_event_effect_pairs, event_key_map
 
 
