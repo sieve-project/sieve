@@ -78,7 +78,7 @@ def record_side_effect_list_in_sqlite(side_effect_list, conn):
     conn.commit()
 
 
-def parse_events(path, conn):
+def parse_events(path):
     # { event id -> event }
     event_id_map = {}
     # { event key -> [events belonging to the key] }
@@ -108,11 +108,10 @@ def parse_events(path, conn):
                 event_key_map[event.key] = []
             event_key_map[event.key].append(event_id_map[event.id])
             event_list.append(event_id_map[event.id])
-    record_event_list_in_sqlite(event_list, conn)
     return event_list, event_key_map, event_id_map
 
 
-def parse_side_effects(path, conn):
+def parse_side_effects(path):
     side_effect_id_map = {}
     side_effect_list = []
     read_types_this_reconcile = set()
@@ -173,7 +172,6 @@ def parse_side_effects(path, conn):
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()
                 read_types_this_reconcile = set()
-    record_side_effect_list_in_sqlite(side_effect_list, conn)
     return side_effect_list, side_effect_id_map
 
 
@@ -223,11 +221,13 @@ def pipelined_passes(event_effect_pairs):
 
 def generate_event_effect_pairs(path, use_sql):
     print("Analyzing %s to generate <event, side-effect> pairs..." % path)
-    conn = create_sqlite_db()
-    event_list, event_key_map, event_id_map = parse_events(path, conn)
-    side_effect_list, side_effect_id_map = parse_side_effects(path, conn)
+    event_list, event_key_map, event_id_map = parse_events(path)
+    side_effect_list, side_effect_id_map = parse_side_effects(path)
     reduced_event_effect_pairs = []
     if use_sql:
+        conn = create_sqlite_db()
+        record_event_list_in_sqlite(event_list, conn)
+        record_side_effect_list_in_sqlite(side_effect_list, conn)
         cur = conn.cursor()
         cur.execute(common.SQL_QUERY)
         rows = cur.fetchall()
