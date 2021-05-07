@@ -323,9 +323,9 @@ def dump_json_file(dir, data, json_file_name):
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def analyze_trace(project, dir, double_sides=False, generate_oracle=True):
-    print("double-sides feature is %s" %
-          ("enabled" if double_sides else "disabled"))
+def analyze_trace(project, dir, two_sided=False, generate_oracle=True):
+    print("two-sided feature is %s" %
+          ("enabled" if two_sided else "disabled"))
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     log_path = os.path.join(dir, "sonar-server.log")
@@ -338,7 +338,7 @@ def analyze_trace(project, dir, double_sides=False, generate_oracle=True):
         event_key_map, causality_pairs)
     dump_json_file(dir, triggering_points, "triggering-points.json")
     generate_time_travel_yaml(triggering_points, conf_dir, project)
-    if double_sides:
+    if two_sided:
         generate_time_travel_yaml(
             triggering_points, conf_dir, project, "before")
     if generate_oracle:
@@ -353,4 +353,4 @@ if __name__ == "__main__":
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
     dir = os.path.join("log", project, test, "learn")
-    analyze_trace(project, dir, double_sides=False, generate_oracle=False)
+    analyze_trace(project, dir, two_sided=False, generate_oracle=False)

@@ -98,14 +98,14 @@ def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_rep
                   (test_config, apiserver))
 
     # Preload operator image to kind nodes
-    image = "%s/%s:%s" %(docker_repo, project, docker_tag)
-    kind_load_cmd = "kind load docker-image %s" %(image)
-    print("we are loading image %s to kind nodes..." %(image))
+    image = "%s/%s:%s" % (docker_repo, project, docker_tag)
+    kind_load_cmd = "kind load docker-image %s" % (image)
+    print("we are loading image %s to kind nodes..." % (image))
     if os.WEXITSTATUS(os.system(kind_load_cmd)):
-        print("cannot load image %s locally, try to pull from remote"%(image))
-        os.system("docker pull %s" %(image))
+        print("cannot load image %s locally, try to pull from remote" % (image))
+        os.system("docker pull %s" % (image))
         os.system(kind_load_cmd)
-    
+
     controllers.deploy[project](docker_repo, docker_tag)
 
     # Wait for project pod ready
@@ -150,11 +150,11 @@ def pre_process(project, mode, test_config):
         yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
 
 
-def post_process(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, double_sides, run):
+def post_process(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
     if mode == "vanilla":
         pass
     elif mode == "learn":
-        analyze.analyze_trace(project, log_dir, double_sides)
+        analyze.analyze_trace(project, log_dir, two_sided)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
@@ -175,7 +175,7 @@ def post_process(project, mode, test_workload, test_config, log_dir, docker_repo
             log_dir, "status.json"), "w"), indent=4)
 
 
-def run_test(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, double_sides, run):
+def run_test(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
     if run == "all" or run == "setup":
         pre_process(project, mode, test_config)
         setup_cluster(project, mode, test_workload, test_config,
@@ -184,7 +184,7 @@ def run_test(project, mode, test_workload, test_config, log_dir, docker_repo, do
         run_workload(project, mode, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers)
         post_process(project, mode, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, num_workers, data_dir, double_sides, run)
+                     log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run)
 
 
 def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
@@ -195,13 +195,13 @@ def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
         log_dir = os.path.join(log_dir, mode)
         blank_config = "config/none.yaml"
         run_test(project, mode, suite.workload,
-                 blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.double_sides, run)
+                 blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
     elif mode == "learn":
         log_dir = os.path.join(log_dir, mode)
         learn_config = os.path.join(
             controllers.test_dir[project], "test", "learn.yaml")
         run_test(project, mode, suite.workload,
-                 learn_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.double_sides, run)
+                 learn_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
     else:
         test_config = config if config != "none" else suite.config
         test_mode = mode if mode != "none" else suite.mode
@@ -209,7 +209,7 @@ def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
         print("testing mode: %s config: %s" % (test_mode, test_config))
         log_dir = os.path.join(log_dir, test_mode)
         run_test(project, test_mode, suite.workload,
-                 test_config, log_dir, docker, test_mode, suite.num_workers, data_dir, suite.double_sides, run)
+                 test_config, log_dir, docker, test_mode, suite.num_workers, data_dir, suite.two_sided, run)
 
 
 def run_batch(project, test, dir, mode, docker):

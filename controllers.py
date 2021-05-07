@@ -7,11 +7,11 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, double_sides=False, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
-        self.double_sides = double_sides
+        self.two_sided = two_sided
         self.num_workers = num_workers
 
 
@@ -76,7 +76,7 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["rabbitmq-operator"]["recreate"], "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
         "resize-pvc": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
     },
     "mongodb-operator": {
         "recreate": Suite(
