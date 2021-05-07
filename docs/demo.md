@@ -1,14 +1,9 @@
-## Using Sonar to detect a time-travel bug in rabbitmq-operator
+## Using Sieve to detect a time-travel bug in rabbitmq-operator
 
-Please first check out to the `rabbitmq-demo` branch
-```
-git fetch origin rabbitmq-demo
-git checkout rabbitmq-demo
-```
 
-### What is Sonar?
+### What is Sieve?
 
-Sonar is a bug detection tool for finding various bugs, including time-travel bugs, in kubernetes controllers.
+Sieve is a bug detection tool for finding various bugs, including time-travel bugs, in kubernetes controllers.
 
 ### What is a time-travel bug?
 
@@ -24,47 +19,47 @@ Time-travel bugs happen when the controller reads stale cluster state from a *st
 3. The controller restarts after experiencing a node failure and connects to apiserver2. The controller reads stale `S1` and performs reconciliation accordingly. The reconciliation triggered by reading `S1` again may lead to some unexpected behavior and cause failures like data loss or service unavailability.
 
 
-We will use [a time-travel bug](https://github.com/rabbitmq/cluster-operator/issues/648) in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) found by Sonar to show the end-to-end experience of testing the controller using Sonar.
-In general, Sonar performs failure testing by pausing the apiserver and restarting the controller at certain timing to make the controller experience time travel.
+We will use [a time-travel bug](https://github.com/rabbitmq/cluster-operator/issues/648) in [rabbitmq-operator](https://github.com/rabbitmq/cluster-operator) found by Sieve to show the end-to-end experience of testing the controller using Sieve.
+In general, Sieve performs failure testing by pausing the apiserver and restarting the controller at certain timing to make the controller experience time travel.
 
 ### Prerequisite
-**Kind cluster is required**. Sonar tests the controller in a kind cluster.
+**Kind cluster is required**. Sieve tests the controller in a kind cluster.
 
-**The controller needs to be recompiled**. Sonar needs to instrument the `controller_runtime` and `client_go` libraries and rebuild the controller image. The instrumentation is automatically done.
+**The controller needs to be recompiled**. Sieve needs to instrument the `controller_runtime` and `client_go` libraries and rebuild the controller image. The instrumentation is automatically done.
 
-**Test workloads are required.** Sonar doesn't generate test workloads to run. Sonar can reuse any existing e2e test workload that doesn't perform cluster set up (Sonar will set up the cluster for testing). We also wrote some simple workloads for Sonar.
+**Test workloads are required.** Sieve doesn't generate test workloads to run. Sieve can reuse any existing e2e test workload that doesn't perform cluster set up (Sieve will set up the cluster for testing). We also wrote some simple workloads for Sieve.
 
-### Testing the controller using Sonar
+### Testing the controller using Sieve
 Now, let's test the rabbitmq-operator
 ```
-python3 sonar.py -p rabbitmq-operator -t recreate-rabbitmq-cluster -c time-travel-config-1.yaml
+python3 sonar.py -p rabbitmq-operator -t recreate-rabbitmq-cluster -c test-rabbitmq-operator/test/time-travel-1.yaml
 ```
-`-p rabbitmq-operator` specifies the operator that Sonar will test. We have already done some porting effort before testing rabbitmq-operator so Sonar can accept this option.
+`-p rabbitmq-operator` specifies the operator that Sieve will test. We have already done some porting effort before testing rabbitmq-operator so Sieve can accept this option.
 
-`-t recreate-rabbitmq-cluster` is the test workload (written by us) that Sonar will run.
+`-t recreate-rabbitmq-cluster` is the test workload (written by us) that Sieve will run.
 The workload simply does three things:
 1. it creates a rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster rabbitmq-cluster`
 3. it recreates the rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
 
-`-c time-travel-config-1.yaml` is a configuration file that guides the failure testing. Triggering a time-travel bug requires lagging apiservers/restarting controllers with particular timing. The time-travel configuration file encodes the particular timing so no manual intervention is required during testing.
+`-c test-rabbitmq-operator/test/time-travel-1.yaml` is a configuration file that guides the failure testing. Triggering a time-travel bug requires lagging apiservers/restarting controllers with particular timing. The time-travel configuration file encodes the particular timing so no manual intervention is required during testing.
 
-By typing the above command, Sonar will:
+By typing the above command, Sieve will:
 1. run the `recreate-rabbitmq-cluster` workload against the kind kubernetes cluster;
-2. create the time-travel scenario during the test run according to the configuration file, `time-travel-config-1.yaml`.
+2. create the time-travel scenario during the test run according to the configuration file, `test-rabbitmq-operator/test/time-travel-1.yaml`.
 
-When it finishes, you will see the bug report generated by Sonar:
+When it finishes, you will see the bug report generated by Sieve:
 ```
 Checking for controller side effects (resource creation/deletion)...
 [ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during normal run, but 3 seen during testing run
 [ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during normal run, but 2 seen during testing run
-[TIME TRAVEL DESCRIPTION] Sonar makes the controller time travel back to the history to see the status just after rabbitmqcluster/default/rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}} (at kind-control-plane3)
+[TIME TRAVEL DESCRIPTION] Sieve makes the controller time travel back to the history to see the status just after rabbitmqcluster/default/rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}} (at kind-control-plane3)
 [DEBUGGING SUGGESTION] Please check how controller reacts when seeing rabbitmqcluster/default/rabbitmq-cluster: {"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}, the controller may issue deletion to statefulset/default/rabbitmq-cluster-server without proper checking
 ```
-Sonar generates a bug report saying that the controller issues more `CREATE` and `DELETE` operations for the resource named `statefulset/default/rabbitmq-cluster-server` than normal. It suggests that this inconsistency is probably caused by the controller issuing deletions without proper checking when seeing the non-nil `deletionTimestamp` of the resource named `rabbitmqcluster/default/rabbitmq-cluster`.
+Sieve generates a bug report saying that the controller issues more `CREATE` and `DELETE` operations for the resource named `statefulset/default/rabbitmq-cluster-server` than normal. It suggests that this inconsistency is probably caused by the controller issuing deletions without proper checking when seeing the non-nil `deletionTimestamp` of the resource named `rabbitmqcluster/default/rabbitmq-cluster`.
 
-### Debugging with Sonar report
-Sonar gives us a hint about the bug, but cannot automatically tell us the root cause. Debugging still requires some manual effort. Here is my experience:
+### Debugging with Sieve report
+Sieve gives us a hint about the bug, but cannot automatically tell us the root cause. Debugging still requires some manual effort. Here is my experience:
 
 I searched for `deletionTimestamp` in the controller code to see how the controller reacts to it and I found:
 ```go
@@ -76,17 +71,17 @@ I searched for `deletionTimestamp` in the controller code to see how the control
 ```
 The controller immediately deletes the statefulset when seeing non-nil `deletionTimestamp` without checking the ownership of the statefulset in `prepareForDeletion`.
 
-Combining the `TIME TRAVEL DESCRIPTION` and the `DEBUGGING SUGGESTION` from Sonar, the bug is identified:
-After the rabbitmq cluster gets recreated, Sonar makes the controller time travel back to see the non-nil `deletionTimestamp` (caused by the previous rabbitmq cluster deletion). Since the controller does not check statefuset ownership in `prepareForDeletion`, it immediately deletes the currently running statefulset as a reaction of seeing the stale `deletionTimestamp`.
+Combining the `TIME TRAVEL DESCRIPTION` and the `DEBUGGING SUGGESTION` from Sieve, the bug is identified:
+After the rabbitmq cluster gets recreated, Sieve makes the controller time travel back to see the non-nil `deletionTimestamp` (caused by the previous rabbitmq cluster deletion). Since the controller does not check statefuset ownership in `prepareForDeletion`, it immediately deletes the currently running statefulset as a reaction of seeing the stale `deletionTimestamp`.
 
 The detected bug is filed at https://github.com/rabbitmq/cluster-operator/issues/648 and has been fixed.
 
-### How does Sonar find bugs?
-To detect time-travel bugs, Sonar runs in two phases to force the controller to experience time travel by injecting apiserver pause and controller restart.
+### How does Sieve find bugs?
+To detect time-travel bugs, Sieve runs in two phases to force the controller to experience time travel by injecting apiserver pause and controller restart.
 
-The first phase is called *learning phase* where Sonar runs the test workload (without any injection) and records the events triggering controller reconciliation and side effects (resource creation/deletion/update) invoked by the controller. Sonar analyzes the controller trace and generates the time-travel config to guide the following testing phase. Sonar also records the cluster status and controller behavior as part of the testing oracle.
+The first phase is called *learning phase* where Sieve runs the test workload (without any injection) and records the events triggering controller reconciliation and side effects (resource creation/deletion/update) invoked by the controller. Sieve analyzes the controller trace and generates the time-travel config to guide the following testing phase. Sieve also records the cluster status and controller behavior as part of the testing oracle.
 
-The second phase is called *testing phase* where Sonar runs the test workload and injects apiserver pause and controller restart at certain timing according to the time-travel config. Sonar compares the cluster status and controller behavior in the testing run and the learning run, and generates a bug report if any inconsistency is detected.
+The second phase is called *testing phase* where Sieve runs the test workload and injects apiserver pause and controller restart at certain timing according to the time-travel config. Sieve compares the cluster status and controller behavior in the testing run and the learning run, and generates a bug report if any inconsistency is detected.
 
 
 ### What is in the time-travel config?
@@ -138,17 +133,17 @@ ce-rtype: rabbitmqcluster
 ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds": 0}}'
 ce-diff-previous: '{}'
 ```
-This is how Sonar decides when to pause the apiserver3. When Sonar sees an event belonging to `rabbitmqcluster/default/rabbitmq-cluster` and contains the sub-map in `ce-diff-current`, and a previous event contains the sub-map in `ce-diff-previous`,
-Sonar will pause the apiserver3. Here, `ce-diff-current` basically means the event sets a `deletionTimestamp`, and `ce-diff-previous` does not pose any constraint since it is empty.
+This is how Sieve decides when to pause the apiserver3. When Sieve sees an event belonging to `rabbitmqcluster/default/rabbitmq-cluster` and contains the sub-map in `ce-diff-current`, and a previous event contains the sub-map in `ce-diff-previous`,
+Sieve will pause the apiserver3. Here, `ce-diff-current` basically means the event sets a `deletionTimestamp`, and `ce-diff-previous` does not pose any constraint since it is empty.
 
-Finally, Sonar needs to decide when to restart the controller
+Finally, Sieve needs to decide when to restart the controller
 ```
 se-name: rabbitmq-cluster-server
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
 ```
-When Sonar sees an `ADDED` event belonging to `statefulset/default/rabbitmq-cluster-server`, it will restart the controller and connect the controller to the paused apiserver3.
+When Sieve sees an `ADDED` event belonging to `statefulset/default/rabbitmq-cluster-server`, it will restart the controller and connect the controller to the paused apiserver3.
 
 You will also find the explanation from the `description` field.
 
@@ -156,8 +151,8 @@ You will also find the explanation from the `description` field.
 ### How is the time-travel config generated?
 The biggest challenge to generate the above time-travel config is to find out the appropriate timing for injecting pause/restart.
 
-As mentioned above, Sonar has a learning phase to infer the causality between events triggering `reconcile()` and side effects (resource creation/update/deletion) issued during `reconcile()`,
-and Sonar then picks each potentially causal-related <event, side effect> pair to decide the timing. 
+As mentioned above, Sieve has a learning phase to infer the causality between events triggering `reconcile()` and side effects (resource creation/update/deletion) issued during `reconcile()`,
+and Sieve then picks each potentially causal-related <event, side effect> pair to decide the timing. 
 
 To do so, run:
 ```
@@ -170,4 +165,4 @@ After it finishes, you will see
 Generated 1 time-travel config(s) in log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config
 ```
 
-The generated config is exactly the one shown before.
+The generated config is exactly the one used in test.

@@ -130,7 +130,7 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
 
 
 def generate_generate_time_travel_description(testing_config):
-    return "Sonar makes the controller time travel back to the history to see the status just %s %s: %s (at %s)" % (
+    return "Sieve makes the controller time travel back to the history to see the status just %s %s: %s (at %s)" % (
         testing_config["timing"],
         testing_config["ce-rtype"] + "/" +
         testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
