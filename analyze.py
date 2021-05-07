@@ -13,40 +13,6 @@ import sqlite3
 import json
 
 
-def parse_events(path, conn):
-    # { event id -> event }
-    event_id_map = {}
-    # { event key -> [events belonging to the key] }
-    # we need this map to later find the previous event for each crucial event
-    event_key_map = {}
-    event_list = []
-    lines = open(path).readlines()
-    largest_timestamp = len(lines)
-    for i in range(len(lines)):
-        line = lines[i]
-        if common.SONAR_EVENT_MARK in line:
-            event = common.parse_event(line)
-            event.set_start_timestamp(i)
-            # We initially set the event end time as the largest timestamp
-            # so that if we never meet SONAR_EVENT_APPLIED_MARK for this event,
-            # we will not pose any constraint on its end time in range_overlap
-            event.set_end_timestamp(largest_timestamp)
-            event_id_map[event.id] = event
-        elif common.SONAR_EVENT_APPLIED_MARK in line:
-            event_id_only = common.parse_event_id_only(line)
-            event_id_map[event_id_only.id].set_end_timestamp(i)
-    for i in range(len(lines)):
-        line = lines[i]
-        if common.SONAR_EVENT_MARK in line:
-            event = common.parse_event(line)
-            if event.key not in event_key_map:
-                event_key_map[event.key] = []
-            event_key_map[event.key].append(event_id_map[event.id])
-            event_list.append(event_id_map[event.id])
-    record_event_list_in_sqlite(event_list, conn)
-    return event_list, event_key_map, event_id_map
-
-
 def create_sqlite_db():
     database = "/tmp/test.db"
     conn = sqlite3.connect(database)
@@ -109,6 +75,40 @@ def record_side_effect_list_in_sqlite(side_effect_list, conn):
         conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                      (None, e.id, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
     conn.commit()
+
+
+def parse_events(path, conn):
+    # { event id -> event }
+    event_id_map = {}
+    # { event key -> [events belonging to the key] }
+    # we need this map to later find the previous event for each crucial event
+    event_key_map = {}
+    event_list = []
+    lines = open(path).readlines()
+    largest_timestamp = len(lines)
+    for i in range(len(lines)):
+        line = lines[i]
+        if common.SONAR_EVENT_MARK in line:
+            event = common.parse_event(line)
+            event.set_start_timestamp(i)
+            # We initially set the event end time as the largest timestamp
+            # so that if we never meet SONAR_EVENT_APPLIED_MARK for this event,
+            # we will not pose any constraint on its end time in range_overlap
+            event.set_end_timestamp(largest_timestamp)
+            event_id_map[event.id] = event
+        elif common.SONAR_EVENT_APPLIED_MARK in line:
+            event_id_only = common.parse_event_id_only(line)
+            event_id_map[event_id_only.id].set_end_timestamp(i)
+    for i in range(len(lines)):
+        line = lines[i]
+        if common.SONAR_EVENT_MARK in line:
+            event = common.parse_event(line)
+            if event.key not in event_key_map:
+                event_key_map[event.key] = []
+            event_key_map[event.key].append(event_id_map[event.id])
+            event_list.append(event_id_map[event.id])
+    record_event_list_in_sqlite(event_list, conn)
+    return event_list, event_key_map, event_id_map
 
 
 def parse_side_effects(path, conn):
