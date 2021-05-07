@@ -1,4 +1,4 @@
-# Sieve: Testing Partial History Bugs
+# Sieve: Detecting Partial History Bugs
 
 ## Requirements
 * Docker daemon must be running
