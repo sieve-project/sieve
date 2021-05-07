@@ -229,12 +229,12 @@ def run_batch(project, test, dir, mode, docker):
 
 if __name__ == "__main__":
     s = time.time()
-    usage = "usage: python3 sonar.py [options]"
+    usage = "usage: python3 sieve.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to test: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-t", "--test", dest="test",
-                      help="specify TEST to run", metavar="TEST", default="test2")
+                      help="specify TEST to run", metavar="TEST", default="recreate")
     parser.add_option("-d", "--docker", dest="docker",
                       help="DOCKER repo that you have access", metavar="DOCKER", default=controllers.docker_repo)
     parser.add_option("-l", "--log", dest="log",
