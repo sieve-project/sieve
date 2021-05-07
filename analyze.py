@@ -44,7 +44,7 @@ def parse_events(path, conn):
             event_key_map[event.key].append(event_id_map[event.id])
             event_list.append(event_id_map[event.id])
     record_event_list_in_sqlite(event_list, conn)
-    return event_list, event_key_map
+    return event_list, event_key_map, event_id_map
 
 
 def create_sqlite_db():
@@ -74,6 +74,7 @@ def create_sqlite_db():
         create table side_effects
         (
            id integer not null primary key,
+           sonar_side_effect_id integer not null,
            event_type text not null,
            resource_type text not null,
            namespace text not null,
@@ -105,12 +106,13 @@ def record_side_effect_list_in_sqlite(side_effect_list, conn):
         json_read_keys = json.dumps(list(e.read_keys))
         json_owner_controllers = json.dumps(list(e.owner_controllers))
         # Skip the first column: Sqlite will use an auto-incrementing ID
-        conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                     (None, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
+        conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (None, e.id, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
     conn.commit()
 
 
 def parse_side_effects(path, conn):
+    side_effect_id_map = {}
     side_effect_list = []
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
@@ -145,6 +147,7 @@ def parse_side_effects(path, conn):
                     earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
             side_effect.set_range(earliest_timestamp, i)
             side_effect_list.append(side_effect)
+            side_effect_id_map[side_effect.id] = side_effect
         elif common.SONAR_CACHE_READ_MARK in line:
             cache_read = common.parse_cache_read(line)
             if cache_read.etype == "Get":
@@ -170,7 +173,7 @@ def parse_side_effects(path, conn):
                 read_keys_this_reconcile = set()
                 read_types_this_reconcile = set()
     record_side_effect_list_in_sqlite(side_effect_list, conn)
-    return side_effect_list
+    return side_effect_list, side_effect_id_map
 
 
 def base_pass(event_list, side_effect_list):
@@ -217,13 +220,26 @@ def pipelined_passes(event_effect_pairs):
     return reduced_event_effect_pairs
 
 
-def generate_event_effect_pairs(path):
+def generate_event_effect_pairs(path, use_sql=True):
     print("Analyzing %s to generate <event, side-effect> pairs..." % path)
+    print("use-sql feature is %s" %
+          ("enabled" if use_sql else "disabled"))
     conn = create_sqlite_db()
-    event_list, event_key_map = parse_events(path, conn)
-    side_effect_list = parse_side_effects(path, conn)
-    event_effect_pairs = base_pass(event_list, side_effect_list)
-    reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
+    event_list, event_key_map, event_id_map = parse_events(path, conn)
+    side_effect_list, side_effect_id_map = parse_side_effects(path, conn)
+    reduced_event_effect_pairs = []
+    if use_sql:
+        cur = conn.cursor()
+        cur.execute(common.SQL_QUERY)
+        rows = cur.fetchall()
+        for row in rows:
+            event_id = row[0]
+            side_effect_id = row[1]
+            reduced_event_effect_pairs.append(
+                [event_id_map[event_id], side_effect_id_map[side_effect_id]])
+    else:
+        event_effect_pairs = base_pass(event_list, side_effect_list)
+        reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
     return reduced_event_effect_pairs, event_key_map
 
 
