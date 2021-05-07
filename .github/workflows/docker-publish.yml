@@ -3,7 +3,7 @@ name: Docker
 on: [pull_request, workflow_dispatch]
 
 env:
-  IMAGE_NAMESPACE: docker.pkg.github.com/xlab-uiuc/sonar
+  IMAGE_NAMESPACE: docker.pkg.github.com/sieve-project/sieve
 
 jobs:
   casskop-operator:
@@ -15,8 +15,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Git
         run: |
-          git config --global user.name "sonar"
-          git config --global user.email "sonar@sonar.com"
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
         with:
@@ -43,15 +43,15 @@ jobs:
         run: |
           python3 build.py -p casskop-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p casskop-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sonar Learn
+      - name: Sieve Learn
         run: |
-          python3 sonar.py -p casskop-operator -t test1 -m learn -d $IMAGE_NAMESPACE
-      - name: Sonar Time Travel
+          python3 sieve.py -p casskop-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
         run: |
-          python3 sonar.py -p casskop-operator -t test1 -d $IMAGE_NAMESPACE
+          python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
-          name: sonar-casskop-artifact
+          name: sieve-casskop-artifact
           path: log
   mongodb-operator:
     runs-on: ubuntu-latest
@@ -62,8 +62,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Git
         run: |
-          git config --global user.name "sonar"
-          git config --global user.email "sonar@sonar.com"
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
         with:
@@ -90,19 +90,19 @@ jobs:
         run: |
           python3 build.py -p mongodb-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p mongodb-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sonar Learn
+      - name: Sieve Learn
         run: |
-          python3 sonar.py -p mongodb-operator -t test1 -m learn -d $IMAGE_NAMESPACE
-          python3 sonar.py -p mongodb-operator -t test2 -m learn -d $IMAGE_NAMESPACE
-          python3 sonar.py -p mongodb-operator -t test3 -m learn -d $IMAGE_NAMESPACE
-      - name: Sonar Time Travel
+          python3 sieve.py -p mongodb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-shard -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
         run: |
-          python3 sonar.py -p mongodb-operator -t test1 -d $IMAGE_NAMESPACE
-          python3 sonar.py -p mongodb-operator -t test2 -d $IMAGE_NAMESPACE
-          python3 sonar.py -p mongodb-operator -t test3 -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-shard -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
-          name: sonar-mongodb-artifact
+          name: sieve-mongodb-artifact
           path: log
   cassandra-operator:
     runs-on: ubuntu-latest
@@ -113,8 +113,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Git
         run: |
-          git config --global user.name "sonar"
-          git config --global user.email "sonar@sonar.com"
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
         with:
@@ -141,17 +141,17 @@ jobs:
         run: |
           python3 build.py -p cassandra-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p cassandra-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sonar Learn
+      - name: Sieve Learn
         run: |
-          python3 sonar.py -p cassandra-operator -t test2 -m learn -d $IMAGE_NAMESPACE
-          python3 sonar.py -p cassandra-operator -t test4 -m learn -d $IMAGE_NAMESPACE
-      - name: Sonar Time Travel
+          python3 sieve.py -p cassandra-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
         run: |
-          python3 sonar.py -p cassandra-operator -t test2 -d $IMAGE_NAMESPACE
-          python3 sonar.py -p cassandra-operator -t test4 -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
-          name: sonar-cassandra-artifact
+          name: sieve-cassandra-artifact
           path: log
   rabbitmq-operator:
     runs-on: ubuntu-latest
@@ -162,8 +162,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Git
         run: |
-          git config --global user.name "sonar"
-          git config --global user.email "sonar@sonar.com"
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
         with:
@@ -190,15 +190,17 @@ jobs:
         run: |
           python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p rabbitmq-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sonar Learn
+      - name: Sieve Learn
         run: |
-          python3 sonar.py -p rabbitmq-operator -t test2 -m learn -d $IMAGE_NAMESPACE
-      - name: Sonar Time Travel
+          python3 sieve.py -p rabbitmq-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
         run: |
-          python3 sonar.py -p rabbitmq-operator -t test2 -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
-          name: sonar-rabbitmq-artifact
+          name: sieve-rabbitmq-artifact
           path: log
   zookeeper-operator:
     runs-on: ubuntu-latest
@@ -209,8 +211,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Git
         run: |
-          git config --global user.name "sonar"
-          git config --global user.email "sonar@sonar.com"
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
         with:
@@ -237,15 +239,15 @@ jobs:
         run: |
           python3 build.py -p zookeeper-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p zookeeper-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sonar Learn
+      - name: Sieve Learn
         run: |
-          python3 sonar.py -p zookeeper-operator -t test1 -m learn -d $IMAGE_NAMESPACE
-          python3 sonar.py -p zookeeper-operator -t test2 -m learn -d $IMAGE_NAMESPACE
-      - name: Sonar Time Travel
+          python3 sieve.py -p zookeeper-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
         run: |
-          python3 sonar.py -p zookeeper-operator -t test1 -d $IMAGE_NAMESPACE
-          python3 sonar.py -p zookeeper-operator -t test2 -d $IMAGE_NAMESPACE
+          python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
-          name: sonar-zookeeper-artifact
+          name: sieve-zookeeper-artifact
           path: log
