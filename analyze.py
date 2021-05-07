@@ -11,6 +11,7 @@ import oracle
 import analyze_event
 import sqlite3
 import json
+import optparse
 
 
 def create_sqlite_db():
@@ -220,10 +221,8 @@ def pipelined_passes(event_effect_pairs):
     return reduced_event_effect_pairs
 
 
-def generate_event_effect_pairs(path, use_sql=True):
+def generate_event_effect_pairs(path, use_sql):
     print("Analyzing %s to generate <event, side-effect> pairs..." % path)
-    print("use-sql feature is %s" %
-          ("enabled" if use_sql else "disabled"))
     conn = create_sqlite_db()
     event_list, event_key_map, event_id_map = parse_events(path, conn)
     side_effect_list, side_effect_id_map = parse_side_effects(path, conn)
@@ -323,17 +322,20 @@ def dump_json_file(dir, data, json_file_name):
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def analyze_trace(project, dir, two_sided=False, generate_oracle=True):
+def analyze_trace(project, dir, two_sided=False, generate_oracle=True, use_sql=True):
     print("two-sided feature is %s" %
           ("enabled" if two_sided else "disabled"))
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
+    print("use-sql feature is %s" %
+          ("enabled" if use_sql else "disabled"))
     log_path = os.path.join(dir, "sonar-server.log")
     conf_dir = os.path.join(dir, "generated-config")
     if os.path.exists(conf_dir):
         shutil.rmtree(conf_dir)
     os.makedirs(conf_dir, exist_ok=True)
-    causality_pairs, event_key_map = generate_event_effect_pairs(log_path)
+    causality_pairs, event_key_map = generate_event_effect_pairs(
+        log_path, use_sql)
     triggering_points = generate_triggering_points(
         event_key_map, causality_pairs)
     dump_json_file(dir, triggering_points, "triggering-points.json")
@@ -348,9 +350,17 @@ def analyze_trace(project, dir, two_sided=False, generate_oracle=True):
 
 
 if __name__ == "__main__":
-    project = sys.argv[1]
-    test = sys.argv[2]
+    usage = "usage: python3 analyze.py [options]"
+    parser = optparse.OptionParser(usage=usage)
+    parser.add_option("-p", "--project", dest="project",
+                      help="specify PROJECT to test: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
+    parser.add_option("-t", "--test", dest="test",
+                      help="specify TEST to run", metavar="TEST", default="recreate")
+    (options, args) = parser.parse_args()
+    project = options.project
+    test = options.test
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
     dir = os.path.join("log", project, test, "learn")
-    analyze_trace(project, dir, two_sided=False, generate_oracle=False)
+    analyze_trace(project, dir, two_sided=False,
+                  generate_oracle=False, use_sql=True)
