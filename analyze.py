@@ -179,12 +179,20 @@ def base_pass(event_list, side_effect_list):
     print("Running base pass ...")
     event_effect_pairs = []
     for side_effect in side_effect_list:
-        if side_effect.etype not in common.INTERESTING_SIDE_EFFECT_TYPE:
-            continue
         for event in event_list:
             if side_effect.range_overlap(event):
                 event_effect_pairs.append([event, side_effect])
     return event_effect_pairs
+
+
+def delete_only_filtering_pass(event_effect_pairs):
+    print("Running optional pass: delete-only-filtering ...")
+    reduced_event_effect_pairs = []
+    for pair in event_effect_pairs:
+        side_effect = pair[1]
+        if side_effect.etype == "Delete":
+            reduced_event_effect_pairs.append(pair)
+    return reduced_event_effect_pairs
 
 
 def write_read_overlap_filtering_pass(event_effect_pairs):
@@ -210,17 +218,38 @@ def error_msg_filtering_pass(event_effect_pairs):
 
 def pipelined_passes(event_effect_pairs):
     reduced_event_effect_pairs = event_effect_pairs
-    if common.WRITE_READ_FILTER_FLAG:
-        reduced_event_effect_pairs = write_read_overlap_filtering_pass(
+    if common.DELETE_ONLY_FILTER_FLAG:
+        reduced_event_effect_pairs = delete_only_filtering_pass(
             reduced_event_effect_pairs)
     if common.ERROR_MSG_FILTER_FLAG:
         reduced_event_effect_pairs = error_msg_filtering_pass(
             reduced_event_effect_pairs)
+    if common.WRITE_READ_FILTER_FLAG:
+        reduced_event_effect_pairs = write_read_overlap_filtering_pass(
+            reduced_event_effect_pairs)
     return reduced_event_effect_pairs
 
 
+def passes_as_sql_query():
+    query = common.SQL_BASE_PASS_QUERY
+    first_optional_pass = True
+    if common.DELETE_ONLY_FILTER_FLAG:
+        query += " where " if first_optional_pass else " and "
+        query += common.SQL_DELETE_ONLY_FILTER
+        first_optional_pass = False
+    if common.ERROR_MSG_FILTER_FLAG:
+        query += " where " if first_optional_pass else " and "
+        query += common.SQL_ERROR_MSG_FILTER
+        first_optional_pass = False
+    if common.WRITE_READ_FILTER_FLAG:
+        query += " where " if first_optional_pass else " and "
+        query += common.SQL_WRITE_READ_FILTER
+        first_optional_pass = False
+    return query
+
+
 def generate_event_effect_pairs(path, use_sql):
-    print("Analyzing %s to generate <event, side-effect> pairs..." % path)
+    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
     event_list, event_key_map, event_id_map = parse_events(path)
     side_effect_list, side_effect_id_map = parse_side_effects(path)
     reduced_event_effect_pairs = []
@@ -229,7 +258,10 @@ def generate_event_effect_pairs(path, use_sql):
         record_event_list_in_sqlite(event_list, conn)
         record_side_effect_list_in_sqlite(side_effect_list, conn)
         cur = conn.cursor()
-        cur.execute(common.SQL_QUERY)
+        query = passes_as_sql_query()
+        print("Running SQL query as below ...")
+        print(query)
+        cur.execute(query)
         rows = cur.fetchall()
         for row in rows:
             event_id = row[0]
