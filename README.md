@@ -1,4 +1,4 @@
-# Sieve: Detecting Partial History Bugs
+# Sieve: Testing datacenter infrastructures using partial histories
 
 ## Requirements
 * Docker daemon must be running
