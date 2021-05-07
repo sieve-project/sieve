@@ -20,3 +20,8 @@ Please refer to https://github.com/sieve-project/sieve/blob/main/docs/reprod.md
 
 ## Port a new operator:
 Please refer to https://github.com/sieve-project/sieve/blob/main/docs/port.md
+
+## References:
+You can learn more about Sieve from the following research paper:
+* **Reasoning about modern datacenter infrastructures using partial histories** <br>
+Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. To appear, In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
