@@ -87,12 +87,12 @@ test_suites = {
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
     },
     "cass-operator": {
-        "test1": Suite(
-            "recreateCassandraDataCenter.sh", "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+        "recreate": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["cass-operator"], "./recreateCassandraDataCenter.sh", True), "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
     },
     "casskop-operator": {
-        "test1": Suite(
-            "recreateCassandraCluster.sh", "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
+        "recreate": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./recreateCassandraCluster.sh", True), "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
     },
 }
 
@@ -175,8 +175,10 @@ docker_file = {
 #     "casskop-operator": "test-casskop-operator/test/learn.yaml",
 # }
 
+
 def make_safe_filename(filename):
-    return re.sub(r'[^\w\d-]','_', filename)
+    return re.sub(r'[^\w\d-]', '_', filename)
+
 
 def replace_docker_repo(path, dr, dt):
     fin = open(path)
