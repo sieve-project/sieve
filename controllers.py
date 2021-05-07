@@ -85,7 +85,9 @@ test_suites = {
     },
     "xtradb-operator": {
         "test1": Suite(
-            "recreateXtradbCluster.sh", "", "time-travel", cluster_config="kind-ha-4w.yaml"),
+            "recreateXtradbCluster.sh", "test-xtradb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+        "test2": Suite(
+            "disableEnableHaproxy.sh", "test-xtradb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
     },
 }
 

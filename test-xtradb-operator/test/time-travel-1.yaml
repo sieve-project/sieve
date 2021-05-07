@@ -1,0 +1,24 @@
+project: xtradb-operator
+mode: time-travel
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod: xtradb-operator
+command: percona-xtradb-cluster-operator
+timing: after
+ce-name: sonar-xtradb-cluster
+ce-namespace: default
+ce-rtype: perconaxtradbcluster
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds":
+  0}}'
+ce-diff-previous: '{}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+se-name: datadir-sonar-xtradb-cluster-pxc-0
+se-namespace: default
+se-rtype: persistentvolumeclaim
+se-etype: ADDED
+description: 'Pause kind-control-plane3 after it processes a default/perconaxtradbcluster/sonar-xtradb-cluster
+  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-EXIST",
+  "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
+  the controller xtradb-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/datadir-sonar-xtradb-cluster-pxc-0
+  event.'

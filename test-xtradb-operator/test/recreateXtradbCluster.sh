@@ -4,7 +4,7 @@ set -ex
 
 echo "====> new round" >> stdout.txt
 kubectl apply -f cr.yaml
-sleep 540s
+sleep 420s
 echo "====> apply" >> stdout.txt
 kubectl get pods >> stdout.txt
 kubectl get pvc >> stdout.txt
@@ -16,7 +16,7 @@ kubectl get pods >> stdout.txt
 kubectl get pvc >> stdout.txt
 
 kubectl apply -f cr.yaml
-sleep 540s
+sleep 420s
 echo "====> reapply" >> stdout.txt
 kubectl get pods >> stdout.txt
 kubectl get pvc >> stdout.txt
