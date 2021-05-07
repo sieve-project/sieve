@@ -74,7 +74,8 @@ python3 sieve.py -p rabbitmq-operator -t resize-pvc -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset.delete inconsistent: learning: 1, testing: 3
+[ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
+[ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
 
 ### [K8SPSMDB-430](https://jira.percona.com/browse/K8SPSMDB-430)
