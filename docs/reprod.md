@@ -1,4 +1,6 @@
 ## Bug Reproduction
+This documentation is a little bit stale. We will update it soon.
+
 ### Time travel
 First, build the operators:
 ```
@@ -12,7 +14,7 @@ Please specify the `YOUR_DOCKER_REPO_NAME` that you have write access to -- sona
 
 ### [instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402)
 ```
-python3 sieve.py -p cassandra-operator -t test2 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t recreate -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -27,7 +29,7 @@ python3 build.py -p cassandra-operator -m time-travel -s bd8077a478997f63862848d
 ```
 and then
 ```
-python3 sieve.py -p cassandra-operator -t test4 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -37,7 +39,7 @@ If reproduced, you will see:
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
-python3 sieve.py -p zookeeper-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p zookeeper-operator -t recreate -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -47,7 +49,7 @@ If reproduced, you will see:
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
-python3 sieve.py -p zookeeper-operator -t test2 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -58,18 +60,17 @@ If reproduced, you will see:
 
 ### [rabbitmq-cluster-operator-648](https://github.com/rabbitmq/cluster-operator/issues/648)
 ```
-python3 sieve.py -p rabbitmq-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p rabbitmq-operator -t recreate -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset.create inconsistent: learning: 2, testing: 3
-[ERROR] statefulset.delete inconsistent: learning: 1, testing: 2
-[ERROR] pod.size inconsistent: learning: 2, testing: 1
+[ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during normal run, but 3 seen during testing run                                     
+[ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during normal run, but 2 seen during testing run 
 ```
 
 ### [rabbitmq-cluster-operator-653](https://github.com/rabbitmq/cluster-operator/issues/653)
 ```
-python3 sieve.py -p rabbitmq-operator -t test2 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p rabbitmq-operator -t resize-pvc -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -78,7 +79,7 @@ If reproduced, you will see:
 
 ### [K8SPSMDB-430](https://jira.percona.com/browse/K8SPSMDB-430)
 ```
-python3 sieve.py -p mongodb-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p mongodb-operator -t recreate -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -97,15 +98,11 @@ python3 build.py -p cassandra-operator -m sparse-read -d YOUR_DOCKER_REPO_NAME
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
-python3 sieve.py -p cassandra-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t scaledown -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will find
 ```
 persistentVolumeClaim has different length: normal: 1 faulty: 2
 [FIND BUG] # alarms: 1
 ```
-
-### By-products
-### [instaclustr-cassandra-operator-400](https://github.com/instaclustr/cassandra-operator/issues/400)
-This one is not a partial history bug. It can also be reproduced as [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398), but we do not ensure deterministic reproduction since it is caused by randomness in the underlying data structures.
 
