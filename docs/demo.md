@@ -155,7 +155,7 @@ and Sonar then picks each potentially causal-related <event, side effect> pair t
 
 To do so, run:
 ```
-python3 run.py -p rabbitmq-operator -t recreate-rabbitmq-cluster -m learn
+python3 sieve.py -p rabbitmq-operator -t recreate-rabbitmq-cluster -m learn
 ```
 The command will run the test workload `recreate-rabbitmq-cluster`, collect the events and side effects, infer the causality and generate the time-travel config.
 

@@ -12,7 +12,7 @@ Please specify the `YOUR_DOCKER_REPO_NAME` that you have write access to -- sona
 
 ### [instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402)
 ```
-python3 run.py -p cassandra-operator -t test2 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t test2 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -27,7 +27,7 @@ python3 build.py -p cassandra-operator -m time-travel -s bd8077a478997f63862848d
 ```
 and then
 ```
-python3 run.py -p cassandra-operator -t test4 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t test4 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -37,7 +37,7 @@ If reproduced, you will see:
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
-python3 run.py -p zookeeper-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p zookeeper-operator -t test1 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -47,7 +47,7 @@ If reproduced, you will see:
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
-python3 run.py -p zookeeper-operator -t test2 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p zookeeper-operator -t test2 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -58,7 +58,7 @@ If reproduced, you will see:
 
 ### [rabbitmq-cluster-operator-648](https://github.com/rabbitmq/cluster-operator/issues/648)
 ```
-python3 run.py -p rabbitmq-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p rabbitmq-operator -t test1 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -69,7 +69,7 @@ If reproduced, you will see:
 
 ### [rabbitmq-cluster-operator-653](https://github.com/rabbitmq/cluster-operator/issues/653)
 ```
-python3 run.py -p rabbitmq-operator -t test2 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p rabbitmq-operator -t test2 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -78,7 +78,7 @@ If reproduced, you will see:
 
 ### [K8SPSMDB-430](https://jira.percona.com/browse/K8SPSMDB-430)
 ```
-python3 run.py -p mongodb-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p mongodb-operator -t test1 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -97,7 +97,7 @@ python3 build.py -p cassandra-operator -m sparse-read -d YOUR_DOCKER_REPO_NAME
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
-python3 run.py -p cassandra-operator -t test1 -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t test1 -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will find
 ```
