@@ -88,7 +88,7 @@ def check_status(learning_status, testing_status):
             for attr in learning_status[rtype]:
                 if learning_status[rtype][attr] != testing_status[rtype][attr]:
                     alarm += 1
-                    bug_report += "[ERROR] %s %s inconsistency: %s seen after normal run, but %s seen after testing run\n" % (
+                    bug_report += "[ERROR] %s %s inconsistency: %s seen after learning run, but %s seen after testing run\n" % (
                         rtype, attr.upper(), str(learning_status[rtype][attr]), str(testing_status[rtype][attr]))
     final_bug_report = "Checking for cluster resource states...\n" + \
         bug_report if bug_report != "" else ""
@@ -122,7 +122,7 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
-                    bug_report += "[ERROR] %s/%s/%s %s inconsistency: %s events seen during normal run, but %s seen during testing run\n" % (
+                    bug_report += "[ERROR] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
                         rtype, namespace, name, attr.upper(), str(learning_entry[attr]), str(testing_entry[attr]))
     final_bug_report = "Checking for controller side effects (resource creation/deletion)...\n" + \
         bug_report if bug_report != "" else ""
@@ -171,5 +171,6 @@ def compare_digest(learning_side_effect, learning_status, testing_side_effect, t
                 testing_config)
             bug_report += "[DEBUGGING SUGGESTION] %s\n" % generate_debug_suggestion(
                 testing_config)
-    print(bug_report)
+        bug_report = "\n[BUG REPORT]\n" + bug_report
+        print(bug_report)
     return bug_report
