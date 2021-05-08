@@ -18,8 +18,9 @@ python3 sieve.py -p cassandra-operator -t recreate -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim.terminating inconsistent: learning: 0, testing: 1
-[ERROR] persistentvolumeclaim.delete inconsistent: learning: 1, testing: 13
+[ERROR] persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-0 DELETE inconsistency: 1 events seen during learning run, but 13 seen during testing run
+Checking for cluster resource states...
+[ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
 
 ### [instaclustr-cassandra-operator-407](https://github.com/instaclustr/cassandra-operator/issues/407)
@@ -43,8 +44,9 @@ python3 sieve.py -p zookeeper-operator -t recreate -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim.delete inconsistent: learning: 1, testing: 13
-[ERROR] persistentvolumeclaim.terminating inconsistent: learning: 0, testing: 1
+[ERROR] persistentvolumeclaim/default/data-zookeeper-cluster-0 DELETE inconsistency: 1 events seen during learning run, but 13 seen during testing run
+Checking for cluster resource states...
+[ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
@@ -53,9 +55,7 @@ python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d YOUR_DOCKER_REPO_
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim.delete inconsistent: learning: 1, testing: 5
-[ERROR] persistentvolumeclaim.terminating inconsistent: learning: 0, testing: 1
-[ERROR] pod.terminating inconsistent: learning: 0, testing: 1
+[ERROR] persistentvolumeclaim/default/data-zookeeper-cluster-1 DELETE inconsistency: 1 events seen during learning run, but 5 seen during testing run
 ```
 
 ### [rabbitmq-cluster-operator-648](https://github.com/rabbitmq/cluster-operator/issues/648)
@@ -84,10 +84,31 @@ python3 sieve.py -p mongodb-operator -t recreate -d YOUR_DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset.create inconsistent: learning: 2, testing: 4
-[ERROR] statefulset.delete inconsistent: learning: 1, testing: 2
-[ERROR] issuer.create inconsistent: learning: 3, testing: 2
-[ERROR] persistentvolumeclaim.delete inconsistent: learning: 3, testing: 25
+[ERROR] persistentvolumeclaim/default/mongod-data-mongodb-cluster-rs0-2 DELETE inconsistency: 1 events seen during learning run, but 9 seen during testing run
+[ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
+[ERROR] persistentvolumeclaim SIZE inconsistency: 3 seen after learning run, but 2 seen after testing run
+```
+
+### [K8SPSMDB-433](https://jira.percona.com/browse/K8SPSMDB-433)
+```
+python3 sieve.py -p mongodb-operator -t disable-enable-shard -d YOUR_DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] statefulset/default/mongodb-cluster-cfg CREATE inconsistency: 2 events seen during learning run, but 3 seen during testing run
+[ERROR] statefulset/default/mongodb-cluster-cfg DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ERROR] deployment SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
+[ERROR] pod SIZE inconsistency: 7 seen after learning run, but 8 seen after testing run
+```
+
+### [K8SPSMDB-438](https://jira.percona.com/browse/K8SPSMDB-438)
+```
+python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -d YOUR_DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] statefulset/default/mongodb-cluster-rs0-arbiter CREATE inconsistency: 2 events seen during learning run, but 3 seen during testing run
+[ERROR] statefulset/default/mongodb-cluster-rs0-arbiter DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 
 ### Observability gaps
