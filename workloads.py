@@ -58,6 +58,7 @@ workloads = {
         "enable-shard": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-mongodb-operator/test/cr.yaml").wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
         .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p='{\"spec\":{\"sharding\":{\"enabled\":true}}}'").wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-mongos-*", common.RUNNING)
+        # TODO: in learning mode the digest sometimes is incorrect. We may need to have a recording mode for it
         .wait(50),
     },
 }
