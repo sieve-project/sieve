@@ -354,27 +354,33 @@ def dump_json_file(dir, data, json_file_name):
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def analyze_trace(project, dir, two_sided=False, generate_oracle=True, use_sql=True):
-    print("two-sided feature is %s" %
-          ("enabled" if two_sided else "disabled"))
+def analyze_trace(project, dir, generate_oracle=True, generate_config=True, two_sided=False, use_sql=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
+    print("generate-config feature is %s" %
+          ("enabled" if generate_config else "disabled"))
+    if not generate_config:
+        two_sided = False
+        use_sql = False
+    print("two-sided feature is %s" %
+          ("enabled" if two_sided else "disabled"))
     print("use-sql feature is %s" %
           ("enabled" if use_sql else "disabled"))
     log_path = os.path.join(dir, "sonar-server.log")
-    conf_dir = os.path.join(dir, "generated-config")
-    if os.path.exists(conf_dir):
-        shutil.rmtree(conf_dir)
-    os.makedirs(conf_dir, exist_ok=True)
-    causality_pairs, event_key_map = generate_event_effect_pairs(
-        log_path, use_sql)
-    triggering_points = generate_triggering_points(
-        event_key_map, causality_pairs)
-    dump_json_file(dir, triggering_points, "triggering-points.json")
-    generate_time_travel_yaml(triggering_points, conf_dir, project)
-    if two_sided:
-        generate_time_travel_yaml(
-            triggering_points, conf_dir, project, "before")
+    if generate_config:
+        conf_dir = os.path.join(dir, "generated-config")
+        if os.path.exists(conf_dir):
+            shutil.rmtree(conf_dir)
+        os.makedirs(conf_dir, exist_ok=True)
+        causality_pairs, event_key_map = generate_event_effect_pairs(
+            log_path, use_sql)
+        triggering_points = generate_triggering_points(
+            event_key_map, causality_pairs)
+        dump_json_file(dir, triggering_points, "triggering-points.json")
+        generate_time_travel_yaml(triggering_points, conf_dir, project)
+        if two_sided:
+            generate_time_travel_yaml(
+                triggering_points, conf_dir, project, "before")
     if generate_oracle:
         side_effect, status = oracle.generate_digest(log_path)
         dump_json_file(dir, side_effect, "side-effect.json")
@@ -394,5 +400,5 @@ if __name__ == "__main__":
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
     dir = os.path.join("log", project, test, "learn")
-    analyze_trace(project, dir, two_sided=False,
-                  generate_oracle=False, use_sql=True)
+    analyze_trace(project, dir, generate_oracle=False,
+                  generate_config=True, two_sided=False, use_sql=True)
