@@ -13,6 +13,12 @@ def get_pod(resource_name):
     for pod in pods:
         if pod.metadata.name == resource_name:
             target_pod = pod
+            break
+        elif resource_name.endswith("*"):
+            resource_name_prefix = resource_name[:-1]
+            if pod.metadata.name.startswith(resource_name_prefix):
+                target_pod = pod
+                break
     return target_pod
 
 
