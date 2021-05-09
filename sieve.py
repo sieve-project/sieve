@@ -162,9 +162,10 @@ def pre_process(project, mode, test_config):
 
 def post_process(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
     if mode == "vanilla":
+        # TODO: We need another recording mode to only record digest without generating config
         pass
     elif mode == "learn":
-        analyze.analyze_trace(project, log_dir, two_sided)
+        analyze.analyze_trace(project, log_dir, two_sided=two_sided)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
