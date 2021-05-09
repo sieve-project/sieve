@@ -9,6 +9,8 @@ import analyze
 import controllers
 import oracle
 import yaml
+import subprocess
+import signal
 
 
 def watch_crd(project, addrs):
@@ -124,9 +126,15 @@ def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_rep
 
 
 def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
+    kubernetes.config.load_kube_config()
+    pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
+        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+    streamed_log_file = open("%s/streamed-operator.log" % (log_dir), "w+")
+    streaming = subprocess.Popen("kubectl logs %s -f" %
+                                 pod_name, stdout=streamed_log_file, stderr=streamed_log_file, shell=True, preexec_fn=os.setsid)
+
     test_workload.run(mode)
 
-    kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
@@ -140,6 +148,8 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system(
         "kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
+    os.killpg(streaming.pid, signal.SIGTERM)
+    streamed_log_file.close()
 
 
 def pre_process(project, mode, test_config):
@@ -167,8 +177,9 @@ def post_process(project, mode, test_workload, test_config, log_dir, docker_repo
             data_dir, "status.json")))
         testing_side_effect, testing_status = oracle.generate_digest(
             os.path.join(log_dir, "sonar-server.log"))
+        operator_log = os.path.join(log_dir, "streamed-operator.log")
         open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-            oracle.compare_digest(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config))
+            oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log))
         json.dump(testing_side_effect, open(os.path.join(
             log_dir, "side-effect.json"), "w"), indent=4)
         json.dump(testing_status, open(os.path.join(

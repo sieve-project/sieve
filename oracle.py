@@ -152,7 +152,7 @@ def generate_debug_suggestion(testing_config):
         testing_config["se-namespace"] + "/" + testing_config["se-name"])
 
 
-def compare_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
+def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
     testing_config = yaml.safe_load(open(config))
     interest_objects = []
     if testing_config["mode"] == "time-travel":
@@ -164,8 +164,33 @@ def compare_digest(learning_side_effect, learning_status, testing_side_effect, t
         learning_side_effect, testing_side_effect, interest_objects)
     alarm = alarm_side_effect + alarm_status
     bug_report = bug_report_side_effect + bug_report_status
+    return alarm, bug_report
+
+
+def look_for_panic_in_operator_log(operator_log):
+    alarm = 0
+    bug_report = ""
+    file = open(operator_log)
+    for line in file.readlines():
+        if "Observed a panic" in line:
+            panic_in_file = line[line.find("Observed a panic"):]
+            panic_in_file = panic_in_file.strip()
+            bug_report += "[ERROR] %s\n" % panic_in_file
+            alarm += 1
+    final_bug_report = "Checking for any panic in operator log...\n" + \
+        bug_report if bug_report != "" else ""
+    return alarm, final_bug_report
+
+
+def check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log):
+    testing_config = yaml.safe_load(open(test_config))
+    discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
+        learned_side_effect, learned_status, testing_side_effect, testing_status, test_config)
+    panic_alarm, panic_bug_report = look_for_panic_in_operator_log(
+        operator_log)
+    alarm = discrepancy_alarm + panic_alarm
+    bug_report = discrepancy_bug_report + panic_bug_report
     if alarm != 0:
-        # bug_report += "[BUG REPORT] # alarms: %d\n" % (alarm)
         if testing_config["mode"] == "time-travel":
             bug_report += "[TIME TRAVEL DESCRIPTION] %s\n" % generate_generate_time_travel_description(
                 testing_config)
