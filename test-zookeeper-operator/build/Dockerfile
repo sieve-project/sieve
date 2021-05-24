@@ -14,11 +14,10 @@ WORKDIR /src
 COPY pkg ./pkg
 COPY cmd ./cmd
 COPY go.mod ./
+COPY dep-sonar/ dep-sonar/
 
 # Download all dependencies.
 # RUN go mod download
-
-COPY . ./
 
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /src/${PROJECT_NAME} \
     -ldflags "-X ${REPO_PATH}/pkg/version.Version=${VERSION} -X ${REPO_PATH}/pkg/version.GitSHA=${GIT_SHA}" \
@@ -33,8 +32,7 @@ ARG PROJECT_NAME=zookeeper-operator
 
 COPY --from=go-builder /src/${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
 
-RUN apk update
-RUN apk upgrade
-RUN apk add bash
+RUN adduser -D ${PROJECT_NAME}
+USER ${PROJECT_NAME}
 
-CMD ["sleep", "infinity"]
+ENTRYPOINT ["/usr/local/bin/zookeeper-operator"]

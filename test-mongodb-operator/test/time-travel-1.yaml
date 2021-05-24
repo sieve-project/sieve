@@ -2,23 +2,23 @@ project: mongodb-operator
 mode: time-travel
 straggler: kind-control-plane3
 front-runner: kind-control-plane
-operator-pod: mongodb-operator
-command: percona-server-mongodb-operator
+operator-pod-label: mongodb-operator
+deployment-name: percona-server-mongodb-operator
 timing: after
-ce-name: sonar-mongodb-cluster
+ce-name: mongodb-cluster
 ce-namespace: default
 ce-rtype: perconaservermongodb
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds":
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds":
   0}}'
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-se-name: mongod-data-sonar-mongodb-cluster-rs0-2
+se-name: mongod-data-mongodb-cluster-rs0-2
 se-namespace: default
 se-rtype: persistentvolumeclaim
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/perconaservermongodb/sonar-mongodb-cluster
-  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-EXIST",
+description: 'Pause kind-control-plane3 after it processes a default/perconaservermongodb/mongodb-cluster
+  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-NON-NIL",
   "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
-  the controller mongodb-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/mongod-data-sonar-mongodb-cluster-rs0-2
+  the controller mongodb-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/mongod-data-mongodb-cluster-rs0-2
   event.'

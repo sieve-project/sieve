@@ -2,23 +2,23 @@ project: zookeeper-operator
 mode: time-travel
 straggler: kind-control-plane3
 front-runner: kind-control-plane
-operator-pod: zookeeper-operator
-command: /usr/local/bin/zookeeper-operator
+operator-pod-label: zookeeper-operator
+deployment-name: zookeeper-operator
 timing: after
-ce-name: sonar-zookeeper-cluster
+ce-name: zookeeper-cluster
 ce-namespace: default
 ce-rtype: zookeepercluster
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-EXIST", "deletionGracePeriodSeconds":
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds":
   0}}'
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-se-name: data-sonar-zookeeper-cluster-0
+se-name: data-zookeeper-cluster-0
 se-namespace: default
 se-rtype: persistentvolumeclaim
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/zookeepercluster/sonar-zookeeper-cluster
-  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-EXIST",
+description: 'Pause kind-control-plane3 after it processes a default/zookeepercluster/zookeeper-cluster
+  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-NON-NIL",
   "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
-  the controller zookeeper-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/data-sonar-zookeeper-cluster-0
+  the controller zookeeper-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/data-zookeeper-cluster-0
   event.'

@@ -145,26 +145,9 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterR
 	return nil
 }
 
-func (s *learnServer) extractNameNamespaceRType(Object string) (string, string) {
-	objectMap := strToMap(Object)
-	name := ""
-	namespace := ""
-	if _, ok := objectMap["metadata"]; ok {
-		if metadataMap, ok := objectMap["metadata"].(map[string]interface{}); ok {
-			if _, ok := metadataMap["name"]; ok {
-				name = metadataMap["name"].(string)
-			}
-			if _, ok := metadataMap["namespace"]; ok {
-				namespace = metadataMap["namespace"].(string)
-			}
-		}
-	}
-	return name, namespace
-}
-
 func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
 	rtype := request.ResourceType
-	name, namespace := s.extractNameNamespaceRType(request.Object)
+	name, namespace := extractNameNamespace(request.Object)
 	s.notificationCh <- notificationWrapper{ntype: sideEffect, payload: request.SideEffectType + "\t" + rtype + "\t" + namespace + "\t" + name + "\t" + request.Error}
 	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
 	return nil

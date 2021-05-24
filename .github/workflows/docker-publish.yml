@@ -1,0 +1,253 @@
+name: Docker
+
+on: [pull_request, workflow_dispatch]
+
+env:
+  IMAGE_NAMESPACE: docker.pkg.github.com/sieve-project/sieve
+
+jobs:
+  casskop-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install kubernetes
+          pip install pyyaml
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          helm 
+      - name: Build Image
+        run: |
+          python3 build.py -p casskop-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p casskop-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p casskop-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
+        run: |
+          python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-casskop-artifact
+          path: log
+  mongodb-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install kubernetes
+          pip install pyyaml
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          helm 
+      - name: Build Image
+        run: |
+          python3 build.py -p mongodb-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p mongodb-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p mongodb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-shard -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
+        run: |
+          python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-shard -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-mongodb-artifact
+          path: log
+  cassandra-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install kubernetes
+          pip install pyyaml
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          helm 
+      - name: Build Image
+        run: |
+          python3 build.py -p cassandra-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p cassandra-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p cassandra-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
+        run: |
+          python3 sieve.py -p cassandra-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-cassandra-artifact
+          path: log
+  rabbitmq-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install kubernetes
+          pip install pyyaml
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          helm 
+      - name: Build Image
+        run: |
+          python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p rabbitmq-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p rabbitmq-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
+        run: |
+          python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-rabbitmq-artifact
+          path: log
+  zookeeper-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install kubernetes
+          pip install pyyaml
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+          helm 
+      - name: Build Image
+        run: |
+          python3 build.py -p zookeeper-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p zookeeper-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p zookeeper-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Time Travel
+        run: |
+          python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-zookeeper-artifact
+          path: log

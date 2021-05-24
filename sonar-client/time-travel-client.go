@@ -8,7 +8,7 @@ import (
 	"reflect"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
+	// "k8s.io/apimachinery/pkg/api/meta"
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
@@ -74,7 +74,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 			printError(err, hostError)
 			return
 		}
-		request := &NotifyTimeTravelSideEffectRequest{
+		request := &NotifyTimeTravelRestartPointRequest{
 			Hostname:     hostname,
 			EventType:    eventType,
 			ResourceType: resourceType,
@@ -82,33 +82,55 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 			Namespace:    namespace,
 		}
 		var response Response
-		err = client.Call("TimeTravelListener.NotifyTimeTravelSideEffect", request, &response)
+		err = client.Call("TimeTravelListener.NotifyTimeTravelRestartPoint", request, &response)
 		if err != nil {
 			printError(err, replyError)
 			return
 		}
-		checkResponse(response, "NotifyTimeTravelSideEffect")
+		checkResponse(response, "NotifyTimeTravelRestartPoint")
 		client.Close()
 	}
 }
 
-func extractNameNamespaceFromObj(object interface{}) (string, string) {
-	name := "unknown"
-	namespace := "unknown"
-	if o, err := meta.Accessor(object); err == nil {
-		return o.GetName(), o.GetNamespace()
-	}
-	return name, namespace
-}
+// func extractNameNamespaceFromObj(object interface{}) (string, string) {
+// 	name := "unknown"
+// 	namespace := "unknown"
+// 	if o, err := meta.Accessor(object); err == nil {
+// 		return o.GetName(), o.GetNamespace()
+// 	}
+// 	return name, namespace
+// }
 
 func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sErr error) {
 	if !checkMode(timeTravel) {
+		return
+	}
+	// log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, jsonError)
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
 		return
 	}
 	errorString := "NoError"
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	name, namespace := extractNameNamespaceFromObj(object)
-	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()), namespace, name, errorString)
+	request := &NotifyTimeTravelSideEffectsRequest{
+		SideEffectType: sideEffectType,
+		Object: string(jsonObject),
+		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		Error: errorString,
+	}
+	var response Response
+	err = client.Call("TimeTravelListener.NotifyTimeTravelSideEffects", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return
+	}
+	checkResponse(response, "NotifyTimeTravelSideEffects")
+	client.Close()
 }

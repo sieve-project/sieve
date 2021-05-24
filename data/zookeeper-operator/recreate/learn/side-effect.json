@@ -1,0 +1,82 @@
+{
+    "configmap": {
+        "default": {
+            "zookeeper-cluster-configmap": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 6
+            }
+        }
+    },
+    "persistentvolumeclaim": {
+        "default": {
+            "data-zookeeper-cluster-0": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "poddisruptionbudget": {
+        "default": {
+            "zookeeper-cluster": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "zookeeper-cluster-admin-server": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 6
+            },
+            "zookeeper-cluster-client": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 6
+            },
+            "zookeeper-cluster-headless": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 6
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "zookeeper-cluster": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 6
+            }
+        }
+    },
+    "zookeepercluster": {
+        "default": {
+            "zookeeper-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 5
+            }
+        }
+    }
+}

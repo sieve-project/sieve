@@ -1,0 +1,142 @@
+{
+    "deployment": {
+        "default": {
+            "mongodb-cluster-mongos": {
+                "Create": 1,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "issuer": {
+        "default": {
+            "mongodb-cluster-psmdb-ca": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "perconaservermongodb": {
+        "default": {
+            "mongodb-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 2
+            }
+        }
+    },
+    "poddisruptionbudget": {
+        "default": {
+            "mongodb-cluster-mongod-rs0": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 1
+            },
+            "mongodb-cluster-mongos-": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "secret": {
+        "default": {
+            "internal-mongodb-cluster-users": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-mongodb-encryption-key": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-mongodb-keyfile": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-secrets": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-ssl": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-ssl-internal": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "mongodb-cluster-cfg": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-mongos": {
+                "Create": 1,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-rs0": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "mongodb-cluster-cfg": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "mongodb-cluster-rs0": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 2
+            }
+        }
+    }
+}

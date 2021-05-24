@@ -15,14 +15,14 @@ BUILD_IMAGE=laphets/casskop-build:v0.18.0-forked-pr317
 WORKDIR=/go/casskop
 
 echo "Generate zzz-deepcopy objects"
-docker run --rm -v $(pwd):$WORKDIR -v $GOPATH/pkg/mod:/go/pkg/mod:delegated \
-    -v $(go env GOCACHE):/root/.cache/go-build:delegated --env GO111MODULE=on \
+docker run --rm -v $(pwd):$WORKDIR  \
+     --env GO111MODULE=on \
      \
     $BUILD_IMAGE /bin/bash -c 'operator-sdk generate k8s'
 
 echo "Generate crds"
-docker run --rm -v $(pwd):$WORKDIR -v $GOPATH/pkg/mod:/go/pkg/mod:delegated \
-    -v $(go env GOCACHE):/root/.cache/go-build:delegated --env GO111MODULE=on \
+docker run --rm -v $(pwd):$WORKDIR  \
+     --env GO111MODULE=on \
      \
     $BUILD_IMAGE /bin/bash -c 'operator-sdk generate crds'
 sed -i '/\- protocol/d' deploy/crds/db.orange.com_cassandraclusters_crd.yaml
@@ -32,7 +32,7 @@ cp -v deploy/crds/* */helm/*/crds/
 
 echo "Build Cassandra Operator. Using cache from "$(go env GOCACHE)
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):$WORKDIR \
--v $GOPATH/pkg/mod:/go/pkg/mod:delegated -v $(go env GOCACHE):/root/.cache/go-build:delegated \
+  \
 --env GO111MODULE=on  \
 $BUILD_IMAGE /bin/bash -c "operator-sdk build ${dockerrepo}/casskop-operator:${dockertag}  \
  && chmod -R 777 build/_output/"

@@ -6,299 +6,299 @@ import os
 import shutil
 import kubernetes
 import controllers
-
-WRITE_READ_FLAG = True
-ERROR_FILTER = True
-CROSS_BOUNDARY_FLAG = True
-ONLY_DELETE = True
-
-SONAR_EVENT_MARK = "[SONAR-EVENT]"
-SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
-SONAR_CACHE_READ_MARK = "[SONAR-CACHE-READ]"
-SONAR_START_RECONCILE_MARK = "[SONAR-START-RECONCILE]"
-SONAR_FINISH_RECONCILE_MARK = "[SONAR-FINISH-RECONCILE]"
-SONAR_EVENT_APPLIED_MARK = "[SONAR-EVENT-APPLIED]"
-
-POD = "pod"
-PVC = "persistentvolumeclaim"
-DEPLOYMENT = "deployment"
-STS = "statefulset"
-
-ktypes = [POD, PVC, DEPLOYMENT, STS]
+import common
+import oracle
+import analyze_event
+import sqlite3
+import json
+import optparse
 
 
-class Event:
-    def __init__(self, id, etype, rtype, obj):
-        self.id = id
-        self.etype = etype
-        self.rtype = rtype
-        self.obj = obj
-        self.key = self.rtype + "/" + \
-            self.obj["metadata"]["namespace"] + \
-            "/" + self.obj["metadata"]["name"]
+def create_sqlite_db():
+    database = "/tmp/test.db"
+    conn = sqlite3.connect(database)
+    conn.execute("drop table if exists events")
+    conn.execute("drop table if exists side_effects")
+
+    # TODO: SQlite3 does not type check by default, but
+    # tighten the column types later
+    conn.execute('''
+        create table events
+        (
+           id integer not null primary key,
+           sonar_event_id integer not null,
+           event_type text not null,
+           resource_type text not null,
+           json_object text not null,
+           namespace text not null,
+           name text not null,
+           event_arrival_time integer not null,
+           event_cache_update_time integer not null,
+           fully_qualified_name text not null
+        )
+    ''')
+    conn.execute('''
+        create table side_effects
+        (
+           id integer not null primary key,
+           sonar_side_effect_id integer not null,
+           event_type text not null,
+           resource_type text not null,
+           namespace text not null,
+           name text not null,
+           error text not null,
+           read_types text not null,
+           read_fully_qualified_names text not null,
+           range_start_timestamp integer not null,
+           range_end_timestamp integer not null,
+           end_timestamp integer not null,
+           owner_controllers text not null
+        )
+    ''')
+    return conn
 
 
-class SideEffect:
-    def __init__(self, etype, rtype, namespace, name, error):
-        self.etype = etype
-        self.rtype = rtype
-        self.namespace = namespace
-        self.name = name
-        self.error = error
+def record_event_list_in_sqlite(event_list, conn):
+    for e in event_list:
+        json_form = json.dumps(e.obj)
+        # Skip the first column: Sqlite will use an auto-incrementing ID
+        conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (None, e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+    conn.commit()
 
 
-class CacheRead:
-    def __init__(self, etype, rtype, namespace, name, error):
-        self.etype = etype
-        self.rtype = rtype
-        self.namespace = namespace
-        self.name = name
-        self.error = error
-        self.key = self.rtype + "/" + self.namespace + "/" + self.name
+def record_side_effect_list_in_sqlite(side_effect_list, conn):
+    for e in side_effect_list:
+        json_read_types = json.dumps(list(e.read_types))
+        json_read_keys = json.dumps(list(e.read_keys))
+        json_owner_controllers = json.dumps(list(e.owner_controllers))
+        # Skip the first column: Sqlite will use an auto-incrementing ID
+        conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (None, e.id, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
+    conn.commit()
 
 
-class EventIDOnly:
-    def __init__(self, id):
-        self.id = id
-
-
-def parse_event(line):
-    assert SONAR_EVENT_MARK in line
-    tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
-    return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
-
-
-def parse_side_effect(line):
-    assert SONAR_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n").split("\t")
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
-
-
-def parse_cache_read(line):
-    assert SONAR_CACHE_READ_MARK in line
-    tokens = line[line.find(SONAR_CACHE_READ_MARK):].strip("\n").split("\t")
-    if tokens[1] == "Get":
-        return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
-    else:
-        return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
-
-
-def parse_event_id_only(line):
-    assert SONAR_EVENT_APPLIED_MARK in line or SONAR_EVENT_MARK in line
-    if SONAR_EVENT_APPLIED_MARK in line:
-        tokens = line[line.find(SONAR_EVENT_APPLIED_MARK):].strip("\n").split("\t")
-        return EventIDOnly(tokens[1])
-    else:
-        tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
-        return EventIDOnly(tokens[1])
-
-
-def generate_event_map(path):
-    event_map = {}
+def parse_events(path):
+    # { event id -> event }
     event_id_map = {}
-    for line in open(path).readlines():
-        if SONAR_EVENT_MARK not in line:
-            continue
-        event = parse_event(line)
-        if event.key not in event_map:
-            event_map[event.key] = []
-        event_map[event.key].append(event)
-        event_id_map[event.id] = event
-    return event_map, event_id_map
+    # { event key -> [events belonging to the key] }
+    # we need this map to later find the previous event for each crucial event
+    event_key_map = {}
+    event_list = []
+    lines = open(path).readlines()
+    largest_timestamp = len(lines)
+    for i in range(len(lines)):
+        line = lines[i]
+        if common.SONAR_EVENT_MARK in line:
+            event = common.parse_event(line)
+            event.set_start_timestamp(i)
+            # We initially set the event end time as the largest timestamp
+            # so that if we never meet SONAR_EVENT_APPLIED_MARK for this event,
+            # we will not pose any constraint on its end time in range_overlap
+            event.set_end_timestamp(largest_timestamp)
+            event_id_map[event.id] = event
+        elif common.SONAR_EVENT_APPLIED_MARK in line:
+            event_id_only = common.parse_event_id_only(line)
+            event_id_map[event_id_only.id].set_end_timestamp(i)
+    for i in range(len(lines)):
+        line = lines[i]
+        if common.SONAR_EVENT_MARK in line:
+            event = common.parse_event(line)
+            if event.key not in event_key_map:
+                event_key_map[event.key] = []
+            event_key_map[event.key].append(event_id_map[event.id])
+            event_list.append(event_id_map[event.id])
+    return event_list, event_key_map, event_id_map
 
 
-def event_read_intersect(event_id_map, event_id, cacheRead):
-    if cacheRead.etype == "Get":
-        return event_id_map[event_id].key == cacheRead.key
-    else:
-        return event_id_map[event_id].rtype == cacheRead.rtype
-
-
-def affect_read(event_id_map, event_id, event_ts, reads_cur_round):
-    for read_ts in reads_cur_round:
-        if read_ts > event_ts and event_read_intersect(event_id_map, event_id, reads_cur_round[read_ts]):
-            return True
-    return False
-
-
-def find_related_events(event_id_map, sideEffect, events_cur_round, events_prev_round, reads_cur_round, events_applied_cur_round, events_applied_prev_round):
-    final_related_events = []
-    related_events = set(events_cur_round.values())
-    unrelated_events = set()
-    if CROSS_BOUNDARY_FLAG:
-        related_events.update(set(events_applied_prev_round.values()))
-        related_events.update(set(events_prev_round.values()))
-    if WRITE_READ_FLAG:
-        for event_ts in events_prev_round:
-            if not affect_read(event_id_map, events_prev_round[event_ts], event_ts, reads_cur_round):
-                unrelated_events.add(events_prev_round[event_ts])
-        for event_ts in events_cur_round:
-            if not affect_read(event_id_map, events_cur_round[event_ts], event_ts, reads_cur_round):
-                unrelated_events.add(events_cur_round[event_ts])
-    for event_id in related_events:
-        if event_id in unrelated_events:
-            continue
-        final_related_events.append(event_id_map[event_id])
-    return final_related_events
-
-
-def generate_causality_pairs(path, event_id_map):
-    causality_pairs = []
-    reads_cur_round = {}
-    events_cur_round = {}
-    events_prev_round = {}
-    events_applied_cur_round = {}
-    events_applied_prev_round = {}
+def parse_side_effects(path):
+    side_effect_id_map = {}
+    side_effect_list = []
+    read_types_this_reconcile = set()
+    read_keys_this_reconcile = set()
+    prev_reconcile_start_timestamp = {}
+    cur_reconcile_start_timestamp = {}
+    # there could be multiple controllers running concurrently
+    # we need to record all the ongoing controllers
+    ongoing_reconciles = set()
     lines = open(path).readlines()
     for i in range(len(lines)):
-        # we use the line number as the logic timestamp since all the logs are printed in the same thread
         line = lines[i]
-        if SONAR_EVENT_MARK in line:
-            events_cur_round[i] = parse_event_id_only(line).id
-        elif SONAR_EVENT_APPLIED_MARK in line:
-            events_applied_cur_round[i] = parse_event_id_only(line).id
-        elif SONAR_CACHE_READ_MARK in line:
-            reads_cur_round[i] = parse_cache_read(line)
-        elif SONAR_SIDE_EFFECT_MARK in line:
-            side_effect = parse_side_effect(line)
-            events = find_related_events(event_id_map, side_effect,
-                                         events_cur_round, events_prev_round,
-                                         reads_cur_round,
-                                         events_applied_cur_round, events_applied_prev_round)
-            causality_pairs.append([side_effect, events])
-        elif SONAR_FINISH_RECONCILE_MARK in line:
-            events_prev_round = copy.deepcopy(events_cur_round)
-            events_cur_round = {}
-            events_applied_prev_round = copy.deepcopy(events_applied_cur_round)
-            events_applied_cur_round = {}
-    return causality_pairs
-
-
-def find_previous_event(event, event_map):
-    id = event.id
-    key = event.key
-    assert key in event_map, "invalid key %s, not found in event_map" % (key)
-    for i in range(len(event_map[key])):
-        if event_map[key][i].id == id:
-            if i == 0:
-                return None, event_map[key][i]
-            else:
-                return event_map[key][i-1], event_map[key][i]
-
-
-def compress_object(prev_object, cur_object, slim_prev_object, slim_cur_object):
-    to_del = []
-    to_del_cur = []
-    to_del_prev = []
-    allKeys = set(cur_object.keys()).union(prev_object.keys())
-    for key in allKeys:
-        if key not in cur_object:
-            continue
-        elif key not in prev_object:
-            continue
-        elif key == "resourceVersion" or key == "time" or key == "managedFields" or key == "lastTransitionTime" or key == "generation":
-            to_del.append(key)
-        elif str(cur_object[key]) != str(prev_object[key]):
-            if isinstance(cur_object[key], dict):
-                if not isinstance(prev_object[key], dict):
-                    continue
-                res = compress_object(
-                    prev_object[key], cur_object[key], slim_prev_object[key], slim_cur_object[key])
-                if res:
-                    to_del.append(key)
-            elif isinstance(cur_object[key], list):
-                if not isinstance(prev_object[key], list):
-                    continue
-                for i in range(len(cur_object[key])):
-                    if i >= len(prev_object[key]):
-                        break
-                    elif str(cur_object[key][i]) != str(prev_object[key][i]):
-                        if isinstance(cur_object[key][i], dict):
-                            if not isinstance(prev_object[key][i], dict):
-                                continue
-                            res = compress_object(
-                                prev_object[key][i], cur_object[key][i], slim_prev_object[key][i], slim_cur_object[key][i])
-                            if res:
-                                # SONAR_SKIP means we can skip the value in list when later comparing to the events in testing run
-                                slim_cur_object[key][i] = "SONAR-SKIP"
-                                slim_prev_object[key][i] = "SONAR-SKIP"
-                        elif isinstance(cur_object[key][i], list):
-                            assert False
-                        else:
-                            continue
-                    else:
-                        slim_cur_object[key][i] = "SONAR-SKIP"
-                        slim_prev_object[key][i] = "SONAR-SKIP"
-            else:
+        if common.SONAR_SIDE_EFFECT_MARK in line:
+            # If we have not met any reconcile yet, skip the side effect since it is not caused by reconcile
+            # though it should not happen at all.
+            if len(ongoing_reconciles) == 0:
                 continue
-        else:
-            to_del.append(key)
-    for key in to_del:
-        del slim_cur_object[key]
-        del slim_prev_object[key]
-    for key in slim_cur_object:
-        if isinstance(slim_cur_object[key], dict):
-            if len(slim_cur_object[key]) == 0:
-                to_del_cur.append(key)
-    for key in slim_prev_object:
-        if isinstance(slim_prev_object[key], dict):
-            if len(slim_prev_object[key]) == 0:
-                to_del_prev.append(key)
-    for key in to_del_cur:
-        del slim_cur_object[key]
-    for key in to_del_prev:
-        del slim_prev_object[key]
-    if len(slim_cur_object) == 0 and len(slim_prev_object) == 0:
-        return True
-    return False
+            side_effect = common.parse_side_effect(line)
+            # Do deepcopy here to ensure the later changes to the two sets
+            # will not affect this side effect.
+            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile))
+            side_effect.set_read_types(
+                copy.deepcopy(read_types_this_reconcile))
+            side_effect.set_end_timestamp(i)
+            # We want to find the earilest timestamp before which any event will not affect the side effect.
+            # The earlies timestamp should be min(the timestamp of the previous reconcile start of all ongoing reconiles).
+            # One special case is that at least one of the ongoing reconcile is the first reconcile of that controller.
+            # In that case we will use -1 as the earliest timestamp:
+            # we do not pose constraint on event end time in range_overlap.
+            earliest_timestamp = i
+            for controller_name in ongoing_reconciles:
+                if prev_reconcile_start_timestamp[controller_name] < earliest_timestamp:
+                    earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
+            side_effect.set_range(earliest_timestamp, i)
+            side_effect_list.append(side_effect)
+            side_effect_id_map[side_effect.id] = side_effect
+        elif common.SONAR_CACHE_READ_MARK in line:
+            cache_read = common.parse_cache_read(line)
+            if cache_read.etype == "Get":
+                read_keys_this_reconcile.add(cache_read.key)
+            else:
+                read_types_this_reconcile.add(cache_read.rtype)
+        elif common.SONAR_START_RECONCILE_MARK in line:
+            reconcile = common.parse_reconcile(line)
+            controller_name = reconcile.controller_name
+            ongoing_reconciles.add(controller_name)
+            # We use -1 as the initial value in any prev_reconcile_start_timestamp[controller_name]
+            # which is super important.
+            if controller_name not in cur_reconcile_start_timestamp:
+                cur_reconcile_start_timestamp[controller_name] = -1
+            prev_reconcile_start_timestamp[controller_name] = cur_reconcile_start_timestamp[controller_name]
+            cur_reconcile_start_timestamp[controller_name] = i
+        elif common.SONAR_FINISH_RECONCILE_MARK in line:
+            reconcile = common.parse_reconcile(line)
+            controller_name = reconcile.controller_name
+            ongoing_reconciles.remove(controller_name)
+            # Clear the read keys and types set since all the ongoing reconciles are done
+            if len(ongoing_reconciles) == 0:
+                read_keys_this_reconcile = set()
+                read_types_this_reconcile = set()
+    return side_effect_list, side_effect_id_map
 
 
-def diff_events(prevEvent, curEvent):
-    prev_object = prevEvent.obj
-    cur_object = curEvent.obj
-    slim_prev_object = copy.deepcopy(prev_object)
-    slim_cur_object = copy.deepcopy(cur_object)
-    compress_object(prev_object, cur_object, slim_prev_object, slim_cur_object)
-    return slim_prev_object, slim_cur_object
+def base_pass(event_list, side_effect_list):
+    print("Running base pass ...")
+    event_effect_pairs = []
+    for side_effect in side_effect_list:
+        for event in event_list:
+            if side_effect.range_overlap(event):
+                event_effect_pairs.append([event, side_effect])
+    return event_effect_pairs
 
 
-def canonicalization(event):
-    for key in event:
-        if isinstance(event[key], dict):
-            canonicalization(event[key])
-        else:
-            if "time" in key.lower():
-                event[key] = "SONAR-EXIST"
-    return event
+def delete_only_filtering_pass(event_effect_pairs):
+    print("Running optional pass: delete-only-filtering ...")
+    reduced_event_effect_pairs = []
+    for pair in event_effect_pairs:
+        side_effect = pair[1]
+        if side_effect.etype == "Delete":
+            reduced_event_effect_pairs.append(pair)
+    return reduced_event_effect_pairs
 
 
-def generate_triggering_points(event_map, causality_pairs):
+def write_read_overlap_filtering_pass(event_effect_pairs):
+    print("Running optional pass: write-read-overlap-filtering ...")
+    reduced_event_effect_pairs = []
+    for pair in event_effect_pairs:
+        event = pair[0]
+        side_effect = pair[1]
+        if side_effect.interest_overlap(event):
+            reduced_event_effect_pairs.append(pair)
+    return reduced_event_effect_pairs
+
+
+def error_msg_filtering_pass(event_effect_pairs):
+    print("Running optional pass: error-message-filtering ...")
+    reduced_event_effect_pairs = []
+    for pair in event_effect_pairs:
+        side_effect = pair[1]
+        if side_effect.error not in common.FILTERED_ERROR_TYPE:
+            reduced_event_effect_pairs.append(pair)
+    return reduced_event_effect_pairs
+
+
+def pipelined_passes(event_effect_pairs):
+    reduced_event_effect_pairs = event_effect_pairs
+    if common.DELETE_ONLY_FILTER_FLAG:
+        reduced_event_effect_pairs = delete_only_filtering_pass(
+            reduced_event_effect_pairs)
+    if common.ERROR_MSG_FILTER_FLAG:
+        reduced_event_effect_pairs = error_msg_filtering_pass(
+            reduced_event_effect_pairs)
+    if common.WRITE_READ_FILTER_FLAG:
+        reduced_event_effect_pairs = write_read_overlap_filtering_pass(
+            reduced_event_effect_pairs)
+    return reduced_event_effect_pairs
+
+
+def passes_as_sql_query():
+    query = common.SQL_BASE_PASS_QUERY
+    first_optional_pass = True
+    if common.DELETE_ONLY_FILTER_FLAG:
+        query += " where " if first_optional_pass else " and "
+        query += common.SQL_DELETE_ONLY_FILTER
+        first_optional_pass = False
+    if common.ERROR_MSG_FILTER_FLAG:
+        query += " where " if first_optional_pass else " and "
+        query += common.SQL_ERROR_MSG_FILTER
+        first_optional_pass = False
+    if common.WRITE_READ_FILTER_FLAG:
+        query += " where " if first_optional_pass else " and "
+        query += common.SQL_WRITE_READ_FILTER
+        first_optional_pass = False
+    return query
+
+
+def generate_event_effect_pairs(path, use_sql):
+    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
+    event_list, event_key_map, event_id_map = parse_events(path)
+    side_effect_list, side_effect_id_map = parse_side_effects(path)
+    reduced_event_effect_pairs = []
+    if use_sql:
+        conn = create_sqlite_db()
+        record_event_list_in_sqlite(event_list, conn)
+        record_side_effect_list_in_sqlite(side_effect_list, conn)
+        cur = conn.cursor()
+        query = passes_as_sql_query()
+        print("Running SQL query as below ...")
+        print(query)
+        cur.execute(query)
+        rows = cur.fetchall()
+        for row in rows:
+            event_id = row[0]
+            side_effect_id = row[1]
+            reduced_event_effect_pairs.append(
+                [event_id_map[event_id], side_effect_id_map[side_effect_id]])
+    else:
+        event_effect_pairs = base_pass(event_list, side_effect_list)
+        reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
+    return reduced_event_effect_pairs, event_key_map
+
+
+def generate_triggering_points(event_map, event_effect_pairs):
+    print("Generating time-travel configs from <event, side-effect> pairs ...")
     triggering_points = []
-    for pair in causality_pairs:
-        side_effect = pair[0]
-        if ERROR_FILTER:
-            if side_effect.error == "NotFound":
+    for pair in event_effect_pairs:
+        event = pair[0]
+        side_effect = pair[1]
+        prev_event, cur_event = analyze_event.find_previous_event(
+            event, event_map)
+        triggering_point = {"name": cur_event.name,
+                            "namespace": cur_event.namespace,
+                            "rtype": cur_event.rtype,
+                            "effect": side_effect.to_dict()}
+        if prev_event is None:
+            triggering_point["ttype"] = "todo"
+        else:
+            slim_prev_obj, slim_cur_obj = analyze_event.diff_events(
+                prev_event, cur_event)
+            if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
                 continue
-        events = pair[1]
-        for event in events:
-            prev_event, cur_event = find_previous_event(event, event_map)
-            triggering_point = {"name": cur_event.obj["metadata"]["name"],
-                                "namespace": cur_event.obj["metadata"]["namespace"],
-                                "rtype": cur_event.rtype,
-                                "effect": side_effect.__dict__}
-            if prev_event is None:
-                triggering_point["ttype"] = "todo"
-            # elif prev_event.etype != cur_event.etype:
-            #     triggering_point["ttype"] = "todo"
-            else:
-                slim_prev_obj, slim_cur_obj = diff_events(
-                    prev_event, cur_event)
-                triggering_point["ttype"] = "event-delta"
-                triggering_point["prevEvent"] = slim_prev_obj
-                triggering_point["curEvent"] = slim_cur_obj
-                triggering_point["prevEventType"] = prev_event.etype
-                triggering_point["curEventType"] = cur_event.etype
-            triggering_points.append(triggering_point)
+            triggering_point["ttype"] = "event-delta"
+            triggering_point["prevEvent"] = slim_prev_obj
+            triggering_point["curEvent"] = slim_cur_obj
+            triggering_point["prevEventType"] = prev_event.etype
+            triggering_point["curEventType"] = cur_event.etype
+        triggering_points.append(triggering_point)
     return triggering_points
 
 
@@ -308,7 +308,7 @@ def time_travel_description(yaml_map):
         "And restart the controller %s after %s processes a %s %s event." % (
             yaml_map["straggler"], "/".join([yaml_map["ce-namespace"],
                                              yaml_map["ce-rtype"], yaml_map["ce-name"]]),
-            yaml_map["ce-diff-current"], yaml_map["ce-diff-previous"], yaml_map["operator-pod"],
+            yaml_map["ce-diff-current"], yaml_map["ce-diff-previous"], yaml_map["operator-pod-label"],
             yaml_map["front-runner"], yaml_map["se-etype"], "/".join([yaml_map["se-namespace"],
                                                                       yaml_map["se-rtype"], yaml_map["se-name"]]))
 
@@ -317,28 +317,26 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["mode"] = "time-travel"
-    yaml_map["straggler"] = "kind-control-plane3"
-    yaml_map["front-runner"] = "kind-control-plane"
-    yaml_map["operator-pod"] = project
-    yaml_map["command"] = controllers.command[project]
+    yaml_map["straggler"] = controllers.straggler
+    yaml_map["front-runner"] = controllers.front_runner
+    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
+    yaml_map["deployment-name"] = controllers.deployment_name[project]
     yaml_map["timing"] = timing
+    suffix = "-b" if timing == "before" else ""
     i = 0
     for triggering_point in triggering_points:
         if triggering_point["ttype"] != "event-delta":
             # TODO: handle the single event trigger
             continue
-        effect = triggering_point["effect"]
-        # TODO: consider update side effects and even app-specific side effects
-        if effect["etype"] != "Delete" and (ONLY_DELETE or effect["etype"] != "Create"):
-            continue
         i += 1
+        effect = triggering_point["effect"]
         yaml_map["ce-name"] = triggering_point["name"]
         yaml_map["ce-namespace"] = triggering_point["namespace"]
         yaml_map["ce-rtype"] = triggering_point["rtype"]
         yaml_map["ce-diff-current"] = json.dumps(
-            canonicalization(copy.deepcopy(triggering_point["curEvent"])))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"])))
         yaml_map["ce-diff-previous"] = json.dumps(
-            canonicalization(copy.deepcopy(triggering_point["prevEvent"])))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"])))
         yaml_map["ce-etype-current"] = triggering_point["curEventType"]
         yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
         yaml_map["se-name"] = effect["name"]
@@ -347,90 +345,60 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
         yaml_map["se-etype"] = "ADDED" if effect["etype"] == "Delete" else "DELETED"
         yaml_map["description"] = time_travel_description(yaml_map)
         yaml.dump(yaml_map, open(
-            os.path.join(path, "%s-%s.yaml" % (str(i), timing)), "w"), sort_keys=False)
-    print("Generated %d time-travel configs" % i)
+            os.path.join(path, "time-travel-config-%s%s.yaml" % (str(i), suffix)), "w"), sort_keys=False)
+    print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
-def generate_digest(path):
-    side_effect = {}
-    side_effect_empty_entry = {"create": 0, "update": 0,
-                               "delete": 0, "patch": 0, "deleteallof": 0}
-    for line in open(path).readlines():
-        if SONAR_SIDE_EFFECT_MARK not in line:
-            continue
-        line = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip("\n")
-        tokens = line.split("\t")
-        effectType = tokens[1].lower()
-        rType = tokens[2]
-        if ERROR_FILTER:
-            if tokens[5] == "NotFound":
-                continue
-        if rType not in side_effect:
-            side_effect[rType] = copy.deepcopy(side_effect_empty_entry)
-        side_effect[rType][effectType] += 1
-
-    status = {}
-    status_empty_entry = {"size": 0, "terminating": 0}
-    kubernetes.config.load_kube_config()
-    core_v1 = kubernetes.client.CoreV1Api()
-    apps_v1 = kubernetes.client.AppsV1Api()
-    k8s_namespace = "default"
-    resources = {}
-    for ktype in ktypes:
-        resources[ktype] = []
-        if ktype not in status:
-            status[ktype] = copy.deepcopy(status_empty_entry)
-    for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
-        resources[POD].append(pod)
-    for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
-        resources[PVC].append(pvc)
-    for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
-        resources[DEPLOYMENT].append(dp)
-    for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
-        resources[STS].append(sts)
-    for ktype in ktypes:
-        status[ktype]["size"] = len(resources[ktype])
-        terminating = 0
-        for item in resources[ktype]:
-            if item.metadata.deletion_timestamp != None:
-                terminating += 1
-        status[ktype]["terminating"] = terminating
-    return side_effect, status
+def dump_json_file(dir, data, json_file_name):
+    json.dump(data, open(os.path.join(
+        dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def dump_files(dir, event_map, causality_pairs, side_effect, status, triggering_points):
-    json_dir = os.path.join(dir, "generated-json")
-    if os.path.exists(json_dir):
-        shutil.rmtree(json_dir)
-    os.makedirs(json_dir, exist_ok=True)
-    json.dump(side_effect, open(os.path.join(
-        dir, "side-effect.json"), "w"), indent=4, sort_keys=True)
-    json.dump(status, open(os.path.join(
-        dir, "status.json"), "w"), indent=4, sort_keys=True)
-    json.dump(triggering_points, open(os.path.join(
-        json_dir, "triggering-points.json"), "w"), indent=4)
-
-
-def analyze_trace(project, dir, double_sides=False):
+def analyze_trace(project, dir, generate_oracle=True, generate_config=True, two_sided=False, use_sql=True):
+    print("generate-oracle feature is %s" %
+          ("enabled" if generate_oracle else "disabled"))
+    print("generate-config feature is %s" %
+          ("enabled" if generate_config else "disabled"))
+    if not generate_config:
+        two_sided = False
+        use_sql = False
+    print("two-sided feature is %s" %
+          ("enabled" if two_sided else "disabled"))
+    print("use-sql feature is %s" %
+          ("enabled" if use_sql else "disabled"))
     log_path = os.path.join(dir, "sonar-server.log")
-    conf_dir = os.path.join(dir, "generated-config")
-    if os.path.exists(conf_dir):
-        shutil.rmtree(conf_dir)
-    os.makedirs(conf_dir, exist_ok=True)
-    event_map, event_id_map = generate_event_map(log_path)
-    causality_pairs = generate_causality_pairs(log_path, event_id_map)
-    side_effect, status = generate_digest(log_path)
-    triggering_points = generate_triggering_points(event_map, causality_pairs)
-    dump_files(dir, event_map, causality_pairs,
-               side_effect, status, triggering_points)
-    generate_time_travel_yaml(triggering_points, conf_dir, project)
-    if double_sides:
-        generate_time_travel_yaml(
-            triggering_points, conf_dir, project, "before")
+    if generate_config:
+        conf_dir = os.path.join(dir, "generated-config")
+        if os.path.exists(conf_dir):
+            shutil.rmtree(conf_dir)
+        os.makedirs(conf_dir, exist_ok=True)
+        causality_pairs, event_key_map = generate_event_effect_pairs(
+            log_path, use_sql)
+        triggering_points = generate_triggering_points(
+            event_key_map, causality_pairs)
+        dump_json_file(dir, triggering_points, "triggering-points.json")
+        generate_time_travel_yaml(triggering_points, conf_dir, project)
+        if two_sided:
+            generate_time_travel_yaml(
+                triggering_points, conf_dir, project, "before")
+    if generate_oracle:
+        side_effect, status = oracle.generate_digest(log_path)
+        dump_json_file(dir, side_effect, "side-effect.json")
+        dump_json_file(dir, status, "status.json")
 
 
 if __name__ == "__main__":
-    project = sys.argv[1]
-    test = sys.argv[2]
+    usage = "usage: python3 analyze.py [options]"
+    parser = optparse.OptionParser(usage=usage)
+    parser.add_option("-p", "--project", dest="project",
+                      help="specify PROJECT to test: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
+    parser.add_option("-t", "--test", dest="test",
+                      help="specify TEST to run", metavar="TEST", default="recreate")
+    (options, args) = parser.parse_args()
+    project = options.project
+    test = options.test
+    print("Analyzing controller trace for %s's test workload %s ..." %
+          (project, test))
     dir = os.path.join("log", project, test, "learn")
-    analyze_trace(project, dir)
+    analyze_trace(project, dir, generate_oracle=False,
+                  generate_config=True, two_sided=False, use_sql=True)

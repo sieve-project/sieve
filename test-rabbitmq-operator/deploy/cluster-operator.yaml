@@ -3939,11 +3939,20 @@ spec:
         app.kubernetes.io/part-of: rabbitmq
     spec:
       containers:
-      - env:
+      - command:
+        - /manager
+        env:
         - name: OPERATOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: KUBERNETES_SERVICE_HOST
+          value: "kind-control-plane"
+        - name: KUBERNETES_SERVICE_PORT
+          value: "6443"
+        envFrom:
+        - configMapRef:
+            name: sonar-testing-global-config
         image: ${SONAR-DR}/rabbitmq-operator:${SONAR-DT}
         name: operator
         ports:
@@ -3957,9 +3966,9 @@ spec:
           requests:
             cpu: 200m
             memory: 500Mi
-      # securityContext:
-      #   fsGroup: 1000
-      #   runAsGroup: 1000
-      #   runAsUser: 1000
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsUser: 1000
       serviceAccountName: rabbitmq-cluster-operator
       terminationGracePeriodSeconds: 10

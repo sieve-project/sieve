@@ -1,0 +1,122 @@
+{
+    "configmap": {
+        "default": {
+            "rabbitmq-cluster-plugins-conf": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "rabbitmq-cluster-server-conf": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "persistentvolumeclaim": {
+        "default": {
+            "persistence-rabbitmq-cluster-server-0": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 1
+            }
+        }
+    },
+    "rabbitmqcluster": {
+        "default": {
+            "rabbitmq-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 1
+            }
+        }
+    },
+    "role": {
+        "default": {
+            "rabbitmq-cluster-peer-discovery": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "rolebinding": {
+        "default": {
+            "rabbitmq-cluster-server": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "secret": {
+        "default": {
+            "rabbitmq-cluster-default-user": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "rabbitmq-cluster-erlang-cookie": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "rabbitmq-cluster": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "rabbitmq-cluster-nodes": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "serviceaccount": {
+        "default": {
+            "rabbitmq-cluster-server": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "rabbitmq-cluster-server": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 12
+            }
+        }
+    }
+}

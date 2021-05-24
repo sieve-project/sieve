@@ -3,8 +3,8 @@
 set -ex
 
 kubectl apply -f cdc-2.yaml
-sleep 170s
-kubectl apply -f cdc-1.yaml
-sleep 150s
-kubectl apply -f cdc-2.yaml
-sleep 80s
+if [ $1 = 'learn' ]; then sleep 300s; else sleep 170s; fi
+kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{"spec":{"nodes":1}}'
+if [ $1 = 'learn' ]; then sleep 300s; else sleep 150s; fi
+kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{"spec":{"nodes":2}}'
+if [ $1 = 'learn' ]; then sleep 300s; else sleep 80s; fi

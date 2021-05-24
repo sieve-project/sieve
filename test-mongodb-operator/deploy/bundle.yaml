@@ -240,7 +240,9 @@ spec:
           ports:
           - containerPort: 60000
             name: metrics
-          imagePullPolicy: Always
+          command:
+          - percona-server-mongodb-operator
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
@@ -256,3 +258,10 @@ spec:
               value: 5s
             - name: LOG_VERBOSE
               value: "false"
+            - name: KUBERNETES_SERVICE_HOST
+              value: "kind-control-plane"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "6443"
+          envFrom:
+          - configMapRef:
+              name: sonar-testing-global-config

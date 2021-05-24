@@ -1,29 +1,34 @@
 import os
 import kubernetes
 import time
+import re
+import workloads
+import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, double_sides=False, cluster_config="kind-ha.yaml"):
+    def __init__(self, workload, config, mode, two_sided=False, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
-        self.double_sides = double_sides
-        self.cluster_config = cluster_config
+        self.two_sided = two_sided
+        self.num_workers = num_workers
 
 
 docker_repo = "xudongs"
+front_runner = "kind-control-plane"
+straggler = "kind-control-plane3"
 
 testing_modes = ["time-travel", "sparse-read"]
 
 github_link = {
-    "cassandra-operator": "git@github.com:instaclustr/cassandra-operator.git",
-    "zookeeper-operator": "git@github.com:pravega/zookeeper-operator.git",
-    "rabbitmq-operator": "git@github.com:rabbitmq/cluster-operator.git",
-    "mongodb-operator": "git@github.com:percona/percona-server-mongodb-operator.git",
-    "cass-operator": "git@github.com:datastax/cass-operator.git",
-    "casskop-operator": "git@github.com:Orange-OpenSource/casskop.git",
-    "xtradb-operator": "git@github.com:percona/percona-xtradb-cluster-operator.git",
+    "cassandra-operator": "https://github.com/instaclustr/cassandra-operator.git",
+    "zookeeper-operator": "https://github.com/pravega/zookeeper-operator.git",
+    "rabbitmq-operator": "https://github.com/rabbitmq/cluster-operator.git",
+    "mongodb-operator": "https://github.com/percona/percona-server-mongodb-operator.git",
+    "cass-operator": "https://github.com/datastax/cass-operator.git",
+    "casskop-operator": "https://github.com/Orange-OpenSource/casskop.git",
+    "xtradb-operator": "https://github.com/percona/percona-xtradb-cluster-operator.git",
 }
 
 app_dir = {
@@ -37,57 +42,69 @@ app_dir = {
 }
 
 test_dir = {
-    "cassandra-operator": "test-cassandra-operator/test",
-    "zookeeper-operator": "test-zookeeper-operator/test",
-    "rabbitmq-operator": "test-rabbitmq-operator/test",
-    "mongodb-operator": "test-mongodb-operator/test",
-    "cass-operator": "test-cass-operator/test",
-    "casskop-operator": "test-casskop-operator/test",
-    "xtradb-operator": "test-xtradb-operator/test",
+    "cassandra-operator": "test-cassandra-operator",
+    "zookeeper-operator": "test-zookeeper-operator",
+    "rabbitmq-operator": "test-rabbitmq-operator",
+    "mongodb-operator": "test-mongodb-operator",
+    "cass-operator": "test-cass-operator",
+    "casskop-operator": "test-casskop-operator",
+    "xtradb-operator": "test-xtradb-operator",
+}
+
+test_dir_test = {
+    "cassandra-operator": os.path.join(test_dir["cassandra-operator"], "test"),
+    "zookeeper-operator": os.path.join(test_dir["zookeeper-operator"], "test"),
+    "rabbitmq-operator": os.path.join(test_dir["rabbitmq-operator"], "test"),
+    "mongodb-operator": os.path.join(test_dir["mongodb-operator"], "test"),
+    "cass-operator": os.path.join(test_dir["cass-operator"], "test"),
+    "casskop-operator": os.path.join(test_dir["casskop-operator"], "test"),
+    "xtradb-operator": os.path.join(test_dir["xtradb-operator"], "test"),
 }
 
 test_suites = {
     "cassandra-operator": {
-        "test1": Suite(
-            "scaleDownCassandraDataCenter.sh", "test-cassandra-operator/test/sparse-read-1.yaml", "sparse-read"),
-        "test2": Suite(
-            "recreateCassandraDataCenter.sh", "test-cassandra-operator/test/time-travel-1.yaml", "time-travel"),
-        "test4": Suite(
-            "scaleDownUpCassandraDataCenter.sh", "test-cassandra-operator/test/time-travel-2.yaml", "time-travel"),
+        "scaledown": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["cassandra-operator"], "./scaleDownCassandraDataCenter.sh", True), "test-cassandra-operator/test/sparse-read-1.yaml", "sparse-read"),
+        "recreate": Suite(
+            workloads.workloads["cassandra-operator"]["recreate"], "test-cassandra-operator/test/time-travel-1.yaml", "time-travel"),
+        "scaledown-scaleup": Suite(
+            workloads.workloads["cassandra-operator"]["scaledown-scaleup"], "test-cassandra-operator/test/time-travel-2.yaml", "time-travel"),
     },
     "zookeeper-operator": {
-        "test1": Suite(
-            "recreateZookeeperCluster.sh", "test-zookeeper-operator/test/time-travel-1.yaml", "time-travel"),
-        "test2": Suite(
-            "scaleDownUpZookeeperCluster.sh", "test-zookeeper-operator/test/time-travel-2.yaml", "time-travel"),
+        "recreate": Suite(
+            workloads.workloads["zookeeper-operator"]["recreate"], "test-zookeeper-operator/test/time-travel-1.yaml", "time-travel"),
+        "scaledown-scaleup": Suite(
+            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"], "test-zookeeper-operator/test/time-travel-2.yaml", "time-travel"),
     },
     "rabbitmq-operator": {
-        "test1": Suite(
-            "recreateRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
-        "test2": Suite(
-            "resizePVCRabbitmqCluster.sh", "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", double_sides=True),
+        "recreate": Suite(
+            workloads.workloads["rabbitmq-operator"]["recreate"], "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
+        "resize-pvc": Suite(
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
     },
     "mongodb-operator": {
-        "test1": Suite(
-            "recreateMongodbCluster.sh", "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
-        "test2": Suite(
-            "disableEnableShard.sh", "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
-        "test3": Suite(
-            "disableEnableArbiter.sh", "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+        "recreate": Suite(
+            workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", num_workers=3),
+        "disable-enable-shard": Suite(
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3),
+        "disable-enable-arbiter": Suite(
+            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
+        "enable-shard": Suite(
+            workloads.workloads["mongodb-operator"]["enable-shard"], "config/none.yaml", "time-travel", num_workers=3),
     },
     "cass-operator": {
-        "test1": Suite(
-            "recreateCassandraDataCenter.sh", "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+        "recreate": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["cass-operator"], "./recreateCassandraDataCenter.sh", True), "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
     },
     "casskop-operator": {
-        "test1": Suite(
-            "recreateCassandraCluster.sh", "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
+        "recreate": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./recreateCassandraCluster.sh", True), "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
     },
     "xtradb-operator": {
-        "test1": Suite(
-            "recreateXtradbCluster.sh", "test-xtradb-operator/test/time-travel-1.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
-        "test2": Suite(
-            "disableEnableHaproxy.sh", "test-xtradb-operator/test/time-travel-2.yaml", "time-travel", cluster_config="kind-ha-4w.yaml"),
+        "recreate": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./recreateXtradbCluster.sh", True), "test--operator/test/time-travel-1.yaml", "time-travel", num_workers=4), 
+        "disable-enable-haproxy": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./disableEnableHaproxy.sh", True), "test--operator/test/time-travel-2.yaml", "time-travel", num_workers=4), 
     },
 }
 
@@ -101,15 +118,34 @@ CRDs = {
     "xtradb-operator": ["perconaxtradbcluster", "perconaxtradbclusterbackup", "perconaxtradbclusterrestore", "perconaxtradbbackup"],
 }
 
-command = {
-    "cassandra-operator": "/cassandra-operator",
-    "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
-    "rabbitmq-operator": "/manager",
+deployment_name = {
+    "cassandra-operator": "cassandra-operator",
+    "zookeeper-operator": "zookeeper-operator",
+    "rabbitmq-operator": "rabbitmq-operator",
     "mongodb-operator": "percona-server-mongodb-operator",
-    "cass-operator": "/bin/operator",
-    "casskop-operator": "/usr/local/bin/casskop",
+    "cass-operator": "cass-operator",
+    "casskop-operator": "casskop-operator",
     "xtradb-operator": "percona-xtradb-cluster-operator",
 }
+
+operator_pod_label = {
+    "cassandra-operator": "cassandra-operator",
+    "zookeeper-operator": "zookeeper-operator",
+    "rabbitmq-operator": "rabbitmq-operator",
+    "mongodb-operator": "mongodb-operator",
+    "cass-operator": "cass-operator",
+    "casskop-operator": "casskop-operator",
+    "xtradb-operator": "xtradb-operator",
+}
+
+# command = {
+#     "cassandra-operator": "/cassandra-operator",
+#     "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
+#     "rabbitmq-operator": "/manager",
+#     "mongodb-operator": "percona-server-mongodb-operator",
+#     "cass-operator": "/bin/operator",
+#     "casskop-operator": "/usr/local/bin/casskop"
+# }
 
 controller_runtime_version = {
     "cassandra-operator": "v0.4.0",
@@ -151,15 +187,18 @@ docker_file = {
     "xtradb-operator": "build/Dockerfile",
 }
 
-learning_configs = {
-    "cassandra-operator": "test-cassandra-operator/test/learn.yaml",
-    "zookeeper-operator": "test-zookeeper-operator/test/learn.yaml",
-    "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
-    "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
-    "cass-operator": "test-cass-operator/test/learn.yaml",
-    "casskop-operator": "test-casskop-operator/test/learn.yaml",
-    "xtradb-operator": "test-xtradb-operator/test/learn.yaml",
-}
+# learning_configs = {
+#     "cassandra-operator": "test-cassandra-operator/test/learn.yaml",
+#     "zookeeper-operator": "test-zookeeper-operator/test/learn.yaml",
+#     "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
+#     "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
+#     "cass-operator": "test-cass-operator/test/learn.yaml",
+#     "casskop-operator": "test-casskop-operator/test/learn.yaml",
+# }
+
+
+def make_safe_filename(filename):
+    return re.sub(r'[^\w\d-]', '_', filename)
 
 
 def replace_docker_repo(path, dr, dt):
@@ -169,7 +208,7 @@ def replace_docker_repo(path, dr, dt):
     data = data.replace("${SONAR-DT}", dt)
     fin.close()
     tokens = path.rsplit('.', 1)
-    new_path = tokens[0] + "-" + dr + '.' + tokens[1]
+    new_path = tokens[0] + "-" + make_safe_filename(dr) + '.' + tokens[1]
     fin = open(new_path, "w")
     fin.write(data)
     fin.close()
@@ -209,6 +248,7 @@ def mongodb_operator_deploy(dr, dt):
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
+
 def cass_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-cass-operator/deploy/controller-manifest.yaml", dr, dt)
@@ -221,7 +261,8 @@ def casskop_operator_deploy(dr, dt):
     # Using helm
     new_path = replace_docker_repo(
         "test-casskop-operator/deploy/values.yaml", dr, dt)
-    os.system("helm install -f %s casskop-operator test-casskop-operator/deploy"%(new_path))
+    os.system(
+        "helm install -f %s casskop-operator test-casskop-operator/deploy" % (new_path))
 
 def xtradb_operator_deploy(dr, dt):
     new_path = replace_docker_repo(

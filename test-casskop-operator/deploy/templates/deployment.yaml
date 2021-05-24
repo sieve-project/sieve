@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "cassandra-operator.fullname" . }}
+  name: casskop-operator
   labels:
     app: {{ template "cassandra-operator.name" . }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
@@ -38,8 +38,11 @@ spec:
       - name: {{ template "cassandra-operator.name" . }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
-        # command:
-        # - casskop
+        command:
+        - casskop
+        envFrom:
+          - configMapRef:
+              name: sonar-testing-global-config
         # readinessProbe:
         #   exec:
         #     command:
@@ -50,6 +53,10 @@ spec:
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         env:
+          - name: KUBERNETES_SERVICE_HOST
+            value: "kind-control-plane"
+          - name: KUBERNETES_SERVICE_PORT
+            value: "6443"
           - name: WATCH_NAMESPACE
             valueFrom:
               fieldRef:

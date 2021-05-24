@@ -26,4 +26,4 @@ RUN apk add bash
 # install operator binary
 COPY build/_output/bin/casskop /usr/local/bin/
 
-CMD ["sleep", "infinity"]
+CMD ["/usr/local/bin/casskop"]

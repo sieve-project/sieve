@@ -180,9 +180,9 @@ spec:
       containers:
         - name: cassandra-operator
           image: ${SONAR-DR}/cassandra-operator:${SONAR-DT}
-          # command:
-          # - ./cassandra-operator
-          imagePullPolicy: Always
+          command:
+          - ./cassandra-operator
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
@@ -194,6 +194,13 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "cassandra-operator"
+            - name: KUBERNETES_SERVICE_HOST
+              value: "kind-control-plane"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "6443"
+          envFrom:
+          - configMapRef:
+              name: sonar-testing-global-config
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy

@@ -35,12 +35,19 @@ type NotifyTimeTravelCrucialEventRequest struct {
 	Object    string
 }
 
-type NotifyTimeTravelSideEffectRequest struct {
+type NotifyTimeTravelRestartPointRequest struct {
 	Hostname     string
 	EventType    string
 	ResourceType string
 	Name         string
 	Namespace    string
+}
+
+type NotifyTimeTravelSideEffectsRequest struct {
+	SideEffectType string
+	Object         string
+	ResourceType   string
+	Error          string
 }
 
 type NotifyLearnBeforeIndexerWriteRequest struct {
