@@ -21,13 +21,14 @@ RUN go get k8s.io/apimachinery/pkg/util/sets \
     && go build -o build/_output/bin/peer-list cmd/peer-list/main.go \
     && cp -r build/_output/bin/peer-list /usr/local/bin/
 
-FROM alpine:latest
-
 # LABEL name="Percona XtraDB Cluster Operator" \
 #       vendor="Percona" \
 #       summary="Percona XtraDB Cluster is an active/active high availability and high scalability open source solution for MySQL clustering" \
 #       description="Percona XtraDB Cluster is a high availability solution that helps enterprises avoid downtime and outages and meet expected customer experience." \
 #       maintainer="Percona Development <info@percona.com>"
+
+FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
+RUN microdnf update && microdnf clean all
 
 # COPY LICENSE /licenses/
 COPY --from=go_builder /usr/local/bin/percona-xtradb-cluster-operator /usr/local/bin/percona-xtradb-cluster-operator
@@ -39,8 +40,4 @@ COPY build/pxc-configure-pxc.sh /pxc-configure-pxc.sh
 COPY build/liveness-check.sh /liveness-check.sh
 COPY build/readiness-check.sh /readiness-check.sh
 
-RUN apk update
-RUN apk upgrade
-RUN apk add bash
-
-CMD ["sleep", "infinity"]
+USER nobody

@@ -1,0 +1,146 @@
+{
+    "configmap": {
+        "default": {
+            "auto-sonar-xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "issuer": {
+        "default": {
+            "sonar-xtradb-cluster-pxc-ca": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "perconaxtradbcluster": {
+        "default": {
+            "sonar-xtradb-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 3
+            }
+        }
+    },
+    "persistentvolumeclaim": {
+        "default": {
+            "proxydata-sonar-xtradb-cluster-proxysql-0": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "poddisruptionbudget": {
+        "default": {
+            "sonar-xtradb-cluster-proxysql": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 34
+            },
+            "sonar-xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 36
+            }
+        }
+    },
+    "secret": {
+        "default": {
+            "internal-sonar-xtradb-cluster": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 2
+            },
+            "sonar-cluster-secrets": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-cluster-ssl": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-cluster-ssl-internal": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "sonar-xtradb-cluster-proxysql": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 36
+            },
+            "sonar-xtradb-cluster-proxysql-unready": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 37
+            },
+            "sonar-xtradb-cluster-pxc-unready": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 37
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "sonar-xtradb-cluster-proxysql": {
+                "Create": 36,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 36
+            },
+            "sonar-xtradb-cluster-pxc": {
+                "Create": 37,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 37
+            }
+        }
+    }
+}

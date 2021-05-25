@@ -307,9 +307,9 @@ spec:
         app.kubernetes.io/part-of: percona-xtradb-cluster-operator
     spec:
       containers:
-      # - command:
-      #   - percona-xtradb-cluster-operator
-      - env:
+      - command:
+        - percona-xtradb-cluster-operator
+        env:
         - name: WATCH_NAMESPACE
           valueFrom:
             fieldRef:
@@ -322,6 +322,13 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: percona-xtradb-cluster-operator
+        - name: KUBERNETES_SERVICE_HOST
+          value: "kind-control-plane"
+        - name: KUBERNETES_SERVICE_PORT
+          value: "6443"
+        envFrom:
+        - configMapRef:
+            name: sonar-testing-global-config
         image: ${SONAR-DR}/xtradb-operator:${SONAR-DT}
         imagePullPolicy: Always
         # livenessProbe:

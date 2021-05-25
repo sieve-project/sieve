@@ -105,6 +105,8 @@ test_suites = {
             test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./recreateXtradbCluster.sh", True), "test--operator/test/time-travel-1.yaml", "time-travel", num_workers=4), 
         "disable-enable-haproxy": Suite(
             test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./disableEnableHaproxy.sh", True), "test--operator/test/time-travel-2.yaml", "time-travel", num_workers=4), 
+        "disable-enable-proxysql": Suite(
+            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
     },
 }
 
