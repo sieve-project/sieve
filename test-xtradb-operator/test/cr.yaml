@@ -1,0 +1,78 @@
+apiVersion: pxc.percona.com/v1-7-0
+kind: PerconaXtraDBCluster
+metadata:
+  name: sonar-xtradb-cluster
+  finalizers:
+    - delete-pxc-pods-in-order
+    - delete-proxysql-pvc
+    - delete-pxc-pvc
+spec:
+  crVersion: 1.7.0
+  secretsName: sonar-cluster-secrets
+  vaultSecretName: keyring-secret-vault
+  sslSecretName: sonar-cluster-ssl
+  sslInternalSecretName: sonar-cluster-ssl-internal
+  logCollectorSecretName: sonar-log-collector-secrets
+  allowUnsafeConfigurations: false
+  updateStrategy: RollingUpdate
+  upgradeOptions:
+    versionServiceEndpoint: https://check.percona.com
+    apply: recommended
+    schedule: "0 4 * * *"
+  pxc:
+    size: 3
+    image: percona/percona-xtradb-cluster:8.0.21-12.1
+    autoRecovery: true
+    resources:
+      requests:
+        memory: 1G
+        cpu: 600m
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+    podDisruptionBudget:
+      maxUnavailable: 1
+    volumeSpec:
+      persistentVolumeClaim:
+        resources:
+          requests:
+            storage: 6Gi
+    gracePeriod: 600
+  haproxy:
+    enabled: false
+    size: 3
+    image: percona/percona-xtradb-cluster-operator:1.7.0-haproxy
+    resources:
+      requests:
+        memory: 1G
+        cpu: 600m
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+    podDisruptionBudget:
+      maxUnavailable: 1
+    gracePeriod: 30
+  proxysql:
+    enabled: false
+    size: 3
+    image: percona/percona-xtradb-cluster-operator:1.7.0-proxysql
+    resources:
+      requests:
+        memory: 1G
+        cpu: 600m
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+    volumeSpec:
+      persistentVolumeClaim:
+        resources:
+          requests:
+            storage: 2Gi
+    podDisruptionBudget:
+      maxUnavailable: 1
+    gracePeriod: 30
+  logcollector:
+    enabled: false
+    image: percona/percona-xtradb-cluster-operator:1.7.0-logcollector
+  pmm:
+    enabled: false
+    image: percona/pmm-client:2.12.0
+    serverHost: monitoring-service
+    serverUser: pmm
