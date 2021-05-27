@@ -99,6 +99,8 @@ test_suites = {
     "casskop-operator": {
         "recreate": Suite(
             test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./recreateCassandraCluster.sh", True), "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
+        "reducepdb": Suite(
+            test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./reducepdb.sh", True), "test-casskop-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
     },
     "xtradb-operator": {
         "recreate": Suite(
