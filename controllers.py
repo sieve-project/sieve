@@ -102,11 +102,11 @@ test_suites = {
     },
     "xtradb-operator": {
         "recreate": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./recreateXtradbCluster.sh", True), "test--operator/test/time-travel-1.yaml", "time-travel", num_workers=4), 
+            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./recreateXtradbCluster.sh", True), "test-xtradb-operator/test/time-travel-1.yaml", "time-travel", num_workers=4),
         "disable-enable-haproxy": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./disableEnableHaproxy.sh", True), "test--operator/test/time-travel-2.yaml", "time-travel", num_workers=4), 
+            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./disableEnableHaproxy.sh", True), "test-xtradb-operator/test/time-travel-2.yaml", "time-travel", num_workers=4),
         "disable-enable-proxysql": Suite(
-            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
+            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
     },
 }
 
@@ -139,15 +139,6 @@ operator_pod_label = {
     "casskop-operator": "casskop-operator",
     "xtradb-operator": "xtradb-operator",
 }
-
-# command = {
-#     "cassandra-operator": "/cassandra-operator",
-#     "zookeeper-operator": "/usr/local/bin/zookeeper-operator",
-#     "rabbitmq-operator": "/manager",
-#     "mongodb-operator": "percona-server-mongodb-operator",
-#     "cass-operator": "/bin/operator",
-#     "casskop-operator": "/usr/local/bin/casskop"
-# }
 
 controller_runtime_version = {
     "cassandra-operator": "v0.4.0",
@@ -188,15 +179,6 @@ docker_file = {
     "casskop-operator": "build/Dockerfile",
     "xtradb-operator": "build/Dockerfile",
 }
-
-# learning_configs = {
-#     "cassandra-operator": "test-cassandra-operator/test/learn.yaml",
-#     "zookeeper-operator": "test-zookeeper-operator/test/learn.yaml",
-#     "rabbitmq-operator": "test-rabbitmq-operator/test/learn.yaml",
-#     "mongodb-operator": "test-mongodb-operator/test/learn.yaml",
-#     "cass-operator": "test-cass-operator/test/learn.yaml",
-#     "casskop-operator": "test-casskop-operator/test/learn.yaml",
-# }
 
 
 def make_safe_filename(filename):
@@ -266,11 +248,13 @@ def casskop_operator_deploy(dr, dt):
     os.system(
         "helm install -f %s casskop-operator test-casskop-operator/deploy" % (new_path))
 
+
 def xtradb_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-xtradb-operator/deploy/bundle.yaml", dr, dt)
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
+
 
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
