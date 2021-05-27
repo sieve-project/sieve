@@ -31,7 +31,8 @@ In general, Sieve performs failure testing by pausing the apiserver and restarti
 **Test workloads are required.** Sieve doesn't generate test workloads to run. Sieve can reuse any existing e2e test workload that doesn't perform cluster set up (Sieve will set up the cluster for testing). We also wrote some simple workloads for Sieve.
 
 ### Testing the controller using Sieve
-Now, let's test the rabbitmq-operator
+Now, let's test the rabbitmq-operator.
+
 First build Kubernetes kind image and the controller image:
 ```
 python3 build.py -p kubernetes -m time-travel
