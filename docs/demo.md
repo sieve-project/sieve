@@ -49,9 +49,9 @@ python3 sieve.py -p rabbitmq-operator -t recreate -c test-rabbitmq-operator/test
 
 `-t recreate` is the test workload (written by us) that Sieve will run.
 The workload simply does three things:
-1. it creates a rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
-2. it deletes the rabbitmq cluster `kubectl delete RabbitmqCluster rabbitmq-cluster`
-3. it recreates the rabbitmq cluster `kubectl apply -f rmqc-1.yaml`
+1. it creates a rabbitmq cluster
+2. it deletes the rabbitmq cluster
+3. it recreates the rabbitmq cluster
 
 `-c test-rabbitmq-operator/test/time-travel-1.yaml` is a configuration file that guides the failure testing. Triggering a time-travel bug requires lagging apiservers/restarting controllers with particular timing. The time-travel configuration file encodes the particular timing so no manual intervention is required during testing.
 
@@ -100,7 +100,7 @@ The second phase is called *testing phase* where Sieve runs the test workload an
 
 Recall that we need to pause the apiserver and restart the controller with **a certain timing**. The time travel configuration file specifies the required timing for pausing the apiservers or restarting the controller.
 
-Let's look into the generated time-travel config `log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config/time-travel-config-1.yaml`:
+Let's look into the generated time-travel config `test-rabbitmq-operator/test/time-travel-1.yaml`:
 ```
 project: rabbitmq-operator
 mode: time-travel
@@ -168,13 +168,13 @@ and Sieve then picks each potentially causal-related <event, side effect> pair t
 
 To do so, run:
 ```
-python3 sieve.py -p rabbitmq-operator -t recreate-rabbitmq-cluster -m learn
+python3 sieve.py -p rabbitmq-operator -t recreate -m learn
 ```
-The command will run the test workload `recreate-rabbitmq-cluster`, collect the events and side effects, infer the causality and generate the time-travel config.
+The command will run the test workload `recreate`, collect the events and side effects, infer the causality and generate the time-travel config.
 
 After it finishes, you will see
 ```
 Generated 1 time-travel config(s) in log/rabbitmq-operator/recreate-rabbitmq-cluster/learn/generated-config
 ```
 
-The generated config is exactly the one used in test.
+The generated config is exactly the same as used in test.
