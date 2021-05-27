@@ -1,20 +1,25 @@
 ## Bug Reproduction
-This documentation is a little bit stale. We will update it soon.
+
+**Before reproducing the bugs, please ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work.**
 
 ### Time travel
 First, build the operators:
 ```
-python3 build.py -p kubernetes -m time-travel -d YOUR_DOCKER_REPO_NAME
-python3 build.py -p cassandra-operator -m time-travel -d YOUR_DOCKER_REPO_NAME
-python3 build.py -p zookeeper-operator -m time-travel -d YOUR_DOCKER_REPO_NAME
-python3 build.py -p rabbitmq-operator -m time-travel -d YOUR_DOCKER_REPO_NAME
-python3 build.py -p mongodb-operator -m time-travel -d YOUR_DOCKER_REPO_NAME
+python3 build.py -p kubernetes -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p cassandra-operator -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p zookeeper-operator -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p rabbitmq-operator -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p mongodb-operator -m time-travel -d DOCKER_REPO_NAME
 ```
-Please specify the `YOUR_DOCKER_REPO_NAME` that you have write access to -- sonar needs to push controller image to the repo.
+Please specify the `DOCKER_REPO_NAME` that you have write access to as sieve needs to push controller image to the repo.
+
+The above commands will download, instrument and build Kubernetes and controller images used for testing.
+For Kubernetes, we use the branch `v1.18.9`.
+For each controller, we use a default commit SHA specified in `controllers.py`. You can also specify which commit of the operator you want to test by `-s COMMIT_SHA`, but the bugs may not be reproduced with other commits as some of them have been fixed after our reports.
 
 ### [instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402)
 ```
-python3 sieve.py -p cassandra-operator -t recreate -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -22,25 +27,27 @@ If reproduced, you will see:
 Checking for cluster resource states...
 [ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
+The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
 ### [instaclustr-cassandra-operator-407](https://github.com/instaclustr/cassandra-operator/issues/407)
 This one is special. Please build in this way
 ```
-python3 build.py -p cassandra-operator -m time-travel -s bd8077a478997f63862848d66d4912c59e4c46ff -d YOUR_DOCKER_REPO_NAME
+python3 build.py -p cassandra-operator -m time-travel -s bd8077a478997f63862848d66d4912c59e4c46ff -d DOCKER_REPO_NAME
 ```
 and then
 ```
-python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
 [ERROR] persistentvolumeclaim.size inconsistent: learning: 2, testing: 1
 [ERROR] persistentvolumeclaim.delete inconsistent: learning: 1, testing: 2
 ```
+The bug was found in commit `bd8077a478997f63862848d66d4912c59e4c46ff`.
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
-python3 sieve.py -p zookeeper-operator -t recreate -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p zookeeper-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -48,39 +55,43 @@ If reproduced, you will see:
 Checking for cluster resource states...
 [ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
+The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
-python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
 [ERROR] persistentvolumeclaim/default/data-zookeeper-cluster-1 DELETE inconsistency: 1 events seen during learning run, but 5 seen during testing run
 ```
+The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 
 ### [rabbitmq-cluster-operator-648](https://github.com/rabbitmq/cluster-operator/issues/648)
 ```
-python3 sieve.py -p rabbitmq-operator -t recreate -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p rabbitmq-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
 [ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during normal run, but 3 seen during testing run                                     
 [ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during normal run, but 2 seen during testing run 
 ```
+The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [rabbitmq-cluster-operator-653](https://github.com/rabbitmq/cluster-operator/issues/653)
 ```
-python3 sieve.py -p rabbitmq-operator -t resize-pvc -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p rabbitmq-operator -t resize-pvc -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
 [ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
 [ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
+The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [K8SPSMDB-430](https://jira.percona.com/browse/K8SPSMDB-430)
 ```
-python3 sieve.py -p mongodb-operator -t recreate -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p mongodb-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -88,10 +99,11 @@ If reproduced, you will see:
 [ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
 [ERROR] persistentvolumeclaim SIZE inconsistency: 3 seen after learning run, but 2 seen after testing run
 ```
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPSMDB-433](https://jira.percona.com/browse/K8SPSMDB-433)
 ```
-python3 sieve.py -p mongodb-operator -t disable-enable-shard -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p mongodb-operator -t disable-enable-shard -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
@@ -100,31 +112,54 @@ If reproduced, you will see:
 [ERROR] deployment SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
 [ERROR] pod SIZE inconsistency: 7 seen after learning run, but 8 seen after testing run
 ```
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPSMDB-438](https://jira.percona.com/browse/K8SPSMDB-438)
 ```
-python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
 [ERROR] statefulset/default/mongodb-cluster-rs0-arbiter CREATE inconsistency: 2 events seen during learning run, but 3 seen during testing run
 [ERROR] statefulset/default/mongodb-cluster-rs0-arbiter DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
+
+### [K8SPXC-716](https://jira.percona.com/browse/K8SPXC-716)
+to be updated
+
+### [K8SPXC-725](https://jira.percona.com/browse/K8SPXC-725)
+to be updated
+
+### [K8SPXC-763](https://jira.percona.com/browse/K8SPXC-763)
+to be updated
+
+### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412)
+to be updated
+
+### [orange-opensource-casskop-316](https://github.com/Orange-OpenSource/casskop/issues/316)
+to be updated
+
+### [orange-opensource-casskop-321](https://github.com/Orange-OpenSource/casskop/issues/321)
+to be updated
 
 ### Observability gaps
 First, build the operators:
 ```
-python3 build.py -p kubernetes -m sparse-read -d YOUR_DOCKER_REPO_NAME
-python3 build.py -p cassandra-operator -m sparse-read -d YOUR_DOCKER_REPO_NAME
+python3 build.py -p kubernetes -m sparse-read -d DOCKER_REPO_NAME
+python3 build.py -p cassandra-operator -m sparse-read -d DOCKER_REPO_NAME
 ```
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
-python3 sieve.py -p cassandra-operator -t scaledown -d YOUR_DOCKER_REPO_NAME
+python3 sieve.py -p cassandra-operator -t scaledown -d DOCKER_REPO_NAME
 ```
 If reproduced, you will find
 ```
 persistentVolumeClaim has different length: normal: 1 faulty: 2
 [FIND BUG] # alarms: 1
 ```
+The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
+### [K8SPSMDB-434](https://jira.percona.com/browse/K8SPSMDB-434)
+to be updated

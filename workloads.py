@@ -65,4 +65,11 @@ workloads = {
         # TODO: in learning mode the digest sometimes is incorrect. We may need to have a recording mode for it
         .wait(50),
     },
+    "xtradb-operator": {
+       "disable-enable-proxysql": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.RUNNING).wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-disabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.TERMINATED)
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
+        .wait(70), 
+    }
 }
