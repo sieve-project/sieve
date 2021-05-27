@@ -1,6 +1,6 @@
 ## Bug Reproduction
 
-**Before reproducing the bugs, please ensure your local environment meet all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work.**
+**Before reproducing the bugs, please ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work.**
 
 ### Time travel
 First, build the operators:
@@ -15,7 +15,7 @@ Please specify the `DOCKER_REPO_NAME` that you have write access to as sieve nee
 
 The above commands will download, instrument and build Kubernetes and controller images used for testing.
 For Kubernetes, we use the branch `v1.18.9`.
-For each controller, we use a default commit SHA specified in `controllers.py`. You can also specify which commit of the operator you want to test by `-s COMMIT_SHA`, but the bugs are not guaranteed to be reproduced with other commits as some of them have been fixed after our reports.
+For each controller, we use a default commit SHA specified in `controllers.py`. You can also specify which commit of the operator you want to test by `-s COMMIT_SHA`, but the bugs may not be reproduced with other commits as some of them have been fixed after our reports.
 
 ### [instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402)
 ```
