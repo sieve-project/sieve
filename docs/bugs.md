@@ -45,3 +45,5 @@ https://jira.percona.com/browse/K8SPSMDB-439 (by-product)
 https://jira.percona.com/browse/K8SPXC-716 confirmed (time traveling)
 
 https://jira.percona.com/browse/K8SPXC-725 (time traveling)
+
+https://jira.percona.com/browse/K8SPXC-763 (time traveling)
