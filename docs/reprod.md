@@ -27,7 +27,7 @@ If reproduced, you will see:
 Checking for cluster resource states...
 [ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
-The bug appears in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
+The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
 ### [instaclustr-cassandra-operator-407](https://github.com/instaclustr/cassandra-operator/issues/407)
 This one is special. Please build in this way
@@ -43,7 +43,7 @@ If reproduced, you will see:
 [ERROR] persistentvolumeclaim.size inconsistent: learning: 2, testing: 1
 [ERROR] persistentvolumeclaim.delete inconsistent: learning: 1, testing: 2
 ```
-The bug appears in commit `bd8077a478997f63862848d66d4912c59e4c46ff`.
+The bug was found in commit `bd8077a478997f63862848d66d4912c59e4c46ff`.
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
@@ -55,7 +55,7 @@ If reproduced, you will see:
 Checking for cluster resource states...
 [ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
-The bug appears in commit `cda03d2f270bdfb51372192766123904f6d88278`.
+The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
@@ -65,7 +65,7 @@ If reproduced, you will see:
 ```
 [ERROR] persistentvolumeclaim/default/data-zookeeper-cluster-1 DELETE inconsistency: 1 events seen during learning run, but 5 seen during testing run
 ```
-The bug appears in commit `cda03d2f270bdfb51372192766123904f6d88278`.
+The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 
 ### [rabbitmq-cluster-operator-648](https://github.com/rabbitmq/cluster-operator/issues/648)
 ```
@@ -76,7 +76,7 @@ If reproduced, you will see:
 [ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during normal run, but 3 seen during testing run                                     
 [ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during normal run, but 2 seen during testing run 
 ```
-The bug appears in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
+The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [rabbitmq-cluster-operator-653](https://github.com/rabbitmq/cluster-operator/issues/653)
 ```
@@ -87,7 +87,7 @@ If reproduced, you will see:
 [ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
 [ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
-The bug appears in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
+The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [K8SPSMDB-430](https://jira.percona.com/browse/K8SPSMDB-430)
 ```
@@ -99,7 +99,7 @@ If reproduced, you will see:
 [ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
 [ERROR] persistentvolumeclaim SIZE inconsistency: 3 seen after learning run, but 2 seen after testing run
 ```
-The bug appears in commit `c12b69e2c41efc67336a890039394250420f60bb`.
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPSMDB-433](https://jira.percona.com/browse/K8SPSMDB-433)
 ```
@@ -112,7 +112,7 @@ If reproduced, you will see:
 [ERROR] deployment SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
 [ERROR] pod SIZE inconsistency: 7 seen after learning run, but 8 seen after testing run
 ```
-The bug appears in commit `c12b69e2c41efc67336a890039394250420f60bb`.
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPSMDB-438](https://jira.percona.com/browse/K8SPSMDB-438)
 ```
@@ -123,7 +123,7 @@ If reproduced, you will see:
 [ERROR] statefulset/default/mongodb-cluster-rs0-arbiter CREATE inconsistency: 2 events seen during learning run, but 3 seen during testing run
 [ERROR] statefulset/default/mongodb-cluster-rs0-arbiter DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
-The bug appears in commit `c12b69e2c41efc67336a890039394250420f60bb`.
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPXC-716](https://jira.percona.com/browse/K8SPXC-716)
 to be updated
@@ -159,7 +159,7 @@ If reproduced, you will find
 persistentVolumeClaim has different length: normal: 1 faulty: 2
 [FIND BUG] # alarms: 1
 ```
-The bug appears in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
+The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
 ### [K8SPSMDB-434](https://jira.percona.com/browse/K8SPSMDB-434)
 to be updated
