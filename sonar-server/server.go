@@ -36,6 +36,9 @@ func main() {
 	case "learn":
 		log.Println("learn")
 		rpc.Register(NewLearnListener(config))
+	case "obs-gap":
+		log.Println("obs-gap")
+		rpc.Register(NewObsGapListener(config))
 	default:
 		log.Fatalf("Cannot recognize mode: %s\n", config["mode"])
 	}

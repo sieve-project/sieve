@@ -92,23 +92,23 @@ func strToMap(str string) map[string]interface{} {
 }
 
 func deepCopyMap(src map[string]interface{}, dest map[string]interface{}) {
-    if src == nil {
-        log.Fatalf("src is nil. You cannot read from a nil map")
-    }
-    if dest == nil {
-        log.Fatalf("dest is nil. You cannot insert to a nil map")
-    }
-    jsonStr, err := json.Marshal(src)
-    if err != nil {
-        log.Fatalf(err.Error())
-    }
-    err = json.Unmarshal(jsonStr, &dest)
-    if err != nil {
-        log.Fatalf(err.Error())
-    }
+	if src == nil {
+		log.Fatalf("src is nil. You cannot read from a nil map")
+	}
+	if dest == nil {
+		log.Fatalf("dest is nil. You cannot insert to a nil map")
+	}
+	jsonStr, err := json.Marshal(src)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	err = json.Unmarshal(jsonStr, &dest)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 }
 
-func (s *timeTravelServer) equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
+func equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
 	if len(crucialEvent) != len(currentEvent) {
 		return false
 	}
@@ -150,7 +150,7 @@ func (s *timeTravelServer) equivalentEventList(crucialEvent, currentEvent []inte
 			}
 		case map[string]interface{}:
 			if e, ok := currentEvent[i].(map[string]interface{}); ok {
-				if !s.equivalentEvent(v, e) {
+				if !equivalentEvent(v, e) {
 					return false
 				}
 			} else {
@@ -164,7 +164,7 @@ func (s *timeTravelServer) equivalentEventList(crucialEvent, currentEvent []inte
 	return true
 }
 
-func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
+func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	for key, val := range crucialEvent {
 		if _, ok := currentEvent[key]; !ok {
 			return false
@@ -206,7 +206,7 @@ func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string
 			}
 		case map[string]interface{}:
 			if e, ok := currentEvent[key].(map[string]interface{}); ok {
-				if !s.equivalentEvent(v, e) {
+				if !equivalentEvent(v, e) {
 					return false
 				}
 			} else {
@@ -214,7 +214,7 @@ func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string
 			}
 		case []interface{}:
 			if e, ok := currentEvent[key].([]interface{}); ok {
-				if !s.equivalentEventList(v, e) {
+				if !equivalentEventList(v, e) {
 					return false
 				}
 			} else {
@@ -228,7 +228,7 @@ func (s *timeTravelServer) equivalentEvent(crucialEvent, currentEvent map[string
 	return true
 }
 
-func (s *timeTravelServer) equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
+func equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
 	if _, ok := currentEvent["metadata"]; ok {
 		return false
 	}
@@ -241,7 +241,7 @@ func (s *timeTravelServer) equivalentEventSecondTry(crucialEvent, currentEvent m
 				copiedCrucialEvent[key] = m[key]
 			}
 			delete(copiedCrucialEvent, "metadata")
-			return s.equivalentEvent(copiedCrucialEvent, currentEvent)
+			return equivalentEvent(copiedCrucialEvent, currentEvent)
 		} else {
 			return false
 		}
@@ -250,11 +250,11 @@ func (s *timeTravelServer) equivalentEventSecondTry(crucialEvent, currentEvent m
 	}
 }
 
-func (s *timeTravelServer) isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
-	if s.equivalentEvent(crucialEvent, currentEvent) {
+func isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
+	if equivalentEvent(crucialEvent, currentEvent) {
 		log.Println("Meet")
 		return true
-	} else if s.equivalentEventSecondTry(crucialEvent, currentEvent) {
+	} else if equivalentEventSecondTry(crucialEvent, currentEvent) {
 		log.Println("Meet for the second try")
 		return true
 	} else {
@@ -313,12 +313,12 @@ func (s *timeTravelServer) waitAndRestartComponent() {
 func (s *timeTravelServer) shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
 	if !s.paused {
 		if !s.seenPrev {
-			if s.isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !s.isCrucial(crucialCurEvent, currentEvent)) {
+			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
 				log.Println("Meet crucialPrevEvent: set seenPrev to true")
 				s.seenPrev = true
 			}
 		} else {
-			if s.isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !s.isCrucial(crucialPrevEvent, currentEvent)) {
+			if isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !isCrucial(crucialPrevEvent, currentEvent)) {
 				log.Println("Meet crucialCurEvent: set paused to true and start to pause")
 				s.paused = true
 				return true
@@ -377,9 +377,9 @@ func (s *timeTravelServer) restartComponent() {
 
 	newDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: deployment.ObjectMeta.Name,
+			Name:      deployment.ObjectMeta.Name,
 			Namespace: deployment.ObjectMeta.Namespace,
-			Labels: deployment.ObjectMeta.Labels,
+			Labels:    deployment.ObjectMeta.Labels,
 		},
 		Spec: deployment.Spec,
 	}

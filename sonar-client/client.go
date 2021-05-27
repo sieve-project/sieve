@@ -1,17 +1,17 @@
 package sonar
 
 import (
-	"strings"
 	"io/ioutil"
-	"net/rpc"
 	"log"
-	"sync"
+	"net/rpc"
 	"os"
+	"strings"
+	"sync"
 
 	"gopkg.in/yaml.v2"
 )
 
-var hostPort string = "kind-control-plane:12345"
+var defaultHostPort string = "kind-control-plane:12345"
 var connectionError string = "[sonar] connectionError"
 var replyError string = "[sonar] replyError"
 var hostError string = "[sonar] hostError"
@@ -21,6 +21,7 @@ var config map[string]interface{} = nil
 var sparseRead string = "sparse-read"
 var timeTravel string = "time-travel"
 var learn string = "learn"
+var obsGap string = "obs-gap"
 var taintMap sync.Map = sync.Map{}
 
 func checkMode(mode string) bool {
@@ -69,6 +70,14 @@ func getCRDs() []string {
 }
 
 func newClient() (*rpc.Client, error) {
+	config, _ := getConfig()
+	hostPort := defaultHostPort
+	if config != nil {
+		if val, ok := config["server-endpoint"]; ok {
+			hostPort = val.(string)
+		}
+	}
+	log.Println(hostPort)
 	client, err := rpc.Dial("tcp", hostPort)
 	if err != nil {
 		log.Printf("[sonar] error in setting up connection to %s due to %v\n", hostPort, err)
@@ -77,7 +86,7 @@ func newClient() (*rpc.Client, error) {
 	return client, nil
 }
 
-func getConfigFromEnv() (map[string]interface{}) {
+func getConfigFromEnv() map[string]interface{} {
 	if _, ok := os.LookupEnv("SONAR-MODE"); ok {
 		configFromEnv := make(map[string]interface{})
 		for _, e := range os.Environ() {
@@ -105,7 +114,11 @@ func getConfig() (map[string]interface{}, error) {
 		log.Printf("[sonar] configFromEnv:\n%v\n", configFromEnv)
 		return configFromEnv, nil
 	}
-	data, err := ioutil.ReadFile("/sonar.yaml")
+	configPath := "sonar.yaml"
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		configPath = "/sonar.yaml"
+	}
+	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +145,7 @@ func checkResponse(response Response, reqName string) {
 
 func regularizeType(rtype string) string {
 	tokens := strings.Split(rtype, ".")
-	return strings.ToLower(tokens[len(tokens) - 1])
+	return strings.ToLower(tokens[len(tokens)-1])
 }
 
 func pluralToSingle(rtype string) string {
