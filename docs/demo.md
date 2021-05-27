@@ -1,5 +1,6 @@
 ## Using Sieve to detect a time-travel bug in rabbitmq-operator
 
+**Before trying the demo, please ensure your local environment meet all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work.**
 
 ### What is Sieve?
 
