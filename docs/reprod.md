@@ -131,6 +131,9 @@ to be updated
 ### [K8SPXC-725](https://jira.percona.com/browse/K8SPXC-725)
 to be updated
 
+### [K8SPXC-763](https://jira.percona.com/browse/K8SPXC-763)
+to be updated
+
 ### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412)
 to be updated
 
