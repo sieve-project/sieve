@@ -6651,6 +6651,13 @@ spec:
           value: cass-operator
         - name: SKIP_VALIDATING_WEBHOOK
           value: "FALSE"
+        - name: KUBERNETES_SERVICE_HOST
+          value: "kind-control-plane"
+        - name: KUBERNETES_SERVICE_PORT
+          value: "6443"
+        envFrom:
+        - configMapRef:
+            name: sonar-testing-global-config
         image: ${SONAR-DR}/cass-operator:${SONAR-DT}
         imagePullPolicy: IfNotPresent
 #        livenessProbe:

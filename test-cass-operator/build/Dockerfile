@@ -60,11 +60,11 @@ RUN touch /var/lib/cass-operator/base_os
 ARG TARGETARCH
 COPY --from=builder /cass-operator/build/bin/cass-operator-linux-${TARGETARCH} /bin/operator
 
-RUN apk update \
-        && apk upgrade \
-        && apk add bash
+# RUN apk update \
+#         && apk upgrade \
+#         && apk add bash
 
 # Use alpine:3.11.2 solves infinity invalid issue
-CMD ["sleep", "infinity"]
+# CMD ["sleep", "infinity"]
 
-# CMD [ "/bin/operator" ]
+CMD [ "/bin/operator" ]
