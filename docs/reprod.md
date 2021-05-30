@@ -138,10 +138,16 @@ to be updated
 to be updated
 
 ### [orange-opensource-casskop-316](https://github.com/Orange-OpenSource/casskop/issues/316)
-to be updated
+```
+python3 sieve.py -p casskop-operator -t recreate -d DOCKER_REPO_NAME
+```
+The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [orange-opensource-casskop-321](https://github.com/Orange-OpenSource/casskop/issues/321)
-to be updated
+```
+python3 sieve.py -p casskop-operator -t reducepdb -d DOCKER_REPO_NAME
+```
+The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### Observability gaps
 First, build the operators:
