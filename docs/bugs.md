@@ -18,7 +18,7 @@ https://github.com/datastax/cass-operator/issues/417 (by-product)
 ## [Orange-OpenSource/casskop](https://github.com/Orange-OpenSource/casskop)
 https://github.com/Orange-OpenSource/casskop/issues/316 confirmed (time traveling)
 
-https://github.com/Orange-OpenSource/casskop/issues/321 (time traveling, two-sides)
+https://github.com/Orange-OpenSource/casskop/issues/321 confirmed (time traveling, two-sides)
 
 ## [pravega/zookeeper-operator](https://github.com/pravega/zookeeper-operator)
 https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by us (time traveling)
