@@ -141,13 +141,23 @@ to be updated
 ```
 python3 sieve.py -p casskop-operator -t recreate -d DOCKER_REPO_NAME
 ```
+If reproduced, you will see:
+```
+[ERROR] persistentvolumeclaim/default/data-sonar-cassandra-cluster-dc1-rack1-0 not in testing side effect digest
+```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [orange-opensource-casskop-321](https://github.com/Orange-OpenSource/casskop/issues/321)
 ```
 python3 sieve.py -p casskop-operator -t reducepdb -d DOCKER_REPO_NAME
 ```
+If reproduced, you will see:
+```
+[ERROR] poddisruptionbudget/default/sonar-cassandra-cluster CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
+[ERROR] poddisruptionbudget/default/sonar-cassandra-cluster DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
+```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
+
 
 ### Observability gaps
 First, build the operators:
