@@ -21,6 +21,7 @@ var config map[string]interface{} = nil
 var sparseRead string = "sparse-read"
 var timeTravel string = "time-travel"
 var learn string = "learn"
+var test string = "test"
 var obsGap string = "obs-gap"
 var taintMap sync.Map = sync.Map{}
 
@@ -39,8 +40,23 @@ func checkMode(mode string) bool {
 	}
 }
 
+func checkStage(stage string) bool {
+	if config == nil {
+		config, _ = getConfig()
+	}
+	if config == nil {
+		return false
+	}
+	if stageInConfig, ok := config["stage"]; ok {
+		return stageInConfig.(string) == stage
+	} else {
+		log.Println("[sonar] no stage field in config")
+		return false
+	}
+}
+
 func checkTimeTravelTiming(timing string) bool {
-	if checkMode(timeTravel) {
+	if checkStage(test) && checkMode(timeTravel) {
 		if timingInConfig, ok := config["timing"]; ok {
 			return timingInConfig.(string) == timing
 		} else {

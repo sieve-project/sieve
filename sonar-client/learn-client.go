@@ -1,12 +1,13 @@
 package sonar
 
 import (
-	"log"
 	"encoding/json"
+	"log"
 	"reflect"
 	"strings"
-	"k8s.io/apimachinery/pkg/api/meta"
+
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -28,10 +29,10 @@ func triggerReconcile(object interface{}) bool {
 	if o, err := meta.Accessor(object); err == nil {
 		for _, ref := range o.GetOwnerReferences() {
 			if isCRD(strings.ToLower(ref.Kind), crds) {
-				taintMap.Store(o.GetNamespace() + "-" + rType + "-" + o.GetName(), "")
+				taintMap.Store(o.GetNamespace()+"-"+rType+"-"+o.GetName(), "")
 				return true
 			} else if _, ok := taintMap.Load(o.GetNamespace() + "-" + strings.ToLower(ref.Kind) + "-" + ref.Name); ok {
-				taintMap.Store(o.GetNamespace() + "-" + rType + "-" + o.GetName(), "")
+				taintMap.Store(o.GetNamespace()+"-"+rType+"-"+o.GetName(), "")
 				return true
 			}
 		}
@@ -40,7 +41,7 @@ func triggerReconcile(object interface{}) bool {
 }
 
 func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int {
-	if !checkMode(learn) {
+	if !checkStage(learn) {
 		return -1
 	}
 	if !triggerReconcile(object) {
@@ -59,8 +60,8 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 	}
 	request := &NotifyLearnBeforeIndexerWriteRequest{
 		OperationType: operationType,
-		Object: string(jsonObject),
-		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		Object:        string(jsonObject),
+		ResourceType:  regularizeType(reflect.TypeOf(object).String()),
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeIndexerWrite", request, &response)
@@ -74,7 +75,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 }
 
 func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
-	if !checkMode(learn) {
+	if !checkStage(learn) {
 		return
 	}
 	if !triggerReconcile(object) {
@@ -100,7 +101,7 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 }
 
 func NotifyLearnBeforeReconcile(controllerName string) {
-	if !checkMode(learn) {
+	if !checkStage(learn) {
 		return
 	}
 	log.Printf("[sonar][NotifyLearnBeforeReconcile]\n")
@@ -123,7 +124,7 @@ func NotifyLearnBeforeReconcile(controllerName string) {
 }
 
 func NotifyLearnAfterReconcile(controllerName string) {
-	if !checkMode(learn) {
+	if !checkStage(learn) {
 		return
 	}
 	log.Printf("[sonar][NotifyLearnAfterReconcile]\n")
@@ -146,7 +147,7 @@ func NotifyLearnAfterReconcile(controllerName string) {
 }
 
 func NotifyLearnSideEffects(sideEffectType string, object interface{}, k8sErr error) {
-	if !checkMode(learn) {
+	if !checkStage(learn) {
 		return
 	}
 	log.Printf("[sonar][NotifyLearnSideEffects] %v\n", reflect.TypeOf(object))
@@ -165,9 +166,9 @@ func NotifyLearnSideEffects(sideEffectType string, object interface{}, k8sErr er
 	}
 	request := &NotifyLearnSideEffectsRequest{
 		SideEffectType: sideEffectType,
-		Object: string(jsonObject),
-		ResourceType: regularizeType(reflect.TypeOf(object).String()),
-		Error: errorString,
+		Object:         string(jsonObject),
+		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		Error:          errorString,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnSideEffects", request, &response)
@@ -180,7 +181,7 @@ func NotifyLearnSideEffects(sideEffectType string, object interface{}, k8sErr er
 }
 
 func NotifyLearnCacheGet(readType string, key types.NamespacedName, object interface{}, k8sErr error) {
-	if !checkMode(learn) {
+	if !checkStage(learn) {
 		return
 	}
 	client, err := newClient()
@@ -194,9 +195,9 @@ func NotifyLearnCacheGet(readType string, key types.NamespacedName, object inter
 	}
 	request := &NotifyLearnCacheGetRequest{
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
-		Namespace: key.Namespace,
-		Name: key.Name,
-		Error: errorString,
+		Namespace:    key.Namespace,
+		Name:         key.Name,
+		Error:        errorString,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnCacheGet", request, &response)
@@ -209,7 +210,7 @@ func NotifyLearnCacheGet(readType string, key types.NamespacedName, object inter
 }
 
 func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
-	if !checkMode(learn) {
+	if !checkStage(learn) {
 		return
 	}
 	client, err := newClient()
@@ -223,7 +224,7 @@ func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
 	}
 	request := &NotifyLearnCacheListRequest{
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
-		Error: errorString,
+		Error:        errorString,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnCacheList", request, &response)

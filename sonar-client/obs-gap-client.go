@@ -7,7 +7,7 @@ import (
 )
 
 func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
-	if !checkMode(obsGap) {
+	if !checkStage(test) || !checkMode(obsGap) {
 		return
 	}
 	// if !triggerReconcile(object) {
@@ -43,7 +43,7 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
-	if !checkMode(obsGap) {
+	if !checkStage(test) || !checkMode(obsGap) {
 		return
 	}
 	log.Printf("[sonar][NotifyObsGapAfterIndexerWrite] operationType: %s\n", operationType)
@@ -74,7 +74,7 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapBeforeReconcile(controllerName string) {
-	if !checkMode(obsGap) {
+	if !checkStage(test) || !checkMode(obsGap) {
 		return
 	}
 	log.Printf("[sonar][NotifyObsGapBeforeReconcile]\n")

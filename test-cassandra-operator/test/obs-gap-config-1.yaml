@@ -1,10 +1,10 @@
 project: cassandra-operator
+stage: test
 mode: obs-gap
 straggler: kind-control-plane3
 front-runner: kind-control-plane
 operator-pod-label: cassandra-operator
 deployment-name: cassandra-operator
-timing: after
 ce-name: cassandra-test-cluster-dc1-rack1-1
 ce-namespace: default
 ce-rtype: pod
@@ -16,9 +16,9 @@ ce-etype-previous: Updated
 se-name: data-volume-cassandra-test-cluster-dc1-rack1-1
 se-namespace: default
 se-rtype: persistentvolumeclaim
-se-etype: ADDED
+se-etype: Delete
 description: 'Pause kind-control-plane3 after it processes a default/pod/cassandra-test-cluster-dc1-rack1-1
   event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-NON-NIL",
   "deletionGracePeriodSeconds": 30}} and the events before E should match {}. And
-  restart the controller cassandra-operator after kind-control-plane processes a ADDED
+  restart the controller cassandra-operator after kind-control-plane processes a Delete
   default/persistentvolumeclaim/data-volume-cassandra-test-cluster-dc1-rack1-1 event.'

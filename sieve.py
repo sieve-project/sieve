@@ -67,7 +67,7 @@ def redirect_workers(mode, num_workers):
         os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
-def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
+def setup_cluster(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
     os.system("cp %s sonar-server/server.yaml" % test_config)
@@ -125,7 +125,7 @@ def setup_cluster(project, mode, test_workload, test_config, log_dir, docker_rep
     watch_crd(project, [api1_addr, api2_addr, api3_addr])
 
 
-def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
+def run_workload(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
@@ -152,91 +152,110 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
     streamed_log_file.close()
 
 
-def pre_process(project, mode, test_config):
-    if mode == "learn":
+def pre_process(project, mode, learn, test_config):
+    if learn:
         learn_config = {}
-        learn_config["mode"] = "learn"
+        learn_config["stage"] = "learn"
+        learn_config["mode"] = mode
         learn_config["crd-list"] = controllers.CRDs[project]
         yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
 
 
-def post_process(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
-    if mode == "vanilla":
-        # TODO: We need another recording mode to only record digest without generating config
-        pass
-    elif mode == "learn":
-        analyze.analyze_trace(project, log_dir, two_sided=two_sided)
+def post_process(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
+    if learn:
+        analyze.analyze_trace(project, log_dir, mode, two_sided=two_sided)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
         os.system("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
     else:
-        learned_side_effect = json.load(open(os.path.join(
-            data_dir, "side-effect.json")))
-        learned_status = json.load(open(os.path.join(
-            data_dir, "status.json")))
-        testing_side_effect, testing_status = oracle.generate_digest(
-            os.path.join(log_dir, "sonar-server.log"))
-        operator_log = os.path.join(log_dir, "streamed-operator.log")
-        open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-            oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log))
-        json.dump(testing_side_effect, open(os.path.join(
-            log_dir, "side-effect.json"), "w"), indent=4)
-        json.dump(testing_status, open(os.path.join(
-            log_dir, "status.json"), "w"), indent=4)
+        if mode == "vanilla":
+            # TODO: We need another recording mode to only record digest without generating config
+            pass
+        elif mode == "time-travel":
+            learned_side_effect = json.load(open(os.path.join(
+                data_dir, "side-effect.json")))
+            learned_status = json.load(open(os.path.join(
+                data_dir, "status.json")))
+            testing_side_effect, testing_status = oracle.generate_digest(
+                os.path.join(log_dir, "sonar-server.log"))
+            operator_log = os.path.join(log_dir, "streamed-operator.log")
+            open(os.path.join(log_dir, "bug-report.txt"), "w").write(
+                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log))
+            json.dump(testing_side_effect, open(os.path.join(
+                log_dir, "side-effect.json"), "w"), indent=4)
+            json.dump(testing_status, open(os.path.join(
+                log_dir, "status.json"), "w"), indent=4)
+        elif mode == "obs-gap":
+            learned_side_effect = json.load(open(os.path.join(
+                data_dir, "side-effect.json")))
+            learned_status = json.load(open(os.path.join(
+                data_dir, "status.json")))
+            testing_side_effect, testing_status = oracle.generate_digest(
+                os.path.join(log_dir, "sonar-server.log"))
+            operator_log = os.path.join(log_dir, "streamed-operator.log")
+            open(os.path.join(log_dir, "bug-report.txt"), "w").write(
+                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log))
+            json.dump(testing_side_effect, open(os.path.join(
+                log_dir, "side-effect.json"), "w"), indent=4)
+            json.dump(testing_status, open(os.path.join(
+                log_dir, "status.json"), "w"), indent=4)
 
 
-def run_test(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
+
+def run_test(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
     if run == "all" or run == "setup":
-        pre_process(project, mode, test_config)
-        setup_cluster(project, mode, test_workload, test_config,
+        pre_process(project, mode, learn, test_config)
+        setup_cluster(project, mode, learn, test_workload, test_config,
                       log_dir, docker_repo, docker_tag, num_workers)
     if run == "all" or run == "workload":
-        run_workload(project, mode, test_workload, test_config,
+        run_workload(project, mode, learn, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers)
-        post_process(project, mode, test_workload, test_config,
+        post_process(project, mode, learn, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run)
 
 
-def run(test_suites, project, test, log_dir, mode, config, docker, run="all"):
+def run(test_suites, project, test, log_dir, mode, learn, config, docker, run="all"):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
     assert run == "all" or run == "setup" or run == "workload", "wrong run option: %s" % run
-    if mode == "vanilla":
-        log_dir = os.path.join(log_dir, mode)
-        blank_config = "config/none.yaml"
-        run_test(project, mode, suite.workload,
-                 blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
-    elif mode == "learn":
+    test_mode = mode if mode != "none" else suite.mode
+    assert test_mode in controllers.testing_modes, "wrong mode option"
+
+    if learn:
         log_dir = os.path.join(log_dir, mode)
         learn_config = os.path.join(
             controllers.test_dir[project], "test", "learn.yaml")
-        run_test(project, mode, suite.workload,
-                 learn_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
+        run_test(project, mode, learn, suite.workload,
+                 learn_config, log_dir, docker, "learn", suite.num_workers, data_dir, suite.two_sided, run)
     else:
-        test_config = config if config != "none" else suite.config
-        test_mode = mode if mode != "none" else suite.mode
-        assert test_mode in controllers.testing_modes, "wrong mode option"
-        print("testing mode: %s config: %s" % (test_mode, test_config))
-        log_dir = os.path.join(log_dir, test_mode)
-        run_test(project, test_mode, suite.workload,
-                 test_config, log_dir, docker, test_mode, suite.num_workers, data_dir, suite.two_sided, run)
+        if mode == "vanilla":
+            log_dir = os.path.join(log_dir, mode)
+            blank_config = "config/none.yaml"
+            run_test(project, mode, learn, suite.workload,
+                    blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
+        else:
+            test_config = config if config != "none" else suite.config
+            print("testing mode: %s config: %s" % (test_mode, test_config))
+            log_dir = os.path.join(log_dir, test_mode)
+            run_test(project, test_mode, learn, suite.workload,
+                    test_config, log_dir, docker, test_mode, suite.num_workers, data_dir, suite.two_sided, run)
 
 
-def run_batch(project, test, dir, mode, docker):
-    config_dir = os.path.join("log", project, test,
-                              "learn", "generated-config")
+def run_batch(project, test, dir, mode, learn, docker):
+    assert not learn, "cannot run batch mode under learn stage"
+    config_dir = os.path.join("log", project, "learn", test, mode, "generated-config")
     configs = glob.glob(os.path.join(config_dir, "*.yaml"))
     print("configs", configs)
     for config in configs:
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(
-            dir, project, test, num)
+            dir, project, "test", test, num)
         print("[sonar] config is %s" % config)
         print("[sonar] log dir is %s" % log_dir)
         run(controllers.test_suites, project,
-            test, log_dir, mode, config, docker)
+            test, log_dir, mode, learn, config, docker)
 
 
 if __name__ == "__main__":
@@ -252,20 +271,26 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: vanilla, learn, time-travel, sparse-read", metavar="MODE", default="none")
+                      help="test MODE: vanilla, time-travel, sparse-read", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
                       help="batch mode or not", default=False)
     parser.add_option("-r", "--run", dest="run",
                       help="RUN set_up only, workload only, or all", metavar="RUN", default="all")
+    parser.add_option("-n", "--learn", action="store_true", dest="learn", help="run sieve in learning mode", default=False)
 
     (options, args) = parser.parse_args()
 
+    # For backward compatibility
+    if options.mode == "learn":
+        options.mode = "time-travel"
+        options.learn = True
+
     if options.batch:
         run_batch(options.project, options.test,
-                  "log-batch", options.mode, options.docker)
+                  "log-batch", options.mode, options.learn, options.docker)
     else:
         run(controllers.test_suites, options.project, options.test, os.path.join(
-            options.log, options.project, options.test), options.mode, options.config, options.docker, options.run)
+            options.log, options.project, "learn" if options.learn else "test", options.test), options.mode, options.learn, options.config, options.docker, options.run)
     print("total time: {} seconds".format(time.time() - s))

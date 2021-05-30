@@ -10,7 +10,7 @@ import (
 // NotifySparseReadBeforeMakeQ lets the server know which controller creates which queue,
 // this piece of information is not utilized by server so far.
 func NotifySparseReadBeforeMakeQ(queue interface{}, controllerName string) {
-	if !checkMode(sparseRead) {
+	if !checkStage(test) || !checkMode(sparseRead) {
 		return
 	}
 	log.Printf("[sonar][NotifySparseReadBeforeMakeQ] queue: %p, controllerName: %s\n", queue, controllerName)
@@ -37,7 +37,7 @@ func NotifySparseReadBeforeMakeQ(queue interface{}, controllerName string) {
 // NotifySparseReadBeforeQAdd is invoked before controller calling q.Add
 // NotifySparseReadBeforeQAdd lets the server know how busy the queues and controller are.
 func NotifySparseReadBeforeQAdd(queue interface{}) {
-	if !checkMode(sparseRead) {
+	if !checkStage(test) || !checkMode(sparseRead) {
 		return
 	}
 	log.Printf("[sonar][NotifySparseReadBeforeQAdd] queue: %p\n", queue)
@@ -64,7 +64,7 @@ func NotifySparseReadBeforeQAdd(queue interface{}) {
 // NotifySparseReadBeforeReconcile lets controller know a reconcile is going to happen,
 // and the controller should decide whether to delay it.
 func NotifySparseReadBeforeReconcile(controllerName string) {
-	if !checkMode(sparseRead) {
+	if !checkStage(test) || !checkMode(sparseRead) {
 		return
 	}
 	log.Printf("[sonar][NotifySparseReadBeforeReconcile] controllerName: %s\n", controllerName)
@@ -87,7 +87,7 @@ func NotifySparseReadBeforeReconcile(controllerName string) {
 }
 
 func NotifySparseReadSideEffects(sideEffectType string, object interface{}) {
-	if !checkMode(timeTravel) {
+	if !checkStage(test) || !checkMode(timeTravel) {
 		return
 	}
 	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\n", sideEffectType, regularizeType(reflect.TypeOf(object).String()))
