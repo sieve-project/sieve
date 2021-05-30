@@ -88,6 +88,10 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
           helm 
+      - name: Install Mage
+        run: |
+          go get -u github.com/magefile/mage
+          mage -h
       - name: Build Image
         run: |
           python3 build.py -p cass-operator -m learn -d $IMAGE_NAMESPACE
