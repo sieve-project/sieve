@@ -1,0 +1,53 @@
+{
+    "cassandracluster": {
+        "default": {
+            "sonar-cassandra-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 24
+            }
+        }
+    },
+    "poddisruptionbudget": {
+        "default": {
+            "sonar-cassandra-cluster": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "sonar-cassandra-cluster": {
+                "Create": 37,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-cassandra-cluster-exporter-jmx": {
+                "Create": 37,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "sonar-cassandra-cluster-dc1-rack1": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    }
+}

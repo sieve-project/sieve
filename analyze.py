@@ -132,7 +132,7 @@ def parse_side_effects(path):
             side_effect = common.parse_side_effect(line)
             # Do deepcopy here to ensure the later changes to the two sets
             # will not affect this side effect.
-            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile))
+            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile)) # cache read during that possible interval
             side_effect.set_read_types(
                 copy.deepcopy(read_types_this_reconcile))
             side_effect.set_end_timestamp(i)
@@ -180,7 +180,7 @@ def base_pass(event_list, side_effect_list):
     event_effect_pairs = []
     for side_effect in side_effect_list:
         for event in event_list:
-            if side_effect.range_overlap(event):
+            if side_effect.range_overlap(event): # events can lead to that side_effect
                 event_effect_pairs.append([event, side_effect])
     return event_effect_pairs
 
@@ -316,6 +316,7 @@ def time_travel_description(yaml_map):
 def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map = {}
     yaml_map["project"] = project
+    yaml_map["stage"] = "test"
     yaml_map["mode"] = "time-travel"
     yaml_map["straggler"] = controllers.straggler
     yaml_map["front-runner"] = controllers.front_runner
@@ -349,12 +350,46 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
+def generate_obs_gap_yaml(triggering_points, path, project):
+    yaml_map = {}
+    yaml_map["project"] = project
+    yaml_map["stage"] = "test"
+    yaml_map["mode"] = "obs-gap"
+    yaml_map["straggler"] = controllers.straggler
+    yaml_map["front-runner"] = controllers.front_runner
+    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
+    yaml_map["deployment-name"] = controllers.deployment_name[project]
+    i = 0
+    for triggering_point in triggering_points:
+        if triggering_point["ttype"] != "event-delta":
+            # TODO: handle the single event trigger
+            continue
+        i += 1
+        effect = triggering_point["effect"]
+        yaml_map["ce-name"] = triggering_point["name"]
+        yaml_map["ce-namespace"] = triggering_point["namespace"]
+        yaml_map["ce-rtype"] = triggering_point["rtype"]
+        yaml_map["ce-diff-current"] = json.dumps(
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"])))
+        yaml_map["ce-diff-previous"] = json.dumps(
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"])))
+        yaml_map["ce-etype-current"] = triggering_point["curEventType"]
+        yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
+        yaml_map["se-name"] = effect["name"]
+        yaml_map["se-namespace"] = effect["namespace"]
+        yaml_map["se-rtype"] = effect["rtype"]
+        yaml_map["se-etype"] = effect["etype"]
+        yaml_map["description"] = time_travel_description(yaml_map)
+        yaml.dump(yaml_map, open(
+            os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
+    print("Generated %d obs-gap config(s) in %s" % (i, path))
+
 def dump_json_file(dir, data, json_file_name):
     json.dump(data, open(os.path.join(
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def analyze_trace(project, dir, generate_oracle=True, generate_config=True, two_sided=False, use_sql=True):
+def analyze_trace(project, dir, mode, generate_oracle=True, generate_config=True, two_sided=False, use_sql=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -377,10 +412,14 @@ def analyze_trace(project, dir, generate_oracle=True, generate_config=True, two_
         triggering_points = generate_triggering_points(
             event_key_map, causality_pairs)
         dump_json_file(dir, triggering_points, "triggering-points.json")
-        generate_time_travel_yaml(triggering_points, conf_dir, project)
-        if two_sided:
-            generate_time_travel_yaml(
-                triggering_points, conf_dir, project, "before")
+        if mode == "time-travel":
+            generate_time_travel_yaml(triggering_points, conf_dir, project)
+            if two_sided:
+                generate_time_travel_yaml(
+                    triggering_points, conf_dir, project, "before")
+        elif mode == "obs-gap":
+            generate_obs_gap_yaml(triggering_points, conf_dir, project)
+
     if generate_oracle:
         side_effect, status = oracle.generate_digest(log_path)
         dump_json_file(dir, side_effect, "side-effect.json")
@@ -400,5 +439,5 @@ if __name__ == "__main__":
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
     dir = os.path.join("log", project, test, "learn")
-    analyze_trace(project, dir, generate_oracle=False,
+    analyze_trace(project, dir, "time-travel", generate_oracle=False,
                   generate_config=True, two_sided=False, use_sql=True)

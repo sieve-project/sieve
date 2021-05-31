@@ -19,7 +19,7 @@ docker_repo = "xudongs"
 front_runner = "kind-control-plane"
 straggler = "kind-control-plane3"
 
-testing_modes = ["time-travel", "sparse-read"]
+testing_modes = ["time-travel", "sparse-read", "obs-gap"]
 
 github_link = {
     "cassandra-operator": "https://github.com/instaclustr/cassandra-operator.git",
@@ -64,7 +64,7 @@ test_dir_test = {
 test_suites = {
     "cassandra-operator": {
         "scaledown": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["cassandra-operator"], "./scaleDownCassandraDataCenter.sh", True), "test-cassandra-operator/test/sparse-read-1.yaml", "sparse-read"),
+            workloads.workloads["cassandra-operator"]["scaledown"], "test-cassandra-operator/test/obs-gap-1.yaml", "obs-gap"),
         "recreate": Suite(
             workloads.workloads["cassandra-operator"]["recreate"], "test-cassandra-operator/test/time-travel-1.yaml", "time-travel"),
         "scaledown-scaleup": Suite(

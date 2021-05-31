@@ -1,0 +1,31 @@
+project: casskop-operator
+stage: test
+mode: time-travel
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: casskop-operator
+deployment-name: casskop-operator
+timing: before
+ce-name: sonar-cassandra-cluster
+ce-namespace: default
+ce-rtype: cassandracluster
+ce-diff-current: '{"metadata": {"annotations": {"kubectl.kubernetes.io/last-applied-configuration":
+  "{\"apiVersion\":\"db.orange.com/v1alpha1\",\"kind\":\"CassandraCluster\",\"metadata\":{\"annotations\":{},\"labels\":{\"cluster\":\"k8s.kaas\"},\"name\":\"sonar-cassandra-cluster\",\"namespace\":\"default\"},\"spec\":{\"autoPilot\":false,\"autoUpdateSeedList\":false,\"bootstrapImage\":\"orangeopensource/cassandra-bootstrap:0.1.8\",\"cassandraImage\":\"cassandra:3.11\",\"configMapName\":\"cassandra-configmap-v1\",\"dataCapacity\":\"200Mi\",\"deletePVC\":true,\"gcStdout\":true,\"hardAntiAffinity\":false,\"imagepullpolicy\":\"IfNotPresent\",\"maxPodUnavailable\":1,\"resources\":{\"limits\":{\"cpu\":\"1\",\"memory\":\"2Gi\"},\"requests\":{\"cpu\":\"1\",\"memory\":\"2Gi\"}},\"runAsUser\":999,\"topology\":{\"dc\":[{\"name\":\"dc1\",\"nodesPerRacks\":1,\"rack\":[{\"name\":\"rack1\"}]}]}}}\n"}},
+  "spec": {"maxPodUnavailable": 1}}'
+ce-diff-previous: '{"metadata": {"annotations": {"kubectl.kubernetes.io/last-applied-configuration":
+  "{\"apiVersion\":\"db.orange.com/v1alpha1\",\"kind\":\"CassandraCluster\",\"metadata\":{\"annotations\":{},\"labels\":{\"cluster\":\"k8s.kaas\"},\"name\":\"sonar-cassandra-cluster\",\"namespace\":\"default\"},\"spec\":{\"autoPilot\":false,\"autoUpdateSeedList\":false,\"bootstrapImage\":\"orangeopensource/cassandra-bootstrap:0.1.8\",\"cassandraImage\":\"cassandra:3.11\",\"configMapName\":\"cassandra-configmap-v1\",\"dataCapacity\":\"200Mi\",\"deletePVC\":true,\"gcStdout\":true,\"hardAntiAffinity\":false,\"imagepullpolicy\":\"IfNotPresent\",\"maxPodUnavailable\":4,\"resources\":{\"limits\":{\"cpu\":\"1\",\"memory\":\"2Gi\"},\"requests\":{\"cpu\":\"1\",\"memory\":\"2Gi\"}},\"runAsUser\":999,\"topology\":{\"dc\":[{\"name\":\"dc1\",\"nodesPerRacks\":1,\"rack\":[{\"name\":\"rack1\"}]}]}}}\n"}},
+  "spec": {"maxPodUnavailable": 4}}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+se-name: sonar-cassandra-cluster
+se-namespace: default
+se-rtype: poddisruptionbudget
+se-etype: ADDED
+description: 'Pause kind-control-plane3 after it processes a default/cassandracluster/sonar-cassandra-cluster
+  event E. E should match the pattern {"metadata": {"annotations": {"kubectl.kubernetes.io/last-applied-configuration":
+  "{\"apiVersion\":\"db.orange.com/v1alpha1\",\"kind\":\"CassandraCluster\",\"metadata\":{\"annotations\":{},\"labels\":{\"cluster\":\"k8s.kaas\"},\"name\":\"sonar-cassandra-cluster\",\"namespace\":\"default\"},\"spec\":{\"autoPilot\":false,\"autoUpdateSeedList\":false,\"bootstrapImage\":\"orangeopensource/cassandra-bootstrap:0.1.8\",\"cassandraImage\":\"cassandra:3.11\",\"configMapName\":\"cassandra-configmap-v1\",\"dataCapacity\":\"200Mi\",\"deletePVC\":true,\"gcStdout\":true,\"hardAntiAffinity\":false,\"imagepullpolicy\":\"IfNotPresent\",\"maxPodUnavailable\":1,\"resources\":{\"limits\":{\"cpu\":\"1\",\"memory\":\"2Gi\"},\"requests\":{\"cpu\":\"1\",\"memory\":\"2Gi\"}},\"runAsUser\":999,\"topology\":{\"dc\":[{\"name\":\"dc1\",\"nodesPerRacks\":1,\"rack\":[{\"name\":\"rack1\"}]}]}}}\n"}},
+  "spec": {"maxPodUnavailable": 1}} and the events before E should match {"metadata":
+  {"annotations": {"kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"db.orange.com/v1alpha1\",\"kind\":\"CassandraCluster\",\"metadata\":{\"annotations\":{},\"labels\":{\"cluster\":\"k8s.kaas\"},\"name\":\"sonar-cassandra-cluster\",\"namespace\":\"default\"},\"spec\":{\"autoPilot\":false,\"autoUpdateSeedList\":false,\"bootstrapImage\":\"orangeopensource/cassandra-bootstrap:0.1.8\",\"cassandraImage\":\"cassandra:3.11\",\"configMapName\":\"cassandra-configmap-v1\",\"dataCapacity\":\"200Mi\",\"deletePVC\":true,\"gcStdout\":true,\"hardAntiAffinity\":false,\"imagepullpolicy\":\"IfNotPresent\",\"maxPodUnavailable\":4,\"resources\":{\"limits\":{\"cpu\":\"1\",\"memory\":\"2Gi\"},\"requests\":{\"cpu\":\"1\",\"memory\":\"2Gi\"}},\"runAsUser\":999,\"topology\":{\"dc\":[{\"name\":\"dc1\",\"nodesPerRacks\":1,\"rack\":[{\"name\":\"rack1\"}]}]}}}\n"}},
+  "spec": {"maxPodUnavailable": 4}}. And restart the controller casskop-operator after
+  kind-control-plane processes a ADDED default/poddisruptionbudget/sonar-cassandra-cluster
+  event.'

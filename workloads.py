@@ -15,6 +15,10 @@ workloads = {
         .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":1}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.TERMINATED).wait_for_pvc_status("data-volume-cassandra-test-cluster-dc1-rack1-1", common.TERMINATED)
         .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":2}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.RUNNING)
         .wait(50),
+        "scaledown": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-cassandra-operator/test/cdc-2.yaml").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", common.RUNNING).wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.RUNNING)
+        .cmd("kubectl apply -f test-cassandra-operator/test/cdc-1.yaml").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.TERMINATED)
+        .wait(50),
     },
     "zookeeper-operator": {
         "recreate": test_framework.new_built_in_workload()

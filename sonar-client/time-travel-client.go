@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"strings"
 	"reflect"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	// "k8s.io/apimachinery/pkg/api/meta"
@@ -30,9 +30,9 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	if len(tokens) < 4 {
 		return
 	}
-	resourceType := pluralToSingle(tokens[len(tokens) - 3])
-	namespace := tokens[len(tokens) - 2]
-	name := tokens[len(tokens) - 1]
+	resourceType := pluralToSingle(tokens[len(tokens)-3])
+	namespace := tokens[len(tokens)-2]
+	name := tokens[len(tokens)-1]
 	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
 		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
@@ -102,7 +102,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 // }
 
 func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sErr error) {
-	if !checkMode(timeTravel) {
+	if !checkStage(test) || !checkMode(timeTravel) {
 		return
 	}
 	// log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
@@ -121,9 +121,9 @@ func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sE
 	}
 	request := &NotifyTimeTravelSideEffectsRequest{
 		SideEffectType: sideEffectType,
-		Object: string(jsonObject),
-		ResourceType: regularizeType(reflect.TypeOf(object).String()),
-		Error: errorString,
+		Object:         string(jsonObject),
+		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		Error:          errorString,
 	}
 	var response Response
 	err = client.Call("TimeTravelListener.NotifyTimeTravelSideEffects", request, &response)

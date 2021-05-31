@@ -56,6 +56,22 @@ func instrumentControllerForTimeTravel(controller_runtime_filepath string) {
 	instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel")
 }
 
+/* API interface:
+1. notify that we get some event into localcache (just recv event from API server) (cannot be runtime, but it is bind with watch(?))
+2. block the reconcile (in runtime)
+*/
+func instrumentControllerForObsGap(controller_runtime_filepath string, client_go_filepath string) {
+	// client.go: before apply to cache
+	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
+	fmt.Printf("instrumenting %s\n", controllerGoFile)
+	instrumentControllerGoForObsGap(controllerGoFile, controllerGoFile)
+
+	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
+	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
+	preprocess(sharedInformerGoFile)
+	instrumentSharedInformerGoForObsGap(sharedInformerGoFile, sharedInformerGoFile)
+}
+
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
 	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
@@ -90,6 +106,8 @@ func main() {
 			instrumentControllerForSparseRead(args[3])
 		} else if mode == "learn" {
 			instrumentControllerForLearn(args[3], args[4])
+		} else if mode == "obs-gap" {
+			instrumentControllerForObsGap(args[3], args[4])
 		}
 
 	}

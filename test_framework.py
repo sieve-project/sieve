@@ -68,7 +68,7 @@ class TestWait:
 
 
 class TestWaitForStatus:
-    def __init__(self, resource_type, resource_name, status, time_out="600"):
+    def __init__(self, resource_type, resource_name, status, time_out=600):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.status = status
@@ -127,7 +127,7 @@ class TestWaitForStatus:
 
 
 class TestWaitForStorage:
-    def __init__(self, resource_type, resource_name, storage_size, time_out="600"):
+    def __init__(self, resource_type, resource_name, storage_size, time_out=600):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.storage_size = storage_size
