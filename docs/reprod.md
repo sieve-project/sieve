@@ -135,7 +135,17 @@ to be updated
 to be updated
 
 ### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412)
-to be updated
+```
+python3 sieve.py -p cass-operator -t recreate -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[BUG REPORT]
+Checking for controller side effects (resource creation/deletion)...
+[ERROR] persistentvolumeclaim/default/server-data-cluster1-sonar-cassandra-datacenter-default-sts-0 DELETE inconsistency: 2 events seen during learning run, but 5 seen during testing run
+Checking for cluster resource states...
+[ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
+```
 
 ### [orange-opensource-casskop-316](https://github.com/Orange-OpenSource/casskop/issues/316)
 ```
