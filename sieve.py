@@ -220,8 +220,6 @@ def run(test_suites, project, test, log_dir, mode, learn, config, docker, run="a
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
     assert run == "all" or run == "setup" or run == "workload", "wrong run option: %s" % run
-    test_mode = mode if mode != "none" else suite.mode
-    assert test_mode in controllers.testing_modes, "wrong mode option"
 
     if learn:
         log_dir = os.path.join(log_dir, mode)
@@ -237,10 +235,10 @@ def run(test_suites, project, test, log_dir, mode, learn, config, docker, run="a
                     blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
         else:
             test_config = config if config != "none" else suite.config
-            print("testing mode: %s config: %s" % (test_mode, test_config))
-            log_dir = os.path.join(log_dir, test_mode)
-            run_test(project, test_mode, learn, suite.workload,
-                    test_config, log_dir, docker, test_mode, suite.num_workers, data_dir, suite.two_sided, run)
+            print("testing mode: %s config: %s" % (mode, test_config))
+            log_dir = os.path.join(log_dir, mode)
+            run_test(project, mode, learn, suite.workload,
+                    test_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
 
 
 def run_batch(project, test, dir, mode, learn, docker):
@@ -283,14 +281,21 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     # For backward compatibility
-    if options.mode == "learn":
-        options.mode = "time-travel"
-        options.learn = True
+    if options.mode in ["learn", "none"]:
+        if options.mode == "learn":
+            options.learn = True
+        suite = controllers.test_suites[options.project][options.test]
+        options.mode = suite.mode
+        
+    assert options.mode in controllers.testing_modes, "wrong mode option"
+
+    stage = "learn" if options.learn else "test"
+    print("Running Sieve on %s stage with %s mode..."%(stage, options.mode))
 
     if options.batch:
         run_batch(options.project, options.test,
                   "log-batch", options.mode, options.learn, options.docker)
     else:
         run(controllers.test_suites, options.project, options.test, os.path.join(
-            options.log, options.project, "learn" if options.learn else "test", options.test), options.mode, options.learn, options.config, options.docker, options.run)
+            options.log, options.project, stage, options.test), options.mode, options.learn, options.config, options.docker, options.run)
     print("total time: {} seconds".format(time.time() - s))
