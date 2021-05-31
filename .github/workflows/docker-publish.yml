@@ -47,7 +47,7 @@ jobs:
         run: |
           python3 sieve.py -p casskop-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p casskop-operator -t reducepdb -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Time Travel
+      - name: Sieve Test
         run: |
           python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p casskop-operator -t reducepdb -d $IMAGE_NAMESPACE
@@ -99,7 +99,7 @@ jobs:
       - name: Sieve Learn
         run: |
           python3 sieve.py -p cass-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Time Travel
+      - name: Sieve Test
         run: |
           python3 sieve.py -p cass-operator -t recreate -d $IMAGE_NAMESPACE -b
       - uses: actions/upload-artifact@v2
@@ -150,7 +150,7 @@ jobs:
           python3 sieve.py -p mongodb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p mongodb-operator -t disable-enable-shard -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Time Travel
+      - name: Sieve Test
         run: |
           python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p mongodb-operator -t disable-enable-shard -d $IMAGE_NAMESPACE
@@ -200,10 +200,12 @@ jobs:
         run: |
           python3 sieve.py -p cassandra-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p cassandra-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Time Travel
+          python3 sieve.py -p cassandra-operator -t scaledown -m learn -d $IMAGE_NAMESPACE
+      - name: Sieve Test
         run: |
           python3 sieve.py -p cassandra-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t scaledown -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-cassandra-artifact
@@ -249,7 +251,7 @@ jobs:
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t resize-pvc -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Time Travel
+      - name: Sieve Test
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t resize-pvc -d $IMAGE_NAMESPACE
@@ -298,7 +300,7 @@ jobs:
         run: |
           python3 sieve.py -p zookeeper-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Time Travel
+      - name: Sieve Test
         run: |
           python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
