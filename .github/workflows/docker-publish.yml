@@ -196,6 +196,7 @@ jobs:
         run: |
           python3 build.py -p cassandra-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p cassandra-operator -m time-travel  -d $IMAGE_NAMESPACE
+          python3 build.py -p cassandra-operator -m obs-gap  -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |
           python3 sieve.py -p cassandra-operator -t recreate -m learn -d $IMAGE_NAMESPACE
