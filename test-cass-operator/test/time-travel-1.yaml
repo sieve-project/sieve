@@ -3,8 +3,8 @@ stage: test
 mode: time-travel
 straggler: kind-control-plane3
 front-runner: kind-control-plane
-operator-pod: cass-operator
-command: /bin/operator
+operator-pod-label: cass-operator
+deployment-name: cass-operator
 timing: after
 ce-name: sonar-cassandra-datacenter
 ce-namespace: default

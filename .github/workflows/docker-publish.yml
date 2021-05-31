@@ -1,4 +1,4 @@
-name: Docker
+name: Sieve Test
 
 on: [pull_request, workflow_dispatch]
 
@@ -95,13 +95,13 @@ jobs:
       - name: Build Image
         run: |
           python3 build.py -p cass-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p cass-operator -m time-travel  -d $IMAGE_NAMESPACE
+          python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |
           python3 sieve.py -p cass-operator -t recreate -m learn -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
-          python3 sieve.py -p cass-operator -t recreate -d $IMAGE_NAMESPACE -b
+          python3 sieve.py -p cass-operator -t recreate -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-cass-artifact
@@ -149,12 +149,10 @@ jobs:
         run: |
           python3 sieve.py -p mongodb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p mongodb-operator -t disable-enable-shard -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -m learn -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p mongodb-operator -t disable-enable-shard -d $IMAGE_NAMESPACE
-          python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-mongodb-artifact
