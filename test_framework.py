@@ -76,7 +76,11 @@ class TestWaitForStatus:
         self.time_out = time_out
 
     def check_pod(self):
-        pod = get_pod(self.resource_name)
+        try:
+            pod = get_pod(self.resource_name)
+        except Exception as err:
+            print("error occurs during check pod", err)
+            return False
         if self.status == common.TERMINATED:
             if pod is None:
                 return True
@@ -93,7 +97,11 @@ class TestWaitForStatus:
         return False
 
     def check_pvc(self):
-        pvc = get_pvc(self.resource_name)
+        try:
+            pvc = get_pvc(self.resource_name)
+        except Exception as err:
+            print("error occurs during check pvc", err)
+            return False
         if self.status == common.TERMINATED:
             if pvc is None:
                 return True

@@ -244,7 +244,7 @@ def run(test_suites, project, test, log_dir, mode, learn, config, docker, run="a
 def run_batch(project, test, dir, mode, learn, docker):
     assert not learn, "cannot run batch mode under learn stage"
     config_dir = os.path.join("log", project, "learn", test, mode, "generated-config")
-    configs = glob.glob(os.path.join(config_dir, "*.yaml"))
+    configs = [x for x in glob.glob(os.path.join(config_dir, "*.yaml")) if not "configmap" in x]
     print("configs", configs)
     for config in configs:
         num = os.path.basename(config).split(".")[0]
@@ -252,8 +252,11 @@ def run_batch(project, test, dir, mode, learn, docker):
             dir, project, "test", test, num)
         print("[sonar] config is %s" % config)
         print("[sonar] log dir is %s" % log_dir)
-        run(controllers.test_suites, project,
-            test, log_dir, mode, learn, config, docker)
+        try:
+            run(controllers.test_suites, project,
+                test, log_dir, mode, learn, config, docker)
+        except Exception as err:
+            print("error occurs during sieve run", config, err)
 
 
 if __name__ == "__main__":
