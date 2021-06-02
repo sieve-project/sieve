@@ -11,6 +11,12 @@
     * `pip3 install kubernetes`
     * `pip3 install pyyaml`
 
+
+To check for those requirements, you can simply run the following script on the project root directory,
+```shell
+python3 check-env.py
+```
+
 ## Demo:
 Please refer to https://github.com/sieve-project/sieve/blob/main/docs/demo.md
 
