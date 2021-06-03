@@ -1,6 +1,7 @@
 import time
 import sys
 import os
+import subprocess
 
 class bcolors:
     HEADER = '\033[95m'
@@ -29,6 +30,15 @@ def check_go_env():
     else:
         ok("golang environment detected")
     
+    goenv = {x.split("=")[0] : x.split("=")[1].strip('"') for x in subprocess.check_output("go env", shell=True, encoding='UTF-8').strip().split("\n")}
+    version = goenv['GOVERSION'].split(".")
+    major = int(version[1])
+    minor = int(version[2])
+    if major >= 13:
+        ok("go version %s satisfies the requirement" % (goenv['GOVERSION']))
+    else:
+        warn("go version %s not satisfies the requirement, the minimum go version should be above 1.13.0" % (goenv['GOVERSION']))
+    
     if 'GOPATH' in os.environ:
         ok("environment variable $GOPATH detected")
     else:
@@ -56,25 +66,33 @@ def check_sqlite_env():
     else:
         ok("sqlite3 detected")
 
+    version = subprocess.check_output("sqlite3 -version", shell=True, encoding='UTF-8').strip().split()[0]
+    major = int(version.split(".")[0])
+    minor = int(version.split(".")[1])
+    if major >= 3 and minor >= 32:
+        ok("sqlite3 version %s satisfies the requirement" % (version))
+    else:
+        warn("sqlite3 version %s not satisfies the requirement, the minimum sqlite3 version should be above 3.32" % (version))
+
 def check_python_env():
     result = []
     try:
         import sqlite3
         ok("python module pysqlite3 detected")
     except Exception as err:
-        fail("python module pysqlite3 not detedted, try to install it by `pip3 install pysqlite3`")
+        fail("python module pysqlite3 not detected, try to install it by `pip3 install pysqlite3`")
     
     try:
         import kubernetes
         ok("python module kubernetes detected")
     except Exception as err:
-        fail("python module pysqlite3 not detedted, try to install it by `pip3 install kubernetes`")
+        fail("python module pysqlite3 not detected, try to install it by `pip3 install kubernetes`")
 
     try:
         import yaml
         ok("python module pyyaml detected")
     except Exception as err:
-        fail("python module pysqlite3 not detedted, try to install it by `pip3 install pyyaml`")
+        fail("python module pysqlite3 not detected, try to install it by `pip3 install pyyaml`")
     
     return result
 
