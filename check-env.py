@@ -31,10 +31,10 @@ def check_go_env():
         ok("golang environment detected")
     
     goenv = {x.split("=")[0] : x.split("=")[1].strip('"') for x in subprocess.check_output("go env", shell=True, encoding='UTF-8').strip().split("\n")}
-    version = goenv['GOVERSION'].split(".")
-    major = int(version[1])
-    minor = int(version[2])
-    if major >= 13:
+    version = goenv['GOVERSION'][2:].split(".")
+    major = int(version[0])
+    minor = int(version[1])
+    if major > 1 or (major == 1 and minor >= 13):
         ok("go version %s satisfies the requirement" % (goenv['GOVERSION']))
     else:
         warn("go version %s not satisfies the requirement, the minimum go version should be above 1.13.0" % (goenv['GOVERSION']))
@@ -52,6 +52,16 @@ def check_kind_env():
         return
     else:
         ok("kind detected")
+
+    version = subprocess.check_output("kind version", shell=True, encoding='UTF-8').strip().split()[1]
+    parsed = [int(x) for x in (version[1:].split("."))]
+    major = parsed[0]
+    minor = parsed[1]
+    if major > 0 or (major == 0 and minor >= 10):
+        ok("kind version %s satisfies the requirement" % (version))
+    else:
+        warn("kind version %s not satisfies the requirement, the minimum kind version should be above 0.10.0" % (version))
+
     
     if 'KUBECONFIG' in os.environ:
         ok("environment variable $KUBECONFIG detected")
@@ -69,7 +79,7 @@ def check_sqlite_env():
     version = subprocess.check_output("sqlite3 -version", shell=True, encoding='UTF-8').strip().split()[0]
     major = int(version.split(".")[0])
     minor = int(version.split(".")[1])
-    if major >= 3 and minor >= 32:
+    if major > 3 or (major == 3 and minor >= 32):
         ok("sqlite3 version %s satisfies the requirement" % (version))
     else:
         warn("sqlite3 version %s not satisfies the requirement, the minimum sqlite3 version should be above 3.32" % (version))
