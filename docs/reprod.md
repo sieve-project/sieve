@@ -126,13 +126,34 @@ If reproduced, you will see:
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPXC-716](https://jira.percona.com/browse/K8SPXC-716)
-to be updated
+```
+python3 sieve.py -p xtradb-operator -t recreate -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] persistentvolumeclaim/default/datadir-sonar-xtradb-cluster-pxc-0 DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+```
+The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [K8SPXC-725](https://jira.percona.com/browse/K8SPXC-725)
-to be updated
+```
+python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] statefulset/default/sonar-xtradb-cluster-haproxy DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+```
+The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [K8SPXC-763](https://jira.percona.com/browse/K8SPXC-763)
-to be updated
+```
+python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] statefulset/default/sonar-xtradb-cluster-proxysql DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+```
+The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412)
 ```

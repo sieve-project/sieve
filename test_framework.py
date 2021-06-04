@@ -2,6 +2,7 @@ import kubernetes
 import os
 import common
 import time
+import traceback
 
 
 def get_pod(resource_name):
@@ -80,6 +81,7 @@ class TestWaitForStatus:
             pod = get_pod(self.resource_name)
         except Exception as err:
             print("error occurs during check pod", err)
+            print(traceback.format_exc())
             return False
         if self.status == common.TERMINATED:
             if pod is None:
@@ -101,6 +103,7 @@ class TestWaitForStatus:
             pvc = get_pvc(self.resource_name)
         except Exception as err:
             print("error occurs during check pvc", err)
+            print(traceback.format_exc())
             return False
         if self.status == common.TERMINATED:
             if pvc is None:

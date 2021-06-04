@@ -111,10 +111,15 @@ def setup_cluster(project, mode, learn, test_workload, test_config, log_dir, doc
     controllers.deploy[project](docker_repo, docker_tag)
 
     # Wait for project pod ready
-    w = kubernetes.watch.Watch()
-    for event in w.stream(core_v1.list_namespaced_pod, namespace="default", label_selector="sonartag="+project):
-        if event['object'].status.phase == "Running":
-            w.stop()
+    while True:
+        project_pod = core_v1.list_namespaced_pod(
+            "default", watch=False, label_selector="sonartag="+project).items
+        if len(project_pod) >= 1:
+            print(project_pod[0].status.phase)
+            if project_pod[0].status.phase == "Running":
+                break
+        time.sleep(1)
+
 
     api1_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"

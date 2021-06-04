@@ -104,9 +104,9 @@ test_suites = {
     },
     "xtradb-operator": {
         "recreate": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./recreateXtradbCluster.sh", True), "test-xtradb-operator/test/time-travel-1.yaml", "time-travel", num_workers=4),
+            workloads.workloads["xtradb-operator"]["recreate"], "test-xtradb-operator/test/time-travel-1.yaml", "time-travel", num_workers=4),
         "disable-enable-haproxy": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["xtradb-operator"], "./disableEnableHaproxy.sh", True), "test-xtradb-operator/test/time-travel-2.yaml", "time-travel", num_workers=4),
+            workloads.workloads["xtradb-operator"]["disable-enable-haproxy"], "test-xtradb-operator/test/time-travel-2.yaml", "time-travel", num_workers=4),
         "disable-enable-proxysql": Suite(
             workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
     },

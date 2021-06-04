@@ -330,7 +330,7 @@ spec:
         - configMapRef:
             name: sonar-testing-global-config
         image: ${SONAR-DR}/xtradb-operator:${SONAR-DT}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         # livenessProbe:
         #   failureThreshold: 3
         #   httpGet:
