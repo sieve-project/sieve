@@ -12,7 +12,7 @@
     * `pip3 install pyyaml`
 
 
-To check for those requirements, you can simply run the following script on the project root directory,
+To check for those requirements, you can simply run the following script on the project's root directory,
 ```shell
 python3 check-env.py
 ```
