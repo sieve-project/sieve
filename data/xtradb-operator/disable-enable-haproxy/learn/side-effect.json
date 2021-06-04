@@ -1,0 +1,135 @@
+{
+    "configmap": {
+        "default": {
+            "auto-sonar-xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "issuer": {
+        "default": {
+            "sonar-xtradb-cluster-pxc-ca": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "perconaxtradbcluster": {
+        "default": {
+            "sonar-xtradb-cluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 3
+            }
+        }
+    },
+    "poddisruptionbudget": {
+        "default": {
+            "sonar-xtradb-cluster-haproxy": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 40
+            },
+            "sonar-xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 50
+            }
+        }
+    },
+    "secret": {
+        "default": {
+            "internal-sonar-xtradb-cluster": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 2
+            },
+            "sonar-cluster-secrets": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-cluster-ssl": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-cluster-ssl-internal": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "sonar-xtradb-cluster-haproxy": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 42
+            },
+            "sonar-xtradb-cluster-haproxy-replicas": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 42
+            },
+            "sonar-xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 51
+            },
+            "sonar-xtradb-cluster-pxc-unready": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 51
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "sonar-xtradb-cluster-haproxy": {
+                "Create": 42,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 42
+            },
+            "sonar-xtradb-cluster-pxc": {
+                "Create": 51,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 51
+            }
+        }
+    }
+}

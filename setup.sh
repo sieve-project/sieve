@@ -26,6 +26,7 @@ fi
 kind create cluster --image ${dockerrepo}/node:${dockertag} --config $conf
 docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'
 cd sonar-server
+go mod tidy
 go build
 cd ..
 docker cp sonar-server kind-control-plane:/sonar-server

@@ -66,7 +66,17 @@ workloads = {
         .wait(50),
     },
     "xtradb-operator": {
-       "disable-enable-proxysql": test_framework.new_built_in_workload()
+        "recreate": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr.yaml").wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.RUNNING)
+        .cmd("kubectl delete perconaxtradbcluster sonar-xtradb-cluster").wait_for_pod_status("sonar-xtradb-cluster-pxc-0", common.TERMINATED).wait_for_pod_status("sonar-xtradb-cluster-pxc-1", common.TERMINATED).wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.TERMINATED)
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr.yaml").wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.RUNNING)
+        .wait(70),
+        "disable-enable-haproxy": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.RUNNING).wait_for_pod_status("sonar-xtradb-cluster-haproxy-0", common.RUNNING)
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-disabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-haproxy-0", common.TERMINATED)
+        .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-haproxy-0", common.RUNNING)
+        .wait(70), 
+        "disable-enable-proxysql": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.RUNNING).wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-disabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.TERMINATED)
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
