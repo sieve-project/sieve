@@ -88,7 +88,7 @@ def setup_cluster(project, mode, learn, test_workload, test_config, log_dir, doc
     apiserver_list = ['kube-apiserver-kind-control-plane',
                       'kube-apiserver-kind-control-plane2', 'kube-apiserver-kind-control-plane3']
 
-    while True:
+    for tick in range(300):
         created = core_v1.list_namespaced_pod(
             "kube-system", watch=False, label_selector="component=kube-apiserver").items
         if len(created) == len(apiserver_list) and len(created) == len([item for item in created if item.status.phase == "Running"]):
@@ -111,7 +111,7 @@ def setup_cluster(project, mode, learn, test_workload, test_config, log_dir, doc
     controllers.deploy[project](docker_repo, docker_tag)
 
     # Wait for project pod ready
-    while True:
+    for tick in range(300):
         project_pod = core_v1.list_namespaced_pod(
             "default", watch=False, label_selector="sonartag="+project).items
         if len(project_pod) >= 1:
