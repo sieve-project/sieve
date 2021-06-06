@@ -181,9 +181,18 @@ def look_for_panic_in_operator_log(operator_log):
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
+def look_for_sleep_over_in_server_log(server_log):
+    file = open(server_log)
+    return "[sonar] sleep over" in file.read()
 
-def check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log):
+
+def check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log):
     testing_config = yaml.safe_load(open(test_config))
+    # Skip case which target side effect event not appear in operator log under time-travel mode
+    if testing_config["mode"] == "time-travel" and not look_for_sleep_over_in_server_log(server_log):
+        bug_report = "[WARN] target side effect event did't appear under time-travel workload"
+        print(bug_report)
+        return bug_report
     discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
         learned_side_effect, learned_status, testing_side_effect, testing_status, test_config)
     panic_alarm, panic_bug_report = look_for_panic_in_operator_log(

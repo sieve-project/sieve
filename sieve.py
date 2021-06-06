@@ -183,11 +183,11 @@ def post_process(project, mode, learn, test_workload, test_config, log_dir, dock
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
-            testing_side_effect, testing_status = oracle.generate_digest(
-                os.path.join(log_dir, "sonar-server.log"))
+            server_log = os.path.join(log_dir, "sonar-server.log")
+            testing_side_effect, testing_status = oracle.generate_digest(server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log))
+                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
             json.dump(testing_side_effect, open(os.path.join(
                 log_dir, "side-effect.json"), "w"), indent=4)
             json.dump(testing_status, open(os.path.join(
@@ -197,11 +197,11 @@ def post_process(project, mode, learn, test_workload, test_config, log_dir, dock
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
-            testing_side_effect, testing_status = oracle.generate_digest(
-                os.path.join(log_dir, "sonar-server.log"))
+            server_log = os.path.join(log_dir, "sonar-server.log")
+            testing_side_effect, testing_status = oracle.generate_digest(server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log))
+                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
             json.dump(testing_side_effect, open(os.path.join(
                 log_dir, "side-effect.json"), "w"), indent=4)
             json.dump(testing_status, open(os.path.join(

@@ -123,4 +123,8 @@ def canonicalize_event(event):
         elif isinstance(event[key], str):
             if re.match(common.TIME_REG, str(event[key])):
                 event[key] = common.SONAR_CANONICALIZATION_MARKER
+            if 'ip' in key.lower() and re.match(common.IP_REG, str(event[key])):
+                event[key] = common.SONAR_CANONICALIZATION_MARKER
+            if key in ["nodeName", "containerID"]:
+                event[key] = common.SONAR_CANONICALIZATION_MARKER
     return event
