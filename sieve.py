@@ -115,7 +115,6 @@ def setup_cluster(project, mode, learn, test_workload, test_config, log_dir, doc
         project_pod = core_v1.list_namespaced_pod(
             "default", watch=False, label_selector="sonartag="+project).items
         if len(project_pod) >= 1:
-            print(project_pod[0].status.phase)
             if project_pod[0].status.phase == "Running":
                 break
         time.sleep(1)
@@ -166,9 +165,9 @@ def pre_process(project, mode, learn, test_config):
         yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
 
 
-def post_process(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
+def post_process(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
     if learn:
-        analyze.analyze_trace(project, log_dir, mode, two_sided=two_sided)
+        analyze.analyze_trace(project, log_dir, mode, two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
@@ -209,7 +208,7 @@ def post_process(project, mode, learn, test_workload, test_config, log_dir, dock
 
 
 
-def run_test(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run):
+def run_test(project, mode, learn, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
     if run == "all" or run == "setup":
         pre_process(project, mode, learn, test_config)
         setup_cluster(project, mode, learn, test_workload, test_config,
@@ -218,7 +217,7 @@ def run_test(project, mode, learn, test_workload, test_config, log_dir, docker_r
         run_workload(project, mode, learn, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers)
         post_process(project, mode, learn, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, run)
+                     log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
 
 
 def run(test_suites, project, test, log_dir, mode, learn, config, docker, run="all"):
@@ -231,19 +230,19 @@ def run(test_suites, project, test, log_dir, mode, learn, config, docker, run="a
         learn_config = os.path.join(
             controllers.test_dir[project], "test", "learn.yaml")
         run_test(project, mode, learn, suite.workload,
-                 learn_config, log_dir, docker, "learn", suite.num_workers, data_dir, suite.two_sided, run)
+                 learn_config, log_dir, docker, "learn", suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
     else:
         if mode == "vanilla":
             log_dir = os.path.join(log_dir, mode)
             blank_config = "config/none.yaml"
             run_test(project, mode, learn, suite.workload,
-                    blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
+                    blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
         else:
             test_config = config if config != "none" else suite.config
             print("testing mode: %s config: %s" % (mode, test_config))
             log_dir = os.path.join(log_dir, mode)
             run_test(project, mode, learn, suite.workload,
-                    test_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, run)
+                    test_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
 
 
 def run_batch(project, test, dir, mode, learn, docker):
