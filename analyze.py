@@ -398,12 +398,13 @@ def side_effect_filter(causality_pairs, event_key_map):
             filtered_causality_pairs.append(pair)
             continue
         flag = False
-        for event in event_key_map[side_effect.key]:
-            # We will find add sth
-            if event.start_timestamp <= side_effect.end_timestamp:
-                continue
-            if event.etype == "Added":
-                flag = True
+        if side_effect.key in event_key_map:
+            for event in event_key_map[side_effect.key]:
+                # We will find add sth
+                if event.start_timestamp <= side_effect.end_timestamp:
+                    continue
+                if event.etype == "Added":
+                    flag = True
         if flag:
             filtered_causality_pairs.append(pair)
     print("side effect filter reduce causality_pairs from %d to %d"%(len(causality_pairs), len(filtered_causality_pairs)))
