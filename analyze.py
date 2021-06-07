@@ -393,6 +393,10 @@ def side_effect_filter(causality_pairs, event_key_map):
     for pair in causality_pairs:
         start_event = pair[0]
         side_effect = pair[1] # e.g. delete sth
+        # Ignore if side effect is not delete
+        if not side_effect.etype == "Delete":
+            filtered_causality_pairs.append(pair)
+            continue
         flag = False
         for event in event_key_map[side_effect.key]:
             # We will find add sth

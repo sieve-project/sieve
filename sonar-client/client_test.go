@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSB(t *testing.T) {
+func TestConnect(t *testing.T) {
 	client, err := newClient()
 	if err != nil {
 		t.Fatal(err)

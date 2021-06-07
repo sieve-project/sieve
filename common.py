@@ -38,6 +38,7 @@ SONAR_SKIP_MARKER = "SONAR-SKIP"
 SONAR_CANONICALIZATION_MARKER = "SONAR-NON-NIL"
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 IP_REG = '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+PLACEHOLDER_FIELDS = ["nodeName", "containerID"]
 
 
 def translate_side_effect(side_effect, reverse=False):

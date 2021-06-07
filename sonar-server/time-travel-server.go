@@ -90,12 +90,12 @@ func toLowerMap(m map[string]interface{}) {
 		case map[string]interface{}:
 			if e, ok := m[key].(map[string]interface{}); ok {
 				toLowerMap(e)
-				m[strings.ToLower(key)] = e
 				if strings.ToLower(key) != key {
+					m[strings.ToLower(key)] = e
 					delete(m, key)
 				}
 			} else {
-				log.Println("bad")
+				log.Println("m[key] assertion to map[string]interface{} fail")
 			}
 
 		case []interface{}:
@@ -103,18 +103,19 @@ func toLowerMap(m map[string]interface{}) {
 				for idx := range e {
 					switch e[idx].(type) {
 					case map[string]interface{}:
-						if ee, ok := e[idx].(map[string]interface{}); ok {
-							toLowerMap(ee)
-							e[idx] = ee
+						if eSlice, ok := e[idx].(map[string]interface{}); ok {
+							toLowerMap(eSlice)
 						}
+					case []interface{}:
+						log.Println("toLowerMap does not support slice in slice for now")
 					}
 				}
-				m[strings.ToLower(key)] = e
 				if strings.ToLower(key) != key {
+					m[strings.ToLower(key)] = e
 					delete(m, key)
 				}
 			} else {
-				log.Println("bad")
+				log.Println("m[key] assertion to []interface{} fail")
 			}
 
 		default:

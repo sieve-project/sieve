@@ -53,7 +53,7 @@ workloads = {
         .cmd("kubectl apply -f test-mongodb-operator/test/cr-shard.yaml").wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING)
         .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p='{\"spec\":{\"sharding\":{\"enabled\":false}}}'").wait_for_pod_status("mongodb-cluster-cfg-2", common.TERMINATED)
         .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p='{\"spec\":{\"sharding\":{\"enabled\":true}}}'").wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING)
-        .wait(120),
+        .wait(50),
         "disable-enable-arbiter": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-mongodb-operator/test/cr-arbiter.yaml").wait_for_pod_status("mongodb-cluster-rs0-3", common.RUNNING).wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", common.RUNNING)
         .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/replsets/0/arbiter/enabled\", \"value\": false}]'").wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", common.TERMINATED).wait_for_pod_status("mongodb-cluster-rs0-4", common.RUNNING)

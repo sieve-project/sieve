@@ -7,7 +7,7 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=True, se_filter=False, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, node_ignore=True, se_filter=True, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
@@ -88,7 +88,7 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", num_workers=3),
         "disable-enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3, se_filter=True),
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3),
         "disable-enable-arbiter": Suite(
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
         "enable-shard": Suite(
