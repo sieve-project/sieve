@@ -85,7 +85,7 @@ def check_kind_env():
 
 
 def check_sqlite_env():
-    warn("sqlite3 version 3.32 and pysqlite3 are only required for learning stage, please ignore the failures below (if any) if you only want to reproduce the bugs")
+    warn("sqlite3 version 3.32 and pysqlite3 are only required for learning stage, please ignore any failures below if you only want to reproduce the bugs")
     if os.system("sqlite3 -version > /dev/null 2>&1") != 0:
         fail("sqlite3 not detected, please install it with version above 3.32 according to https://help.dreamhost.com/hc/en-us/articles/360028047592-Installing-a-custom-version-of-SQLite3")
         return
