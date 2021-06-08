@@ -10,6 +10,9 @@ python3 build.py -p cassandra-operator -m time-travel -d DOCKER_REPO_NAME
 python3 build.py -p zookeeper-operator -m time-travel -d DOCKER_REPO_NAME
 python3 build.py -p rabbitmq-operator -m time-travel -d DOCKER_REPO_NAME
 python3 build.py -p mongodb-operator -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p xtradb-operator -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p cass-operator -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p casskop-operator -m time-travel -d DOCKER_REPO_NAME
 ```
 Please specify the `DOCKER_REPO_NAME` that you have write access to as sieve needs to push controller image to the repo.
 
@@ -156,17 +159,21 @@ If reproduced, you will see:
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412)
+First build the images if you have not yet (`DOCKER_REPO_NAME` should be the docker repo that you have write access to)
+```
+python3 build.py -p kubernetes -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p cass-operator -m time-travel -d DOCKER_REPO_NAME
+```
+Then run the sieve test
 ```
 python3 sieve.py -p cass-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[BUG REPORT]
-Checking for controller side effects (resource creation/deletion)...
 [ERROR] persistentvolumeclaim/default/server-data-cluster1-sonar-cassandra-datacenter-default-sts-0 DELETE inconsistency: 2 events seen during learning run, but 5 seen during testing run
-Checking for cluster resource states...
 [ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
+The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
 
 ### [orange-opensource-casskop-316](https://github.com/Orange-OpenSource/casskop/issues/316)
 ```
