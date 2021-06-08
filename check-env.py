@@ -123,7 +123,19 @@ def check_python_env():
 
 
 if __name__ == "__main__":
-    check_go_env()
-    check_kind_env()
-    check_python_env()
-    check_sqlite_env()
+    try:
+        check_go_env()
+    except Exception as e:
+        warn("unable to check go env due to exception %s" % str(e))
+    try:
+        check_kind_env()
+    except Exception as e:
+        warn("unable to check kind env due to exception %s" % str(e))
+    try:
+        check_python_env()
+    except Exception as e:
+        warn("unable to check python env due to exception %s" % str(e))
+    try:
+        check_sqlite_env()
+    except Exception as e:
+        warn("unable to check sqlite env due to exception %s" % str(e))
