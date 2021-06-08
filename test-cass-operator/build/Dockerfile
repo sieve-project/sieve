@@ -1,4 +1,7 @@
-# ARG BASE_OS=datastax/doesnotexist
+##########
+# NOTE: When building this image, there is an assumption that you are in the top level directory of the repository.
+# $ docker build . -f operator/Dockerfile -t operator
+##########
 
 # "builder" compiles and tests the code
 # This stage name is important to the Cloud Platform CI/CD infrastructure, and should be preserved
@@ -19,12 +22,10 @@ WORKDIR /cass-operator
 
 COPY go.mod go.sum ./
 
-# Download go deps (including mage)
-
 # COPY instrumented controller-runtime and client-go
 COPY . ./
 
-# Still need to go mod download for mage
+# Download go deps (including mage)
 RUN go mod download
 
 # At this point, we have the top level go.mod, the ./mage level go.mod,
@@ -59,12 +60,5 @@ RUN touch /var/lib/cass-operator/base_os
 # All we need from the builder image is operator executable
 ARG TARGETARCH
 COPY --from=builder /cass-operator/build/bin/cass-operator-linux-${TARGETARCH} /bin/operator
-
-# RUN apk update \
-#         && apk upgrade \
-#         && apk add bash
-
-# Use alpine:3.11.2 solves infinity invalid issue
-# CMD ["sleep", "infinity"]
 
 CMD [ "/bin/operator" ]
