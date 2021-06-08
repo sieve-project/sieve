@@ -40,7 +40,7 @@ def check_go_env():
     if 'GOVERSION' in goenv:
         version = goenv['GOVERSION'][2:]
     else:
-        version = os.popen('go version').read().split(" ")[2][2:]
+        version = os.popen('go version').read().split()[2][2:]
     version_breakdown = version.split(".")
     major = int(version_breakdown[0])
     minor = int(version_breakdown[1])
@@ -66,8 +66,9 @@ def check_kind_env():
     else:
         ok("kind detected")
 
-    version = subprocess.check_output(
-        "kind version", shell=True, encoding='UTF-8').strip().split()[1]
+    # version = subprocess.check_output(
+    #     "kind version", shell=True, encoding='UTF-8').strip().split()[1]
+    version = os.popen("kind version").read().split()[1].split("-")[0]
     parsed = [int(x) for x in (version[1:].split("."))]
     major = parsed[0]
     minor = parsed[1]
