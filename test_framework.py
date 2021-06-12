@@ -3,6 +3,7 @@ import os
 import common
 import time
 import traceback
+from datetime import datetime
 
 
 def get_pod(resource_name):
@@ -204,6 +205,7 @@ class BuiltInWorkLoad:
 
     def run(self, mode="ignore"):
         for work in self.work_list:
+            print(work, str(datetime.now()))
             if work.run() != 0:
                 print("[ERROR] cannot fullfill workload")
                 return 1

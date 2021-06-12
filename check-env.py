@@ -29,13 +29,13 @@ def check_go_env():
         return
     else:
         ok("golang environment detected")
-    
-    goenv = {x.split("=")[0] : x.split("=")[1].strip('"') for x in subprocess.check_output("go env", shell=True, encoding='UTF-8').strip().split("\n")}
-    version = goenv['GOVERSION'][2:].split(".")
+
+    goversion = subprocess.check_output("go version", shell=True, encoding='UTF-8').strip().split(" ")
+    version = goversion[2][2:].split(".")
     major = int(version[0])
     minor = int(version[1])
     if major > 1 or (major == 1 and minor >= 13):
-        ok("go version %s satisfies the requirement" % (goenv['GOVERSION']))
+        ok("go version %s satisfies the requirement" % ('.'.join(version)))
     else:
         warn("go version %s not satisfies the requirement, the minimum go version should be above 1.13.0" % (goenv['GOVERSION']))
     
