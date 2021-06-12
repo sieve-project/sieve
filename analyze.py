@@ -410,7 +410,7 @@ def side_effect_filter(causality_pairs, event_key_map):
     print("side effect filter reduce causality_pairs from %d to %d"%(len(causality_pairs), len(filtered_causality_pairs)))
     return filtered_causality_pairs
 
-def analyze_trace(project, dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=True, se_filter=False, use_sql=True):
+def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=True, se_filter=False, use_sql=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -422,31 +422,30 @@ def analyze_trace(project, dir, mode, generate_oracle=True, generate_config=True
           ("enabled" if two_sided else "disabled"))
     print("use-sql feature is %s" %
           ("enabled" if use_sql else "disabled"))
-    log_path = os.path.join(dir, "sonar-server.log")
+    conf_path = os.path.join(conf_dir, "sonar-server.log")
     if generate_config:
-        conf_dir = os.path.join(dir, "generated-config")
-        if os.path.exists(conf_dir):
-            shutil.rmtree(conf_dir)
-        os.makedirs(conf_dir, exist_ok=True)
+        if os.path.exists(log_dir):
+            shutil.rmtree(log_dir)
+        os.makedirs(log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
-            log_path, use_sql)
+            conf_path, use_sql)
         if se_filter:
             causality_pairs = side_effect_filter(causality_pairs, event_key_map)
         triggering_points = generate_triggering_points(
             event_key_map, causality_pairs)
-        dump_json_file(dir, triggering_points, "triggering-points.json")
+        dump_json_file(conf_dir, triggering_points, "triggering-points.json")
         if mode == "time-travel":
-            generate_time_travel_yaml(triggering_points, conf_dir, project, node_ignore)
+            generate_time_travel_yaml(triggering_points, log_dir, project, node_ignore)
             if two_sided:
                 generate_time_travel_yaml(
-                    triggering_points, conf_dir, project, node_ignore, "before")
+                    triggering_points, log_dir, project, node_ignore, "before")
         elif mode == "obs-gap":
-            generate_obs_gap_yaml(triggering_points, conf_dir, project, node_ignore)
+            generate_obs_gap_yaml(triggering_points, log_dir, project, node_ignore)
 
     if generate_oracle:
-        side_effect, status = oracle.generate_digest(log_path)
-        dump_json_file(dir, side_effect, "side-effect.json")
-        dump_json_file(dir, status, "status.json")
+        side_effect, status = oracle.generate_digest(conf_path)
+        dump_json_file(conf_dir, side_effect, "side-effect.json")
+        dump_json_file(conf_dir, status, "status.json")
 
 
 if __name__ == "__main__":
