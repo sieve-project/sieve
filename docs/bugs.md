@@ -11,9 +11,11 @@ https://github.com/instaclustr/cassandra-operator/issues/404 confirmed and fixed
 https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed by us (time traveling)
 
 ## [datastax/cass-operator](https://github.com/datastax/cass-operator)
-https://github.com/datastax/cass-operator/issues/412 confirmed (time traveling)
+https://github.com/k8ssandra/cass-operator/issues/118 confirmed (time traveling)
+<!-- https://github.com/datastax/cass-operator/issues/412 confirmed (time traveling) -->
 
-https://github.com/datastax/cass-operator/issues/417 (by-product)
+https://github.com/k8ssandra/cass-operator/issues/117 (by-product)
+<!-- https://github.com/datastax/cass-operator/issues/417 (by-product) -->
 
 ## [Orange-OpenSource/casskop](https://github.com/Orange-OpenSource/casskop)
 https://github.com/Orange-OpenSource/casskop/issues/316 confirmed (time traveling)
