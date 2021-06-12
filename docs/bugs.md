@@ -23,7 +23,7 @@ https://github.com/Orange-OpenSource/casskop/issues/321 confirmed (time travelin
 ## [pravega/zookeeper-operator](https://github.com/pravega/zookeeper-operator)
 https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by us (time traveling)
 
-https://github.com/pravega/zookeeper-operator/issues/314 confirmed (time traveling)
+https://github.com/pravega/zookeeper-operator/issues/314 confirmed and fixed by us (time traveling)
 
 ## [rabbitmq/cluster-operator](https://github.com/rabbitmq/cluster-operator)
 https://github.com/rabbitmq/cluster-operator/issues/648 confirmed and fixed by us (time traveling)
