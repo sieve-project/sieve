@@ -7,7 +7,7 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=True, se_filter=False, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list = [], se_filter=False, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
