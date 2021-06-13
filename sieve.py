@@ -305,10 +305,12 @@ if __name__ == "__main__":
     # For backward compatibility
     if options.stage == "none":
         if options.mode == "learn":
+            suite = controllers.test_suites[options.project][options.test]
+            options.mode = suite.mode
             options.stage = "run"
             run(controllers.test_suites, options.project, options.test, os.path.join(
                 options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
-            options.stage = "test"
+            options.stage = "learn"
             run(controllers.test_suites, options.project, options.test, os.path.join(
                 options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
             print("total time: {} seconds".format(time.time() - s))
