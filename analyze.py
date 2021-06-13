@@ -132,7 +132,8 @@ def parse_side_effects(path):
             side_effect = common.parse_side_effect(line)
             # Do deepcopy here to ensure the later changes to the two sets
             # will not affect this side effect.
-            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile)) # cache read during that possible interval
+            # cache read during that possible interval
+            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile))
             side_effect.set_read_types(
                 copy.deepcopy(read_types_this_reconcile))
             side_effect.set_end_timestamp(i)
@@ -180,7 +181,8 @@ def base_pass(event_list, side_effect_list):
     event_effect_pairs = []
     for side_effect in side_effect_list:
         for event in event_list:
-            if side_effect.range_overlap(event): # events can lead to that side_effect
+            # events can lead to that side_effect
+            if side_effect.range_overlap(event):
                 event_effect_pairs.append([event, side_effect])
     return event_effect_pairs
 
@@ -384,6 +386,7 @@ def generate_obs_gap_yaml(triggering_points, path, project):
             os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
+
 def dump_json_file(dir, data, json_file_name):
     json.dump(data, open(os.path.join(
         dir, json_file_name), "w"), indent=4, sort_keys=True)
@@ -438,6 +441,7 @@ if __name__ == "__main__":
     test = options.test
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
-    dir = os.path.join("log", project, test, "learn")
+    # hardcoded to time travel config only for now
+    dir = os.path.join("log", project, "learn", test, "time-travel")
     analyze_trace(project, dir, "time-travel", generate_oracle=False,
-                  generate_config=True, two_sided=False, use_sql=True)
+                  generate_config=True, two_sided=False, use_sql=False)
