@@ -1,51 +1,107 @@
 {
     "cassandradatacenter": {
-        "create": 0,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 3
+        "default": {
+            "sonar-cassandra-datacenter": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 3
+            }
+        }
     },
     "persistentvolumeclaim": {
-        "create": 0,
-        "delete": 1,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "server-data-cluster1-sonar-cassandra-datacenter-default-sts-0": {
+                "Create": 0,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "pod": {
-        "create": 0,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 5,
-        "update": 0
+        "default": {
+            "cluster1-sonar-cassandra-datacenter-default-sts-0": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 6,
+                "Update": 0
+            }
+        }
     },
     "poddisruptionbudget": {
-        "create": 1,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "sonar-cassandra-datacenter-pdb": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "secret": {
-        "create": 3,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "cluster1-superuser": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-cassandra-datacenter-ca-keystore": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "sonar-cassandra-datacenter-keystore": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "service": {
-        "create": 6,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 0,
-        "update": 0
+        "default": {
+            "cluster1-seed-service": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "cluster1-sonar-cassandra-datacenter-all-pods-service": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
+            "cluster1-sonar-cassandra-datacenter-service": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            }
+        }
     },
     "statefulset": {
-        "create": 2,
-        "delete": 0,
-        "deleteallof": 0,
-        "patch": 2,
-        "update": 0
+        "default": {
+            "cluster1-sonar-cassandra-datacenter-default-sts": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 2,
+                "Update": 1
+            }
+        }
     }
 }
