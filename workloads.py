@@ -26,6 +26,12 @@ workloads = {
         .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.RUNNING)
         .cmd("kubectl delete CassandraCluster sonar-cassandra-cluster").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.TERMINATED)
         .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.RUNNING)
+    },
+    "cass-operator": {
+        "recreate": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-cass-operator/test/cdc-1.yaml").wait_for_pod_status("cluster1-sonar-cassandra-datacenter-default-sts-0", common.RUNNING)
+        .cmd("kubectl delete CassandraDatacenter sonar-cassandra-datacenter").wait_for_pod_status("cluster1-sonar-cassandra-datacenter-default-sts-0", common.TERMINATED).wait_for_pvc_status("server-data-cluster1-sonar-cassandra-datacenter-default-sts-0", common.TERMINATED)
+        .cmd("kubectl apply -f test-cass-operator/test/cdc-1.yaml").wait_for_pod_status("cluster1-sonar-cassandra-datacenter-default-sts-0", common.RUNNING)
         .wait(50),
     },
     "zookeeper-operator": {
@@ -83,11 +89,11 @@ workloads = {
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.RUNNING).wait_for_pod_status("sonar-xtradb-cluster-haproxy-0", common.RUNNING)
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-disabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-haproxy-0", common.TERMINATED)
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-haproxy-0", common.RUNNING)
-        .wait(70), 
+        .wait(70),
         "disable-enable-proxysql": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-pxc-2", common.RUNNING).wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-disabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.TERMINATED)
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
-        .wait(70), 
-    }
+        .wait(70),
+    },
 }

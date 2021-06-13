@@ -158,7 +158,8 @@ If reproduced, you will see:
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
-### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412)
+<!-- ### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412) -->
+### [k8ssandra-cass-operator (originally datastax-cass-operator-412)](https://github.com/k8ssandra/cass-operator/issues/118)
 First build the images if you have not yet (`DOCKER_REPO_NAME` should be the docker repo that you have write access to)
 ```
 python3 build.py -p kubernetes -m time-travel -d DOCKER_REPO_NAME

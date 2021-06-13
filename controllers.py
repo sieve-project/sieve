@@ -96,7 +96,8 @@ test_suites = {
     },
     "cass-operator": {
         "recreate": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["cass-operator"], "./recreateCassandraDataCenter.sh", True), "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+            workloads.workloads["cass-operator"]["recreate"], "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+        # test_framework.ExtendedWorkload(test_dir_test["cass-operator"], "./recreateCassandraDataCenter.sh", True), "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
     },
     "casskop-operator": {
         "recreate": Suite(

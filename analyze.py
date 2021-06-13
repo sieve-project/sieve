@@ -111,13 +111,14 @@ def parse_events(path):
     return event_list, event_key_map, event_id_map
 
 
-def parse_side_effects(path):
+def parse_side_effects(path, compress_trivial_reconcile=True):
     side_effect_id_map = {}
     side_effect_list = []
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
     prev_reconcile_start_timestamp = {}
     cur_reconcile_start_timestamp = {}
+    cur_reconcile_is_trivial = {}
     # there could be multiple controllers running concurrently
     # we need to record all the ongoing controllers
     ongoing_reconciles = set()
@@ -125,6 +126,8 @@ def parse_side_effects(path):
     for i in range(len(lines)):
         line = lines[i]
         if common.SONAR_SIDE_EFFECT_MARK in line:
+            for key in cur_reconcile_is_trivial:
+                cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the side effect since it is not caused by reconcile
             # though it should not happen at all.
             if len(ongoing_reconciles) == 0:
@@ -132,7 +135,8 @@ def parse_side_effects(path):
             side_effect = common.parse_side_effect(line)
             # Do deepcopy here to ensure the later changes to the two sets
             # will not affect this side effect.
-            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile)) # cache read during that possible interval
+            # cache read during that possible interval
+            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile))
             side_effect.set_read_types(
                 copy.deepcopy(read_types_this_reconcile))
             side_effect.set_end_timestamp(i)
@@ -162,8 +166,15 @@ def parse_side_effects(path):
             # which is super important.
             if controller_name not in cur_reconcile_start_timestamp:
                 cur_reconcile_start_timestamp[controller_name] = -1
-            prev_reconcile_start_timestamp[controller_name] = cur_reconcile_start_timestamp[controller_name]
+                cur_reconcile_is_trivial[controller_name] = False
+            if (not compress_trivial_reconcile) or (compress_trivial_reconcile and not cur_reconcile_is_trivial[controller_name]):
+                # When compress_trivial_reconcile is disabled, we directly set prev_reconcile_start_timestamp
+                # When compress_trivial_reconcile is enabled, we do not set prev_reconcile_start_timestamp
+                # if no side effects happen during the last reconcile
+                prev_reconcile_start_timestamp[controller_name] = cur_reconcile_start_timestamp[controller_name]
             cur_reconcile_start_timestamp[controller_name] = i
+            # Reset cur_reconcile_is_trivial[controller_name] to True as a new round of reconcile just starts
+            cur_reconcile_is_trivial[controller_name] = True
         elif common.SONAR_FINISH_RECONCILE_MARK in line:
             reconcile = common.parse_reconcile(line)
             controller_name = reconcile.controller_name
@@ -180,7 +191,8 @@ def base_pass(event_list, side_effect_list):
     event_effect_pairs = []
     for side_effect in side_effect_list:
         for event in event_list:
-            if side_effect.range_overlap(event): # events can lead to that side_effect
+            # events can lead to that side_effect
+            if side_effect.range_overlap(event):
                 event_effect_pairs.append([event, side_effect])
     return event_effect_pairs
 
@@ -248,10 +260,11 @@ def passes_as_sql_query():
     return query
 
 
-def generate_event_effect_pairs(path, use_sql):
+def generate_event_effect_pairs(path, use_sql, compress_trivial_reconcile):
     print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
     event_list, event_key_map, event_id_map = parse_events(path)
-    side_effect_list, side_effect_id_map = parse_side_effects(path)
+    side_effect_list, side_effect_id_map = parse_side_effects(
+        path, compress_trivial_reconcile)
     reduced_event_effect_pairs = []
     if use_sql:
         conn = create_sqlite_db()
@@ -384,6 +397,7 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
             os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
+
 def dump_json_file(dir, data, json_file_name):
     json.dump(data, open(os.path.join(
         dir, json_file_name), "w"), indent=4, sort_keys=True)
@@ -410,7 +424,7 @@ def side_effect_filter(causality_pairs, event_key_map):
     print("side effect filter reduce causality_pairs from %d to %d"%(len(causality_pairs), len(filtered_causality_pairs)))
     return filtered_causality_pairs
 
-def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=True, se_filter=False, use_sql=True):
+def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), se_filter=False, use_sql=True, compress_trivial_reconcile=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -428,7 +442,7 @@ def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, genera
             shutil.rmtree(log_dir)
         os.makedirs(log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
-            conf_path, use_sql)
+            conf_path, use_sql, compress_trivial_reconcile)
         if se_filter:
             causality_pairs = side_effect_filter(causality_pairs, event_key_map)
         triggering_points = generate_triggering_points(
@@ -460,6 +474,7 @@ if __name__ == "__main__":
     test = options.test
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
-    dir = os.path.join("log", project, test, "learn")
+    # hardcoded to time travel config only for now
+    dir = os.path.join("log", project, "learn", test, "time-travel")
     analyze_trace(project, dir, "time-travel", generate_oracle=False,
-                  generate_config=True, two_sided=False, use_sql=True)
+                  generate_config=True, two_sided=False, use_sql=False, compress_trivial_reconcile=True)
