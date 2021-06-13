@@ -121,7 +121,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 		s.mutex.Unlock()
 
 		go func() {
-			time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 20)
 			s.mutex.Lock()
 			if s.pausingReconcile {
 				s.pausingReconcile = false
