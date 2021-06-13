@@ -1,0 +1,24 @@
+ce-diff-current: '{"spec": {"replsets": [{"arbiter": {"enabled": false}}]}}'
+ce-diff-previous: '{"spec": {"replsets": [{"arbiter": {"enabled": true}}]}}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+ce-name: mongodb-cluster
+ce-namespace: default
+ce-rtype: perconaservermongodb
+deployment-name: percona-server-mongodb-operator
+description: 'Pause kind-control-plane3 after it processes a default/perconaservermongodb/mongodb-cluster
+  event E. E should match the pattern {"spec": {"replsets": [{"arbiter": {"enabled":
+  false}}]}} and the events before E should match {"spec": {"replsets": [{"arbiter":
+  {"enabled": true}}]}}. And restart the controller mongodb-operator after kind-control-plane
+  processes a ADDED default/statefulset/mongodb-cluster-rs0-arbiter event.'
+front-runner: kind-control-plane
+mode: obs-gap
+operator-pod-label: mongodb-operator
+project: mongodb-operator
+se-etype: ADDED
+se-name: mongodb-cluster-rs0-arbiter
+se-namespace: default
+se-rtype: statefulset
+stage: test
+straggler: kind-control-plane3
+timing: after

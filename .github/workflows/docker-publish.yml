@@ -41,12 +41,7 @@ jobs:
           helm 
       - name: Build Image
         run: |
-          python3 build.py -p casskop-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p casskop-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sieve Learn
-        run: |
-          python3 sieve.py -p casskop-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p casskop-operator -t reducepdb -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p casskop-operator -m obs-gap  -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
@@ -94,11 +89,7 @@ jobs:
           mage -h
       - name: Build Image
         run: |
-          python3 build.py -p cass-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE
-      - name: Sieve Learn
-        run: |
-          python3 sieve.py -p cass-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p cass-operator -m obs-gap -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p cass-operator -t recreate -d $IMAGE_NAMESPACE
@@ -147,13 +138,7 @@ jobs:
           mage -h
       - name: Build Image
         run: |
-          python3 build.py -p xtradb-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p xtradb-operator -m time-travel -d $IMAGE_NAMESPACE
-      - name: Sieve Learn
-        run: |
-          python3 sieve.py -p xtradb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p xtradb-operator -m obs-gap -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p xtradb-operator -t recreate -d $IMAGE_NAMESPACE
@@ -199,12 +184,7 @@ jobs:
           helm 
       - name: Build Image
         run: |
-          python3 build.py -p mongodb-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p mongodb-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sieve Learn
-        run: |
-          python3 sieve.py -p mongodb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p mongodb-operator -t disable-enable-shard -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p mongodb-operator -m obs-gap  -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
@@ -248,14 +228,7 @@ jobs:
           helm 
       - name: Build Image
         run: |
-          python3 build.py -p cassandra-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p cassandra-operator -m time-travel  -d $IMAGE_NAMESPACE
           python3 build.py -p cassandra-operator -m obs-gap  -d $IMAGE_NAMESPACE
-      - name: Sieve Learn
-        run: |
-          python3 sieve.py -p cassandra-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p cassandra-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p cassandra-operator -t scaledown -m learn -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p cassandra-operator -t recreate -d $IMAGE_NAMESPACE
@@ -300,12 +273,7 @@ jobs:
           helm 
       - name: Build Image
         run: |
-          python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p rabbitmq-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sieve Learn
-        run: |
-          python3 sieve.py -p rabbitmq-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p rabbitmq-operator -t resize-pvc -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p rabbitmq-operator -m obs-gap  -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
@@ -349,12 +317,7 @@ jobs:
           helm 
       - name: Build Image
         run: |
-          python3 build.py -p zookeeper-operator -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p zookeeper-operator -m time-travel  -d $IMAGE_NAMESPACE
-      - name: Sieve Learn
-        run: |
-          python3 sieve.py -p zookeeper-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p zookeeper-operator -m obs-gap  -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE

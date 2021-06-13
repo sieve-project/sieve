@@ -3,21 +3,21 @@ ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionG
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-ce-name: cassandra-datacenter
+ce-name: sonar-cassandra-cluster
 ce-namespace: default
-ce-rtype: cassandradatacenter
-deployment-name: cassandra-operator
-description: 'Pause kind-control-plane3 after it processes a default/cassandradatacenter/cassandra-datacenter
+ce-rtype: cassandracluster
+deployment-name: casskop-operator
+description: 'Pause kind-control-plane3 after it processes a default/cassandracluster/sonar-cassandra-cluster
   event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-NON-NIL",
   "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
-  the controller cassandra-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/data-volume-cassandra-test-cluster-dc1-rack1-0
+  the controller casskop-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/data-sonar-cassandra-cluster-dc1-rack1-0
   event.'
 front-runner: kind-control-plane
 mode: obs-gap
-operator-pod-label: cassandra-operator
-project: cassandra-operator
+operator-pod-label: casskop-operator
+project: casskop-operator
 se-etype: ADDED
-se-name: data-volume-cassandra-test-cluster-dc1-rack1-0
+se-name: data-sonar-cassandra-cluster-dc1-rack1-0
 se-namespace: default
 se-rtype: persistentvolumeclaim
 stage: test

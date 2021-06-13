@@ -68,50 +68,50 @@ test_suites = {
         "scaledown": Suite(
             workloads.workloads["cassandra-operator"]["scaledown"], "test-cassandra-operator/test/obs-gap-1.yaml", "obs-gap"),
         "recreate": Suite(
-            workloads.workloads["cassandra-operator"]["recreate"], "test-cassandra-operator/test/time-travel-1.yaml", "time-travel"),
+            workloads.workloads["cassandra-operator"]["recreate"], "test-cassandra-operator/test/obs-gap-1.yaml", "obs-gap"),
         "scaledown-scaleup": Suite(
-            workloads.workloads["cassandra-operator"]["scaledown-scaleup"], "test-cassandra-operator/test/time-travel-2.yaml", "time-travel"),
+            workloads.workloads["cassandra-operator"]["scaledown-scaleup"], "test-cassandra-operator/test/obs-gap-2.yaml", "obs-gap"),
     },
     "zookeeper-operator": {
         "recreate": Suite(
-            workloads.workloads["zookeeper-operator"]["recreate"], "test-zookeeper-operator/test/time-travel-1.yaml", "time-travel"),
+            workloads.workloads["zookeeper-operator"]["recreate"], "test-zookeeper-operator/test/obs-gap-1.yaml", "obs-gap"),
         "scaledown-scaleup": Suite(
-            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"], "test-zookeeper-operator/test/time-travel-2.yaml", "time-travel"),
+            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"], "test-zookeeper-operator/test/obs-gap-2.yaml", "obs-gap"),
     },
     "rabbitmq-operator": {
         "recreate": Suite(
-            workloads.workloads["rabbitmq-operator"]["recreate"], "test-rabbitmq-operator/test/time-travel-1.yaml", "time-travel"),
+            workloads.workloads["rabbitmq-operator"]["recreate"], "test-rabbitmq-operator/test/obs-gap-1.yaml", "obs-gap"),
         "resize-pvc": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/obs-gap-2.yaml", "obs-gap", two_sided=True),
     },
     "mongodb-operator": {
         "recreate": Suite(
-            workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", num_workers=3),
+            workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/obs-gap-1.yaml", "obs-gap", num_workers=3),
         "disable-enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3, se_filter=True),
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/obs-gap-2.yaml", "obs-gap", num_workers=3, se_filter=True),
         "disable-enable-arbiter": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
+            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/obs-gap-3.yaml", "obs-gap", num_workers=5),
         "enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["enable-shard"], "config/none.yaml", "time-travel", num_workers=3),
+            workloads.workloads["mongodb-operator"]["enable-shard"], "config/none.yaml", "obs-gap", num_workers=3),
     },
     "cass-operator": {
         "recreate": Suite(
-            workloads.workloads["cass-operator"]["recreate"], "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
-        # test_framework.ExtendedWorkload(test_dir_test["cass-operator"], "./recreateCassandraDataCenter.sh", True), "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
+            workloads.workloads["cass-operator"]["recreate"], "test-cass-operator/test/obs-gap-1.yaml", "obs-gap"),
+        # test_framework.ExtendedWorkload(test_dir_test["cass-operator"], "./recreateCassandraDataCenter.sh", True), "test-cass-operator/test/obs-gap-1.yaml", "obs-gap"),
     },
     "casskop-operator": {
         "recreate": Suite(
-            workloads.workloads["casskop-operator"]["recreate"], "test-casskop-operator/test/time-travel-1.yaml", "time-travel"),
+            workloads.workloads["casskop-operator"]["recreate"], "test-casskop-operator/test/obs-gap-1.yaml", "obs-gap"),
         "reducepdb": Suite(
-            test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./reducepdb.sh", True), "test-casskop-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
+            test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./reducepdb.sh", True), "test-casskop-operator/test/obs-gap-2.yaml", "obs-gap", two_sided=True),
     },
     "xtradb-operator": {
         "recreate": Suite(
-            workloads.workloads["xtradb-operator"]["recreate"], "test-xtradb-operator/test/time-travel-1.yaml", "time-travel", num_workers=4),
+            workloads.workloads["xtradb-operator"]["recreate"], "test-xtradb-operator/test/obs-gap-1.yaml", "obs-gap", num_workers=4),
         "disable-enable-haproxy": Suite(
-            workloads.workloads["xtradb-operator"]["disable-enable-haproxy"], "test-xtradb-operator/test/time-travel-2.yaml", "time-travel", num_workers=4),
+            workloads.workloads["xtradb-operator"]["disable-enable-haproxy"], "test-xtradb-operator/test/obs-gap-2.yaml", "obs-gap", num_workers=4),
         "disable-enable-proxysql": Suite(
-            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
+            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/obs-gap-3.yaml", "obs-gap", num_workers=4),
     },
 }
 
