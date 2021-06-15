@@ -166,7 +166,7 @@ func regularizeType(rtype string) string {
 
 func pluralToSingle(rtype string) string {
 	if rtype == "endpoints" {
-		return rtype
+		return "service"
 	} else if strings.HasSuffix(rtype, "s") {
 		return rtype[:len(rtype)-1]
 	} else {

@@ -174,6 +174,8 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
         os.system("cp %s %s" % (os.path.join(test_config, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
     else:
+        if os.path.exists(test_config):
+            open(os.path.join(log_dir, "config.yaml"), "w").write(open(test_config).read())
         if mode == "vanilla":
             # TODO: We need another recording mode to only record digest without generating config
             pass
@@ -225,7 +227,7 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
                       log_dir, docker_repo, docker_tag, num_workers)
         run_workload(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers)
-    elif stage == "learn" or stage == "test":
+    if stage == "learn" or stage == "test":
         post_process(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
 
@@ -262,13 +264,13 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="a
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
-    config_dir = os.path.join("log", project, "learn", test, mode, "generated-config")
+    config_dir = os.path.join("log", project, test, "learn", mode)
     configs = [x for x in glob.glob(os.path.join(config_dir, "*.yaml")) if not "configmap" in x]
     print("configs", configs)
     for config in configs:
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(
-            dir, project, "test", test, num)
+            dir, project, test, "test", num)
         print("[sonar] config is %s" % config)
         print("[sonar] log dir is %s" % log_dir)
         try:

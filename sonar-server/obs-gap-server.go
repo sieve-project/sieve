@@ -4,6 +4,7 @@ import (
 	"log"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	sonar "sonar.client"
 )
@@ -118,6 +119,17 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 		s.pausingReconcile = true
 		s.crucialEvent = ew
 		s.mutex.Unlock()
+
+		go func() {
+			time.Sleep(time.Second * 20)
+			s.mutex.Lock()
+			if s.pausingReconcile {
+				s.pausingReconcile = false
+				s.cond.Broadcast()
+				log.Println("[sonar] we met the timeout for reconcile pausing, reconcile is resumed")
+			}
+			s.mutex.Unlock()
+		}()
 
 	}
 	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
