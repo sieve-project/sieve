@@ -39,7 +39,7 @@ jobs:
         run: |
           wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
           tar -zxvf helm-v3.6.0-linux-amd64.tar.gz
-          mv linux-amd64/helm /usr/local/bin/helm
+          sudo mv linux-amd64/helm /usr/local/bin/helm
           helm
       - name: Build Image
         run: |
