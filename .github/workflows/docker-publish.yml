@@ -3,7 +3,7 @@ name: Sieve Test
 on: [pull_request, workflow_dispatch]
 
 env:
-  IMAGE_NAMESPACE: docker.pkg.github.com/sieve-project/sieve
+  IMAGE_NAMESPACE: ghcr.io/sieve-project/action
 
 jobs:
   casskop-operator:
@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
