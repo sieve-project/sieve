@@ -37,8 +37,10 @@ jobs:
           kind
       - name: Install Helm
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
+          wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
+          tar -zxvf helm-v3.6.0-linux-amd64.tar.gz
+          mv linux-amd64/helm /usr/local/bin/helm
+          helm
       - name: Build Image
         run: |
           python3 build.py -p casskop-operator -m learn -d $IMAGE_NAMESPACE
@@ -84,10 +86,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Install Mage
         run: |
           go get -u github.com/magefile/mage
@@ -133,10 +131,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Install Mage
         run: |
           go get -u github.com/magefile/mage
@@ -183,10 +177,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p mongodb-operator -m learn -d $IMAGE_NAMESPACE
@@ -232,10 +222,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p cassandra-operator -m learn -d $IMAGE_NAMESPACE
@@ -284,10 +270,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
@@ -333,10 +315,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p zookeeper-operator -m learn -d $IMAGE_NAMESPACE
