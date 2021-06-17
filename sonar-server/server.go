@@ -20,6 +20,7 @@ type serverInterface interface {
 // The server reads the config `server.yaml` and decides which listener to use.
 // The listener will handle the RPC from sonar client (called by controllers or k8s components).
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("registering rpc server...")
 	config := getConfig()
 

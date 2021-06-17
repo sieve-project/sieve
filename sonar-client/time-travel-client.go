@@ -31,10 +31,20 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		return
 	}
 	resourceType := pluralToSingle(tokens[len(tokens)-3])
+	// Ref: https://github.com/kubernetes/kubernetes/blob/master/pkg/kubeapiserver/default_storage_factory_builder.go#L40
+	prev := tokens[len(tokens)-4]
+	cur := tokens[len(tokens)-3]
+	if prev == "services" && cur == "endpoints" {
+		resourceType = "endpoints"
+	}
+	if prev == "services" && cur == "specs" {
+		resourceType = "service"
+	}
 	namespace := tokens[len(tokens)-2]
 	name := tokens[len(tokens)-1]
+	log.Printf("[sonar] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
-		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
+		log.Printf("[sonar][rt-ns-name][curcial-event] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
 			printError(err, jsonError)
@@ -63,7 +73,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		checkResponse(response, "NotifyTimeTravelCrucialEvent")
 		client.Close()
 	} else if name == config["se-name"].(string) && namespace == config["se-namespace"].(string) && resourceType == config["se-rtype"].(string) && eventType == config["se-etype"] {
-		log.Printf("[sonar][rt-ns-name] %s %s %s", resourceType, namespace, name)
+		log.Printf("[sonar][rt-ns-name][side-effect] %s %s %s", resourceType, namespace, name)
 		client, err := newClient()
 		if err != nil {
 			printError(err, connectionError)

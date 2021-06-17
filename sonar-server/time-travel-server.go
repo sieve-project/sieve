@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -82,12 +84,57 @@ func (s *timeTravelServer) Start() {
 	log.Println("start timeTravelServer...")
 }
 
+func toLowerMap(m map[string]interface{}) {
+	for key, val := range m {
+		switch v := val.(type) {
+		case map[string]interface{}:
+			if e, ok := m[key].(map[string]interface{}); ok {
+				toLowerMap(e)
+				if strings.ToLower(key) != key {
+					m[strings.ToLower(key)] = e
+					delete(m, key)
+				}
+			} else {
+				log.Println("m[key] assertion to map[string]interface{} fail")
+			}
+
+		case []interface{}:
+			if e, ok := m[key].([]interface{}); ok {
+				for idx := range e {
+					switch e[idx].(type) {
+					case map[string]interface{}:
+						if eSlice, ok := e[idx].(map[string]interface{}); ok {
+							toLowerMap(eSlice)
+						}
+					case []interface{}:
+						log.Println("toLowerMap does not support slice in slice for now")
+					}
+				}
+				if strings.ToLower(key) != key {
+					m[strings.ToLower(key)] = e
+					delete(m, key)
+				}
+			} else {
+				log.Println("m[key] assertion to []interface{} fail")
+			}
+
+		default:
+			m[strings.ToLower(key)] = v
+			if strings.ToLower(key) != key {
+				delete(m, key)
+			}
+
+		}
+	}
+}
+
 func strToMap(str string) map[string]interface{} {
 	m := make(map[string]interface{})
 	err := json.Unmarshal([]byte(str), &m)
 	if err != nil {
 		log.Fatalf("cannot unmarshal to map: %s\n", str)
 	}
+	toLowerMap(m)
 	return m
 }
 
@@ -167,6 +214,7 @@ func equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
 func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	for key, val := range crucialEvent {
 		if _, ok := currentEvent[key]; !ok {
+			log.Println("Match fail", key, val, "currentEvent keys", reflect.ValueOf(currentEvent).MapKeys())
 			return false
 		}
 		switch v := val.(type) {
@@ -220,8 +268,16 @@ func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 			} else {
 				return false
 			}
+
 		default:
-			log.Printf("Unsupported type: %v %T\n", v, v)
+			if e, ok := currentEvent[key]; ok {
+				if val == nil && e == nil {
+					log.Printf("Both nil type: %v and %v , key: %s\n", v, e, key)
+					return true
+				}
+			}
+
+			log.Printf("Unsupported type: %v %T, key: %s\n", v, v, key)
 			return false
 		}
 	}
@@ -343,7 +399,6 @@ func (s *timeTravelServer) shouldRestart() bool {
 		return false
 	}
 }
-
 
 func (s *timeTravelServer) restartComponent() {
 	masterUrl := "https://" + s.frontRunner + ":6443"

@@ -3,6 +3,7 @@ import os
 import common
 import time
 import traceback
+from datetime import datetime
 
 
 def get_pod(resource_name):
@@ -123,6 +124,7 @@ class TestWaitForStatus:
             if time.time() - s > float(self.time_out):
                 print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
                       (self.resource_name, self.status, self.time_out))
+                os.system("kubectl describe pods")
                 return 1
             if self.resource_type == common.POD:
                 if self.check_pod():
@@ -204,6 +206,7 @@ class BuiltInWorkLoad:
 
     def run(self, mode="ignore"):
         for work in self.work_list:
+            print(work, str(datetime.now()))
             if work.run() != 0:
                 print("[ERROR] cannot fullfill workload")
                 return 1

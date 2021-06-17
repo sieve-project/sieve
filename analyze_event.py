@@ -102,25 +102,30 @@ def diff_events(prev_event, cur_event):
     return slim_prev_object, slim_cur_object
 
 
-def canonicalize_event_for_list(event_list):
+def canonicalize_event_for_list(event_list, node_ignore):
     for i in range(len(event_list)):
         if isinstance(event_list[i], list):
-            canonicalize_event_for_list(event_list[i])
+            canonicalize_event_for_list(event_list[i], node_ignore)
         elif isinstance(event_list[i], dict):
-            canonicalize_event(event_list[i])
+            canonicalize_event(event_list[i], node_ignore)
         elif isinstance(event_list[i], str):
             if re.match(common.TIME_REG, str(event_list[i])):
                 event_list[i] = common.SONAR_CANONICALIZATION_MARKER
     return event_list
 
 
-def canonicalize_event(event):
+def canonicalize_event(event, node_ignore):
     for key in event:
         if isinstance(event[key], dict):
-            canonicalize_event(event[key])
+            canonicalize_event(event[key], node_ignore)
         elif isinstance(event[key], list):
-            canonicalize_event_for_list(event[key])
+            canonicalize_event_for_list(event[key], node_ignore)
         elif isinstance(event[key], str):
             if re.match(common.TIME_REG, str(event[key])):
                 event[key] = common.SONAR_CANONICALIZATION_MARKER
+            if node_ignore[0]:
+                if 'ip' in key.lower() and re.match(common.IP_REG, str(event[key])):
+                    event[key] = common.SONAR_CANONICALIZATION_MARKER
+                if key in common.PLACEHOLDER_FIELDS + node_ignore[1]:
+                    event[key] = common.SONAR_CANONICALIZATION_MARKER
     return event

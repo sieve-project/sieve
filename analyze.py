@@ -326,7 +326,7 @@ def time_travel_description(yaml_map):
                                                                       yaml_map["se-rtype"], yaml_map["se-name"]]))
 
 
-def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
+def generate_time_travel_yaml(triggering_points, path, project, node_ignore, timing="after"):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -348,9 +348,9 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
         yaml_map["ce-namespace"] = triggering_point["namespace"]
         yaml_map["ce-rtype"] = triggering_point["rtype"]
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"])))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"]), node_ignore))
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"])))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"]), node_ignore))
         yaml_map["ce-etype-current"] = triggering_point["curEventType"]
         yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
         yaml_map["se-name"] = effect["name"]
@@ -363,7 +363,7 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
-def generate_obs_gap_yaml(triggering_points, path, project):
+def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -383,9 +383,9 @@ def generate_obs_gap_yaml(triggering_points, path, project):
         yaml_map["ce-namespace"] = triggering_point["namespace"]
         yaml_map["ce-rtype"] = triggering_point["rtype"]
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"])))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"]), node_ignore))
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"])))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"]), node_ignore))
         yaml_map["ce-etype-current"] = triggering_point["curEventType"]
         yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
         yaml_map["se-name"] = effect["name"]
@@ -402,8 +402,29 @@ def dump_json_file(dir, data, json_file_name):
     json.dump(data, open(os.path.join(
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
+def side_effect_filter(causality_pairs, event_key_map):
+    filtered_causality_pairs = []
+    for pair in causality_pairs:
+        start_event = pair[0]
+        side_effect = pair[1] # e.g. delete sth
+        # Ignore if side effect is not delete
+        if not side_effect.etype == "Delete":
+            filtered_causality_pairs.append(pair)
+            continue
+        flag = False
+        if side_effect.key in event_key_map:
+            for event in event_key_map[side_effect.key]:
+                # We will find add sth
+                if event.start_timestamp <= side_effect.end_timestamp:
+                    continue
+                if event.etype == "Added":
+                    flag = True
+        if flag:
+            filtered_causality_pairs.append(pair)
+    print("side effect filter reduce causality_pairs from %d to %d"%(len(causality_pairs), len(filtered_causality_pairs)))
+    return filtered_causality_pairs
 
-def analyze_trace(project, dir, mode, generate_oracle=True, generate_config=True, two_sided=False, use_sql=True, compress_trivial_reconcile=True):
+def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), se_filter=False, use_sql=True, compress_trivial_reconcile=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -415,29 +436,30 @@ def analyze_trace(project, dir, mode, generate_oracle=True, generate_config=True
           ("enabled" if two_sided else "disabled"))
     print("use-sql feature is %s" %
           ("enabled" if use_sql else "disabled"))
-    log_path = os.path.join(dir, "sonar-server.log")
+    conf_path = os.path.join(conf_dir, "sonar-server.log")
     if generate_config:
-        conf_dir = os.path.join(dir, "generated-config")
-        if os.path.exists(conf_dir):
-            shutil.rmtree(conf_dir)
-        os.makedirs(conf_dir, exist_ok=True)
+        if os.path.exists(log_dir):
+            shutil.rmtree(log_dir)
+        os.makedirs(log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
-            log_path, use_sql, compress_trivial_reconcile)
+            conf_path, use_sql, compress_trivial_reconcile)
+        if se_filter:
+            causality_pairs = side_effect_filter(causality_pairs, event_key_map)
         triggering_points = generate_triggering_points(
             event_key_map, causality_pairs)
-        dump_json_file(dir, triggering_points, "triggering-points.json")
+        dump_json_file(conf_dir, triggering_points, "triggering-points.json")
         if mode == "time-travel":
-            generate_time_travel_yaml(triggering_points, conf_dir, project)
+            generate_time_travel_yaml(triggering_points, log_dir, project, node_ignore)
             if two_sided:
                 generate_time_travel_yaml(
-                    triggering_points, conf_dir, project, "before")
+                    triggering_points, log_dir, project, node_ignore, "before")
         elif mode == "obs-gap":
-            generate_obs_gap_yaml(triggering_points, conf_dir, project)
+            generate_obs_gap_yaml(triggering_points, log_dir, project, node_ignore)
 
     if generate_oracle:
-        side_effect, status = oracle.generate_digest(log_path)
-        dump_json_file(dir, side_effect, "side-effect.json")
-        dump_json_file(dir, status, "status.json")
+        side_effect, status = oracle.generate_digest(conf_path)
+        dump_json_file(conf_dir, side_effect, "side-effect.json")
+        dump_json_file(conf_dir, status, "status.json")
 
 
 if __name__ == "__main__":
