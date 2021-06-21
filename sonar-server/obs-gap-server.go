@@ -252,7 +252,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 
 	log.Println("NotifyObsGapAfterIndexerWrite", pausingReconcile, "pausedReconcileCnt", s.pausedReconcileCnt)
 
-	if pausingReconcile && s.pausedReconcileCnt > 0 {
+	if pausingReconcile {
 		currentEvent := strToMap(request.Object)
 		crucialEvent := strToMap(s.crucialEvent.eventObject)
 		// For now, we simply check for the event which cancel the crucial
