@@ -265,10 +265,8 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 			s.pausingReconcile = false
 			s.cond.Broadcast()
 			s.mutex.Unlock()
-		}
-
-		// We also propose a diff based method for the cancel
-		if request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent, crucialEvent) {
+		} else if request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent, crucialEvent) {
+			// We also propose a diff based method for the cancel
 			if cancelEvent(crucialEvent, currentEvent) {
 				log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
