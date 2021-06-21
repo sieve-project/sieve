@@ -3,7 +3,7 @@ name: Sieve Test
 on: [pull_request, workflow_dispatch]
 
 env:
-  IMAGE_NAMESPACE: docker.pkg.github.com/sieve-project/sieve
+  IMAGE_NAMESPACE: ghcr.io/sieve-project/action
 
 jobs:
   casskop-operator:
@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
@@ -37,8 +37,10 @@ jobs:
           kind
       - name: Install Helm
         run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
+          wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
+          tar -zxvf helm-v3.6.0-linux-amd64.tar.gz
+          sudo mv linux-amd64/helm /usr/local/bin/helm
+          helm
       - name: Build Image
         run: |
           python3 build.py -p casskop-operator -m obs-gap  -d $IMAGE_NAMESPACE
@@ -70,7 +72,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
@@ -79,10 +81,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Install Mage
         run: |
           go get -u github.com/magefile/mage
@@ -119,7 +117,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
@@ -128,10 +126,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Install Mage
         run: |
           go get -u github.com/magefile/mage
@@ -169,7 +163,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
@@ -178,10 +172,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p mongodb-operator -m obs-gap  -d $IMAGE_NAMESPACE
@@ -213,7 +203,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
@@ -222,10 +212,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p cassandra-operator -m obs-gap  -d $IMAGE_NAMESPACE
@@ -258,7 +244,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
@@ -267,10 +253,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p rabbitmq-operator -m obs-gap  -d $IMAGE_NAMESPACE
@@ -302,7 +284,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Setup GitHub Package Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
           pip install kubernetes
@@ -311,10 +293,6 @@ jobs:
         run: |
           go get sigs.k8s.io/kind
           kind
-      - name: Install Helm
-        run: |
-          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-          helm 
       - name: Build Image
         run: |
           python3 build.py -p zookeeper-operator -m obs-gap  -d $IMAGE_NAMESPACE

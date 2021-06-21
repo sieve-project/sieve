@@ -174,6 +174,8 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
         os.system("cp %s %s" % (os.path.join(test_config, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
     else:
+        if os.path.exists(test_config):
+            open(os.path.join(log_dir, "config.yaml"), "w").write(open(test_config).read())
         if mode == "vanilla":
             # TODO: We need another recording mode to only record digest without generating config
             pass

@@ -44,7 +44,7 @@ https://jira.percona.com/browse/K8SPSMDB-438 confirmed (time traveling)
 https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product)
 
 ### [percona/percona-xtradb-cluster-operator](https://github.com/percona/percona-xtradb-cluster-operator)
-https://jira.percona.com/browse/K8SPXC-716 confirmed (time traveling)
+https://jira.percona.com/browse/K8SPXC-716 confirmed and fixed by us (time traveling)
 
 https://jira.percona.com/browse/K8SPXC-725 confirmed (time traveling)
 

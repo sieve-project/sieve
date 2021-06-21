@@ -124,6 +124,7 @@ class TestWaitForStatus:
             if time.time() - s > float(self.time_out):
                 print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
                       (self.resource_name, self.status, self.time_out))
+                os.system("kubectl describe pods")
                 return 1
             if self.resource_type == common.POD:
                 if self.check_pod():
