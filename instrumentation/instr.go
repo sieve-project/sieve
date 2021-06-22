@@ -70,6 +70,10 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
 	preprocess(sharedInformerGoFile)
 	instrumentSharedInformerGoForObsGap(sharedInformerGoFile, sharedInformerGoFile)
+
+	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
+	fmt.Printf("instrumenting %s\n", clientGoFile)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "ObsGap")
 }
 
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {

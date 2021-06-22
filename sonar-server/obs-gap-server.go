@@ -51,6 +51,10 @@ func (l *ObsGapListener) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGap
 	return l.Server.NotifyObsGapBeforeReconcile(request, response)
 }
 
+func (l *ObsGapListener) NotifyObsGapSideEffects(request *sonar.NotifyObsGapSideEffectsRequest, response *sonar.Response) error {
+	return l.Server.NotifyObsGapSideEffects(request, response)
+}
+
 type obsGapServer struct {
 	seenPrev           bool
 	eventID            int32
@@ -297,5 +301,12 @@ func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBe
 	s.mutex.Unlock()
 	log.Println("NotifyObsGapBeforeReconcile[1/1]", recID, s.pausingReconcile)
 	*response = sonar.Response{Ok: true}
+	return nil
+}
+
+func (s *obsGapServer) NotifyObsGapSideEffects(request *sonar.NotifyObsGapSideEffectsRequest, response *sonar.Response) error {
+	name, namespace := extractNameNamespace(request.Object)
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
+	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"reflect"
+
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
@@ -93,5 +95,39 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 		return
 	}
 	checkResponse(response, "NotifyObsGapBeforeReconcile")
+	client.Close()
+}
+
+func NotifyObsGapSideEffects(sideEffectType string, object interface{}, k8sErr error) {
+	if !checkStage(test) || !checkMode(obsGap) {
+		return
+	}
+	// log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, jsonError)
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
+		return
+	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	request := &NotifyObsGapSideEffectsRequest{
+		SideEffectType: sideEffectType,
+		Object:         string(jsonObject),
+		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		Error:          errorString,
+	}
+	var response Response
+	err = client.Call("ObsGapListener.NotifyObsGapSideEffects", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return
+	}
+	checkResponse(response, "NotifyObsGapSideEffects")
 	client.Close()
 }
