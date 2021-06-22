@@ -155,7 +155,7 @@ def generate_debug_suggestion(testing_config):
 def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
     testing_config = yaml.safe_load(open(config))
     interest_objects = []
-    if testing_config["mode"] == "time-travel":
+    if testing_config["mode"] in ["time-travel", "obs-gap"]:
         interest_objects.append(
             {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
     alarm_status, bug_report_status = check_status(
