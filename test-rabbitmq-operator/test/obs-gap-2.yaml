@@ -1,24 +1,23 @@
+project: rabbitmq-operator
+stage: test
+mode: obs-gap
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: rabbitmq-operator
+deployment-name: rabbitmq-operator
+ce-name: rabbitmq-cluster
+ce-namespace: default
+ce-rtype: rabbitmqcluster
 ce-diff-current: '{"spec": {"persistence": {"storage": "15Gi"}}}'
 ce-diff-previous: '{"spec": {"persistence": {"storage": "10Gi"}}}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-ce-name: rabbitmq-cluster
-ce-namespace: default
-ce-rtype: rabbitmqcluster
-deployment-name: rabbitmq-operator
+se-name: rabbitmq-cluster-server
+se-namespace: default
+se-rtype: statefulset
+se-etype: Delete
 description: 'Pause kind-control-plane3 after it processes a default/rabbitmqcluster/rabbitmq-cluster
   event E. E should match the pattern {"spec": {"persistence": {"storage": "15Gi"}}}
   and the events before E should match {"spec": {"persistence": {"storage": "10Gi"}}}.
   And restart the controller rabbitmq-operator after kind-control-plane processes
-  a ADDED default/statefulset/rabbitmq-cluster-server event.'
-front-runner: kind-control-plane
-mode: obs-gap
-operator-pod-label: rabbitmq-operator
-project: rabbitmq-operator
-se-etype: ADDED
-se-name: rabbitmq-cluster-server
-se-namespace: default
-se-rtype: statefulset
-stage: test
-straggler: kind-control-plane3
-timing: before
+  a Delete default/statefulset/rabbitmq-cluster-server event.'

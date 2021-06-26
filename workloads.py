@@ -54,7 +54,10 @@ workloads = {
         .wait(50),
         "resize-pvc": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml").wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
-        .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"persistence\":{\"storage\":\"15Gi\"}}}'").wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
+        .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"persistence\":{\"storage\":\"15Gi\"}}}'").wait(10)
+        .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"persistence\":{\"storage\":\"16Gi\"}}}'").wait(10)
+        .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"persistence\":{\"storage\":\"17Gi\"}}}'").wait(10)
+        .wait_for_sts_storage_size("rabbitmq-cluster-server", "17Gi")
         .wait(50),
     },
     "mongodb-operator": {
