@@ -186,7 +186,7 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
     return side_effect_list, side_effect_id_map
 
 
-def base_pass(event_list, side_effect_list):
+def base_pass(mode, event_list, side_effect_list):
     print("Running base pass ...")
     event_effect_pairs = []
     for side_effect in side_effect_list:
@@ -197,7 +197,7 @@ def base_pass(event_list, side_effect_list):
     return event_effect_pairs
 
 
-def delete_only_filtering_pass(event_effect_pairs):
+def delete_only_filtering_pass(mode, event_effect_pairs):
     print("Running optional pass: delete-only-filtering ...")
     reduced_event_effect_pairs = []
     for pair in event_effect_pairs:
@@ -207,7 +207,7 @@ def delete_only_filtering_pass(event_effect_pairs):
     return reduced_event_effect_pairs
 
 
-def write_read_overlap_filtering_pass(event_effect_pairs):
+def write_read_overlap_filtering_pass(mode, event_effect_pairs):
     print("Running optional pass: write-read-overlap-filtering ...")
     reduced_event_effect_pairs = []
     for pair in event_effect_pairs:
@@ -218,7 +218,7 @@ def write_read_overlap_filtering_pass(event_effect_pairs):
     return reduced_event_effect_pairs
 
 
-def error_msg_filtering_pass(event_effect_pairs):
+def error_msg_filtering_pass(mode, event_effect_pairs):
     print("Running optional pass: error-message-filtering ...")
     reduced_event_effect_pairs = []
     for pair in event_effect_pairs:
@@ -228,17 +228,17 @@ def error_msg_filtering_pass(event_effect_pairs):
     return reduced_event_effect_pairs
 
 
-def pipelined_passes(event_effect_pairs):
+def pipelined_passes(mode, event_effect_pairs):
     reduced_event_effect_pairs = event_effect_pairs
-    if common.DELETE_ONLY_FILTER_FLAG:
+    if common.DELETE_ONLY_FILTER_FLAG and mode == "time-travel":
         reduced_event_effect_pairs = delete_only_filtering_pass(
-            reduced_event_effect_pairs)
+            mode, reduced_event_effect_pairs)
     if common.ERROR_MSG_FILTER_FLAG:
         reduced_event_effect_pairs = error_msg_filtering_pass(
-            reduced_event_effect_pairs)
+            mode, reduced_event_effect_pairs)
     if common.WRITE_READ_FILTER_FLAG:
         reduced_event_effect_pairs = write_read_overlap_filtering_pass(
-            reduced_event_effect_pairs)
+            mode, reduced_event_effect_pairs)
     return reduced_event_effect_pairs
 
 
@@ -260,7 +260,7 @@ def passes_as_sql_query():
     return query
 
 
-def generate_event_effect_pairs(path, use_sql, compress_trivial_reconcile):
+def generate_event_effect_pairs(mode, path, use_sql, compress_trivial_reconcile):
     print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
     event_list, event_key_map, event_id_map = parse_events(path)
     side_effect_list, side_effect_id_map = parse_side_effects(
@@ -282,8 +282,8 @@ def generate_event_effect_pairs(path, use_sql, compress_trivial_reconcile):
             reduced_event_effect_pairs.append(
                 [event_id_map[event_id], side_effect_id_map[side_effect_id]])
     else:
-        event_effect_pairs = base_pass(event_list, side_effect_list)
-        reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
+        event_effect_pairs = base_pass(mode, event_list, side_effect_list)
+        reduced_event_effect_pairs = pipelined_passes(mode, event_effect_pairs)
     return reduced_event_effect_pairs, event_key_map
 
 
@@ -325,6 +325,14 @@ def time_travel_description(yaml_map):
             yaml_map["front-runner"], yaml_map["se-etype"], "/".join([yaml_map["se-namespace"],
                                                                       yaml_map["se-rtype"], yaml_map["se-name"]]))
 
+def obs_gap_description(yaml_map):
+    return "Pause any reconcile on %s after it sees a %s event E. "\
+        "E should match the pattern %s and the events before E should match %s. "\
+        "And resume reconcile on the controller %s after it sees an event cancel event E." % (
+            yaml_map["operator-pod-label"], "/".join([yaml_map["ce-namespace"],
+                                             yaml_map["ce-rtype"], yaml_map["ce-name"]]),
+            yaml_map["ce-diff-current"], yaml_map["ce-diff-previous"], yaml_map["operator-pod-label"],
+            )
 
 def generate_time_travel_yaml(triggering_points, path, project, node_ignore, timing="after"):
     yaml_map = {}
@@ -392,7 +400,7 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
         yaml_map["se-namespace"] = effect["namespace"]
         yaml_map["se-rtype"] = effect["rtype"]
         yaml_map["se-etype"] = effect["etype"]
-        yaml_map["description"] = time_travel_description(yaml_map)
+        yaml_map["description"] = obs_gap_description(yaml_map)
         yaml.dump(yaml_map, open(
             os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
     print("Generated %d obs-gap config(s) in %s" % (i, path))
@@ -432,6 +440,9 @@ def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, genera
     if not generate_config:
         two_sided = False
         use_sql = False
+    # Disable sql feature for obs gap mode for now
+    if mode == "obs-gap":
+        use_sql = False
     print("two-sided feature is %s" %
           ("enabled" if two_sided else "disabled"))
     print("use-sql feature is %s" %
@@ -442,7 +453,7 @@ def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, genera
             shutil.rmtree(log_dir)
         os.makedirs(log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
-            conf_path, use_sql, compress_trivial_reconcile)
+            mode, conf_path, use_sql, compress_trivial_reconcile)
         if se_filter:
             causality_pairs = side_effect_filter(causality_pairs, event_key_map)
         triggering_points = generate_triggering_points(

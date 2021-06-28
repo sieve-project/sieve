@@ -1,0 +1,22 @@
+project: rabbitmq-operator
+stage: test
+mode: obs-gap
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: rabbitmq-operator
+deployment-name: rabbitmq-operator
+ce-name: rabbitmq-cluster
+ce-namespace: default
+ce-rtype: rabbitmqcluster
+ce-diff-current: '{"spec": {"replicas": 3}}'
+ce-diff-previous: '{"spec": {"replicas": 1}}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+se-name: rabbitmq-cluster-server
+se-namespace: default
+se-rtype: statefulset
+se-etype: Update
+description: 'Pause any reconcile on rabbitmq-operator after it sees a default/rabbitmqcluster/rabbitmq-cluster
+  event E. E should match the pattern {"spec": {"replicas": 3}} and the events before
+  E should match {"spec": {"replicas": 1}}. And resume reconcile on the controller
+  rabbitmq-operator after it sees an event cancel event E.'

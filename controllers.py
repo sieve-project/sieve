@@ -83,6 +83,8 @@ test_suites = {
             workloads.workloads["rabbitmq-operator"]["recreate"], "test-rabbitmq-operator/test/obs-gap-1.yaml", "obs-gap"),
         "resize-pvc": Suite(
             workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/obs-gap-2.yaml", "obs-gap", two_sided=True),
+        "scaleup-scaledown": Suite(
+            workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"], "test-rabbitmq-operator/test/obs-gap-3.yaml", "obs-gap"),
     },
     "mongodb-operator": {
         "recreate": Suite(
