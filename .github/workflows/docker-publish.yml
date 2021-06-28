@@ -43,7 +43,12 @@ jobs:
           helm
       - name: Build Image
         run: |
-          python3 build.py -p casskop-operator -m obs-gap  -d $IMAGE_NAMESPACE
+          python3 build.py -p casskop-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p casskop-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p casskop-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p casskop-operator -t reducepdb -m learn -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
@@ -87,7 +92,7 @@ jobs:
           mage -h
       - name: Build Image
         run: |
-          python3 build.py -p cass-operator -m obs-gap -d $IMAGE_NAMESPACE
+          python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p cass-operator -t recreate -d $IMAGE_NAMESPACE
@@ -97,52 +102,52 @@ jobs:
           path: |
             log
             log-batch
-  # xtradb-operator:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GOPATH: /home/runner/go
-  #     KUBECONFIG: /home/runner/.kube/config
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Setup Git
-  #       run: |
-  #         git config --global user.name "sieve"
-  #         git config --global user.email "sieve@sieve.com"
-  #     - name: Setup Go environment
-  #       uses: actions/setup-go@v2.1.3
-  #       with:
-  #         go-version: 1.15
-  #     - name: Setup Python
-  #       uses: actions/setup-python@v2.2.2
-  #       with:
-  #         python-version: 3.7
-  #     - name: Setup GitHub Package Registry
-  #       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-  #     - name: Install Python Packages
-  #       run: |
-  #         pip install kubernetes
-  #         pip install pyyaml
-  #     - name: Install Kind
-  #       run: |
-  #         go get sigs.k8s.io/kind
-  #         kind
-  #     - name: Install Mage
-  #       run: |
-  #         go get -u github.com/magefile/mage
-  #         mage -h
-  #     - name: Build Image
-  #       run: |
-  #         python3 build.py -p xtradb-operator -m obs-gap -d $IMAGE_NAMESPACE
-  #     - name: Sieve Test
-  #       run: |
-  #         python3 sieve.py -p xtradb-operator -t recreate -d $IMAGE_NAMESPACE
-  #         python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -d $IMAGE_NAMESPACE
-  #         python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -d $IMAGE_NAMESPACE
-  #     - uses: actions/upload-artifact@v2
-  #       with:
-  #         name: sieve-cass-artifact
-  #         path: |
-  #           log
+  xtradb-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install kubernetes
+          pip install pyyaml
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Install Mage
+        run: |
+          go get -u github.com/magefile/mage
+          mage -h
+      - name: Build Image
+        run: |
+          python3 build.py -p xtradb-operator -m time-travel -d $IMAGE_NAMESPACE
+      - name: Sieve Test
+        run: |
+          python3 sieve.py -p xtradb-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -d $IMAGE_NAMESPACE
+          python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-cass-artifact
+          path: |
+            log
   mongodb-operator:
     runs-on: ubuntu-latest
     env:
@@ -174,7 +179,7 @@ jobs:
           kind
       - name: Build Image
         run: |
-          python3 build.py -p mongodb-operator -m obs-gap  -d $IMAGE_NAMESPACE
+          python3 build.py -p mongodb-operator -m time-travel  -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
@@ -214,7 +219,14 @@ jobs:
           kind
       - name: Build Image
         run: |
+          python3 build.py -p cassandra-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p cassandra-operator -m time-travel  -d $IMAGE_NAMESPACE
           python3 build.py -p cassandra-operator -m obs-gap  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p cassandra-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p cassandra-operator -t scaledown -m learn -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p cassandra-operator -t recreate -d $IMAGE_NAMESPACE
@@ -255,11 +267,18 @@ jobs:
           kind
       - name: Build Image
         run: |
+          python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p rabbitmq-operator -m time-travel  -d $IMAGE_NAMESPACE
           python3 build.py -p rabbitmq-operator -m obs-gap  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p rabbitmq-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc -m learn -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t resize-pvc -d $IMAGE_NAMESPACE
+          python3 build.py -p rabbitmq-operator -t scaleup-scaledown -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-rabbitmq-artifact
@@ -295,7 +314,12 @@ jobs:
           kind
       - name: Build Image
         run: |
-          python3 build.py -p zookeeper-operator -m obs-gap  -d $IMAGE_NAMESPACE
+          python3 build.py -p zookeeper-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p zookeeper-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p zookeeper-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
       - name: Sieve Test
         run: |
           python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE
