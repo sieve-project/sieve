@@ -17,17 +17,6 @@
             }
         }
     },
-    "persistentvolumeclaim": {
-        "default": {
-            "persistence-rabbitmq-cluster-server-0": {
-                "Create": 0,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 1
-            }
-        }
-    },
     "rabbitmqcluster": {
         "default": {
             "rabbitmq-cluster": {
@@ -111,11 +100,11 @@
     "statefulset": {
         "default": {
             "rabbitmq-cluster-server": {
-                "Create": 2,
-                "Delete": 1,
+                "Create": 1,
+                "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 14
+                "Update": 8
             }
         }
     }

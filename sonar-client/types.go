@@ -50,6 +50,13 @@ type NotifyTimeTravelSideEffectsRequest struct {
 	Error          string
 }
 
+type NotifyObsGapSideEffectsRequest struct {
+	SideEffectType string
+	Object         string
+	ResourceType   string
+	Error          string
+}
+
 type NotifyObsGapBeforeIndexerWriteRequest struct {
 	OperationType string
 	Object        string

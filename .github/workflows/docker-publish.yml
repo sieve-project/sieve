@@ -269,6 +269,7 @@ jobs:
         run: |
           python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p rabbitmq-operator -m time-travel  -d $IMAGE_NAMESPACE
+          python3 build.py -p rabbitmq-operator -m obs-gap  -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -m learn -d $IMAGE_NAMESPACE
@@ -277,6 +278,7 @@ jobs:
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t resize-pvc -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-rabbitmq-artifact

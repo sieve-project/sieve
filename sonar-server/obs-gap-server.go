@@ -11,12 +11,13 @@ import (
 
 func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 	server := &obsGapServer{
-		seenPrev:         false,
-		eventID:          -1,
-		paused:           false,
-		pausingReconcile: false,
-		crucialCur:       config["ce-diff-current"].(string),
-		crucialPrev:      config["ce-diff-previous"].(string),
+		seenPrev:           false,
+		eventID:            -1,
+		paused:             false,
+		pausingReconcile:   false,
+		crucialCur:         config["ce-diff-current"].(string),
+		crucialPrev:        config["ce-diff-previous"].(string),
+		pausedReconcileCnt: 0,
 	}
 	server.mutex = &sync.RWMutex{}
 	server.cond = sync.NewCond(server.mutex)
@@ -50,16 +51,21 @@ func (l *ObsGapListener) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGap
 	return l.Server.NotifyObsGapBeforeReconcile(request, response)
 }
 
+func (l *ObsGapListener) NotifyObsGapSideEffects(request *sonar.NotifyObsGapSideEffectsRequest, response *sonar.Response) error {
+	return l.Server.NotifyObsGapSideEffects(request, response)
+}
+
 type obsGapServer struct {
-	seenPrev         bool
-	eventID          int32
-	paused           bool
-	pausingReconcile bool
-	crucialCur       string
-	crucialPrev      string
-	crucialEvent     eventWrapper
-	mutex            *sync.RWMutex
-	cond             *sync.Cond
+	seenPrev           bool
+	eventID            int32
+	paused             bool
+	pausingReconcile   bool
+	crucialCur         string
+	crucialPrev        string
+	crucialEvent       eventWrapper
+	mutex              *sync.RWMutex
+	cond               *sync.Cond
+	pausedReconcileCnt int32
 }
 
 func (s *obsGapServer) Start() {
@@ -126,14 +132,119 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 			if s.pausingReconcile {
 				s.pausingReconcile = false
 				s.cond.Broadcast()
-				log.Println("[sonar] we met the timeout for reconcile pausing, reconcile is resumed")
+				log.Println("[sonar] we met the timeout for reconcile pausing, reconcile is resumed", s.pausedReconcileCnt)
 			}
 			s.mutex.Unlock()
 		}()
-
 	}
 	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil
+}
+
+func cancelEventList(crucialEvent, currentEvent []interface{}) bool {
+	for i, val := range crucialEvent {
+		switch v := val.(type) {
+		case int64:
+			if e, ok := currentEvent[i].(int64); ok {
+				if v != e {
+					log.Println("cancel event", v, e)
+					return true
+				}
+			}
+		case float64:
+			if e, ok := currentEvent[i].(float64); ok {
+				if v != e {
+					log.Println("cancel event", v, e)
+					return true
+				}
+			}
+		case bool:
+			if e, ok := currentEvent[i].(bool); ok {
+				if v != e {
+					log.Println("cancel event", v, e)
+					return true
+				}
+			}
+		case string:
+			if v == "SONAR-NON-NIL" || v == "SONAR-SKIP" {
+				continue
+			} else if e, ok := currentEvent[i].(string); ok {
+				if v != e {
+					log.Println("cancel event", v, e)
+					return true
+				}
+			}
+		case map[string]interface{}:
+			if e, ok := currentEvent[i].(map[string]interface{}); ok {
+				if cancelEvent(v, e) {
+					log.Println("cancel event", v, e)
+					return true
+				}
+			}
+		default:
+			log.Printf("Unsupported type: %v %T\n", v, v)
+		}
+	}
+	return false
+}
+
+func cancelEvent(crucialEvent, currentEvent map[string]interface{}) bool {
+	for key, val := range crucialEvent {
+		if _, ok := currentEvent[key]; !ok {
+			log.Println("cancel event, not exist", key)
+			return true
+		}
+		switch v := val.(type) {
+		case int64:
+			if e, ok := currentEvent[key].(int64); ok {
+				if v != e {
+					log.Println("cancel event", key)
+					return true
+				}
+			}
+		case float64:
+			if e, ok := currentEvent[key].(float64); ok {
+				if v != e {
+					log.Println("cancel event", key)
+					return true
+				}
+			}
+		case bool:
+			if e, ok := currentEvent[key].(bool); ok {
+				if v != e {
+					log.Println("cancel event", key)
+					return true
+				}
+			}
+		case string:
+			if v == "SONAR-NON-NIL" {
+				continue
+			} else if e, ok := currentEvent[key].(string); ok {
+				if v != e {
+					log.Println("cancel event", key)
+					return true
+				}
+			}
+		case map[string]interface{}:
+			if e, ok := currentEvent[key].(map[string]interface{}); ok {
+				if cancelEvent(v, e) {
+					log.Println("cancel event", key)
+					return true
+				}
+			}
+		case []interface{}:
+			if e, ok := currentEvent[key].([]interface{}); ok {
+				if cancelEventList(v, e) {
+					log.Println("cancel event", key)
+					return true
+				}
+			}
+
+		default:
+			log.Printf("Unsupported type: %v %T, key: %s\n", v, v, key)
+		}
+	}
+	return false
 }
 
 func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGapAfterIndexerWriteRequest, response *sonar.Response) error {
@@ -143,7 +254,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 	pausingReconcile = s.pausingReconcile
 	s.mutex.RUnlock()
 
-	log.Println("NotifyObsGapAfterIndexerWrite", pausingReconcile)
+	log.Println("NotifyObsGapAfterIndexerWrite", pausingReconcile, "pausedReconcileCnt", s.pausedReconcileCnt)
 
 	if pausingReconcile {
 		currentEvent := strToMap(request.Object)
@@ -152,12 +263,24 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 		// Later we can use some diff oriented methods (?)
 		if request.OperationType == "Deleted" && request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent, crucialEvent) {
 			// Then we can resume all the reconcile
-			log.Println("[sonar] we met the later cancel event, reconcile is resumed")
+			log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
+			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 			s.mutex.Lock()
 			s.pausingReconcile = false
 			s.cond.Broadcast()
 			s.mutex.Unlock()
+		} else if request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent, crucialEvent) {
+			// We also propose a diff based method for the cancel
+			if cancelEvent(crucialEvent, currentEvent) {
+				log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
+				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
+				s.mutex.Lock()
+				s.pausingReconcile = false
+				s.cond.Broadcast()
+				s.mutex.Unlock()
+			}
 		}
+
 	}
 	*response = sonar.Response{Ok: true}
 	return nil
@@ -169,11 +292,21 @@ func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBe
 	// In py part, we can analyze the exisiting of side effect event
 	s.mutex.Lock()
 	log.Println("NotifyObsGapBeforeReconcile[0/1]", recID, s.pausingReconcile)
+	if s.pausingReconcile {
+		atomic.AddInt32(&s.pausedReconcileCnt, 1)
+	}
 	for s.pausingReconcile {
 		s.cond.Wait()
 	}
 	s.mutex.Unlock()
 	log.Println("NotifyObsGapBeforeReconcile[1/1]", recID, s.pausingReconcile)
 	*response = sonar.Response{Ok: true}
+	return nil
+}
+
+func (s *obsGapServer) NotifyObsGapSideEffects(request *sonar.NotifyObsGapSideEffectsRequest, response *sonar.Response) error {
+	name, namespace := extractNameNamespace(request.Object)
+	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
+	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
