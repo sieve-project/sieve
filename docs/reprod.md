@@ -201,8 +201,10 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 ### Observability gaps
 First, build the operators:
 ```
-python3 build.py -p kubernetes -m sparse-read -d DOCKER_REPO_NAME
-python3 build.py -p cassandra-operator -m sparse-read -d DOCKER_REPO_NAME
+python3 build.py -p kubernetes -m obs-gap -d DOCKER_REPO_NAME
+python3 build.py -p cassandra-operator -m obs-gap -d DOCKER_REPO_NAME
+python3 build.py -p rabbitmq-operator -m obs-gap -d DOCKER_REPO_NAME
+python3 build.py -p casskop-operator -m obs-gap -d DOCKER_REPO_NAME
 ```
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
@@ -216,19 +218,14 @@ persistentVolumeClaim has different length: normal: 1 faulty: 2
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
-### [K8SPSMDB-434](https://jira.percona.com/browse/K8SPSMDB-434)
-to be updated
-
-### [rabbitmq-cluster-operator-x](https://github.com/rabbitmq/cluster-operator/issues/x)
+### [rabbitmq-cluster-operator-758](https://github.com/rabbitmq/cluster-operator/issues/758)
 ```
 python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[BUG REPORT]
-Checking for cluster resource states...
-[ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
 [ERROR] persistentvolumeclaim SIZE inconsistency: 3 seen after learning run, but 2 seen after testing run
+[ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
@@ -241,3 +238,6 @@ If reproduced, you will see:
 [ERROR] pod SIZE inconsistency: 2 seen after learning run, but 3 seen after testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
+
+### [K8SPSMDB-434](https://jira.percona.com/browse/K8SPSMDB-434)
+to be updated
