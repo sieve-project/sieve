@@ -206,6 +206,11 @@ python3 build.py -p cassandra-operator -m obs-gap -d DOCKER_REPO_NAME
 python3 build.py -p rabbitmq-operator -m obs-gap -d DOCKER_REPO_NAME
 python3 build.py -p casskop-operator -m obs-gap -d DOCKER_REPO_NAME
 ```
+Please specify the `DOCKER_REPO_NAME` that you have write access to as sieve needs to push controller image to the repo.
+
+The above commands will download, instrument and build Kubernetes and controller images used for testing.
+For Kubernetes, we use the branch `v1.18.9`.
+For each controller, we use a default commit SHA specified in `controllers.py`. You can also specify which commit of the operator you want to test by `-s COMMIT_SHA`, but the bugs may not be reproduced with other commits as some of them have been fixed after our reports.
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
