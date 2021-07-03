@@ -32,6 +32,8 @@ https://github.com/rabbitmq/cluster-operator/issues/648 confirmed and fixed by u
 
 https://github.com/rabbitmq/cluster-operator/issues/653 confirmed and fixed by devs (time traveling, two-sides)
 
+https://github.com/rabbitmq/cluster-operator/issues/758 (observability gaps)
+
 ## [percona/percona-server-mongodb-operator](https://github.com/percona/percona-server-mongodb-operator)
 https://jira.percona.com/browse/K8SPSMDB-430 confirmed and fixed by us (time traveling)
 
