@@ -26,6 +26,13 @@ workloads = {
         .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.RUNNING)
         .cmd("kubectl delete CassandraCluster sonar-cassandra-cluster").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.TERMINATED)
         .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.RUNNING)
+        .wait(50),
+        "nodesperrack": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
+        .cmd("kubectl apply -f test-casskop-operator/test/nodes-2.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-1", common.RUNNING)
+        .cmd("kubectl apply -f test-casskop-operator/test/nodes-1.yaml").wait(10)
+        .cmd("kubectl apply -f test-casskop-operator/test/nodes-0.yaml").wait(10)
+        .wait(50),
     },
     "cass-operator": {
         "recreate": test_framework.new_built_in_workload()
