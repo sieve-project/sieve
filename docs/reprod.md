@@ -234,7 +234,7 @@ If reproduced, you will see:
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
-### [orange-opensource-casskop-x](https://github.com/Orange-OpenSource/casskop/issues/x)
+### [orange-opensource-casskop-342](https://github.com/Orange-OpenSource/casskop/issues/342)
 ```
 python3 sieve.py -p casskop-operator -t nodesperrack -d DOCKER_REPO_NAME
 ```
