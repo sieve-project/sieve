@@ -77,6 +77,8 @@ test_suites = {
             workloads.workloads["zookeeper-operator"]["recreate"], "test-zookeeper-operator/test/time-travel-1.yaml", "time-travel"),
         "scaledown-scaleup": Suite(
             workloads.workloads["zookeeper-operator"]["scaledown-scaleup"], "test-zookeeper-operator/test/time-travel-2.yaml", "time-travel"),
+        "scaledown-scaleup-obs": Suite(
+            workloads.workloads["zookeeper-operator"]["scaledown-scaleup-obs"], "test-zookeeper-operator/test/obs-gap-1.yaml", "obs-gap"),
     },
     "rabbitmq-operator": {
         "recreate": Suite(

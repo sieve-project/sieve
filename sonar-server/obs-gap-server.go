@@ -17,6 +17,9 @@ func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 		pausingReconcile:   false,
 		crucialCur:         config["ce-diff-current"].(string),
 		crucialPrev:        config["ce-diff-previous"].(string),
+		ceName:             config["ce-name"].(string),
+		ceNamespace:        config["ce-namespace"].(string),
+		ceRtype:            config["ce-rtype"].(string),
 		pausedReconcileCnt: 0,
 	}
 	server.mutex = &sync.RWMutex{}
@@ -62,6 +65,9 @@ type obsGapServer struct {
 	pausingReconcile   bool
 	crucialCur         string
 	crucialPrev        string
+	ceName             string
+	ceNamespace        string
+	ceRtype            string
 	crucialEvent       eventWrapper
 	mutex              *sync.RWMutex
 	cond               *sync.Cond
@@ -119,7 +125,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
-	if s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
+	if ew.eventObjectType == s.ceRtype && s.isSameTarget(currentEvent, crucialCurEvent) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		log.Println("[sonar] should stop any reconcile here until a later cancel event comes")
 		s.mutex.Lock()
 		s.pausingReconcile = true
@@ -127,7 +133,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 		s.mutex.Unlock()
 
 		go func() {
-			time.Sleep(time.Second * 20)
+			time.Sleep(time.Second * 30)
 			s.mutex.Lock()
 			if s.pausingReconcile {
 				s.pausingReconcile = false

@@ -52,6 +52,11 @@ workloads = {
         .cmd("kubectl patch ZookeeperCluster zookeeper-cluster --type merge -p='{\"spec\":{\"replicas\":1}}'").wait_for_pod_status("zookeeper-cluster-1", common.TERMINATED).wait_for_pvc_status("data-zookeeper-cluster-1", common.TERMINATED)
         .cmd("kubectl patch ZookeeperCluster zookeeper-cluster --type merge -p='{\"spec\":{\"replicas\":2}}'").wait_for_pod_status("zookeeper-cluster-1", common.RUNNING)
         .wait(50),
+        "scaledown-scaleup-obs": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-zookeeper-operator/test/zkc-2.yaml").wait_for_pod_status("zookeeper-cluster-1", common.RUNNING).wait(30)
+        .cmd("kubectl patch ZookeeperCluster zookeeper-cluster --type merge -p='{\"spec\":{\"replicas\":1}}'").wait(55)
+        .cmd("kubectl patch ZookeeperCluster zookeeper-cluster --type merge -p='{\"spec\":{\"replicas\":2}}'").wait(60)
+        .wait(50),
     },
     "rabbitmq-operator": {
         "recreate": test_framework.new_built_in_workload()
