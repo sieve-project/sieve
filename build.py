@@ -8,7 +8,7 @@ ORIGINAL_DIR = os.getcwd()
 def download_kubernetes():
     os.system("rm -rf fakegopath")
     os.system("mkdir -p fakegopath/src/k8s.io")
-    os.system("git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
+    os.system("git clone --single-branch --branch v1.18.9 https://gitee.com/mirrors/Kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     os.system("git checkout -b sonar >> /dev/null")
     os.chdir(ORIGINAL_DIR)
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to build: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="build MODE: learn, time-travel, sparse-read", metavar="MODE", default="learn")
+                      help="build MODE: learn, time-travel, sparse-read, obs-gap, atomic", metavar="MODE", default="learn")
     parser.add_option("-s", "--sha", dest="sha",
                       help="SHA of the project", metavar="SHA", default="none")
     parser.add_option("-d", "--docker", dest="docker",

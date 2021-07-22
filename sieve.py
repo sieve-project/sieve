@@ -193,7 +193,7 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
                 log_dir, "side-effect.json"), "w"), indent=4)
             json.dump(testing_status, open(os.path.join(
                 log_dir, "status.json"), "w"), indent=4)
-        elif mode == "obs-gap":
+        elif mode == "obs-gap" or mode == "atomic":
             learned_side_effect = json.load(open(os.path.join(
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(

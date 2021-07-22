@@ -23,6 +23,7 @@ var timeTravel string = "time-travel"
 var learn string = "learn"
 var test string = "test"
 var obsGap string = "obs-gap"
+var modeAtomic string = "atomic"
 var taintMap sync.Map = sync.Map{}
 
 func checkMode(mode string) bool {
