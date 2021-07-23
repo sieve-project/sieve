@@ -3,11 +3,10 @@ package sonar
 import (
 	"encoding/json"
 	"reflect"
-
-	"k8s.io/apimachinery/pkg/api/errors"
+	"runtime/debug"
 )
 
-func NotifyAtomicSideEffects(sideEffectType string, object interface{}, k8sErr error) {
+func NotifyAtomicSideEffects(sideEffectType string, object interface{}) {
 	if !checkStage(test) || !checkMode(modeAtomic) {
 		return
 	}
@@ -21,14 +20,12 @@ func NotifyAtomicSideEffects(sideEffectType string, object interface{}, k8sErr e
 		return
 	}
 	errorString := "NoError"
-	if k8sErr != nil {
-		errorString = string(errors.ReasonForError(k8sErr))
-	}
 	request := &NotifyAtomicSideEffectsRequest{
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
 		Error:          errorString,
+		Stack:          string(debug.Stack()),
 	}
 	var response Response
 	err = client.Call("AtomicListener.NotifyAtomicSideEffects", request, &response)

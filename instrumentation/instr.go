@@ -79,7 +79,7 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 func instrumentControllerForAtomic(controller_runtime_filepath string, client_go_filepath string) {
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "Atomic")
+	instrumentClientGoForAtomic(clientGoFile, clientGoFile, "Atomic")
 }
 
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {

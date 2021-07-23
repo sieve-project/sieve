@@ -62,6 +62,7 @@ type NotifyAtomicSideEffectsRequest struct {
 	Object         string
 	ResourceType   string
 	Error          string
+	Stack          string
 }
 
 type NotifyObsGapBeforeIndexerWriteRequest struct {
