@@ -1,4 +1,8 @@
 ## Bugs found:
+
+## [kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
+https://github.com/kubernetes/kubernetes/issues/94437 pending (by-product)
+
 ## [instaclustr/cassandra-operator](https://github.com/instaclustr/cassandra-operator)
 https://github.com/instaclustr/cassandra-operator/issues/398 confirmed and fixed by us (observability gaps)
 
@@ -14,7 +18,7 @@ https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed
 https://github.com/k8ssandra/cass-operator/issues/118 confirmed (time traveling)
 <!-- https://github.com/datastax/cass-operator/issues/412 confirmed (time traveling) -->
 
-https://github.com/k8ssandra/cass-operator/issues/117 (by-product)
+https://github.com/k8ssandra/cass-operator/issues/117 pending (by-product)
 <!-- https://github.com/datastax/cass-operator/issues/417 (by-product) -->
 
 ## [Orange-OpenSource/casskop](https://github.com/Orange-OpenSource/casskop)
@@ -22,7 +26,7 @@ https://github.com/Orange-OpenSource/casskop/issues/316 confirmedand fixed by us
 
 https://github.com/Orange-OpenSource/casskop/issues/321 confirmed (time traveling, two-sides)
 
-https://github.com/Orange-OpenSource/casskop/issues/342 (observability gaps)
+https://github.com/Orange-OpenSource/casskop/issues/342 pending (observability gaps)
 
 ## [pravega/zookeeper-operator](https://github.com/pravega/zookeeper-operator)
 https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by us (time traveling)
