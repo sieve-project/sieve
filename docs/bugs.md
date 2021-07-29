@@ -40,6 +40,8 @@ https://github.com/rabbitmq/cluster-operator/issues/653 confirmed and fixed by d
 
 https://github.com/rabbitmq/cluster-operator/issues/758 confirmed (observability gaps)
 
+https://github.com/rabbitmq/cluster-operator/issues/782 pending (broken atomicity)
+
 ## [percona/percona-server-mongodb-operator](https://github.com/percona/percona-server-mongodb-operator)
 https://jira.percona.com/browse/K8SPSMDB-430 confirmed and fixed by us (time traveling)
 
