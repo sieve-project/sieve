@@ -29,8 +29,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
-          pip install kubernetes
-          pip install pyyaml
+          pip install -r requirements.txt
       - name: Install Kind
         run: |
           go get sigs.k8s.io/kind
@@ -84,8 +83,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
-          pip install kubernetes
-          pip install pyyaml
+          pip install -r requirements.txt
       - name: Install Kind
         run: |
           go get sigs.k8s.io/kind
@@ -134,8 +132,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
-          pip install kubernetes
-          pip install pyyaml
+          pip install -r requirements.txt
       - name: Install Kind
         run: |
           go get sigs.k8s.io/kind
@@ -185,8 +182,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
-          pip install kubernetes
-          pip install pyyaml
+          pip install -r requirements.txt
       - name: Install Kind
         run: |
           go get sigs.k8s.io/kind
@@ -229,8 +225,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
-          pip install kubernetes
-          pip install pyyaml
+          pip install -r requirements.txt
       - name: Install Kind
         run: |
           go get sigs.k8s.io/kind
@@ -281,8 +276,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
-          pip install kubernetes
-          pip install pyyaml
+          pip install -r requirements.txt
       - name: Install Kind
         run: |
           go get sigs.k8s.io/kind
@@ -332,8 +326,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Install Python Packages
         run: |
-          pip install kubernetes
-          pip install pyyaml
+          pip install -r requirements.txt
       - name: Install Kind
         run: |
           go get sigs.k8s.io/kind
