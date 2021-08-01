@@ -466,6 +466,7 @@ def side_effect_filter(causality_pairs, event_key_map):
     return filtered_causality_pairs
 
 def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), se_filter=False, use_sql=True, compress_trivial_reconcile=True):
+    use_sql = False # Temp disable for CI
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -503,9 +504,10 @@ def analyze_trace(project, log_dir, conf_dir, mode, generate_oracle=True, genera
             generate_atomic_yaml(triggering_points, log_dir, project, node_ignore)
 
     if generate_oracle:
-        side_effect, status = oracle.generate_digest(conf_path)
+        side_effect, status, resources = oracle.generate_digest(conf_path)
         dump_json_file(conf_dir, side_effect, "side-effect.json")
         dump_json_file(conf_dir, status, "status.json")
+        dump_json_file(conf_dir, resources, "resources.json")
 
 
 if __name__ == "__main__":

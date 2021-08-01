@@ -2,12 +2,15 @@ import copy
 import kubernetes
 import common
 import yaml
+import jsondiff as jd
+import json
 
 
 def generate_digest(path):
     side_effect = generate_side_effect(path)
     status = generate_status()
-    return side_effect, status
+    resouces = generate_resources()
+    return side_effect, status, resouces
 
 
 def generate_side_effect(path):
@@ -67,6 +70,25 @@ def generate_status():
         status[ktype]["terminating"] = terminating
     return status
 
+def get_resource_helper(func):
+    k8s_namespace = "default"
+    response = func(k8s_namespace, _preload_content=False, watch=False)
+    data = json.loads(response.data)
+    return [resource for resource in data['items']]
+
+def generate_resources():
+    print("Generating cluster resources digest ...")
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    apps_v1 = kubernetes.client.AppsV1Api()
+    resources = {}
+    
+    resources[common.POD] = get_resource_helper(core_v1.list_namespaced_pod)
+    resources[common.PVC] = get_resource_helper(core_v1.list_namespaced_persistent_volume_claim)
+    resources[common.DEPLOYMENT] = get_resource_helper(apps_v1.list_namespaced_deployment)
+    resources[common.STS] = get_resource_helper(apps_v1.list_namespaced_stateful_set)
+
+    return resources
 
 def check_status(learning_status, testing_status):
     alarm = 0
@@ -186,7 +208,7 @@ def look_for_sleep_over_in_server_log(server_log):
     return "[sonar] sleep over" in file.read()
 
 
-def check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log):
+def check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log):
     testing_config = yaml.safe_load(open(test_config))
     # Skip case which target side effect event not appear in operator log under time-travel mode
     if testing_config["mode"] == "time-travel" and not look_for_sleep_over_in_server_log(server_log):
@@ -207,4 +229,58 @@ def check(learned_side_effect, learned_status, testing_side_effect, testing_stat
                 testing_config)
         bug_report = "\n[BUG REPORT]\n" + bug_report
         print(bug_report)
+
+    if learned_resources != None:
+        look_for_resouces_diff(learned_resources, testing_resources)
     return bug_report
+
+
+def look_for_resouces_diff(learn, test):
+    print("[RESOURCES DIFF]")
+    diff = jd.diff(learn, test, syntax='symmetric')
+    not_care = [jd.delete, jd.insert] + ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences', 'managedFields', 'name', 'generateName', 'selfLink', 'annotations']
+
+    for rtype in diff:
+        print("> diff for", rtype)
+        rdiff = diff[rtype]
+        # Check for resource delete/insert
+        if jd.delete in rdiff:
+            # Any resource deleted
+            for (idx, item) in rdiff[jd.delete]:
+                print("[resource deleted]", item['metadata']['namespace'], item['metadata']['name'], "old status:", item['status']['phase'])
+
+
+        if jd.insert in rdiff:
+            # Any resource added
+            for (idx, item) in rdiff[jd.insert]:
+                print("[resource added]", item['metadata']['namespace'], item['metadata']['name'], "new status:", item['status']['phase'])
+
+        # Check for resource internal fields
+        for idx in rdiff:
+            if not type(idx) is int:
+                continue
+            resource = test[rtype][idx]
+            name = resource['metadata']['name']
+            namespace = resource['metadata']['namespace']
+            item = rdiff[idx]
+            # Handle for metadata
+            if 'metadata' in item:
+                metadata = item['metadata']
+                # Also should handle add/delete here
+                for key in metadata:
+                    if not key in not_care:
+                        print("[metadata field changed]", name, key, "changed", "delta: ", metadata[key])
+                if jd.delete in metadata:
+                    print("[metadata field deleted]", name, metadata[jd.delete])
+                if jd.insert in metadata:
+                    print("[metadata field added]", name, metadata[jd.insert])
+
+    #             if 'status' in item:
+    #                 # Status changed
+    #                 print("status changed", item['status'])
+
+        # print()
+
+
+if __name__ == "__main__":
+    print(generate_resources())

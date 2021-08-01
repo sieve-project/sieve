@@ -57,6 +57,10 @@ jobs:
         with:
           name: sieve-casskop-artifact
           path: log
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-casskop-data
+          path: data/casskop-operator
   cass-operator:
     runs-on: ubuntu-latest
     env:
@@ -102,6 +106,11 @@ jobs:
           path: |
             log
             log-batch
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-cass-data
+          path: |
+            data/cass-operator
   xtradb-operator:
     runs-on: ubuntu-latest
     env:
@@ -145,9 +154,14 @@ jobs:
           python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
-          name: sieve-cass-artifact
+          name: sieve-xtradb-artifact
           path: |
             log
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-xtradb-data
+          path: |
+            data/xtradb-operator
   mongodb-operator:
     runs-on: ubuntu-latest
     env:
@@ -188,6 +202,10 @@ jobs:
         with:
           name: sieve-mongodb-artifact
           path: log
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-mongodb-data
+          path: data/mongodb-operator
   cassandra-operator:
     runs-on: ubuntu-latest
     env:
@@ -236,6 +254,10 @@ jobs:
         with:
           name: sieve-cassandra-artifact
           path: log
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-cassandra-data
+          path: data/cassandra-operator
   rabbitmq-operator:
     runs-on: ubuntu-latest
     env:
@@ -283,6 +305,10 @@ jobs:
         with:
           name: sieve-rabbitmq-artifact
           path: log
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-rabbitmq-data
+          path: data/rabbitmq-operator
   zookeeper-operator:
     runs-on: ubuntu-latest
     env:
@@ -328,3 +354,7 @@ jobs:
         with:
           name: sieve-zookeeper-artifact
           path: log
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-zookeeper-data
+          path: data/zookeeper-operator

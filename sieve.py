@@ -173,6 +173,8 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
             data_dir, "status.json")))
         os.system("cp %s %s" % (os.path.join(test_config, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
+        os.system("cp %s %s" % (os.path.join(test_config, "resources.json"), os.path.join(
+            data_dir, "resources.json")))
     else:
         if os.path.exists(test_config):
             open(os.path.join(log_dir, "config.yaml"), "w").write(open(test_config).read())
@@ -184,29 +186,37 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
+            resources_path = os.path.join(data_dir, "resources.json")
+            learned_resources = json.load(open(resources_path)) if os.path.isfile(resources_path) else None
             server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status = oracle.generate_digest(server_log)
+            testing_side_effect, testing_status, testing_resources = oracle.generate_digest(server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
+                oracle.check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log))
             json.dump(testing_side_effect, open(os.path.join(
                 log_dir, "side-effect.json"), "w"), indent=4)
             json.dump(testing_status, open(os.path.join(
                 log_dir, "status.json"), "w"), indent=4)
+            json.dump(testing_resources, open(os.path.join(
+                log_dir, "resources.json"), "w"), indent=4)
         elif mode == "obs-gap" or mode == "atomic":
             learned_side_effect = json.load(open(os.path.join(
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
+            resources_path = os.path.join(data_dir, "resources.json")
+            learned_resources = json.load(open(resources_path)) if os.path.isfile(resources_path) else None
             server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status = oracle.generate_digest(server_log)
+            testing_side_effect, testing_status, testing_resources = oracle.generate_digest(server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
+                oracle.check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log))
             json.dump(testing_side_effect, open(os.path.join(
                 log_dir, "side-effect.json"), "w"), indent=4)
             json.dump(testing_status, open(os.path.join(
                 log_dir, "status.json"), "w"), indent=4)
+            json.dump(testing_resources, open(os.path.join(
+                log_dir, "resources.json"), "w"), indent=4)
 
 
 
