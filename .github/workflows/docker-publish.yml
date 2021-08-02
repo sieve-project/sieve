@@ -48,18 +48,20 @@ jobs:
         run: |
           python3 sieve.py -p casskop-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p casskop-operator -t reducepdb -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Test
-        run: |
-          python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p casskop-operator -t reducepdb -d $IMAGE_NAMESPACE
-      - uses: actions/upload-artifact@v2
-        with:
-          name: sieve-casskop-artifact
-          path: log
+          python3 sieve.py -p casskop-operator -t nodesperrack -m learn -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-casskop-data
           path: data/casskop-operator
+      - name: Sieve Test
+        run: |
+          python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p casskop-operator -t reducepdb -d $IMAGE_NAMESPACE
+          python3 sieve.py -p casskop-operator -t nodesperrack -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-casskop-artifact
+          path: log
   cass-operator:
     runs-on: ubuntu-latest
     env:
@@ -95,6 +97,14 @@ jobs:
       - name: Build Image
         run: |
           python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p cass-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-cass-data
+          path: |
+            data/cass-operator
       - name: Sieve Test
         run: |
           python3 sieve.py -p cass-operator -t recreate -d $IMAGE_NAMESPACE
@@ -104,11 +114,6 @@ jobs:
           path: |
             log
             log-batch
-      - uses: actions/upload-artifact@v2
-        with:
-          name: sieve-cass-data
-          path: |
-            data/cass-operator
   xtradb-operator:
     runs-on: ubuntu-latest
     env:
@@ -144,6 +149,16 @@ jobs:
       - name: Build Image
         run: |
           python3 build.py -p xtradb-operator -m time-travel -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p xtradb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -m learn -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-xtradb-data
+          path: |
+            data/xtradb-operator
       - name: Sieve Test
         run: |
           python3 sieve.py -p xtradb-operator -t recreate -d $IMAGE_NAMESPACE
@@ -154,11 +169,6 @@ jobs:
           name: sieve-xtradb-artifact
           path: |
             log
-      - uses: actions/upload-artifact@v2
-        with:
-          name: sieve-xtradb-data
-          path: |
-            data/xtradb-operator
   mongodb-operator:
     runs-on: ubuntu-latest
     env:
@@ -190,6 +200,14 @@ jobs:
       - name: Build Image
         run: |
           python3 build.py -p mongodb-operator -m time-travel  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p mongodb-operator -t recreate -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-shard -m learn -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-mongodb-data
+          path: data/mongodb-operator
       - name: Sieve Test
         run: |
           python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
@@ -198,10 +216,6 @@ jobs:
         with:
           name: sieve-mongodb-artifact
           path: log
-      - uses: actions/upload-artifact@v2
-        with:
-          name: sieve-mongodb-data
-          path: data/mongodb-operator
   cassandra-operator:
     runs-on: ubuntu-latest
     env:
@@ -240,6 +254,10 @@ jobs:
           python3 sieve.py -p cassandra-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p cassandra-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p cassandra-operator -t scaledown -m learn -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-cassandra-data
+          path: data/cassandra-operator
       - name: Sieve Test
         run: |
           python3 sieve.py -p cassandra-operator -t recreate -d $IMAGE_NAMESPACE
@@ -249,10 +267,6 @@ jobs:
         with:
           name: sieve-cassandra-artifact
           path: log
-      - uses: actions/upload-artifact@v2
-        with:
-          name: sieve-cassandra-data
-          path: data/cassandra-operator
   rabbitmq-operator:
     runs-on: ubuntu-latest
     env:
@@ -289,20 +303,19 @@ jobs:
       - name: Sieve Learn
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -m learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p rabbitmq-operator -t resize-pvc -m learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -m learn -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-rabbitmq-data
+          path: data/rabbitmq-operator
       - name: Sieve Test
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p rabbitmq-operator -t resize-pvc -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-rabbitmq-artifact
           path: log
-      - uses: actions/upload-artifact@v2
-        with:
-          name: sieve-rabbitmq-data
-          path: data/rabbitmq-operator
   zookeeper-operator:
     runs-on: ubuntu-latest
     env:
@@ -339,14 +352,14 @@ jobs:
         run: |
           python3 sieve.py -p zookeeper-operator -t recreate -m learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -m learn -d $IMAGE_NAMESPACE
-      - name: Sieve Test
-        run: |
-          python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-zookeeper-artifact
           path: log
+      - name: Sieve Test
+        run: |
+          python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-zookeeper-data
