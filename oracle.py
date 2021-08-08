@@ -8,7 +8,8 @@ import os
 
 not_care_keys = ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences', 'managedFields', 'generateName', 'selfLink', 'annotations',
                 'pod-template-hash', 'secretName', 'image', 'lastTransitionTime', 'nodeName', 'podIPs', 'podIP', 'hostIP', 'containerID', 'imageID',
-                'startTime', 'startedAt', 'volumeMounts', 'finishedAt', 'volumeName', 'lastUpdateTime', 'env', 'message']
+                'startTime', 'startedAt', 'volumeMounts', 'finishedAt', 'volumeName', 'lastUpdateTime', 'env', 'message', 'currentRevision', 'updateRevision',
+                'controller-revision-hash']
 not_care = [jd.delete, jd.insert] + not_care_keys + ['name']
 
 def generate_digest(path):
@@ -313,11 +314,11 @@ def look_for_resouces_diff(learn, test):
         if jd.delete in rdiff:
             # Any resource deleted
             for (idx, item) in rdiff[jd.delete]:
-                print("[resource deleted]", rtype, item['metadata']['namespace'], item['metadata']['name'], "old status:", item['status']['phase'])
+                print("[resource deleted]", rtype, item['metadata']['namespace'], item['metadata']['name'])
         if jd.insert in rdiff:
             # Any resource added
             for (idx, item) in rdiff[jd.insert]:
-                print("[resource added]", rtype, item['metadata']['namespace'], item['metadata']['name'], "new status:", item['status']['phase'])
+                print("[resource added]", rtype, item['metadata']['namespace'], item['metadata']['name'])
 
         # Check for resource internal fields
         for idx in rdiff:
