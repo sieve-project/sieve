@@ -150,7 +150,7 @@ def generate_resources(path = ""):
     
     # Fetch for crd
     for crd in crd_list:
-        resources[crd] = get_crd("rabbitmqcluster")
+        resources[crd] = get_crd(crd)
 
     trim_resource(resources)
     return resources
