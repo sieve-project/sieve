@@ -97,18 +97,18 @@ func (s *obsGapServer) shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, c
 	return false
 }
 
-func (s *obsGapServer) getEventResourceName(event map[string]interface{}) string {
+func getEventResourceName(event map[string]interface{}) string {
 	metadata := event["metadata"].(map[string]interface{})
 	return metadata["name"].(string)
 }
 
-func (s *obsGapServer) getEventResourceNamespace(event map[string]interface{}) string {
+func getEventResourceNamespace(event map[string]interface{}) string {
 	metadata := event["metadata"].(map[string]interface{})
 	return metadata["namespace"].(string)
 }
 
-func (s *obsGapServer) isSameTarget(e1, e2 map[string]interface{}) bool {
-	return s.getEventResourceName(e1) == s.getEventResourceName(e2) && s.getEventResourceNamespace(e1) == s.getEventResourceNamespace(e2)
+func isSameTarget(e1, e2 map[string]interface{}) bool {
+	return getEventResourceName(e1) == getEventResourceName(e2) && getEventResourceNamespace(e1) == getEventResourceNamespace(e2)
 }
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
@@ -125,7 +125,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
-	if ew.eventObjectType == s.ceRtype && s.getEventResourceName(currentEvent) == s.ceName && s.getEventResourceNamespace(currentEvent) == s.ceNamespace && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
+	if ew.eventObjectType == s.ceRtype && getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		log.Println("[sonar] should stop any reconcile here until a later cancel event comes")
 		s.mutex.Lock()
 		s.pausingReconcile = true
@@ -267,7 +267,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 		crucialEvent := strToMap(s.crucialEvent.eventObject)
 		// For now, we simply check for the event which cancel the crucial
 		// Later we can use some diff oriented methods (?)
-		if request.OperationType == "Deleted" && request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent, crucialEvent) {
+		if request.OperationType == "Deleted" && request.ResourceType == s.crucialEvent.eventObjectType && isSameTarget(currentEvent, crucialEvent) {
 			// Then we can resume all the reconcile
 			log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
@@ -275,7 +275,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 			s.pausingReconcile = false
 			s.cond.Broadcast()
 			s.mutex.Unlock()
-		} else if request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent, crucialEvent) {
+		} else if request.ResourceType == s.crucialEvent.eventObjectType && isSameTarget(currentEvent, crucialEvent) {
 			// We also propose a diff based method for the cancel
 			if cancelEvent(crucialEvent, currentEvent) {
 				log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)

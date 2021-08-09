@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"strings"
+	"sync/atomic"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -17,10 +17,22 @@ import (
 func NewAtomicListener(config map[interface{}]interface{}) *AtomicListener {
 	server := &atomicServer{
 		restarted:   false,
+		crash:       false,
+		seenPrev:    false,
+		eventID:     -1,
 		frontRunner: config["front-runner"].(string),
 		deployName:  config["deployment-name"].(string),
 		namespace:   "default",
 		podLabel:    config["operator-pod-label"].(string),
+		crucialCur:  config["ce-diff-current"].(string),
+		crucialPrev: config["ce-diff-previous"].(string),
+		ceName:      config["ce-name"].(string),
+		ceNamespace: config["ce-namespace"].(string),
+		ceRtype:     config["ce-rtype"].(string),
+		seName:      config["se-name"].(string),
+		seNamespace: config["se-namespace"].(string),
+		seRtype:     config["se-rtype"].(string),
+		seEtype:     config["se-etype"].(string),
 	}
 	listener := &AtomicListener{
 		Server: server,
@@ -42,12 +54,30 @@ func (l *AtomicListener) NotifyAtomicSideEffects(request *sonar.NotifyAtomicSide
 	return l.Server.NotifyAtomicSideEffects(request, response)
 }
 
+func (l *AtomicListener) NotifyAtomicBeforeIndexerWrite(request *sonar.NotifyAtomicBeforeIndexerWriteRequest, response *sonar.Response) error {
+	log.Println("start NotifyAtomicBeforeIndexerWrite...")
+	return l.Server.NotifyAtomicBeforeIndexerWrite(request, response)
+}
+
 type atomicServer struct {
-	restarted   bool
-	frontRunner string
-	deployName  string
-	namespace   string
-	podLabel    string
+	restarted    bool
+	frontRunner  string
+	deployName   string
+	namespace    string
+	podLabel     string
+	crucialCur   string
+	crucialPrev  string
+	ceName       string
+	ceNamespace  string
+	ceRtype      string
+	crucialEvent eventWrapper
+	eventID      int32
+	seenPrev     bool
+	crash        bool
+	seName       string
+	seNamespace  string
+	seRtype      string
+	seEtype      string
 }
 
 func (s *atomicServer) Start() {
@@ -55,10 +85,53 @@ func (s *atomicServer) Start() {
 	// go s.coordinatingEvents()
 }
 
+func (s *atomicServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
+	if !s.crash {
+		if !s.seenPrev {
+			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
+				log.Println("Meet crucialPrevEvent: set seenPrev to true")
+				s.seenPrev = true
+			}
+		} else {
+			if isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !isCrucial(crucialPrevEvent, currentEvent)) {
+				log.Println("Meet crucialCurEvent: set paused to true and start to pause")
+				s.crash = true
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// For now, we get an cruial event from API server, we want to see if any later event cancel this one
+func (s *atomicServer) NotifyAtomicBeforeIndexerWrite(request *sonar.NotifyAtomicBeforeIndexerWriteRequest, response *sonar.Response) error {
+	eID := atomic.AddInt32(&s.eventID, 1)
+	ew := eventWrapper{
+		eventID:         eID,
+		eventType:       request.OperationType,
+		eventObject:     request.Object,
+		eventObjectType: request.ResourceType,
+	}
+	log.Println("NotifyAtomicBeforeIndexerWrite", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
+	currentEvent := strToMap(request.Object)
+	crucialCurEvent := strToMap(s.crucialCur)
+	crucialPrevEvent := strToMap(s.crucialPrev)
+	// We then check for the crucial event
+	if ew.eventObjectType == s.ceRtype && getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace {
+		log.Print("[sonar] we then check for crash condition", "s.crash", s.crash, "s.seenPrev", s.seenPrev)
+		if s.shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent) {
+			log.Println("[sonar] should crash the operator while issuing target side effect")
+			s.crucialEvent = ew
+		}
+	}
+	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
+	return nil
+}
+
 func (s *atomicServer) NotifyAtomicSideEffects(request *sonar.NotifyAtomicSideEffectsRequest, response *sonar.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
-	if !s.restarted && strings.Contains(request.Stack, "updatePVC") {
+	if s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
 		// we should restart operator here
 		s.restarted = true
 		log.Printf("we restart operator pod here\n")
@@ -98,6 +171,8 @@ func (s *atomicServer) restartComponent() {
 			break
 		}
 	}
+
+	time.Sleep(time.Second * 15)
 
 	newDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

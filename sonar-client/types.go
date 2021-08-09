@@ -71,6 +71,12 @@ type NotifyObsGapBeforeIndexerWriteRequest struct {
 	ResourceType  string
 }
 
+type NotifyAtomicBeforeIndexerWriteRequest struct {
+	OperationType string
+	Object        string
+	ResourceType  string
+}
+
 type NotifyObsGapBeforeReconcileRequest struct {
 	ControllerName string
 }

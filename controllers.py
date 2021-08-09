@@ -112,6 +112,8 @@ test_suites = {
             test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./reducepdb.sh", True), "test-casskop-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
         "nodesperrack": Suite(
             workloads.workloads["casskop-operator"]["nodesperrack"], "test-casskop-operator/test/obs-gap-1.yaml", "obs-gap"),
+        "scaledown": Suite(
+            workloads.workloads["casskop-operator"]["scaledown"], "test-casskop-operator/test/atomic-1.yaml", "atomic"),
     },
     "xtradb-operator": {
         "recreate": Suite(
