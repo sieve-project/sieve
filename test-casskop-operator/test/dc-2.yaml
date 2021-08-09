@@ -1,0 +1,37 @@
+apiVersion: "db.orange.com/v1alpha1"
+kind: "CassandraCluster"
+metadata:
+  name: sonar-cassandra-cluster
+  labels:
+    cluster: k8s.kaas
+spec:
+  cassandraImage: cassandra:3.11
+  bootstrapImage: orangeopensource/cassandra-bootstrap:0.1.8
+  configMapName: cassandra-configmap-v1
+  dataCapacity: "200Mi"
+  # dataStorageClass: standard
+  imagepullpolicy: IfNotPresent  
+  hardAntiAffinity: false           # Do we ensure only 1 cassandra on each node ?
+  deletePVC: true
+  autoPilot: false
+  gcStdout: true
+  autoUpdateSeedList: false
+  maxPodUnavailable: 1
+  runAsUser: 999
+  resources:         
+    requests:
+      cpu: '1'
+      memory: 2Gi
+    limits:
+      cpu: '1'
+      memory: 2Gi
+  topology:
+    dc:
+      - name: dc1
+        nodesPerRacks: 0
+        rack:
+          - name: rack1
+      - name: dc2
+        nodesPerRacks: 0
+        rack:
+          - name: rack1
