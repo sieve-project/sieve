@@ -7,11 +7,12 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list = [], se_filter=False, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], se_filter=False, num_apiservers=3, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
         self.two_sided = two_sided
+        self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.node_ignore = node_ignore
         self.se_filter = se_filter

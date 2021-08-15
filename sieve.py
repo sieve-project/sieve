@@ -37,18 +37,18 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def kind_config(num_workers):
-    # we should generate the kind config automatically
-    if num_workers == 2:
-        return "kind-ha.yaml"
-    elif num_workers == 3:
-        return "kind-ha-3w.yaml"
-    elif num_workers == 4:
-        return "kind-ha-4w.yaml"
-    elif num_workers == 5:
-        return "kind-ha-5w.yaml"
-    else:
-        assert False
+def kind_config(num_apiservers, num_workers):
+    kind_config_filename = "kind-{}a-{}w.yaml".format(
+        num_apiservers, num_workers)
+    kind_config_file = open(kind_config_filename, "w")
+    kind_config_file.writelines(
+        ["kind: Cluster\n", "apiVersion: kind.x-k8s.io/v1alpha4\n", "nodes:\n"])
+    for i in range(num_apiservers):
+        kind_config_file.write("- role: control-plane\n")
+    for i in range(num_workers):
+        kind_config_file.write("- role: worker\n")
+    kind_config_file.close()
+    return kind_config_filename
 
 
 def redirect_if_necessary(mode, num_workers):
@@ -67,14 +67,14 @@ def redirect_workers(mode, num_workers):
         os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
-def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
+def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers):
     os.system("rm -rf %s" % log_dir)
     os.system("mkdir -p %s" % log_dir)
     os.system("cp %s sonar-server/server.yaml" % test_config)
     os.system("kind delete cluster")
 
     os.system("./setup.sh %s %s %s" %
-              (kind_config(num_workers), docker_repo, docker_tag))
+              (kind_config(num_apiservers, num_workers), docker_repo, docker_tag))
     redirect_if_necessary(mode, num_workers)
     os.system("./bypass-balancer.sh")
 
@@ -85,8 +85,11 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Then we wait apiservers to be ready
-    apiserver_list = ['kube-apiserver-kind-control-plane',
-                      'kube-apiserver-kind-control-plane2', 'kube-apiserver-kind-control-plane3']
+    apiserver_list = []
+    for i in range(num_apiservers):
+        apiserver_name = "kube-apiserver-kind-control-plane" + \
+            ("" if i == 0 else str(i + 1))
+        apiserver_list.append(apiserver_name)
 
     for tick in range(600):
         created = core_v1.list_namespaced_pod(
@@ -119,14 +122,14 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
                 break
         time.sleep(1)
 
-
-    api1_addr = "https://" + core_v1.list_node(
-        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
-    api2_addr = "https://" + core_v1.list_node(
-        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
-    api3_addr = "https://" + core_v1.list_node(
-        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
-    watch_crd(project, [api1_addr, api2_addr, api3_addr])
+    apiserver_addr_list = []
+    for i in range(num_apiservers):
+        label_selector = "kubernetes.io/hostname=kind-control-plane" + \
+            ("" if i == 0 else str(i + 1))
+        apiserver_addr = "https://" + core_v1.list_node(
+            watch=False, label_selector=label_selector).items[0].status.addresses[0].address + ":6443"
+        apiserver_addr_list.append(apiserver_addr)
+    watch_crd(project, apiserver_addr_list)
 
 
 def run_workload(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
@@ -167,7 +170,8 @@ def pre_process(project, mode, stage, test_config):
 
 def post_process(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, test_config, mode, two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
+        analyze.analyze_trace(project, log_dir, test_config, mode,
+                              two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(test_config, "status.json"), os.path.join(
             data_dir, "status.json")))
@@ -175,7 +179,8 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
             data_dir, "side-effect.json")))
     else:
         if os.path.exists(test_config):
-            open(os.path.join(log_dir, "config.yaml"), "w").write(open(test_config).read())
+            open(os.path.join(log_dir, "config.yaml"),
+                 "w").write(open(test_config).read())
         if mode == "vanilla":
             # TODO: We need another recording mode to only record digest without generating config
             pass
@@ -185,7 +190,8 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
             server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status = oracle.generate_digest(server_log)
+            testing_side_effect, testing_status = oracle.generate_digest(
+                server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
                 oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
@@ -199,7 +205,8 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
             server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status = oracle.generate_digest(server_log)
+            testing_side_effect, testing_status = oracle.generate_digest(
+                server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
                 oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
@@ -209,8 +216,7 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
                 log_dir, "status.json"), "w"), indent=4)
 
 
-
-def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
+def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
     # if run == "all" or run == "setup":
     #     pre_process(project, mode, stage, test_config)
     #     setup_cluster(project, mode, stage, test_workload, test_config,
@@ -220,11 +226,11 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
     #                  log_dir, docker_repo, docker_tag, num_workers)
     #     post_process(project, mode, stage, test_workload, test_config,
     #                  log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
-    
+
     if stage == "run" or stage == "test":
         pre_process(project, mode, stage, test_config)
         setup_cluster(project, mode, stage, test_workload, test_config,
-                      log_dir, docker_repo, docker_tag, num_workers)
+                      log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
         run_workload(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers)
     if stage == "learn" or stage == "test":
@@ -241,31 +247,33 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="a
         run_config = os.path.join(
             controllers.test_dir[project], "test", "learn.yaml")
         run_test(project, mode, stage, suite.workload,
-                 run_config, log_dir, docker, "learn", suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                 run_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
     elif stage == "learn":
-        learn_config = config if config != "none" else os.path.join(os.path.dirname(os.path.abspath(log_dir)), "run")
+        learn_config = config if config != "none" else os.path.join(
+            os.path.dirname(os.path.abspath(log_dir)), "run")
         print("learn_config", learn_config)
         log_dir = os.path.join(log_dir, mode)
         run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, "learn", suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                 learn_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
     else:
         if mode == "vanilla":
             log_dir = os.path.join(log_dir, mode)
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
-                    blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
         else:
             test_config = config if config != "none" else suite.config
             print("testing mode: %s config: %s" % (mode, test_config))
             log_dir = os.path.join(log_dir, mode)
             run_test(project, mode, stage, suite.workload,
-                    test_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                     test_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
     config_dir = os.path.join("log", project, test, "learn", mode)
-    configs = [x for x in glob.glob(os.path.join(config_dir, "*.yaml")) if not "configmap" in x]
+    configs = [x for x in glob.glob(os.path.join(
+        config_dir, "*.yaml")) if not "configmap" in x]
     print("configs", configs)
     for config in configs:
         num = os.path.basename(config).split(".")[0]
@@ -300,7 +308,8 @@ if __name__ == "__main__":
                       help="batch mode or not", default=False)
     parser.add_option("-r", "--run", dest="run",
                       help="RUN set_up only, workload only, or all", metavar="RUN", default="all")
-    parser.add_option("-s", "--stage", dest="stage", help="test STAGE: run, learn, test", default="none")
+    parser.add_option("-s", "--stage", dest="stage",
+                      help="test STAGE: run, learn, test", default="none")
 
     (options, args) = parser.parse_args()
 
