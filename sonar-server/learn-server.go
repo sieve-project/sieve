@@ -12,14 +12,16 @@ import (
 
 func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
 	server := &learnServer{
-		eventCh:                 make(chan eventWrapper, 500),
-		eventID:                 -1,
-		eventChMap:              sync.Map{},
-		reconcileChMap:		     sync.Map{},
-		notificationCh:       	 make(chan notificationWrapper, 100),
-		ongoingReconcileCnt:     0,
-		reconcileCntMap:	     map[string]int{},
-		recordedEvents:          []eventWrapper{},
+		eventCh:             make(chan eventWrapper, 100),
+		rateLimitedEventCh:  make(chan eventWrapper, 500),
+		eventID:             -1,
+		eventChMap:          sync.Map{},
+		reconcileChMap:      sync.Map{},
+		notificationCh:      make(chan notificationWrapper, 100),
+		ongoingReconcileCnt: 0,
+		reconcileCntMap:     map[string]int{},
+		recordedEvents:      []eventWrapper{},
+		rateLimiterEnabled:  true,
 	}
 	listener := &LearnListener{
 		Server: server,
@@ -57,18 +59,18 @@ func (l *LearnListener) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEff
 	return l.Server.NotifyLearnSideEffects(request, response)
 }
 
-func (l *LearnListener) NotifyLearnCacheGet(request * sonar.NotifyLearnCacheGetRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnCacheGet(request *sonar.NotifyLearnCacheGetRequest, response *sonar.Response) error {
 	return l.Server.NotifyLearnCacheGet(request, response)
 }
 
-func (l *LearnListener) NotifyLearnCacheList(request * sonar.NotifyLearnCacheListRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnCacheList(request *sonar.NotifyLearnCacheListRequest, response *sonar.Response) error {
 	return l.Server.NotifyLearnCacheList(request, response)
 }
 
 type eventWrapper struct {
-	eventID     int32
-	eventType   string
-	eventObject string
+	eventID         int32
+	eventType       string
+	eventObject     string
 	eventObjectType string
 }
 
@@ -83,20 +85,22 @@ const (
 )
 
 type notificationWrapper struct {
-	ntype NotificationType
+	ntype   NotificationType
 	payload string
 }
 
 type learnServer struct {
-	eventCh                 chan eventWrapper
-	eventID                 int32
-	eventChMap              sync.Map
-	reconcileChMap          sync.Map
-	notificationCh          chan notificationWrapper
-	ongoingReconcileCnt     int
-	reconcileCntMap			map[string]int
-	recordedEvents          []eventWrapper
-	mu                      sync.Mutex
+	eventCh             chan eventWrapper
+	rateLimitedEventCh  chan eventWrapper
+	eventID             int32
+	eventChMap          sync.Map
+	reconcileChMap      sync.Map
+	notificationCh      chan notificationWrapper
+	ongoingReconcileCnt int
+	reconcileCntMap     map[string]int
+	recordedEvents      []eventWrapper
+	mu                  sync.Mutex
+	rateLimiterEnabled  bool
 }
 
 func (s *learnServer) Start() {
@@ -109,13 +113,19 @@ func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBe
 	waitingCh := make(chan int32)
 	s.eventChMap.Store(eID, waitingCh)
 	ew := eventWrapper{
-		eventID:     eID,
-		eventType:   request.OperationType,
-		eventObject: request.Object,
+		eventID:         eID,
+		eventType:       request.OperationType,
+		eventObject:     request.Object,
 		eventObjectType: request.ResourceType,
 	}
-	s.eventCh <- ew
-	<- waitingCh
+	// if rateLimiter is enabled, we push the ew to the rateLimitedEventCh, and the ew will be poped every 3 seconds
+	// otherwise, we push ew to eventCh, and the ew will be poped immediatelly
+	if s.rateLimiterEnabled {
+		s.rateLimitedEventCh <- ew
+	} else {
+		s.eventCh <- ew
+	}
+	<-waitingCh
 	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil
 }
@@ -131,10 +141,10 @@ func (s *learnServer) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBefor
 	waitingCh := make(chan int32)
 	// use LoadOrStore here because the same controller may have mulitple workers concurrently running reconcile
 	// So the same recID may be stored before
-	obj, _ := s.reconcileChMap.LoadOrStore(recID, waitingCh);
+	obj, _ := s.reconcileChMap.LoadOrStore(recID, waitingCh)
 	waitingCh = obj.(chan int32)
 	s.notificationCh <- notificationWrapper{ntype: reconcileStart, payload: recID}
-	<- waitingCh
+	<-waitingCh
 	*response = sonar.Response{Ok: true}
 	return nil
 }
@@ -168,9 +178,23 @@ func (s *learnServer) NotifyLearnCacheList(request *sonar.NotifyLearnCacheListRe
 func (s *learnServer) coordinatingEvents() {
 	for {
 		select {
-		case <- time.After(time.Second * 3):
-			s.allowEvent()
-		case nw := <- s.notificationCh:
+		case <-time.After(time.Second * 3):
+			if s.rateLimiterEnabled {
+				s.allowEvent()
+			}
+		case ew := <-s.eventCh:
+			if !s.rateLimiterEnabled {
+				curID := ew.eventID
+				if obj, ok := s.eventChMap.Load(curID); ok {
+					log.Printf("release event\n")
+					log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
+					ch := obj.(chan int32)
+					ch <- curID
+				} else {
+					log.Fatal("invalid object in eventChMap")
+				}
+			}
+		case nw := <-s.notificationCh:
 			switch nw.ntype {
 			case reconcileStart:
 				s.ongoingReconcileCnt += 1
@@ -211,9 +235,10 @@ func (s *learnServer) coordinatingEvents() {
 
 func (s *learnServer) allowEvent() {
 	select {
-	case ew := <-s.eventCh:
+	case ew := <-s.rateLimitedEventCh:
 		curID := ew.eventID
 		if obj, ok := s.eventChMap.Load(curID); ok {
+			log.Printf("release rate limited event\n")
 			log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
 			ch := obj.(chan int32)
 			ch <- curID
