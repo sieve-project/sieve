@@ -38,8 +38,8 @@ def generate_configmap(test_config):
 
 
 def kind_config(num_apiservers, num_workers):
-    kind_config_filename = "kind-{}a-{}w.yaml".format(
-        num_apiservers, num_workers)
+    kind_config_filename = "kind-%sa-%sw.yaml" % (
+        str(num_apiservers), str(num_workers))
     kind_config_file = open(kind_config_filename, "w")
     kind_config_file.writelines(
         ["kind: Cluster\n", "apiVersion: kind.x-k8s.io/v1alpha4\n", "nodes:\n"])
@@ -132,7 +132,7 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
     watch_crd(project, apiserver_addr_list)
 
 
-def run_workload(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
+def run_workload(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers):
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
@@ -145,12 +145,19 @@ def run_workload(project, mode, stage, test_workload, test_config, log_dir, dock
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
-    os.system(
-        "kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
-    os.system(
-        "kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-    os.system(
-        "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
+    for i in range(num_apiservers):
+        apiserver_name = "kube-apiserver-kind-control-plane" + \
+            ("" if i == 0 else str(i + 1))
+        apiserver_log = "apiserver%s.log" % (str(i + 1))
+        os.system(
+            "kubectl logs %s -n kube-system > %s/%s" % (apiserver_name, log_dir, apiserver_log))
+
+    # os.system(
+    #     "kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
+    # os.system(
+    #     "kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
+    # os.system(
+    #     "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
     os.system(
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
     os.system(
@@ -232,7 +239,7 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
         setup_cluster(project, mode, stage, test_workload, test_config,
                       log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
         run_workload(project, mode, stage, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, num_workers)
+                     log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
     if stage == "learn" or stage == "test":
         post_process(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
