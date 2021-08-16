@@ -152,14 +152,9 @@ def run_workload(project, mode, stage, test_workload, test_config, log_dir, dock
         os.system(
             "kubectl logs %s -n kube-system > %s/%s" % (apiserver_name, log_dir, apiserver_log))
 
-    # os.system(
-    #     "kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
-    # os.system(
-    #     "kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-    # os.system(
-    #     "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
     os.system(
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
+
     os.system(
         "kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
     os.killpg(streaming.pid, signal.SIGTERM)
@@ -167,7 +162,7 @@ def run_workload(project, mode, stage, test_workload, test_config, log_dir, dock
 
 
 def pre_process(project, mode, stage, test_config):
-    if stage == "run":
+    if stage == "learn":
         learn_config = {}
         learn_config["stage"] = "learn"
         learn_config["mode"] = mode
@@ -180,9 +175,9 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
         analyze.analyze_trace(project, log_dir, test_config, mode,
                               two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
         os.system("mkdir -p %s" % data_dir)
-        os.system("cp %s %s" % (os.path.join(test_config, "status.json"), os.path.join(
+        os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
-        os.system("cp %s %s" % (os.path.join(test_config, "side-effect.json"), os.path.join(
+        os.system("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
     else:
         if os.path.exists(test_config):
@@ -191,22 +186,7 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
         if mode == "vanilla":
             # TODO: We need another recording mode to only record digest without generating config
             pass
-        elif mode == "time-travel":
-            learned_side_effect = json.load(open(os.path.join(
-                data_dir, "side-effect.json")))
-            learned_status = json.load(open(os.path.join(
-                data_dir, "status.json")))
-            server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status = oracle.generate_digest(
-                server_log)
-            operator_log = os.path.join(log_dir, "streamed-operator.log")
-            open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
-            json.dump(testing_side_effect, open(os.path.join(
-                log_dir, "side-effect.json"), "w"), indent=4)
-            json.dump(testing_status, open(os.path.join(
-                log_dir, "status.json"), "w"), indent=4)
-        elif mode == "obs-gap":
+        else:
             learned_side_effect = json.load(open(os.path.join(
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
@@ -224,23 +204,14 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
 
 
 def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
-    # if run == "all" or run == "setup":
-    #     pre_process(project, mode, stage, test_config)
-    #     setup_cluster(project, mode, stage, test_workload, test_config,
-    #                   log_dir, docker_repo, docker_tag, num_workers)
-    # if run == "all" or run == "workload":
-    #     run_workload(project, mode, stage, test_workload, test_config,
-    #                  log_dir, docker_repo, docker_tag, num_workers)
-    #     post_process(project, mode, stage, test_workload, test_config,
-    #                  log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
-
-    if stage == "run" or stage == "test":
+    if run == "all" or run == "setup_only":
         pre_process(project, mode, stage, test_config)
         setup_cluster(project, mode, stage, test_workload, test_config,
                       log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
+    if run == "all" or run == "workload_only":
         run_workload(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
-    if stage == "learn" or stage == "test":
+    if run == "all" or run == "check_only":
         post_process(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
 
@@ -250,14 +221,9 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="a
     data_dir = os.path.join("data", project, test, "learn")
     assert run == "all" or run == "setup" or run == "workload", "wrong run option: %s" % run
 
-    if stage == "run":
-        run_config = os.path.join(
+    if stage == "learn":
+        learn_config = os.path.join(
             controllers.test_dir[project], "test", "learn.yaml")
-        run_test(project, mode, stage, suite.workload,
-                 run_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
-    elif stage == "learn":
-        learn_config = config if config != "none" else os.path.join(
-            os.path.dirname(os.path.abspath(log_dir)), "run")
         print("learn_config", learn_config)
         log_dir = os.path.join(log_dir, mode)
         run_test(project, mode, stage, suite.workload,
@@ -308,42 +274,23 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: vanilla, time-travel, sparse-read", metavar="MODE", default="none")
+                      help="test MODE: vanilla, time-travel, obs-gap", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
                       help="batch mode or not", default=False)
     parser.add_option("-r", "--run", dest="run",
-                      help="RUN set_up only, workload only, or all", metavar="RUN", default="all")
+                      help="RUN set_up_only, workload_only, check_only or all", metavar="RUN", default="all")
     parser.add_option("-s", "--stage", dest="stage",
-                      help="test STAGE: run, learn, test", default="none")
+                      help="test STAGE: learn, test", default="none")
 
     (options, args) = parser.parse_args()
 
-    # For backward compatibility
-    if options.stage == "none":
-        if options.mode == "learn":
-            suite = controllers.test_suites[options.project][options.test]
-            options.mode = suite.mode
-            options.stage = "run"
-            run(controllers.test_suites, options.project, options.test, os.path.join(
-                options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
-            options.stage = "learn"
-            run(controllers.test_suites, options.project, options.test, os.path.join(
-                options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
-            print("total time: {} seconds".format(time.time() - s))
-            exit(0)
-        else:
-            options.stage = "test"
-
     if options.mode in ["none"]:
-        suite = controllers.test_suites[options.project][options.test]
-        options.mode = suite.mode
+        options.mode = controllers.test_suites[options.project][options.test].mode
 
-    assert options.stage == "run" or options.mode in controllers.testing_modes, "wrong mode option"
-
-    # stage = "learn" if options.learn else "test"
-    # print("Running Sieve on %s stage with %s mode..."%(stage, options.mode))
+    print("Running Sieve with stage: %s mode: %s..." %
+          (options.stage, options.mode))
 
     if options.batch:
         run_batch(options.project, options.test,
