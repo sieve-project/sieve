@@ -68,8 +68,13 @@ def redirect_workers(mode, num_workers):
 
 
 def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers):
-    os.system("rm -rf %s" % log_dir)
-    os.system("mkdir -p %s" % log_dir)
+    if stage == "learn":
+        learn_config = {}
+        learn_config["stage"] = "learn"
+        learn_config["mode"] = mode
+        learn_config["crd-list"] = controllers.CRDs[project]
+        yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
+
     os.system("cp %s sonar-server/server.yaml" % test_config)
     os.system("kind delete cluster")
 
@@ -161,16 +166,7 @@ def run_workload(project, mode, stage, test_workload, test_config, log_dir, dock
     streamed_log_file.close()
 
 
-def pre_process(project, mode, stage, test_config):
-    if stage == "learn":
-        learn_config = {}
-        learn_config["stage"] = "learn"
-        learn_config["mode"] = mode
-        learn_config["crd-list"] = controllers.CRDs[project]
-        yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
-
-
-def post_process(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
+def check_result(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
     if stage == "learn":
         analyze.analyze_trace(project, log_dir, test_config, mode,
                               two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
@@ -205,41 +201,40 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
 
 def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
     if run == "all" or run == "setup_only":
-        pre_process(project, mode, stage, test_config)
         setup_cluster(project, mode, stage, test_workload, test_config,
                       log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
     if run == "all" or run == "workload_only":
         run_workload(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
     if run == "all" or run == "check_only":
-        post_process(project, mode, stage, test_workload, test_config,
+        check_result(project, mode, stage, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
 
 
 def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="all"):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
-    assert run == "all" or run == "setup" or run == "workload", "wrong run option: %s" % run
+    os.system("rm -rf %s" % log_dir)
+    os.system("mkdir -p %s" % log_dir)
 
     if stage == "learn":
-        learn_config = os.path.join(
-            controllers.test_dir[project], "test", "learn.yaml")
+        learn_config = os.path.join(log_dir, "learn.yaml")
         print("learn_config", learn_config)
-        log_dir = os.path.join(log_dir, mode)
         run_test(project, mode, stage, suite.workload,
                  learn_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
     else:
         if mode == "vanilla":
-            log_dir = os.path.join(log_dir, mode)
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
                      blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
         else:
             test_config = config if config != "none" else suite.config
-            print("testing mode: %s config: %s" % (mode, test_config))
-            log_dir = os.path.join(log_dir, mode)
+            test_config_to_use = os.path.join(
+                log_dir, os.path.basename(test_config))
+            os.system("cp %s %s" % (test_config, test_config_to_use))
+            print("testing mode: %s config: %s" % (mode, test_config_to_use))
             run_test(project, mode, stage, suite.workload,
-                     test_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -289,6 +284,10 @@ if __name__ == "__main__":
     if options.mode in ["none"]:
         options.mode = controllers.test_suites[options.project][options.test].mode
 
+    assert options.stage in ["learn", "test"]
+    assert options.mode in ["all", "vanilla", "time-travel", "obs-gap"]
+    assert options.run in ["all", "setup_only, workload_only", "check_only"]
+
     print("Running Sieve with stage: %s mode: %s..." %
           (options.stage, options.mode))
 
@@ -297,5 +296,5 @@ if __name__ == "__main__":
                   "log-batch", options.mode, options.stage, options.docker)
     else:
         run(controllers.test_suites, options.project, options.test, os.path.join(
-            options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
+            options.log, options.project, options.test, options.stage, options.mode), options.mode, options.stage, options.config, options.docker, options.run)
     print("total time: {} seconds".format(time.time() - s))
