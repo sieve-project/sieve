@@ -246,3 +246,9 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [K8SPSMDB-434](https://jira.percona.com/browse/K8SPSMDB-434)
 to be updated
+
+### Broken atomicity
+to do
+
+### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
+to do
