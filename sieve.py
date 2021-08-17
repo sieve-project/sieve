@@ -279,7 +279,7 @@ if __name__ == "__main__":
     parser.add_option("-r", "--run", dest="run",
                       help="RUN set_up_only, workload_only, check_only or all", metavar="RUN", default="all")
     parser.add_option("-s", "--stage", dest="stage",
-                      help="test STAGE: learn, test", default="none")
+                      help="STAGE: learn, test", default="test")
 
     (options, args) = parser.parse_args()
 
@@ -287,7 +287,7 @@ if __name__ == "__main__":
         options.mode = controllers.test_suites[options.project][options.test].mode
 
     assert options.stage in ["learn", "test"]
-    assert options.mode in ["all", "vanilla", "time-travel", "obs-gap"]
+    assert options.mode in ["vanilla", "time-travel", "obs-gap"]
     assert options.run in ["all", "setup_only, workload_only", "check_only"]
 
     print("Running Sieve with stage: %s mode: %s..." %

@@ -16,10 +16,10 @@ https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed
 
 ## [datastax/cass-operator](https://github.com/datastax/cass-operator)
 https://github.com/k8ssandra/cass-operator/issues/118 confirmed (time traveling)
-<!-- https://github.com/datastax/cass-operator/issues/412 confirmed (time traveling) -->
+<!-- previously https://github.com/datastax/cass-operator/issues/412 -->
 
 https://github.com/k8ssandra/cass-operator/issues/117 pending (by-product)
-<!-- https://github.com/datastax/cass-operator/issues/417 (by-product) -->
+<!-- previously https://github.com/datastax/cass-operator/issues/417 -->
 
 ## [Orange-OpenSource/casskop](https://github.com/Orange-OpenSource/casskop)
 https://github.com/Orange-OpenSource/casskop/issues/316 confirmed and fixed by us (time traveling)

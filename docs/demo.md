@@ -168,7 +168,7 @@ and Sieve then picks each potentially causal-related <event, side effect> pair t
 
 To do so, run:
 ```
-python3 sieve.py -p rabbitmq-operator -t recreate -m learn
+python3 sieve.py -p rabbitmq-operator -t recreate -s learn
 ```
 The command will run the test workload `recreate`, collect the events and side effects, infer the causality and generate the time-travel config.
 
