@@ -35,6 +35,13 @@ type ObsGapListener struct {
 	Server *obsGapServer
 }
 
+type eventWrapper struct {
+	eventID         int32
+	eventType       string
+	eventObject     string
+	eventObjectType string
+}
+
 func (l *ObsGapListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
 	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
 	return nil

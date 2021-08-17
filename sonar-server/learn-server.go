@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -11,17 +13,24 @@ import (
 )
 
 func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
+	rateLimiterEnabledFromConfig, err := strconv.ParseBool(config["rate-limiter-enabled"].(string))
+	if err != nil {
+		log.Fatal("invalid rate-limiter-enabled in config")
+	}
+	rateLimiterIntervalFromConfig, err := strconv.ParseInt(config["rate-limiter-interval"].(string), 10, 64)
+	if err != nil {
+		log.Fatal("invalid rate-limiter-interval in config")
+	}
 	server := &learnServer{
-		eventCh:             make(chan eventWrapper, 100),
-		rateLimitedEventCh:  make(chan eventWrapper, 500),
+		rateLimitedEventCh:  make(chan notificationWrapper, 500),
 		eventID:             -1,
 		eventChMap:          sync.Map{},
 		reconcileChMap:      sync.Map{},
-		notificationCh:      make(chan notificationWrapper, 100),
+		notificationCh:      make(chan notificationWrapper, 500),
 		ongoingReconcileCnt: 0,
 		reconcileCntMap:     map[string]int{},
-		recordedEvents:      []eventWrapper{},
-		rateLimiterEnabled:  true,
+		rateLimiterEnabled:  rateLimiterEnabledFromConfig,
+		rateLimiterInterval: rateLimiterIntervalFromConfig,
 	}
 	listener := &LearnListener{
 		Server: server,
@@ -67,13 +76,6 @@ func (l *LearnListener) NotifyLearnCacheList(request *sonar.NotifyLearnCacheList
 	return l.Server.NotifyLearnCacheList(request, response)
 }
 
-type eventWrapper struct {
-	eventID         int32
-	eventType       string
-	eventObject     string
-	eventObjectType string
-}
-
 type NotificationType int
 
 const (
@@ -81,6 +83,7 @@ const (
 	reconcileFinish
 	sideEffect
 	cacheRead
+	eventArrival
 	eventApplied
 )
 
@@ -90,17 +93,16 @@ type notificationWrapper struct {
 }
 
 type learnServer struct {
-	eventCh             chan eventWrapper
-	rateLimitedEventCh  chan eventWrapper
+	rateLimitedEventCh  chan notificationWrapper
 	eventID             int32
 	eventChMap          sync.Map
 	reconcileChMap      sync.Map
 	notificationCh      chan notificationWrapper
 	ongoingReconcileCnt int
 	reconcileCntMap     map[string]int
-	recordedEvents      []eventWrapper
 	mu                  sync.Mutex
 	rateLimiterEnabled  bool
+	rateLimiterInterval int64
 }
 
 func (s *learnServer) Start() {
@@ -111,20 +113,8 @@ func (s *learnServer) Start() {
 func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
 	waitingCh := make(chan int32)
-	s.eventChMap.Store(eID, waitingCh)
-	ew := eventWrapper{
-		eventID:         eID,
-		eventType:       request.OperationType,
-		eventObject:     request.Object,
-		eventObjectType: request.ResourceType,
-	}
-	// if rateLimiter is enabled, we push the ew to the rateLimitedEventCh, and the ew will be poped every 3 seconds
-	// otherwise, we push ew to eventCh, and the ew will be poped immediatelly
-	if s.rateLimiterEnabled {
-		s.rateLimitedEventCh <- ew
-	} else {
-		s.eventCh <- ew
-	}
+	s.eventChMap.Store(fmt.Sprint(eID), waitingCh)
+	s.notificationCh <- notificationWrapper{ntype: eventArrival, payload: fmt.Sprintf("%d\t%s\t%s\t%s", eID, request.OperationType, request.ResourceType, request.Object)}
 	<-waitingCh
 	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil
@@ -178,21 +168,9 @@ func (s *learnServer) NotifyLearnCacheList(request *sonar.NotifyLearnCacheListRe
 func (s *learnServer) coordinatingEvents() {
 	for {
 		select {
-		case <-time.After(time.Second * 3):
+		case <-time.After(time.Second * time.Duration(s.rateLimiterInterval)):
 			if s.rateLimiterEnabled {
-				s.allowEvent()
-			}
-		case ew := <-s.eventCh:
-			if !s.rateLimiterEnabled {
-				curID := ew.eventID
-				if obj, ok := s.eventChMap.Load(curID); ok {
-					log.Printf("release event\n")
-					log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
-					ch := obj.(chan int32)
-					ch <- curID
-				} else {
-					log.Fatal("invalid object in eventChMap")
-				}
+				s.pollRateLimitedEventCh()
 			}
 		case nw := <-s.notificationCh:
 			switch nw.ntype {
@@ -213,7 +191,9 @@ func (s *learnServer) coordinatingEvents() {
 			case reconcileFinish:
 				s.ongoingReconcileCnt -= 1
 				if s.ongoingReconcileCnt == 0 {
-					s.allowEvent()
+					if s.rateLimiterEnabled {
+						s.pollRateLimitedEventCh()
+					}
 				} else if s.ongoingReconcileCnt < 0 {
 					log.Fatalf("reconcileCnt cannot be lower than 0: %d\n", s.ongoingReconcileCnt)
 				}
@@ -221,6 +201,20 @@ func (s *learnServer) coordinatingEvents() {
 			case sideEffect:
 				if s.ongoingReconcileCnt > 0 {
 					log.Printf("[SONAR-SIDE-EFFECT]\t%s\n", nw.payload)
+				}
+			case eventArrival:
+				if !s.rateLimiterEnabled {
+					eventID := strings.Split(nw.payload, "\t")[0]
+					if obj, ok := s.eventChMap.Load(eventID); ok {
+						log.Printf("release event\n")
+						log.Printf("[SONAR-EVENT]\t%s\n", nw.payload)
+						ch := obj.(chan int32)
+						ch <- 0
+					} else {
+						log.Fatal("invalid object in eventChMap")
+					}
+				} else {
+					s.rateLimitedEventCh <- nw
 				}
 			case eventApplied:
 				log.Printf("[SONAR-EVENT-APPLIED]\t%s\n", nw.payload)
@@ -233,15 +227,15 @@ func (s *learnServer) coordinatingEvents() {
 	}
 }
 
-func (s *learnServer) allowEvent() {
+func (s *learnServer) pollRateLimitedEventCh() {
 	select {
-	case ew := <-s.rateLimitedEventCh:
-		curID := ew.eventID
-		if obj, ok := s.eventChMap.Load(curID); ok {
-			log.Printf("release rate limited event\n")
-			log.Printf("[SONAR-EVENT]\t%d\t%s\t%s\t%s\n", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
+	case nw := <-s.rateLimitedEventCh:
+		eventID := strings.Split(nw.payload, "\t")[0]
+		if obj, ok := s.eventChMap.Load(eventID); ok {
+			log.Printf("ratelimiter release event\n")
+			log.Printf("[SONAR-EVENT]\t%s\n", nw.payload)
 			ch := obj.(chan int32)
-			ch <- curID
+			ch <- 0
 		} else {
 			log.Fatal("invalid object in eventChMap")
 		}

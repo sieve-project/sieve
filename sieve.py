@@ -73,6 +73,8 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
         learn_config["stage"] = "learn"
         learn_config["mode"] = mode
         learn_config["crd-list"] = controllers.CRDs[project]
+        learn_config["rate-limiter-enabled"] = "true"
+        learn_config["rate-limiter-interval"] = "3"
         yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
 
     os.system("cp %s sonar-server/server.yaml" % test_config)
