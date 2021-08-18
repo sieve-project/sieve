@@ -96,8 +96,8 @@ test_suites = {
             workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3, se_filter=True),
         "disable-enable-arbiter": Suite(
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
-        "enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["enable-shard"], "config/none.yaml", "time-travel", num_workers=3),
+        # "enable-shard": Suite(
+        #     workloads.workloads["mongodb-operator"]["enable-shard"], "config/none.yaml", "time-travel", num_workers=3),
     },
     "cass-operator": {
         "recreate": Suite(
