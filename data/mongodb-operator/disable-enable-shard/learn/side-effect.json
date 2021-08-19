@@ -2,11 +2,11 @@
     "deployment": {
         "default": {
             "mongodb-cluster-mongos": {
-                "Create": 1,
+                "Create": 2,
                 "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 0
+                "Update": 40
             }
         }
     },
@@ -28,25 +28,32 @@
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 2
+                "Update": 1
             }
         }
     },
     "poddisruptionbudget": {
         "default": {
+            "mongodb-cluster-cfg-cfg": {
+                "Create": 2,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 45
+            },
             "mongodb-cluster-mongod-rs0": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 1
+                "Update": 56
             },
             "mongodb-cluster-mongos-": {
-                "Create": 1,
+                "Create": 2,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 0
+                "Update": 40
             }
         }
     },
@@ -106,7 +113,7 @@
                 "Update": 0
             },
             "mongodb-cluster-mongos": {
-                "Create": 1,
+                "Create": 2,
                 "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
@@ -128,14 +135,14 @@
                 "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 0
+                "Update": 47
             },
             "mongodb-cluster-rs0": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 2
+                "Update": 57
             }
         }
     }

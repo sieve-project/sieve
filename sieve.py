@@ -51,14 +51,7 @@ def kind_config(num_apiservers, num_workers):
     return kind_config_filename
 
 
-def redirect_if_necessary(mode, num_workers):
-    # TODO: we may also need to redirect the controller-managers and schedulers
-    if mode != "time-travel":
-        return
-    redirect_workers(mode, num_workers)
-
-
-def redirect_workers(mode, num_workers):
+def redirect_workers(num_workers):
     target_master = controllers.front_runner
     for i in range(num_workers):
         worker = "kind-worker" + (str(i+1) if i > 0 else "")
@@ -67,22 +60,19 @@ def redirect_workers(mode, num_workers):
         os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
-def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers):
-    if stage == "learn":
-        learn_config = {}
-        learn_config["stage"] = "learn"
-        learn_config["mode"] = mode
-        learn_config["crd-list"] = controllers.CRDs[project]
-        learn_config["rate-limiter-enabled"] = "true"
-        learn_config["rate-limiter-interval"] = "3"
-        yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
-
+def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers):
     os.system("cp %s sonar-server/server.yaml" % test_config)
     os.system("kind delete cluster")
 
     os.system("./setup.sh %s %s %s" %
               (kind_config(num_apiservers, num_workers), docker_repo, docker_tag))
-    redirect_if_necessary(mode, num_workers)
+
+    # when testing time-travel, we need to pause the apiserver
+    # if workers talks to the paused apiserver, the whole cluster will be slowed down
+    # so we need to redirect the workers to other apiservers
+    if mode == "time-travel" and stage == "test":
+        redirect_workers(num_workers)
+
     os.system("./bypass-balancer.sh")
 
     configmap = generate_configmap(test_config)
@@ -139,7 +129,7 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
     watch_crd(project, apiserver_addr_list)
 
 
-def run_workload(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers):
+def run_workload(project, mode, test_workload, log_dir, num_apiservers):
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
@@ -168,7 +158,7 @@ def run_workload(project, mode, stage, test_workload, test_config, log_dir, dock
     streamed_log_file.close()
 
 
-def check_result(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
+def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore, se_filter):
     if stage == "learn":
         analyze.analyze_trace(project, log_dir, test_config, mode,
                               two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
@@ -201,19 +191,35 @@ def check_result(project, mode, stage, test_workload, test_config, log_dir, dock
                 log_dir, "status.json"), "w"), indent=4)
 
 
-def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
-    if run == "all" or run == "setup_only":
-        setup_cluster(project, mode, stage, test_workload, test_config,
-                      log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
-    if run == "all" or run == "workload_only":
-        run_workload(project, mode, stage, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, num_apiservers, num_workers)
-    if run == "all" or run == "check_only":
-        check_result(project, mode, stage, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
+def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, se_filter, phase):
+    if phase == "all" or phase == "setup_only":
+        setup_cluster(project, stage, mode, test_config,
+                      docker_repo, docker_tag, num_apiservers, num_workers)
+    if phase == "all" or phase == "workload_only":
+        run_workload(project, mode, test_workload,
+                     log_dir, num_apiservers)
+    if phase == "all" or phase == "check_only":
+        check_result(project, mode, stage, test_config,
+                     log_dir, data_dir, two_sided, node_ignore, se_filter)
 
 
-def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="all"):
+def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
+    learn_config_map = {}
+    learn_config_map["stage"] = "learn"
+    learn_config_map["mode"] = mode
+    learn_config_map["crd-list"] = controllers.CRDs[project]
+    if rate_limiter_enabled:
+        learn_config_map["rate-limiter-enabled"] = "true"
+        print("turn on rate limiter")
+    else:
+        learn_config_map["rate-limiter-enabled"] = "false"
+        print("turn off rate limiter")
+    # hardcode the interval to 3 seconds for now
+    learn_config_map["rate-limiter-interval"] = "3"
+    yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
+
+
+def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_limiter_enabled=False, phase="all"):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
     os.system("rm -rf %s" % log_dir)
@@ -222,13 +228,15 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="a
     if stage == "learn":
         learn_config = os.path.join(log_dir, "learn.yaml")
         print("learn_config", learn_config)
+        generate_learn_config(learn_config, project,
+                              mode, rate_limiter_enabled)
         run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                 learn_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, phase)
     else:
         if mode == "vanilla":
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
-                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, phase)
         else:
             test_config = config if config != "none" else suite.config
             test_config_to_use = os.path.join(
@@ -236,7 +244,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="a
             os.system("cp %s %s" % (test_config, test_config_to_use))
             print("testing mode: %s config: %s" % (mode, test_config_to_use))
             run_test(project, mode, stage, suite.workload,
-                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -276,19 +284,24 @@ if __name__ == "__main__":
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
                       help="batch mode or not", default=False)
-    parser.add_option("-r", "--run", dest="run",
-                      help="RUN set_up_only, workload_only, check_only or all", metavar="RUN", default="all")
+    parser.add_option("--phase", dest="phase",
+                      help="run the PHASE: set_up_only, workload_only, check_only or all", metavar="PHASE", default="all")
     parser.add_option("-s", "--stage", dest="stage",
                       help="STAGE: learn, test", default="test")
+    parser.add_option("-r", "--rate_limiter", dest="rate_limiter", action="store_true",
+                      help="use RATE LIMITER in learning stage or not", default=False)
 
     (options, args) = parser.parse_args()
 
     if options.mode in ["none"]:
         options.mode = controllers.test_suites[options.project][options.test].mode
 
-    assert options.stage in ["learn", "test"]
-    assert options.mode in ["vanilla", "time-travel", "obs-gap"]
-    assert options.run in ["all", "setup_only, workload_only", "check_only"]
+    assert options.stage in [
+        "learn", "test"], "invalid stage option: %s" % options.stage
+    assert options.mode in ["vanilla", "time-travel",
+                            "obs-gap"], "invalid mode option: %s" % options.mode
+    assert options.phase in ["all", "setup_only", "workload_only",
+                             "check_only"], "invalid phase option: %s" % options.phase
 
     print("Running Sieve with stage: %s mode: %s..." %
           (options.stage, options.mode))
@@ -297,6 +310,8 @@ if __name__ == "__main__":
         run_batch(options.project, options.test,
                   "log-batch", options.mode, options.stage, options.docker)
     else:
-        run(controllers.test_suites, options.project, options.test, os.path.join(
-            options.log, options.project, options.test, options.stage, options.mode), options.mode, options.stage, options.config, options.docker, options.run)
+        log_dir = os.path.join(options.log, options.project,
+                               options.test, options.stage, options.mode)
+        run(controllers.test_suites, options.project, options.test, log_dir,
+            options.mode, options.stage, options.config, options.docker, options.rate_limiter, options.phase)
     print("total time: {} seconds".format(time.time() - s))
