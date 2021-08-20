@@ -113,7 +113,7 @@ test_suites = {
         "nodesperrack": Suite(
             workloads.workloads["casskop-operator"]["nodesperrack"], "test-casskop-operator/test/obs-gap-1.yaml", "obs-gap"),
         "scaledown": Suite(
-            workloads.workloads["casskop-operator"]["scaledown"], "test-casskop-operator/test/atomic-1.yaml", "atomic"),
+            workloads.workloads["casskop-operator"]["scaledown"], "test-casskop-operator/test/atomic-2.yaml", "atomic"),
     },
     "xtradb-operator": {
         "recreate": Suite(
