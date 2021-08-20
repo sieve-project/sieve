@@ -222,8 +222,9 @@ def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
 def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_limiter_enabled=False, phase="all"):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
-    os.system("rm -rf %s" % log_dir)
-    os.system("mkdir -p %s" % log_dir)
+    if phase == "all" or phase == "setup_only":
+        os.system("rm -rf %s" % log_dir)
+        os.system("mkdir -p %s" % log_dir)
 
     if stage == "learn":
         learn_config = os.path.join(log_dir, "learn.yaml")
@@ -285,7 +286,7 @@ if __name__ == "__main__":
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
                       help="batch mode or not", default=False)
     parser.add_option("--phase", dest="phase",
-                      help="run the PHASE: set_up_only, workload_only, check_only or all", metavar="PHASE", default="all")
+                      help="run the PHASE: setup_only, workload_only, check_only or all", metavar="PHASE", default="all")
     parser.add_option("-s", "--stage", dest="stage",
                       help="STAGE: learn, test", default="test")
     parser.add_option("-r", "--rate_limiter", dest="rate_limiter", action="store_true",
