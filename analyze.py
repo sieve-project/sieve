@@ -242,10 +242,10 @@ def pipelined_passes(mode, event_effect_pairs):
     return reduced_event_effect_pairs
 
 
-def passes_as_sql_query():
+def passes_as_sql_query(mode):
     query = common.SQL_BASE_PASS_QUERY
     first_optional_pass = True
-    if common.DELETE_ONLY_FILTER_FLAG:
+    if common.DELETE_ONLY_FILTER_FLAG and mode == "time-travel":
         query += " where " if first_optional_pass else " and "
         query += common.SQL_DELETE_ONLY_FILTER
         first_optional_pass = False
@@ -271,7 +271,7 @@ def generate_event_effect_pairs(mode, path, use_sql, compress_trivial_reconcile)
         record_event_list_in_sqlite(event_list, conn)
         record_side_effect_list_in_sqlite(side_effect_list, conn)
         cur = conn.cursor()
-        query = passes_as_sql_query()
+        query = passes_as_sql_query(mode)
         print("Running SQL query as below ...")
         print(query)
         cur.execute(query)
@@ -298,7 +298,8 @@ def generate_triggering_points(event_map, event_effect_pairs):
         triggering_point = {"name": cur_event.name,
                             "namespace": cur_event.namespace,
                             "rtype": cur_event.rtype,
-                            "effect": side_effect.to_dict()}
+                            "effect": side_effect.to_dict(),
+                            "curEventId": cur_event.id}
         if prev_event is None:
             triggering_point["ttype"] = "todo"
         else:
@@ -378,17 +379,18 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
     yaml_map["mode"] = "obs-gap"
-    yaml_map["straggler"] = controllers.straggler
-    yaml_map["front-runner"] = controllers.front_runner
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
-    yaml_map["deployment-name"] = controllers.deployment_name[project]
     i = 0
+    events_set = set()
     for triggering_point in triggering_points:
+        if triggering_point["curEventId"] not in events_set:
+            events_set.add(triggering_point["curEventId"])
+        else:
+            continue
         if triggering_point["ttype"] != "event-delta":
             # TODO: handle the single event trigger
             continue
         i += 1
-        effect = triggering_point["effect"]
         yaml_map["ce-name"] = triggering_point["name"]
         yaml_map["ce-namespace"] = triggering_point["namespace"]
         yaml_map["ce-rtype"] = triggering_point["rtype"]
@@ -398,10 +400,6 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
             analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"]), node_ignore))
         yaml_map["ce-etype-current"] = triggering_point["curEventType"]
         yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
-        yaml_map["se-name"] = effect["name"]
-        yaml_map["se-namespace"] = effect["namespace"]
-        yaml_map["se-rtype"] = effect["rtype"]
-        yaml_map["se-etype"] = effect["etype"]
         yaml_map["description"] = obs_gap_description(yaml_map)
         yaml.dump(yaml_map, open(
             os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
@@ -460,7 +458,7 @@ def analyze_trace(project, log_dir, test_config, mode, generate_oracle=True, gen
         os.makedirs(analysis_log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
             mode, log_path, use_sql, compress_trivial_reconcile)
-        if se_filter:
+        if se_filter and mode == "time-travel":
             causality_pairs = side_effect_filter(
                 causality_pairs, event_key_map)
         triggering_points = generate_triggering_points(
