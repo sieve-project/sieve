@@ -143,27 +143,27 @@ def generate_generate_time_travel_description(testing_config):
 
 
 def generate_debug_suggestion(testing_config):
-    return "Please check how controller reacts when seeing %s: %s, the controller may issue %s to %s without proper checking" % (
+    return "Please check how controller reacts when seeing %s: %s, the event might be cancelled by following events" % (
         testing_config["ce-rtype"] + "/" +
         testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
-        testing_config["ce-diff-current"],
-        common.translate_side_effect(testing_config["se-etype"], True),
-        testing_config["se-rtype"] + "/" +
-        testing_config["se-namespace"] + "/" + testing_config["se-name"])
+        testing_config["ce-diff-current"])
 
 
 def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
     testing_config = yaml.safe_load(open(config))
-    interest_objects = []
-    if testing_config["mode"] in ["time-travel", "obs-gap"]:
-        interest_objects.append(
-            {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
     alarm_status, bug_report_status = check_status(
         learning_status, testing_status)
-    alarm_side_effect, bug_report_side_effect = check_side_effect(
-        learning_side_effect, testing_side_effect, interest_objects)
-    alarm = alarm_side_effect + alarm_status
-    bug_report = bug_report_side_effect + bug_report_status
+    alarm = alarm_status
+    bug_report = bug_report_status
+    # TODO: implement side effect checking for obs gap
+    if testing_config["mode"] == "time-travel":
+        interest_objects = []
+        interest_objects.append(
+            {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
+        alarm_side_effect, bug_report_side_effect = check_side_effect(
+            learning_side_effect, testing_side_effect, interest_objects)
+        alarm += alarm_side_effect
+        bug_report += bug_report_side_effect
     return alarm, bug_report
 
 
@@ -180,6 +180,7 @@ def look_for_panic_in_operator_log(operator_log):
     final_bug_report = "Checking for any panic in operator log...\n" + \
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
+
 
 def look_for_sleep_over_in_server_log(server_log):
     file = open(server_log)
