@@ -158,10 +158,10 @@ def run_workload(project, mode, test_workload, log_dir, num_apiservers):
     streamed_log_file.close()
 
 
-def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore, se_filter):
+def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore, delete_then_recreate_filter):
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, test_config, mode,
-                              two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
+        analyze.analyze_trace(project, log_dir, mode,
+                              two_sided=two_sided, node_ignore=node_ignore, delete_then_recreate_filter=delete_then_recreate_filter)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
@@ -191,7 +191,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
                 log_dir, "status.json"), "w"), indent=4)
 
 
-def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, se_filter, phase):
+def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, delete_then_recreate_filter, phase):
     if phase == "all" or phase == "setup_only":
         setup_cluster(project, stage, mode, test_config,
                       docker_repo, docker_tag, num_apiservers, num_workers)
@@ -200,7 +200,7 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
                      log_dir, num_apiservers)
     if phase == "all" or phase == "check_only":
         check_result(project, mode, stage, test_config,
-                     log_dir, data_dir, two_sided, node_ignore, se_filter)
+                     log_dir, data_dir, two_sided, node_ignore, delete_then_recreate_filter)
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
@@ -232,12 +232,12 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         generate_learn_config(learn_config, project,
                               mode, rate_limiter_enabled)
         run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, phase)
+                 learn_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.delete_then_recreate_filter, phase)
     else:
         if mode == "vanilla":
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
-                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, phase)
+                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.delete_then_recreate_filter, phase)
         else:
             test_config = config if config != "none" else suite.config
             test_config_to_use = os.path.join(
@@ -245,7 +245,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
             os.system("cp %s %s" % (test_config, test_config_to_use))
             print("testing mode: %s config: %s" % (mode, test_config_to_use))
             run_test(project, mode, stage, suite.workload,
-                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, phase)
+                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.delete_then_recreate_filter, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
