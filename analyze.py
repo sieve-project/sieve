@@ -411,31 +411,34 @@ def dump_json_file(dir, data, json_file_name):
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def side_effect_filter(causality_pairs, event_key_map):
+def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
+    # this should only be applied to time travel mode
     filtered_causality_pairs = []
     for pair in causality_pairs:
-        start_event = pair[0]
-        side_effect = pair[1]  # e.g. delete sth
-        # Ignore if side effect is not delete
-        if not side_effect.etype == "Delete":
-            filtered_causality_pairs.append(pair)
-            continue
-        flag = False
+        side_effect = pair[1]
+        # time travel only cares about delete for now
+        assert side_effect.etype == "Delete"
+        keep_this_pair = False
         if side_effect.key in event_key_map:
             for event in event_key_map[side_effect.key]:
                 # We will find add sth
                 if event.start_timestamp <= side_effect.end_timestamp:
                     continue
                 if event.etype == "Added":
-                    flag = True
-        if flag:
+                    keep_this_pair = True
+        else:
+            # if the side effect key never appears in the event_key_map
+            # it means the operator does not watch on the resource
+            # so we should be cautious and keep this pair
+            keep_this_pair = True
+        if keep_this_pair:
             filtered_causality_pairs.append(pair)
     print("side effect filter reduce causality_pairs from %d to %d" %
           (len(causality_pairs), len(filtered_causality_pairs)))
     return filtered_causality_pairs
 
 
-def analyze_trace(project, log_dir, test_config, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), se_filter=False, use_sql=True, compress_trivial_reconcile=True):
+def analyze_trace(project, log_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), delete_then_recreate_filter=False, use_sql=True, compress_trivial_reconcile=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -458,8 +461,8 @@ def analyze_trace(project, log_dir, test_config, mode, generate_oracle=True, gen
         os.makedirs(analysis_log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
             mode, log_path, use_sql, compress_trivial_reconcile)
-        if se_filter and mode == "time-travel":
-            causality_pairs = side_effect_filter(
+        if delete_then_recreate_filter and mode == "time-travel":
+            causality_pairs = delete_then_recreate_filtering_pass(
                 causality_pairs, event_key_map)
         triggering_points = generate_triggering_points(
             event_key_map, causality_pairs)
@@ -491,15 +494,18 @@ if __name__ == "__main__":
     usage = "usage: python3 analyze.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("-p", "--project", dest="project",
-                      help="specify PROJECT to test: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
+                      help="specify PROJECT", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-t", "--test", dest="test",
                       help="specify TEST to run", metavar="TEST", default="recreate")
+    parser.add_option("-m", "--mode", dest="mode",
+                      help="specify MODE", metavar="MODE", default="time-travelz")
     (options, args) = parser.parse_args()
     project = options.project
     test = options.test
+    mode = options.mode
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
     # hardcoded to time travel config only for now
-    dir = os.path.join("log", project, "learn", test, "time-travel")
-    analyze_trace(project, dir, "time-travel", generate_oracle=False,
-                  generate_config=True, two_sided=False, use_sql=False, compress_trivial_reconcile=True)
+    dir = os.path.join("log", project, test, "learn", mode)
+    analyze_trace(project, dir, mode, generate_oracle=False,
+                  generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=False, compress_trivial_reconcile=True)
