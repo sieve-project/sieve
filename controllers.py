@@ -124,6 +124,9 @@ test_suites = {
         "disable-enable-proxysql": Suite(
             workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
     },
+    "yugabyte-operator": {
+        "recreate": Suite(workloads.workloads["xtradb-operator"]["recreate"], "none", "time-travel"),
+    },
 }
 
 CRDs = {
@@ -134,6 +137,7 @@ CRDs = {
     "cass-operator": ["cassandradatacenter"],
     "casskop-operator": ["cassandracluster", "cassandrarestore", "cassandrabackup"],
     "xtradb-operator": ["perconaxtradbcluster", "perconaxtradbclusterbackup", "perconaxtradbclusterrestore", "perconaxtradbbackup"],
+    "yugabyte-operator": ["YBCluster"],
 }
 
 deployment_name = {
@@ -280,9 +284,9 @@ def xtradb_operator_deploy(dr, dt):
 
 def yugabyte_operator_deploy(dr, dt):
     new_path = replace_docker_repo("test-yugabyte-operator/deploy/operator.yaml", dr, dt)
-    os.system("kubectl create -f deploy/crds/yugabyte.com_ybclusters_crd.yaml")
+    os.system("cp %s .." % new_path)
+    os.system("kubectl create -f test-yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml")
     os.system("kubectl create -f %s" % new_path)
-    os.system("kubectl create -f deploy/crds/yugabyte.com_v1alpha1_ybcluster_cr.yaml")
     os.system("rm %s" % new_path)
 
 
@@ -294,5 +298,5 @@ deploy = {
     "cass-operator": cass_operator_deploy,
     "casskop-operator": casskop_operator_deploy,
     "xtradb-operator": xtradb_operator_deploy,
-    "yugabyte_operator_deploy": yugabyte_operator_deploy,
+    "yugabyte-operator": yugabyte_operator_deploy,
 }

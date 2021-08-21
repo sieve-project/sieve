@@ -7,7 +7,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: yugabyte-operator
-  namespace: yb-operator
+  #namespace: yb-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -81,7 +81,7 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: yugabyte-operator
-  namespace: yb-operator
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -89,13 +89,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: yugabyte-operator
-    namespace: yb-operator
+    namespace: default
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: yugabyte-operator
-  namespace: yb-operator
+  #namespace: yb-operator
 spec:
   replicas: 1
   selector:
@@ -106,12 +106,13 @@ spec:
     metadata:
       labels:
         name: yugabyte-operator
+        sonartag: yugabyte-operator
     spec:
       serviceAccountName: yugabyte-operator
       containers:
         - name: yugabyte-operator
           # Replace this with the built image name
-          image: ${SONAR-DR}/yugabytedb-operator:${SONAR-DT}
+          image: ${SONAR-DR}/yugabyte-operator:${SONAR-DT}
           command:
             - yugabyte-operator
           imagePullPolicy: IfNotPresent
@@ -128,6 +129,6 @@ spec:
               value: "kind-control-plane"
             - name: KUBERNETES_SERVICE_PORT
               value: "6443"
-            envFrom:
-              - configMapRef:
-                name: sonar-testing-global-config
+          envFrom:
+            - configMapRef:
+              name: sonar-testing-global-config

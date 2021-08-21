@@ -1,0 +1,15 @@
+apiVersion: yugabyte.com/v1alpha1
+kind: YBCluster
+metadata:
+  name: example-ybcluster
+spec:
+  replicationFactor: 3
+  master:
+    replicas: 3
+    storage:
+      size: 1Gi
+  tserver:
+    replicas: 3
+    storage:
+      count: 1
+      size: 1Gi

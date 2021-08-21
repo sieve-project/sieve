@@ -113,4 +113,8 @@ workloads = {
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
         .wait(70),
     },
+    "yugabyte-operator": {
+        "recreate":test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-yugabyte-operator/test/cdc-1.yaml").wait(70),
+    },
 }
