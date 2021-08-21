@@ -39,6 +39,8 @@ def generate_configmap(test_config):
 
 def kind_config(num_workers):
     # we should generate the kind config automatically
+    if num_workers == 0:
+        return "kind-ha-0w.yaml"
     if num_workers == 2:
         return "kind-ha.yaml"
     elif num_workers == 3:
@@ -230,7 +232,7 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
     #                  log_dir, docker_repo, docker_tag, num_workers)
     #     post_process(project, mode, stage, test_workload, test_config,
     #                  log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
-    
+
     if stage == "run" or stage == "test":
         pre_process(project, mode, stage, test_config)
         setup_cluster(project, mode, stage, test_workload, test_config,
