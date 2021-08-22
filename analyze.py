@@ -459,16 +459,13 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
     return filtered_causality_pairs
 
 
-def analyze_trace(project, log_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=True, compress_trivial_reconcile=True):
+def analyze_trace(project, log_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=False, compress_trivial_reconcile=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
           ("enabled" if generate_config else "disabled"))
     if not generate_config:
         two_sided = False
-        use_sql = False
-    # Disable sql feature for obs gap mode for now
-    if mode == "obs-gap":
         use_sql = False
     print("two-sided feature is %s" %
           ("enabled" if two_sided else "disabled"))
