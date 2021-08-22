@@ -204,6 +204,8 @@ def delete_only_filtering_pass(mode, event_effect_pairs):
         side_effect = pair[1]
         if side_effect.etype == "Delete":
             reduced_event_effect_pairs.append(pair)
+    print("<e, s> pairs: %d -> %d" %
+          (len(event_effect_pairs), len(reduced_event_effect_pairs)))
     return reduced_event_effect_pairs
 
 
@@ -215,6 +217,8 @@ def write_read_overlap_filtering_pass(mode, event_effect_pairs):
         side_effect = pair[1]
         if side_effect.interest_overlap(event):
             reduced_event_effect_pairs.append(pair)
+    print("<e, s> pairs: %d -> %d" %
+          (len(event_effect_pairs), len(reduced_event_effect_pairs)))
     return reduced_event_effect_pairs
 
 
@@ -225,6 +229,8 @@ def error_msg_filtering_pass(mode, event_effect_pairs):
         side_effect = pair[1]
         if side_effect.error not in common.FILTERED_ERROR_TYPE:
             reduced_event_effect_pairs.append(pair)
+    print("<e, s> pairs: %d -> %d" %
+          (len(event_effect_pairs), len(reduced_event_effect_pairs)))
     return reduced_event_effect_pairs
 
 
@@ -260,11 +266,7 @@ def passes_as_sql_query(mode):
     return query
 
 
-def generate_event_effect_pairs(mode, path, use_sql, compress_trivial_reconcile):
-    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
-    event_list, event_key_map, event_id_map = parse_events(path)
-    side_effect_list, side_effect_id_map = parse_side_effects(
-        path, compress_trivial_reconcile)
+def intra_pair_analysis(mode, use_sql, event_list, event_id_map, side_effect_list, side_effect_id_map):
     reduced_event_effect_pairs = []
     if use_sql:
         conn = create_sqlite_db()
@@ -284,7 +286,28 @@ def generate_event_effect_pairs(mode, path, use_sql, compress_trivial_reconcile)
     else:
         event_effect_pairs = base_pass(mode, event_list, side_effect_list)
         reduced_event_effect_pairs = pipelined_passes(mode, event_effect_pairs)
-    return reduced_event_effect_pairs, event_key_map
+    return reduced_event_effect_pairs
+
+
+def inter_pair_analysis(mode, event_effect_pairs, event_key_map):
+    if mode == "time-travel":
+        reduced_event_effect_pairs = delete_then_recreate_filtering_pass(
+            event_effect_pairs, event_key_map)
+        return reduced_event_effect_pairs
+    else:
+        return event_effect_pairs
+
+
+def generate_event_effect_pairs(mode, path, use_sql, compress_trivial_reconcile):
+    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
+    event_list, event_key_map, event_id_map = parse_events(path)
+    side_effect_list, side_effect_id_map = parse_side_effects(
+        path, compress_trivial_reconcile)
+    after_intra_pairs = intra_pair_analysis(
+        mode, use_sql, event_list, event_id_map, side_effect_list, side_effect_id_map)
+    after_inter_pairs = inter_pair_analysis(
+        mode, after_intra_pairs, event_key_map)
+    return after_inter_pairs, event_key_map
 
 
 def generate_triggering_points(event_map, event_effect_pairs):
@@ -301,7 +324,8 @@ def generate_triggering_points(event_map, event_effect_pairs):
                             "effect": side_effect.to_dict(),
                             "curEventId": cur_event.id}
         if prev_event is None:
-            triggering_point["ttype"] = "todo"
+            continue
+            # TODO: how to deal with the first event of each resource?
         else:
             slim_prev_obj, slim_cur_obj = analyze_event.diff_events(
                 prev_event, cur_event)
@@ -350,9 +374,7 @@ def generate_time_travel_yaml(triggering_points, path, project, node_ignore, tim
     suffix = "-b" if timing == "before" else ""
     i = 0
     for triggering_point in triggering_points:
-        if triggering_point["ttype"] != "event-delta":
-            # TODO: handle the single event trigger
-            continue
+        assert triggering_point["ttype"] == "event-delta"
         i += 1
         effect = triggering_point["effect"]
         yaml_map["ce-name"] = triggering_point["name"]
@@ -387,9 +409,7 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
             events_set.add(triggering_point["curEventId"])
         else:
             continue
-        if triggering_point["ttype"] != "event-delta":
-            # TODO: handle the single event trigger
-            continue
+        assert triggering_point["ttype"] == "event-delta"
         i += 1
         yaml_map["ce-name"] = triggering_point["name"]
         yaml_map["ce-namespace"] = triggering_point["namespace"]
@@ -412,6 +432,7 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
+    print("Running optional pass: delete-then-recreate-filtering ...")
     # this should only be applied to time travel mode
     filtered_causality_pairs = []
     for pair in causality_pairs:
@@ -433,7 +454,7 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
             keep_this_pair = True
         if keep_this_pair:
             filtered_causality_pairs.append(pair)
-    print("side effect filter reduce causality_pairs from %d to %d" %
+    print("<e, s> pairs: %d -> %d" %
           (len(causality_pairs), len(filtered_causality_pairs)))
     return filtered_causality_pairs
 
@@ -461,9 +482,6 @@ def analyze_trace(project, log_dir, mode, generate_oracle=True, generate_config=
         os.makedirs(analysis_log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
             mode, log_path, use_sql, compress_trivial_reconcile)
-        if delete_then_recreate_filter and mode == "time-travel":
-            causality_pairs = delete_then_recreate_filtering_pass(
-                causality_pairs, event_key_map)
         triggering_points = generate_triggering_points(
             event_key_map, causality_pairs)
         dump_json_file(analysis_log_dir, triggering_points,
