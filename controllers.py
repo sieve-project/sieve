@@ -7,7 +7,7 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], delete_then_recreate_filter=False, num_apiservers=3, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], num_apiservers=3, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
@@ -15,7 +15,6 @@ class Suite:
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.node_ignore = node_ignore
-        self.delete_then_recreate_filter = delete_then_recreate_filter
 
 
 docker_repo = "xudongs"
@@ -93,7 +92,7 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", num_workers=3),
         "disable-enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3, delete_then_recreate_filter=True),
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3),
         "disable-enable-arbiter": Suite(
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
     },

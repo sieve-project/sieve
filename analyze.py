@@ -459,7 +459,7 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
     return filtered_causality_pairs
 
 
-def analyze_trace(project, log_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), delete_then_recreate_filter=False, use_sql=True, compress_trivial_reconcile=True):
+def analyze_trace(project, log_dir, mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=True, compress_trivial_reconcile=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
