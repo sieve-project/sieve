@@ -160,8 +160,9 @@ def run_workload(project, mode, test_workload, log_dir, num_apiservers):
 
 def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore):
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, mode,
-                              two_sided=two_sided, node_ignore=node_ignore)
+        for analysis_mode in ["time-travel", "obs-gap"]:
+            analyze.analyze_trace(project, log_dir, analysis_mode,
+                                  two_sided=two_sided, node_ignore=node_ignore)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
@@ -294,13 +295,16 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
-    if options.mode in ["none"]:
-        options.mode = controllers.test_suites[options.project][options.test].mode
+    if options.mode == "none":
+        if options.stage == "test":
+            options.mode = controllers.test_suites[options.project][options.test].mode
+        else:
+            options.mode = "learn"
 
     assert options.stage in [
         "learn", "test"], "invalid stage option: %s" % options.stage
     assert options.mode in ["vanilla", "time-travel",
-                            "obs-gap"], "invalid mode option: %s" % options.mode
+                            "obs-gap", "learn"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
                              "check_only"], "invalid phase option: %s" % options.phase
 
