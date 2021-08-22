@@ -223,6 +223,7 @@ def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
 def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_limiter_enabled=False, phase="all"):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
+    print("log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
         os.system("rm -rf %s" % log_dir)
         os.system("mkdir -p %s" % log_dir)
@@ -233,7 +234,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         generate_learn_config(learn_config, project,
                               mode, rate_limiter_enabled)
         run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, "learn", suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
+                 learn_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
     else:
         if mode == "vanilla":
             blank_config = "config/none.yaml"

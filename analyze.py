@@ -313,7 +313,7 @@ def generate_event_effect_pairs(analysis_mode, path, use_sql, compress_trivial_r
 
 
 def generate_triggering_points(event_map, event_effect_pairs):
-    print("Generating time-travel configs from <event, side-effect> pairs ...")
+    print("Generating triggering points from <event, side-effect> pairs ...")
     triggering_points = []
     for pair in event_effect_pairs:
         event = pair[0]
@@ -473,21 +473,18 @@ def analyze_trace(project, log_dir, analysis_mode, generate_oracle=True, generat
           ("enabled" if two_sided else "disabled"))
     print("use-sql feature is %s" %
           ("enabled" if use_sql else "disabled"))
+
     log_path = os.path.join(log_dir, "sonar-server.log")
+
     if generate_config:
-        # analysis_log_dir = os.path.join(log_dir, "analysis")
-        analysis_log_dir = log_dir
-        if os.path.exists(analysis_log_dir):
-            shutil.rmtree(analysis_log_dir)
-        os.makedirs(analysis_log_dir, exist_ok=True)
         causality_pairs, event_key_map = generate_event_effect_pairs(
             analysis_mode, log_path, use_sql, compress_trivial_reconcile)
         triggering_points = generate_triggering_points(
             event_key_map, causality_pairs)
-        dump_json_file(analysis_log_dir, triggering_points,
+        dump_json_file(log_dir, triggering_points,
                        "triggering-points.json")
         generated_config_dir = os.path.join(
-            analysis_log_dir, analysis_mode)
+            log_dir, analysis_mode)
         os.makedirs(generated_config_dir, exist_ok=True)
         if analysis_mode == "time-travel":
             generate_time_travel_yaml(
