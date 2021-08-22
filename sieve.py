@@ -78,7 +78,8 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
     os.system("./setup.sh %s %s %s" %
               (kind_config(num_workers), docker_repo, docker_tag))
     redirect_if_necessary(mode, num_workers)
-    os.system("./bypass-balancer.sh")
+    if num_workers != 0:
+        os.system("./bypass-balancer.sh")
 
     configmap = generate_configmap(test_config)
     os.system("kubectl apply -f %s" % configmap)
@@ -87,8 +88,11 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Then we wait apiservers to be ready
-    apiserver_list = ['kube-apiserver-kind-control-plane',
-                      'kube-apiserver-kind-control-plane2', 'kube-apiserver-kind-control-plane3']
+    if num_workers != 0:
+        apiserver_list = ['kube-apiserver-kind-control-plane',
+                           'kube-apiserver-kind-control-plane2', 'kube-apiserver-kind-control-plane3']
+    else:
+        apiserver_list = ['kube-apiserver-kind-control-plane']
 
     for tick in range(600):
         created = core_v1.list_namespaced_pod(
@@ -110,6 +114,10 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
         os.system("docker pull %s" % (image))
         os.system(kind_load_cmd)
 
+    if num_workers == 0:
+        # Install csi provisioner
+        os.system("cd csi-driver && ./install.sh")
+
     controllers.deploy[project](docker_repo, docker_tag)
 
     # Wait for project pod ready
@@ -121,6 +129,8 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
                 break
         time.sleep(1)
 
+    if num_workers == 0:
+        return
 
     api1_addr = "https://" + core_v1.list_node(
         watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
