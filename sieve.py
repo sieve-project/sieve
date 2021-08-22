@@ -37,7 +37,7 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def kind_config(mode, num_apiservers, num_workers):
+def generate_kind_config(mode, num_apiservers, num_workers):
     if mode == "time-travel":
         num_apiservers = 3
     kind_config_filename = "kind-%sa-%sw.yaml" % (
@@ -62,12 +62,22 @@ def redirect_workers(num_workers):
         os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
-def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers):
+def start_sieve_server(test_config):
     os.system("cp %s sonar-server/server.yaml" % test_config)
-    os.system("kind delete cluster")
+    org_dir = os.getcwd()
+    os.chdir("sonar-server")
+    os.system("go mod tidy")
+    os.system("go build")
+    os.chdir(org_dir)
+    os.system("docker cp sonar-server kind-control-plane:/sonar-server")
+    os.system(
+        "docker exec kind-control-plane bash -c 'cd /sonar-server && ./sonar-server &> sonar-server.log &'")
 
+
+def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers):
+    os.system("kind delete cluster")
     os.system("./setup.sh %s %s %s" %
-              (kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
+              (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
 
     # when testing time-travel, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
@@ -109,7 +119,12 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
         os.system("docker pull %s" % (image))
         os.system(kind_load_cmd)
 
+
+def start_operator(project, docker_repo, docker_tag, num_apiservers):
     controllers.deploy[project](docker_repo, docker_tag)
+
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
 
     # Wait for project pod ready
     for tick in range(600):
@@ -130,7 +145,10 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     watch_crd(project, apiserver_addr_list)
 
 
-def run_workload(project, mode, test_workload, log_dir, num_apiservers):
+def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers):
+    start_sieve_server(test_config)
+    start_operator(project, docker_repo, docker_tag, num_apiservers)
+
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
@@ -198,8 +216,8 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
         setup_cluster(project, stage, mode, test_config,
                       docker_repo, docker_tag, num_apiservers, num_workers)
     if phase == "all" or phase == "workload_only":
-        run_workload(project, mode, test_workload,
-                     log_dir, num_apiservers)
+        run_workload(project, mode, test_workload, test_config,
+                     log_dir, docker_repo, docker_tag, num_apiservers)
     if phase == "all" or phase == "check_only":
         check_result(project, mode, stage, test_config,
                      log_dir, data_dir, two_sided, node_ignore)
