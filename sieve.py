@@ -37,7 +37,9 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def kind_config(num_apiservers, num_workers):
+def kind_config(mode, num_apiservers, num_workers):
+    if mode == "time-travel":
+        num_apiservers = 3
     kind_config_filename = "kind-%sa-%sw.yaml" % (
         str(num_apiservers), str(num_workers))
     kind_config_file = open(kind_config_filename, "w")
@@ -65,15 +67,14 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     os.system("kind delete cluster")
 
     os.system("./setup.sh %s %s %s" %
-              (kind_config(num_apiservers, num_workers), docker_repo, docker_tag))
+              (kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
 
     # when testing time-travel, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
-    if mode == "time-travel" and stage == "test":
+    if mode == "time-travel":
         redirect_workers(num_workers)
-
-    os.system("./bypass-balancer.sh")
+        os.system("./bypass-balancer.sh")
 
     configmap = generate_configmap(test_config)
     os.system("kubectl apply -f %s" % configmap)
