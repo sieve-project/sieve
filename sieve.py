@@ -183,7 +183,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
 
 def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore):
     if stage == "learn":
-        for analysis_mode in ["time-travel", "obs-gap"]:
+        for analysis_mode in ["time-travel", "obs-gap", "atomic"]:
             analyze.analyze_trace(project, log_dir, analysis_mode,
                                   two_sided=two_sided, node_ignore=node_ignore)
         os.system("mkdir -p %s" % data_dir)
@@ -310,7 +310,7 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: vanilla, time-travel, obs-gap", metavar="MODE", default="none")
+                      help="test MODE: vanilla, time-travel, obs-gap, atomic", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     assert options.stage in [
         "learn", "test"], "invalid stage option: %s" % options.stage
     assert options.mode in ["vanilla", "time-travel",
-                            "obs-gap", "learn"], "invalid mode option: %s" % options.mode
+                            "obs-gap", "learn", "atomic"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
                              "check_only"], "invalid phase option: %s" % options.phase
 

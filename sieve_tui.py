@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import py_cui
 import controllers
 import os
@@ -73,6 +74,6 @@ class SimpleTodoList:
 
 # Create the CUI with 7 rows 6 columns, pass it to the wrapper object, and start it
 root = py_cui.PyCUI(7, 6)
-root.set_title('Sieve')
+root.set_title('Sieve Terminal UI')
 s = SimpleTodoList(root)
 root.start()
