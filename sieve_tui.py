@@ -21,7 +21,7 @@ def run():
         elif action == "build for test":
                 os.system("python3 build.py -p %s -d laphets"%(operator))
 
-class SimpleTodoList:
+class SieveTUI:
 
         # We add type annotations to our master PyCUI objects for improved intellisense
         def __init__(self, master: py_cui.PyCUI):
@@ -75,5 +75,5 @@ class SimpleTodoList:
 # Create the CUI with 7 rows 6 columns, pass it to the wrapper object, and start it
 root = py_cui.PyCUI(7, 6)
 root.set_title('Sieve Terminal UI')
-s = SimpleTodoList(root)
+s = SieveTUI(root)
 root.start()

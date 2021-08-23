@@ -8,7 +8,7 @@ ORIGINAL_DIR = os.getcwd()
 def download_kubernetes():
     os.system("rm -rf fakegopath")
     os.system("mkdir -p fakegopath/src/k8s.io")
-    os.system("git clone --single-branch --branch v1.18.9 https://gitee.com/mirrors/Kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
+    os.system("git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     os.system("git checkout -b sonar >> /dev/null")
     os.chdir(ORIGINAL_DIR)
