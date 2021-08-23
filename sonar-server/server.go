@@ -31,11 +31,6 @@ func main() {
 
 	case "test":
 		switch config["mode"] {
-		// sparse-read: The controller misses some of the events from apiserver
-		// due to slow reconciliation. This is one type of observability gaps.
-		case "sparse-read":
-			log.Println("sparse-read")
-			rpc.Register(NewSparseReadListener(config))
 		// time-travel: Replay the partial history to the controller by
 		// injecting delay to apiservers and restarting the controllers.
 		case "time-travel":

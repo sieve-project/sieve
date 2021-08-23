@@ -13,14 +13,14 @@ import (
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
 	if checkTimeTravelTiming("after") {
-		log.Printf("[sonar] NotifyTimeTravelAfterProcessEvent")
+		// log.Printf("[sonar] NotifyTimeTravelAfterProcessEvent")
 		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
 	}
 }
 
 func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{}) {
 	if checkTimeTravelTiming("before") {
-		log.Printf("[sonar] NotifyTimeTravelBeforeProcessEvent")
+		// log.Printf("[sonar] NotifyTimeTravelBeforeProcessEvent")
 		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
 	}
 }

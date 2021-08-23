@@ -104,11 +104,11 @@ workloads = {
         .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/replsets/0/arbiter/enabled\", \"value\": false}]'").wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", common.TERMINATED).wait_for_pod_status("mongodb-cluster-rs0-4", common.RUNNING)
         .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/replsets/0/arbiter/enabled\", \"value\": true}]'").wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", common.RUNNING).wait_for_pod_status("mongodb-cluster-rs0-4", common.TERMINATED)
         .wait(50),
-        "enable-shard": test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f test-mongodb-operator/test/cr.yaml").wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
-        .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p='{\"spec\":{\"sharding\":{\"enabled\":true}}}'").wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-mongos-*", common.RUNNING)
+        # "enable-shard": test_framework.new_built_in_workload()
+        # .cmd("kubectl apply -f test-mongodb-operator/test/cr.yaml").wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
+        # .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p='{\"spec\":{\"sharding\":{\"enabled\":true}}}'").wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-mongos-*", common.RUNNING)
         # TODO: in learning mode the digest sometimes is incorrect. We may need to have a recording mode for it
-        .wait(50),
+        # .wait(50),
     },
     "xtradb-operator": {
         "recreate": test_framework.new_built_in_workload()

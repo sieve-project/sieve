@@ -37,30 +37,23 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def kind_config(num_workers):
-    # we should generate the kind config automatically
-    if num_workers == 0:
-        return "kind-ha-0w.yaml"
-    if num_workers == 2:
-        return "kind-ha.yaml"
-    elif num_workers == 3:
-        return "kind-ha-3w.yaml"
-    elif num_workers == 4:
-        return "kind-ha-4w.yaml"
-    elif num_workers == 5:
-        return "kind-ha-5w.yaml"
-    else:
-        assert False
+def generate_kind_config(mode, num_apiservers, num_workers):
+    if mode == "time-travel":
+        num_apiservers = 3
+    kind_config_filename = "kind-%sa-%sw.yaml" % (
+        str(num_apiservers), str(num_workers))
+    kind_config_file = open(kind_config_filename, "w")
+    kind_config_file.writelines(
+        ["kind: Cluster\n", "apiVersion: kind.x-k8s.io/v1alpha4\n", "nodes:\n"])
+    for i in range(num_apiservers):
+        kind_config_file.write("- role: control-plane\n")
+    for i in range(num_workers):
+        kind_config_file.write("- role: worker\n")
+    kind_config_file.close()
+    return kind_config_filename
 
 
-def redirect_if_necessary(mode, num_workers):
-    # TODO: we may also need to redirect the controller-managers and schedulers
-    if mode != "time-travel":
-        return
-    redirect_workers(mode, num_workers)
-
-
-def redirect_workers(mode, num_workers):
+def redirect_workers(num_workers):
     target_master = controllers.front_runner
     for i in range(num_workers):
         worker = "kind-worker" + (str(i+1) if i > 0 else "")
@@ -69,16 +62,28 @@ def redirect_workers(mode, num_workers):
         os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
-def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
-    os.system("rm -rf %s" % log_dir)
-    os.system("mkdir -p %s" % log_dir)
+def start_sieve_server(test_config):
     os.system("cp %s sonar-server/server.yaml" % test_config)
-    os.system("kind delete cluster")
+    org_dir = os.getcwd()
+    os.chdir("sonar-server")
+    os.system("go mod tidy")
+    os.system("go build")
+    os.chdir(org_dir)
+    os.system("docker cp sonar-server kind-control-plane:/sonar-server")
+    os.system(
+        "docker exec kind-control-plane bash -c 'cd /sonar-server && ./sonar-server &> sonar-server.log &'")
 
+
+def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers):
+    os.system("kind delete cluster")
     os.system("./setup.sh %s %s %s" %
-              (kind_config(num_workers), docker_repo, docker_tag))
-    redirect_if_necessary(mode, num_workers)
-    if num_workers != 0:
+              (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
+
+    # when testing time-travel, we need to pause the apiserver
+    # if workers talks to the paused apiserver, the whole cluster will be slowed down
+    # so we need to redirect the workers to other apiservers
+    if mode == "time-travel":
+        redirect_workers(num_workers)
         os.system("./bypass-balancer.sh")
 
     configmap = generate_configmap(test_config)
@@ -88,11 +93,11 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Then we wait apiservers to be ready
-    if num_workers != 0:
-        apiserver_list = ['kube-apiserver-kind-control-plane',
-                           'kube-apiserver-kind-control-plane2', 'kube-apiserver-kind-control-plane3']
-    else:
-        apiserver_list = ['kube-apiserver-kind-control-plane']
+    apiserver_list = []
+    for i in range(num_apiservers):
+        apiserver_name = "kube-apiserver-kind-control-plane" + \
+            ("" if i == 0 else str(i + 1))
+        apiserver_list.append(apiserver_name)
 
     for tick in range(600):
         created = core_v1.list_namespaced_pod(
@@ -118,7 +123,12 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
         # Install csi provisioner
         os.system("cd csi-driver && ./install.sh")
 
+
+def start_operator(project, docker_repo, docker_tag, num_apiservers):
     controllers.deploy[project](docker_repo, docker_tag)
+
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
 
     # Wait for project pod ready
     for tick in range(600):
@@ -129,19 +139,20 @@ def setup_cluster(project, mode, stage, test_workload, test_config, log_dir, doc
                 break
         time.sleep(1)
 
-    if num_workers == 0:
-        return
-
-    api1_addr = "https://" + core_v1.list_node(
-        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane").items[0].status.addresses[0].address + ":6443"
-    api2_addr = "https://" + core_v1.list_node(
-        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane2").items[0].status.addresses[0].address + ":6443"
-    api3_addr = "https://" + core_v1.list_node(
-        watch=False, label_selector="kubernetes.io/hostname=kind-control-plane3").items[0].status.addresses[0].address + ":6443"
-    watch_crd(project, [api1_addr, api2_addr, api3_addr])
+    apiserver_addr_list = []
+    for i in range(num_apiservers):
+        label_selector = "kubernetes.io/hostname=kind-control-plane" + \
+            ("" if i == 0 else str(i + 1))
+        apiserver_addr = "https://" + core_v1.list_node(
+            watch=False, label_selector=label_selector).items[0].status.addresses[0].address + ":6443"
+        apiserver_addr_list.append(apiserver_addr)
+    watch_crd(project, apiserver_addr_list)
 
 
-def run_workload(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers):
+def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers):
+    start_sieve_server(test_config)
+    start_operator(project, docker_repo, docker_tag, num_apiservers)
+
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
@@ -154,64 +165,42 @@ def run_workload(project, mode, stage, test_workload, test_config, log_dir, dock
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
-    os.system(
-        "kubectl logs kube-apiserver-kind-control-plane -n kube-system > %s/apiserver1.log" % (log_dir))
-    os.system(
-        "kubectl logs kube-apiserver-kind-control-plane2 -n kube-system > %s/apiserver2.log" % (log_dir))
-    os.system(
-        "kubectl logs kube-apiserver-kind-control-plane3 -n kube-system > %s/apiserver3.log" % (log_dir))
+    for i in range(num_apiservers):
+        apiserver_name = "kube-apiserver-kind-control-plane" + \
+            ("" if i == 0 else str(i + 1))
+        apiserver_log = "apiserver%s.log" % (str(i + 1))
+        os.system(
+            "kubectl logs %s -n kube-system > %s/%s" % (apiserver_name, log_dir, apiserver_log))
+
     os.system(
         "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
+
     os.system(
         "kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
 
 
-def pre_process(project, mode, stage, test_config):
-    if stage == "run":
-        learn_config = {}
-        learn_config["stage"] = "learn"
-        learn_config["mode"] = mode
-        learn_config["crd-list"] = controllers.CRDs[project]
-        yaml.dump(learn_config, open(test_config, "w"), sort_keys=False)
-
-
-def post_process(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
+def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore):
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, test_config, mode, two_sided=two_sided, node_ignore=node_ignore, se_filter=se_filter)
+        for analysis_mode in ["time-travel", "obs-gap"]:
+            analyze.analyze_trace(project, log_dir, analysis_mode,
+                                  two_sided=two_sided, node_ignore=node_ignore)
         os.system("mkdir -p %s" % data_dir)
-        os.system("cp %s %s" % (os.path.join(test_config, "status.json"), os.path.join(
+        os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
-        os.system("cp %s %s" % (os.path.join(test_config, "side-effect.json"), os.path.join(
+        os.system("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
         os.system("cp %s %s" % (os.path.join(test_config, "resources.json"), os.path.join(
             data_dir, "resources.json")))
     else:
         if os.path.exists(test_config):
-            open(os.path.join(log_dir, "config.yaml"), "w").write(open(test_config).read())
+            open(os.path.join(log_dir, "config.yaml"),
+                 "w").write(open(test_config).read())
         if mode == "vanilla":
             # TODO: We need another recording mode to only record digest without generating config
             pass
-        elif mode == "time-travel":
-            learned_side_effect = json.load(open(os.path.join(
-                data_dir, "side-effect.json")))
-            learned_status = json.load(open(os.path.join(
-                data_dir, "status.json")))
-            resources_path = os.path.join(data_dir, "resources.json")
-            learned_resources = json.load(open(resources_path)) if os.path.isfile(resources_path) else None
-            server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status, testing_resources = oracle.generate_digest(server_log)
-            operator_log = os.path.join(log_dir, "streamed-operator.log")
-            open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log))
-            json.dump(testing_side_effect, open(os.path.join(
-                log_dir, "side-effect.json"), "w"), indent=4)
-            json.dump(testing_status, open(os.path.join(
-                log_dir, "status.json"), "w"), indent=4)
-            json.dump(testing_resources, open(os.path.join(
-                log_dir, "resources.json"), "w"), indent=4)
-        elif mode == "obs-gap" or mode == "atomic":
+        else:
             learned_side_effect = json.load(open(os.path.join(
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
@@ -231,63 +220,69 @@ def post_process(project, mode, stage, test_workload, test_config, log_dir, dock
                 log_dir, "resources.json"), "w"), indent=4)
 
 
-
-def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run):
-    # if run == "all" or run == "setup":
-    #     pre_process(project, mode, stage, test_config)
-    #     setup_cluster(project, mode, stage, test_workload, test_config,
-    #                   log_dir, docker_repo, docker_tag, num_workers)
-    # if run == "all" or run == "workload":
-    #     run_workload(project, mode, stage, test_workload, test_config,
-    #                  log_dir, docker_repo, docker_tag, num_workers)
-    #     post_process(project, mode, stage, test_workload, test_config,
-    #                  log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
-
-    if stage == "run" or stage == "test":
-        pre_process(project, mode, stage, test_config)
-        setup_cluster(project, mode, stage, test_workload, test_config,
-                      log_dir, docker_repo, docker_tag, num_workers)
-        run_workload(project, mode, stage, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, num_workers)
-    if stage == "learn" or stage == "test":
-        post_process(project, mode, stage, test_workload, test_config,
-                     log_dir, docker_repo, docker_tag, num_workers, data_dir, two_sided, node_ignore, se_filter, run)
+def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, phase):
+    if phase == "all" or phase == "setup_only":
+        setup_cluster(project, stage, mode, test_config,
+                      docker_repo, docker_tag, num_apiservers, num_workers)
+    if phase == "all" or phase == "workload_only":
+        run_workload(project, mode, test_workload, test_config,
+                     log_dir, docker_repo, docker_tag, num_apiservers)
+    if phase == "all" or phase == "check_only":
+        check_result(project, mode, stage, test_config,
+                     log_dir, data_dir, two_sided, node_ignore)
 
 
-def run(test_suites, project, test, log_dir, mode, stage, config, docker, run="all"):
+def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
+    learn_config_map = {}
+    learn_config_map["stage"] = "learn"
+    learn_config_map["mode"] = mode
+    learn_config_map["crd-list"] = controllers.CRDs[project]
+    if rate_limiter_enabled:
+        learn_config_map["rate-limiter-enabled"] = "true"
+        print("turn on rate limiter")
+    else:
+        learn_config_map["rate-limiter-enabled"] = "false"
+        print("turn off rate limiter")
+    # hardcode the interval to 3 seconds for now
+    learn_config_map["rate-limiter-interval"] = "3"
+    yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
+
+
+def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_limiter_enabled=False, phase="all"):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
-    assert run == "all" or run == "setup" or run == "workload", "wrong run option: %s" % run
+    print("log dir: %s" % log_dir)
+    if phase == "all" or phase == "setup_only":
+        os.system("rm -rf %s" % log_dir)
+        os.system("mkdir -p %s" % log_dir)
 
-    if stage == "run":
-        run_config = os.path.join(
-            controllers.test_dir[project], "test", "learn.yaml")
-        run_test(project, mode, stage, suite.workload,
-                 run_config, log_dir, docker, "learn", suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
-    elif stage == "learn":
-        learn_config = config if config != "none" else os.path.join(os.path.dirname(os.path.abspath(log_dir)), "run")
+    if stage == "learn":
+        learn_config = os.path.join(log_dir, "learn.yaml")
         print("learn_config", learn_config)
-        log_dir = os.path.join(log_dir, mode)
+        generate_learn_config(learn_config, project,
+                              mode, rate_limiter_enabled)
         run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, "learn", suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                 learn_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
     else:
         if mode == "vanilla":
-            log_dir = os.path.join(log_dir, mode)
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
-                    blank_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
         else:
             test_config = config if config != "none" else suite.config
-            print("testing mode: %s config: %s" % (mode, test_config))
-            log_dir = os.path.join(log_dir, mode)
+            test_config_to_use = os.path.join(
+                log_dir, os.path.basename(test_config))
+            os.system("cp %s %s" % (test_config, test_config_to_use))
+            print("testing mode: %s config: %s" % (mode, test_config_to_use))
             run_test(project, mode, stage, suite.workload,
-                    test_config, log_dir, docker, mode, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, suite.se_filter, run)
+                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
     config_dir = os.path.join("log", project, test, "learn", mode)
-    configs = [x for x in glob.glob(os.path.join(config_dir, "*.yaml")) if not "configmap" in x]
+    configs = [x for x in glob.glob(os.path.join(
+        config_dir, "*.yaml")) if not "configmap" in x]
     print("configs", configs)
     for config in configs:
         num = os.path.basename(config).split(".")[0]
@@ -315,46 +310,42 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: vanilla, time-travel, sparse-read", metavar="MODE", default="none")
+                      help="test MODE: vanilla, time-travel, obs-gap", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
                       help="batch mode or not", default=False)
-    parser.add_option("-r", "--run", dest="run",
-                      help="RUN set_up only, workload only, or all", metavar="RUN", default="all")
-    parser.add_option("-s", "--stage", dest="stage", help="test STAGE: run, learn, test", default="none")
+    parser.add_option("--phase", dest="phase",
+                      help="run the PHASE: setup_only, workload_only, check_only or all", metavar="PHASE", default="all")
+    parser.add_option("-s", "--stage", dest="stage",
+                      help="STAGE: learn, test", default="test")
+    parser.add_option("-r", "--rate_limiter", dest="rate_limiter", action="store_true",
+                      help="use RATE LIMITER in learning stage or not", default=False)
 
     (options, args) = parser.parse_args()
 
-    # For backward compatibility
-    if options.stage == "none":
-        if options.mode == "learn":
-            suite = controllers.test_suites[options.project][options.test]
-            options.mode = suite.mode
-            options.stage = "run"
-            run(controllers.test_suites, options.project, options.test, os.path.join(
-                options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
-            options.stage = "learn"
-            run(controllers.test_suites, options.project, options.test, os.path.join(
-                options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
-            print("total time: {} seconds".format(time.time() - s))
-            exit(0)
+    if options.mode == "none":
+        if options.stage == "test":
+            options.mode = controllers.test_suites[options.project][options.test].mode
         else:
-            options.stage = "test"
+            options.mode = "learn"
 
-    if options.mode in ["none"]:
-        suite = controllers.test_suites[options.project][options.test]
-        options.mode = suite.mode
+    assert options.stage in [
+        "learn", "test"], "invalid stage option: %s" % options.stage
+    assert options.mode in ["vanilla", "time-travel",
+                            "obs-gap", "learn"], "invalid mode option: %s" % options.mode
+    assert options.phase in ["all", "setup_only", "workload_only",
+                             "check_only"], "invalid phase option: %s" % options.phase
 
-    assert options.stage == "run" or options.mode in controllers.testing_modes, "wrong mode option"
-
-    # stage = "learn" if options.learn else "test"
-    # print("Running Sieve on %s stage with %s mode..."%(stage, options.mode))
+    print("Running Sieve with stage: %s mode: %s..." %
+          (options.stage, options.mode))
 
     if options.batch:
         run_batch(options.project, options.test,
                   "log-batch", options.mode, options.stage, options.docker)
     else:
-        run(controllers.test_suites, options.project, options.test, os.path.join(
-            options.log, options.project, options.test, options.stage), options.mode, options.stage, options.config, options.docker, options.run)
+        log_dir = os.path.join(options.log, options.project,
+                               options.test, options.stage, options.mode)
+        run(controllers.test_suites, options.project, options.test, log_dir,
+            options.mode, options.stage, options.config, options.docker, options.rate_limiter, options.phase)
     print("total time: {} seconds".format(time.time() - s))

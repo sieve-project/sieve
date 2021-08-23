@@ -7,14 +7,14 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list = [], se_filter=False, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], num_apiservers=1, num_workers=2):
         self.workload = workload
         self.config = config
         self.mode = mode
         self.two_sided = two_sided
+        self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.node_ignore = node_ignore
-        self.se_filter = se_filter
 
 
 docker_repo = "xudongs"
@@ -94,16 +94,13 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", "time-travel", num_workers=3),
         "disable-enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3, se_filter=True),
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", "time-travel", num_workers=3),
         "disable-enable-arbiter": Suite(
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", "time-travel", num_workers=5),
-        "enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["enable-shard"], "config/none.yaml", "time-travel", num_workers=3),
     },
     "cass-operator": {
         "recreate": Suite(
             workloads.workloads["cass-operator"]["recreate"], "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
-        # test_framework.ExtendedWorkload(test_dir_test["cass-operator"], "./recreateCassandraDataCenter.sh", True), "test-cass-operator/test/time-travel-1.yaml", "time-travel"),
     },
     "casskop-operator": {
         "recreate": Suite(

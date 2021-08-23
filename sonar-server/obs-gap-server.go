@@ -35,6 +35,13 @@ type ObsGapListener struct {
 	Server *obsGapServer
 }
 
+type eventWrapper struct {
+	eventID         int32
+	eventType       string
+	eventObject     string
+	eventObjectType string
+}
+
 func (l *ObsGapListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
 	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
@@ -98,13 +105,21 @@ func (s *obsGapServer) shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, c
 }
 
 func getEventResourceName(event map[string]interface{}) string {
-	metadata := event["metadata"].(map[string]interface{})
-	return metadata["name"].(string)
+	if event["metadata"] != nil {
+		metadata := event["metadata"].(map[string]interface{})
+		return metadata["name"].(string)
+	} else {
+		return event["name"].(string)
+	}
 }
 
 func getEventResourceNamespace(event map[string]interface{}) string {
-	metadata := event["metadata"].(map[string]interface{})
-	return metadata["namespace"].(string)
+	if event["metadata"] != nil {
+		metadata := event["metadata"].(map[string]interface{})
+		return metadata["namespace"].(string)
+	} else {
+		return event["namespace"].(string)
+	}
 }
 
 func isSameTarget(e1, e2 map[string]interface{}) bool {

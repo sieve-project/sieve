@@ -9,8 +9,8 @@ timing: after
 ce-name: zookeeper-cluster
 ce-namespace: default
 ce-rtype: zookeepercluster
-ce-diff-current: '{"status": {"replicas": 1, "readyReplicas": 1}}'
-ce-diff-previous: '{"status": {"replicas": 2, "readyReplicas": 2}}'
+ce-diff-current: '{"status": {"readyReplicas": 1}}'
+ce-diff-previous: '{"status": {"readyReplicas": 2}}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
 se-name: data-zookeeper-cluster-1
@@ -18,7 +18,7 @@ se-namespace: default
 se-rtype: persistentvolumeclaim
 se-etype: ADDED
 description: 'Pause kind-control-plane3 after it processes a default/zookeepercluster/zookeeper-cluster
-  event E. E should match the pattern {"status": {"replicas": 1, "readyReplicas":
-  1}} and the events before E should match {"status": {"replicas": 2, "readyReplicas":
-  2}}. And restart the controller zookeeper-operator after kind-control-plane processes
-  a ADDED default/persistentvolumeclaim/data-zookeeper-cluster-1 event.'
+  event E. E should match the pattern {"status": {"readyReplicas": 1}} and the events
+  before E should match {"status": {"readyReplicas": 2}}. And restart the controller
+  zookeeper-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/data-zookeeper-cluster-1
+  event.'
