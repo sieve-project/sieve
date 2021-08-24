@@ -1,12 +1,9 @@
 import json
 import yaml
 import copy
-import sys
 import os
-import shutil
-import kubernetes
 import controllers
-import common
+import analyze_util
 import oracle
 import analyze_event
 import sqlite3
@@ -89,21 +86,21 @@ def parse_events(path):
     largest_timestamp = len(lines)
     for i in range(len(lines)):
         line = lines[i]
-        if common.SONAR_EVENT_MARK in line:
-            event = common.parse_event(line)
+        if analyze_util.SONAR_EVENT_MARK in line:
+            event = analyze_util.parse_event(line)
             event.set_start_timestamp(i)
             # We initially set the event end time as the largest timestamp
             # so that if we never meet SONAR_EVENT_APPLIED_MARK for this event,
             # we will not pose any constraint on its end time in range_overlap
             event.set_end_timestamp(largest_timestamp)
             event_id_map[event.id] = event
-        elif common.SONAR_EVENT_APPLIED_MARK in line:
-            event_id_only = common.parse_event_id_only(line)
+        elif analyze_util.SONAR_EVENT_APPLIED_MARK in line:
+            event_id_only = analyze_util.parse_event_id_only(line)
             event_id_map[event_id_only.id].set_end_timestamp(i)
     for i in range(len(lines)):
         line = lines[i]
-        if common.SONAR_EVENT_MARK in line:
-            event = common.parse_event(line)
+        if analyze_util.SONAR_EVENT_MARK in line:
+            event = analyze_util.parse_event(line)
             if event.key not in event_key_map:
                 event_key_map[event.key] = []
             event_key_map[event.key].append(event_id_map[event.id])
@@ -125,14 +122,14 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
-        if common.SONAR_SIDE_EFFECT_MARK in line:
+        if analyze_util.SONAR_SIDE_EFFECT_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the side effect since it is not caused by reconcile
             # though it should not happen at all.
             if len(ongoing_reconciles) == 0:
                 continue
-            side_effect = common.parse_side_effect(line)
+            side_effect = analyze_util.parse_side_effect(line)
             # Do deepcopy here to ensure the later changes to the two sets
             # will not affect this side effect.
             # cache read during that possible interval
@@ -152,14 +149,14 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             side_effect.set_range(earliest_timestamp, i)
             side_effect_list.append(side_effect)
             side_effect_id_map[side_effect.id] = side_effect
-        elif common.SONAR_CACHE_READ_MARK in line:
-            cache_read = common.parse_cache_read(line)
+        elif analyze_util.SONAR_CACHE_READ_MARK in line:
+            cache_read = analyze_util.parse_cache_read(line)
             if cache_read.etype == "Get":
                 read_keys_this_reconcile.add(cache_read.key)
             else:
                 read_types_this_reconcile.add(cache_read.rtype)
-        elif common.SONAR_START_RECONCILE_MARK in line:
-            reconcile = common.parse_reconcile(line)
+        elif analyze_util.SONAR_START_RECONCILE_MARK in line:
+            reconcile = analyze_util.parse_reconcile(line)
             controller_name = reconcile.controller_name
             ongoing_reconciles.add(controller_name)
             # We use -1 as the initial value in any prev_reconcile_start_timestamp[controller_name]
@@ -175,8 +172,8 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             cur_reconcile_start_timestamp[controller_name] = i
             # Reset cur_reconcile_is_trivial[controller_name] to True as a new round of reconcile just starts
             cur_reconcile_is_trivial[controller_name] = True
-        elif common.SONAR_FINISH_RECONCILE_MARK in line:
-            reconcile = common.parse_reconcile(line)
+        elif analyze_util.SONAR_FINISH_RECONCILE_MARK in line:
+            reconcile = analyze_util.parse_reconcile(line)
             controller_name = reconcile.controller_name
             ongoing_reconciles.remove(controller_name)
             # Clear the read keys and types set since all the ongoing reconciles are done
@@ -227,7 +224,7 @@ def error_msg_filtering_pass(analysis_mode, event_effect_pairs):
     reduced_event_effect_pairs = []
     for pair in event_effect_pairs:
         side_effect = pair[1]
-        if side_effect.error not in common.FILTERED_ERROR_TYPE:
+        if side_effect.error not in analyze_util.FILTERED_ERROR_TYPE:
             reduced_event_effect_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" %
           (len(event_effect_pairs), len(reduced_event_effect_pairs)))
@@ -236,32 +233,32 @@ def error_msg_filtering_pass(analysis_mode, event_effect_pairs):
 
 def pipelined_passes(analysis_mode, event_effect_pairs):
     reduced_event_effect_pairs = event_effect_pairs
-    if common.DELETE_ONLY_FILTER_FLAG and analysis_mode == "time-travel":
+    if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == "time-travel":
         reduced_event_effect_pairs = delete_only_filtering_pass(
             analysis_mode, reduced_event_effect_pairs)
-    if common.ERROR_MSG_FILTER_FLAG:
+    if analyze_util.ERROR_MSG_FILTER_FLAG:
         reduced_event_effect_pairs = error_msg_filtering_pass(
             analysis_mode, reduced_event_effect_pairs)
-    if common.WRITE_READ_FILTER_FLAG:
+    if analyze_util.WRITE_READ_FILTER_FLAG:
         reduced_event_effect_pairs = write_read_overlap_filtering_pass(
             analysis_mode, reduced_event_effect_pairs)
     return reduced_event_effect_pairs
 
 
 def passes_as_sql_query(analysis_mode):
-    query = common.SQL_BASE_PASS_QUERY
+    query = analyze_util.SQL_BASE_PASS_QUERY
     first_optional_pass = True
-    if common.DELETE_ONLY_FILTER_FLAG and analysis_mode == "time-travel":
+    if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == "time-travel":
         query += " where " if first_optional_pass else " and "
-        query += common.SQL_DELETE_ONLY_FILTER
+        query += analyze_util.SQL_DELETE_ONLY_FILTER
         first_optional_pass = False
-    if common.ERROR_MSG_FILTER_FLAG:
+    if analyze_util.ERROR_MSG_FILTER_FLAG:
         query += " where " if first_optional_pass else " and "
-        query += common.SQL_ERROR_MSG_FILTER
+        query += analyze_util.SQL_ERROR_MSG_FILTER
         first_optional_pass = False
-    if common.WRITE_READ_FILTER_FLAG:
+    if analyze_util.WRITE_READ_FILTER_FLAG:
         query += " where " if first_optional_pass else " and "
-        query += common.SQL_WRITE_READ_FILTER
+        query += analyze_util.SQL_WRITE_READ_FILTER
         first_optional_pass = False
     return query
 
