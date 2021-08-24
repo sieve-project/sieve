@@ -1,7 +1,8 @@
 import copy
 import kubernetes
-import common
+import analyze_util
 import yaml
+import common
 
 
 def generate_digest(path):
@@ -16,10 +17,10 @@ def generate_side_effect(path):
     side_effect_empty_entry = {"Create": 0, "Update": 0,
                                "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
     for line in open(path).readlines():
-        if common.SONAR_SIDE_EFFECT_MARK not in line:
+        if analyze_util.SONAR_SIDE_EFFECT_MARK not in line:
             continue
-        side_effect = common.parse_side_effect(line)
-        if common.ERROR_MSG_FILTER_FLAG:
+        side_effect = analyze_util.parse_side_effect(line)
+        if analyze_util.ERROR_MSG_FILTER_FLAG:
             if side_effect.error == "NotFound":
                 continue
         rtype = side_effect.rtype
@@ -138,7 +139,7 @@ def generate_generate_time_travel_description(testing_config):
         testing_config["straggler"],
         # testing_config["se-rtype"] + "/" +
         # testing_config["se-namespace"] + "/" + testing_config["se-name"],
-        # common.translate_side_effect(testing_config["se-etype"])
+        # analyze_util.translate_side_effect(testing_config["se-etype"])
     )
 
 
