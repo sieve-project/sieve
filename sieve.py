@@ -325,15 +325,12 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if options.mode == "none":
-        if options.stage == "test":
-            options.mode = controllers.test_suites[options.project][options.test].mode
-        else:
-            options.mode = "learn"
+        options.mode = controllers.test_suites[options.project][options.test].mode
 
     assert options.stage in [
         "learn", "test"], "invalid stage option: %s" % options.stage
     assert options.mode in ["vanilla", "time-travel",
-                            "obs-gap", "learn", "atomic"], "invalid mode option: %s" % options.mode
+                            "obs-gap", "atomic"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
                              "check_only"], "invalid phase option: %s" % options.phase
 

@@ -13,7 +13,7 @@ def run():
         action = data["action"]
         print(operator, workload, action)
         if action == "learn":
-                os.system("python3 sieve.py -p %s -t %s -m learn -d laphets"%(operator, workload))
+                os.system("python3 sieve.py -p %s -t %s -s learn -d laphets"%(operator, workload))
         elif action == "test":
                 os.system("python3 sieve.py -p %s -t %s -d laphets"%(operator, workload))
         elif action == "build for learn":
