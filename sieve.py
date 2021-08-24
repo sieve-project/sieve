@@ -62,7 +62,7 @@ def redirect_workers(num_workers):
         os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
-def start_sieve_server(test_config):
+def prepare_sieve_server(test_config):
     os.system("cp %s sonar-server/server.yaml" % test_config)
     org_dir = os.getcwd()
     os.chdir("sonar-server")
@@ -70,14 +70,22 @@ def start_sieve_server(test_config):
     os.system("go build")
     os.chdir(org_dir)
     os.system("docker cp sonar-server kind-control-plane:/sonar-server")
+
+
+def start_sieve_server():
     os.system(
         "docker exec kind-control-plane bash -c 'cd /sonar-server && ./sonar-server &> sonar-server.log &'")
+
+
+def stop_sieve_server():
+    os.system("docker exec kind-control-plane bash -c 'pkill sonar-server'")
 
 
 def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers):
     os.system("kind delete cluster")
     os.system("./setup.sh %s %s %s" %
               (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
+    prepare_sieve_server(test_config)
 
     # when testing time-travel, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
@@ -146,7 +154,7 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
 
 
 def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers):
-    start_sieve_server(test_config)
+    start_sieve_server()
     start_operator(project, docker_repo, docker_tag, num_apiservers)
 
     kubernetes.config.load_kube_config()
@@ -175,6 +183,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
         "kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
+    stop_sieve_server()
 
 
 def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore):
