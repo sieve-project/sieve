@@ -81,7 +81,7 @@ def stop_sieve_server():
     os.system("docker exec kind-control-plane bash -c 'pkill sonar-server'")
 
 
-def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers):
+def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize):
     os.system("kind delete cluster")
     os.system("./setup.sh %s %s %s" %
               (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
@@ -127,7 +127,7 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
         os.system("docker pull %s" % (image))
         os.system(kind_load_cmd)
 
-    if num_workers == 0:
+    if pvc_resize:
         # Install csi provisioner
         os.system("cd csi-driver && ./install.sh")
 
@@ -229,10 +229,10 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
                 log_dir, "resources.json"), "w"), indent=4)
 
 
-def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, phase):
+def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize, data_dir, two_sided, node_ignore, phase):
     if phase == "all" or phase == "setup_only":
         setup_cluster(project, stage, mode, test_config,
-                      docker_repo, docker_tag, num_apiservers, num_workers)
+                      docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize)
     if phase == "all" or phase == "workload_only":
         run_workload(project, mode, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_apiservers)
@@ -271,12 +271,12 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         generate_learn_config(learn_config, project,
                               mode, rate_limiter_enabled)
         run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
+                 learn_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
     else:
         if mode == "vanilla":
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
-                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
+                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
         else:
             test_config = config if config != "none" else suite.config
             test_config_to_use = os.path.join(
@@ -284,7 +284,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
             os.system("cp %s %s" % (test_config, test_config_to_use))
             print("testing mode: %s config: %s" % (mode, test_config_to_use))
             run_test(project, mode, stage, suite.workload,
-                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
+                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):

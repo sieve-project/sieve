@@ -7,7 +7,7 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], num_apiservers=1, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], num_apiservers=1, num_workers=2, pvc_resize=False):
         self.workload = workload
         self.config = config
         self.mode = mode
@@ -15,6 +15,11 @@ class Suite:
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.node_ignore = node_ignore
+        self.pvc_resize = pvc_resize
+        if self.pvc_resize:
+            # For now, we only support one node cluster pvc resizing
+            self.num_apiservers = 1
+            self.num_workers = 0
 
 
 docker_repo = "xudongs"
@@ -88,7 +93,7 @@ test_suites = {
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"], "test-rabbitmq-operator/test/obs-gap-1.yaml", "obs-gap"),
         "resize-pvc-atomic": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"], "test-rabbitmq-operator/test/atomic-1.yaml", "atomic", num_apiservers=1, num_workers=0),
+            workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"], "test-rabbitmq-operator/test/atomic-1.yaml", "atomic", pvc_resize=True)
     },
     "mongodb-operator": {
         "recreate": Suite(
