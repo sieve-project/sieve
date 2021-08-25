@@ -3,6 +3,7 @@ import os
 import common
 import time
 import traceback
+import sieve_config
 from datetime import datetime
 
 
@@ -10,7 +11,7 @@ def get_pod(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pods = core_v1.list_namespaced_pod(
-        namespace="sieve", watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False).items
     target_pod = None
     for pod in pods:
         if pod.metadata.name == resource_name:
@@ -28,7 +29,7 @@ def get_sts(resource_name):
     kubernetes.config.load_kube_config()
     apps_v1 = kubernetes.client.AppsV1Api()
     statefulsets = apps_v1.list_namespaced_stateful_set(
-        namespace="sieve", watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False).items
     target_sts = None
     for sts in statefulsets:
         if sts.metadata.name == resource_name:
@@ -40,7 +41,7 @@ def get_pvc(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pvcs = core_v1.list_namespaced_persistent_volume_claim(
-        namespace="sieve", watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False).items
     target_pvc = None
     for pvc in pvcs:
         if pvc.metadata.name == resource_name:
@@ -74,7 +75,7 @@ class TestWaitForStatus:
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.status = status
-        self.namespace = "sieve"
+        self.namespace = sieve_config.config["namespace"]
         self.time_out = time_out
 
     def check_pod(self):
@@ -144,7 +145,7 @@ class TestWaitForStorage:
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.storage_size = storage_size
-        self.namespace = "sieve"
+        self.namespace = sieve_config.config["namespace"]
         self.time_out = time_out
 
     def check_sts(self):

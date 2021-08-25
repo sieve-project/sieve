@@ -1,5 +1,5 @@
 import json
-import re
+import sieve_config
 
 WRITE_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -46,7 +46,8 @@ class Event:
         self.rtype = rtype
         self.obj = obj
         # TODO(Wenqing): In some case the metadata doesn't carry in namespace field, may dig into that later
-        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "sieve"
+        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj[
+            "metadata"] else sieve_config.config["namespace"]
         self.name = self.obj["metadata"]["name"]
         # Trim annotation here
         self.obj["metadata"].pop('annotations', None)
@@ -174,8 +175,7 @@ def parse_event_id_only(line):
 def parse_reconcile(line):
     assert SONAR_START_RECONCILE_MARK in line or SONAR_FINISH_RECONCILE_MARK in line
     if SONAR_START_RECONCILE_MARK in line:
-        tokens = line[line.find(SONAR_START_RECONCILE_MARK)
-                                :].strip("\n").split("\t")
+        tokens = line[line.find(SONAR_START_RECONCILE_MARK):].strip("\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
     else:
         tokens = line[line.find(SONAR_FINISH_RECONCILE_MARK):].strip(

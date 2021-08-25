@@ -424,6 +424,7 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
             os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
+
 def generate_atomic_yaml(triggering_points, path, project, node_ignore):
     yaml_map = {}
     yaml_map["project"] = project
@@ -456,6 +457,7 @@ def generate_atomic_yaml(triggering_points, path, project, node_ignore):
         yaml.dump(yaml_map, open(
             os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
     print("Generated %d atomic config(s) in %s" % (i, path))
+
 
 def dump_json_file(dir, data, json_file_name):
     json.dump(data, open(os.path.join(
@@ -490,7 +492,40 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
     return filtered_causality_pairs
 
 
-def analyze_trace(project, log_dir, analysis_mode, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=False, compress_trivial_reconcile=True):
+def generate_test_config(analysis_mode, project, log_dir, two_sided, node_ignore, use_sql, compress_trivial_reconcile):
+    log_path = os.path.join(log_dir, "sonar-server.log")
+    causality_pairs, event_key_map = generate_event_effect_pairs(
+        analysis_mode, log_path, use_sql, compress_trivial_reconcile)
+    triggering_points = generate_triggering_points(
+        event_key_map, causality_pairs)
+    dump_json_file(log_dir, triggering_points,
+                   "triggering-points.json")
+    generated_config_dir = os.path.join(
+        log_dir, analysis_mode)
+    os.makedirs(generated_config_dir, exist_ok=True)
+    if analysis_mode == "time-travel":
+        generate_time_travel_yaml(
+            triggering_points, generated_config_dir, project, node_ignore)
+        if two_sided:
+            generate_time_travel_yaml(
+                triggering_points, generated_config_dir, project, node_ignore, "before")
+    elif analysis_mode == "obs-gap":
+        generate_obs_gap_yaml(
+            triggering_points, generated_config_dir, project, node_ignore)
+    elif analysis_mode == "atomic":
+        generate_atomic_yaml(
+            triggering_points, generated_config_dir, project, node_ignore)
+
+
+def generate_test_oracle(log_dir):
+    log_path = os.path.join(log_dir, "sonar-server.log")
+    side_effect, status, resources = oracle.generate_digest(log_path)
+    dump_json_file(log_dir, side_effect, "side-effect.json")
+    dump_json_file(log_dir, status, "status.json")
+    dump_json_file(log_dir, resources, "resources.json")
+
+
+def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=False, compress_trivial_reconcile=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -503,35 +538,13 @@ def analyze_trace(project, log_dir, analysis_mode, generate_oracle=True, generat
     print("use-sql feature is %s" %
           ("enabled" if use_sql else "disabled"))
 
-    log_path = os.path.join(log_dir, "sonar-server.log")
-
     if generate_config:
-        causality_pairs, event_key_map = generate_event_effect_pairs(
-            analysis_mode, log_path, use_sql, compress_trivial_reconcile)
-        triggering_points = generate_triggering_points(
-            event_key_map, causality_pairs)
-        dump_json_file(log_dir, triggering_points,
-                       "triggering-points.json")
-        generated_config_dir = os.path.join(
-            log_dir, analysis_mode)
-        os.makedirs(generated_config_dir, exist_ok=True)
-        if analysis_mode == "time-travel":
-            generate_time_travel_yaml(
-                triggering_points, generated_config_dir, project, node_ignore)
-            if two_sided:
-                generate_time_travel_yaml(
-                    triggering_points, generated_config_dir, project, node_ignore, "before")
-        elif analysis_mode == "obs-gap":
-            generate_obs_gap_yaml(
-                triggering_points, generated_config_dir, project, node_ignore)
-        elif analysis_mode == "atomic":
-            generate_atomic_yaml(triggering_points, generated_config_dir, project, node_ignore)
+        for analysis_mode in ["time-travel", "obs-gap", "atomic"]:
+            generate_test_config(analysis_mode, project, log_dir, two_sided,
+                                 node_ignore, use_sql, compress_trivial_reconcile)
 
     if generate_oracle:
-        side_effect, status, resources = oracle.generate_digest(log_path)
-        dump_json_file(log_dir, side_effect, "side-effect.json")
-        dump_json_file(log_dir, status, "status.json")
-        dump_json_file(log_dir, resources, "resources.json")
+        generate_test_oracle(log_dir)
 
 
 if __name__ == "__main__":
@@ -541,15 +554,12 @@ if __name__ == "__main__":
                       help="specify PROJECT", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-t", "--test", dest="test",
                       help="specify TEST to run", metavar="TEST", default="recreate")
-    parser.add_option("-m", "--mode", dest="mode",
-                      help="specify MODE", metavar="MODE", default="time-travelz")
     (options, args) = parser.parse_args()
     project = options.project
     test = options.test
-    analysis_mode = options.mode
     print("Analyzing controller trace for %s's test workload %s ..." %
           (project, test))
     # hardcoded to time travel config only for now
     dir = os.path.join("log", project, test, "learn", "learn")
-    analyze_trace(project, dir, analysis_mode, generate_oracle=False,
+    analyze_trace(project, dir, generate_oracle=False,
                   generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=False, compress_trivial_reconcile=True)

@@ -1,7 +1,7 @@
 import optparse
 import os
 import kubernetes
-import enum
+import sieve_config
 import time
 import json
 import glob
@@ -142,7 +142,7 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
     print("wait for operator pod ready...")
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
-            "sieve", watch=False, label_selector="sonartag="+project).items
+            sieve_config.config["namespace"], watch=False, label_selector="sonartag="+project).items
         if len(project_pod) >= 1:
             if project_pod[0].status.phase == "Running":
                 break
@@ -164,7 +164,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
 
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
-        "sieve", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+        sieve_config.config["namespace"], watch=False, label_selector="sonartag="+project).items[0].metadata.name
     streamed_log_file = open("%s/streamed-operator.log" % (log_dir), "w+")
     streaming = subprocess.Popen("kubectl logs %s -f" %
                                  pod_name, stdout=streamed_log_file, stderr=streamed_log_file, shell=True, preexec_fn=os.setsid)
@@ -172,7 +172,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
     test_workload.run(mode)
 
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
-        "sieve", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+        sieve_config.config["namespace"], watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
     for i in range(num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + \
@@ -193,9 +193,8 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
 
 def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore):
     if stage == "learn":
-        for analysis_mode in ["time-travel", "obs-gap", "atomic"]:
-            analyze.analyze_trace(project, log_dir, analysis_mode,
-                                  two_sided=two_sided, node_ignore=node_ignore)
+        analyze.analyze_trace(
+            project, log_dir, two_sided=two_sided, node_ignore=node_ignore)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
