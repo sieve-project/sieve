@@ -1,6 +1,6 @@
 {
     "cassandradatacenter": {
-        "default": {
+        "sieve": {
             "cassandra-datacenter": {
                 "Create": 0,
                 "Delete": 0,
@@ -11,7 +11,7 @@
         }
     },
     "configmap": {
-        "default": {
+        "sieve": {
             "cassandra-test-cluster-dc1-operator-config": {
                 "Create": 1,
                 "Delete": 0,
@@ -24,12 +24,12 @@
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 0
+                "Update": 3
             }
         }
     },
     "persistentvolumeclaim": {
-        "default": {
+        "sieve": {
             "data-volume-cassandra-test-cluster-dc1-rack1-1": {
                 "Create": 0,
                 "Delete": 1,
@@ -40,7 +40,7 @@
         }
     },
     "pod": {
-        "default": {
+        "sieve": {
             "cassandra-test-cluster-dc1-rack1-0": {
                 "Create": 0,
                 "Delete": 0,
@@ -53,36 +53,36 @@
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 7
+                "Update": 11
             }
         }
     },
     "service": {
-        "default": {
+        "sieve": {
             "cassandra-test-cluster-dc1-nodes": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 7
+                "Update": 9
             },
             "cassandra-test-cluster-dc1-seeds": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 7
+                "Update": 9
             }
         }
     },
     "statefulset": {
-        "default": {
+        "sieve": {
             "cassandra-test-cluster-dc1-rack1": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 3
+                "Update": 4
             }
         }
     }
