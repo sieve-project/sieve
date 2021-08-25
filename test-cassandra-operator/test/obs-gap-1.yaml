@@ -1,24 +1,17 @@
 project: cassandra-operator
 stage: test
 mode: obs-gap
-straggler: kind-control-plane3
-front-runner: kind-control-plane
 operator-pod-label: cassandra-operator
-deployment-name: cassandra-operator
 ce-name: cassandra-test-cluster-dc1-rack1-1
-ce-namespace: default
+ce-namespace: sieve
 ce-rtype: pod
 ce-diff-current: '{"metadata": {"deletionTimestamp": "SONAR-NON-NIL", "deletionGracePeriodSeconds":
   30}}'
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-se-name: data-volume-cassandra-test-cluster-dc1-rack1-1
-se-namespace: default
-se-rtype: persistentvolumeclaim
-se-etype: Delete
-description: 'Pause kind-control-plane3 after it processes a default/pod/cassandra-test-cluster-dc1-rack1-1
+description: 'Pause any reconcile on cassandra-operator after it sees a sieve/pod/cassandra-test-cluster-dc1-rack1-1
   event E. E should match the pattern {"metadata": {"deletionTimestamp": "SONAR-NON-NIL",
   "deletionGracePeriodSeconds": 30}} and the events before E should match {}. And
-  restart the controller cassandra-operator after kind-control-plane processes a Delete
-  default/persistentvolumeclaim/data-volume-cassandra-test-cluster-dc1-rack1-1 event.'
+  resume reconcile on the controller cassandra-operator after it sees an event cancel
+  event E.'
