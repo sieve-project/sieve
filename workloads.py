@@ -11,7 +11,7 @@ workloads = {
         .wait(50),
         "scaledown-scaleup": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-cassandra-operator/test/cdc-2.yaml").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.RUNNING)
-        .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":1}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.TERMINATED).wait_for_pvc_status("data-volume-cassandra-test-cluster-dc1-rack1-1", common.TERMINATED)
+        .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":1}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.TERMINATED, 80).wait_for_pvc_status("data-volume-cassandra-test-cluster-dc1-rack1-1", common.TERMINATED, 0)
         .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":2}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.RUNNING)
         .wait(50),
         "scaledown": test_framework.new_built_in_workload()
@@ -42,7 +42,8 @@ workloads = {
         # Init 3
         .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml").wait(100)
         # Old 3, now 2, crash defer update cc. Now dc is 2, but old is still 3, and we crash the operator
-        .cmd("kubectl apply -f test-casskop-operator/test/dc-2.yaml").wait(10) # Inside 10s, the operator should handle for the change, and resatrted after 10s
+        # Inside 10s, the operator should handle for the change, and resatrted after 10s
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-2.yaml").wait(10)
         # Issue this, and start the operator, see old = 3
         .cmd("kubectl apply -f test-casskop-operator/test/dc-1.yaml").wait(60)
         .wait(50),
