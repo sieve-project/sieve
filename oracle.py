@@ -6,6 +6,7 @@ import jsondiff as jd
 import json
 import os
 import common
+import io
 
 not_care_keys = ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences', 'managedFields', 'generateName', 'selfLink', 'annotations',
                 'pod-template-hash', 'secretName', 'image', 'lastTransitionTime', 'nodeName', 'podIPs', 'podIP', 'hostIP', 'containerID', 'imageID',
@@ -84,7 +85,7 @@ def trim_resource(cur, key_trace = []):
         for item in cur:
             trim_resource(item, key_trace)
             idx += 1
-            
+
     if type(cur) is dict:
         for key in list(cur):
             if key in not_care_keys:
@@ -133,7 +134,7 @@ def generate_resources(path = ""):
         "statefulset": apps_v1.list_namespaced_stateful_set
     }
     resources = {}
-    
+
     crd_list = get_crd_list()
 
     resource_set = set(["statefulset", "pod", "persistentvolumeclaim", "deployment"])
@@ -143,12 +144,12 @@ def generate_resources(path = ""):
                 continue
             side_effect = common.parse_side_effect(line)
             resource_set.add(side_effect.rtype)
-    
+
     for resource in resource_set:
         if resource in resource_handler:
             # Normal resource
             resources[resource] = get_resource_helper(resource_handler[resource])
-    
+
     # Fetch for crd
     for crd in crd_list:
         resources[crd] = get_crd(crd)
@@ -296,31 +297,35 @@ def check(learned_side_effect, learned_status, learned_resources, testing_side_e
             bug_report += "[DEBUGGING SUGGESTION] %s\n" % generate_debug_suggestion(
                 testing_config)
         bug_report = "\n[BUG REPORT]\n" + bug_report
+
+        if learned_resources != None:
+            bug_report += "\n" + look_for_resouces_diff(learned_resources, testing_resources)
+
         print(bug_report)
 
-    if learned_resources != None:
-        look_for_resouces_diff(learned_resources, testing_resources)
     return bug_report
 
 
 def look_for_resouces_diff(learn, test):
+    f = io.StringIO()
     learn_trim = copy.deepcopy(learn)
     test_trim = copy.deepcopy(test)
     trim_resource(learn_trim)
     trim_resource(test_trim)
     diff = jd.diff(learn_trim, test_trim, syntax='symmetric')
-    
+
+    print("[RESOURCE DIFF REPORT]", file=f)
     for rtype in diff:
         rdiff = diff[rtype]
         # Check for resource level delete/insert
         if jd.delete in rdiff:
             # Any resource deleted
             for (idx, item) in rdiff[jd.delete]:
-                print("[resource deleted]", rtype, item['metadata']['namespace'], item['metadata']['name'])
+                print("[resource deleted]", rtype, item['metadata']['namespace'], item['metadata']['name'], file=f)
         if jd.insert in rdiff:
             # Any resource added
             for (idx, item) in rdiff[jd.insert]:
-                print("[resource added]", rtype, item['metadata']['namespace'], item['metadata']['name'])
+                print("[resource added]", rtype, item['metadata']['namespace'], item['metadata']['name'], file=f)
 
         # Check for resource internal fields
         for idx in rdiff:
@@ -332,19 +337,23 @@ def look_for_resouces_diff(learn, test):
             item = rdiff[idx]
             for majorfield in item:
                 if majorfield == jd.delete:
-                    print("[field deleted]", item[majorfield])
+                    print("[field deleted]", item[majorfield], file=f)
                     continue
                 if majorfield == jd.insert:
-                    print("[field added]", item[majorfield])
+                    print("[field added]", item[majorfield], file=f)
                     continue
                 data = item[majorfield]
                 for subfield in data:
                     if not subfield in not_care:
-                        print("[%s field changed]"%(majorfield), rtype, name, subfield, "changed", "delta: ", data[subfield])
+                        print("[%s field changed]"%(majorfield), rtype, name, subfield, "changed", "delta: ", data[subfield], file=f)
                 if jd.delete in data:
-                    print("[%s field deleted]"%(majorfield), rtype, name, data[jd.delete])
+                    print("[%s field deleted]"%(majorfield), rtype, name, data[jd.delete], file=f)
                 if jd.insert in data:
-                    print("[%s field added]"%(majorfield), rtype, name, data[jd.insert])
+                    print("[%s field added]"%(majorfield), rtype, name, data[jd.insert], file=f)
+
+    result = f.getvalue()
+    f.close()
+    return result
 
 
 if __name__ == "__main__":
