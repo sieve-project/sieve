@@ -20,6 +20,10 @@ def run():
                 os.system("python3 build.py -p %s -m learn -d laphets"%(operator))
         elif action == "build for test":
                 os.system("python3 build.py -p %s -d laphets"%(operator))
+        elif action == "learn check only":
+                os.system("python3 sieve.py -p %s -t %s -s learn -d laphets --phase=check_only"%(operator, workload))
+        elif action == "test check only":
+                os.system("python3 sieve.py -p %s -t %s -d laphets --phase=check_only"%(operator, workload))
 
 class SieveTUI:
 
@@ -51,7 +55,7 @@ class SieveTUI:
         def goto_action(self):
                 operator = self.operator_scroll_cell.get()
                 workload = self.workload_scroll_cell.get()
-                actions = ["learn", "test", "build for learn", "build for test"]
+                actions = ["learn", "test", "build for learn", "build for test", "learn check only", "test check only"]
                 self.action_scroll_cell.clear()
                 self.action_scroll_cell.add_item_list(actions)
                 self.master.set_selected_widget(self.action_scroll_cell.get_id())

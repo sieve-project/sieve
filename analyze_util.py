@@ -49,7 +49,7 @@ class Event:
         self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "sieve"
         self.name = self.obj["metadata"]["name"]
         # Trim annotation here
-        self.obj["metadata"].pop('annotation', None)
+        self.obj["metadata"].pop('annotations', None)
         self.start_timestamp = -1
         self.end_timestamp = -1
         self.key = self.rtype + "/" + self.namespace + "/" + self.name

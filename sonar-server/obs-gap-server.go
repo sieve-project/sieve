@@ -163,6 +163,9 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 }
 
 func cancelEventList(crucialEvent, currentEvent []interface{}) bool {
+	if len(currentEvent) < len(crucialEvent) {
+		return true
+	}
 	for i, val := range crucialEvent {
 		switch v := val.(type) {
 		case int64:

@@ -305,11 +305,11 @@ def check(learned_side_effect, learned_status, learned_resources, testing_side_e
                 testing_config)
         bug_report = "\n[BUG REPORT]\n" + bug_report
 
-        if learned_resources != None:
-            bug_report += "\n" + \
-                look_for_resouces_diff(learned_resources, testing_resources)
+    if learned_resources != None:
+        bug_report += "\n" + \
+        look_for_resouces_diff(learned_resources, testing_resources)
 
-        print(bug_report)
+    print(bug_report)
 
     return bug_report
 

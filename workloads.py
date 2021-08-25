@@ -26,6 +26,11 @@ workloads = {
         .cmd("kubectl delete CassandraCluster sonar-cassandra-cluster").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.TERMINATED)
         .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.RUNNING)
         .wait(50),
+        "reducepdb": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
+        .cmd("kubectl apply -f test-casskop-operator/test/cc-2.yaml").wait(60)
+        .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait(60)
+        .wait(50),
         "nodesperrack": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-2.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-1", common.RUNNING)
@@ -35,12 +40,12 @@ workloads = {
         "scaledown": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
         # Init 3
-        .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml").wait(10)
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml").wait(100)
         # Old 3, now 2, crash defer update cc. Now dc is 2, but old is still 3, and we crash the operator
         .cmd("kubectl apply -f test-casskop-operator/test/dc-2.yaml").wait(10) # Inside 10s, the operator should handle for the change, and resatrted after 10s
         # Issue this, and start the operator, see old = 3
-        .cmd("kubectl apply -f test-casskop-operator/test/dc-1.yaml").wait(10)
-        .wait(10),
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-1.yaml").wait(60)
+        .wait(50),
     },
     "cass-operator": {
         "recreate": test_framework.new_built_in_workload()
