@@ -193,9 +193,8 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
 
 def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore):
     if stage == "learn":
-        for analysis_mode in ["time-travel", "obs-gap", "atomic"]:
-            analyze.analyze_trace(project, log_dir, analysis_mode,
-                                  two_sided=two_sided, node_ignore=node_ignore)
+        analyze.analyze_trace(
+            project, log_dir, two_sided=two_sided, node_ignore=node_ignore)
         os.system("mkdir -p %s" % data_dir)
         os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
