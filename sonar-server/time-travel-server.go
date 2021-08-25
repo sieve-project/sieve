@@ -34,7 +34,7 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		podLabel:    config["operator-pod-label"].(string),
 		frontRunner: config["front-runner"].(string),
 		deployName:  config["deployment-name"].(string),
-		namespace:   "default",
+		namespace:   "sieve",
 	}
 	listener := &TimeTravelListener{
 		Server: server,

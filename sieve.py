@@ -38,8 +38,6 @@ def generate_configmap(test_config):
 
 
 def generate_kind_config(mode, num_apiservers, num_workers):
-    if mode == "time-travel":
-        num_apiservers = 3
     kind_config_filename = "kind-%sa-%sw.yaml" % (
         str(num_apiservers), str(num_workers))
     kind_config_file = open(kind_config_filename, "w")
@@ -85,6 +83,8 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     os.system("kind delete cluster")
     os.system("./setup.sh %s %s %s" %
               (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
+    os.system("kubectl create namespace sieve")
+    os.system("kubectl config set-context --current --namespace=sieve")
     prepare_sieve_server(test_config)
 
     # when testing time-travel, we need to pause the apiserver
@@ -139,9 +139,10 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Wait for project pod ready
+    print("wait for operator pod ready...")
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
-            "default", watch=False, label_selector="sonartag="+project).items
+            "sieve", watch=False, label_selector="sonartag="+project).items
         if len(project_pod) >= 1:
             if project_pod[0].status.phase == "Running":
                 break
@@ -163,7 +164,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
 
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
-        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+        "sieve", watch=False, label_selector="sonartag="+project).items[0].metadata.name
     streamed_log_file = open("%s/streamed-operator.log" % (log_dir), "w+")
     streaming = subprocess.Popen("kubectl logs %s -f" %
                                  pod_name, stdout=streamed_log_file, stderr=streamed_log_file, shell=True, preexec_fn=os.setsid)
@@ -171,7 +172,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
     test_workload.run(mode)
 
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
-        "default", watch=False, label_selector="sonartag="+project).items[0].metadata.name
+        "sieve", watch=False, label_selector="sonartag="+project).items[0].metadata.name
 
     for i in range(num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + \
@@ -283,20 +284,22 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
                 log_dir, os.path.basename(test_config))
             os.system("cp %s %s" % (test_config, test_config_to_use))
             print("testing mode: %s config: %s" % (mode, test_config_to_use))
+            if mode == "time-travel":
+                suite.num_apiservers = 3
             run_test(project, mode, stage, suite.workload,
                      test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
-    config_dir = os.path.join("log", project, test, "learn", mode)
+    config_dir = os.path.join("log", project, test, "learn", "learn", mode)
     configs = [x for x in glob.glob(os.path.join(
         config_dir, "*.yaml")) if not "configmap" in x]
     print("configs", configs)
     for config in configs:
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(
-            dir, project, test, "test", num)
+            dir, project, test, stage, mode + "-batch", num)
         print("[sonar] config is %s" % config)
         print("[sonar] log dir is %s" % log_dir)
         try:
@@ -348,7 +351,7 @@ if __name__ == "__main__":
 
     if options.batch:
         run_batch(options.project, options.test,
-                  "log-batch", options.mode, options.stage, options.docker)
+                  options.log, options.mode, options.stage, options.docker)
     else:
         log_dir = os.path.join(options.log, options.project,
                                options.test, options.stage, options.mode)

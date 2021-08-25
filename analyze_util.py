@@ -46,7 +46,7 @@ class Event:
         self.rtype = rtype
         self.obj = obj
         # TODO(Wenqing): In some case the metadata doesn't carry in namespace field, may dig into that later
-        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "default"
+        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "sieve"
         self.name = self.obj["metadata"]["name"]
         # Trim annotation here
         self.obj["metadata"].pop('annotation', None)

@@ -22,7 +22,7 @@ func NewAtomicListener(config map[interface{}]interface{}) *AtomicListener {
 		eventID:     -1,
 		frontRunner: config["front-runner"].(string),
 		deployName:  config["deployment-name"].(string),
-		namespace:   "default",
+		namespace:   "sieve",
 		podLabel:    config["operator-pod-label"].(string),
 		crucialCur:  config["ce-diff-current"].(string),
 		crucialPrev: config["ce-diff-previous"].(string),
