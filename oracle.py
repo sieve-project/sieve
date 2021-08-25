@@ -7,6 +7,7 @@ import json
 import os
 import common
 import io
+import sieve_config
 
 not_care_keys = ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences', 'managedFields', 'generateName', 'selfLink', 'annotations',
                  'pod-template-hash', 'secretName', 'image', 'lastTransitionTime', 'nodeName', 'podIPs', 'podIP', 'hostIP', 'containerID', 'imageID',
@@ -56,7 +57,7 @@ def generate_status():
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
-    k8s_namespace = "sieve"
+    k8s_namespace = sieve_config.config["namespace"]
     resources = {}
     for ktype in common.KTYPES:
         resources[ktype] = []
@@ -98,7 +99,7 @@ def trim_resource(cur, key_trace=[]):
 
 
 def get_resource_helper(func):
-    k8s_namespace = "sieve"
+    k8s_namespace = sieve_config.config["namespace"]
     response = func(k8s_namespace, _preload_content=False, watch=False)
     data = json.loads(response.data)
     return [resource for resource in data['items']]
