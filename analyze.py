@@ -429,7 +429,6 @@ def generate_atomic_yaml(triggering_points, path, project, node_ignore):
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
     yaml_map["mode"] = "atomic"
-    yaml_map["straggler"] = controllers.straggler
     yaml_map["front-runner"] = controllers.front_runner
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
@@ -498,9 +497,6 @@ def analyze_trace(project, log_dir, analysis_mode, generate_oracle=True, generat
           ("enabled" if generate_config else "disabled"))
     if not generate_config:
         two_sided = False
-        use_sql = False
-    # Disable sql feature for obs gap / atomic mode for now
-    if analysis_mode == "obs-gap" or analysis_mode == "atomic":
         use_sql = False
     print("two-sided feature is %s" %
           ("enabled" if two_sided else "disabled"))

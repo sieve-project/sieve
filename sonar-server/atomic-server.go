@@ -172,8 +172,6 @@ func (s *atomicServer) restartComponent() {
 		}
 	}
 
-	time.Sleep(time.Second * 15)
-
 	newDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      deployment.ObjectMeta.Name,

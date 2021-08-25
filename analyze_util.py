@@ -48,6 +48,8 @@ class Event:
         # TODO(Wenqing): In some case the metadata doesn't carry in namespace field, may dig into that later
         self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj["metadata"] else "default"
         self.name = self.obj["metadata"]["name"]
+        # Trim annotation here
+        self.obj["metadata"].pop('annotation', None)
         self.start_timestamp = -1
         self.end_timestamp = -1
         self.key = self.rtype + "/" + self.namespace + "/" + self.name
