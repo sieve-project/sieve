@@ -424,6 +424,38 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
             os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
+def generate_atomic_yaml(triggering_points, path, project, node_ignore):
+    yaml_map = {}
+    yaml_map["project"] = project
+    yaml_map["stage"] = "test"
+    yaml_map["mode"] = "atomic"
+    yaml_map["front-runner"] = controllers.front_runner
+    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
+    yaml_map["deployment-name"] = controllers.deployment_name[project]
+    i = 0
+    for triggering_point in triggering_points:
+        if triggering_point["ttype"] != "event-delta":
+            # TODO: handle the single event trigger
+            continue
+        i += 1
+        effect = triggering_point["effect"]
+        yaml_map["ce-name"] = triggering_point["name"]
+        yaml_map["ce-namespace"] = triggering_point["namespace"]
+        yaml_map["ce-rtype"] = triggering_point["rtype"]
+        yaml_map["ce-diff-current"] = json.dumps(
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"]), node_ignore))
+        yaml_map["ce-diff-previous"] = json.dumps(
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"]), node_ignore))
+        yaml_map["ce-etype-current"] = triggering_point["curEventType"]
+        yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
+        yaml_map["se-name"] = effect["name"]
+        yaml_map["se-namespace"] = effect["namespace"]
+        yaml_map["se-rtype"] = effect["rtype"]
+        yaml_map["se-etype"] = effect["etype"]
+        yaml_map["description"] = ""
+        yaml.dump(yaml_map, open(
+            os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
+    print("Generated %d atomic config(s) in %s" % (i, path))
 
 def dump_json_file(dir, data, json_file_name):
     json.dump(data, open(os.path.join(
@@ -492,11 +524,14 @@ def analyze_trace(project, log_dir, analysis_mode, generate_oracle=True, generat
         elif analysis_mode == "obs-gap":
             generate_obs_gap_yaml(
                 triggering_points, generated_config_dir, project, node_ignore)
+        elif analysis_mode == "atomic":
+            generate_atomic_yaml(triggering_points, generated_config_dir, project, node_ignore)
 
     if generate_oracle:
-        side_effect, status = oracle.generate_digest(log_path)
+        side_effect, status, resources = oracle.generate_digest(log_path)
         dump_json_file(log_dir, side_effect, "side-effect.json")
         dump_json_file(log_dir, status, "status.json")
+        dump_json_file(log_dir, resources, "resources.json")
 
 
 if __name__ == "__main__":

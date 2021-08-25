@@ -81,7 +81,7 @@ def stop_sieve_server():
     os.system("docker exec kind-control-plane bash -c 'pkill sonar-server'")
 
 
-def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers):
+def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize):
     os.system("kind delete cluster")
     os.system("./setup.sh %s %s %s" %
               (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
@@ -126,6 +126,10 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
         print("cannot load image %s locally, try to pull from remote" % (image))
         os.system("docker pull %s" % (image))
         os.system(kind_load_cmd)
+
+    if pvc_resize:
+        # Install csi provisioner
+        os.system("cd csi-driver && ./install.sh")
 
 
 def start_operator(project, docker_repo, docker_tag, num_apiservers):
@@ -188,7 +192,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
 
 def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, node_ignore):
     if stage == "learn":
-        for analysis_mode in ["time-travel", "obs-gap"]:
+        for analysis_mode in ["time-travel", "obs-gap", "atomic"]:
             analyze.analyze_trace(project, log_dir, analysis_mode,
                                   two_sided=two_sided, node_ignore=node_ignore)
         os.system("mkdir -p %s" % data_dir)
@@ -196,6 +200,8 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
             data_dir, "status.json")))
         os.system("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
+        os.system("cp %s %s" % (os.path.join(test_config, "resources.json"), os.path.join(
+            data_dir, "resources.json")))
     else:
         if os.path.exists(test_config):
             open(os.path.join(log_dir, "config.yaml"),
@@ -208,22 +214,25 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
+            resources_path = os.path.join(data_dir, "resources.json")
+            learned_resources = json.load(open(resources_path)) if os.path.isfile(resources_path) else None
             server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status = oracle.generate_digest(
-                server_log)
+            testing_side_effect, testing_status, testing_resources = oracle.generate_digest(server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log))
+                oracle.check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log))
             json.dump(testing_side_effect, open(os.path.join(
                 log_dir, "side-effect.json"), "w"), indent=4)
             json.dump(testing_status, open(os.path.join(
                 log_dir, "status.json"), "w"), indent=4)
+            json.dump(testing_resources, open(os.path.join(
+                log_dir, "resources.json"), "w"), indent=4)
 
 
-def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, data_dir, two_sided, node_ignore, phase):
+def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize, data_dir, two_sided, node_ignore, phase):
     if phase == "all" or phase == "setup_only":
         setup_cluster(project, stage, mode, test_config,
-                      docker_repo, docker_tag, num_apiservers, num_workers)
+                      docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize)
     if phase == "all" or phase == "workload_only":
         run_workload(project, mode, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_apiservers)
@@ -262,12 +271,12 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         generate_learn_config(learn_config, project,
                               mode, rate_limiter_enabled)
         run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
+                 learn_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
     else:
         if mode == "vanilla":
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
-                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
+                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
         else:
             test_config = config if config != "none" else suite.config
             test_config_to_use = os.path.join(
@@ -275,7 +284,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
             os.system("cp %s %s" % (test_config, test_config_to_use))
             print("testing mode: %s config: %s" % (mode, test_config_to_use))
             run_test(project, mode, stage, suite.workload,
-                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, data_dir, suite.two_sided, suite.node_ignore, phase)
+                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -310,7 +319,7 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: vanilla, time-travel, obs-gap", metavar="MODE", default="none")
+                      help="test MODE: vanilla, time-travel, obs-gap, atomic", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
@@ -325,15 +334,12 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if options.mode == "none":
-        if options.stage == "test":
-            options.mode = controllers.test_suites[options.project][options.test].mode
-        else:
-            options.mode = "learn"
+        options.mode = controllers.test_suites[options.project][options.test].mode
 
     assert options.stage in [
         "learn", "test"], "invalid stage option: %s" % options.stage
     assert options.mode in ["vanilla", "time-travel",
-                            "obs-gap", "learn"], "invalid mode option: %s" % options.mode
+                            "obs-gap", "atomic"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
                              "check_only"], "invalid phase option: %s" % options.phase
 

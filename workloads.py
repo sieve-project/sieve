@@ -32,6 +32,15 @@ workloads = {
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-1.yaml").wait(10)
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-0.yaml").wait(10)
         .wait(50),
+        "scaledown": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
+        # Init 3
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml").wait(10)
+        # Old 3, now 2, crash defer update cc. Now dc is 2, but old is still 3, and we crash the operator
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-2.yaml").wait(10) # Inside 10s, the operator should handle for the change, and resatrted after 10s
+        # Issue this, and start the operator, see old = 3
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-1.yaml").wait(10)
+        .wait(10),
     },
     "cass-operator": {
         "recreate": test_framework.new_built_in_workload()
@@ -72,6 +81,11 @@ workloads = {
         .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"replicas\":3}}'").wait(10)
         .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"replicas\":2}}'").wait(10)
         .wait(50),
+        "resize-pvc-atomic": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml").wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
+        # 10Gi -> 15Gi
+        .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"persistence\":{\"storage\":\"15Gi\"}}}'").wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
+        .wait(120),
     },
     "mongodb-operator": {
         "recreate": test_framework.new_built_in_workload()

@@ -1,0 +1,19 @@
+project: rabbitmq-operator
+stage: test
+mode: atomic
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: rabbitmq-operator
+deployment-name: rabbitmq-operator
+ce-name: rabbitmq-cluster
+ce-namespace: default
+ce-rtype: rabbitmqcluster
+ce-diff-current: '{"spec": {"persistence": {"storage": "15Gi"}}}'
+ce-diff-previous: '{"spec": {"persistence": {"storage": "10Gi"}}}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+se-name: persistence-rabbitmq-cluster-server-0
+se-namespace: default
+se-rtype: persistentvolumeclaim
+se-etype: Update
+description: ''

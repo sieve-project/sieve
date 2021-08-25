@@ -40,6 +40,10 @@ func main() {
 		case "obs-gap":
 			log.Println("obs-gap")
 			rpc.Register(NewObsGapListener(config))
+		// atomic: atomic side effect during reconcile
+		case "atomic":
+			log.Println("atomic")
+			rpc.Register(NewAtomicListener(config))
 
 		default:
 			log.Fatalf("Cannot recognize mode: %s\n", config["mode"])

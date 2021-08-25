@@ -26,6 +26,7 @@ FROM alpine:latest as etc-builder
 RUN echo "rabbitmq-cluster-operator:x:1000:" > /etc/group && \
     echo "rabbitmq-cluster-operator:x:1000:1000::/home/rabbitmq-cluster-operator:/usr/sbin/nologin" > /etc/passwd
 
+
 RUN apk add -U --no-cache ca-certificates
 
 # ---------------------------------------

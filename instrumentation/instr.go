@@ -76,6 +76,17 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 	instrumentClientGoForAll(clientGoFile, clientGoFile, "ObsGap")
 }
 
+func instrumentControllerForAtomic(controller_runtime_filepath string, client_go_filepath string) {
+	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
+	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
+	preprocess(sharedInformerGoFile)
+	instrumentSharedInformerGoForAtomic(sharedInformerGoFile, sharedInformerGoFile)
+
+	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
+	fmt.Printf("instrumenting %s\n", clientGoFile)
+	instrumentClientGoForAtomic(clientGoFile, clientGoFile, "Atomic")
+}
+
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
 	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
@@ -112,6 +123,8 @@ func main() {
 			instrumentControllerForLearn(args[3], args[4])
 		} else if mode == "obs-gap" {
 			instrumentControllerForObsGap(args[3], args[4])
+		} else if mode == "atomic" {
+			instrumentControllerForAtomic(args[3], args[4])
 		}
 
 	}

@@ -104,7 +104,7 @@ func (s *obsGapServer) shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, c
 	return false
 }
 
-func (s *obsGapServer) getEventResourceName(event map[string]interface{}) string {
+func getEventResourceName(event map[string]interface{}) string {
 	if event["metadata"] != nil {
 		metadata := event["metadata"].(map[string]interface{})
 		return metadata["name"].(string)
@@ -113,7 +113,7 @@ func (s *obsGapServer) getEventResourceName(event map[string]interface{}) string
 	}
 }
 
-func (s *obsGapServer) getEventResourceNamespace(event map[string]interface{}) string {
+func getEventResourceNamespace(event map[string]interface{}) string {
 	if event["metadata"] != nil {
 		metadata := event["metadata"].(map[string]interface{})
 		return metadata["namespace"].(string)
@@ -123,7 +123,7 @@ func (s *obsGapServer) getEventResourceNamespace(event map[string]interface{}) s
 }
 
 func (s *obsGapServer) isSameTarget(currentEvent map[string]interface{}) bool {
-	return s.getEventResourceName(currentEvent) == s.ceName && s.getEventResourceNamespace(currentEvent) == s.ceNamespace
+	return getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace	
 }
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one

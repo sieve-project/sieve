@@ -7,7 +7,7 @@ import test_framework
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], num_apiservers=1, num_workers=2):
+    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], num_apiservers=1, num_workers=2, pvc_resize=False):
         self.workload = workload
         self.config = config
         self.mode = mode
@@ -15,13 +15,18 @@ class Suite:
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.node_ignore = node_ignore
+        self.pvc_resize = pvc_resize
+        if self.pvc_resize:
+            # For now, we only support one node cluster pvc resizing
+            self.num_apiservers = 1
+            self.num_workers = 0
 
 
 docker_repo = "xudongs"
 front_runner = "kind-control-plane"
 straggler = "kind-control-plane3"
 
-testing_modes = ["time-travel", "sparse-read", "obs-gap"]
+testing_modes = ["time-travel", "sparse-read", "obs-gap", "atomic"]
 
 github_link = {
     "cassandra-operator": "https://github.com/instaclustr/cassandra-operator.git",
@@ -87,6 +92,8 @@ test_suites = {
             workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"], "test-rabbitmq-operator/test/obs-gap-1.yaml", "obs-gap"),
+        "resize-pvc-atomic": Suite(
+            workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"], "test-rabbitmq-operator/test/atomic-1.yaml", "atomic", pvc_resize=True)
     },
     "mongodb-operator": {
         "recreate": Suite(
@@ -107,6 +114,8 @@ test_suites = {
             test_framework.ExtendedWorkload(test_dir_test["casskop-operator"], "./reducepdb.sh", True), "test-casskop-operator/test/time-travel-2.yaml", "time-travel", two_sided=True),
         "nodesperrack": Suite(
             workloads.workloads["casskop-operator"]["nodesperrack"], "test-casskop-operator/test/obs-gap-1.yaml", "obs-gap"),
+        "scaledown": Suite(
+            workloads.workloads["casskop-operator"]["scaledown"], "test-casskop-operator/test/atomic-2.yaml", "atomic"),
     },
     "xtradb-operator": {
         "recreate": Suite(
