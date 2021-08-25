@@ -9,10 +9,11 @@ import common
 import io
 
 not_care_keys = ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences', 'managedFields', 'generateName', 'selfLink', 'annotations',
-                'pod-template-hash', 'secretName', 'image', 'lastTransitionTime', 'nodeName', 'podIPs', 'podIP', 'hostIP', 'containerID', 'imageID',
-                'startTime', 'startedAt', 'volumeMounts', 'finishedAt', 'volumeName', 'lastUpdateTime', 'env', 'message', 'currentRevision', 'updateRevision',
-                'controller-revision-hash']
+                 'pod-template-hash', 'secretName', 'image', 'lastTransitionTime', 'nodeName', 'podIPs', 'podIP', 'hostIP', 'containerID', 'imageID',
+                 'startTime', 'startedAt', 'volumeMounts', 'finishedAt', 'volumeName', 'lastUpdateTime', 'env', 'message', 'currentRevision', 'updateRevision',
+                 'controller-revision-hash']
 not_care = [jd.delete, jd.insert] + not_care_keys + ['name']
+
 
 def generate_digest(path):
     side_effect = generate_side_effect(path)
@@ -79,7 +80,7 @@ def generate_status():
     return status
 
 
-def trim_resource(cur, key_trace = []):
+def trim_resource(cur, key_trace=[]):
     if type(cur) is list:
         idx = 0
         for item in cur:
@@ -95,11 +96,13 @@ def trim_resource(cur, key_trace = []):
             else:
                 trim_resource(cur[key], key_trace + [key])
 
+
 def get_resource_helper(func):
-    k8s_namespace = "default"
+    k8s_namespace = "sieve"
     response = func(k8s_namespace, _preload_content=False, watch=False)
     data = json.loads(response.data)
     return [resource for resource in data['items']]
+
 
 def get_crd_list():
     data = []
@@ -110,16 +113,18 @@ def get_crd_list():
         print("get_crd_list fail", e)
     return data
 
+
 def get_crd(crd):
     data = []
     try:
-        for item in json.loads(os.popen('kubectl get %s -o json'%(crd)).read())["items"]:
+        for item in json.loads(os.popen('kubectl get %s -o json' % (crd)).read())["items"]:
             data.append(item)
     except Exception as e:
         print("get_crd fail", e)
     return data
 
-def generate_resources(path = ""):
+
+def generate_resources(path=""):
     print("Generating cluster resources digest ...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -137,7 +142,8 @@ def generate_resources(path = ""):
 
     crd_list = get_crd_list()
 
-    resource_set = set(["statefulset", "pod", "persistentvolumeclaim", "deployment"])
+    resource_set = set(
+        ["statefulset", "pod", "persistentvolumeclaim", "deployment"])
     if path != "":
         for line in open(path).readlines():
             if common.SONAR_SIDE_EFFECT_MARK not in line:
@@ -148,7 +154,8 @@ def generate_resources(path = ""):
     for resource in resource_set:
         if resource in resource_handler:
             # Normal resource
-            resources[resource] = get_resource_helper(resource_handler[resource])
+            resources[resource] = get_resource_helper(
+                resource_handler[resource])
 
     # Fetch for crd
     for crd in crd_list:
@@ -299,7 +306,8 @@ def check(learned_side_effect, learned_status, learned_resources, testing_side_e
         bug_report = "\n[BUG REPORT]\n" + bug_report
 
         if learned_resources != None:
-            bug_report += "\n" + look_for_resouces_diff(learned_resources, testing_resources)
+            bug_report += "\n" + \
+                look_for_resouces_diff(learned_resources, testing_resources)
 
         print(bug_report)
 
@@ -321,11 +329,13 @@ def look_for_resouces_diff(learn, test):
         if jd.delete in rdiff:
             # Any resource deleted
             for (idx, item) in rdiff[jd.delete]:
-                print("[resource deleted]", rtype, item['metadata']['namespace'], item['metadata']['name'], file=f)
+                print("[resource deleted]", rtype, item['metadata']
+                      ['namespace'], item['metadata']['name'], file=f)
         if jd.insert in rdiff:
             # Any resource added
             for (idx, item) in rdiff[jd.insert]:
-                print("[resource added]", rtype, item['metadata']['namespace'], item['metadata']['name'], file=f)
+                print("[resource added]", rtype, item['metadata']
+                      ['namespace'], item['metadata']['name'], file=f)
 
         # Check for resource internal fields
         for idx in rdiff:
@@ -345,11 +355,14 @@ def look_for_resouces_diff(learn, test):
                 data = item[majorfield]
                 for subfield in data:
                     if not subfield in not_care:
-                        print("[%s field changed]"%(majorfield), rtype, name, subfield, "changed", "delta: ", data[subfield], file=f)
+                        print("[%s field changed]" % (majorfield), rtype, name,
+                              subfield, "changed", "delta: ", data[subfield], file=f)
                 if jd.delete in data:
-                    print("[%s field deleted]"%(majorfield), rtype, name, data[jd.delete], file=f)
+                    print("[%s field deleted]" % (majorfield),
+                          rtype, name, data[jd.delete], file=f)
                 if jd.insert in data:
-                    print("[%s field added]"%(majorfield), rtype, name, data[jd.insert], file=f)
+                    print("[%s field added]" % (majorfield),
+                          rtype, name, data[jd.insert], file=f)
 
     result = f.getvalue()
     f.close()
