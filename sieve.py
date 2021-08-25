@@ -201,7 +201,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
             data_dir, "status.json")))
         os.system("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
-        os.system("cp %s %s" % (os.path.join(test_config, "resources.json"), os.path.join(
+        os.system("cp %s %s" % (os.path.join(log_dir, "resources.json"), os.path.join(
             data_dir, "resources.json")))
     else:
         if os.path.exists(test_config):
@@ -216,9 +216,11 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
             learned_status = json.load(open(os.path.join(
                 data_dir, "status.json")))
             resources_path = os.path.join(data_dir, "resources.json")
-            learned_resources = json.load(open(resources_path)) if os.path.isfile(resources_path) else None
+            learned_resources = json.load(
+                open(resources_path)) if os.path.isfile(resources_path) else None
             server_log = os.path.join(log_dir, "sonar-server.log")
-            testing_side_effect, testing_status, testing_resources = oracle.generate_digest(server_log)
+            testing_side_effect, testing_status, testing_resources = oracle.generate_digest(
+                server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(
                 oracle.check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log))
@@ -336,13 +338,16 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
-    if options.mode == "none":
+    if options.stage == "learn":
+        options.mode = "learn"
+
+    if options.mode == "none" and options.stage == "test":
         options.mode = controllers.test_suites[options.project][options.test].mode
 
     assert options.stage in [
         "learn", "test"], "invalid stage option: %s" % options.stage
     assert options.mode in ["vanilla", "time-travel",
-                            "obs-gap", "atomic"], "invalid mode option: %s" % options.mode
+                            "obs-gap", "atomic", "learn"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
                              "check_only"], "invalid phase option: %s" % options.phase
 
