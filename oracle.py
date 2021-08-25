@@ -55,7 +55,7 @@ def generate_status():
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
-    k8s_namespace = "default"
+    k8s_namespace = "sieve"
     resources = {}
     for ktype in common.KTYPES:
         resources[ktype] = []
