@@ -3,13 +3,13 @@ stage: test
 mode: obs-gap
 operator-pod-label: cassandra-operator
 ce-name: cassandra-test-cluster-dc1-rack1
-ce-namespace: default
+ce-namespace: sieve
 ce-rtype: statefulset
 ce-diff-current: '{"status": {"readyReplicas": 1}}'
 ce-diff-previous: '{"status": {"readyReplicas": 2}}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-description: 'Pause any reconcile on cassandra-operator after it sees a default/statefulset/cassandra-test-cluster-dc1-rack1
+description: 'Pause any reconcile on cassandra-operator after it sees a sieve/statefulset/cassandra-test-cluster-dc1-rack1
   event E. E should match the pattern {"status": {"readyReplicas": 1}} and the events
   before E should match {"status": {"readyReplicas": 2}}. And resume reconcile on
   the controller cassandra-operator after it sees an event cancel event E.'
