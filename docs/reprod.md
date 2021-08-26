@@ -216,8 +216,7 @@ python3 sieve.py -p cassandra-operator -t scaledown -d DOCKER_REPO_NAME
 ```
 If reproduced, you will find
 ```
-persistentVolumeClaim has different length: normal: 1 faulty: 2
-[FIND BUG] # alarms: 1
+[ERROR] persistentvolumeclaim SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
