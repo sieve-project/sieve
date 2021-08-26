@@ -220,6 +220,9 @@ If reproduced, you will find
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
+### [instaclustr-cassandra-operator-410](https://github.com/instaclustr/cassandra-operator/issues/410)
+to do (we need to improve the oracle)
+
 ### [rabbitmq-cluster-operator-758](https://github.com/rabbitmq/cluster-operator/issues/758)
 ```
 python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -d DOCKER_REPO_NAME
