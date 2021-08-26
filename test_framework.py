@@ -47,6 +47,20 @@ def get_pvc(resource_name):
             target_pvc = pvc
     return target_pvc
 
+def get_secret(resource_name):
+    """Return Secret object with specified name
+
+    Keyword arguments:
+    resource_name -- name of the secret object
+    """
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    secrets = core_v1.list_namespaced_secret(
+        namespace=sieve_config.config["namespace"], watch=False).items
+    for secret in secrets:
+        if secret.metadata.name == resource_name:
+            return secret
+    return None
 
 class TestCmd:
     def __init__(self, cmd):
@@ -116,6 +130,25 @@ class TestWaitForStatus:
         else:
             assert False, "status not supported yet"
         return False
+    
+    def check_secret(self):
+        """Return if a secret with the name self.resource_name meets the self.status"""
+        try:
+            secret = get_secret(self.resource_name)
+        except Exception as err:
+            print("error occurs during check pvc", err)
+            print(traceback.format_exc())
+            return False
+
+        if self.status == common.TERMINATED:
+            if secret is None:
+                return True
+        elif self.status == common.RUNNING:
+            if secret is not None:
+                return True
+        else:
+            assert False, "status not supported yet"
+        return False
 
     def run(self, mode):
         s = time.time()
@@ -136,6 +169,9 @@ class TestWaitForStatus:
                         break
                 elif self.resource_type == common.PVC:
                     if self.check_pvc():
+                        break
+                elif self.resource_type == common.SECRET:
+                    if self.check_secret():
                         break
                 else:
                     assert False, "type not supported yet"
@@ -203,6 +239,12 @@ class BuiltInWorkLoad:
     def wait_for_pvc_status(self, pvc_name, status, obs_gap_waiting_time=-1):
         test_wait = TestWaitForStatus(
             common.PVC, pvc_name, status, obs_gap_waiting_time)
+        self.work_list.append(test_wait)
+        return self
+
+    def wait_for_secret_status(self, secret_name, status, obs_gap_waiting_time=-1):
+        test_wait = TestWaitForStatus(
+            common.SECRET, secret_name, status, obs_gap_waiting_time)
         self.work_list.append(test_wait)
         return self
 
