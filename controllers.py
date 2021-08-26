@@ -125,7 +125,8 @@ test_suites = {
             workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
     },
     "yugabyte-operator": {
-        "recreate": Suite(workloads.workloads["xtradb-operator"]["recreate"], "none", "time-travel"),
+        "recreate": Suite(workloads.workloads["yugabyte-operator"]["recreate"], "null", "time-travel"),
+        "disable-enable-tls": Suite(workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "null", "time-travel"),
     },
 }
 

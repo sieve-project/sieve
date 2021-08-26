@@ -114,7 +114,15 @@ workloads = {
         .wait(70),
     },
     "yugabyte-operator": {
-        "recreate":test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f test-yugabyte-operator/test/cdc-1.yaml").wait(70),
+        "recreate": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-1.yaml").wait_for_pod_status("yb-master-0", common.RUNNING)
+        .cmd("kubectl delete YBCluster example-ybcluster").wait_for_pod_status("yb-master-0", common.TERMINATED)
+        .wait_for_pod_status("yb-master-1", common.TERMINATED).wait_for_pod_status("yb-master-2", common.TERMINATED)
+        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-1.yaml").wait_for_pod_status("yb-master-0", common.RUNNING)
+        .wait(70),
+        "disable-enable-tls": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tls-enabled.yaml").wait(60)
+        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tls-disabled.yaml").wait(60)
+        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tls-enabled.yaml").wait(60),
     },
 }
