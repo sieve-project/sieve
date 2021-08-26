@@ -1,17 +1,17 @@
 {
     "deployment": {
-        "default": {
+        "sieve": {
             "mongodb-cluster-mongos": {
                 "Create": 2,
                 "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 40
+                "Update": 35
             }
         }
     },
     "issuer": {
-        "default": {
+        "sieve": {
             "mongodb-cluster-psmdb-ca": {
                 "Create": 1,
                 "Delete": 0,
@@ -22,7 +22,7 @@
         }
     },
     "perconaservermongodb": {
-        "default": {
+        "sieve": {
             "mongodb-cluster": {
                 "Create": 0,
                 "Delete": 0,
@@ -33,32 +33,32 @@
         }
     },
     "poddisruptionbudget": {
-        "default": {
+        "sieve": {
             "mongodb-cluster-cfg-cfg": {
                 "Create": 2,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 45
+                "Update": 40
             },
             "mongodb-cluster-mongod-rs0": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 56
+                "Update": 49
             },
             "mongodb-cluster-mongos-": {
                 "Create": 2,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 40
+                "Update": 35
             }
         }
     },
     "secret": {
-        "default": {
+        "sieve": {
             "internal-mongodb-cluster-users": {
                 "Create": 1,
                 "Delete": 0,
@@ -104,7 +104,7 @@
         }
     },
     "service": {
-        "default": {
+        "sieve": {
             "mongodb-cluster-cfg": {
                 "Create": 2,
                 "Delete": 1,
@@ -129,20 +129,20 @@
         }
     },
     "statefulset": {
-        "default": {
+        "sieve": {
             "mongodb-cluster-cfg": {
                 "Create": 2,
                 "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 47
+                "Update": 42
             },
             "mongodb-cluster-rs0": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 57
+                "Update": 50
             }
         }
     }

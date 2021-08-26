@@ -98,7 +98,7 @@ python3 sieve.py -p mongodb-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim/default/mongod-data-mongodb-cluster-rs0-2 DELETE inconsistency: 1 events seen during learning run, but 9 seen during testing run
+[ERROR] persistentvolumeclaim/default/mongod-data-mongodb-cluster-rs0-2 DELETE inconsistency: 1 events seen during learning run, but 10 seen during testing run
 [ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
 [ERROR] persistentvolumeclaim SIZE inconsistency: 3 seen after learning run, but 2 seen after testing run
 ```
@@ -112,8 +112,6 @@ If reproduced, you will see:
 ```
 [ERROR] statefulset/default/mongodb-cluster-cfg CREATE inconsistency: 2 events seen during learning run, but 3 seen during testing run
 [ERROR] statefulset/default/mongodb-cluster-cfg DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ERROR] deployment SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
-[ERROR] pod SIZE inconsistency: 7 seen after learning run, but 8 seen after testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
@@ -218,10 +216,12 @@ python3 sieve.py -p cassandra-operator -t scaledown -d DOCKER_REPO_NAME
 ```
 If reproduced, you will find
 ```
-persistentVolumeClaim has different length: normal: 1 faulty: 2
-[FIND BUG] # alarms: 1
+[ERROR] persistentvolumeclaim SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
+
+### [instaclustr-cassandra-operator-410](https://github.com/instaclustr/cassandra-operator/issues/410)
+to do (we need to improve the oracle)
 
 ### [rabbitmq-cluster-operator-758](https://github.com/rabbitmq/cluster-operator/issues/758)
 ```

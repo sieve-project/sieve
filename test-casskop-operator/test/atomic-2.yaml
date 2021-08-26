@@ -1,0 +1,21 @@
+project: casskop-operator
+stage: test
+mode: atomic
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: casskop-operator
+deployment-name: casskop-operator
+ce-name: sonar-cassandra-cluster
+ce-namespace: default
+ce-rtype: cassandracluster
+ce-diff-current: '{"spec": {"topology": {"dc": ["SONAR-SKIP", "SONAR-SKIP"]}}}'
+ce-diff-previous: '{"spec": {"topology": {"dc": ["SONAR-SKIP", "SONAR-SKIP", {"name":
+  "dc3", "rack": [{"name": "rack1"}], "nodesPerRacks": 0, "resources": {}}]}}}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+se-name: sonar-cassandra-cluster
+se-namespace: default
+se-rtype: cassandracluster
+se-etype: Update
+description: ''
+

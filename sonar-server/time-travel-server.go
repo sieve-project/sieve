@@ -31,10 +31,10 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		straggler:   config["straggler"].(string),
 		crucialCur:  config["ce-diff-current"].(string),
 		crucialPrev: config["ce-diff-previous"].(string),
-		podLable:    config["operator-pod-label"].(string),
+		podLabel:    config["operator-pod-label"].(string),
 		frontRunner: config["front-runner"].(string),
 		deployName:  config["deployment-name"].(string),
-		namespace:   "default",
+		namespace:   "sieve",
 	}
 	listener := &TimeTravelListener{
 		Server: server,
@@ -71,7 +71,7 @@ type timeTravelServer struct {
 	frontRunner string
 	crucialCur  string
 	crucialPrev string
-	podLable    string
+	podLabel    string
 	seenPrev    bool
 	paused      bool
 	restarted   bool
@@ -413,7 +413,7 @@ func (s *timeTravelServer) restartComponent() {
 
 	clientset.AppsV1().Deployments(s.namespace).Delete(context.TODO(), s.deployName, metav1.DeleteOptions{})
 
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sonartag": s.podLable}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sonartag": s.podLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}

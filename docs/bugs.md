@@ -14,6 +14,8 @@ https://github.com/instaclustr/cassandra-operator/issues/404 confirmed and fixed
 
 https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed by us (time traveling)
 
+https://github.com/instaclustr/cassandra-operator/issues/410 pending (observability gaps)
+
 ## [datastax/cass-operator](https://github.com/datastax/cass-operator)
 https://github.com/k8ssandra/cass-operator/issues/118 confirmed (time traveling)
 <!-- previously https://github.com/datastax/cass-operator/issues/412 -->

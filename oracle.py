@@ -1,13 +1,26 @@
 import copy
 import kubernetes
-import common
+import analyze_util
 import yaml
+import jsondiff as jd
+import json
+import os
+import common
+import io
+import sieve_config
+
+not_care_keys = ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences', 'managedFields', 'generateName', 'selfLink', 'annotations',
+                 'pod-template-hash', 'secretName', 'image', 'lastTransitionTime', 'nodeName', 'podIPs', 'podIP', 'hostIP', 'containerID', 'imageID',
+                 'startTime', 'startedAt', 'volumeMounts', 'finishedAt', 'volumeName', 'lastUpdateTime', 'env', 'message', 'currentRevision', 'updateRevision',
+                 'controller-revision-hash']
+not_care = [jd.delete, jd.insert] + not_care_keys + ['name']
 
 
 def generate_digest(path):
     side_effect = generate_side_effect(path)
     status = generate_status()
-    return side_effect, status
+    resources = generate_resources()
+    return side_effect, status, resources
 
 
 def generate_side_effect(path):
@@ -16,10 +29,10 @@ def generate_side_effect(path):
     side_effect_empty_entry = {"Create": 0, "Update": 0,
                                "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
     for line in open(path).readlines():
-        if common.SONAR_SIDE_EFFECT_MARK not in line:
+        if analyze_util.SONAR_SIDE_EFFECT_MARK not in line:
             continue
-        side_effect = common.parse_side_effect(line)
-        if common.ERROR_MSG_FILTER_FLAG:
+        side_effect = analyze_util.parse_side_effect(line)
+        if analyze_util.ERROR_MSG_FILTER_FLAG:
             if side_effect.error == "NotFound":
                 continue
         rtype = side_effect.rtype
@@ -44,7 +57,7 @@ def generate_status():
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
-    k8s_namespace = "default"
+    k8s_namespace = sieve_config.config["namespace"]
     resources = {}
     for ktype in common.KTYPES:
         resources[ktype] = []
@@ -66,6 +79,91 @@ def generate_status():
                 terminating += 1
         status[ktype]["terminating"] = terminating
     return status
+
+
+def trim_resource(cur, key_trace=[]):
+    if type(cur) is list:
+        idx = 0
+        for item in cur:
+            trim_resource(item, key_trace)
+            idx += 1
+
+    if type(cur) is dict:
+        for key in list(cur):
+            if key in not_care_keys:
+                cur[key] = "SIEVE-IGNORE"
+            elif key == 'name' and key_trace[1] != "metadata":
+                cur[key] = "SIEVE-IGNORE"
+            else:
+                trim_resource(cur[key], key_trace + [key])
+
+
+def get_resource_helper(func):
+    k8s_namespace = sieve_config.config["namespace"]
+    response = func(k8s_namespace, _preload_content=False, watch=False)
+    data = json.loads(response.data)
+    return [resource for resource in data['items']]
+
+
+def get_crd_list():
+    data = []
+    try:
+        for item in json.loads(os.popen('kubectl get crd -o json').read())["items"]:
+            data.append(item["spec"]["names"]["singular"])
+    except Exception as e:
+        print("get_crd_list fail", e)
+    return data
+
+
+def get_crd(crd):
+    data = []
+    try:
+        for item in json.loads(os.popen('kubectl get %s -o json' % (crd)).read())["items"]:
+            data.append(item)
+    except Exception as e:
+        print("get_crd fail", e)
+    return data
+
+
+def generate_resources(path=""):
+    print("Generating cluster resources digest ...")
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    apps_v1 = kubernetes.client.AppsV1Api()
+    resource_handler = {
+        "deployment": apps_v1.list_namespaced_deployment,
+        "serviceaccount": core_v1.list_namespaced_service_account,
+        "configmap": core_v1.list_namespaced_config_map,
+        "persistentvolumeclaim": core_v1.list_namespaced_persistent_volume_claim,
+        "pod": core_v1.list_namespaced_pod,
+        "service": core_v1.list_namespaced_service,
+        "statefulset": apps_v1.list_namespaced_stateful_set
+    }
+    resources = {}
+
+    crd_list = get_crd_list()
+
+    resource_set = set(
+        ["statefulset", "pod", "persistentvolumeclaim", "deployment"])
+    if path != "":
+        for line in open(path).readlines():
+            if common.SONAR_SIDE_EFFECT_MARK not in line:
+                continue
+            side_effect = common.parse_side_effect(line)
+            resource_set.add(side_effect.rtype)
+
+    for resource in resource_set:
+        if resource in resource_handler:
+            # Normal resource
+            resources[resource] = get_resource_helper(
+                resource_handler[resource])
+
+    # Fetch for crd
+    for crd in crd_list:
+        resources[crd] = get_crd(crd)
+
+    trim_resource(resources)
+    return resources
 
 
 def check_status(learning_status, testing_status):
@@ -138,32 +236,32 @@ def generate_generate_time_travel_description(testing_config):
         testing_config["straggler"],
         # testing_config["se-rtype"] + "/" +
         # testing_config["se-namespace"] + "/" + testing_config["se-name"],
-        # common.translate_side_effect(testing_config["se-etype"])
+        # analyze_util.translate_side_effect(testing_config["se-etype"])
     )
 
 
 def generate_debug_suggestion(testing_config):
-    return "Please check how controller reacts when seeing %s: %s, the controller may issue %s to %s without proper checking" % (
+    return "Please check how controller reacts when seeing %s: %s, the event might be cancelled by following events" % (
         testing_config["ce-rtype"] + "/" +
         testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
-        testing_config["ce-diff-current"],
-        common.translate_side_effect(testing_config["se-etype"], True),
-        testing_config["se-rtype"] + "/" +
-        testing_config["se-namespace"] + "/" + testing_config["se-name"])
+        testing_config["ce-diff-current"])
 
 
 def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
     testing_config = yaml.safe_load(open(config))
-    interest_objects = []
-    if testing_config["mode"] in ["time-travel", "obs-gap"]:
-        interest_objects.append(
-            {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
     alarm_status, bug_report_status = check_status(
         learning_status, testing_status)
-    alarm_side_effect, bug_report_side_effect = check_side_effect(
-        learning_side_effect, testing_side_effect, interest_objects)
-    alarm = alarm_side_effect + alarm_status
-    bug_report = bug_report_side_effect + bug_report_status
+    alarm = alarm_status
+    bug_report = bug_report_status
+    # TODO: implement side effect checking for obs gap
+    if testing_config["mode"] == "time-travel":
+        interest_objects = []
+        interest_objects.append(
+            {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
+        alarm_side_effect, bug_report_side_effect = check_side_effect(
+            learning_side_effect, testing_side_effect, interest_objects)
+        alarm += alarm_side_effect
+        bug_report += bug_report_side_effect
     return alarm, bug_report
 
 
@@ -181,12 +279,13 @@ def look_for_panic_in_operator_log(operator_log):
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
+
 def look_for_sleep_over_in_server_log(server_log):
     file = open(server_log)
     return "[sonar] sleep over" in file.read()
 
 
-def check(learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, operator_log, server_log):
+def check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log):
     testing_config = yaml.safe_load(open(test_config))
     # Skip case which target side effect event not appear in operator log under time-travel mode
     if testing_config["mode"] == "time-travel" and not look_for_sleep_over_in_server_log(server_log):
@@ -206,5 +305,70 @@ def check(learned_side_effect, learned_status, testing_side_effect, testing_stat
             bug_report += "[DEBUGGING SUGGESTION] %s\n" % generate_debug_suggestion(
                 testing_config)
         bug_report = "\n[BUG REPORT]\n" + bug_report
-        print(bug_report)
+
+    if learned_resources != None:
+        bug_report += "\n" + \
+        look_for_resouces_diff(learned_resources, testing_resources)
+
+    print(bug_report)
+
     return bug_report
+
+
+def look_for_resouces_diff(learn, test):
+    f = io.StringIO()
+    learn_trim = copy.deepcopy(learn)
+    test_trim = copy.deepcopy(test)
+    trim_resource(learn_trim)
+    trim_resource(test_trim)
+    diff = jd.diff(learn_trim, test_trim, syntax='symmetric')
+
+    print("[RESOURCE DIFF REPORT]", file=f)
+    for rtype in diff:
+        rdiff = diff[rtype]
+        # Check for resource level delete/insert
+        if jd.delete in rdiff:
+            # Any resource deleted
+            for (idx, item) in rdiff[jd.delete]:
+                print("[resource deleted]", rtype, item['metadata']
+                      ['namespace'], item['metadata']['name'], file=f)
+        if jd.insert in rdiff:
+            # Any resource added
+            for (idx, item) in rdiff[jd.insert]:
+                print("[resource added]", rtype, item['metadata']
+                      ['namespace'], item['metadata']['name'], file=f)
+
+        # Check for resource internal fields
+        for idx in rdiff:
+            if not type(idx) is int:
+                continue
+            resource = test[rtype][idx]
+            name = resource['metadata']['name']
+            namespace = resource['metadata']['namespace']
+            item = rdiff[idx]
+            for majorfield in item:
+                if majorfield == jd.delete:
+                    print("[field deleted]", item[majorfield], file=f)
+                    continue
+                if majorfield == jd.insert:
+                    print("[field added]", item[majorfield], file=f)
+                    continue
+                data = item[majorfield]
+                for subfield in data:
+                    if not subfield in not_care:
+                        print("[%s field changed]" % (majorfield), rtype, name,
+                              subfield, "changed", "delta: ", data[subfield], file=f)
+                if jd.delete in data:
+                    print("[%s field deleted]" % (majorfield),
+                          rtype, name, data[jd.delete], file=f)
+                if jd.insert in data:
+                    print("[%s field added]" % (majorfield),
+                          rtype, name, data[jd.insert], file=f)
+
+    result = f.getvalue()
+    f.close()
+    return result
+
+
+if __name__ == "__main__":
+    generate_resources()

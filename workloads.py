@@ -1,5 +1,4 @@
 import test_framework
-import os
 import common
 
 
@@ -12,7 +11,7 @@ workloads = {
         .wait(50),
         "scaledown-scaleup": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-cassandra-operator/test/cdc-2.yaml").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.RUNNING)
-        .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":1}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.TERMINATED).wait_for_pvc_status("data-volume-cassandra-test-cluster-dc1-rack1-1", common.TERMINATED)
+        .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":1}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.TERMINATED, 80).wait_for_pvc_status("data-volume-cassandra-test-cluster-dc1-rack1-1", common.TERMINATED, 0)
         .cmd("kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p='{\"spec\":{\"nodes\":2}}'").wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", common.RUNNING)
         .wait(50),
         "scaledown": test_framework.new_built_in_workload()
@@ -27,11 +26,26 @@ workloads = {
         .cmd("kubectl delete CassandraCluster sonar-cassandra-cluster").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.TERMINATED)
         .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-0", common.RUNNING)
         .wait(50),
+        "reducepdb": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
+        .cmd("kubectl apply -f test-casskop-operator/test/cc-2.yaml").wait(60)
+        .cmd("kubectl apply -f test-casskop-operator/test/cc-1.yaml").wait(60)
+        .wait(50),
         "nodesperrack": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-2.yaml").wait_for_pod_status("sonar-cassandra-cluster-dc1-rack1-1", common.RUNNING)
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-1.yaml").wait(10)
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-0.yaml").wait(10)
+        .wait(50),
+        "scaledown": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
+        # Init 3
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml").wait(100)
+        # Old 3, now 2, crash defer update cc. Now dc is 2, but old is still 3, and we crash the operator
+        # Inside 10s, the operator should handle for the change, and resatrted after 10s
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-2.yaml").wait(10)
+        # Issue this, and start the operator, see old = 3
+        .cmd("kubectl apply -f test-casskop-operator/test/dc-1.yaml").wait(60)
         .wait(50),
     },
     "cass-operator": {
@@ -73,6 +87,11 @@ workloads = {
         .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"replicas\":3}}'").wait(10)
         .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"replicas\":2}}'").wait(10)
         .wait(50),
+        "resize-pvc-atomic": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml").wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
+        # 10Gi -> 15Gi
+        .cmd("kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p='{\"spec\":{\"persistence\":{\"storage\":\"15Gi\"}}}'").wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
+        .wait(120),
     },
     "mongodb-operator": {
         "recreate": test_framework.new_built_in_workload()

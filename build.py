@@ -160,7 +160,7 @@ if __name__ == "__main__":
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to build: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="build MODE: learn, time-travel, sparse-read", metavar="MODE", default="learn")
+                      help="build MODE: learn, time-travel, sparse-read, obs-gap, atomic", metavar="MODE", default="learn")
     parser.add_option("-s", "--sha", dest="sha",
                       help="SHA of the project", metavar="SHA", default="none")
     parser.add_option("-d", "--docker", dest="docker",
