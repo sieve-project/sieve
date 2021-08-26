@@ -83,8 +83,9 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     os.system("kind delete cluster")
     os.system("./setup.sh %s %s %s" %
               (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
-    os.system("kubectl create namespace sieve")
-    os.system("kubectl config set-context --current --namespace=sieve")
+    # os.system("kubectl create namespace %s" % sieve_config["namespace"])
+    # os.system("kubectl config set-context --current --namespace=%s" %
+    #           sieve_config["namespace"])
     prepare_sieve_server(test_config)
 
     # when testing time-travel, we need to pause the apiserver
