@@ -1,4 +1,4 @@
 
 config = {
-    "namespace": "sieve",
+    "namespace": "default",
 }
