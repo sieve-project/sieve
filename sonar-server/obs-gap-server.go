@@ -298,6 +298,8 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 			if cancelEvent(crucialEvent, currentEvent) {
 				log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
+				time.Sleep(time.Second * 30)
+				log.Println("Go now!")
 				s.mutex.Lock()
 				s.pausingReconcile = false
 				s.cond.Broadcast()
