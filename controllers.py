@@ -129,6 +129,8 @@ test_suites = {
     },
 }
 
+# This should be all lower case
+# TODO: we should make the CRD checking in learn client case insensitive
 CRDs = {
     "cassandra-operator": ["cassandradatacenter", "cassandracluster", "cassandrabackup"],
     "zookeeper-operator": ["zookeepercluster"],
