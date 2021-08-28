@@ -2,35 +2,13 @@ import time
 import sys
 import os
 import subprocess
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
-def warn(message):
-    print(bcolors.WARNING + "[WARN] " + message + bcolors.ENDC)
-
-
-def ok(message):
-    print(bcolors.OKGREEN + "[OK] " + message + bcolors.ENDC)
-
-
-def fail(message):
-    print(bcolors.FAIL + "[FAIL] " + message + bcolors.ENDC)
+from common import fail, ok, warn
 
 
 def check_go_env():
     if os.system("go version > /dev/null 2>&1") != 0:
-        fail("golang environment not detected, please install it according to https://golang.org/doc/install")
+        fail(
+            "golang environment not detected, please install it according to https://golang.org/doc/install")
         return
     else:
         ok("golang environment detected")
@@ -54,14 +32,16 @@ def check_go_env():
     if 'GOPATH' in os.environ:
         ok("environment variable $GOPATH detected")
     else:
-        fail("environment variable $GOPATH not detected, try to set it according to https://golang.org/doc/gopath_code#GOPATH")
+        fail(
+            "environment variable $GOPATH not detected, try to set it according to https://golang.org/doc/gopath_code#GOPATH")
 
     return
 
 
 def check_kind_env():
     if os.system("kind version > /dev/null 2>&1") != 0:
-        fail("kind not detected, please install it according to https://kind.sigs.k8s.io/docs/user/quick-start/#installation")
+        fail(
+            "kind not detected, please install it according to https://kind.sigs.k8s.io/docs/user/quick-start/#installation")
         return
     else:
         ok("kind detected")
@@ -75,7 +55,8 @@ def check_kind_env():
     if major > 0 or (major == 0 and minor >= 10):
         ok("kind version %s satisfies the requirement" % (version))
     else:
-        warn("kind version %s not satisfies the requirement, the minimum kind version should be above 0.10.0" % (version))
+        warn(
+            "kind version %s not satisfies the requirement, the minimum kind version should be above 0.10.0" % (version))
 
     if 'KUBECONFIG' in os.environ:
         ok("environment variable $KUBECONFIG detected")
@@ -105,7 +86,8 @@ def check_sqlite_env():
         import sqlite3
         ok("python module pysqlite3 detected")
     except Exception as err:
-        fail("python module pysqlite3 not detected, try to install it by `pip3 install pysqlite3`")
+        fail(
+            "python module pysqlite3 not detected, try to install it by `pip3 install pysqlite3`")
 
 
 def check_python_env():
@@ -113,13 +95,15 @@ def check_python_env():
         import kubernetes
         ok("python module kubernetes detected")
     except Exception as err:
-        fail("python module pysqlite3 not detected, try to install it by `pip3 install kubernetes`")
+        fail(
+            "python module pysqlite3 not detected, try to install it by `pip3 install kubernetes`")
 
     try:
         import yaml
         ok("python module pyyaml detected")
     except Exception as err:
-        fail("python module pysqlite3 not detected, try to install it by `pip3 install pyyaml`")
+        fail(
+            "python module pysqlite3 not detected, try to install it by `pip3 install pyyaml`")
 
 
 if __name__ == "__main__":

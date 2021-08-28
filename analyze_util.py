@@ -22,8 +22,8 @@ SONAR_EVENT_APPLIED_MARK = "[SONAR-EVENT-APPLIED]"
 
 BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
                               "managedFields", "lastTransitionTime", "generation"]
-SONAR_SKIP_MARKER = "SONAR-SKIP"
-SONAR_CANONICALIZATION_MARKER = "SONAR-NON-NIL"
+SONAR_SKIP_MARKER = "SIEVE-SKIP"
+SONAR_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 IP_REG = '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
 PLACEHOLDER_FIELDS = ["nodeName", "containerID"]
