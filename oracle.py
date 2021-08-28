@@ -5,7 +5,7 @@ import yaml
 import jsondiff as jd
 import json
 import os
-import common
+from common import *
 import io
 import sieve_config
 
@@ -24,7 +24,7 @@ def generate_digest(path):
 
 
 def generate_side_effect(path):
-    print("Generating controller side effect digest ...")
+    print("Checking safety assertions ...")
     side_effect_map = {}
     side_effect_empty_entry = {"Create": 0, "Update": 0,
                                "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
@@ -51,7 +51,7 @@ def generate_side_effect(path):
 
 
 def generate_status():
-    print("Generating cluster status digest ...")
+    print("Checking liveness assertions ...")
     status = {}
     status_empty_entry = {"size": 0, "terminating": 0}
     kubernetes.config.load_kube_config()
@@ -59,19 +59,19 @@ def generate_status():
     apps_v1 = kubernetes.client.AppsV1Api()
     k8s_namespace = sieve_config.config["namespace"]
     resources = {}
-    for ktype in common.KTYPES:
+    for ktype in KTYPES:
         resources[ktype] = []
         if ktype not in status:
             status[ktype] = copy.deepcopy(status_empty_entry)
     for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
-        resources[common.POD].append(pod)
+        resources[POD].append(pod)
     for pvc in core_v1.list_namespaced_persistent_volume_claim(k8s_namespace, watch=False).items:
-        resources[common.PVC].append(pvc)
+        resources[PVC].append(pvc)
     for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
-        resources[common.DEPLOYMENT].append(dp)
+        resources[DEPLOYMENT].append(dp)
     for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
-        resources[common.STS].append(sts)
-    for ktype in common.KTYPES:
+        resources[STS].append(sts)
+    for ktype in KTYPES:
         status[ktype]["size"] = len(resources[ktype])
         terminating = 0
         for item in resources[ktype]:
@@ -126,7 +126,7 @@ def get_crd(crd):
 
 
 def generate_resources(path=""):
-    print("Generating cluster resources digest ...")
+    # print("Generating cluster resources digest ...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
@@ -147,9 +147,9 @@ def generate_resources(path=""):
         ["statefulset", "pod", "persistentvolumeclaim", "deployment"])
     if path != "":
         for line in open(path).readlines():
-            if common.SONAR_SIDE_EFFECT_MARK not in line:
+            if analyze_util.SONAR_SIDE_EFFECT_MARK not in line:
                 continue
-            side_effect = common.parse_side_effect(line)
+            side_effect = analyze_util.parse_side_effect(line)
             resource_set.add(side_effect.rtype)
 
     for resource in resource_set:
@@ -188,7 +188,7 @@ def check_status(learning_status, testing_status):
                     alarm += 1
                     bug_report += "[ERROR] %s %s inconsistency: %s seen after learning run, but %s seen after testing run\n" % (
                         rtype, attr.upper(), str(learning_status[rtype][attr]), str(testing_status[rtype][attr]))
-    final_bug_report = "Checking for cluster resource states...\n" + \
+    final_bug_report = "Liveness assertion failed:\n" + \
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
@@ -222,29 +222,36 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
                     alarm += 1
                     bug_report += "[ERROR] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
                         rtype, namespace, name, attr.upper(), str(learning_entry[attr]), str(testing_entry[attr]))
-    final_bug_report = "Checking for controller side effects (resource creation/deletion)...\n" + \
+    final_bug_report = "Safety assertion failed:\n" + \
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
 
-def generate_generate_time_travel_description(testing_config):
-    return "Sieve makes the controller time travel back to the history to see the status just %s %s: %s (at %s)" % (
+def generate_time_travel_debugging_hint(testing_config):
+    desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
         testing_config["timing"],
         testing_config["ce-rtype"] + "/" +
         testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
+        testing_config["ce-diff-current"])
+    suggestion = "Please check how controller reacts when seeing %s: %s, the controller might issue %s to %s without proper checking" % (
+        testing_config["ce-rtype"] + "/" +
+        testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
         testing_config["ce-diff-current"],
-        testing_config["straggler"],
-        # testing_config["se-rtype"] + "/" +
-        # testing_config["se-namespace"] + "/" + testing_config["se-name"],
-        # analyze_util.translate_side_effect(testing_config["se-etype"])
-    )
+        testing_config["se-etype"],
+        testing_config["se-rtype"] + "/" + testing_config["se-namespace"] + "/" + testing_config["se-name"])
+    return desc + "\n" + suggestion + "\n"
 
 
-def generate_debug_suggestion(testing_config):
-    return "Please check how controller reacts when seeing %s: %s, the event might be cancelled by following events" % (
+def generate_obs_gap_debugging_hint(testing_config):
+    desc = "Sieve makes the controller miss the event %s: %s" % (
         testing_config["ce-rtype"] + "/" +
         testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
         testing_config["ce-diff-current"])
+    suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
+        testing_config["ce-rtype"] + "/" +
+        testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
+        testing_config["ce-diff-current"])
+    return desc + "\n" + suggestion + "\n"
 
 
 def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
@@ -285,6 +292,18 @@ def look_for_sleep_over_in_server_log(server_log):
     return "[sonar] sleep over" in file.read()
 
 
+def generate_debugging_hint(testing_config):
+    mode = testing_config["mode"]
+    if mode == "time-travel":
+        return generate_time_travel_debugging_hint(testing_config)
+    elif mode == "obs-gap":
+        return generate_obs_gap_debugging_hint(testing_config)
+    elif mode == "atomic":
+        return "TODO: generate debugging hint for atomic bugs"
+    else:
+        assert False
+
+
 def check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log):
     testing_config = yaml.safe_load(open(test_config))
     # Skip case which target side effect event not appear in operator log under time-travel mode
@@ -298,20 +317,15 @@ def check(learned_side_effect, learned_status, learned_resources, testing_side_e
         operator_log)
     alarm = discrepancy_alarm + panic_alarm
     bug_report = discrepancy_bug_report + panic_bug_report
-    if alarm != 0:
-        if testing_config["mode"] == "time-travel":
-            bug_report += "[TIME TRAVEL DESCRIPTION] %s\n" % generate_generate_time_travel_description(
-                testing_config)
-            bug_report += "[DEBUGGING SUGGESTION] %s\n" % generate_debug_suggestion(
-                testing_config)
-        bug_report = "\n[BUG REPORT]\n" + bug_report
-
     if learned_resources != None:
         bug_report += "\n" + \
-        look_for_resouces_diff(learned_resources, testing_resources)
-
-    print(bug_report)
-
+            look_for_resouces_diff(learned_resources, testing_resources)
+    if alarm != 0:
+        bug_report = "[BUG FOUND]\n" + bug_report
+        hint = "[DEBUGGING SUGGESTION]\n" + \
+            generate_debugging_hint(testing_config)
+        print(bcolors.FAIL + bug_report + bcolors.WARNING + hint + bcolors.ENDC)
+        bug_report += hint
     return bug_report
 
 

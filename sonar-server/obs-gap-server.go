@@ -190,7 +190,7 @@ func cancelEventList(crucialEvent, currentEvent []interface{}) bool {
 				}
 			}
 		case string:
-			if v == "SONAR-NON-NIL" || v == "SONAR-SKIP" {
+			if v == "SIEVE-NON-NIL" || v == "SIEVE-SKIP" {
 				continue
 			} else if e, ok := currentEvent[i].(string); ok {
 				if v != e {
@@ -241,7 +241,7 @@ func cancelEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 				}
 			}
 		case string:
-			if v == "SONAR-NON-NIL" {
+			if v == "SIEVE-NON-NIL" {
 				continue
 			} else if e, ok := currentEvent[key].(string); ok {
 				if v != e {
