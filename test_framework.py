@@ -47,6 +47,35 @@ def get_pvc(resource_name):
             target_pvc = pvc
     return target_pvc
 
+def get_secret(resource_name):
+    """Return Secret object with specified name
+
+    Parameters:
+    resource_name -- name of the secret object
+    """
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    secrets = core_v1.list_namespaced_secret(
+        namespace=sieve_config.config["namespace"], watch=False).items
+    for secret in secrets:
+        if secret.metadata.name == resource_name:
+            return secret
+    return None
+
+def get_service(resource_name):
+    """Return Secret object with specified name
+
+    Parameters:
+    resource_name -- name of the secret object
+    """
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    services = core_v1.list_namespaced_service(
+        namespace=sieve_config.config["namespace"], watch=False).items
+    for service in services:
+        if service.metadata.name == resource_name:
+            return service
+    return None
 
 class TestCmd:
     def __init__(self, cmd):
@@ -184,6 +213,80 @@ class TestWaitForStorage:
         print("wait takes %f seconds" % (time.time() - s))
         return 0
 
+class TestWaitForExistence:
+    def __init__(self, resource_type, resource_name, exist: bool, obs_gap_waiting_time, time_out=600):
+        '''Constructor
+
+        Parameters:
+        resource_type -- type of resource, e.g. Secret, Service
+        resource_name -- name of the resource
+        exist -- True for waiting for the resource to exist, False to waiting for the resource to disappear
+        '''
+        self.resource_type = resource_type
+        self.resource_name = resource_name
+        self.exist = exist
+        self.namespace = sieve_config.config["namespace"]
+        self.obs_gap_waiting_time = obs_gap_waiting_time
+        self.time_out = time_out
+
+    def check_secret(self):
+        """Return if a secret with the name self.resource_name meets the self.exist"""
+        try:
+            secret = get_secret(self.resource_name)
+        except Exception as err:
+            print("error occurs during check pvc", err)
+            print(traceback.format_exc())
+            return False
+
+        if self.exist == common.EXIST:
+            if secret is not None:
+                return True
+        else:
+            if secret is None:
+                return True
+        return False
+    
+    def check_service(self):
+        try:
+            service = get_service(self.resource_name)
+        except Exception as err:
+            print("error occurs during check pvc", err)
+            print(traceback.format_exc())
+            return False
+
+        if self.exist == common.EXIST:
+            if service is not None:
+                return True
+        else:
+            if service is None:
+                return True
+        return False
+
+    def run(self, mode):
+        s = time.time()
+        print("wait until %s %s %s..." %
+              (self.resource_type, self.resource_name, "exist" if self.exist else "nonexist"))
+        if mode == "obs-gap" and self.obs_gap_waiting_time != -1:
+            time.sleep(self.obs_gap_waiting_time)
+            print("obs gap waiting time is reached")
+        else:
+            while True:
+                if time.time() - s > float(self.time_out):
+                    print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
+                          (self.resource_name, self.status, self.time_out))
+                    os.system("kubectl describe pods")
+                    return 1
+                if self.resource_type == common.SECRET:
+                    if self.check_secret():
+                        break
+                elif self.resource_type == common.SERVICE:
+                    if self.check_service():
+                        break
+                else:
+                    assert False, "type not supported yet"
+                time.sleep(5)
+        print("wait takes %f seconds" % (time.time() - s))
+        return 0
 
 class BuiltInWorkLoad:
     def __init__(self):
@@ -203,6 +306,18 @@ class BuiltInWorkLoad:
     def wait_for_pvc_status(self, pvc_name, status, obs_gap_waiting_time=-1):
         test_wait = TestWaitForStatus(
             common.PVC, pvc_name, status, obs_gap_waiting_time)
+        self.work_list.append(test_wait)
+        return self
+
+    def wait_for_secret_existence(self, secret_name, exist: bool, obs_gap_waiting_time=-1):
+        test_wait = TestWaitForExistence(
+            common.SECRET, secret_name, exist, obs_gap_waiting_time)
+        self.work_list.append(test_wait)
+        return self
+
+    def wait_for_service_existence(self, service_name, exist: bool, obs_gap_waiting_time=-1):
+        test_wait = TestWaitForExistence(
+            common.SERVICE, service_name, exist, obs_gap_waiting_time)
         self.work_list.append(test_wait)
         return self
 

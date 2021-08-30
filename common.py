@@ -2,11 +2,16 @@ POD = "pod"
 PVC = "persistentvolumeclaim"
 DEPLOYMENT = "deployment"
 STS = "statefulset"
+SECRET = "secret"
+SERVICE = "service"
 
 PENDING = "Pending"
 RUNNING = "Running"
 TERMINATED = "Terminated"
 BOUND = "Bound"
+
+EXIST = True
+NONEXIST = False
 
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
