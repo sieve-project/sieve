@@ -2,14 +2,18 @@ POD = "pod"
 PVC = "persistentvolumeclaim"
 DEPLOYMENT = "deployment"
 STS = "statefulset"
+SECRET = "secret"
+SERVICE = "service"
 
 PENDING = "Pending"
 RUNNING = "Running"
 TERMINATED = "Terminated"
 BOUND = "Bound"
 
-KTYPES = [POD, PVC, DEPLOYMENT, STS]
+EXIST = True
+NONEXIST = False
 
+KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
 class bcolors:
     HEADER = '\033[95m'
