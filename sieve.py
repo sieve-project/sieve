@@ -17,7 +17,8 @@ from common import cprint, bcolors, ok
 def watch_crd(project, addrs):
     for addr in addrs:
         for crd in controllers.CRDs[project]:
-            os.system("kubectl get %s -s %s" % (crd, addr))
+            os.system("kubectl get %s -s %s --ignore-not-found=true" %
+                      (crd, addr))
 
 
 def generate_configmap(test_config):
@@ -290,10 +291,10 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
                      blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
         else:
             test_config = config if config != "none" else suite.config
+            print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(
                 log_dir, os.path.basename(test_config))
             os.system("cp %s %s" % (test_config, test_config_to_use))
-            print("Testing with config: %s" % test_config_to_use)
             if mode == "time-travel":
                 suite.num_apiservers = 3
             run_test(project, mode, stage, suite.workload,
