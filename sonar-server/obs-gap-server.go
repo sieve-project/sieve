@@ -23,6 +23,7 @@ func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 		pausedReconcileCnt: 0,
 	}
 	server.mutex = &sync.RWMutex{}
+	server.reconcilingMutex = &sync.RWMutex{}
 	server.cond = sync.NewCond(server.mutex)
 	listener := &ObsGapListener{
 		Server: server,
@@ -48,7 +49,6 @@ func (l *ObsGapListener) Echo(request *sonar.EchoRequest, response *sonar.Respon
 }
 
 func (l *ObsGapListener) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGapBeforeIndexerWriteRequest, response *sonar.Response) error {
-	log.Println("start NotifyObsGapBeforeIndexerWrite...")
 	return l.Server.NotifyObsGapBeforeIndexerWrite(request, response)
 }
 
@@ -57,8 +57,11 @@ func (l *ObsGapListener) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsG
 }
 
 func (l *ObsGapListener) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBeforeReconcileRequest, response *sonar.Response) error {
-	log.Println("start NotifyObsGapBeforeReconcile...")
 	return l.Server.NotifyObsGapBeforeReconcile(request, response)
+}
+
+func (l *ObsGapListener) NotifyObsGapAfterReconcile(request *sonar.NotifyObsGapAfterReconcileRequest, response *sonar.Response) error {
+	return l.Server.NotifyObsGapAfterReconcile(request, response)
 }
 
 func (l *ObsGapListener) NotifyObsGapSideEffects(request *sonar.NotifyObsGapSideEffectsRequest, response *sonar.Response) error {
@@ -77,6 +80,7 @@ type obsGapServer struct {
 	ceRtype            string
 	crucialEvent       eventWrapper
 	mutex              *sync.RWMutex
+	reconcilingMutex   *sync.RWMutex
 	cond               *sync.Cond
 	pausedReconcileCnt int32
 }
@@ -123,7 +127,7 @@ func getEventResourceNamespace(event map[string]interface{}) string {
 }
 
 func (s *obsGapServer) isSameTarget(currentEvent map[string]interface{}) bool {
-	return getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace	
+	return getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace
 }
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
@@ -141,11 +145,13 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
 	if ew.eventObjectType == s.ceRtype && s.isSameTarget(currentEvent) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
+		s.reconcilingMutex.Lock()
 		log.Println("[sonar] should stop any reconcile here until a later cancel event comes")
 		s.mutex.Lock()
 		s.pausingReconcile = true
 		s.crucialEvent = ew
 		s.mutex.Unlock()
+		s.reconcilingMutex.Unlock()
 
 		go func() {
 			time.Sleep(time.Second * 30)
@@ -190,7 +196,7 @@ func cancelEventList(crucialEvent, currentEvent []interface{}) bool {
 				}
 			}
 		case string:
-			if v == "SONAR-NON-NIL" || v == "SONAR-SKIP" {
+			if v == "SIEVE-NON-NIL" || v == "SIEVE-SKIP" {
 				continue
 			} else if e, ok := currentEvent[i].(string); ok {
 				if v != e {
@@ -241,7 +247,7 @@ func cancelEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 				}
 			}
 		case string:
-			if v == "SONAR-NON-NIL" {
+			if v == "SIEVE-NON-NIL" {
 				continue
 			} else if e, ok := currentEvent[key].(string); ok {
 				if v != e {
@@ -298,8 +304,8 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 			if cancelEvent(crucialEvent, currentEvent) {
 				log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
-				time.Sleep(time.Second * 30)
-				log.Println("Go now!")
+				// TODO: we need to better handle https://github.com/instaclustr/cassandra-operator/issues/398 here
+				// as we should wait until seeing the delete to detect this bug
 				s.mutex.Lock()
 				s.pausingReconcile = false
 				s.cond.Broadcast()
@@ -313,6 +319,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 }
 
 func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBeforeReconcileRequest, response *sonar.Response) error {
+	s.reconcilingMutex.Lock()
 	recID := request.ControllerName
 	// Fix: use cond variable instead of polling
 	// In py part, we can analyze the exisiting of side effect event
@@ -327,6 +334,14 @@ func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBe
 	s.mutex.Unlock()
 	log.Println("NotifyObsGapBeforeReconcile[1/1]", recID, s.pausingReconcile)
 	*response = sonar.Response{Ok: true}
+	return nil
+}
+
+func (s *obsGapServer) NotifyObsGapAfterReconcile(request *sonar.NotifyObsGapAfterReconcileRequest, response *sonar.Response) error {
+	recID := request.ControllerName
+	log.Println("NotifyObsGapAfterReconcile", recID)
+	*response = sonar.Response{Ok: true}
+	s.reconcilingMutex.Unlock()
 	return nil
 }
 

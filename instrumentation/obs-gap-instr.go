@@ -53,6 +53,16 @@ func instrumentControllerGoForObsGap(ifilepath, ofilepath string) {
 		}
 		beforeReconcileInstrumentation.Decs.End.Append("//sonar")
 		insertStmt(&funcDecl.Body.List, index, beforeReconcileInstrumentation)
+
+		index += 1
+		afterReconcileInstrumentation := &dst.DeferStmt{
+			Call: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: "NotifyObsGapAfterReconcile", Path: "sonar.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
+			},
+		}
+		afterReconcileInstrumentation.Decs.End.Append("//sonar")
+		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
 	} else {
 		panic(fmt.Errorf("Cannot find function reconcileHandler"))
 	}

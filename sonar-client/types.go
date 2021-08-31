@@ -81,6 +81,10 @@ type NotifyObsGapBeforeReconcileRequest struct {
 	ControllerName string
 }
 
+type NotifyObsGapAfterReconcileRequest struct {
+	ControllerName string
+}
+
 type NotifyObsGapAfterIndexerWriteRequest struct {
 	OperationType string
 	Object        string

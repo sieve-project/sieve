@@ -98,6 +98,29 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 	client.Close()
 }
 
+func NotifyObsGapAfterReconcile(controllerName string) {
+	if !checkStage(test) || !checkMode(obsGap) {
+		return
+	}
+	log.Printf("[sonar][NotifyObsGapAfterReconcile]\n")
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
+		return
+	}
+	request := &NotifyObsGapAfterReconcileRequest{
+		ControllerName: controllerName,
+	}
+	var response Response
+	err = client.Call("ObsGapListener.NotifyObsGapAfterReconcile", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return
+	}
+	checkResponse(response, "NotifyObsGapAfterReconcile")
+	client.Close()
+}
+
 func NotifyObsGapSideEffects(sideEffectType string, object interface{}, k8sErr error) {
 	if !checkStage(test) || !checkMode(obsGap) {
 		return

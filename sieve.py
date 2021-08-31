@@ -11,12 +11,14 @@ import oracle
 import yaml
 import subprocess
 import signal
+from common import cprint, bcolors, ok
 
 
 def watch_crd(project, addrs):
     for addr in addrs:
         for crd in controllers.CRDs[project]:
-            os.system("kubectl get %s -s %s" % (crd, addr))
+            os.system("kubectl get %s -s %s --ignore-not-found=true" %
+                      (crd, addr))
 
 
 def generate_configmap(test_config):
@@ -122,9 +124,9 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (docker_repo, project, docker_tag)
     kind_load_cmd = "kind load docker-image %s" % (image)
-    print("we are loading image %s to kind nodes..." % (image))
+    print("We are loading image %s to kind nodes..." % (image))
     if os.WEXITSTATUS(os.system(kind_load_cmd)):
-        print("cannot load image %s locally, try to pull from remote" % (image))
+        print("Cannot load image %s locally, try to pull from remote" % (image))
         os.system("docker pull %s" % (image))
         os.system(kind_load_cmd)
 
@@ -140,7 +142,7 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Wait for project pod ready
-    print("wait for operator pod ready...")
+    print("Wait for operator pod ready...")
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
             sieve_config.config["namespace"], watch=False, label_selector="sonartag="+project).items
@@ -160,8 +162,13 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
 
 
 def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers):
+    cprint("Setting up Sieve server ...", bcolors.OKGREEN)
     start_sieve_server()
+    ok("Sieve server set up")
+
+    cprint("Deploying operator ...", bcolors.OKGREEN)
     start_operator(project, docker_repo, docker_tag, num_apiservers)
+    ok("Operator deployed")
 
     kubernetes.config.load_kube_config()
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
@@ -170,7 +177,9 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
     streaming = subprocess.Popen("kubectl logs %s -f" %
                                  pod_name, stdout=streamed_log_file, stderr=streamed_log_file, shell=True, preexec_fn=os.setsid)
 
+    cprint("Running test workload ...", bcolors.OKGREEN)
     test_workload.run(mode)
+    ok("Test workload finished")
 
     pod_name = kubernetes.client.CoreV1Api().list_namespaced_pod(
         sieve_config.config["namespace"], watch=False, label_selector="sonartag="+project).items[0].metadata.name
@@ -236,10 +245,10 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
     if phase == "all" or phase == "setup_only":
         setup_cluster(project, stage, mode, test_config,
                       docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize)
-    if phase == "all" or phase == "workload_only":
+    if phase == "all" or phase == "workload_only" or phase == "workload_and_check":
         run_workload(project, mode, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_apiservers)
-    if phase == "all" or phase == "check_only":
+    if phase == "all" or phase == "check_only" or phase == "workload_and_check":
         check_result(project, mode, stage, test_config,
                      log_dir, data_dir, two_sided, node_ignore)
 
@@ -251,10 +260,10 @@ def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
     learn_config_map["crd-list"] = controllers.CRDs[project]
     if rate_limiter_enabled:
         learn_config_map["rate-limiter-enabled"] = "true"
-        print("turn on rate limiter")
+        print("Turn on rate limiter")
     else:
         learn_config_map["rate-limiter-enabled"] = "false"
-        print("turn off rate limiter")
+        print("Turn off rate limiter")
     # hardcode the interval to 3 seconds for now
     learn_config_map["rate-limiter-interval"] = "3"
     yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
@@ -263,14 +272,14 @@ def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
 def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_limiter_enabled=False, phase="all"):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, "learn")
-    print("log dir: %s" % log_dir)
+    print("Log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
         os.system("rm -rf %s" % log_dir)
         os.system("mkdir -p %s" % log_dir)
 
     if stage == "learn":
         learn_config = os.path.join(log_dir, "learn.yaml")
-        print("learn_config", learn_config)
+        print("Learning stage with config %s" % learn_config)
         generate_learn_config(learn_config, project,
                               mode, rate_limiter_enabled)
         run_test(project, mode, stage, suite.workload,
@@ -282,10 +291,10 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
                      blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
         else:
             test_config = config if config != "none" else suite.config
+            print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(
                 log_dir, os.path.basename(test_config))
             os.system("cp %s %s" % (test_config, test_config_to_use))
-            print("testing mode: %s config: %s" % (mode, test_config_to_use))
             if mode == "time-travel":
                 suite.num_apiservers = 3
             run_test(project, mode, stage, suite.workload,
@@ -297,13 +306,11 @@ def run_batch(project, test, dir, mode, stage, docker):
     config_dir = os.path.join("log", project, test, "learn", "learn", mode)
     configs = [x for x in glob.glob(os.path.join(
         config_dir, "*.yaml")) if not "configmap" in x]
-    print("configs", configs)
+    print("Configs", configs)
     for config in configs:
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(
             dir, project, test, stage, mode + "-batch", num)
-        print("[sonar] config is %s" % config)
-        print("[sonar] log dir is %s" % log_dir)
         try:
             run(controllers.test_suites, project,
                 test, log_dir, mode, stage, config, docker)
@@ -349,9 +356,9 @@ if __name__ == "__main__":
     assert options.mode in ["vanilla", "time-travel",
                             "obs-gap", "atomic", "learn"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
-                             "check_only"], "invalid phase option: %s" % options.phase
+                             "check_only", "workload_and_check"], "invalid phase option: %s" % options.phase
 
-    print("Running Sieve with stage: %s mode: %s..." %
+    print("Running Sieve with %s: %s..." %
           (options.stage, options.mode))
 
     if options.batch:
@@ -362,4 +369,4 @@ if __name__ == "__main__":
                                options.test, options.stage, options.mode)
         run(controllers.test_suites, options.project, options.test, log_dir,
             options.mode, options.stage, options.config, options.docker, options.rate_limiter, options.phase)
-    print("total time: {} seconds".format(time.time() - s))
+    print("Total time: {} seconds".format(time.time() - s))
