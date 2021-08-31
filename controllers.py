@@ -135,7 +135,7 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["yugabyte-operator"]["recreate"], "null", "time-travel"),
         "disable-enable-tls": Suite(
-            workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "test-yugabyte-operator/test/time-travel-config-tls.yaml", "time-travel"),
+            workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "test-yugabyte-operator/test/time-travel-tls.yaml", "time-travel"),
         "disable-enable-tserverUIPort": Suite(
             workloads.workloads["yugabyte-operator"]["disable-enable-tserverUIPort"], "test-yugabyte-operator/test/time-travel-tserverUIPort.yaml", "time-travel"),
     },
