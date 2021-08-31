@@ -132,8 +132,12 @@ test_suites = {
             workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
     },
     "yugabyte-operator": {
-        "recreate": Suite(workloads.workloads["yugabyte-operator"]["recreate"], "null", "time-travel"),
-        "disable-enable-tls": Suite(workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "null", "time-travel"),
+        "recreate": Suite(
+            workloads.workloads["yugabyte-operator"]["recreate"], "null", "time-travel"),
+        "disable-enable-tls": Suite(
+            workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "test-yugabyte-operator/test/time-travel-config-tls.yaml", "time-travel"),
+        "disable-enable-tserverUIPort": Suite(
+            workloads.workloads["yugabyte-operator"]["disable-enable-tserverUIPort"], "test-yugabyte-operator/test/time-travel-tserverUIPort.yaml", "time-travel"),
     },
 }
 
@@ -145,7 +149,7 @@ CRDs = {
     "cass-operator": ["cassandradatacenter"],
     "casskop-operator": ["cassandracluster", "cassandrarestore", "cassandrabackup"],
     "xtradb-operator": ["perconaxtradbcluster", "perconaxtradbclusterbackup", "perconaxtradbclusterrestore", "perconaxtradbbackup"],
-    "yugabyte-operator": ["YBCluster"],
+    "yugabyte-operator": ["ybcluster"],
 }
 
 deployment_name = {

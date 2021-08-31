@@ -10,6 +10,7 @@ if [ -z "$dockertag" ]; then
     exit 1
 fi
 
-export GO111MODULE=on
-operator-sdk build ${dockerrepo}/yugabyte-operator:${dockertag}
+docker build \
+    --no-cache \
+    -t "${dockerrepo}/yugabyte-operator:${dockertag}" -f build/Dockerfile .
 docker push ${dockerrepo}/yugabyte-operator:${dockertag}
