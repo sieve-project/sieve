@@ -145,25 +145,6 @@ class TestWaitForStatus:
         else:
             assert False, "status not supported yet"
         return False
-    
-    def check_secret(self):
-        """Return if a secret with the name self.resource_name meets the self.status"""
-        try:
-            secret = get_secret(self.resource_name)
-        except Exception as err:
-            print("error occurs during check pvc", err)
-            print(traceback.format_exc())
-            return False
-
-        if self.status == common.TERMINATED:
-            if secret is None:
-                return True
-        elif self.status == common.RUNNING:
-            if secret is not None:
-                return True
-        else:
-            assert False, "status not supported yet"
-        return False
 
     def run(self, mode):
         s = time.time()
@@ -184,9 +165,6 @@ class TestWaitForStatus:
                         break
                 elif self.resource_type == common.PVC:
                     if self.check_pvc():
-                        break
-                elif self.resource_type == common.SECRET:
-                    if self.check_secret():
                         break
                 else:
                     assert False, "type not supported yet"
