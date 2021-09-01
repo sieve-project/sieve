@@ -30,6 +30,8 @@ https://github.com/Orange-OpenSource/casskop/issues/321 confirmed (time travelin
 
 https://github.com/Orange-OpenSource/casskop/issues/342 confirmed (observability gaps)
 
+https://github.com/Orange-OpenSource/casskop/issues/357 pending (observability gaps)
+
 ## [pravega/zookeeper-operator](https://github.com/pravega/zookeeper-operator)
 https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by us (time traveling)
 
