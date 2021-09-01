@@ -154,9 +154,9 @@ workloads = {
             .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tserverUIPort-enabled.yaml")
             .wait_for_pod_status("yb-master-2", common.RUNNING)
             .wait_for_pod_status("yb-tserver-2", common.RUNNING)
-            .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tserverUIPort-disabled.yaml")
+            .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tserver\":{\"tserverUIPort\": 0}}}'")
             .wait_for_service_existence("yb-tserver-ui", common.NONEXIST)
-            .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tserverUIPort-enabled.yaml")
+            .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tserver\":{\"tserverUIPort\": 7000}}}'")
             .wait_for_service_existence("yb-tserver-ui", common.EXIST)
             .wait(70),
     },
