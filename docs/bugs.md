@@ -61,3 +61,10 @@ https://jira.percona.com/browse/K8SPXC-716 confirmed and fixed by us (time trave
 https://jira.percona.com/browse/K8SPXC-725 confirmed (time traveling)
 
 https://jira.percona.com/browse/K8SPXC-763 confirmed (time traveling)
+
+## [yugabyte/yugabyte-operator](https://github.com/yugabyte/yugabyte-operator)
+https://github.com/yugabyte/yugabyte-operator/issues/33 pending (by-product)
+
+https://github.com/yugabyte/yugabyte-operator/issues/35 pending (time traveling)
+
+https://github.com/yugabyte/yugabyte-operator/issues/36 pending (time traveling)
