@@ -1,6 +1,7 @@
 import os
 import controllers
 import optparse
+import fileinput
 
 ORIGINAL_DIR = os.getcwd()
 
@@ -94,6 +95,19 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
         "chmod +w -R %s/dep-sonar/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
     os.system("cp -r sonar-client %s/dep-sonar/src/sonar.client" %
               controllers.app_dir[project])
+    
+    if project == "yugabyte-operator":
+        # Ad-hoc fix for api incompatibility in golang
+        # Special handling of yugabyte-operator as it depends on an older apimachinery which is
+        # incompatible with the one sonar.client depends on
+        with fileinput.FileInput("%s/dep-sonar/src/sonar.client/go.mod" % controllers.app_dir[project],
+             inplace = True, backup='.bak') as sonar_client_go_mod:
+            for line in sonar_client_go_mod:
+                if "k8s.io/apimachinery" in line:
+                    print("\tk8s.io/apimachinery v0.17.4", end ='\n')
+                else:
+                    print(line, end ='')
+
     os.chdir(controllers.app_dir[project])
     os.system("git add -A >> /dev/null")
     os.system("git commit -m \"download the lib\" >> /dev/null")
