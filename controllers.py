@@ -36,6 +36,7 @@ github_link = {
     "cass-operator": "https://github.com/datastax/cass-operator.git",
     "casskop-operator": "https://github.com/Orange-OpenSource/casskop.git",
     "xtradb-operator": "https://github.com/percona/percona-xtradb-cluster-operator.git",
+    "yugabyte-operator": "https://github.com/yugabyte/yugabyte-operator.git",
 }
 
 app_dir = {
@@ -46,6 +47,7 @@ app_dir = {
     "cass-operator": "app/cass-operator",
     "casskop-operator": "app/casskop-operator",
     "xtradb-operator": "app/xtradb-operator",
+    "yugabyte-operator": "app/yugabyte-operator",
 }
 
 test_dir = {
@@ -56,6 +58,7 @@ test_dir = {
     "cass-operator": "test-cass-operator",
     "casskop-operator": "test-casskop-operator",
     "xtradb-operator": "test-xtradb-operator",
+    "yugabyte-operator": "test-yugabyte-operator",
 }
 
 test_dir_test = {
@@ -66,6 +69,7 @@ test_dir_test = {
     "cass-operator": os.path.join(test_dir["cass-operator"], "test"),
     "casskop-operator": os.path.join(test_dir["casskop-operator"], "test"),
     "xtradb-operator": os.path.join(test_dir["xtradb-operator"], "test"),
+    "yugabyte-operator": os.path.join(test_dir["yugabyte-operator"], "test"),
 }
 
 test_suites = {
@@ -127,6 +131,14 @@ test_suites = {
         "disable-enable-proxysql": Suite(
             workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", "time-travel", num_workers=4),
     },
+    "yugabyte-operator": {
+        "recreate": Suite(
+            workloads.workloads["yugabyte-operator"]["recreate"], "null", "time-travel"),
+        "disable-enable-tls": Suite(
+            workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "test-yugabyte-operator/test/time-travel-tls.yaml", "time-travel"),
+        "disable-enable-tserverUIPort": Suite(
+            workloads.workloads["yugabyte-operator"]["disable-enable-tserverUIPort"], "test-yugabyte-operator/test/time-travel-tserverUIPort.yaml", "time-travel"),
+    },
 }
 
 # This should be all lower case
@@ -139,6 +151,7 @@ CRDs = {
     "cass-operator": ["cassandradatacenter"],
     "casskop-operator": ["cassandracluster", "cassandrarestore", "cassandrabackup"],
     "xtradb-operator": ["perconaxtradbcluster", "perconaxtradbclusterbackup", "perconaxtradbclusterrestore", "perconaxtradbbackup"],
+    "yugabyte-operator": ["ybcluster"],
 }
 
 deployment_name = {
@@ -149,6 +162,7 @@ deployment_name = {
     "cass-operator": "cass-operator",
     "casskop-operator": "casskop-operator",
     "xtradb-operator": "percona-xtradb-cluster-operator",
+    "yugabyte-operator": "yugabyte-operator",
 }
 
 operator_pod_label = {
@@ -159,6 +173,7 @@ operator_pod_label = {
     "cass-operator": "cass-operator",
     "casskop-operator": "casskop-operator",
     "xtradb-operator": "xtradb-operator",
+    "yugabyte-operator": "yugabyte-operator",
 }
 
 controller_runtime_version = {
@@ -169,6 +184,7 @@ controller_runtime_version = {
     "cass-operator": "v0.5.2",
     "casskop-operator": "v0.6.0",
     "xtradb-operator": "v0.6.2",
+    "yugabyte-operator": "v0.5.2",
 }
 
 client_go_version = {
@@ -179,6 +195,7 @@ client_go_version = {
     "cass-operator": "v0.17.4",
     "casskop-operator": "v0.18.2",
     "xtradb-operator": "v0.18.6",
+    "yugabyte-operator": "v0.17.4",
 }
 
 sha = {
@@ -189,6 +206,7 @@ sha = {
     "cass-operator": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
     "casskop-operator": "f87c8e05c1a2896732fc5f3a174f1eb99e936907",
     "xtradb-operator": "29092c9b145af6eaf5cbff534287483bec4167b6",
+    "yugabyte-operator": "966ef1978ed5d714119548b2c4343925fe49f882",
 }
 
 docker_file = {
@@ -199,6 +217,7 @@ docker_file = {
     "cass-operator": "operator/docker/base/Dockerfile",
     "casskop-operator": "build/Dockerfile",
     "xtradb-operator": "build/Dockerfile",
+    "yugabyte-operator": "build/Dockerfile",
 }
 
 
@@ -277,6 +296,14 @@ def xtradb_operator_deploy(dr, dt):
     os.system("rm %s" % new_path)
 
 
+def yugabyte_operator_deploy(dr, dt):
+    new_path = replace_docker_repo("test-yugabyte-operator/deploy/operator.yaml", dr, dt)
+    os.system("cp %s .." % new_path)
+    os.system("kubectl create -f test-yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml")
+    os.system("kubectl create -f %s" % new_path)
+    os.system("rm %s" % new_path)
+
+
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
     "zookeeper-operator": zookeeper_operator_deploy,
@@ -285,4 +312,5 @@ deploy = {
     "cass-operator": cass_operator_deploy,
     "casskop-operator": casskop_operator_deploy,
     "xtradb-operator": xtradb_operator_deploy,
+    "yugabyte-operator": yugabyte_operator_deploy,
 }

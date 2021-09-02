@@ -132,4 +132,32 @@ workloads = {
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml").wait_for_pod_status("sonar-xtradb-cluster-proxysql-0", common.RUNNING)
         .wait(70),
     },
+    "yugabyte-operator": {
+        "recreate": test_framework.new_built_in_workload()
+            .cmd("kubectl apply -f test-yugabyte-operator/test/yb-1.yaml").wait_for_pod_status("yb-master-0", common.RUNNING)
+            .cmd("kubectl delete YBCluster example-ybcluster").wait_for_pod_status("yb-master-0", common.TERMINATED)
+            .wait_for_pod_status("yb-master-1", common.TERMINATED).wait_for_pod_status("yb-master-2", common.TERMINATED)
+            .cmd("kubectl apply -f test-yugabyte-operator/test/yb-1.yaml").wait_for_pod_status("yb-master-0", common.RUNNING)
+            .wait(70),
+        "disable-enable-tls": test_framework.new_built_in_workload()
+            .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tls-enabled.yaml")
+            .wait_for_pod_status("yb-master-2", common.RUNNING)
+            .wait_for_pod_status("yb-tserver-2", common.RUNNING)
+            .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tls\":{\"enabled\":false}}}'")
+            .wait_for_secret_existence("yb-master-yugabyte-tls-cert", common.NONEXIST)
+            .wait_for_secret_existence("yb-tserver-yugabyte-tls-cert", common.NONEXIST)
+            .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tls\":{\"enabled\":true}}}'")
+            .wait_for_secret_existence("yb-master-yugabyte-tls-cert", common.EXIST)
+            .wait_for_secret_existence("yb-tserver-yugabyte-tls-cert", common.EXIST)
+            .wait(70),
+        "disable-enable-tserverUIPort": test_framework.new_built_in_workload()
+            .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tserverUIPort-enabled.yaml")
+            .wait_for_pod_status("yb-master-2", common.RUNNING)
+            .wait_for_pod_status("yb-tserver-2", common.RUNNING)
+            .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tserver\":{\"tserverUIPort\": 0}}}'")
+            .wait_for_service_existence("yb-tserver-ui", common.NONEXIST)
+            .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tserver\":{\"tserverUIPort\": 7000}}}'")
+            .wait_for_service_existence("yb-tserver-ui", common.EXIST)
+            .wait(70),
+    },
 }
