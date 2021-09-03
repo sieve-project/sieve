@@ -28,7 +28,7 @@
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 2
+                "Update": 1
             }
         }
     },
@@ -50,14 +50,14 @@
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 58
+                "Update": 56
             },
             "sonar-xtradb-cluster-pxc": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 64
+                "Update": 60
             }
         }
     },
@@ -95,12 +95,19 @@
     },
     "service": {
         "default": {
+            "percona-xtradb-cluster-operator": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
+            },
             "sonar-xtradb-cluster-proxysql": {
                 "Create": 2,
                 "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 60
+                "Update": 58
             },
             "sonar-xtradb-cluster-proxysql-unready": {
                 "Create": 2,
@@ -114,32 +121,43 @@
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 65
+                "Update": 61
             },
             "sonar-xtradb-cluster-pxc-unready": {
                 "Create": 1,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 65
+                "Update": 61
             }
         }
     },
     "statefulset": {
         "default": {
             "sonar-xtradb-cluster-proxysql": {
-                "Create": 60,
+                "Create": 58,
                 "Delete": 1,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 60
+                "Update": 58
             },
             "sonar-xtradb-cluster-pxc": {
-                "Create": 65,
+                "Create": 61,
                 "Delete": 0,
                 "DeleteAllOf": 0,
                 "Patch": 0,
-                "Update": 65
+                "Update": 61
+            }
+        }
+    },
+    "validatingwebhookconfiguration": {
+        "": {
+            "percona-xtradbcluster-webhook": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 0
             }
         }
     }
