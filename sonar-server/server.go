@@ -25,24 +25,24 @@ func main() {
 	config := getConfig()
 
 	switch config["stage"] {
-	case "learn":
-		log.Println("learn")
+	case LEARN:
+		log.Println(LEARN)
 		rpc.Register(NewLearnListener(config))
 
-	case "test":
+	case TEST:
 		switch config["mode"] {
 		// time-travel: Replay the partial history to the controller by
 		// injecting delay to apiservers and restarting the controllers.
-		case "time-travel":
-			log.Println("time-travel")
+		case TIME_TRAVEL:
+			log.Println(TIME_TRAVEL)
 			rpc.Register(NewTimeTravelListener(config))
 		// obs-gap: Observabiliy Gaps
-		case "obs-gap":
-			log.Println("obs-gap")
+		case OBS_GAP:
+			log.Println(OBS_GAP)
 			rpc.Register(NewObsGapListener(config))
 		// atomic: atomic side effect during reconcile
-		case "atomic":
-			log.Println("atomic")
+		case ATOM_VIO:
+			log.Println(ATOM_VIO)
 			rpc.Register(NewAtomicListener(config))
 
 		default:

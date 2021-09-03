@@ -40,7 +40,7 @@ func triggerReconcile(object interface{}) bool {
 }
 
 func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int {
-	if !checkStage(learn) {
+	if !checkStage(LEARN) {
 		return -1
 	}
 	if !triggerReconcile(object) {
@@ -74,7 +74,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 }
 
 func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
-	if !checkStage(learn) {
+	if !checkStage(LEARN) {
 		return
 	}
 	if !triggerReconcile(object) {
@@ -100,7 +100,7 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 }
 
 func NotifyLearnBeforeReconcile(controllerName string) {
-	if !checkStage(learn) {
+	if !checkStage(LEARN) {
 		return
 	}
 	// log.Printf("[sonar][NotifyLearnBeforeReconcile]\n")
@@ -123,7 +123,7 @@ func NotifyLearnBeforeReconcile(controllerName string) {
 }
 
 func NotifyLearnAfterReconcile(controllerName string) {
-	if !checkStage(learn) {
+	if !checkStage(LEARN) {
 		return
 	}
 	// log.Printf("[sonar][NotifyLearnAfterReconcile]\n")
@@ -146,7 +146,7 @@ func NotifyLearnAfterReconcile(controllerName string) {
 }
 
 func NotifyLearnSideEffects(sideEffectType string, object interface{}, k8sErr error) {
-	if !checkStage(learn) {
+	if !checkStage(LEARN) {
 		return
 	}
 	// log.Printf("[sonar][NotifyLearnSideEffects] %v\n", reflect.TypeOf(object))
@@ -180,7 +180,7 @@ func NotifyLearnSideEffects(sideEffectType string, object interface{}, k8sErr er
 }
 
 func NotifyLearnCacheGet(readType string, key types.NamespacedName, object interface{}, k8sErr error) {
-	if !checkStage(learn) {
+	if !checkStage(LEARN) {
 		return
 	}
 	client, err := newClient()
@@ -209,7 +209,7 @@ func NotifyLearnCacheGet(readType string, key types.NamespacedName, object inter
 }
 
 func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
-	if !checkStage(learn) {
+	if !checkStage(LEARN) {
 		return
 	}
 	client, err := newClient()

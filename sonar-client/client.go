@@ -15,16 +15,16 @@ var defaultHostPort string = "kind-control-plane:12345"
 var connectionError string = "[sonar] connectionError"
 var replyError string = "[sonar] replyError"
 var hostError string = "[sonar] hostError"
-var configError string = "[sonar] configError"
 var jsonError string = "[sonar] jsonError"
 var config map[string]interface{} = nil
-var sparseRead string = "sparse-read"
-var timeTravel string = "time-travel"
-var learn string = "learn"
-var test string = "test"
-var obsGap string = "obs-gap"
-var modeAtomic string = "atomic"
+
 var taintMap sync.Map = sync.Map{}
+
+const TIME_TRAVEL string = "time-travel"
+const OBS_GAP string = "observability-gap"
+const ATOM_VIO string = "atomicity-violation"
+const LEARN string = "learn"
+const TEST string = "test"
 
 func checkMode(mode string) bool {
 	if config == nil {
@@ -57,11 +57,11 @@ func checkStage(stage string) bool {
 }
 
 func checkTimeTravelTiming(timing string) bool {
-	if checkStage(test) && checkMode(timeTravel) {
+	if checkStage(TEST) && checkMode(TIME_TRAVEL) {
 		if timingInConfig, ok := config["timing"]; ok {
 			return timingInConfig.(string) == timing
 		} else {
-			return "after" == timing
+			return timing == "after"
 		}
 	}
 	return false

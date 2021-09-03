@@ -9,6 +9,7 @@ import analyze_event
 import sqlite3
 import json
 import optparse
+from common import sieve_modes
 
 
 def create_sqlite_db():
@@ -233,7 +234,7 @@ def error_msg_filtering_pass(analysis_mode, event_effect_pairs):
 
 def pipelined_passes(analysis_mode, event_effect_pairs):
     reduced_event_effect_pairs = event_effect_pairs
-    if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == "time-travel":
+    if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == sieve_modes.TIME_TRAVEL:
         reduced_event_effect_pairs = delete_only_filtering_pass(
             analysis_mode, reduced_event_effect_pairs)
     if analyze_util.ERROR_MSG_FILTER_FLAG:
@@ -248,7 +249,7 @@ def pipelined_passes(analysis_mode, event_effect_pairs):
 def passes_as_sql_query(analysis_mode):
     query = analyze_util.SQL_BASE_PASS_QUERY
     first_optional_pass = True
-    if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == "time-travel":
+    if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == sieve_modes.TIME_TRAVEL:
         query += " where " if first_optional_pass else " and "
         query += analyze_util.SQL_DELETE_ONLY_FILTER
         first_optional_pass = False
@@ -289,7 +290,7 @@ def intra_pair_analysis(analysis_mode, use_sql, event_list, event_id_map, side_e
 
 
 def inter_pair_analysis(analysis_mode, event_effect_pairs, event_key_map):
-    if analysis_mode == "time-travel":
+    if analysis_mode == sieve_modes.TIME_TRAVEL:
         reduced_event_effect_pairs = delete_then_recreate_filtering_pass(
             event_effect_pairs, event_key_map)
         return reduced_event_effect_pairs
@@ -364,7 +365,7 @@ def generate_time_travel_yaml(triggering_points, path, project, node_ignore, tim
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
-    yaml_map["mode"] = "time-travel"
+    yaml_map["mode"] = sieve_modes.TIME_TRAVEL
     yaml_map["straggler"] = controllers.straggler
     yaml_map["front-runner"] = controllers.front_runner
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
@@ -399,7 +400,7 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
-    yaml_map["mode"] = "obs-gap"
+    yaml_map["mode"] = sieve_modes.OBS_GAP
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     i = 0
     events_set = set()
@@ -429,7 +430,7 @@ def generate_atomic_yaml(triggering_points, path, project, node_ignore):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
-    yaml_map["mode"] = "atomic"
+    yaml_map["mode"] = sieve_modes.ATOM_VIO
     yaml_map["front-runner"] = controllers.front_runner
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
@@ -503,16 +504,16 @@ def generate_test_config(analysis_mode, project, log_dir, two_sided, node_ignore
     generated_config_dir = os.path.join(
         log_dir, analysis_mode)
     os.makedirs(generated_config_dir, exist_ok=True)
-    if analysis_mode == "time-travel":
+    if analysis_mode == sieve_modes.TIME_TRAVEL:
         generate_time_travel_yaml(
             triggering_points, generated_config_dir, project, node_ignore)
         if two_sided:
             generate_time_travel_yaml(
                 triggering_points, generated_config_dir, project, node_ignore, "before")
-    elif analysis_mode == "obs-gap":
+    elif analysis_mode == sieve_modes.OBS_GAP:
         generate_obs_gap_yaml(
             triggering_points, generated_config_dir, project, node_ignore)
-    elif analysis_mode == "atomic":
+    elif analysis_mode == sieve_modes.ATOM_VIO:
         generate_atomic_yaml(
             triggering_points, generated_config_dir, project, node_ignore)
 
@@ -539,7 +540,7 @@ def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, 
           ("enabled" if use_sql else "disabled"))
 
     if generate_config:
-        for analysis_mode in ["time-travel", "obs-gap", "atomic"]:
+        for analysis_mode in [sieve_modes.TIME_TRAVEL, sieve_modes.OBS_GAP, sieve_modes.ATOM_VIO]:
             generate_test_config(analysis_mode, project, log_dir, two_sided,
                                  node_ignore, use_sql, compress_trivial_reconcile)
 

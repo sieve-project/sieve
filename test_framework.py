@@ -47,6 +47,7 @@ def get_pvc(resource_name):
             target_pvc = pvc
     return target_pvc
 
+
 def get_secret(resource_name):
     """Return Secret object with specified name
 
@@ -62,6 +63,7 @@ def get_secret(resource_name):
             return secret
     return None
 
+
 def get_service(resource_name):
     """Return Secret object with specified name
 
@@ -76,6 +78,7 @@ def get_service(resource_name):
         if service.metadata.name == resource_name:
             return service
     return None
+
 
 class TestCmd:
     def __init__(self, cmd):
@@ -150,7 +153,7 @@ class TestWaitForStatus:
         s = time.time()
         print("wait until %s %s becomes %s..." %
               (self.resource_type, self.resource_name, self.status))
-        if mode == "obs-gap" and self.obs_gap_waiting_time != -1:
+        if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
             time.sleep(self.obs_gap_waiting_time)
             print("obs gap waiting time is reached")
         else:
@@ -195,7 +198,7 @@ class TestWaitForStorage:
         s = time.time()
         print("wait until %s %s has storage size %s..." %
               (self.resource_type, self.resource_name, self.storage_size))
-        if mode == "obs-gap" and self.obs_gap_waiting_time != -1:
+        if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
             time.sleep(self.obs_gap_waiting_time)
             print("obs gap waiting time is reached")
         else:
@@ -212,6 +215,7 @@ class TestWaitForStorage:
                 time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
         return 0
+
 
 class TestWaitForExistence:
     def __init__(self, resource_type, resource_name, exist: bool, obs_gap_waiting_time, time_out=600):
@@ -245,7 +249,7 @@ class TestWaitForExistence:
             if secret is None:
                 return True
         return False
-    
+
     def check_service(self):
         try:
             service = get_service(self.resource_name)
@@ -266,7 +270,7 @@ class TestWaitForExistence:
         s = time.time()
         print("wait until %s %s %s..." %
               (self.resource_type, self.resource_name, "exist" if self.exist else "nonexist"))
-        if mode == "obs-gap" and self.obs_gap_waiting_time != -1:
+        if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
             time.sleep(self.obs_gap_waiting_time)
             print("obs gap waiting time is reached")
         else:
@@ -287,6 +291,7 @@ class TestWaitForExistence:
                 time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
         return 0
+
 
 class BuiltInWorkLoad:
     def __init__(self):

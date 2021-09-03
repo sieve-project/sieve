@@ -52,7 +52,8 @@ def setup_kubernetes(mode, img_repo, img_tag):
 def download_controller(project, link, sha):
     # If for some permission issue that we can't remove the operator, try sudo
     if os.WEXITSTATUS(os.system("rm -rf %s" % controllers.app_dir[project])):
-        print("We cannot remove %s, try sudo instead" % controllers.app_dir[project])
+        print("We cannot remove %s, try sudo instead" %
+              controllers.app_dir[project])
         os.system("sudo rm -rf %s" % controllers.app_dir[project])
     os.system("git clone %s %s >> /dev/null" %
               (link, controllers.app_dir[project]))
@@ -95,18 +96,18 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
         "chmod +w -R %s/dep-sonar/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
     os.system("cp -r sonar-client %s/dep-sonar/src/sonar.client" %
               controllers.app_dir[project])
-    
+
     if project == "yugabyte-operator":
         # Ad-hoc fix for api incompatibility in golang
         # Special handling of yugabyte-operator as it depends on an older apimachinery which is
         # incompatible with the one sonar.client depends on
         with fileinput.FileInput("%s/dep-sonar/src/sonar.client/go.mod" % controllers.app_dir[project],
-             inplace = True, backup='.bak') as sonar_client_go_mod:
+                                 inplace=True, backup='.bak') as sonar_client_go_mod:
             for line in sonar_client_go_mod:
                 if "k8s.io/apimachinery" in line:
-                    print("\tk8s.io/apimachinery v0.17.4", end ='\n')
+                    print("\tk8s.io/apimachinery v0.17.4", end='\n')
                 else:
-                    print(line, end ='')
+                    print(line, end='')
 
     os.chdir(controllers.app_dir[project])
     os.system("git add -A >> /dev/null")
@@ -174,7 +175,7 @@ if __name__ == "__main__":
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to build: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="build MODE: learn, time-travel, sparse-read, obs-gap, atomic", metavar="MODE", default="learn")
+                      help="build MODE: learn, time-travel, observability-gap, atomicity-violation", metavar="MODE", default="learn")
     parser.add_option("-s", "--sha", dest="sha",
                       help="SHA of the project", metavar="SHA", default="none")
     parser.add_option("-d", "--docker", dest="docker",

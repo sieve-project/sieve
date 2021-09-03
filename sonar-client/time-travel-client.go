@@ -112,7 +112,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 // }
 
 func NotifyTimeTravelSideEffects(sideEffectType string, object interface{}, k8sErr error) {
-	if !checkStage(test) || !checkMode(timeTravel) {
+	if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
 		return
 	}
 	// log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)

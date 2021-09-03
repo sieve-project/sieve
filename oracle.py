@@ -261,7 +261,7 @@ def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testin
     alarm = alarm_status
     bug_report = bug_report_status
     # TODO: implement side effect checking for obs gap
-    if testing_config["mode"] == "time-travel":
+    if testing_config["mode"] == sieve_modes.TIME_TRAVEL:
         interest_objects = []
         interest_objects.append(
             {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
@@ -294,11 +294,11 @@ def look_for_sleep_over_in_server_log(server_log):
 
 def generate_debugging_hint(testing_config):
     mode = testing_config["mode"]
-    if mode == "time-travel":
+    if mode == sieve_modes.TIME_TRAVEL:
         return generate_time_travel_debugging_hint(testing_config)
-    elif mode == "obs-gap":
+    elif mode == sieve_modes.OBS_GAP:
         return generate_obs_gap_debugging_hint(testing_config)
-    elif mode == "atomic":
+    elif mode == sieve_modes.ATOM_VIO:
         return "TODO: generate debugging hint for atomic bugs"
     else:
         assert False
@@ -307,7 +307,7 @@ def generate_debugging_hint(testing_config):
 def check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log):
     testing_config = yaml.safe_load(open(test_config))
     # Skip case which target side effect event not appear in operator log under time-travel mode
-    if testing_config["mode"] == "time-travel" and not look_for_sleep_over_in_server_log(server_log):
+    if testing_config["mode"] == sieve_modes.TIME_TRAVEL and not look_for_sleep_over_in_server_log(server_log):
         bug_report = "[WARN] target side effect event did't appear under time-travel workload"
         print(bug_report)
         return bug_report

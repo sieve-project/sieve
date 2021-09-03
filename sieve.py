@@ -11,7 +11,7 @@ import oracle
 import yaml
 import subprocess
 import signal
-from common import cprint, bcolors, ok
+from common import cprint, bcolors, ok, sieve_modes
 
 
 def watch_crd(project, addrs):
@@ -93,7 +93,7 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     # when testing time-travel, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
-    if mode == "time-travel":
+    if mode == sieve_modes.TIME_TRAVEL:
         redirect_workers(num_workers)
         os.system("./bypass-balancer.sh")
 
@@ -216,7 +216,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
         if os.path.exists(test_config):
             open(os.path.join(log_dir, "config.yaml"),
                  "w").write(open(test_config).read())
-        if mode == "vanilla":
+        if mode == sieve_modes.VANILLIA:
             # TODO: We need another recording mode to only record digest without generating config
             pass
         else:
@@ -285,7 +285,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         run_test(project, mode, stage, suite.workload,
                  learn_config, log_dir, docker, stage, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
     else:
-        if mode == "vanilla":
+        if mode == sieve_modes.VANILLIA:
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
                      blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
@@ -295,7 +295,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
             test_config_to_use = os.path.join(
                 log_dir, os.path.basename(test_config))
             os.system("cp %s %s" % (test_config, test_config_to_use))
-            if mode == "time-travel":
+            if mode == sieve_modes.TIME_TRAVEL:
                 suite.num_apiservers = 3
             run_test(project, mode, stage, suite.workload,
                      test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: vanilla, time-travel, obs-gap, atomic", metavar="MODE", default="none")
+                      help="test MODE: vanilla, time-travel, observability-gap, atomicity-violation", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
@@ -353,8 +353,8 @@ if __name__ == "__main__":
 
     assert options.stage in [
         "learn", "test"], "invalid stage option: %s" % options.stage
-    assert options.mode in ["vanilla", "time-travel",
-                            "obs-gap", "atomic", "learn"], "invalid mode option: %s" % options.mode
+    assert options.mode in [sieve_modes.VANILLIA, sieve_modes.TIME_TRAVEL,
+                            sieve_modes.OBS_GAP, sieve_modes.ATOM_VIO, "learn"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
                              "check_only", "workload_and_check"], "invalid phase option: %s" % options.phase
 

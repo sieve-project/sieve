@@ -9,7 +9,7 @@ import (
 )
 
 func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
-	if !checkStage(test) || !checkMode(obsGap) {
+	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
 	// if !triggerReconcile(object) {
@@ -45,7 +45,7 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
-	if !checkStage(test) || !checkMode(obsGap) {
+	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
 	log.Printf("[sonar][NotifyObsGapAfterIndexerWrite] operationType: %s\n", operationType)
@@ -76,7 +76,7 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapBeforeReconcile(controllerName string) {
-	if !checkStage(test) || !checkMode(obsGap) {
+	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
 	log.Printf("[sonar][NotifyObsGapBeforeReconcile]\n")
@@ -99,7 +99,7 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 }
 
 func NotifyObsGapAfterReconcile(controllerName string) {
-	if !checkStage(test) || !checkMode(obsGap) {
+	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
 	log.Printf("[sonar][NotifyObsGapAfterReconcile]\n")
@@ -122,7 +122,7 @@ func NotifyObsGapAfterReconcile(controllerName string) {
 }
 
 func NotifyObsGapSideEffects(sideEffectType string, object interface{}, k8sErr error) {
-	if !checkStage(test) || !checkMode(obsGap) {
+	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
 	// log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)

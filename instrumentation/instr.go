@@ -111,19 +111,17 @@ func main() {
 	project := args[1]
 	mode := args[2]
 	if project == "kubernetes" {
-		if mode == "time-travel" {
+		if mode == TIME_TRAVEL {
 			instrumentKubernetesForTimeTravel(args[3])
 		}
 	} else {
-		if mode == "time-travel" {
+		if mode == TIME_TRAVEL {
 			instrumentControllerForTimeTravel(args[3])
-		} else if mode == "sparse-read" {
-			instrumentControllerForSparseRead(args[3])
-		} else if mode == "learn" {
+		} else if mode == LEARN {
 			instrumentControllerForLearn(args[3], args[4])
-		} else if mode == "obs-gap" {
+		} else if mode == OBS_GAP {
 			instrumentControllerForObsGap(args[3], args[4])
-		} else if mode == "atomic" {
+		} else if mode == ATOM_VIO {
 			instrumentControllerForAtomic(args[3], args[4])
 		}
 

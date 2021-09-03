@@ -8,7 +8,7 @@ import (
 )
 
 func NotifyAtomicBeforeIndexerWrite(operationType string, object interface{}) {
-	if !checkStage(test) || !checkMode(modeAtomic) {
+	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
 	log.Printf("[sonar][NotifyAtomicBeforeIndexerWrite] operationType: %s\n", operationType)
@@ -41,7 +41,7 @@ func NotifyAtomicBeforeIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyAtomicSideEffects(sideEffectType string, object interface{}) {
-	if !checkStage(test) || !checkMode(modeAtomic) {
+	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
