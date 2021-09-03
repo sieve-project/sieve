@@ -132,7 +132,7 @@ python3 sieve.py -p xtradb-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim/default/datadir-sonar-xtradb-cluster-pxc-0 DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ERROR] persistentvolumeclaim/default/datadir-sonar-xtradb-cluster-pxc-2 DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
