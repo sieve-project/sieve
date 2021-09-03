@@ -237,7 +237,7 @@ def generate_time_travel_debugging_hint(testing_config):
         testing_config["ce-rtype"] + "/" +
         testing_config["ce-namespace"] + "/" + testing_config["ce-name"],
         testing_config["ce-diff-current"],
-        testing_config["se-etype"],
+        "deletion" if testing_config["se-etype"] == "ADDED" else "creation",
         testing_config["se-rtype"] + "/" + testing_config["se-namespace"] + "/" + testing_config["se-name"])
     return desc + "\n" + suggestion + "\n"
 
