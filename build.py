@@ -1,3 +1,4 @@
+from common import sieve_modes
 import os
 import controllers
 import optparse
@@ -175,7 +176,7 @@ if __name__ == "__main__":
     parser.add_option("-p", "--project", dest="project",
                       help="specify PROJECT to build: cassandra-operator or zookeeper-operator", metavar="PROJECT", default="cassandra-operator")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="build MODE: learn, time-travel, observability-gap, atomicity-violation", metavar="MODE", default="learn")
+                      help="build MODE: learn, time-travel, obs-gap, atom-vio", metavar="MODE", default="learn")
     parser.add_option("-s", "--sha", dest="sha",
                       help="SHA of the project", metavar="SHA", default="none")
     parser.add_option("-d", "--docker", dest="docker",
@@ -183,6 +184,11 @@ if __name__ == "__main__":
     parser.add_option("-b", "--build", dest="build_only", action="store_true",
                       help="build only", default=False)
     (options, args) = parser.parse_args()
+
+    if options.mode == "obs-gap":
+        options.mode = sieve_modes.OBS_GAP
+    elif options.mode == "atom-vio":
+        options.mode = sieve_modes.ATOM_VIO
 
     img_repo = options.docker if options.docker != "none" else controllers.docker_repo
     img_tag = options.mode

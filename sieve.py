@@ -331,7 +331,7 @@ if __name__ == "__main__":
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",
-                      help="test MODE: vanilla, time-travel, observability-gap, atomicity-violation", metavar="MODE", default="none")
+                      help="test MODE: vanilla, time-travel, obs-gap, atom-vio", metavar="MODE", default="none")
     parser.add_option("-c", "--config", dest="config",
                       help="test CONFIG", metavar="CONFIG", default="none")
     parser.add_option("-b", "--batch", dest="batch", action="store_true",
@@ -344,6 +344,11 @@ if __name__ == "__main__":
                       help="use RATE LIMITER in learning stage or not", default=False)
 
     (options, args) = parser.parse_args()
+
+    if options.mode == "obs-gap":
+        options.mode = sieve_modes.OBS_GAP
+    elif options.mode == "atom-vio":
+        options.mode = sieve_modes.ATOM_VIO
 
     if options.stage == "learn":
         options.mode = "learn"
