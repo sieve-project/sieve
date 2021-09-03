@@ -1,0 +1,1740 @@
+{
+    "deployment": [
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "managedFields": "SIEVE-IGNORE",
+                "name": "percona-xtradb-cluster-operator",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "progressDeadlineSeconds": 600,
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/component": "operator",
+                        "app.kubernetes.io/instance": "percona-xtradb-cluster-operator",
+                        "app.kubernetes.io/name": "percona-xtradb-cluster-operator",
+                        "app.kubernetes.io/part-of": "percona-xtradb-cluster-operator",
+                        "sonartag": "xtradb-operator"
+                    }
+                },
+                "strategy": {
+                    "rollingUpdate": {
+                        "maxSurge": "25%",
+                        "maxUnavailable": 1
+                    },
+                    "type": "RollingUpdate"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": "SIEVE-IGNORE",
+                        "labels": {
+                            "app.kubernetes.io/component": "operator",
+                            "app.kubernetes.io/instance": "percona-xtradb-cluster-operator",
+                            "app.kubernetes.io/name": "percona-xtradb-cluster-operator",
+                            "app.kubernetes.io/part-of": "percona-xtradb-cluster-operator",
+                            "sonartag": "xtradb-operator"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "command": [
+                                    "percona-xtradb-cluster-operator"
+                                ],
+                                "env": "SIEVE-IGNORE",
+                                "envFrom": [
+                                    {
+                                        "configMapRef": {
+                                            "name": "SIEVE-IGNORE"
+                                        }
+                                    }
+                                ],
+                                "image": "SIEVE-IGNORE",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "SIEVE-IGNORE",
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "serviceAccount": "percona-xtradb-cluster-operator",
+                        "serviceAccountName": "percona-xtradb-cluster-operator",
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "conditions": [
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "SIEVE-IGNORE",
+                        "reason": "MinimumReplicasAvailable",
+                        "status": "True",
+                        "type": "Available"
+                    },
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "SIEVE-IGNORE",
+                        "reason": "NewReplicaSetAvailable",
+                        "status": "True",
+                        "type": "Progressing"
+                    }
+                ],
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updatedReplicas": 1
+            }
+        }
+    ],
+    "perconaxtradbbackup": [],
+    "perconaxtradbcluster": [
+        {
+            "apiVersion": "pxc.percona.com/v1-7-0",
+            "kind": "PerconaXtraDBCluster",
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "delete-pxc-pods-in-order",
+                    "delete-proxysql-pvc",
+                    "delete-pxc-pvc"
+                ],
+                "generation": 2,
+                "name": "sonar-xtradb-cluster",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "crVersion": "1.7.0",
+                "enableCRValidationWebhook": false,
+                "haproxy": {
+                    "affinity": {
+                        "antiAffinityTopologyKey": "kubernetes.io/hostname"
+                    },
+                    "gracePeriod": 30,
+                    "image": "SIEVE-IGNORE",
+                    "podDisruptionBudget": {
+                        "maxUnavailable": 1
+                    },
+                    "resources": {
+                        "requests": {
+                            "cpu": "600m",
+                            "memory": "1G"
+                        }
+                    },
+                    "size": 3
+                },
+                "logCollectorSecretName": "sonar-log-collector-secrets",
+                "logcollector": {
+                    "image": "SIEVE-IGNORE",
+                    "resources": {
+                        "requests": {
+                            "cpu": "600m",
+                            "memory": "1G"
+                        }
+                    }
+                },
+                "platform": "kubernetes",
+                "pmm": {
+                    "image": "SIEVE-IGNORE",
+                    "resources": {
+                        "requests": {
+                            "cpu": "600m",
+                            "memory": "1G"
+                        }
+                    },
+                    "serverHost": "monitoring-service",
+                    "serverUser": "pmm"
+                },
+                "proxysql": {
+                    "affinity": {
+                        "antiAffinityTopologyKey": "kubernetes.io/hostname"
+                    },
+                    "gracePeriod": 30,
+                    "image": "SIEVE-IGNORE",
+                    "podDisruptionBudget": {
+                        "maxUnavailable": 1
+                    },
+                    "podSecurityContext": {
+                        "fsGroup": 1001,
+                        "supplementalGroups": [
+                            1001
+                        ]
+                    },
+                    "resources": {
+                        "requests": {
+                            "cpu": "600m",
+                            "memory": "1G"
+                        }
+                    },
+                    "size": 3,
+                    "volumeSpec": {
+                        "persistentVolumeClaim": {
+                            "resources": {
+                                "requests": {
+                                    "storage": "2Gi"
+                                }
+                            }
+                        }
+                    }
+                },
+                "pxc": {
+                    "affinity": {
+                        "antiAffinityTopologyKey": "kubernetes.io/hostname"
+                    },
+                    "autoRecovery": true,
+                    "gracePeriod": 600,
+                    "image": "SIEVE-IGNORE",
+                    "imagePullPolicy": "Always",
+                    "podDisruptionBudget": {
+                        "maxUnavailable": 1
+                    },
+                    "podSecurityContext": {
+                        "fsGroup": 1001,
+                        "supplementalGroups": [
+                            1001
+                        ]
+                    },
+                    "resources": {
+                        "requests": {
+                            "cpu": "600m",
+                            "memory": "1G"
+                        }
+                    },
+                    "serviceAccountName": "default",
+                    "size": 3,
+                    "sslInternalSecretName": "sonar-cluster-ssl-internal",
+                    "sslSecretName": "sonar-cluster-ssl",
+                    "vaultSecretName": "keyring-secret-vault",
+                    "volumeSpec": {
+                        "persistentVolumeClaim": {
+                            "accessModes": [
+                                "ReadWriteOnce"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "storage": "6Gi"
+                                }
+                            }
+                        }
+                    }
+                },
+                "secretsName": "sonar-cluster-secrets",
+                "sslInternalSecretName": "sonar-cluster-ssl-internal",
+                "sslSecretName": "sonar-cluster-ssl",
+                "updateStrategy": "RollingUpdate",
+                "upgradeOptions": {
+                    "apply": "recommended",
+                    "schedule": "0 4 * * *",
+                    "versionServiceEndpoint": "https://check.percona.com"
+                },
+                "vaultSecretName": "keyring-secret-vault"
+            },
+            "status": {
+                "backup": {},
+                "conditions": [
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initializing"
+                    },
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    }
+                ],
+                "haproxy": {},
+                "host": "sonar-xtradb-cluster-pxc.default",
+                "logcollector": {},
+                "observedGeneration": 2,
+                "pmm": {},
+                "proxysql": {},
+                "pxc": {
+                    "image": "SIEVE-IGNORE",
+                    "ready": 3,
+                    "size": 3,
+                    "status": "ready",
+                    "version": "8.0.21-12.1"
+                },
+                "state": "ready"
+            }
+        }
+    ],
+    "perconaxtradbclusterbackup": [],
+    "perconaxtradbclusterrestore": [],
+    "persistentvolumeclaim": [
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app.kubernetes.io/component": "pxc",
+                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/name": "percona-xtradb-cluster",
+                    "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir-sonar-xtradb-cluster-pxc-0",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "6Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "6Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app.kubernetes.io/component": "pxc",
+                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/name": "percona-xtradb-cluster",
+                    "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir-sonar-xtradb-cluster-pxc-1",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "6Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "6Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app.kubernetes.io/component": "pxc",
+                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/name": "percona-xtradb-cluster",
+                    "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir-sonar-xtradb-cluster-pxc-2",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "6Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "6Gi"
+                },
+                "phase": "Bound"
+            }
+        }
+    ],
+    "pod": [
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app.kubernetes.io/component": "operator",
+                    "app.kubernetes.io/instance": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/name": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/part-of": "percona-xtradb-cluster-operator",
+                    "pod-template-hash": "SIEVE-IGNORE",
+                    "sonartag": "xtradb-operator"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "percona-xtradb-cluster-operator-58c5ffbd4d-htd92",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "percona-xtradb-cluster-operator"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "envFrom": [
+                            {
+                                "configMapRef": {
+                                    "name": "SIEVE-IGNORE"
+                                }
+                            }
+                        ],
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "percona-xtradb-cluster-operator",
+                "serviceAccountName": "percona-xtradb-cluster-operator",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app.kubernetes.io/component": "pxc",
+                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/name": "percona-xtradb-cluster",
+                    "app.kubernetes.io/part-of": "percona-xtradb-cluster",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "sonar-xtradb-cluster-pxc-0"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "sonar-xtradb-cluster-pxc-0",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "labelSelector": {
+                                    "matchLabels": {
+                                        "app.kubernetes.io/component": "pxc",
+                                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                        "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                                        "app.kubernetes.io/name": "percona-xtradb-cluster",
+                                        "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                                    }
+                                },
+                                "topologyKey": "kubernetes.io/hostname"
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "args": [
+                            "mysqld"
+                        ],
+                        "command": [
+                            "/var/lib/mysql/pxc-entrypoint.sh"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/var/lib/mysql/liveness-check.sh"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 300,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 5
+                        },
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 3306,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4444,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4567,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4568,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 33062,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/var/lib/mysql/readiness-check.sh"
+                                ]
+                            },
+                            "failureThreshold": 5,
+                            "initialDelaySeconds": 15,
+                            "periodSeconds": 30,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 15
+                        },
+                        "resources": {
+                            "requests": {
+                                "cpu": "600m",
+                                "memory": "1G"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "sonar-xtradb-cluster-pxc-0",
+                "initContainers": [
+                    {
+                        "command": [
+                            "/pxc-init-entrypoint.sh"
+                        ],
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "resources": {
+                            "requests": {
+                                "cpu": "600m",
+                                "memory": "1G"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1001,
+                    "supplementalGroups": [
+                        1001
+                    ]
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "sonar-xtradb-cluster-pxc",
+                "terminationGracePeriodSeconds": 600,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir-sonar-xtradb-cluster-pxc-0"
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "SIEVE-IGNORE",
+                            "optional": true
+                        },
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": true,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "SIEVE-IGNORE",
+                            "optional": true
+                        },
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": true,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "initContainerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 0,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Completed",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "Burstable",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app.kubernetes.io/component": "pxc",
+                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/name": "percona-xtradb-cluster",
+                    "app.kubernetes.io/part-of": "percona-xtradb-cluster",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "sonar-xtradb-cluster-pxc-1"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "sonar-xtradb-cluster-pxc-1",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "labelSelector": {
+                                    "matchLabels": {
+                                        "app.kubernetes.io/component": "pxc",
+                                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                        "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                                        "app.kubernetes.io/name": "percona-xtradb-cluster",
+                                        "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                                    }
+                                },
+                                "topologyKey": "kubernetes.io/hostname"
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "args": [
+                            "mysqld"
+                        ],
+                        "command": [
+                            "/var/lib/mysql/pxc-entrypoint.sh"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/var/lib/mysql/liveness-check.sh"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 300,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 5
+                        },
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 3306,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4444,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4567,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4568,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 33062,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/var/lib/mysql/readiness-check.sh"
+                                ]
+                            },
+                            "failureThreshold": 5,
+                            "initialDelaySeconds": 15,
+                            "periodSeconds": 30,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 15
+                        },
+                        "resources": {
+                            "requests": {
+                                "cpu": "600m",
+                                "memory": "1G"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "sonar-xtradb-cluster-pxc-1",
+                "initContainers": [
+                    {
+                        "command": [
+                            "/pxc-init-entrypoint.sh"
+                        ],
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "resources": {
+                            "requests": {
+                                "cpu": "600m",
+                                "memory": "1G"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1001,
+                    "supplementalGroups": [
+                        1001
+                    ]
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "sonar-xtradb-cluster-pxc",
+                "terminationGracePeriodSeconds": 600,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir-sonar-xtradb-cluster-pxc-1"
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "SIEVE-IGNORE",
+                            "optional": true
+                        },
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": true,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "SIEVE-IGNORE",
+                            "optional": true
+                        },
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": true,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "initContainerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 0,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Completed",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "Burstable",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app.kubernetes.io/component": "pxc",
+                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                    "app.kubernetes.io/name": "percona-xtradb-cluster",
+                    "app.kubernetes.io/part-of": "percona-xtradb-cluster",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "sonar-xtradb-cluster-pxc-2"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "sonar-xtradb-cluster-pxc-2",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "labelSelector": {
+                                    "matchLabels": {
+                                        "app.kubernetes.io/component": "pxc",
+                                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                        "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                                        "app.kubernetes.io/name": "percona-xtradb-cluster",
+                                        "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                                    }
+                                },
+                                "topologyKey": "kubernetes.io/hostname"
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "args": [
+                            "mysqld"
+                        ],
+                        "command": [
+                            "/var/lib/mysql/pxc-entrypoint.sh"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/var/lib/mysql/liveness-check.sh"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 300,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 5
+                        },
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 3306,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4444,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4567,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 4568,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 33062,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/var/lib/mysql/readiness-check.sh"
+                                ]
+                            },
+                            "failureThreshold": 5,
+                            "initialDelaySeconds": 15,
+                            "periodSeconds": 30,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 15
+                        },
+                        "resources": {
+                            "requests": {
+                                "cpu": "600m",
+                                "memory": "1G"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "sonar-xtradb-cluster-pxc-2",
+                "initContainers": [
+                    {
+                        "command": [
+                            "/pxc-init-entrypoint.sh"
+                        ],
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "resources": {
+                            "requests": {
+                                "cpu": "600m",
+                                "memory": "1G"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1001,
+                    "supplementalGroups": [
+                        1001
+                    ]
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "sonar-xtradb-cluster-pxc",
+                "terminationGracePeriodSeconds": 600,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir-sonar-xtradb-cluster-pxc-2"
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "SIEVE-IGNORE",
+                            "optional": true
+                        },
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": true,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "SIEVE-IGNORE",
+                            "optional": true
+                        },
+                        "name": "SIEVE-IGNORE"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": true,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "initContainerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 0,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Completed",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "Burstable",
+                "startTime": "SIEVE-IGNORE"
+            }
+        }
+    ],
+    "statefulset": [
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "managedFields": "SIEVE-IGNORE",
+                "name": "sonar-xtradb-cluster-pxc",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "podManagementPolicy": "OrderedReady",
+                "replicas": 3,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/component": "pxc",
+                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                        "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                        "app.kubernetes.io/name": "percona-xtradb-cluster",
+                        "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                    }
+                },
+                "serviceName": "sonar-xtradb-cluster-pxc",
+                "template": {
+                    "metadata": {
+                        "annotations": "SIEVE-IGNORE",
+                        "creationTimestamp": "SIEVE-IGNORE",
+                        "labels": {
+                            "app.kubernetes.io/component": "pxc",
+                            "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                            "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                            "app.kubernetes.io/name": "percona-xtradb-cluster",
+                            "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                        }
+                    },
+                    "spec": {
+                        "affinity": {
+                            "podAntiAffinity": {
+                                "requiredDuringSchedulingIgnoredDuringExecution": [
+                                    {
+                                        "labelSelector": {
+                                            "matchLabels": {
+                                                "app.kubernetes.io/component": "pxc",
+                                                "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                                "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
+                                                "app.kubernetes.io/name": "percona-xtradb-cluster",
+                                                "app.kubernetes.io/part-of": "percona-xtradb-cluster"
+                                            }
+                                        },
+                                        "topologyKey": "kubernetes.io/hostname"
+                                    }
+                                ]
+                            }
+                        },
+                        "containers": [
+                            {
+                                "args": [
+                                    "mysqld"
+                                ],
+                                "command": [
+                                    "/var/lib/mysql/pxc-entrypoint.sh"
+                                ],
+                                "env": "SIEVE-IGNORE",
+                                "image": "SIEVE-IGNORE",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/var/lib/mysql/liveness-check.sh"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 300,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 5
+                                },
+                                "name": "SIEVE-IGNORE",
+                                "ports": [
+                                    {
+                                        "containerPort": 3306,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 4444,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 4567,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 4568,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 33062,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/var/lib/mysql/readiness-check.sh"
+                                        ]
+                                    },
+                                    "failureThreshold": 5,
+                                    "initialDelaySeconds": 15,
+                                    "periodSeconds": 30,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 15
+                                },
+                                "resources": {
+                                    "requests": {
+                                        "cpu": "600m",
+                                        "memory": "1G"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": "SIEVE-IGNORE"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "initContainers": [
+                            {
+                                "command": [
+                                    "/pxc-init-entrypoint.sh"
+                                ],
+                                "image": "SIEVE-IGNORE",
+                                "imagePullPolicy": "Always",
+                                "name": "SIEVE-IGNORE",
+                                "resources": {
+                                    "requests": {
+                                        "cpu": "600m",
+                                        "memory": "1G"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": "SIEVE-IGNORE"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {
+                            "fsGroup": 1001,
+                            "supplementalGroups": [
+                                1001
+                            ]
+                        },
+                        "serviceAccount": "default",
+                        "serviceAccountName": "default",
+                        "terminationGracePeriodSeconds": 600,
+                        "volumes": [
+                            {
+                                "emptyDir": {},
+                                "name": "SIEVE-IGNORE"
+                            },
+                            {
+                                "configMap": {
+                                    "defaultMode": 420,
+                                    "name": "SIEVE-IGNORE",
+                                    "optional": true
+                                },
+                                "name": "SIEVE-IGNORE"
+                            },
+                            {
+                                "name": "SIEVE-IGNORE",
+                                "secret": {
+                                    "defaultMode": 420,
+                                    "optional": true,
+                                    "secretName": "SIEVE-IGNORE"
+                                }
+                            },
+                            {
+                                "name": "SIEVE-IGNORE",
+                                "secret": {
+                                    "defaultMode": 420,
+                                    "optional": false,
+                                    "secretName": "SIEVE-IGNORE"
+                                }
+                            },
+                            {
+                                "configMap": {
+                                    "defaultMode": 420,
+                                    "name": "SIEVE-IGNORE",
+                                    "optional": true
+                                },
+                                "name": "SIEVE-IGNORE"
+                            },
+                            {
+                                "name": "SIEVE-IGNORE",
+                                "secret": {
+                                    "defaultMode": 420,
+                                    "optional": true,
+                                    "secretName": "SIEVE-IGNORE"
+                                }
+                            },
+                            {
+                                "name": "SIEVE-IGNORE",
+                                "secret": {
+                                    "defaultMode": 420,
+                                    "optional": false,
+                                    "secretName": "SIEVE-IGNORE"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "updateStrategy": {
+                    "rollingUpdate": {
+                        "partition": 0
+                    },
+                    "type": "RollingUpdate"
+                },
+                "volumeClaimTemplates": [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "PersistentVolumeClaim",
+                        "metadata": {
+                            "creationTimestamp": "SIEVE-IGNORE",
+                            "name": "SIEVE-IGNORE"
+                        },
+                        "spec": {
+                            "accessModes": [
+                                "ReadWriteOnce"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "storage": "6Gi"
+                                }
+                            },
+                            "volumeMode": "Filesystem"
+                        },
+                        "status": {
+                            "phase": "Pending"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "collisionCount": 0,
+                "currentReplicas": 3,
+                "currentRevision": "SIEVE-IGNORE",
+                "observedGeneration": 1,
+                "readyReplicas": 3,
+                "replicas": 3,
+                "updateRevision": "SIEVE-IGNORE",
+                "updatedReplicas": 3
+            }
+        }
+    ]
+}
