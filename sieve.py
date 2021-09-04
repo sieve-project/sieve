@@ -11,14 +11,14 @@ import oracle
 import yaml
 import subprocess
 import signal
-from common import cprint, bcolors, ok, sieve_modes
+from common import cprint, bcolors, ok, sieve_modes, cmd_early_exit
 
 
 def watch_crd(project, addrs):
     for addr in addrs:
         for crd in controllers.CRDs[project]:
-            os.system("kubectl get %s -s %s --ignore-not-found=true" %
-                      (crd, addr))
+            cmd_early_exit("kubectl get %s -s %s --ignore-not-found=true" %
+                           (crd, addr))
 
 
 def generate_configmap(test_config):
@@ -57,36 +57,38 @@ def redirect_workers(num_workers):
     target_master = controllers.front_runner
     for i in range(num_workers):
         worker = "kind-worker" + (str(i+1) if i > 0 else "")
-        os.system("docker exec %s bash -c \"sed -i 's/kind-external-load-balancer/%s/g' /etc/kubernetes/kubelet.conf\"" %
-                  (worker, target_master))
-        os.system("docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
+        cmd_early_exit("docker exec %s bash -c \"sed -i 's/kind-external-load-balancer/%s/g' /etc/kubernetes/kubelet.conf\"" %
+                       (worker, target_master))
+        cmd_early_exit(
+            "docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
 def prepare_sieve_server(test_config):
-    os.system("cp %s sieve-server/server.yaml" % test_config)
+    cmd_early_exit("cp %s sieve-server/server.yaml" % test_config)
     org_dir = os.getcwd()
     os.chdir("sieve-server")
-    os.system("go mod tidy")
-    os.system("go build")
+    cmd_early_exit("go mod tidy")
+    cmd_early_exit("go build")
     os.chdir(org_dir)
-    os.system("docker cp sieve-server kind-control-plane:/sieve-server")
+    cmd_early_exit("docker cp sieve-server kind-control-plane:/sieve-server")
 
 
 def start_sieve_server():
-    os.system(
+    cmd_early_exit(
         "docker exec kind-control-plane bash -c 'cd /sieve-server && ./sieve-server &> sieve-server.log &'")
 
 
 def stop_sieve_server():
-    os.system("docker exec kind-control-plane bash -c 'pkill sieve-server'")
+    cmd_early_exit(
+        "docker exec kind-control-plane bash -c 'pkill sieve-server'")
 
 
 def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize):
-    os.system("kind delete cluster")
-    os.system("./setup.sh %s %s %s" %
-              (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
-    # os.system("kubectl create namespace %s" % sieve_config["namespace"])
-    # os.system("kubectl config set-context --current --namespace=%s" %
+    cmd_early_exit("kind delete cluster")
+    cmd_early_exit("./setup.sh %s %s %s" %
+                   (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
+    # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
+    # cmd_early_exit("kubectl config set-context --current --namespace=%s" %
     #           sieve_config["namespace"])
     prepare_sieve_server(test_config)
 
@@ -95,10 +97,10 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     # so we need to redirect the workers to other apiservers
     if mode == sieve_modes.TIME_TRAVEL:
         redirect_workers(num_workers)
-        os.system("./bypass-balancer.sh")
+        cmd_early_exit("./bypass-balancer.sh")
 
     configmap = generate_configmap(test_config)
-    os.system("kubectl apply -f %s" % configmap)
+    cmd_early_exit("kubectl apply -f %s" % configmap)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -118,21 +120,21 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
         time.sleep(1)
 
     for apiserver in apiserver_list:
-        os.system("kubectl cp %s %s:/sieve.yaml -n kube-system" %
-                  (test_config, apiserver))
+        cmd_early_exit("kubectl cp %s %s:/sieve.yaml -n kube-system" %
+                       (test_config, apiserver))
 
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (docker_repo, project, docker_tag)
     kind_load_cmd = "kind load docker-image %s" % (image)
     print("We are loading image %s to kind nodes..." % (image))
-    if os.WEXITSTATUS(os.system(kind_load_cmd)):
+    if cmd_early_exit(kind_load_cmd, early_exit=False) != 0:
         print("Cannot load image %s locally, try to pull from remote" % (image))
-        os.system("docker pull %s" % (image))
-        os.system(kind_load_cmd)
+        cmd_early_exit("docker pull %s" % (image))
+        cmd_early_exit(kind_load_cmd)
 
     if pvc_resize:
         # Install csi provisioner
-        os.system("cd csi-driver && ./install.sh")
+        cmd_early_exit("cd csi-driver && ./install.sh")
 
 
 def start_operator(project, docker_repo, docker_tag, num_apiservers):
@@ -188,13 +190,13 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
         apiserver_name = "kube-apiserver-kind-control-plane" + \
             ("" if i == 0 else str(i + 1))
         apiserver_log = "apiserver%s.log" % (str(i + 1))
-        os.system(
+        cmd_early_exit(
             "kubectl logs %s -n kube-system > %s/%s" % (apiserver_name, log_dir, apiserver_log))
 
-    os.system(
+    cmd_early_exit(
         "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log" % (log_dir))
 
-    os.system(
+    cmd_early_exit(
         "kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
@@ -205,12 +207,12 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
     if stage == "learn":
         analyze.analyze_trace(
             project, log_dir, two_sided=two_sided, node_ignore=node_ignore)
-        os.system("mkdir -p %s" % data_dir)
-        os.system("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
+        cmd_early_exit("mkdir -p %s" % data_dir)
+        cmd_early_exit("cp %s %s" % (os.path.join(log_dir, "status.json"), os.path.join(
             data_dir, "status.json")))
-        os.system("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
+        cmd_early_exit("cp %s %s" % (os.path.join(log_dir, "side-effect.json"), os.path.join(
             data_dir, "side-effect.json")))
-        os.system("cp %s %s" % (os.path.join(log_dir, "resources.json"), os.path.join(
+        cmd_early_exit("cp %s %s" % (os.path.join(log_dir, "resources.json"), os.path.join(
             data_dir, "resources.json")))
     else:
         if os.path.exists(test_config):
@@ -274,8 +276,8 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
     data_dir = os.path.join("data", project, test, "learn")
     print("Log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
-        os.system("rm -rf %s" % log_dir)
-        os.system("mkdir -p %s" % log_dir)
+        cmd_early_exit("rm -rf %s" % log_dir)
+        cmd_early_exit("mkdir -p %s" % log_dir)
 
     if stage == "learn":
         learn_config = os.path.join(log_dir, "learn.yaml")
@@ -294,7 +296,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
             print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(
                 log_dir, os.path.basename(test_config))
-            os.system("cp %s %s" % (test_config, test_config_to_use))
+            cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
             if mode == sieve_modes.TIME_TRAVEL:
                 suite.num_apiservers = 3
             run_test(project, mode, stage, suite.workload,

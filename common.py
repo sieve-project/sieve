@@ -1,3 +1,6 @@
+import os
+import sys
+
 POD = "pod"
 PVC = "persistentvolumeclaim"
 DEPLOYMENT = "deployment"
@@ -14,6 +17,14 @@ EXIST = True
 NONEXIST = False
 
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
+
+
+def cmd_early_exit(cmd, early_exit=True):
+    return_code = os.WEXITSTATUS(os.system(cmd))
+    if return_code != 0 and early_exit:
+        fail(cmd)
+        sys.exit(1)
+    return return_code
 
 
 class sieve_modes:

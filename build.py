@@ -1,4 +1,4 @@
-from common import sieve_modes
+from common import sieve_modes, cmd_early_exit
 import os
 import controllers
 import optparse
@@ -8,11 +8,12 @@ ORIGINAL_DIR = os.getcwd()
 
 
 def download_kubernetes():
-    os.system("rm -rf fakegopath")
-    os.system("mkdir -p fakegopath/src/k8s.io")
-    os.system("git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
+    cmd_early_exit("rm -rf fakegopath")
+    cmd_early_exit("mkdir -p fakegopath/src/k8s.io")
+    cmd_early_exit(
+        "git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
     os.chdir("fakegopath/src/k8s.io/kubernetes")
-    os.system("git checkout -b sieve >> /dev/null")
+    cmd_early_exit("git checkout -b sieve >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -20,27 +21,28 @@ def install_lib_for_kubernetes():
     with open("fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod", "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
-    os.system(
+    cmd_early_exit(
         "cp -r sieve-client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client")
-    os.system(
+    cmd_early_exit(
         "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client")
 
 
 def instrument_kubernetes(mode):
     os.chdir("instrumentation")
-    os.system("go build")
-    os.system(
+    cmd_early_exit("go build")
+    cmd_early_exit(
         "./instrumentation kubernetes %s %s/fakegopath/src/k8s.io/kubernetes" % (mode, ORIGINAL_DIR))
     os.chdir(ORIGINAL_DIR)
 
 
 def build_kubernetes(img_repo, img_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
-    os.system(
+    cmd_early_exit(
         "GOPATH=%s/fakegopath KUBE_GIT_VERSION=v1.18.9-sieve-`git rev-parse HEAD` kind build node-image" % ORIGINAL_DIR)
     os.chdir(ORIGINAL_DIR)
-    os.system("docker build --no-cache -t %s/node:%s ." % (img_repo, img_tag))
-    os.system("docker push %s/node:%s" % (img_repo, img_tag))
+    cmd_early_exit("docker build --no-cache -t %s/node:%s ." %
+                   (img_repo, img_tag))
+    cmd_early_exit("docker push %s/node:%s" % (img_repo, img_tag))
 
 
 def setup_kubernetes(mode, img_repo, img_tag):
@@ -52,15 +54,15 @@ def setup_kubernetes(mode, img_repo, img_tag):
 
 def download_controller(project, link, sha):
     # If for some permission issue that we can't remove the operator, try sudo
-    if os.WEXITSTATUS(os.system("rm -rf %s" % controllers.app_dir[project])):
+    if cmd_early_exit("rm -rf %s" % controllers.app_dir[project], early_exit=False) != 0:
         print("We cannot remove %s, try sudo instead" %
               controllers.app_dir[project])
-        os.system("sudo rm -rf %s" % controllers.app_dir[project])
-    os.system("git clone %s %s >> /dev/null" %
-              (link, controllers.app_dir[project]))
+        cmd_early_exit("sudo rm -rf %s" % controllers.app_dir[project])
+    cmd_early_exit("git clone %s %s >> /dev/null" %
+                   (link, controllers.app_dir[project]))
     os.chdir(controllers.app_dir[project])
-    os.system("git checkout %s >> /dev/null" % sha)
-    os.system("git checkout -b sieve >> /dev/null")
+    cmd_early_exit("git checkout %s >> /dev/null" % sha)
+    cmd_early_exit("git checkout -b sieve >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -79,24 +81,24 @@ def remove_replacement_in_go_mod_file(file):
 
 def install_lib_for_controller(project, controller_runtime_version, client_go_version, docker_file_path):
     # download controller_runtime and client_go libs
-    os.system(
+    cmd_early_exit(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null" % controller_runtime_version)
-    os.system("mkdir -p %s/dep-sieve/src/sigs.k8s.io" %
-              controllers.app_dir[project])
-    os.system("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s" %
-              (controller_runtime_version, controllers.app_dir[project], controller_runtime_version))
-    os.system("chmod +w -R %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s" %
-              (controllers.app_dir[project], controller_runtime_version))
-    os.system("go mod download k8s.io/client-go@%s >> /dev/null" %
-              client_go_version)
-    os.system("mkdir -p %s/dep-sieve/src/k8s.io" %
-              controllers.app_dir[project])
-    os.system(
+    cmd_early_exit("mkdir -p %s/dep-sieve/src/sigs.k8s.io" %
+                   controllers.app_dir[project])
+    cmd_early_exit("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s" %
+                   (controller_runtime_version, controllers.app_dir[project], controller_runtime_version))
+    cmd_early_exit("chmod +w -R %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s" %
+                   (controllers.app_dir[project], controller_runtime_version))
+    cmd_early_exit("go mod download k8s.io/client-go@%s >> /dev/null" %
+                   client_go_version)
+    cmd_early_exit("mkdir -p %s/dep-sieve/src/k8s.io" %
+                   controllers.app_dir[project])
+    cmd_early_exit(
         "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sieve/src/k8s.io/client-go@%s" % (client_go_version, controllers.app_dir[project], client_go_version))
-    os.system(
+    cmd_early_exit(
         "chmod +w -R %s/dep-sieve/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
-    os.system("cp -r sieve-client %s/dep-sieve/src/sieve.client" %
-              controllers.app_dir[project])
+    cmd_early_exit("cp -r sieve-client %s/dep-sieve/src/sieve.client" %
+                   controllers.app_dir[project])
 
     if project == "yugabyte-operator":
         # Ad-hoc fix for api incompatibility in golang
@@ -111,8 +113,8 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
                     print(line, end='')
 
     os.chdir(controllers.app_dir[project])
-    os.system("git add -A >> /dev/null")
-    os.system("git commit -m \"download the lib\" >> /dev/null")
+    cmd_early_exit("git add -A >> /dev/null")
+    cmd_early_exit("git commit -m \"download the lib\" >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
     # modify the go.mod to import the libs
@@ -136,27 +138,27 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
 
     # copy the build.sh and Dockerfile
-    os.system("cp %s/build/build.sh %s/build.sh" %
-              (controllers.test_dir[project], controllers.app_dir[project]))
-    os.system("cp %s/build/Dockerfile %s/%s" %
-              (controllers.test_dir[project], controllers.app_dir[project], docker_file_path))
+    cmd_early_exit("cp %s/build/build.sh %s/build.sh" %
+                   (controllers.test_dir[project], controllers.app_dir[project]))
+    cmd_early_exit("cp %s/build/Dockerfile %s/%s" %
+                   (controllers.test_dir[project], controllers.app_dir[project], docker_file_path))
     os.chdir(controllers.app_dir[project])
-    os.system("git add -A >> /dev/null")
-    os.system("git commit -m \"import the lib\" >> /dev/null")
+    cmd_early_exit("git add -A >> /dev/null")
+    cmd_early_exit("git commit -m \"import the lib\" >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
 
 def instrument_controller(project, mode, controller_runtime_version, client_go_version):
     os.chdir("instrumentation")
-    os.system("go build")
-    os.system(
+    cmd_early_exit("go build")
+    cmd_early_exit(
         "./instrumentation %s %s %s/%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sieve/src/k8s.io/client-go@%s" % (project, mode, ORIGINAL_DIR, controllers.app_dir[project], controller_runtime_version, ORIGINAL_DIR, controllers.app_dir[project], client_go_version))
     os.chdir(ORIGINAL_DIR)
 
 
 def build_controller(project, img_repo, img_tag):
     os.chdir(controllers.app_dir[project])
-    os.system("./build.sh %s %s" % (img_repo, img_tag))
+    cmd_early_exit("./build.sh %s %s" % (img_repo, img_tag))
     os.chdir(ORIGINAL_DIR)
 
 
