@@ -12,7 +12,7 @@ def download_kubernetes():
     os.system("mkdir -p fakegopath/src/k8s.io")
     os.system("git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null")
     os.chdir("fakegopath/src/k8s.io/kubernetes")
-    os.system("git checkout -b sonar >> /dev/null")
+    os.system("git checkout -b sieve >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -37,7 +37,7 @@ def instrument_kubernetes(mode):
 def build_kubernetes(img_repo, img_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     os.system(
-        "GOPATH=%s/fakegopath KUBE_GIT_VERSION=v1.18.9-sonar-`git rev-parse HEAD` kind build node-image" % ORIGINAL_DIR)
+        "GOPATH=%s/fakegopath KUBE_GIT_VERSION=v1.18.9-sieve-`git rev-parse HEAD` kind build node-image" % ORIGINAL_DIR)
     os.chdir(ORIGINAL_DIR)
     os.system("docker build --no-cache -t %s/node:%s ." % (img_repo, img_tag))
     os.system("docker push %s/node:%s" % (img_repo, img_tag))
@@ -60,7 +60,7 @@ def download_controller(project, link, sha):
               (link, controllers.app_dir[project]))
     os.chdir(controllers.app_dir[project])
     os.system("git checkout %s >> /dev/null" % sha)
-    os.system("git checkout -b sonar >> /dev/null")
+    os.system("git checkout -b sieve >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -103,8 +103,8 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
         # Special handling of yugabyte-operator as it depends on an older apimachinery which is
         # incompatible with the one sieve.client depends on
         with fileinput.FileInput("%s/dep-sieve/src/sieve.client/go.mod" % controllers.app_dir[project],
-                                 inplace=True, backup='.bak') as sonar_client_go_mod:
-            for line in sonar_client_go_mod:
+                                 inplace=True, backup='.bak') as sieve_client_go_mod:
+            for line in sieve_client_go_mod:
                 if "k8s.io/apimachinery" in line:
                     print("\tk8s.io/apimachinery v0.17.4", end='\n')
                 else:

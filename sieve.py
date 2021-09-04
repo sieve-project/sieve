@@ -118,7 +118,7 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
         time.sleep(1)
 
     for apiserver in apiserver_list:
-        os.system("kubectl cp %s %s:/sonar.yaml -n kube-system" %
+        os.system("kubectl cp %s %s:/sieve.yaml -n kube-system" %
                   (test_config, apiserver))
 
     # Preload operator image to kind nodes

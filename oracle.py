@@ -289,7 +289,7 @@ def look_for_panic_in_operator_log(operator_log):
 
 def look_for_sleep_over_in_server_log(server_log):
     file = open(server_log)
-    return "[sonar] sleep over" in file.read()
+    return "[sieve] sleep over" in file.read()
 
 
 def generate_debugging_hint(testing_config):

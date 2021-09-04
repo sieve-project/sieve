@@ -24,7 +24,7 @@ def create_sqlite_db():
         create table events
         (
            id integer not null primary key,
-           sonar_event_id integer not null,
+           sieve_event_id integer not null,
            event_type text not null,
            resource_type text not null,
            json_object text not null,
@@ -39,7 +39,7 @@ def create_sqlite_db():
         create table side_effects
         (
            id integer not null primary key,
-           sonar_side_effect_id integer not null,
+           sieve_side_effect_id integer not null,
            event_type text not null,
            resource_type text not null,
            namespace text not null,

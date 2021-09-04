@@ -7,7 +7,7 @@ ERROR_MSG_FILTER_FLAG = True
 DELETE_ONLY_FILTER_FLAG = True
 FILTERED_ERROR_TYPE = ["NotFound"]
 
-SQL_BASE_PASS_QUERY = "select e.sonar_event_id, se.sonar_side_effect_id from events e join side_effects se on se.range_start_timestamp < e.event_cache_update_time and se.range_end_timestamp > e.event_arrival_time"
+SQL_BASE_PASS_QUERY = "select e.sieve_event_id, se.sieve_side_effect_id from events e join side_effects se on se.range_start_timestamp < e.event_cache_update_time and se.range_end_timestamp > e.event_arrival_time"
 SQL_DELETE_ONLY_FILTER = "se.event_type = 'Delete'"
 SQL_ERROR_MSG_FILTER = "se.error != 'NotFound'"
 SQL_WRITE_READ_FILTER = "(exists(select * from json_each(se.read_fully_qualified_names) where json_each.value = e.fully_qualified_name) or exists(select * from json_each(se.read_types) where json_each.value = e.resource_type))"
