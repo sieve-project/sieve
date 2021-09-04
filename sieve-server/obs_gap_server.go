@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	sonar "sieve.client"
+	sieve "sieve.client"
 )
 
 func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
@@ -43,28 +43,28 @@ type eventWrapper struct {
 	eventObjectType string
 }
 
-func (l *ObsGapListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
-	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
+func (l *ObsGapListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
+	*response = sieve.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
-func (l *ObsGapListener) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGapBeforeIndexerWriteRequest, response *sonar.Response) error {
+func (l *ObsGapListener) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGapBeforeIndexerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyObsGapBeforeIndexerWrite(request, response)
 }
 
-func (l *ObsGapListener) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGapAfterIndexerWriteRequest, response *sonar.Response) error {
+func (l *ObsGapListener) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGapAfterIndexerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyObsGapAfterIndexerWrite(request, response)
 }
 
-func (l *ObsGapListener) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBeforeReconcileRequest, response *sonar.Response) error {
+func (l *ObsGapListener) NotifyObsGapBeforeReconcile(request *sieve.NotifyObsGapBeforeReconcileRequest, response *sieve.Response) error {
 	return l.Server.NotifyObsGapBeforeReconcile(request, response)
 }
 
-func (l *ObsGapListener) NotifyObsGapAfterReconcile(request *sonar.NotifyObsGapAfterReconcileRequest, response *sonar.Response) error {
+func (l *ObsGapListener) NotifyObsGapAfterReconcile(request *sieve.NotifyObsGapAfterReconcileRequest, response *sieve.Response) error {
 	return l.Server.NotifyObsGapAfterReconcile(request, response)
 }
 
-func (l *ObsGapListener) NotifyObsGapSideEffects(request *sonar.NotifyObsGapSideEffectsRequest, response *sonar.Response) error {
+func (l *ObsGapListener) NotifyObsGapSideEffects(request *sieve.NotifyObsGapSideEffectsRequest, response *sieve.Response) error {
 	return l.Server.NotifyObsGapSideEffects(request, response)
 }
 
@@ -113,7 +113,7 @@ func (s *obsGapServer) isSameTarget(currentEvent map[string]interface{}) bool {
 }
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
-func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGapBeforeIndexerWriteRequest, response *sonar.Response) error {
+func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGapBeforeIndexerWriteRequest, response *sieve.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
 	ew := eventWrapper{
 		eventID:         eID,
@@ -128,7 +128,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 	// We then check for the crucial event
 	if ew.eventObjectType == s.ceRtype && s.isSameTarget(currentEvent) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		s.reconcilingMutex.Lock()
-		log.Println("[sonar] should stop any reconcile here until a later cancel event comes")
+		log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 		s.mutex.Lock()
 		s.pausingReconcile = true
 		s.crucialEvent = ew
@@ -141,16 +141,16 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sonar.NotifyObsGa
 			if s.pausingReconcile {
 				s.pausingReconcile = false
 				s.cond.Broadcast()
-				log.Println("[sonar] we met the timeout for reconcile pausing, reconcile is resumed", s.pausedReconcileCnt)
+				log.Println("[sieve] we met the timeout for reconcile pausing, reconcile is resumed", s.pausedReconcileCnt)
 			}
 			s.mutex.Unlock()
 		}()
 	}
-	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
+	*response = sieve.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil
 }
 
-func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGapAfterIndexerWriteRequest, response *sonar.Response) error {
+func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGapAfterIndexerWriteRequest, response *sieve.Response) error {
 	// If we are inside pausing, then we check for target event which can cancel the crucial one
 	pausingReconcile := false
 	s.mutex.RLock()
@@ -166,7 +166,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 		// Later we can use some diff oriented methods (?)
 		if request.OperationType == "Deleted" && request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent) {
 			// Then we can resume all the reconcile
-			log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
+			log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 			s.mutex.Lock()
 			s.pausingReconcile = false
@@ -175,7 +175,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 		} else if request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent) {
 			// We also propose a diff based method for the cancel
 			if cancelEvent(crucialEvent, currentEvent) {
-				log.Printf("[sonar] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
+				log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 				// TODO: we need to better handle https://github.com/instaclustr/cassandra-operator/issues/398 here
 				// as we should wait until seeing the delete to detect this bug
@@ -187,11 +187,11 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sonar.NotifyObsGap
 		}
 
 	}
-	*response = sonar.Response{Ok: true}
+	*response = sieve.Response{Ok: true}
 	return nil
 }
 
-func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBeforeReconcileRequest, response *sonar.Response) error {
+func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sieve.NotifyObsGapBeforeReconcileRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
 	recID := request.ControllerName
 	// Fix: use cond variable instead of polling
@@ -206,21 +206,21 @@ func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sonar.NotifyObsGapBe
 	}
 	s.mutex.Unlock()
 	log.Println("NotifyObsGapBeforeReconcile[1/1]", recID, s.pausingReconcile)
-	*response = sonar.Response{Ok: true}
+	*response = sieve.Response{Ok: true}
 	return nil
 }
 
-func (s *obsGapServer) NotifyObsGapAfterReconcile(request *sonar.NotifyObsGapAfterReconcileRequest, response *sonar.Response) error {
+func (s *obsGapServer) NotifyObsGapAfterReconcile(request *sieve.NotifyObsGapAfterReconcileRequest, response *sieve.Response) error {
 	recID := request.ControllerName
 	log.Println("NotifyObsGapAfterReconcile", recID)
-	*response = sonar.Response{Ok: true}
+	*response = sieve.Response{Ok: true}
 	s.reconcilingMutex.Unlock()
 	return nil
 }
 
-func (s *obsGapServer) NotifyObsGapSideEffects(request *sonar.NotifyObsGapSideEffectsRequest, response *sonar.Response) error {
+func (s *obsGapServer) NotifyObsGapSideEffects(request *sieve.NotifyObsGapSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
-	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
+	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }

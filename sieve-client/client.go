@@ -1,4 +1,4 @@
-package sonar
+package sieve
 
 import (
 	"io/ioutil"
@@ -12,10 +12,10 @@ import (
 )
 
 var defaultHostPort string = "kind-control-plane:12345"
-var connectionError string = "[sonar] connectionError"
-var replyError string = "[sonar] replyError"
-var hostError string = "[sonar] hostError"
-var jsonError string = "[sonar] jsonError"
+var connectionError string = "[sieve] connectionError"
+var replyError string = "[sieve] replyError"
+var hostError string = "[sieve] hostError"
+var jsonError string = "[sieve] jsonError"
 var config map[string]interface{} = nil
 
 var taintMap sync.Map = sync.Map{}
@@ -36,7 +36,7 @@ func checkMode(mode string) bool {
 	if modeInConfig, ok := config["mode"]; ok {
 		return modeInConfig.(string) == mode
 	} else {
-		log.Println("[sonar] no mode field in config")
+		log.Println("[sieve] no mode field in config")
 		return false
 	}
 }
@@ -51,7 +51,7 @@ func checkStage(stage string) bool {
 	if stageInConfig, ok := config["stage"]; ok {
 		return stageInConfig.(string) == stage
 	} else {
-		log.Println("[sonar] no stage field in config")
+		log.Println("[sieve] no stage field in config")
 		return false
 	}
 }
@@ -97,7 +97,7 @@ func newClient() (*rpc.Client, error) {
 	log.Println(hostPort)
 	client, err := rpc.Dial("tcp", hostPort)
 	if err != nil {
-		log.Printf("[sonar] error in setting up connection to %s due to %v\n", hostPort, err)
+		log.Printf("[sieve] error in setting up connection to %s due to %v\n", hostPort, err)
 		return nil, err
 	}
 	return client, nil
@@ -128,12 +128,12 @@ func getConfigFromEnv() map[string]interface{} {
 func getConfig() (map[string]interface{}, error) {
 	configFromEnv := getConfigFromEnv()
 	if configFromEnv != nil {
-		log.Printf("[sonar] configFromEnv:\n%v\n", configFromEnv)
+		log.Printf("[sieve] configFromEnv:\n%v\n", configFromEnv)
 		return configFromEnv, nil
 	}
-	configPath := "sonar.yaml"
+	configPath := "sieve.yaml"
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		configPath = "/sonar.yaml"
+		configPath = "/sieve.yaml"
 	}
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
@@ -144,19 +144,19 @@ func getConfig() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("[sonar] configFromYaml:\n%v\n", configFromYaml)
+	log.Printf("[sieve] configFromYaml:\n%v\n", configFromYaml)
 	return configFromYaml, nil
 }
 
 func printError(err error, text string) {
-	log.Printf("[sonar][error] %s due to: %v \n", text, err)
+	log.Printf("[sieve][error] %s due to: %v \n", text, err)
 }
 
 func checkResponse(response Response, reqName string) {
 	if response.Ok {
-		log.Printf("[sonar][%s] receives good response: %s\n", reqName, response.Message)
+		log.Printf("[sieve][%s] receives good response: %s\n", reqName, response.Message)
 	} else {
-		log.Printf("[sonar][error][%s] receives bad response: %s\n", reqName, response.Message)
+		log.Printf("[sieve][error][%s] receives bad response: %s\n", reqName, response.Message)
 	}
 }
 

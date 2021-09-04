@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	sonar "sieve.client"
+	sieve "sieve.client"
 )
 
 func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
@@ -43,36 +43,36 @@ type LearnListener struct {
 	Server *learnServer
 }
 
-func (l *LearnListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
-	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
+func (l *LearnListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
+	*response = sieve.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
-func (l *LearnListener) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnBeforeIndexerWrite(request *sieve.NotifyLearnBeforeIndexerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnBeforeIndexerWrite(request, response)
 }
 
-func (l *LearnListener) NotifyLearnAfterIndexerWrite(request *sonar.NotifyLearnAfterIndexerWriteRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnAfterIndexerWrite(request *sieve.NotifyLearnAfterIndexerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnAfterIndexerWrite(request, response)
 }
 
-func (l *LearnListener) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBeforeReconcileRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnBeforeReconcile(request, response)
 }
 
-func (l *LearnListener) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterReconcileRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterReconcileRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnAfterReconcile(request, response)
 }
 
-func (l *LearnListener) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnSideEffects(request *sieve.NotifyLearnSideEffectsRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnSideEffects(request, response)
 }
 
-func (l *LearnListener) NotifyLearnCacheGet(request *sonar.NotifyLearnCacheGetRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnCacheGet(request *sieve.NotifyLearnCacheGetRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnCacheGet(request, response)
 }
 
-func (l *LearnListener) NotifyLearnCacheList(request *sonar.NotifyLearnCacheListRequest, response *sonar.Response) error {
+func (l *LearnListener) NotifyLearnCacheList(request *sieve.NotifyLearnCacheListRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnCacheList(request, response)
 }
 
@@ -109,23 +109,23 @@ func (s *learnServer) Start() {
 	go s.coordinatingEvents()
 }
 
-func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sonar.NotifyLearnBeforeIndexerWriteRequest, response *sonar.Response) error {
+func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sieve.NotifyLearnBeforeIndexerWriteRequest, response *sieve.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
 	waitingCh := make(chan int32)
 	s.eventChMap.Store(fmt.Sprint(eID), waitingCh)
 	s.notificationCh <- notificationWrapper{ntype: eventArrival, payload: fmt.Sprintf("%d\t%s\t%s\t%s", eID, request.OperationType, request.ResourceType, request.Object)}
 	<-waitingCh
-	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
+	*response = sieve.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sonar.NotifyLearnAfterIndexerWriteRequest, response *sonar.Response) error {
+func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sieve.NotifyLearnAfterIndexerWriteRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: eventApplied, payload: fmt.Sprintf("%d", request.EventID)}
-	*response = sonar.Response{Ok: true}
+	*response = sieve.Response{Ok: true}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBeforeReconcileRequest, response *sonar.Response) error {
+func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBeforeReconcileRequest, response *sieve.Response) error {
 	recID := request.ControllerName
 	waitingCh := make(chan int32)
 	// use LoadOrStore here because the same controller may have mulitple workers concurrently running reconcile
@@ -134,33 +134,33 @@ func (s *learnServer) NotifyLearnBeforeReconcile(request *sonar.NotifyLearnBefor
 	waitingCh = obj.(chan int32)
 	s.notificationCh <- notificationWrapper{ntype: reconcileStart, payload: recID}
 	<-waitingCh
-	*response = sonar.Response{Ok: true}
+	*response = sieve.Response{Ok: true}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnAfterReconcile(request *sonar.NotifyLearnAfterReconcileRequest, response *sonar.Response) error {
+func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterReconcileRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: reconcileFinish, payload: request.ControllerName}
-	*response = sonar.Response{Ok: true}
+	*response = sieve.Response{Ok: true}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnSideEffects(request *sonar.NotifyLearnSideEffectsRequest, response *sonar.Response) error {
+func (s *learnServer) NotifyLearnSideEffects(request *sieve.NotifyLearnSideEffectsRequest, response *sieve.Response) error {
 	rtype := request.ResourceType
 	name, namespace := extractNameNamespace(request.Object)
 	s.notificationCh <- notificationWrapper{ntype: sideEffect, payload: request.SideEffectType + "\t" + rtype + "\t" + namespace + "\t" + name + "\t" + request.Error}
-	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
+	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnCacheGet(request *sonar.NotifyLearnCacheGetRequest, response *sonar.Response) error {
+func (s *learnServer) NotifyLearnCacheGet(request *sieve.NotifyLearnCacheGetRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: cacheRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error)}
-	*response = sonar.Response{Message: "Get", Ok: true}
+	*response = sieve.Response{Message: "Get", Ok: true}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnCacheList(request *sonar.NotifyLearnCacheListRequest, response *sonar.Response) error {
+func (s *learnServer) NotifyLearnCacheList(request *sieve.NotifyLearnCacheListRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: cacheRead, payload: fmt.Sprintf("List\t%s\t%s", request.ResourceType, request.Error)}
-	*response = sonar.Response{Message: "List", Ok: true}
+	*response = sieve.Response{Message: "List", Ok: true}
 	return nil
 }
 

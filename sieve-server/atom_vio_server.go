@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	sonar "sieve.client"
+	sieve "sieve.client"
 )
 
 func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
@@ -45,16 +45,16 @@ type AtomVioListener struct {
 	Server *atomVioServer
 }
 
-func (l *AtomVioListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
-	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
+func (l *AtomVioListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
+	*response = sieve.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
-func (l *AtomVioListener) NotifyAtomVioSideEffects(request *sonar.NotifyAtomVioSideEffectsRequest, response *sonar.Response) error {
+func (l *AtomVioListener) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
 	return l.Server.NotifyAtomVioSideEffects(request, response)
 }
 
-func (l *AtomVioListener) NotifyAtomVioBeforeIndexerWrite(request *sonar.NotifyAtomVioBeforeIndexerWriteRequest, response *sonar.Response) error {
+func (l *AtomVioListener) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAtomVioBeforeIndexerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyAtomVioBeforeIndexerWrite(request, response)
 }
 
@@ -103,7 +103,7 @@ func (s *atomVioServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEv
 }
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
-func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sonar.NotifyAtomVioBeforeIndexerWriteRequest, response *sonar.Response) error {
+func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAtomVioBeforeIndexerWriteRequest, response *sieve.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
 	ew := eventWrapper{
 		eventID:         eID,
@@ -117,17 +117,17 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sonar.NotifyAto
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
 	if ew.eventObjectType == s.ceRtype && getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace {
-		log.Print("[sonar] we then check for crash condition", "s.crash", s.crash, "s.seenPrev", s.seenPrev)
+		log.Print("[sieve] we then check for crash condition", "s.crash", s.crash, "s.seenPrev", s.seenPrev)
 		if s.shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent) {
-			log.Println("[sonar] should crash the operator while issuing target side effect")
+			log.Println("[sieve] should crash the operator while issuing target side effect")
 			s.crucialEvent = ew
 		}
 	}
-	*response = sonar.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
+	*response = sieve.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil
 }
 
-func (s *atomVioServer) NotifyAtomVioSideEffects(request *sonar.NotifyAtomVioSideEffectsRequest, response *sonar.Response) error {
+func (s *atomVioServer) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
 	if s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
@@ -137,7 +137,7 @@ func (s *atomVioServer) NotifyAtomVioSideEffects(request *sonar.NotifyAtomVioSid
 		s.restartComponent()
 		return nil
 	}
-	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
+	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 

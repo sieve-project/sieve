@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	sonar "sieve.client"
+	sieve "sieve.client"
 )
 
 // The listener is actually a wrapper around the server.
@@ -41,20 +41,20 @@ type TimeTravelListener struct {
 }
 
 // Echo is just for testing.
-func (l *TimeTravelListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
-	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
+func (l *TimeTravelListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
+	*response = sieve.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
+func (l *TimeTravelListener) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTimeTravelCrucialEventRequest, response *sieve.Response) error {
 	return l.Server.NotifyTimeTravelCrucialEvent(request, response)
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelRestartPoint(request *sonar.NotifyTimeTravelRestartPointRequest, response *sonar.Response) error {
+func (l *TimeTravelListener) NotifyTimeTravelRestartPoint(request *sieve.NotifyTimeTravelRestartPointRequest, response *sieve.Response) error {
 	return l.Server.NotifyTimeTravelRestartPoint(request, response)
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelSideEffects(request *sonar.NotifyTimeTravelSideEffectsRequest, response *sonar.Response) error {
+func (l *TimeTravelListener) NotifyTimeTravelSideEffects(request *sieve.NotifyTimeTravelSideEffectsRequest, response *sieve.Response) error {
 	return l.Server.NotifyTimeTravelSideEffects(request, response)
 }
 
@@ -77,44 +77,44 @@ func (s *timeTravelServer) Start() {
 	log.Println("start timeTravelServer...")
 }
 
-func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
+func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTimeTravelCrucialEventRequest, response *sieve.Response) error {
 	log.Printf("NotifyTimeTravelCrucialEvent: Hostname: %s\n", request.Hostname)
 	if s.straggler != request.Hostname {
-		*response = sonar.Response{Message: request.Hostname, Ok: true}
+		*response = sieve.Response{Message: request.Hostname, Ok: true}
 		return nil
 	}
 	currentEvent := strToMap(request.Object)
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
-	log.Printf("[sonar][current-event] %s\n", request.Object)
+	log.Printf("[sieve][current-event] %s\n", request.Object)
 	if s.shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent) {
-		log.Println("[sonar] should sleep here")
+		log.Println("[sieve] should sleep here")
 		<-s.pauseCh
-		log.Println("[sonar] sleep over")
+		log.Println("[sieve] sleep over")
 	}
-	*response = sonar.Response{Message: request.Hostname, Ok: true}
+	*response = sieve.Response{Message: request.Hostname, Ok: true}
 	return nil
 }
 
-func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sonar.NotifyTimeTravelRestartPointRequest, response *sonar.Response) error {
+func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sieve.NotifyTimeTravelRestartPointRequest, response *sieve.Response) error {
 	log.Printf("NotifyTimeTravelSideEffect: Hostname: %s\n", request.Hostname)
 	if s.frontRunner != request.Hostname {
-		*response = sonar.Response{Message: request.Hostname, Ok: true}
+		*response = sieve.Response{Message: request.Hostname, Ok: true}
 		return nil
 	}
-	log.Printf("[sonar][restart-point] %s %s %s %s\n", request.Name, request.Namespace, request.ResourceType, request.EventType)
+	log.Printf("[sieve][restart-point] %s %s %s %s\n", request.Name, request.Namespace, request.ResourceType, request.EventType)
 	if s.shouldRestart() {
-		log.Println("[sonar] should restart here")
+		log.Println("[sieve] should restart here")
 		go s.waitAndRestartComponent()
 	}
-	*response = sonar.Response{Message: request.Hostname, Ok: true}
+	*response = sieve.Response{Message: request.Hostname, Ok: true}
 	return nil
 }
 
-func (s *timeTravelServer) NotifyTimeTravelSideEffects(request *sonar.NotifyTimeTravelSideEffectsRequest, response *sonar.Response) error {
+func (s *timeTravelServer) NotifyTimeTravelSideEffects(request *sieve.NotifyTimeTravelSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
-	*response = sonar.Response{Message: request.SideEffectType, Ok: true}
+	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 

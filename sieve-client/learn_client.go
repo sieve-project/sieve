@@ -1,4 +1,4 @@
-package sonar
+package sieve
 
 import (
 	"encoding/json"
@@ -46,7 +46,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 	if !triggerReconcile(object) {
 		return -1
 	}
-	// log.Printf("[sonar][NotifyLearnBeforeIndexerWrite] operationType: %s\n", operationType)
+	// log.Printf("[sieve][NotifyLearnBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -80,7 +80,7 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 	if !triggerReconcile(object) {
 		return
 	}
-	// log.Printf("[sonar][NotifyLearnAfterIndexerWrite]\n")
+	// log.Printf("[sieve][NotifyLearnAfterIndexerWrite]\n")
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -103,7 +103,7 @@ func NotifyLearnBeforeReconcile(controllerName string) {
 	if !checkStage(LEARN) {
 		return
 	}
-	// log.Printf("[sonar][NotifyLearnBeforeReconcile]\n")
+	// log.Printf("[sieve][NotifyLearnBeforeReconcile]\n")
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -126,7 +126,7 @@ func NotifyLearnAfterReconcile(controllerName string) {
 	if !checkStage(LEARN) {
 		return
 	}
-	// log.Printf("[sonar][NotifyLearnAfterReconcile]\n")
+	// log.Printf("[sieve][NotifyLearnAfterReconcile]\n")
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -149,7 +149,7 @@ func NotifyLearnSideEffects(sideEffectType string, object interface{}, k8sErr er
 	if !checkStage(LEARN) {
 		return
 	}
-	// log.Printf("[sonar][NotifyLearnSideEffects] %v\n", reflect.TypeOf(object))
+	// log.Printf("[sieve][NotifyLearnSideEffects] %v\n", reflect.TypeOf(object))
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, jsonError)

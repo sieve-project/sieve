@@ -1,4 +1,4 @@
-package sonar
+package sieve
 
 type Response struct {
 	Message string

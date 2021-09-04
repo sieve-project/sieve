@@ -1,4 +1,4 @@
-package sonar
+package sieve
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ func NotifyAtomVioBeforeIndexerWrite(operationType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
-	log.Printf("[sonar][NotifyAtomVioBeforeIndexerWrite] operationType: %s\n", operationType)
+	log.Printf("[sieve][NotifyAtomVioBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)

@@ -1,4 +1,4 @@
-package sonar
+package sieve
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 	// if !triggerReconcile(object) {
 	// 	return -1
 	// }
-	log.Printf("[sonar][NotifyObsGapBeforeIndexerWrite] operationType: %s\n", operationType)
+	log.Printf("[sieve][NotifyObsGapBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -48,7 +48,7 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	log.Printf("[sonar][NotifyObsGapAfterIndexerWrite] operationType: %s\n", operationType)
+	log.Printf("[sieve][NotifyObsGapAfterIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -79,7 +79,7 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	log.Printf("[sonar][NotifyObsGapBeforeReconcile]\n")
+	log.Printf("[sieve][NotifyObsGapBeforeReconcile]\n")
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -102,7 +102,7 @@ func NotifyObsGapAfterReconcile(controllerName string) {
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	log.Printf("[sonar][NotifyObsGapAfterReconcile]\n")
+	log.Printf("[sieve][NotifyObsGapAfterReconcile]\n")
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -125,7 +125,7 @@ func NotifyObsGapSideEffects(sideEffectType string, object interface{}, k8sErr e
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	// log.Printf("[sonar][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
+	// log.Printf("[sieve][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, jsonError)
