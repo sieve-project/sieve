@@ -23,26 +23,26 @@ def compress_event_object_for_list(prev_object, cur_object, slim_prev_object, sl
                     continue
                 if compress_event_object(
                         prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
-                    # SONAR_SKIP means we can skip the value in list when later comparing to the events in testing run
-                    slim_cur_object[i] = analyze_util.SONAR_SKIP_MARKER
-                    slim_prev_object[i] = analyze_util.SONAR_SKIP_MARKER
+                    # SIEVE_SKIP means we can skip the value in list when later comparing to the events in testing run
+                    slim_cur_object[i] = analyze_util.SIEVE_SKIP_MARKER
+                    slim_prev_object[i] = analyze_util.SIEVE_SKIP_MARKER
             elif isinstance(cur_object[i], list):
                 if not isinstance(prev_object[i], list):
                     continue
                 if compress_event_object_for_list(
                         prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
-                    slim_cur_object[i] = analyze_util.SONAR_SKIP_MARKER
-                    slim_prev_object[i] = analyze_util.SONAR_SKIP_MARKER
+                    slim_cur_object[i] = analyze_util.SIEVE_SKIP_MARKER
+                    slim_prev_object[i] = analyze_util.SIEVE_SKIP_MARKER
             else:
                 continue
         else:
-            slim_cur_object[i] = analyze_util.SONAR_SKIP_MARKER
-            slim_prev_object[i] = analyze_util.SONAR_SKIP_MARKER
+            slim_cur_object[i] = analyze_util.SIEVE_SKIP_MARKER
+            slim_prev_object[i] = analyze_util.SIEVE_SKIP_MARKER
 
     if len(slim_cur_object) != len(slim_prev_object):
         return False
     for i in range(len(slim_cur_object)):
-        if slim_cur_object[i] != analyze_util.SONAR_SKIP_MARKER:
+        if slim_cur_object[i] != analyze_util.SIEVE_SKIP_MARKER:
             return False
     return True
 
@@ -110,7 +110,7 @@ def canonicalize_event_for_list(event_list, node_ignore):
             canonicalize_event(event_list[i], node_ignore)
         elif isinstance(event_list[i], str):
             if re.match(analyze_util.TIME_REG, str(event_list[i])):
-                event_list[i] = analyze_util.SONAR_CANONICALIZATION_MARKER
+                event_list[i] = analyze_util.SIEVE_CANONICALIZATION_MARKER
     return event_list
 
 
@@ -122,10 +122,10 @@ def canonicalize_event(event, node_ignore):
             canonicalize_event_for_list(event[key], node_ignore)
         elif isinstance(event[key], str):
             if re.match(analyze_util.TIME_REG, str(event[key])):
-                event[key] = analyze_util.SONAR_CANONICALIZATION_MARKER
+                event[key] = analyze_util.SIEVE_CANONICALIZATION_MARKER
             if node_ignore[0]:
                 if 'ip' in key.lower() and re.match(analyze_util.IP_REG, str(event[key])):
-                    event[key] = analyze_util.SONAR_CANONICALIZATION_MARKER
+                    event[key] = analyze_util.SIEVE_CANONICALIZATION_MARKER
                 if key in analyze_util.PLACEHOLDER_FIELDS + node_ignore[1]:
-                    event[key] = analyze_util.SONAR_CANONICALIZATION_MARKER
+                    event[key] = analyze_util.SIEVE_CANONICALIZATION_MARKER
     return event

@@ -29,7 +29,7 @@ def generate_side_effect(path):
     side_effect_empty_entry = {"Create": 0, "Update": 0,
                                "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
     for line in open(path).readlines():
-        if analyze_util.SONAR_SIDE_EFFECT_MARK not in line:
+        if analyze_util.SIEVE_SIDE_EFFECT_MARK not in line:
             continue
         side_effect = analyze_util.parse_side_effect(line)
         if analyze_util.ERROR_MSG_FILTER_FLAG:
@@ -147,7 +147,7 @@ def generate_resources(path=""):
         ["statefulset", "pod", "persistentvolumeclaim", "deployment"])
     if path != "":
         for line in open(path).readlines():
-            if analyze_util.SONAR_SIDE_EFFECT_MARK not in line:
+            if analyze_util.SIEVE_SIDE_EFFECT_MARK not in line:
                 continue
             side_effect = analyze_util.parse_side_effect(line)
             resource_set.add(side_effect.rtype)

@@ -222,8 +222,8 @@ def make_safe_filename(filename):
 def replace_docker_repo(path, dr, dt):
     fin = open(path)
     data = fin.read()
-    data = data.replace("${SONAR-DR}", dr)
-    data = data.replace("${SONAR-DT}", dt)
+    data = data.replace("${SIEVE-DR}", dr)
+    data = data.replace("${SIEVE-DT}", dt)
     fin.close()
     tokens = path.rsplit('.', 1)
     new_path = tokens[0] + "-" + make_safe_filename(dr) + '.' + tokens[1]

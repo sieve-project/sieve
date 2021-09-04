@@ -31,9 +31,9 @@ def generate_configmap(test_config):
     for key in yaml_map:
         if isinstance(yaml_map[key], list):
             assert key.endswith("-list")
-            configmap["data"]["SONAR-" + key.upper()] = ",".join(yaml_map[key])
+            configmap["data"]["SIEVE-" + key.upper()] = ",".join(yaml_map[key])
         else:
-            configmap["data"]["SONAR-" + key.upper()] = yaml_map[key]
+            configmap["data"]["SIEVE-" + key.upper()] = yaml_map[key]
     configmap_path = "%s-configmap.yaml" % test_config[:-5]
     yaml.dump(configmap, open(configmap_path, "w"), sort_keys=False)
     return configmap_path

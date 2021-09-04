@@ -13,17 +13,17 @@ SQL_ERROR_MSG_FILTER = "se.error != 'NotFound'"
 SQL_WRITE_READ_FILTER = "(exists(select * from json_each(se.read_fully_qualified_names) where json_each.value = e.fully_qualified_name) or exists(select * from json_each(se.read_types) where json_each.value = e.resource_type))"
 
 
-SONAR_EVENT_MARK = "[SONAR-EVENT]"
-SONAR_SIDE_EFFECT_MARK = "[SONAR-SIDE-EFFECT]"
-SONAR_CACHE_READ_MARK = "[SONAR-CACHE-READ]"
-SONAR_START_RECONCILE_MARK = "[SONAR-START-RECONCILE]"
-SONAR_FINISH_RECONCILE_MARK = "[SONAR-FINISH-RECONCILE]"
-SONAR_EVENT_APPLIED_MARK = "[SONAR-EVENT-APPLIED]"
+SIEVE_EVENT_MARK = "[SIEVE-EVENT]"
+SIEVE_SIDE_EFFECT_MARK = "[SIEVE-SIDE-EFFECT]"
+SIEVE_CACHE_READ_MARK = "[SIEVE-CACHE-READ]"
+SIEVE_START_RECONCILE_MARK = "[SIEVE-START-RECONCILE]"
+SIEVE_FINISH_RECONCILE_MARK = "[SIEVE-FINISH-RECONCILE]"
+SIEVE_EVENT_APPLIED_MARK = "[SIEVE-EVENT-APPLIED]"
 
 BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
                               "managedFields", "lastTransitionTime", "generation"]
-SONAR_SKIP_MARKER = "SIEVE-SKIP"
-SONAR_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
+SIEVE_SKIP_MARKER = "SIEVE-SKIP"
+SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 IP_REG = '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
 PLACEHOLDER_FIELDS = ["nodeName", "containerID"]
@@ -140,21 +140,21 @@ class Reconcile:
 
 
 def parse_event(line):
-    assert SONAR_EVENT_MARK in line
-    tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
+    assert SIEVE_EVENT_MARK in line
+    tokens = line[line.find(SIEVE_EVENT_MARK):].strip("\n").split("\t")
     return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
 
 
 def parse_side_effect(line):
-    assert SONAR_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SONAR_SIDE_EFFECT_MARK):].strip(
+    assert SIEVE_SIDE_EFFECT_MARK in line
+    tokens = line[line.find(SIEVE_SIDE_EFFECT_MARK):].strip(
         "\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
 def parse_cache_read(line):
-    assert SONAR_CACHE_READ_MARK in line
-    tokens = line[line.find(SONAR_CACHE_READ_MARK):].strip("\n").split("\t")
+    assert SIEVE_CACHE_READ_MARK in line
+    tokens = line[line.find(SIEVE_CACHE_READ_MARK):].strip("\n").split("\t")
     if tokens[1] == "Get":
         return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
     else:
@@ -162,22 +162,22 @@ def parse_cache_read(line):
 
 
 def parse_event_id_only(line):
-    assert SONAR_EVENT_APPLIED_MARK in line or SONAR_EVENT_MARK in line
-    if SONAR_EVENT_APPLIED_MARK in line:
-        tokens = line[line.find(SONAR_EVENT_APPLIED_MARK):].strip(
+    assert SIEVE_EVENT_APPLIED_MARK in line or SIEVE_EVENT_MARK in line
+    if SIEVE_EVENT_APPLIED_MARK in line:
+        tokens = line[line.find(SIEVE_EVENT_APPLIED_MARK):].strip(
             "\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SONAR_EVENT_MARK):].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_EVENT_MARK):].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
 
 
 def parse_reconcile(line):
-    assert SONAR_START_RECONCILE_MARK in line or SONAR_FINISH_RECONCILE_MARK in line
-    if SONAR_START_RECONCILE_MARK in line:
-        tokens = line[line.find(SONAR_START_RECONCILE_MARK):].strip("\n").split("\t")
+    assert SIEVE_START_RECONCILE_MARK in line or SIEVE_FINISH_RECONCILE_MARK in line
+    if SIEVE_START_RECONCILE_MARK in line:
+        tokens = line[line.find(SIEVE_START_RECONCILE_MARK):].strip("\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
     else:
-        tokens = line[line.find(SONAR_FINISH_RECONCILE_MARK):].strip(
+        tokens = line[line.find(SIEVE_FINISH_RECONCILE_MARK):].strip(
             "\n").split("\t")
         return Reconcile(tokens[1], tokens[2])

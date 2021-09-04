@@ -87,20 +87,20 @@ def parse_events(path):
     largest_timestamp = len(lines)
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SONAR_EVENT_MARK in line:
+        if analyze_util.SIEVE_EVENT_MARK in line:
             event = analyze_util.parse_event(line)
             event.set_start_timestamp(i)
             # We initially set the event end time as the largest timestamp
-            # so that if we never meet SONAR_EVENT_APPLIED_MARK for this event,
+            # so that if we never meet SIEVE_EVENT_APPLIED_MARK for this event,
             # we will not pose any constraint on its end time in range_overlap
             event.set_end_timestamp(largest_timestamp)
             event_id_map[event.id] = event
-        elif analyze_util.SONAR_EVENT_APPLIED_MARK in line:
+        elif analyze_util.SIEVE_EVENT_APPLIED_MARK in line:
             event_id_only = analyze_util.parse_event_id_only(line)
             event_id_map[event_id_only.id].set_end_timestamp(i)
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SONAR_EVENT_MARK in line:
+        if analyze_util.SIEVE_EVENT_MARK in line:
             event = analyze_util.parse_event(line)
             if event.key not in event_key_map:
                 event_key_map[event.key] = []
@@ -123,7 +123,7 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SONAR_SIDE_EFFECT_MARK in line:
+        if analyze_util.SIEVE_SIDE_EFFECT_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the side effect since it is not caused by reconcile
@@ -150,13 +150,13 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             side_effect.set_range(earliest_timestamp, i)
             side_effect_list.append(side_effect)
             side_effect_id_map[side_effect.id] = side_effect
-        elif analyze_util.SONAR_CACHE_READ_MARK in line:
+        elif analyze_util.SIEVE_CACHE_READ_MARK in line:
             cache_read = analyze_util.parse_cache_read(line)
             if cache_read.etype == "Get":
                 read_keys_this_reconcile.add(cache_read.key)
             else:
                 read_types_this_reconcile.add(cache_read.rtype)
-        elif analyze_util.SONAR_START_RECONCILE_MARK in line:
+        elif analyze_util.SIEVE_START_RECONCILE_MARK in line:
             reconcile = analyze_util.parse_reconcile(line)
             controller_name = reconcile.controller_name
             ongoing_reconciles.add(controller_name)
@@ -173,7 +173,7 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             cur_reconcile_start_timestamp[controller_name] = i
             # Reset cur_reconcile_is_trivial[controller_name] to True as a new round of reconcile just starts
             cur_reconcile_is_trivial[controller_name] = True
-        elif analyze_util.SONAR_FINISH_RECONCILE_MARK in line:
+        elif analyze_util.SIEVE_FINISH_RECONCILE_MARK in line:
             reconcile = analyze_util.parse_reconcile(line)
             controller_name = reconcile.controller_name
             ongoing_reconciles.remove(controller_name)

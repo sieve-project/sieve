@@ -17,7 +17,7 @@ Concretely, deploying the operator often requires to install the CRDs and relate
 
 For a new controller, you need to modify the deployment config of the operator to do the following:
 1. Add a label: `sievetag: YOUR_OPERATOR_NAME`. So sieve can later find the pod. See [zookeeper-operator](https://github.com/sieve-project/sieve/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L10).
-2. Replace the operator image repo name with `${SONAR-DR}`, and replace the tag with `${SONAR-DT}`. So sieve can use the right image when running the tests. See [zookeeper-operator](https://github.com/sieve-project/sieve/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L21).
+2. Replace the operator image repo name with `${SIEVE-DR}`, and replace the tag with `${SIEVE-DT}`. So sieve can use the right image when running the tests. See [zookeeper-operator](https://github.com/sieve-project/sieve/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L21).
 3. Specify env variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT` and import configmap `sieve-testing-global-config` in the yaml file. See [zookeeper-operator](https://github.com/sieve-project/sieve-issue-only/blob/481de8a61b8362f96dbf0e46c8dfe150ae786fbd/test-zookeeper-operator/deploy/default_ns/operator.yaml#L39).
 4. Set `imagePullPolicy` for the operator container to be `IfNotPresent` (for CI run). See [zookeeper-operator](https://github.com/sieve-project/sieve-issue-only/blob/481de8a61b8362f96dbf0e46c8dfe150ae786fbd/test-zookeeper-operator/deploy/default_ns/operator.yaml#L27)
 

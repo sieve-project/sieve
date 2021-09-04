@@ -104,14 +104,14 @@ func newClient() (*rpc.Client, error) {
 }
 
 func getConfigFromEnv() map[string]interface{} {
-	if _, ok := os.LookupEnv("SONAR-MODE"); ok {
+	if _, ok := os.LookupEnv("SIEVE-MODE"); ok {
 		configFromEnv := make(map[string]interface{})
 		for _, e := range os.Environ() {
 			pair := strings.SplitN(e, "=", 2)
 			envKey := pair[0]
 			envVal := pair[1]
-			if strings.HasPrefix(envKey, "SONAR-") {
-				newKey := strings.ToLower(strings.TrimPrefix(envKey, "SONAR-"))
+			if strings.HasPrefix(envKey, "SIEVE-") {
+				newKey := strings.ToLower(strings.TrimPrefix(envKey, "SIEVE-"))
 				if strings.HasSuffix(newKey, "-list") {
 					configFromEnv[newKey] = strings.Split(envVal, ",")
 				} else {

@@ -181,7 +181,7 @@ func (s *learnServer) coordinatingEvents() {
 					s.reconcileCntMap[nw.payload] = 0
 				}
 				if obj, ok := s.reconcileChMap.Load(nw.payload); ok {
-					log.Printf("[SONAR-START-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
+					log.Printf("[SIEVE-START-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
 					ch := obj.(chan int32)
 					ch <- 0
 				} else {
@@ -196,17 +196,17 @@ func (s *learnServer) coordinatingEvents() {
 				} else if s.ongoingReconcileCnt < 0 {
 					log.Fatalf("reconcileCnt cannot be lower than 0: %d\n", s.ongoingReconcileCnt)
 				}
-				log.Printf("[SONAR-FINISH-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
+				log.Printf("[SIEVE-FINISH-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
 			case sideEffect:
 				if s.ongoingReconcileCnt > 0 {
-					log.Printf("[SONAR-SIDE-EFFECT]\t%s\n", nw.payload)
+					log.Printf("[SIEVE-SIDE-EFFECT]\t%s\n", nw.payload)
 				}
 			case eventArrival:
 				if !s.rateLimiterEnabled {
 					eventID := strings.Split(nw.payload, "\t")[0]
 					if obj, ok := s.eventChMap.Load(eventID); ok {
 						log.Printf("release event\n")
-						log.Printf("[SONAR-EVENT]\t%s\n", nw.payload)
+						log.Printf("[SIEVE-EVENT]\t%s\n", nw.payload)
 						ch := obj.(chan int32)
 						ch <- 0
 					} else {
@@ -216,9 +216,9 @@ func (s *learnServer) coordinatingEvents() {
 					s.rateLimitedEventCh <- nw
 				}
 			case eventApplied:
-				log.Printf("[SONAR-EVENT-APPLIED]\t%s\n", nw.payload)
+				log.Printf("[SIEVE-EVENT-APPLIED]\t%s\n", nw.payload)
 			case cacheRead:
-				log.Printf("[SONAR-CACHE-READ]\t%s\n", nw.payload)
+				log.Printf("[SIEVE-CACHE-READ]\t%s\n", nw.payload)
 			default:
 				log.Fatal("invalid notification type")
 			}
@@ -232,7 +232,7 @@ func (s *learnServer) pollRateLimitedEventCh() {
 		eventID := strings.Split(nw.payload, "\t")[0]
 		if obj, ok := s.eventChMap.Load(eventID); ok {
 			log.Printf("ratelimiter release event\n")
-			log.Printf("[SONAR-EVENT]\t%s\n", nw.payload)
+			log.Printf("[SIEVE-EVENT]\t%s\n", nw.payload)
 			ch := obj.(chan int32)
 			ch <- 0
 		} else {
