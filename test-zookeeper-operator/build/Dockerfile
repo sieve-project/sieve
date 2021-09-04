@@ -14,7 +14,7 @@ WORKDIR /src
 COPY pkg ./pkg
 COPY cmd ./cmd
 COPY go.mod ./
-COPY dep-sonar/ dep-sonar/
+COPY dep-sieve/ dep-sieve/
 
 # Download all dependencies.
 # RUN go mod download

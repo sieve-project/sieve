@@ -13,7 +13,7 @@ COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
 COPY internal/ internal/
-COPY dep-sonar/ dep-sonar/
+COPY dep-sieve/ dep-sieve/
 
 # Build
 RUN go mod download k8s.io/apimachinery

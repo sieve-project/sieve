@@ -81,28 +81,28 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
     # download controller_runtime and client_go libs
     os.system(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null" % controller_runtime_version)
-    os.system("mkdir -p %s/dep-sonar/src/sigs.k8s.io" %
+    os.system("mkdir -p %s/dep-sieve/src/sigs.k8s.io" %
               controllers.app_dir[project])
-    os.system("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
+    os.system("cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s" %
               (controller_runtime_version, controllers.app_dir[project], controller_runtime_version))
-    os.system("chmod +w -R %s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s" %
+    os.system("chmod +w -R %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s" %
               (controllers.app_dir[project], controller_runtime_version))
     os.system("go mod download k8s.io/client-go@%s >> /dev/null" %
               client_go_version)
-    os.system("mkdir -p %s/dep-sonar/src/k8s.io" %
+    os.system("mkdir -p %s/dep-sieve/src/k8s.io" %
               controllers.app_dir[project])
     os.system(
-        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sonar/src/k8s.io/client-go@%s" % (client_go_version, controllers.app_dir[project], client_go_version))
+        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sieve/src/k8s.io/client-go@%s" % (client_go_version, controllers.app_dir[project], client_go_version))
     os.system(
-        "chmod +w -R %s/dep-sonar/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
-    os.system("cp -r sieve-client %s/dep-sonar/src/sieve.client" %
+        "chmod +w -R %s/dep-sieve/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
+    os.system("cp -r sieve-client %s/dep-sieve/src/sieve.client" %
               controllers.app_dir[project])
 
     if project == "yugabyte-operator":
         # Ad-hoc fix for api incompatibility in golang
         # Special handling of yugabyte-operator as it depends on an older apimachinery which is
         # incompatible with the one sieve.client depends on
-        with fileinput.FileInput("%s/dep-sonar/src/sieve.client/go.mod" % controllers.app_dir[project],
+        with fileinput.FileInput("%s/dep-sieve/src/sieve.client/go.mod" % controllers.app_dir[project],
                                  inplace=True, backup='.bak') as sonar_client_go_mod:
             for line in sonar_client_go_mod:
                 if "k8s.io/apimachinery" in line:
@@ -121,17 +121,17 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
     with open("%s/go.mod" % controllers.app_dir[project], "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write(
-            "replace sieve.client => ./dep-sonar/src/sieve.client\n")
+            "replace sieve.client => ./dep-sieve/src/sieve.client\n")
         go_mod_file.write(
-            "replace sigs.k8s.io/controller-runtime => ./dep-sonar/src/sigs.k8s.io/controller-runtime@%s\n" % controller_runtime_version)
+            "replace sigs.k8s.io/controller-runtime => ./dep-sieve/src/sigs.k8s.io/controller-runtime@%s\n" % controller_runtime_version)
         go_mod_file.write(
-            "replace k8s.io/client-go => ./dep-sonar/src/k8s.io/client-go@%s\n" % client_go_version)
-    with open("%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s/go.mod" % (controllers.app_dir[project], controller_runtime_version), "a") as go_mod_file:
+            "replace k8s.io/client-go => ./dep-sieve/src/k8s.io/client-go@%s\n" % client_go_version)
+    with open("%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s/go.mod" % (controllers.app_dir[project], controller_runtime_version), "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
         go_mod_file.write(
             "replace k8s.io/client-go => ../../k8s.io/client-go@%s\n" % client_go_version)
-    with open("%s/dep-sonar/src/k8s.io/client-go@%s/go.mod" % (controllers.app_dir[project], client_go_version), "a") as go_mod_file:
+    with open("%s/dep-sieve/src/k8s.io/client-go@%s/go.mod" % (controllers.app_dir[project], client_go_version), "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
 
@@ -150,7 +150,7 @@ def instrument_controller(project, mode, controller_runtime_version, client_go_v
     os.chdir("instrumentation")
     os.system("go build")
     os.system(
-        "./instrumentation %s %s %s/%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sonar/src/k8s.io/client-go@%s" % (project, mode, ORIGINAL_DIR, controllers.app_dir[project], controller_runtime_version, ORIGINAL_DIR, controllers.app_dir[project], client_go_version))
+        "./instrumentation %s %s %s/%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sieve/src/k8s.io/client-go@%s" % (project, mode, ORIGINAL_DIR, controllers.app_dir[project], controller_runtime_version, ORIGINAL_DIR, controllers.app_dir[project], client_go_version))
     os.chdir(ORIGINAL_DIR)
 
 
