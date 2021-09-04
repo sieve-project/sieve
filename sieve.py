@@ -83,10 +83,18 @@ def stop_sieve_server():
         "docker exec kind-control-plane bash -c 'pkill sieve-server'")
 
 
+def setup_kind_cluster(kind_config, docker_repo, docker_tag):
+    cmd_early_exit("kind create cluster --image %s/node:%s --config %s" %
+                   (docker_repo, docker_tag, kind_config))
+    cmd_early_exit(
+        "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'")
+
+
 def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize):
     cmd_early_exit("kind delete cluster")
-    cmd_early_exit("./setup.sh %s %s %s" %
-                   (generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag))
+    setup_kind_cluster(generate_kind_config(
+        mode, num_apiservers, num_workers), docker_repo, docker_tag)
+
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
     # cmd_early_exit("kubectl config set-context --current --namespace=%s" %
     #           sieve_config["namespace"])
