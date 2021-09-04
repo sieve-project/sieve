@@ -23,6 +23,8 @@ func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 		pausedReconcileCnt: 0,
 	}
 	server.mutex = &sync.RWMutex{}
+	// TODO: the reconcilingMutex might affect the performace of concurrent reconcile
+	// we can live with it for now as operators usually do not run reconcile concurrently
 	server.reconcilingMutex = &sync.RWMutex{}
 	server.cond = sync.NewCond(server.mutex)
 	listener := &ObsGapListener{
