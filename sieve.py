@@ -218,7 +218,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
         if os.path.exists(test_config):
             open(os.path.join(log_dir, "config.yaml"),
                  "w").write(open(test_config).read())
-        if mode == sieve_modes.VANILLIA:
+        if mode == sieve_modes.VANILLA:
             # TODO: We need another recording mode to only record digest without generating config
             pass
         else:
@@ -287,7 +287,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         run_test(project, mode, stage, suite.workload,
                  learn_config, log_dir, docker, stage, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
     else:
-        if mode == sieve_modes.VANILLIA:
+        if mode == sieve_modes.VANILLA:
             blank_config = "config/none.yaml"
             run_test(project, mode, stage, suite.workload,
                      blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
@@ -360,7 +360,7 @@ if __name__ == "__main__":
 
     assert options.stage in [
         "learn", "test"], "invalid stage option: %s" % options.stage
-    assert options.mode in [sieve_modes.VANILLIA, sieve_modes.TIME_TRAVEL,
+    assert options.mode in [sieve_modes.VANILLA, sieve_modes.TIME_TRAVEL,
                             sieve_modes.OBS_GAP, sieve_modes.ATOM_VIO, "learn"], "invalid mode option: %s" % options.mode
     assert options.phase in ["all", "setup_only", "workload_only",
                              "check_only", "workload_and_check"], "invalid phase option: %s" % options.phase

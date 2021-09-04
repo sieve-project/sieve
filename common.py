@@ -31,7 +31,7 @@ class sieve_modes:
     TIME_TRAVEL = "time-travel"
     OBS_GAP = "observability-gap"
     ATOM_VIO = "atomicity-violation"
-    VANILLIA = "vanilla"
+    VANILLA = "vanilla"
     LEARN = "learn"
 
 
