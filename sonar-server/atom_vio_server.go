@@ -159,7 +159,7 @@ func (s *atomVioServer) restartComponent() {
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	for true {
+	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
 		checkError(err)
@@ -184,7 +184,7 @@ func (s *atomVioServer) restartComponent() {
 	checkError(err)
 	log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
 
-	for true {
+	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
 		checkError(err)

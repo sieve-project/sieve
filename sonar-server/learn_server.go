@@ -100,7 +100,6 @@ type learnServer struct {
 	notificationCh      chan notificationWrapper
 	ongoingReconcileCnt int
 	reconcileCntMap     map[string]int
-	mu                  sync.Mutex
 	rateLimiterEnabled  bool
 	rateLimiterInterval int64
 }

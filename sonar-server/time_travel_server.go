@@ -2,11 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
-	"reflect"
-	"strings"
-	"sync"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -16,9 +12,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	sonar "sonar.client"
 )
-
-var globalCntToRestart int = 0
-var mutex = &sync.Mutex{}
 
 // The listener is actually a wrapper around the server.
 func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
@@ -82,240 +75,6 @@ type timeTravelServer struct {
 
 func (s *timeTravelServer) Start() {
 	log.Println("start timeTravelServer...")
-}
-
-func toLowerMap(m map[string]interface{}) {
-	for key, val := range m {
-		switch v := val.(type) {
-		case map[string]interface{}:
-			if e, ok := m[key].(map[string]interface{}); ok {
-				toLowerMap(e)
-				if strings.ToLower(key) != key {
-					m[strings.ToLower(key)] = e
-					delete(m, key)
-				}
-			} else {
-				log.Println("m[key] assertion to map[string]interface{} fail")
-			}
-
-		case []interface{}:
-			if e, ok := m[key].([]interface{}); ok {
-				for idx := range e {
-					switch e[idx].(type) {
-					case map[string]interface{}:
-						if eSlice, ok := e[idx].(map[string]interface{}); ok {
-							toLowerMap(eSlice)
-						}
-					case []interface{}:
-						log.Println("toLowerMap does not support slice in slice for now")
-					}
-				}
-				if strings.ToLower(key) != key {
-					m[strings.ToLower(key)] = e
-					delete(m, key)
-				}
-			} else {
-				log.Println("m[key] assertion to []interface{} fail")
-			}
-
-		default:
-			m[strings.ToLower(key)] = v
-			if strings.ToLower(key) != key {
-				delete(m, key)
-			}
-
-		}
-	}
-}
-
-func strToMap(str string) map[string]interface{} {
-	m := make(map[string]interface{})
-	err := json.Unmarshal([]byte(str), &m)
-	if err != nil {
-		log.Fatalf("cannot unmarshal to map: %s\n", str)
-	}
-	toLowerMap(m)
-	return m
-}
-
-func deepCopyMap(src map[string]interface{}, dest map[string]interface{}) {
-	if src == nil {
-		log.Fatalf("src is nil. You cannot read from a nil map")
-	}
-	if dest == nil {
-		log.Fatalf("dest is nil. You cannot insert to a nil map")
-	}
-	jsonStr, err := json.Marshal(src)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	err = json.Unmarshal(jsonStr, &dest)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-}
-
-func equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
-	if len(crucialEvent) != len(currentEvent) {
-		return false
-	}
-	for i, val := range crucialEvent {
-		switch v := val.(type) {
-		case int64:
-			if e, ok := currentEvent[i].(int64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case float64:
-			if e, ok := currentEvent[i].(float64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case bool:
-			if e, ok := currentEvent[i].(bool); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case string:
-			if v == "SIEVE-NON-NIL" || v == "SIEVE-SKIP" {
-				continue
-			} else if e, ok := currentEvent[i].(string); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case map[string]interface{}:
-			if e, ok := currentEvent[i].(map[string]interface{}); ok {
-				if !equivalentEvent(v, e) {
-					return false
-				}
-			} else {
-				return false
-			}
-		default:
-			log.Printf("Unsupported type: %v %T\n", v, v)
-			return false
-		}
-	}
-	return true
-}
-
-func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
-	for key, val := range crucialEvent {
-		if _, ok := currentEvent[key]; !ok {
-			log.Println("Match fail", key, val, "currentEvent keys", reflect.ValueOf(currentEvent).MapKeys())
-			return false
-		}
-		switch v := val.(type) {
-		case int64:
-			if e, ok := currentEvent[key].(int64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case float64:
-			if e, ok := currentEvent[key].(float64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case bool:
-			if e, ok := currentEvent[key].(bool); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case string:
-			if v == "SIEVE-NON-NIL" {
-				continue
-			} else if e, ok := currentEvent[key].(string); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case map[string]interface{}:
-			if e, ok := currentEvent[key].(map[string]interface{}); ok {
-				if !equivalentEvent(v, e) {
-					return false
-				}
-			} else {
-				return false
-			}
-		case []interface{}:
-			if e, ok := currentEvent[key].([]interface{}); ok {
-				if !equivalentEventList(v, e) {
-					return false
-				}
-			} else {
-				return false
-			}
-
-		default:
-			if e, ok := currentEvent[key]; ok {
-				if val == nil && e == nil {
-					log.Printf("Both nil type: %v and %v , key: %s\n", v, e, key)
-					return true
-				}
-			}
-
-			log.Printf("Unsupported type: %v %T, key: %s\n", v, v, key)
-			return false
-		}
-	}
-	return true
-}
-
-func equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
-	if _, ok := currentEvent["metadata"]; ok {
-		return false
-	}
-	if _, ok := crucialEvent["metadata"]; ok {
-		copiedCrucialEvent := make(map[string]interface{})
-		deepCopyMap(crucialEvent, copiedCrucialEvent)
-		metadataMap := copiedCrucialEvent["metadata"]
-		if m, ok := metadataMap.(map[string]interface{}); ok {
-			for key := range m {
-				copiedCrucialEvent[key] = m[key]
-			}
-			delete(copiedCrucialEvent, "metadata")
-			return equivalentEvent(copiedCrucialEvent, currentEvent)
-		} else {
-			return false
-		}
-	} else {
-		return false
-	}
-}
-
-func isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
-	if equivalentEvent(crucialEvent, currentEvent) {
-		log.Println("Meet")
-		return true
-	} else if equivalentEventSecondTry(crucialEvent, currentEvent) {
-		log.Println("Meet for the second try")
-		return true
-	} else {
-		return false
-	}
 }
 
 func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sonar.NotifyTimeTravelCrucialEventRequest, response *sonar.Response) error {
@@ -418,7 +177,7 @@ func (s *timeTravelServer) restartComponent() {
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
 
-	for true {
+	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
 		checkError(err)
@@ -454,7 +213,7 @@ func (s *timeTravelServer) restartComponent() {
 	checkError(err)
 	log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
 
-	for true {
+	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
 		checkError(err)
