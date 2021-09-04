@@ -4,17 +4,7 @@ import (
 	"log"
 	"net"
 	"net/rpc"
-
-	sonar "sonar.client"
 )
-
-type listenerInterface interface {
-	Echo(request *sonar.EchoRequest, response *sonar.Response) error
-}
-
-type serverInterface interface {
-	Start()
-}
 
 // Sonar server runs on one of the kind-control-plane node (not in the pod).
 // The server reads the config `server.yaml` and decides which listener to use.
