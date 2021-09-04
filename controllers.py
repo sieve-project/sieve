@@ -114,8 +114,6 @@ test_suites = {
             workloads.workloads["casskop-operator"]["reducepdb"], "test-casskop-operator/test/time-travel-2.yaml", sieve_modes.TIME_TRAVEL, two_sided=True),
         "nodesperrack": Suite(
             workloads.workloads["casskop-operator"]["nodesperrack"], "test-casskop-operator/test/obs-gap-1.yaml", sieve_modes.OBS_GAP),
-        "scaledown": Suite(
-            workloads.workloads["casskop-operator"]["scaledown"], "test-casskop-operator/test/atomic-2.yaml", sieve_modes.ATOM_VIO),
         "scaledown-obs-gap": Suite(
             workloads.workloads["casskop-operator"]["scaledown"], "test-casskop-operator/test/obs-gap-2.yaml", sieve_modes.OBS_GAP),
     },
