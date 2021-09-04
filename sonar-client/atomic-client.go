@@ -7,11 +7,11 @@ import (
 	"runtime/debug"
 )
 
-func NotifyAtomicBeforeIndexerWrite(operationType string, object interface{}) {
+func NotifyAtomVioBeforeIndexerWrite(operationType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
-	log.Printf("[sonar][NotifyAtomicBeforeIndexerWrite] operationType: %s\n", operationType)
+	log.Printf("[sonar][NotifyAtomVioBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -23,24 +23,22 @@ func NotifyAtomicBeforeIndexerWrite(operationType string, object interface{}) {
 		return
 	}
 
-	// if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
-	// }
-	request := &NotifyAtomicBeforeIndexerWriteRequest{
+	request := &NotifyAtomVioBeforeIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
 		ResourceType:  regularizeType(reflect.TypeOf(object).String()),
 	}
 	var response Response
-	err = client.Call("AtomicListener.NotifyAtomicBeforeIndexerWrite", request, &response)
+	err = client.Call("AtomVioListener.NotifyAtomVioBeforeIndexerWrite", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyAtomicBeforeIndexerWrite")
+	checkResponse(response, "NotifyAtomVioBeforeIndexerWrite")
 	client.Close()
 }
 
-func NotifyAtomicSideEffects(sideEffectType string, object interface{}) {
+func NotifyAtomVioSideEffects(sideEffectType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
@@ -54,7 +52,7 @@ func NotifyAtomicSideEffects(sideEffectType string, object interface{}) {
 		return
 	}
 	errorString := "NoError"
-	request := &NotifyAtomicSideEffectsRequest{
+	request := &NotifyAtomVioSideEffectsRequest{
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
@@ -62,11 +60,11 @@ func NotifyAtomicSideEffects(sideEffectType string, object interface{}) {
 		Stack:          string(debug.Stack()),
 	}
 	var response Response
-	err = client.Call("AtomicListener.NotifyAtomicSideEffects", request, &response)
+	err = client.Call("AtomVioListener.NotifyAtomVioSideEffects", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyAtomicSideEffects")
+	checkResponse(response, "NotifyAtomVioSideEffects")
 	client.Close()
 }

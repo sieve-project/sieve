@@ -43,7 +43,7 @@ func main() {
 		// atomic: atomic side effect during reconcile
 		case ATOM_VIO:
 			log.Println(ATOM_VIO)
-			rpc.Register(NewAtomicListener(config))
+			rpc.Register(NewAtomVioListener(config))
 
 		default:
 			log.Fatalf("Cannot recognize mode: %s\n", config["mode"])

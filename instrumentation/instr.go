@@ -6,33 +6,6 @@ import (
 	"path"
 )
 
-// instrment for sparse-read pattern
-func instrumentControllerForSparseRead(controller_runtime_filepath string) {
-	// Mainly two pieces of instrumentation we should do for sparse-read:
-	// In controller.go, we need to invoke NotifySparseReadBeforeReconcile before calling Reconcile(),
-	// and invoke NotifySparseReadBeforeMakeQ before creating a queue.
-	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
-	fmt.Printf("instrumenting %s\n", controllerGoFile)
-	instrumentControllerGo(controllerGoFile, controllerGoFile)
-
-	// In enqueue*.go, we need to invoke NotifySparseReadBeforeQAdd before calling each q.Add().
-	enqueueGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue.go")
-	fmt.Printf("instrumenting %s\n", enqueueGoFile)
-	instrumentEnqueueGo(enqueueGoFile, enqueueGoFile)
-
-	enqueueMappedGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue_mapped.go")
-	fmt.Printf("instrumenting %s\n", enqueueMappedGoFile)
-	instrumentEnqueueGo(enqueueMappedGoFile, enqueueMappedGoFile)
-
-	enqueueOwnerGoFile := path.Join(controller_runtime_filepath, "pkg", "handler", "enqueue_owner.go")
-	fmt.Printf("instrumenting %s\n", enqueueOwnerGoFile)
-	instrumentEnqueueGo(enqueueOwnerGoFile, enqueueOwnerGoFile)
-
-	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
-	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "SparseRead")
-}
-
 func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 	// In reflector.go, we need to create GetExpectedTypeName() in reflector.go
 	// because sonar server needs this information.
@@ -76,15 +49,15 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 	instrumentClientGoForAll(clientGoFile, clientGoFile, "ObsGap")
 }
 
-func instrumentControllerForAtomic(controller_runtime_filepath string, client_go_filepath string) {
+func instrumentControllerForAtomVio(controller_runtime_filepath string, client_go_filepath string) {
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
 	preprocess(sharedInformerGoFile)
-	instrumentSharedInformerGoForAtomic(sharedInformerGoFile, sharedInformerGoFile)
+	instrumentSharedInformerGoForAtomVio(sharedInformerGoFile, sharedInformerGoFile)
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAtomic(clientGoFile, clientGoFile, "Atomic")
+	instrumentClientGoForAtomVio(clientGoFile, clientGoFile, "AtomVio")
 }
 
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
@@ -122,7 +95,7 @@ func main() {
 		} else if mode == OBS_GAP {
 			instrumentControllerForObsGap(args[3], args[4])
 		} else if mode == ATOM_VIO {
-			instrumentControllerForAtomic(args[3], args[4])
+			instrumentControllerForAtomVio(args[3], args[4])
 		}
 
 	}

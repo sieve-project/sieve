@@ -57,7 +57,7 @@ type NotifyObsGapSideEffectsRequest struct {
 	Error          string
 }
 
-type NotifyAtomicSideEffectsRequest struct {
+type NotifyAtomVioSideEffectsRequest struct {
 	SideEffectType string
 	Object         string
 	ResourceType   string
@@ -71,7 +71,7 @@ type NotifyObsGapBeforeIndexerWriteRequest struct {
 	ResourceType  string
 }
 
-type NotifyAtomicBeforeIndexerWriteRequest struct {
+type NotifyAtomVioBeforeIndexerWriteRequest struct {
 	OperationType string
 	Object        string
 	ResourceType  string

@@ -107,7 +107,7 @@ func instrumentClientGoForAll(ifilepath, ofilepath, mode string) {
 	writeInstrumentedFile(ofilepath, "client", f)
 }
 
-func instrumentClientGoForAtomic(ifilepath, ofilepath, mode string) {
+func instrumentClientGoForAtomVio(ifilepath, ofilepath, mode string) {
 	funName := "Notify" + mode + "SideEffects"
 	f := parseSourceFile(ifilepath, "client")
 

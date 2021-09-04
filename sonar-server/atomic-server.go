@@ -14,8 +14,8 @@ import (
 	sonar "sonar.client"
 )
 
-func NewAtomicListener(config map[interface{}]interface{}) *AtomicListener {
-	server := &atomicServer{
+func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
+	server := &atomVioServer{
 		restarted:   false,
 		crash:       false,
 		seenPrev:    false,
@@ -34,32 +34,31 @@ func NewAtomicListener(config map[interface{}]interface{}) *AtomicListener {
 		seRtype:     config["se-rtype"].(string),
 		seEtype:     config["se-etype"].(string),
 	}
-	listener := &AtomicListener{
+	listener := &AtomVioListener{
 		Server: server,
 	}
 	listener.Server.Start()
 	return listener
 }
 
-type AtomicListener struct {
-	Server *atomicServer
+type AtomVioListener struct {
+	Server *atomVioServer
 }
 
-func (l *AtomicListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
+func (l *AtomVioListener) Echo(request *sonar.EchoRequest, response *sonar.Response) error {
 	*response = sonar.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
-func (l *AtomicListener) NotifyAtomicSideEffects(request *sonar.NotifyAtomicSideEffectsRequest, response *sonar.Response) error {
-	return l.Server.NotifyAtomicSideEffects(request, response)
+func (l *AtomVioListener) NotifyAtomVioSideEffects(request *sonar.NotifyAtomVioSideEffectsRequest, response *sonar.Response) error {
+	return l.Server.NotifyAtomVioSideEffects(request, response)
 }
 
-func (l *AtomicListener) NotifyAtomicBeforeIndexerWrite(request *sonar.NotifyAtomicBeforeIndexerWriteRequest, response *sonar.Response) error {
-	log.Println("start NotifyAtomicBeforeIndexerWrite...")
-	return l.Server.NotifyAtomicBeforeIndexerWrite(request, response)
+func (l *AtomVioListener) NotifyAtomVioBeforeIndexerWrite(request *sonar.NotifyAtomVioBeforeIndexerWriteRequest, response *sonar.Response) error {
+	return l.Server.NotifyAtomVioBeforeIndexerWrite(request, response)
 }
 
-type atomicServer struct {
+type atomVioServer struct {
 	restarted    bool
 	frontRunner  string
 	deployName   string
@@ -80,12 +79,12 @@ type atomicServer struct {
 	seEtype      string
 }
 
-func (s *atomicServer) Start() {
+func (s *atomVioServer) Start() {
 	log.Println("start atomicServer...")
 	// go s.coordinatingEvents()
 }
 
-func (s *atomicServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
+func (s *atomVioServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
 	if !s.crash {
 		if !s.seenPrev {
 			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
@@ -104,7 +103,7 @@ func (s *atomicServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEve
 }
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
-func (s *atomicServer) NotifyAtomicBeforeIndexerWrite(request *sonar.NotifyAtomicBeforeIndexerWriteRequest, response *sonar.Response) error {
+func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sonar.NotifyAtomVioBeforeIndexerWriteRequest, response *sonar.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
 	ew := eventWrapper{
 		eventID:         eID,
@@ -112,7 +111,7 @@ func (s *atomicServer) NotifyAtomicBeforeIndexerWrite(request *sonar.NotifyAtomi
 		eventObject:     request.Object,
 		eventObjectType: request.ResourceType,
 	}
-	log.Println("NotifyAtomicBeforeIndexerWrite", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
+	log.Println("NotifyAtomVioBeforeIndexerWrite", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
 	currentEvent := strToMap(request.Object)
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
@@ -128,7 +127,7 @@ func (s *atomicServer) NotifyAtomicBeforeIndexerWrite(request *sonar.NotifyAtomi
 	return nil
 }
 
-func (s *atomicServer) NotifyAtomicSideEffects(request *sonar.NotifyAtomicSideEffectsRequest, response *sonar.Response) error {
+func (s *atomVioServer) NotifyAtomVioSideEffects(request *sonar.NotifyAtomVioSideEffectsRequest, response *sonar.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SONAR-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
 	if s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
@@ -142,7 +141,7 @@ func (s *atomicServer) NotifyAtomicSideEffects(request *sonar.NotifyAtomicSideEf
 	return nil
 }
 
-func (s *atomicServer) restartComponent() {
+func (s *atomVioServer) restartComponent() {
 	masterUrl := "https://" + s.frontRunner + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
