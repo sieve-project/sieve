@@ -154,7 +154,7 @@ func (s *atomVioServer) restartComponent() {
 
 	clientset.AppsV1().Deployments(s.namespace).Delete(context.TODO(), s.deployName, metav1.DeleteOptions{})
 
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sonartag": s.podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": s.podLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
