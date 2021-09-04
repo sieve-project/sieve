@@ -180,7 +180,8 @@ python3 sieve.py -p casskop-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim/default/data-sonar-cassandra-cluster-dc1-rack1-0 not in testing side effect digest
+[ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
+[ERROR] persistentvolumeclaim/default/data-cassandra-cluster-dc1-rack1-0 DELETE inconsistency: 1 events seen during learning run, but 13 seen during testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
@@ -190,8 +191,8 @@ python3 sieve.py -p casskop-operator -t reducepdb -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] poddisruptionbudget/default/sonar-cassandra-cluster CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
-[ERROR] poddisruptionbudget/default/sonar-cassandra-cluster DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
+[ERROR] poddisruptionbudget/default/cassandra-cluster CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
+[ERROR] poddisruptionbudget/default/cassandra-cluster DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
