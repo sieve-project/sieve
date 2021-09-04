@@ -26,7 +26,7 @@ def generate_configmap(test_config):
     configmap = {}
     configmap["apiVersion"] = "v1"
     configmap["kind"] = "ConfigMap"
-    configmap["metadata"] = {"name": "sonar-testing-global-config"}
+    configmap["metadata"] = {"name": "sieve-testing-global-config"}
     configmap["data"] = {}
     for key in yaml_map:
         if isinstance(yaml_map[key], list):
