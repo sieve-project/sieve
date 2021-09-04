@@ -50,9 +50,9 @@ workloads = {
     },
     "cass-operator": {
         "recreate": test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f test-cass-operator/test/cdc-1.yaml").wait_for_pod_status("cluster1-sonar-cassandra-datacenter-default-sts-0", common.RUNNING)
-        .cmd("kubectl delete CassandraDatacenter sonar-cassandra-datacenter").wait_for_pod_status("cluster1-sonar-cassandra-datacenter-default-sts-0", common.TERMINATED).wait_for_pvc_status("server-data-cluster1-sonar-cassandra-datacenter-default-sts-0", common.TERMINATED)
-        .cmd("kubectl apply -f test-cass-operator/test/cdc-1.yaml").wait_for_pod_status("cluster1-sonar-cassandra-datacenter-default-sts-0", common.RUNNING)
+        .cmd("kubectl apply -f test-cass-operator/test/cdc-1.yaml").wait_for_pod_status("cluster1-cassandra-datacenter-default-sts-0", common.RUNNING)
+        .cmd("kubectl delete CassandraDatacenter cassandra-datacenter").wait_for_pod_status("cluster1-cassandra-datacenter-default-sts-0", common.TERMINATED).wait_for_pvc_status("server-data-cluster1-cassandra-datacenter-default-sts-0", common.TERMINATED)
+        .cmd("kubectl apply -f test-cass-operator/test/cdc-1.yaml").wait_for_pod_status("cluster1-cassandra-datacenter-default-sts-0", common.RUNNING)
         .wait(50),
     },
     "zookeeper-operator": {

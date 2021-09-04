@@ -169,8 +169,8 @@ python3 sieve.py -p cass-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim/default/server-data-cluster1-sonar-cassandra-datacenter-default-sts-0 DELETE inconsistency: 2 events seen during learning run, but 5 seen during testing run
 [ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
+[ERROR] persistentvolumeclaim/default/server-data-cluster1-cassandra-datacenter-default-sts-0 DELETE inconsistency: 1 events seen during learning run, but 13 seen during testing run
 ```
 The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
 
