@@ -1,4 +1,4 @@
 FROM kindest/node:latest
-# COPY sonar-server/* /sonar-server/
+# COPY sieve-server/* /sieve-server/
 RUN echo "Build my own kind image..." \
     && apt update && apt install -y bash vim

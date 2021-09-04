@@ -494,7 +494,7 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
 
 
 def generate_test_config(analysis_mode, project, log_dir, two_sided, node_ignore, use_sql, compress_trivial_reconcile):
-    log_path = os.path.join(log_dir, "sonar-server.log")
+    log_path = os.path.join(log_dir, "sieve-server.log")
     causality_pairs, event_key_map = generate_event_effect_pairs(
         analysis_mode, log_path, use_sql, compress_trivial_reconcile)
     triggering_points = generate_triggering_points(
@@ -519,7 +519,7 @@ def generate_test_config(analysis_mode, project, log_dir, two_sided, node_ignore
 
 
 def generate_test_oracle(log_dir):
-    log_path = os.path.join(log_dir, "sonar-server.log")
+    log_path = os.path.join(log_dir, "sieve-server.log")
     side_effect, status, resources = oracle.generate_digest(log_path)
     dump_json_file(log_dir, side_effect, "side-effect.json")
     dump_json_file(log_dir, status, "status.json")

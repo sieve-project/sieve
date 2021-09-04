@@ -25,10 +25,10 @@ fi
 
 kind create cluster --image ${dockerrepo}/node:${dockertag} --config $conf
 docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'
-# cd sonar-server
+# cd sieve-server
 # go mod tidy
 # go build
 # cd ..
-# docker cp sonar-server kind-control-plane:/sonar-server
-# docker exec kind-control-plane bash -c 'cd /sonar-server && ./sonar-server &> sonar-server.log &'
+# docker cp sieve-server kind-control-plane:/sieve-server
+# docker exec kind-control-plane bash -c 'cd /sieve-server && ./sieve-server &> sieve-server.log &'
 # raise_log_level kind-control-plane

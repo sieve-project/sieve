@@ -1,4 +1,4 @@
-module sonar-server
+module sieve-server
 
 go 1.13
 
@@ -17,4 +17,4 @@ require (
 	sieve.client v0.0.0
 )
 
-replace sieve.client => ../sonar-client
+replace sieve.client => ../sieve-client

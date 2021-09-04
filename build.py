@@ -21,7 +21,7 @@ def install_lib_for_kubernetes():
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
     os.system(
-        "cp -r sonar-client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client")
+        "cp -r sieve-client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client")
     os.system(
         "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client")
 
@@ -95,7 +95,7 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
         "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sonar/src/k8s.io/client-go@%s" % (client_go_version, controllers.app_dir[project], client_go_version))
     os.system(
         "chmod +w -R %s/dep-sonar/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
-    os.system("cp -r sonar-client %s/dep-sonar/src/sieve.client" %
+    os.system("cp -r sieve-client %s/dep-sonar/src/sieve.client" %
               controllers.app_dir[project])
 
     if project == "yugabyte-operator":

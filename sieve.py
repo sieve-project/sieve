@@ -63,22 +63,22 @@ def redirect_workers(num_workers):
 
 
 def prepare_sieve_server(test_config):
-    os.system("cp %s sonar-server/server.yaml" % test_config)
+    os.system("cp %s sieve-server/server.yaml" % test_config)
     org_dir = os.getcwd()
-    os.chdir("sonar-server")
+    os.chdir("sieve-server")
     os.system("go mod tidy")
     os.system("go build")
     os.chdir(org_dir)
-    os.system("docker cp sonar-server kind-control-plane:/sonar-server")
+    os.system("docker cp sieve-server kind-control-plane:/sieve-server")
 
 
 def start_sieve_server():
     os.system(
-        "docker exec kind-control-plane bash -c 'cd /sonar-server && ./sonar-server &> sonar-server.log &'")
+        "docker exec kind-control-plane bash -c 'cd /sieve-server && ./sieve-server &> sieve-server.log &'")
 
 
 def stop_sieve_server():
-    os.system("docker exec kind-control-plane bash -c 'pkill sonar-server'")
+    os.system("docker exec kind-control-plane bash -c 'pkill sieve-server'")
 
 
 def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize):
@@ -192,7 +192,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
             "kubectl logs %s -n kube-system > %s/%s" % (apiserver_name, log_dir, apiserver_log))
 
     os.system(
-        "docker cp kind-control-plane:/sonar-server/sonar-server.log %s/sonar-server.log" % (log_dir))
+        "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log" % (log_dir))
 
     os.system(
         "kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
@@ -227,7 +227,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
             resources_path = os.path.join(data_dir, "resources.json")
             learned_resources = json.load(
                 open(resources_path)) if os.path.isfile(resources_path) else None
-            server_log = os.path.join(log_dir, "sonar-server.log")
+            server_log = os.path.join(log_dir, "sieve-server.log")
             testing_side_effect, testing_status, testing_resources = oracle.generate_digest(
                 server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
