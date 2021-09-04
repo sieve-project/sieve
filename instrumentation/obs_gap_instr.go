@@ -18,7 +18,7 @@ func instrumentSharedInformerGoForObsGap(ifilepath, ofilepath string) {
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyObsGapBeforeIndexerWrite.Decs.End.Append("//sonar")
+				instrNotifyObsGapBeforeIndexerWrite.Decs.End.Append("//sieve")
 				insertStmt(&rangeStmt.Body.List, 0, instrNotifyObsGapBeforeIndexerWrite)
 
 				instrNotifyObsGapAfterIndexerWrite := &dst.ExprStmt{
@@ -27,7 +27,7 @@ func instrumentSharedInformerGoForObsGap(ifilepath, ofilepath string) {
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyObsGapAfterIndexerWrite.Decs.End.Append("//sonar")
+				instrNotifyObsGapAfterIndexerWrite.Decs.End.Append("//sieve")
 				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyObsGapAfterIndexerWrite)
 
 				break
@@ -51,7 +51,7 @@ func instrumentControllerGoForObsGap(ifilepath, ofilepath string) {
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
-		beforeReconcileInstrumentation.Decs.End.Append("//sonar")
+		beforeReconcileInstrumentation.Decs.End.Append("//sieve")
 		insertStmt(&funcDecl.Body.List, index, beforeReconcileInstrumentation)
 
 		index += 1
@@ -61,7 +61,7 @@ func instrumentControllerGoForObsGap(ifilepath, ofilepath string) {
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
-		afterReconcileInstrumentation.Decs.End.Append("//sonar")
+		afterReconcileInstrumentation.Decs.End.Append("//sieve")
 		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
 	} else {
 		panic(fmt.Errorf("Cannot find function reconcileHandler"))

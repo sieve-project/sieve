@@ -74,7 +74,7 @@ func insertDecl(list *[]dst.Decl, index int, instrumentation dst.Decl) {
 func writeInstrumentedFile(ofilepath, pkg string, f *dst.File) {
 	res := decorator.NewRestorerWithImports(pkg, guess.New())
 	fres := res.FileRestorer()
-	fres.Alias["sieve.client"] = "sonar"
+	fres.Alias["sieve.client"] = "sieve"
 	fres.Alias["k8s.io/klog/v2"] = "klog"
 
 	autoInstrFile, err := os.Create(ofilepath)
@@ -129,7 +129,7 @@ func instrumentSideEffect(f *dst.File, etype, funName string) {
 				Tok: token.DEFINE,
 				Rhs: returnStmt.Results,
 			}
-			modifiedInstruction.Decs.End.Append("//sonar")
+			modifiedInstruction.Decs.End.Append("//sieve")
 			funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
 
 			instrumentationExpr := &dst.ExprStmt{
@@ -138,13 +138,13 @@ func instrumentSideEffect(f *dst.File, etype, funName string) {
 					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 				},
 			}
-			instrumentationExpr.Decs.End.Append("//sonar")
+			instrumentationExpr.Decs.End.Append("//sieve")
 			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
 
 			instrumentationReturn := &dst.ReturnStmt{
 				Results: []dst.Expr{&dst.Ident{Name: "err"}},
 			}
-			instrumentationReturn.Decs.End.Append("//sonar")
+			instrumentationReturn.Decs.End.Append("//sieve")
 			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
 		} else if switchStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.TypeSwitchStmt); ok {
 			defaultCaseClause, ok := switchStmt.Body.List[len(switchStmt.Body.List)-1].(*dst.CaseClause)
@@ -157,7 +157,7 @@ func instrumentSideEffect(f *dst.File, etype, funName string) {
 					Tok: token.DEFINE,
 					Rhs: innerReturnStmt.Results,
 				}
-				modifiedInstruction.Decs.End.Append("//sonar")
+				modifiedInstruction.Decs.End.Append("//sieve")
 				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = modifiedInstruction
 
 				instrumentationExpr := &dst.ExprStmt{
@@ -166,13 +166,13 @@ func instrumentSideEffect(f *dst.File, etype, funName string) {
 						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
-				instrumentationExpr.Decs.End.Append("//sonar")
+				instrumentationExpr.Decs.End.Append("//sieve")
 				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
 
 				instrumentationReturn := &dst.ReturnStmt{
 					Results: []dst.Expr{&dst.Ident{Name: "err"}},
 				}
-				instrumentationReturn.Decs.End.Append("//sonar")
+				instrumentationReturn.Decs.End.Append("//sieve")
 				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationReturn)
 			} else {
 				panic(fmt.Errorf("Last stmt inside default case of %s is not return", etype))
@@ -195,7 +195,7 @@ func instrumentSideEffectBefore(f *dst.File, etype, funName string) {
 					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
 				},
 			}
-			instrumentationExpr.Decs.End.Append("//sonar")
+			instrumentationExpr.Decs.End.Append("//sieve")
 
 			funcDecl.Body.List[len(funcDecl.Body.List)-1] = instrumentationExpr
 
@@ -204,14 +204,14 @@ func instrumentSideEffectBefore(f *dst.File, etype, funName string) {
 				Tok: token.DEFINE,
 				Rhs: returnStmt.Results,
 			}
-			modifiedInstruction.Decs.End.Append("//sonar")
+			modifiedInstruction.Decs.End.Append("//sieve")
 
 			funcDecl.Body.List = append(funcDecl.Body.List, modifiedInstruction)
 
 			instrumentationReturn := &dst.ReturnStmt{
 				Results: []dst.Expr{&dst.Ident{Name: "err"}},
 			}
-			instrumentationReturn.Decs.End.Append("//sonar")
+			instrumentationReturn.Decs.End.Append("//sieve")
 			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
 		} else if switchStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.TypeSwitchStmt); ok {
 			defaultCaseClause, ok := switchStmt.Body.List[len(switchStmt.Body.List)-1].(*dst.CaseClause)
@@ -225,7 +225,7 @@ func instrumentSideEffectBefore(f *dst.File, etype, funName string) {
 						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
 					},
 				}
-				instrumentationExpr.Decs.End.Append("//sonar")
+				instrumentationExpr.Decs.End.Append("//sieve")
 				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = instrumentationExpr
 
 				modifiedInstruction := &dst.AssignStmt{
@@ -233,13 +233,13 @@ func instrumentSideEffectBefore(f *dst.File, etype, funName string) {
 					Tok: token.DEFINE,
 					Rhs: innerReturnStmt.Results,
 				}
-				modifiedInstruction.Decs.End.Append("//sonar")
+				modifiedInstruction.Decs.End.Append("//sieve")
 				defaultCaseClause.Body = append(defaultCaseClause.Body, modifiedInstruction)
 
 				instrumentationReturn := &dst.ReturnStmt{
 					Results: []dst.Expr{&dst.Ident{Name: "err"}},
 				}
-				instrumentationReturn.Decs.End.Append("//sonar")
+				instrumentationReturn.Decs.End.Append("//sieve")
 				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationReturn)
 			} else {
 				panic(fmt.Errorf("Last stmt inside default case of %s is not return", etype))

@@ -8,7 +8,7 @@ import (
 
 func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 	// In reflector.go, we need to create GetExpectedTypeName() in reflector.go
-	// because sonar server needs this information.
+	// because sieve server needs this information.
 	// reflectorGoFile := path.Join(filepath, "staging", "src", "k8s.io", "client-go", "tools", "cache", "reflector.go")
 	// fmt.Printf("instrumenting %s\n", reflectorGoFile)
 	// instrumentReflectorGo(reflectorGoFile, reflectorGoFile)

@@ -18,7 +18,7 @@ func instrumentWatchCacheGoForTimeTravel(ifilepath, ofilepath string) {
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
 		},
 	}
-	instrumentationInProcessEventAfterReconcile.Decs.End.Append("//sonar")
+	instrumentationInProcessEventAfterReconcile.Decs.End.Append("//sieve")
 	insertStmt(&funcDecl.Body.List, 2, instrumentationInProcessEventAfterReconcile)
 
 	instrumentationInProcessEventBeforeReconcile := &dst.ExprStmt{
@@ -27,7 +27,7 @@ func instrumentWatchCacheGoForTimeTravel(ifilepath, ofilepath string) {
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
 		},
 	}
-	instrumentationInProcessEventBeforeReconcile.Decs.End.Append("//sonar")
+	instrumentationInProcessEventBeforeReconcile.Decs.End.Append("//sieve")
 	insertStmt(&funcDecl.Body.List, 3, instrumentationInProcessEventBeforeReconcile)
 
 	writeInstrumentedFile(ofilepath, "cacher", f)

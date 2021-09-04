@@ -18,7 +18,7 @@ func instrumentSharedInformerGoForAtomVio(ifilepath, ofilepath string) {
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyAtomVioBeforeIndexerWrite.Decs.End.Append("//sonar")
+				instrNotifyAtomVioBeforeIndexerWrite.Decs.End.Append("//sieve")
 				insertStmt(&rangeStmt.Body.List, 0, instrNotifyAtomVioBeforeIndexerWrite)
 				break
 			}

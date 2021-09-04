@@ -13,23 +13,23 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
 				instrNotifyLearnBeforeIndexerWrite := &dst.AssignStmt{
-					Lhs: []dst.Expr{&dst.Ident{Name: "sonarEventID"}},
+					Lhs: []dst.Expr{&dst.Ident{Name: "sieveEventID"}},
 					Rhs: []dst.Expr{&dst.CallExpr{
 						Fun:  &dst.Ident{Name: "NotifyLearnBeforeIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					}},
 					Tok: token.DEFINE,
 				}
-				instrNotifyLearnBeforeIndexerWrite.Decs.End.Append("//sonar")
+				instrNotifyLearnBeforeIndexerWrite.Decs.End.Append("//sieve")
 				insertStmt(&rangeStmt.Body.List, 0, instrNotifyLearnBeforeIndexerWrite)
 
 				instrNotifyLearnAfterIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: "NotifyLearnAfterIndexerWrite", Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "sonarEventID"}, &dst.Ident{Name: "d.Object"}},
+						Args: []dst.Expr{&dst.Ident{Name: "sieveEventID"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyLearnAfterIndexerWrite.Decs.End.Append("//sonar")
+				instrNotifyLearnAfterIndexerWrite.Decs.End.Append("//sieve")
 				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyLearnAfterIndexerWrite)
 				break
 			}
@@ -52,7 +52,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
-		beforeReconcileInstrumentation.Decs.End.Append("//sonar")
+		beforeReconcileInstrumentation.Decs.End.Append("//sieve")
 		insertStmt(&funcDecl.Body.List, index, beforeReconcileInstrumentation)
 
 		index += 1
@@ -62,7 +62,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
-		afterReconcileInstrumentation.Decs.End.Append("//sonar")
+		afterReconcileInstrumentation.Decs.End.Append("//sieve")
 		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
 	} else {
 		panic(fmt.Errorf("Cannot find function reconcileHandler"))
@@ -89,7 +89,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 				Tok: token.DEFINE,
 				Rhs: returnStmt.Results,
 			}
-			modifiedInstruction.Decs.End.Append("//sonar")
+			modifiedInstruction.Decs.End.Append("//sieve")
 			funcDecl.Body.List[len(funcDecl.Body.List) - 1] = modifiedInstruction
 
 			if etype == "Get" {
@@ -99,7 +99,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
-				instrumentationExpr.Decs.End.Append("//sonar")
+				instrumentationExpr.Decs.End.Append("//sieve")
 				funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
 			} else if etype == "List" {
 				instrumentationExpr := &dst.ExprStmt{
@@ -108,7 +108,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
 					},
 				}
-				instrumentationExpr.Decs.End.Append("//sonar")
+				instrumentationExpr.Decs.End.Append("//sieve")
 				funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
 			} else {
 				panic(fmt.Errorf("Wrong type %s for CacheRead", etype))
@@ -117,7 +117,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 			instrumentationReturn := &dst.ReturnStmt{
 				Results: []dst.Expr{&dst.Ident{Name: "err"}},
 			}
-			instrumentationReturn.Decs.End.Append("//sonar")
+			instrumentationReturn.Decs.End.Append("//sieve")
 			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
 		} else {
 			panic(fmt.Errorf("Last stmt of %s is not return", etype))
