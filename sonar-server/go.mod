@@ -14,7 +14,7 @@ require (
 	k8s.io/apimachinery v0.18.9
 	k8s.io/client-go v0.18.9
 	k8s.io/utils v0.0.0-20210111153108-fddb29f9d009 // indirect
-	sonar.client v0.0.0
+	sieve.client v0.0.0
 )
 
-replace sonar.client => ../sonar-client
+replace sieve.client => ../sonar-client

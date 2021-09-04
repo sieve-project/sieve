@@ -18,12 +18,12 @@ def download_kubernetes():
 
 def install_lib_for_kubernetes():
     with open("fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod", "a") as go_mod_file:
-        go_mod_file.write("require sonar.client v0.0.0\n")
-        go_mod_file.write("replace sonar.client => ../../sonar.client\n")
+        go_mod_file.write("require sieve.client v0.0.0\n")
+        go_mod_file.write("replace sieve.client => ../../sieve.client\n")
     os.system(
-        "cp -r sonar-client fakegopath/src/k8s.io/kubernetes/staging/src/sonar.client")
+        "cp -r sonar-client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client")
     os.system(
-        "ln -s ../staging/src/sonar.client fakegopath/src/k8s.io/kubernetes/vendor/sonar.client")
+        "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client")
 
 
 def instrument_kubernetes(mode):
@@ -95,14 +95,14 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
         "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sonar/src/k8s.io/client-go@%s" % (client_go_version, controllers.app_dir[project], client_go_version))
     os.system(
         "chmod +w -R %s/dep-sonar/src/k8s.io/client-go@%s" % (controllers.app_dir[project], client_go_version))
-    os.system("cp -r sonar-client %s/dep-sonar/src/sonar.client" %
+    os.system("cp -r sonar-client %s/dep-sonar/src/sieve.client" %
               controllers.app_dir[project])
 
     if project == "yugabyte-operator":
         # Ad-hoc fix for api incompatibility in golang
         # Special handling of yugabyte-operator as it depends on an older apimachinery which is
-        # incompatible with the one sonar.client depends on
-        with fileinput.FileInput("%s/dep-sonar/src/sonar.client/go.mod" % controllers.app_dir[project],
+        # incompatible with the one sieve.client depends on
+        with fileinput.FileInput("%s/dep-sonar/src/sieve.client/go.mod" % controllers.app_dir[project],
                                  inplace=True, backup='.bak') as sonar_client_go_mod:
             for line in sonar_client_go_mod:
                 if "k8s.io/apimachinery" in line:
@@ -119,21 +119,21 @@ def install_lib_for_controller(project, controller_runtime_version, client_go_ve
     remove_replacement_in_go_mod_file(
         "%s/go.mod" % controllers.app_dir[project])
     with open("%s/go.mod" % controllers.app_dir[project], "a") as go_mod_file:
-        go_mod_file.write("require sonar.client v0.0.0\n")
+        go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write(
-            "replace sonar.client => ./dep-sonar/src/sonar.client\n")
+            "replace sieve.client => ./dep-sonar/src/sieve.client\n")
         go_mod_file.write(
             "replace sigs.k8s.io/controller-runtime => ./dep-sonar/src/sigs.k8s.io/controller-runtime@%s\n" % controller_runtime_version)
         go_mod_file.write(
             "replace k8s.io/client-go => ./dep-sonar/src/k8s.io/client-go@%s\n" % client_go_version)
     with open("%s/dep-sonar/src/sigs.k8s.io/controller-runtime@%s/go.mod" % (controllers.app_dir[project], controller_runtime_version), "a") as go_mod_file:
-        go_mod_file.write("require sonar.client v0.0.0\n")
-        go_mod_file.write("replace sonar.client => ../../sonar.client\n")
+        go_mod_file.write("require sieve.client v0.0.0\n")
+        go_mod_file.write("replace sieve.client => ../../sieve.client\n")
         go_mod_file.write(
             "replace k8s.io/client-go => ../../k8s.io/client-go@%s\n" % client_go_version)
     with open("%s/dep-sonar/src/k8s.io/client-go@%s/go.mod" % (controllers.app_dir[project], client_go_version), "a") as go_mod_file:
-        go_mod_file.write("require sonar.client v0.0.0\n")
-        go_mod_file.write("replace sonar.client => ../../sonar.client\n")
+        go_mod_file.write("require sieve.client v0.0.0\n")
+        go_mod_file.write("replace sieve.client => ../../sieve.client\n")
 
     # copy the build.sh and Dockerfile
     os.system("cp %s/build/build.sh %s/build.sh" %

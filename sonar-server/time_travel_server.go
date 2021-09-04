@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	sonar "sonar.client"
+	sonar "sieve.client"
 )
 
 // The listener is actually a wrapper around the server.

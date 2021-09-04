@@ -14,7 +14,7 @@ func instrumentWatchCacheGoForTimeTravel(ifilepath, ofilepath string) {
 
 	instrumentationInProcessEventAfterReconcile := &dst.DeferStmt{
 		Call: &dst.CallExpr{
-			Fun:  &dst.Ident{Name: "NotifyTimeTravelAfterProcessEvent", Path: "sonar.client"},
+			Fun:  &dst.Ident{Name: "NotifyTimeTravelAfterProcessEvent", Path: "sieve.client"},
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
 		},
 	}
@@ -23,7 +23,7 @@ func instrumentWatchCacheGoForTimeTravel(ifilepath, ofilepath string) {
 
 	instrumentationInProcessEventBeforeReconcile := &dst.ExprStmt{
 		X: &dst.CallExpr{
-			Fun:  &dst.Ident{Name: "NotifyTimeTravelBeforeProcessEvent", Path: "sonar.client"},
+			Fun:  &dst.Ident{Name: "NotifyTimeTravelBeforeProcessEvent", Path: "sieve.client"},
 			Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
 		},
 	}

@@ -15,7 +15,7 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 				instrNotifyLearnBeforeIndexerWrite := &dst.AssignStmt{
 					Lhs: []dst.Expr{&dst.Ident{Name: "sonarEventID"}},
 					Rhs: []dst.Expr{&dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnBeforeIndexerWrite", Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnBeforeIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					}},
 					Tok: token.DEFINE,
@@ -25,7 +25,7 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 
 				instrNotifyLearnAfterIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnAfterIndexerWrite", Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnAfterIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "sonarEventID"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
@@ -48,7 +48,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		index := 0
 		beforeReconcileInstrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyLearnBeforeReconcile", Path: "sonar.client"},
+				Fun:  &dst.Ident{Name: "NotifyLearnBeforeReconcile", Path: "sieve.client"},
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
@@ -58,7 +58,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		index += 1
 		afterReconcileInstrumentation := &dst.DeferStmt{
 			Call: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sonar.client"},
+				Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sieve.client"},
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
@@ -95,7 +95,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 			if etype == "Get" {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnCacheGet", Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnCacheGet", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
@@ -104,7 +104,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 			} else if etype == "List" {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnCacheList", Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnCacheList", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
 					},
 				}

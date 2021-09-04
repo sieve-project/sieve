@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	sonar "sonar.client"
+	sonar "sieve.client"
 )
 
 func NewLearnListener(config map[interface{}]interface{}) *LearnListener {

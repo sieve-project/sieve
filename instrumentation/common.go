@@ -74,7 +74,7 @@ func insertDecl(list *[]dst.Decl, index int, instrumentation dst.Decl) {
 func writeInstrumentedFile(ofilepath, pkg string, f *dst.File) {
 	res := decorator.NewRestorerWithImports(pkg, guess.New())
 	fres := res.FileRestorer()
-	fres.Alias["sonar.client"] = "sonar"
+	fres.Alias["sieve.client"] = "sonar"
 	fres.Alias["k8s.io/klog/v2"] = "klog"
 
 	autoInstrFile, err := os.Create(ofilepath)
@@ -134,7 +134,7 @@ func instrumentSideEffect(f *dst.File, etype, funName string) {
 
 			instrumentationExpr := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+					Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
 					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 				},
 			}
@@ -162,7 +162,7 @@ func instrumentSideEffect(f *dst.File, etype, funName string) {
 
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
@@ -191,7 +191,7 @@ func instrumentSideEffectBefore(f *dst.File, etype, funName string) {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 			instrumentationExpr := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+					Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
 					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
 				},
 			}
@@ -221,7 +221,7 @@ func instrumentSideEffectBefore(f *dst.File, etype, funName string) {
 			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body)-1].(*dst.ReturnStmt); ok {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: funName, Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
 					},
 				}

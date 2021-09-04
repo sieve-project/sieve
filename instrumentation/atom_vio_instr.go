@@ -14,7 +14,7 @@ func instrumentSharedInformerGoForAtomVio(ifilepath, ofilepath string) {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
 				instrNotifyAtomVioBeforeIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyAtomVioBeforeIndexerWrite", Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: "NotifyAtomVioBeforeIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}

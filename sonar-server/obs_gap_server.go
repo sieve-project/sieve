@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	sonar "sonar.client"
+	sonar "sieve.client"
 )
 
 func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {

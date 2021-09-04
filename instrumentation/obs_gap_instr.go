@@ -14,7 +14,7 @@ func instrumentSharedInformerGoForObsGap(ifilepath, ofilepath string) {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
 				instrNotifyObsGapBeforeIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyObsGapBeforeIndexerWrite", Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: "NotifyObsGapBeforeIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
@@ -23,7 +23,7 @@ func instrumentSharedInformerGoForObsGap(ifilepath, ofilepath string) {
 
 				instrNotifyObsGapAfterIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyObsGapAfterIndexerWrite", Path: "sonar.client"},
+						Fun:  &dst.Ident{Name: "NotifyObsGapAfterIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
@@ -47,7 +47,7 @@ func instrumentControllerGoForObsGap(ifilepath, ofilepath string) {
 		index := 0
 		beforeReconcileInstrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyObsGapBeforeReconcile", Path: "sonar.client"},
+				Fun:  &dst.Ident{Name: "NotifyObsGapBeforeReconcile", Path: "sieve.client"},
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}
@@ -57,7 +57,7 @@ func instrumentControllerGoForObsGap(ifilepath, ofilepath string) {
 		index += 1
 		afterReconcileInstrumentation := &dst.DeferStmt{
 			Call: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: "NotifyObsGapAfterReconcile", Path: "sonar.client"},
+				Fun:  &dst.Ident{Name: "NotifyObsGapAfterReconcile", Path: "sieve.client"},
 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
 			},
 		}

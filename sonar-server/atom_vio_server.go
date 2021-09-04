@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	sonar "sonar.client"
+	sonar "sieve.client"
 )
 
 func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {

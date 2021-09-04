@@ -1,4 +1,4 @@
-module sonar.client
+module sieve.client
 
 go 1.13
 
