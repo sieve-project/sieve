@@ -1,18 +1,18 @@
 apiVersion: pxc.percona.com/v1-7-0
 kind: PerconaXtraDBCluster
 metadata:
-  name: sonar-xtradb-cluster
+  name: xtradb-cluster
   finalizers:
     - delete-pxc-pods-in-order
     - delete-proxysql-pvc
     - delete-pxc-pvc
 spec:
   crVersion: 1.7.0
-  secretsName: sonar-cluster-secrets
+  secretsName: xtradb-cluster-secrets
   vaultSecretName: keyring-secret-vault
-  sslSecretName: sonar-cluster-ssl
-  sslInternalSecretName: sonar-cluster-ssl-internal
-  logCollectorSecretName: sonar-log-collector-secrets
+  sslSecretName: xtradb-cluster-ssl
+  sslInternalSecretName: xtradb-cluster-ssl-internal
+  logCollectorSecretName: xtradb-log-collector-secrets
   allowUnsafeConfigurations: false
   updateStrategy: RollingUpdate
   upgradeOptions:

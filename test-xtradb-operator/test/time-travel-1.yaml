@@ -6,7 +6,7 @@ front-runner: kind-control-plane
 operator-pod-label: xtradb-operator
 deployment-name: percona-xtradb-cluster-operator
 timing: after
-ce-name: sonar-xtradb-cluster
+ce-name: xtradb-cluster
 ce-namespace: default
 ce-rtype: perconaxtradbcluster
 ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL", "deletionGracePeriodSeconds":
@@ -14,12 +14,12 @@ ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL", "deletionG
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-se-name: datadir-sonar-xtradb-cluster-pxc-2
+se-name: datadir-xtradb-cluster-pxc-2
 se-namespace: default
 se-rtype: persistentvolumeclaim
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/perconaxtradbcluster/sonar-xtradb-cluster
+description: 'Pause kind-control-plane3 after it processes a default/perconaxtradbcluster/xtradb-cluster
   event E. E should match the pattern {"metadata": {"deletionTimestamp": "SIEVE-NON-NIL",
   "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
-  the controller xtradb-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/datadir-sonar-xtradb-cluster-pxc-2
+  the controller xtradb-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/datadir-xtradb-cluster-pxc-2
   event.'

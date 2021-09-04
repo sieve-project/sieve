@@ -6,19 +6,19 @@ front-runner: kind-control-plane
 operator-pod-label: xtradb-operator
 deployment-name: percona-xtradb-cluster-operator
 timing: after
-ce-name: sonar-xtradb-cluster
+ce-name: xtradb-cluster
 ce-namespace: default
 ce-rtype: perconaxtradbcluster
 ce-diff-current: '{}'
 ce-diff-previous: '{"spec": {"proxysql": {"enabled": true}}}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-se-name: sonar-xtradb-cluster-proxysql
+se-name: xtradb-cluster-proxysql
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/perconaxtradbcluster/sonar-xtradb-cluster
+description: 'Pause kind-control-plane3 after it processes a default/perconaxtradbcluster/xtradb-cluster
   event E. E should match the pattern {} and the events before E should match {"spec":
   {"proxysql": {"enabled": true}}}. And restart the controller xtradb-operator after
-  kind-control-plane processes a ADDED default/statefulset/sonar-xtradb-cluster-proxysql
+  kind-control-plane processes a ADDED default/statefulset/xtradb-cluster-proxysql
   event.'

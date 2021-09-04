@@ -123,7 +123,7 @@
                     "delete-pxc-pvc"
                 ],
                 "generation": 2,
-                "name": "sonar-xtradb-cluster",
+                "name": "xtradb-cluster",
                 "namespace": "default",
                 "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "SIEVE-IGNORE",
@@ -149,7 +149,7 @@
                     },
                     "size": 3
                 },
-                "logCollectorSecretName": "sonar-log-collector-secrets",
+                "logCollectorSecretName": "xtradb-log-collector-secrets",
                 "logcollector": {
                     "image": "SIEVE-IGNORE",
                     "resources": {
@@ -228,8 +228,8 @@
                     },
                     "serviceAccountName": "default",
                     "size": 3,
-                    "sslInternalSecretName": "sonar-cluster-ssl-internal",
-                    "sslSecretName": "sonar-cluster-ssl",
+                    "sslInternalSecretName": "xtradb-cluster-ssl-internal",
+                    "sslSecretName": "xtradb-cluster-ssl",
                     "vaultSecretName": "keyring-secret-vault",
                     "volumeSpec": {
                         "persistentVolumeClaim": {
@@ -244,9 +244,9 @@
                         }
                     }
                 },
-                "secretsName": "sonar-cluster-secrets",
-                "sslInternalSecretName": "sonar-cluster-ssl-internal",
-                "sslSecretName": "sonar-cluster-ssl",
+                "secretsName": "xtradb-cluster-secrets",
+                "sslInternalSecretName": "xtradb-cluster-ssl-internal",
+                "sslSecretName": "xtradb-cluster-ssl",
                 "updateStrategy": "RollingUpdate",
                 "upgradeOptions": {
                     "apply": "recommended",
@@ -270,7 +270,7 @@
                     }
                 ],
                 "haproxy": {},
-                "host": "sonar-xtradb-cluster-pxc.default",
+                "host": "xtradb-cluster-pxc.default",
                 "logcollector": {},
                 "observedGeneration": 2,
                 "pmm": {},
@@ -298,13 +298,13 @@
                 ],
                 "labels": {
                     "app.kubernetes.io/component": "pxc",
-                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/instance": "xtradb-cluster",
                     "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                     "app.kubernetes.io/name": "percona-xtradb-cluster",
                     "app.kubernetes.io/part-of": "percona-xtradb-cluster"
                 },
                 "managedFields": "SIEVE-IGNORE",
-                "name": "datadir-sonar-xtradb-cluster-pxc-0",
+                "name": "datadir-xtradb-cluster-pxc-0",
                 "namespace": "default",
                 "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "SIEVE-IGNORE",
@@ -342,13 +342,13 @@
                 ],
                 "labels": {
                     "app.kubernetes.io/component": "pxc",
-                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/instance": "xtradb-cluster",
                     "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                     "app.kubernetes.io/name": "percona-xtradb-cluster",
                     "app.kubernetes.io/part-of": "percona-xtradb-cluster"
                 },
                 "managedFields": "SIEVE-IGNORE",
-                "name": "datadir-sonar-xtradb-cluster-pxc-1",
+                "name": "datadir-xtradb-cluster-pxc-1",
                 "namespace": "default",
                 "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "SIEVE-IGNORE",
@@ -386,13 +386,13 @@
                 ],
                 "labels": {
                     "app.kubernetes.io/component": "pxc",
-                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/instance": "xtradb-cluster",
                     "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                     "app.kubernetes.io/name": "percona-xtradb-cluster",
                     "app.kubernetes.io/part-of": "percona-xtradb-cluster"
                 },
                 "managedFields": "SIEVE-IGNORE",
-                "name": "datadir-sonar-xtradb-cluster-pxc-2",
+                "name": "datadir-xtradb-cluster-pxc-2",
                 "namespace": "default",
                 "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "SIEVE-IGNORE",
@@ -566,15 +566,15 @@
                 "generateName": "SIEVE-IGNORE",
                 "labels": {
                     "app.kubernetes.io/component": "pxc",
-                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/instance": "xtradb-cluster",
                     "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                     "app.kubernetes.io/name": "percona-xtradb-cluster",
                     "app.kubernetes.io/part-of": "percona-xtradb-cluster",
                     "controller-revision-hash": "SIEVE-IGNORE",
-                    "statefulset.kubernetes.io/pod-name": "sonar-xtradb-cluster-pxc-0"
+                    "statefulset.kubernetes.io/pod-name": "xtradb-cluster-pxc-0"
                 },
                 "managedFields": "SIEVE-IGNORE",
-                "name": "sonar-xtradb-cluster-pxc-0",
+                "name": "xtradb-cluster-pxc-0",
                 "namespace": "default",
                 "ownerReferences": "SIEVE-IGNORE",
                 "resourceVersion": "SIEVE-IGNORE",
@@ -589,7 +589,7 @@
                                 "labelSelector": {
                                     "matchLabels": {
                                         "app.kubernetes.io/component": "pxc",
-                                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                        "app.kubernetes.io/instance": "xtradb-cluster",
                                         "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                                         "app.kubernetes.io/name": "percona-xtradb-cluster",
                                         "app.kubernetes.io/part-of": "percona-xtradb-cluster"
@@ -676,7 +676,7 @@
                 ],
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
-                "hostname": "sonar-xtradb-cluster-pxc-0",
+                "hostname": "xtradb-cluster-pxc-0",
                 "initContainers": [
                     {
                         "command": [
@@ -708,7 +708,7 @@
                 },
                 "serviceAccount": "default",
                 "serviceAccountName": "default",
-                "subdomain": "sonar-xtradb-cluster-pxc",
+                "subdomain": "xtradb-cluster-pxc",
                 "terminationGracePeriodSeconds": 600,
                 "tolerations": [
                     {
@@ -728,7 +728,7 @@
                     {
                         "name": "SIEVE-IGNORE",
                         "persistentVolumeClaim": {
-                            "claimName": "datadir-sonar-xtradb-cluster-pxc-0"
+                            "claimName": "datadir-xtradb-cluster-pxc-0"
                         }
                     },
                     {
@@ -871,15 +871,15 @@
                 "generateName": "SIEVE-IGNORE",
                 "labels": {
                     "app.kubernetes.io/component": "pxc",
-                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/instance": "xtradb-cluster",
                     "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                     "app.kubernetes.io/name": "percona-xtradb-cluster",
                     "app.kubernetes.io/part-of": "percona-xtradb-cluster",
                     "controller-revision-hash": "SIEVE-IGNORE",
-                    "statefulset.kubernetes.io/pod-name": "sonar-xtradb-cluster-pxc-1"
+                    "statefulset.kubernetes.io/pod-name": "xtradb-cluster-pxc-1"
                 },
                 "managedFields": "SIEVE-IGNORE",
-                "name": "sonar-xtradb-cluster-pxc-1",
+                "name": "xtradb-cluster-pxc-1",
                 "namespace": "default",
                 "ownerReferences": "SIEVE-IGNORE",
                 "resourceVersion": "SIEVE-IGNORE",
@@ -894,7 +894,7 @@
                                 "labelSelector": {
                                     "matchLabels": {
                                         "app.kubernetes.io/component": "pxc",
-                                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                        "app.kubernetes.io/instance": "xtradb-cluster",
                                         "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                                         "app.kubernetes.io/name": "percona-xtradb-cluster",
                                         "app.kubernetes.io/part-of": "percona-xtradb-cluster"
@@ -981,7 +981,7 @@
                 ],
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
-                "hostname": "sonar-xtradb-cluster-pxc-1",
+                "hostname": "xtradb-cluster-pxc-1",
                 "initContainers": [
                     {
                         "command": [
@@ -1013,7 +1013,7 @@
                 },
                 "serviceAccount": "default",
                 "serviceAccountName": "default",
-                "subdomain": "sonar-xtradb-cluster-pxc",
+                "subdomain": "xtradb-cluster-pxc",
                 "terminationGracePeriodSeconds": 600,
                 "tolerations": [
                     {
@@ -1033,7 +1033,7 @@
                     {
                         "name": "SIEVE-IGNORE",
                         "persistentVolumeClaim": {
-                            "claimName": "datadir-sonar-xtradb-cluster-pxc-1"
+                            "claimName": "datadir-xtradb-cluster-pxc-1"
                         }
                     },
                     {
@@ -1176,15 +1176,15 @@
                 "generateName": "SIEVE-IGNORE",
                 "labels": {
                     "app.kubernetes.io/component": "pxc",
-                    "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                    "app.kubernetes.io/instance": "xtradb-cluster",
                     "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                     "app.kubernetes.io/name": "percona-xtradb-cluster",
                     "app.kubernetes.io/part-of": "percona-xtradb-cluster",
                     "controller-revision-hash": "SIEVE-IGNORE",
-                    "statefulset.kubernetes.io/pod-name": "sonar-xtradb-cluster-pxc-2"
+                    "statefulset.kubernetes.io/pod-name": "xtradb-cluster-pxc-2"
                 },
                 "managedFields": "SIEVE-IGNORE",
-                "name": "sonar-xtradb-cluster-pxc-2",
+                "name": "xtradb-cluster-pxc-2",
                 "namespace": "default",
                 "ownerReferences": "SIEVE-IGNORE",
                 "resourceVersion": "SIEVE-IGNORE",
@@ -1199,7 +1199,7 @@
                                 "labelSelector": {
                                     "matchLabels": {
                                         "app.kubernetes.io/component": "pxc",
-                                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                        "app.kubernetes.io/instance": "xtradb-cluster",
                                         "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                                         "app.kubernetes.io/name": "percona-xtradb-cluster",
                                         "app.kubernetes.io/part-of": "percona-xtradb-cluster"
@@ -1286,7 +1286,7 @@
                 ],
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
-                "hostname": "sonar-xtradb-cluster-pxc-2",
+                "hostname": "xtradb-cluster-pxc-2",
                 "initContainers": [
                     {
                         "command": [
@@ -1318,7 +1318,7 @@
                 },
                 "serviceAccount": "default",
                 "serviceAccountName": "default",
-                "subdomain": "sonar-xtradb-cluster-pxc",
+                "subdomain": "xtradb-cluster-pxc",
                 "terminationGracePeriodSeconds": 600,
                 "tolerations": [
                     {
@@ -1338,7 +1338,7 @@
                     {
                         "name": "SIEVE-IGNORE",
                         "persistentVolumeClaim": {
-                            "claimName": "datadir-sonar-xtradb-cluster-pxc-2"
+                            "claimName": "datadir-xtradb-cluster-pxc-2"
                         }
                     },
                     {
@@ -1481,7 +1481,7 @@
                 "creationTimestamp": "SIEVE-IGNORE",
                 "generation": 1,
                 "managedFields": "SIEVE-IGNORE",
-                "name": "sonar-xtradb-cluster-pxc",
+                "name": "xtradb-cluster-pxc",
                 "namespace": "default",
                 "ownerReferences": "SIEVE-IGNORE",
                 "resourceVersion": "SIEVE-IGNORE",
@@ -1495,20 +1495,20 @@
                 "selector": {
                     "matchLabels": {
                         "app.kubernetes.io/component": "pxc",
-                        "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                        "app.kubernetes.io/instance": "xtradb-cluster",
                         "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                         "app.kubernetes.io/name": "percona-xtradb-cluster",
                         "app.kubernetes.io/part-of": "percona-xtradb-cluster"
                     }
                 },
-                "serviceName": "sonar-xtradb-cluster-pxc",
+                "serviceName": "xtradb-cluster-pxc",
                 "template": {
                     "metadata": {
                         "annotations": "SIEVE-IGNORE",
                         "creationTimestamp": "SIEVE-IGNORE",
                         "labels": {
                             "app.kubernetes.io/component": "pxc",
-                            "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                            "app.kubernetes.io/instance": "xtradb-cluster",
                             "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                             "app.kubernetes.io/name": "percona-xtradb-cluster",
                             "app.kubernetes.io/part-of": "percona-xtradb-cluster"
@@ -1522,7 +1522,7 @@
                                         "labelSelector": {
                                             "matchLabels": {
                                                 "app.kubernetes.io/component": "pxc",
-                                                "app.kubernetes.io/instance": "sonar-xtradb-cluster",
+                                                "app.kubernetes.io/instance": "xtradb-cluster",
                                                 "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
                                                 "app.kubernetes.io/name": "percona-xtradb-cluster",
                                                 "app.kubernetes.io/part-of": "percona-xtradb-cluster"

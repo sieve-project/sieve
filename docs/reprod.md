@@ -132,7 +132,7 @@ python3 sieve.py -p xtradb-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim/default/datadir-sonar-xtradb-cluster-pxc-2 DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ERROR] persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-2 DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
@@ -142,7 +142,7 @@ python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -d DOCKER_REPO_NAM
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset/default/sonar-xtradb-cluster-haproxy DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ERROR] statefulset/default/xtradb-cluster-haproxy DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
@@ -152,7 +152,7 @@ python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -d DOCKER_REPO_NA
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset/default/sonar-xtradb-cluster-proxysql DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ERROR] statefulset/default/xtradb-cluster-proxysql DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
