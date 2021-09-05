@@ -1,3 +1,4 @@
+import docker
 import optparse
 import os
 import kubernetes
@@ -63,6 +64,24 @@ def redirect_workers(num_workers):
             "docker exec %s bash -c \"systemctl restart kubelet\"" % worker)
 
 
+def redirect_kubectl():
+    client = docker.from_env()
+    cp_port = client.containers.get(
+        "kind-control-plane").attrs["NetworkSettings"]["Ports"]["6443/tcp"][0]["HostPort"]
+    balancer_port = client.containers.get(
+        "kind-external-load-balancer").attrs["NetworkSettings"]["Ports"]["6443/tcp"][0]["HostPort"]
+    kube_config = os.getenv("KUBECONFIG")
+    target_prefix = "    server: https://127.0.0.1:"
+    fin = open(kube_config)
+    data = fin.read()
+    print("repalce %s w %s in %s" % (balancer_port, cp_port, kube_config))
+    data = data.replace(target_prefix + balancer_port, target_prefix + cp_port)
+    fin.close()
+    fin = open(kube_config, "w")
+    fin.write(data)
+    fin.close()
+
+
 def prepare_sieve_server(test_config):
     cmd_early_exit("cp %s sieve-server/server.yaml" % test_config)
     org_dir = os.getcwd()
@@ -105,7 +124,7 @@ def setup_cluster(project, stage, mode, test_config, docker_repo, docker_tag, nu
     # so we need to redirect the workers to other apiservers
     if mode == sieve_modes.TIME_TRAVEL:
         redirect_workers(num_workers)
-        cmd_early_exit("./bypass-balancer.sh")
+        redirect_kubectl()
 
     configmap = generate_configmap(test_config)
     cmd_early_exit("kubectl apply -f %s" % configmap)
