@@ -5,11 +5,12 @@ WRITE_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
 # TODO: for now, only consider Delete
 DELETE_ONLY_FILTER_FLAG = True
-FILTERED_ERROR_TYPE = ["NotFound"]
+FILTERED_ERROR_TYPE = ["NotFound", "Conflict"]
+ALLOWED_ERROR_TYPE = ["NoError"]
 
 SQL_BASE_PASS_QUERY = "select e.sieve_event_id, se.sieve_side_effect_id from events e join side_effects se on se.range_start_timestamp < e.event_cache_update_time and se.range_end_timestamp > e.event_arrival_time"
 SQL_DELETE_ONLY_FILTER = "se.event_type = 'Delete'"
-SQL_ERROR_MSG_FILTER = "se.error != 'NotFound'"
+SQL_ERROR_MSG_FILTER = "se.error = 'NoError'"
 SQL_WRITE_READ_FILTER = "(exists(select * from json_each(se.read_fully_qualified_names) where json_each.value = e.fully_qualified_name) or exists(select * from json_each(se.read_types) where json_each.value = e.resource_type))"
 
 
@@ -175,7 +176,8 @@ def parse_event_id_only(line):
 def parse_reconcile(line):
     assert SIEVE_START_RECONCILE_MARK in line or SIEVE_FINISH_RECONCILE_MARK in line
     if SIEVE_START_RECONCILE_MARK in line:
-        tokens = line[line.find(SIEVE_START_RECONCILE_MARK):].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_START_RECONCILE_MARK)
+                                :].strip("\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
     else:
         tokens = line[line.find(SIEVE_FINISH_RECONCILE_MARK):].strip(

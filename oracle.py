@@ -33,7 +33,8 @@ def generate_side_effect(path):
             continue
         side_effect = analyze_util.parse_side_effect(line)
         if analyze_util.ERROR_MSG_FILTER_FLAG:
-            if side_effect.error == "NotFound":
+            # TODO: maybe make the ignored errors configurable
+            if side_effect.error not in analyze_util.ALLOWED_ERROR_TYPE:
                 continue
         rtype = side_effect.rtype
         namespace = side_effect.namespace
@@ -216,7 +217,7 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
             testing_entry = testing_side_effect[rtype][namespace][name]
             for attr in learning_entry:
                 if selective:
-                    if attr == "Update" or attr == "Patch":
+                    if attr not in sieve_config.config["effect_to_check"]:
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
@@ -317,6 +318,8 @@ def check(learned_side_effect, learned_status, learned_resources, testing_side_e
         operator_log)
     alarm = discrepancy_alarm + panic_alarm
     bug_report = discrepancy_bug_report + panic_bug_report
+    # TODO(urgent): we should use learned_resources to replace learned_status, instead of using both
+    # and look_for_resouces_diff() should return alarm as well
     if learned_resources != None:
         bug_report += "\n" + \
             look_for_resouces_diff(learned_resources, testing_resources)
@@ -326,7 +329,7 @@ def check(learned_side_effect, learned_status, learned_resources, testing_side_e
             generate_debugging_hint(testing_config)
         print(bcolors.FAIL + bug_report + bcolors.WARNING + hint + bcolors.ENDC)
         bug_report += hint
-    return bug_report
+    return alarm, bug_report
 
 
 def look_for_resouces_diff(learn, test):

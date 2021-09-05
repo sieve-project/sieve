@@ -225,7 +225,7 @@ def error_msg_filtering_pass(analysis_mode, event_effect_pairs):
     reduced_event_effect_pairs = []
     for pair in event_effect_pairs:
         side_effect = pair[1]
-        if side_effect.error not in analyze_util.FILTERED_ERROR_TYPE:
+        if side_effect.error in analyze_util.ALLOWED_ERROR_TYPE:
             reduced_event_effect_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" %
           (len(event_effect_pairs), len(reduced_event_effect_pairs)))
