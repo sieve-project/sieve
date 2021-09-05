@@ -1,0 +1,74 @@
+{
+    "secret": {
+        "default": {
+            "yb-master-yugabyte-tls-cert": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 13
+            },
+            "yb-tserver-yugabyte-tls-cert": {
+                "Create": 2,
+                "Delete": 1,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 13
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "yb-master-ui": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 15
+            },
+            "yb-masters": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 15
+            },
+            "yb-tservers": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 15
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "yb-master": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 15
+            },
+            "yb-tserver": {
+                "Create": 1,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 0,
+                "Update": 15
+            }
+        }
+    },
+    "ybcluster": {
+        "default": {
+            "example-ybcluster": {
+                "Create": 0,
+                "Delete": 0,
+                "DeleteAllOf": 0,
+                "Patch": 6,
+                "Update": 0
+            }
+        }
+    }
+}
