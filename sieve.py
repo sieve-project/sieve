@@ -12,6 +12,7 @@ import oracle
 import yaml
 import subprocess
 import signal
+from datetime import datetime
 from common import cprint, bcolors, ok, sieve_modes, cmd_early_exit
 
 
@@ -245,10 +246,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
         if os.path.exists(test_config):
             open(os.path.join(log_dir, "config.yaml"),
                  "w").write(open(test_config).read())
-        if mode == sieve_modes.VANILLA:
-            # TODO: We need another recording mode to only record digest without generating config
-            pass
-        else:
+        if mode != sieve_modes.VANILLA:
             learned_side_effect = json.load(open(os.path.join(
                 data_dir, "side-effect.json")))
             learned_status = json.load(open(os.path.join(
@@ -260,14 +258,17 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
             testing_side_effect, testing_status, testing_resources = oracle.generate_digest(
                 server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
-            open(os.path.join(log_dir, "bug-report.txt"), "w").write(
-                oracle.check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log))
+            alarm, bug_report = oracle.check(learned_side_effect, learned_status, learned_resources,
+                                             testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log)
+            open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
             json.dump(testing_side_effect, open(os.path.join(
                 log_dir, "side-effect.json"), "w"), indent=4)
             json.dump(testing_status, open(os.path.join(
                 log_dir, "status.json"), "w"), indent=4)
             json.dump(testing_resources, open(os.path.join(
                 log_dir, "resources.json"), "w"), indent=4)
+            return alarm
+    return 0
 
 
 def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize, data_dir, two_sided, node_ignore, phase):
@@ -278,8 +279,9 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
         run_workload(project, mode, test_workload, test_config,
                      log_dir, docker_repo, docker_tag, num_apiservers)
     if phase == "all" or phase == "check_only" or phase == "workload_and_check":
-        check_result(project, mode, stage, test_config,
-                     log_dir, data_dir, two_sided, node_ignore)
+        return check_result(project, mode, stage, test_config,
+                            log_dir, data_dir, two_sided, node_ignore)
+    return 0
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
@@ -311,13 +313,13 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         print("Learning stage with config %s" % learn_config)
         generate_learn_config(learn_config, project,
                               mode, rate_limiter_enabled)
-        run_test(project, mode, stage, suite.workload,
-                 learn_config, log_dir, docker, stage, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
+        return run_test(project, mode, stage, suite.workload,
+                        learn_config, log_dir, docker, stage, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
     else:
         if mode == sieve_modes.VANILLA:
             blank_config = "config/none.yaml"
-            run_test(project, mode, stage, suite.workload,
-                     blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
+            return run_test(project, mode, stage, suite.workload,
+                            blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
         else:
             test_config = config if config != "none" else suite.config
             print("Testing with config: %s" % test_config)
@@ -326,25 +328,32 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
             cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
             if mode == sieve_modes.TIME_TRAVEL:
                 suite.num_apiservers = 3
-            run_test(project, mode, stage, suite.workload,
-                     test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
+            return run_test(project, mode, stage, suite.workload,
+                            test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, suite.node_ignore, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
     config_dir = os.path.join("log", project, test, "learn", "learn", mode)
-    configs = [x for x in glob.glob(os.path.join(
-        config_dir, "*.yaml")) if not "configmap" in x]
-    print("Configs", configs)
+    configs = glob.glob(os.path.join(config_dir, "*.yaml"))
+    configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
+    print("Configs to test:")
+    print("\n".join(configs))
+    batch_test_result = open("bt_%s_%s_%s_%s.tsv" % (
+        project, test, mode, datetime.now().strftime("%Y%m%d%H%M%S")), "w")
     for config in configs:
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(
             dir, project, test, stage, mode + "-batch", num)
         try:
-            run(controllers.test_suites, project,
-                test, log_dir, mode, stage, config, docker)
+            alarm = run(controllers.test_suites, project,
+                        test, log_dir, mode, stage, config, docker)
+            batch_test_result.write("%s\t%s\n" % (config, str(alarm)))
+            if alarm != 0:
+                cprint("Bug happens when running %s" % config, bcolors.FAIL)
         except Exception as err:
-            print("error occurs during sieve run", config, err)
+            print("Error occurs when running %s: %s" % (config, repr(err)))
+    batch_test_result.close()
 
 
 if __name__ == "__main__":
