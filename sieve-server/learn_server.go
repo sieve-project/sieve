@@ -147,7 +147,7 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterR
 func (s *learnServer) NotifyLearnSideEffects(request *sieve.NotifyLearnSideEffectsRequest, response *sieve.Response) error {
 	rtype := request.ResourceType
 	name, namespace := extractNameNamespace(request.Object)
-	s.notificationCh <- notificationWrapper{ntype: sideEffect, payload: request.SideEffectType + "\t" + rtype + "\t" + namespace + "\t" + name + "\t" + request.Error}
+	s.notificationCh <- notificationWrapper{ntype: sideEffect, payload: fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectType, rtype, namespace, name, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
