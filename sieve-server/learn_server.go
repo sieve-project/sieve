@@ -79,12 +79,12 @@ func (l *LearnListener) NotifyLearnCacheList(request *sieve.NotifyLearnCacheList
 type NotificationType int
 
 const (
-	reconcileStart NotificationType = iota
-	reconcileFinish
-	sideEffect
-	cacheRead
-	eventArrival
-	eventApplied
+	beforeReconcile NotificationType = iota
+	afterReconcile
+	afterSideEffect
+	afterRead
+	beforeEvent
+	afterEvent
 )
 
 type notificationWrapper struct {
@@ -113,14 +113,14 @@ func (s *learnServer) NotifyLearnBeforeIndexerWrite(request *sieve.NotifyLearnBe
 	eID := atomic.AddInt32(&s.eventID, 1)
 	waitingCh := make(chan int32)
 	s.eventChMap.Store(fmt.Sprint(eID), waitingCh)
-	s.notificationCh <- notificationWrapper{ntype: eventArrival, payload: fmt.Sprintf("%d\t%s\t%s\t%s", eID, request.OperationType, request.ResourceType, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: beforeEvent, payload: fmt.Sprintf("%d\t%s\t%s\t%s", eID, request.OperationType, request.ResourceType, request.Object)}
 	<-waitingCh
 	*response = sieve.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sieve.NotifyLearnAfterIndexerWriteRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: eventApplied, payload: fmt.Sprintf("%d", request.EventID)}
+	s.notificationCh <- notificationWrapper{ntype: afterEvent, payload: fmt.Sprintf("%d", request.EventID)}
 	*response = sieve.Response{Ok: true}
 	return nil
 }
@@ -132,14 +132,14 @@ func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBefor
 	// So the same recID may be stored before
 	obj, _ := s.reconcileChMap.LoadOrStore(recID, waitingCh)
 	waitingCh = obj.(chan int32)
-	s.notificationCh <- notificationWrapper{ntype: reconcileStart, payload: recID}
+	s.notificationCh <- notificationWrapper{ntype: beforeReconcile, payload: recID}
 	<-waitingCh
 	*response = sieve.Response{Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterReconcileRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: reconcileFinish, payload: request.ControllerName}
+	s.notificationCh <- notificationWrapper{ntype: afterReconcile, payload: request.ControllerName}
 	*response = sieve.Response{Ok: true}
 	return nil
 }
@@ -147,19 +147,19 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterR
 func (s *learnServer) NotifyLearnSideEffects(request *sieve.NotifyLearnSideEffectsRequest, response *sieve.Response) error {
 	rtype := request.ResourceType
 	name, namespace := extractNameNamespace(request.Object)
-	s.notificationCh <- notificationWrapper{ntype: sideEffect, payload: fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectType, rtype, namespace, name, request.Error, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectType, rtype, namespace, name, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnCacheGet(request *sieve.NotifyLearnCacheGetRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: cacheRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error)}
 	*response = sieve.Response{Message: "Get", Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnCacheList(request *sieve.NotifyLearnCacheListRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: cacheRead, payload: fmt.Sprintf("List\t%s\t%s", request.ResourceType, request.Error)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s", request.ResourceType, request.Error)}
 	*response = sieve.Response{Message: "List", Ok: true}
 	return nil
 }
@@ -173,7 +173,7 @@ func (s *learnServer) coordinatingEvents() {
 			}
 		case nw := <-s.notificationCh:
 			switch nw.ntype {
-			case reconcileStart:
+			case beforeReconcile:
 				s.ongoingReconcileCnt += 1
 				if _, ok := s.reconcileCntMap[nw.payload]; ok {
 					s.reconcileCntMap[nw.payload] += 1
@@ -187,7 +187,7 @@ func (s *learnServer) coordinatingEvents() {
 				} else {
 					log.Fatal("invalid object in reconcileChMap")
 				}
-			case reconcileFinish:
+			case afterReconcile:
 				s.ongoingReconcileCnt -= 1
 				if s.ongoingReconcileCnt == 0 {
 					if s.rateLimiterEnabled {
@@ -197,11 +197,11 @@ func (s *learnServer) coordinatingEvents() {
 					log.Fatalf("reconcileCnt cannot be lower than 0: %d\n", s.ongoingReconcileCnt)
 				}
 				log.Printf("[SIEVE-AFTER-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
-			case sideEffect:
+			case afterSideEffect:
 				if s.ongoingReconcileCnt > 0 {
 					log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\n", nw.payload)
 				}
-			case eventArrival:
+			case beforeEvent:
 				if !s.rateLimiterEnabled {
 					eventID := strings.Split(nw.payload, "\t")[0]
 					if obj, ok := s.eventChMap.Load(eventID); ok {
@@ -215,9 +215,9 @@ func (s *learnServer) coordinatingEvents() {
 				} else {
 					s.rateLimitedEventCh <- nw
 				}
-			case eventApplied:
+			case afterEvent:
 				log.Printf("[SIEVE-AFTER-EVENT]\t%s\n", nw.payload)
-			case cacheRead:
+			case afterRead:
 				log.Printf("[SIEVE-AFTER-READ]\t%s\n", nw.payload)
 			default:
 				log.Fatal("invalid notification type")
