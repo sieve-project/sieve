@@ -129,7 +129,7 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAto
 
 func (s *atomVioServer) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
+	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
 	if s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
 		// we should restart operator here
 		s.restarted = true
