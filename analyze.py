@@ -361,7 +361,7 @@ def obs_gap_description(yaml_map):
         )
 
 
-def generate_time_travel_yaml(triggering_points, path, project, node_ignore, timing="after"):
+def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -381,9 +381,9 @@ def generate_time_travel_yaml(triggering_points, path, project, node_ignore, tim
         yaml_map["ce-namespace"] = triggering_point["namespace"]
         yaml_map["ce-rtype"] = triggering_point["rtype"]
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"]), node_ignore))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"])))
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"]), node_ignore))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"])))
         yaml_map["ce-etype-current"] = triggering_point["curEventType"]
         yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
         yaml_map["se-name"] = effect["name"]
@@ -396,7 +396,7 @@ def generate_time_travel_yaml(triggering_points, path, project, node_ignore, tim
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
-def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
+def generate_obs_gap_yaml(triggering_points, path, project):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -415,9 +415,9 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
         yaml_map["ce-namespace"] = triggering_point["namespace"]
         yaml_map["ce-rtype"] = triggering_point["rtype"]
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"]), node_ignore))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"])))
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"]), node_ignore))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"])))
         yaml_map["ce-etype-current"] = triggering_point["curEventType"]
         yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
         yaml_map["description"] = obs_gap_description(yaml_map)
@@ -426,7 +426,7 @@ def generate_obs_gap_yaml(triggering_points, path, project, node_ignore):
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
 
-def generate_atomic_yaml(triggering_points, path, project, node_ignore):
+def generate_atomic_yaml(triggering_points, path, project):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -445,9 +445,9 @@ def generate_atomic_yaml(triggering_points, path, project, node_ignore):
         yaml_map["ce-namespace"] = triggering_point["namespace"]
         yaml_map["ce-rtype"] = triggering_point["rtype"]
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"]), node_ignore))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["curEvent"])))
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"]), node_ignore))
+            analyze_event.canonicalize_event(copy.deepcopy(triggering_point["prevEvent"])))
         yaml_map["ce-etype-current"] = triggering_point["curEventType"]
         yaml_map["ce-etype-previous"] = triggering_point["prevEventType"]
         yaml_map["se-name"] = effect["name"]
@@ -493,7 +493,7 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
     return filtered_causality_pairs
 
 
-def generate_test_config(analysis_mode, project, log_dir, two_sided, node_ignore, use_sql, compress_trivial_reconcile):
+def generate_test_config(analysis_mode, project, log_dir, two_sided, use_sql, compress_trivial_reconcile):
     log_path = os.path.join(log_dir, "sieve-server.log")
     causality_pairs, event_key_map = generate_event_effect_pairs(
         analysis_mode, log_path, use_sql, compress_trivial_reconcile)
@@ -506,16 +506,16 @@ def generate_test_config(analysis_mode, project, log_dir, two_sided, node_ignore
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
         generate_time_travel_yaml(
-            triggering_points, generated_config_dir, project, node_ignore)
+            triggering_points, generated_config_dir, project)
         if two_sided:
             generate_time_travel_yaml(
-                triggering_points, generated_config_dir, project, node_ignore, "before")
+                triggering_points, generated_config_dir, project, "before")
     elif analysis_mode == sieve_modes.OBS_GAP:
         generate_obs_gap_yaml(
-            triggering_points, generated_config_dir, project, node_ignore)
+            triggering_points, generated_config_dir, project)
     elif analysis_mode == sieve_modes.ATOM_VIO:
         generate_atomic_yaml(
-            triggering_points, generated_config_dir, project, node_ignore)
+            triggering_points, generated_config_dir, project)
 
 
 def generate_test_oracle(log_dir):
@@ -526,7 +526,7 @@ def generate_test_oracle(log_dir):
     dump_json_file(log_dir, resources, "resources.json")
 
 
-def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=False, compress_trivial_reconcile=True):
+def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, two_sided=False, use_sql=False, compress_trivial_reconcile=True):
     print("generate-oracle feature is %s" %
           ("enabled" if generate_oracle else "disabled"))
     print("generate-config feature is %s" %
@@ -541,8 +541,8 @@ def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, 
 
     if generate_config:
         for analysis_mode in [sieve_modes.TIME_TRAVEL, sieve_modes.OBS_GAP, sieve_modes.ATOM_VIO]:
-            generate_test_config(analysis_mode, project, log_dir, two_sided,
-                                 node_ignore, use_sql, compress_trivial_reconcile)
+            generate_test_config(analysis_mode, project, log_dir,
+                                 two_sided, use_sql, compress_trivial_reconcile)
 
     if generate_oracle:
         generate_test_oracle(log_dir)
@@ -563,4 +563,4 @@ if __name__ == "__main__":
     # hardcoded to time travel config only for now
     dir = os.path.join("log", project, test, "learn", "learn")
     analyze_trace(project, dir, generate_oracle=False,
-                  generate_config=True, two_sided=False, node_ignore=(True, []), use_sql=False, compress_trivial_reconcile=True)
+                  generate_config=True, two_sided=False, use_sql=False, compress_trivial_reconcile=True)

@@ -5,14 +5,13 @@ from common import sieve_modes
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, node_ignore=(True, []), placeholder_list=[], num_apiservers=1, num_workers=2, pvc_resize=False):
+    def __init__(self, workload, config, mode, two_sided=False, num_apiservers=1, num_workers=2, pvc_resize=False):
         self.workload = workload
         self.config = config
         self.mode = mode
         self.two_sided = two_sided
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
-        self.node_ignore = node_ignore
         self.pvc_resize = pvc_resize
         if self.pvc_resize:
             # For now, we only support one node cluster pvc resizing

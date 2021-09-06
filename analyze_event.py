@@ -110,30 +110,25 @@ def diff_events(prev_event, cur_event):
     return slim_prev_object, slim_cur_object
 
 
-def canonicalize_event_for_list(event_list, node_ignore):
+def canonicalize_event_for_list(event_list):
     for i in range(len(event_list)):
         if isinstance(event_list[i], list):
-            canonicalize_event_for_list(event_list[i], node_ignore)
+            canonicalize_event_for_list(event_list[i])
         elif isinstance(event_list[i], dict):
-            canonicalize_event(event_list[i], node_ignore)
+            canonicalize_event(event_list[i])
         elif isinstance(event_list[i], str):
             if re.match(analyze_util.TIME_REG, str(event_list[i])):
                 event_list[i] = analyze_util.SIEVE_CANONICALIZATION_MARKER
     return event_list
 
 
-def canonicalize_event(event, node_ignore):
+def canonicalize_event(event):
     for key in event:
         if isinstance(event[key], dict):
-            canonicalize_event(event[key], node_ignore)
+            canonicalize_event(event[key])
         elif isinstance(event[key], list):
-            canonicalize_event_for_list(event[key], node_ignore)
+            canonicalize_event_for_list(event[key])
         elif isinstance(event[key], str):
             if re.match(analyze_util.TIME_REG, str(event[key])):
                 event[key] = analyze_util.SIEVE_CANONICALIZATION_MARKER
-            if node_ignore[0]:
-                if 'ip' in key.lower() and re.match(analyze_util.IP_REG, str(event[key])):
-                    event[key] = analyze_util.SIEVE_CANONICALIZATION_MARKER
-                if key in analyze_util.PLACEHOLDER_FIELDS + node_ignore[1]:
-                    event[key] = analyze_util.SIEVE_CANONICALIZATION_MARKER
     return event
