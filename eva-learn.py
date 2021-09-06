@@ -33,7 +33,7 @@ def evaluate_single(cmd, project, test_suite, mode):
 def evaluate(build):
     eva_dir = "eva"
     os.system("mkdir -p %s" % eva_dir)
-    docker_repo_name = controllers.docker_repo
+    docker_repo_name = sieve_config.config["docker_repo"]
     if build:
         os.system("python3 build.py -p kubernetes -m learn -d %s" %
                   docker_repo_name)

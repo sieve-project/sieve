@@ -3,11 +3,6 @@ import re
 import workloads
 from common import sieve_modes, Suite
 
-
-docker_repo = "xudongs"
-front_runner = "kind-control-plane"
-straggler = "kind-control-plane3"
-
 github_link = {
     "cassandra-operator": "https://github.com/instaclustr/cassandra-operator.git",
     "zookeeper-operator": "https://github.com/pravega/zookeeper-operator.git",

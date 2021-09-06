@@ -192,7 +192,8 @@ if __name__ == "__main__":
     elif options.mode == "atom-vio":
         options.mode = sieve_modes.ATOM_VIO
 
-    img_repo = options.docker if options.docker != "none" else controllers.docker_repo
+    img_repo = options.docker if options.docker != "none" else sieve_config.config[
+        "docker_repo"]
     img_tag = options.mode
     if options.project == "kubernetes":
         setup_kubernetes(options.mode, img_repo, img_tag)

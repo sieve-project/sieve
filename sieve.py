@@ -56,7 +56,7 @@ def generate_kind_config(mode, num_apiservers, num_workers):
 
 
 def redirect_workers(num_workers):
-    target_master = controllers.front_runner
+    target_master = sieve_config.config["time_travel_front_runner"]
     for i in range(num_workers):
         worker = "kind-worker" + (str(i+1) if i > 0 else "")
         cmd_early_exit("docker exec %s bash -c \"sed -i 's/kind-external-load-balancer/%s/g' /etc/kubernetes/kubelet.conf\"" %
@@ -364,7 +364,7 @@ if __name__ == "__main__":
     parser.add_option("-t", "--test", dest="test",
                       help="specify TEST to run", metavar="TEST", default="recreate")
     parser.add_option("-d", "--docker", dest="docker",
-                      help="DOCKER repo that you have access", metavar="DOCKER", default=controllers.docker_repo)
+                      help="DOCKER repo that you have access", metavar="DOCKER", default=sieve_config.config["docker_repo"])
     parser.add_option("-l", "--log", dest="log",
                       help="save to LOG", metavar="LOG", default="log")
     parser.add_option("-m", "--mode", dest="mode",

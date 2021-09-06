@@ -9,6 +9,7 @@ import analyze_event
 import sqlite3
 import json
 import optparse
+import sieve_config
 from common import sieve_modes
 
 
@@ -366,8 +367,8 @@ def generate_time_travel_yaml(triggering_points, path, project, timing="after"):
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
     yaml_map["mode"] = sieve_modes.TIME_TRAVEL
-    yaml_map["straggler"] = controllers.straggler
-    yaml_map["front-runner"] = controllers.front_runner
+    yaml_map["straggler"] = sieve_config.config["time_travel_straggler"]
+    yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
     yaml_map["timing"] = timing
@@ -431,7 +432,7 @@ def generate_atomic_yaml(triggering_points, path, project):
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
     yaml_map["mode"] = sieve_modes.ATOM_VIO
-    yaml_map["front-runner"] = controllers.front_runner
+    yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
     i = 0
