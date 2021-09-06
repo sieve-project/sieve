@@ -38,7 +38,7 @@ func NotifyAtomVioBeforeIndexerWrite(operationType string, object interface{}) {
 	client.Close()
 }
 
-func NotifyAtomVioSideEffects(sideEffectType string, object interface{}) {
+func NotifyAtomVioBeforeSideEffects(sideEffectType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
@@ -67,4 +67,8 @@ func NotifyAtomVioSideEffects(sideEffectType string, object interface{}) {
 	}
 	checkResponse(response, "NotifyAtomVioSideEffects")
 	client.Close()
+}
+
+func NotifyAtomVioAfterSideEffects(sideEffectType string, object interface{}, k8sErr error) {
+
 }
