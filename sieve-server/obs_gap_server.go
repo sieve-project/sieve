@@ -38,13 +38,6 @@ type ObsGapListener struct {
 	Server *obsGapServer
 }
 
-type eventWrapper struct {
-	eventID         int32
-	eventType       string
-	eventObject     string
-	eventObjectType string
-}
-
 func (l *ObsGapListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
 	*response = sieve.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
@@ -80,7 +73,6 @@ type obsGapServer struct {
 	ceName             string
 	ceNamespace        string
 	ceRtype            string
-	crucialEvent       eventWrapper
 	mutex              *sync.RWMutex
 	reconcilingMutex   *sync.RWMutex
 	cond               *sync.Cond
@@ -89,7 +81,6 @@ type obsGapServer struct {
 
 func (s *obsGapServer) Start() {
 	log.Println("start obsGapServer...")
-	// go s.coordinatingEvents()
 }
 
 func (s *obsGapServer) shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
@@ -117,23 +108,16 @@ func (s *obsGapServer) isSameTarget(currentEvent map[string]interface{}) bool {
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
 func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGapBeforeIndexerWriteRequest, response *sieve.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
-	ew := eventWrapper{
-		eventID:         eID,
-		eventType:       request.OperationType,
-		eventObject:     request.Object,
-		eventObjectType: request.ResourceType,
-	}
-	log.Println("NotifyObsGapBeforeIndexerWrite", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
+	log.Println("NotifyObsGapBeforeIndexerWrite", eID, request.OperationType, request.ResourceType, request.Object)
 	currentEvent := strToMap(request.Object)
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
-	if ew.eventObjectType == s.ceRtype && s.isSameTarget(currentEvent) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
+	if request.ResourceType == s.ceRtype && s.isSameTarget(currentEvent) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		s.reconcilingMutex.Lock()
 		log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 		s.mutex.Lock()
 		s.pausingReconcile = true
-		s.crucialEvent = ew
 		s.mutex.Unlock()
 		s.reconcilingMutex.Unlock()
 
@@ -163,10 +147,8 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 
 	if pausingReconcile {
 		currentEvent := strToMap(request.Object)
-		crucialEvent := strToMap(s.crucialEvent.eventObject)
-		// For now, we simply check for the event which cancel the crucial
-		// Later we can use some diff oriented methods (?)
-		if request.OperationType == "Deleted" && request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent) {
+		crucialEvent := strToMap(s.crucialCur)
+		if request.OperationType == "Deleted" && request.ResourceType == s.ceRtype && s.isSameTarget(currentEvent) {
 			// Then we can resume all the reconcile
 			log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
@@ -174,13 +156,11 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 			s.pausingReconcile = false
 			s.cond.Broadcast()
 			s.mutex.Unlock()
-		} else if request.ResourceType == s.crucialEvent.eventObjectType && s.isSameTarget(currentEvent) {
+		} else if request.ResourceType == s.ceRtype && s.isSameTarget(currentEvent) {
 			// We also propose a diff based method for the cancel
 			if cancelEvent(crucialEvent, currentEvent) {
 				log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
-				// TODO: we need to better handle https://github.com/instaclustr/cassandra-operator/issues/398 here
-				// as we should wait until seeing the delete to detect this bug
 				s.mutex.Lock()
 				s.pausingReconcile = false
 				s.cond.Broadcast()
@@ -196,7 +176,6 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sieve.NotifyObsGapBeforeReconcileRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
 	recID := request.ControllerName
-	// Fix: use cond variable instead of polling
 	// In py part, we can analyze the exisiting of side effect event
 	s.mutex.Lock()
 	log.Println("NotifyObsGapBeforeReconcile[0/1]", recID, s.pausingReconcile)

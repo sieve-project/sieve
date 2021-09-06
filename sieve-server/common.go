@@ -16,6 +16,13 @@ const ATOM_VIO string = "atomicity-violation"
 const TEST string = "test"
 const LEARN string = "learn"
 
+type eventWrapper struct {
+	eventID         int32
+	eventType       string
+	eventObject     string
+	eventObjectType string
+}
+
 func getConfig() map[interface{}]interface{} {
 
 	data, err := ioutil.ReadFile("server.yaml")
