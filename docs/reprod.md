@@ -75,8 +75,7 @@ The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 python3 sieve.py -p rabbitmq-operator -t recreate -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
-```
-[ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during normal run, but 3 seen during testing run                                     
+```                                    
 [ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during normal run, but 2 seen during testing run 
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
@@ -87,7 +86,6 @@ python3 sieve.py -p rabbitmq-operator -t resize-pvc -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset/default/rabbitmq-cluster-server CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
 [ERROR] statefulset/default/rabbitmq-cluster-server DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
@@ -110,7 +108,6 @@ python3 sieve.py -p mongodb-operator -t disable-enable-shard -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset/default/mongodb-cluster-cfg CREATE inconsistency: 2 events seen during learning run, but 3 seen during testing run
 [ERROR] statefulset/default/mongodb-cluster-cfg DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
@@ -121,7 +118,6 @@ python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -d DOCKER_REPO_NA
 ```
 If reproduced, you will see:
 ```
-[ERROR] statefulset/default/mongodb-cluster-rs0-arbiter CREATE inconsistency: 2 events seen during learning run, but 3 seen during testing run
 [ERROR] statefulset/default/mongodb-cluster-rs0-arbiter DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
@@ -191,7 +187,6 @@ python3 sieve.py -p casskop-operator -t reducepdb -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] poddisruptionbudget/default/cassandra-cluster CREATE inconsistency: 2 events seen during learning run, but 4 seen during testing run
 [ERROR] poddisruptionbudget/default/cassandra-cluster DELETE inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
