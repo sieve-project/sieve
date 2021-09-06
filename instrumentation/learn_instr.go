@@ -141,11 +141,24 @@ func instrumentClientGoForLearn(ifilepath, ofilepath string) {
 }
 
 func instrumentSideEffectForLearn(f *dst.File, etype string) {
-	// funNameBefore := "NotifyLearnBeforeSideEffects"
+	funNameBefore := "NotifyLearnBeforeSideEffects"
 	funNameAfter := "NotifyLearnAfterSideEffects"
 	_, funcDecl := findFuncDecl(f, etype)
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
+			// Instrument before side effect
+			instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
+				Lhs: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}},
+				Rhs: []dst.Expr{&dst.CallExpr{
+					Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
+				}},
+				Tok: token.DEFINE,
+			}
+			instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
+			insertStmt(&funcDecl.Body.List, len(funcDecl.Body.List)-1, instrNotifyLearnBeforeSideEffect)
+
+			// Change return to assign
 			modifiedInstruction := &dst.AssignStmt{
 				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
 				Tok: token.DEFINE,
@@ -154,15 +167,17 @@ func instrumentSideEffectForLearn(f *dst.File, etype string) {
 			modifiedInstruction.Decs.End.Append("//sieve")
 			funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
 
-			instrumentationExpr := &dst.ExprStmt{
+			// Instrument after side effect
+			instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
 				X: &dst.CallExpr{
 					Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					Args: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 				},
 			}
-			instrumentationExpr.Decs.End.Append("//sieve")
-			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+			instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrNotifyLearnAfterSideEffect)
 
+			// return the error of side effect
 			instrumentationReturn := &dst.ReturnStmt{
 				Results: []dst.Expr{&dst.Ident{Name: "err"}},
 			}
@@ -174,6 +189,19 @@ func instrumentSideEffectForLearn(f *dst.File, etype string) {
 				panic(fmt.Errorf("Last stmt in SwitchStmt is not CaseClause"))
 			}
 			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body)-1].(*dst.ReturnStmt); ok {
+				// Instrument before side effect
+				instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}},
+					Rhs: []dst.Expr{&dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
+					}},
+					Tok: token.DEFINE,
+				}
+				instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
+				insertStmt(&defaultCaseClause.Body, len(defaultCaseClause.Body)-1, instrNotifyLearnBeforeSideEffect)
+
+				// Change return to assign
 				modifiedInstruction := &dst.AssignStmt{
 					Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
 					Tok: token.DEFINE,
@@ -182,15 +210,17 @@ func instrumentSideEffectForLearn(f *dst.File, etype string) {
 				modifiedInstruction.Decs.End.Append("//sieve")
 				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = modifiedInstruction
 
-				instrumentationExpr := &dst.ExprStmt{
+				// Instrument after side effect
+				instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
-				instrumentationExpr.Decs.End.Append("//sieve")
-				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
+				instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrNotifyLearnAfterSideEffect)
 
+				// return the error of side effect
 				instrumentationReturn := &dst.ReturnStmt{
 					Results: []dst.Expr{&dst.Ident{Name: "err"}},
 				}

@@ -145,7 +145,11 @@ func NotifyLearnAfterReconcile(controllerName string) {
 	client.Close()
 }
 
-func NotifyLearnAfterSideEffects(sideEffectType string, object interface{}, k8sErr error) {
+func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int {
+	return 0
+}
+
+func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if !checkStage(LEARN) {
 		return
 	}
