@@ -201,7 +201,7 @@ func (s *obsGapServer) NotifyObsGapAfterReconcile(request *sieve.NotifyObsGapAft
 
 func (s *obsGapServer) NotifyObsGapSideEffects(request *sieve.NotifyObsGapSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
+	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
