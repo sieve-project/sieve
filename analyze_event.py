@@ -72,6 +72,14 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
                 continue
         else:
             to_del.append(key)
+    sym_different_keys = set(
+        cur_object.keys()).symmetric_difference(prev_object.keys())
+    for key in sym_different_keys:
+        if key in analyze_util.BORING_EVENT_OBJECT_FIELDS:
+            if key in cur_object.keys():
+                to_del_cur.append(key)
+            else:
+                to_del_prev.append(key)
     for key in to_del:
         del slim_cur_object[key]
         del slim_prev_object[key]

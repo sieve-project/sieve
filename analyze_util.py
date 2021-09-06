@@ -22,11 +22,14 @@ SIEVE_FINISH_RECONCILE_MARK = "[SIEVE-FINISH-RECONCILE]"
 SIEVE_EVENT_APPLIED_MARK = "[SIEVE-EVENT-APPLIED]"
 
 BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
-                              "managedFields", "lastTransitionTime", "generation"]
+                              "managedFields", "lastTransitionTime", "generation", "annotations", "deletionGracePeriodSeconds"]
+
 SIEVE_SKIP_MARKER = "SIEVE-SKIP"
 SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
+
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 IP_REG = '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+
 PLACEHOLDER_FIELDS = ["nodeName", "containerID"]
 
 
@@ -50,8 +53,6 @@ class Event:
         self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj[
             "metadata"] else sieve_config.config["namespace"]
         self.name = self.obj["metadata"]["name"]
-        # Trim annotation here
-        self.obj["metadata"].pop('annotations', None)
         self.start_timestamp = -1
         self.end_timestamp = -1
         self.key = self.rtype + "/" + self.namespace + "/" + self.name
