@@ -8,12 +8,6 @@ DELETE_ONLY_FILTER_FLAG = True
 FILTERED_ERROR_TYPE = ["NotFound", "Conflict"]
 ALLOWED_ERROR_TYPE = ["NoError"]
 
-SQL_BASE_PASS_QUERY = "select e.sieve_event_id, se.sieve_side_effect_id from events e join side_effects se on se.range_start_timestamp < e.event_cache_update_time and se.range_end_timestamp > e.event_arrival_time"
-SQL_DELETE_ONLY_FILTER = "se.event_type = 'Delete'"
-SQL_ERROR_MSG_FILTER = "se.error = 'NoError'"
-SQL_WRITE_READ_FILTER = "(exists(select * from json_each(se.read_fully_qualified_names) where json_each.value = e.fully_qualified_name) or exists(select * from json_each(se.read_types) where json_each.value = e.resource_type))"
-
-
 SIEVE_EVENT_MARK = "[SIEVE-EVENT]"
 SIEVE_SIDE_EFFECT_MARK = "[SIEVE-SIDE-EFFECT]"
 SIEVE_CACHE_READ_MARK = "[SIEVE-CACHE-READ]"
@@ -67,7 +61,7 @@ class Event:
 class SideEffect:
     side_effect_cnt = 0
 
-    def __init__(self, etype, rtype, namespace, name, error):
+    def __init__(self, etype, rtype, namespace, name, error, obj):
         self.id = SideEffect.side_effect_cnt
         SideEffect.side_effect_cnt += 1
         self.etype = etype
@@ -75,6 +69,7 @@ class SideEffect:
         self.namespace = namespace
         self.name = name
         self.error = error
+        self.obj = obj
         self.end_timestamp = -1
         self.read_types = set()
         self.read_keys = set()
@@ -151,7 +146,7 @@ def parse_side_effect(line):
     assert SIEVE_SIDE_EFFECT_MARK in line
     tokens = line[line.find(SIEVE_SIDE_EFFECT_MARK):].strip(
         "\n").split("\t")
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
+    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6])
 
 
 def parse_cache_read(line):
