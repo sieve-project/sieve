@@ -26,7 +26,7 @@ func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 func instrumentControllerForTimeTravel(controller_runtime_filepath string) {
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel")
+	instrumentClientGoForAllTest(clientGoFile, clientGoFile, "TimeTravel")
 }
 
 /* API interface:
@@ -46,7 +46,7 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "ObsGap")
+	instrumentClientGoForAllTest(clientGoFile, clientGoFile, "ObsGap")
 }
 
 func instrumentControllerForAtomVio(controller_runtime_filepath string, client_go_filepath string) {
@@ -57,7 +57,8 @@ func instrumentControllerForAtomVio(controller_runtime_filepath string, client_g
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAtomVio(clientGoFile, clientGoFile, "AtomVio")
+	instrumentClientGoForAtomVio(clientGoFile, clientGoFile)
+	instrumentClientGoForAllTest(clientGoFile, clientGoFile, "AtomVio")
 }
 
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
@@ -67,7 +68,7 @@ func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepat
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "Learn")
+	instrumentClientGoForLearn(clientGoFile, clientGoFile)
 
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)

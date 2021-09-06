@@ -94,33 +94,20 @@ func preprocess(path string) {
 	check(err)
 }
 
-func instrumentClientGoForAll(ifilepath, ofilepath, mode string) {
-	funName := "Notify" + mode + "SideEffects"
+func instrumentClientGoForAllTest(ifilepath, ofilepath, mode string) {
+	funName := "Notify" + mode + "AfterSideEffects"
 	f := parseSourceFile(ifilepath, "client")
 
-	instrumentSideEffect(f, "Create", funName)
-	instrumentSideEffect(f, "Update", funName)
-	instrumentSideEffect(f, "Delete", funName)
-	instrumentSideEffect(f, "DeleteAllOf", funName)
-	instrumentSideEffect(f, "Patch", funName)
+	instrumentAfterSideEffect(f, "Create", funName)
+	instrumentAfterSideEffect(f, "Update", funName)
+	instrumentAfterSideEffect(f, "Delete", funName)
+	instrumentAfterSideEffect(f, "DeleteAllOf", funName)
+	instrumentAfterSideEffect(f, "Patch", funName)
 
 	writeInstrumentedFile(ofilepath, "client", f)
 }
 
-func instrumentClientGoForAtomVio(ifilepath, ofilepath, mode string) {
-	funName := "Notify" + mode + "SideEffects"
-	f := parseSourceFile(ifilepath, "client")
-
-	instrumentSideEffectBefore(f, "Create", funName)
-	instrumentSideEffectBefore(f, "Update", funName)
-	instrumentSideEffectBefore(f, "Delete", funName)
-	instrumentSideEffectBefore(f, "DeleteAllOf", funName)
-	instrumentSideEffectBefore(f, "Patch", funName)
-
-	writeInstrumentedFile(ofilepath, "client", f)
-}
-
-func instrumentSideEffect(f *dst.File, etype, funName string) {
+func instrumentAfterSideEffect(f *dst.File, etype, funName string) {
 	_, funcDecl := findFuncDecl(f, etype)
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
@@ -168,73 +155,6 @@ func instrumentSideEffect(f *dst.File, etype, funName string) {
 				}
 				instrumentationExpr.Decs.End.Append("//sieve")
 				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
-
-				instrumentationReturn := &dst.ReturnStmt{
-					Results: []dst.Expr{&dst.Ident{Name: "err"}},
-				}
-				instrumentationReturn.Decs.End.Append("//sieve")
-				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationReturn)
-			} else {
-				panic(fmt.Errorf("Last stmt inside default case of %s is not return", etype))
-			}
-		} else {
-			panic(fmt.Errorf("Last stmt of %s is neither return nor typeswitch", etype))
-		}
-	} else {
-		panic(fmt.Errorf("Cannot find function %s", etype))
-	}
-}
-
-func instrumentSideEffectBefore(f *dst.File, etype, funName string) {
-	_, funcDecl := findFuncDecl(f, etype)
-	if funcDecl != nil {
-		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
-			instrumentationExpr := &dst.ExprStmt{
-				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
-				},
-			}
-			instrumentationExpr.Decs.End.Append("//sieve")
-
-			funcDecl.Body.List[len(funcDecl.Body.List)-1] = instrumentationExpr
-
-			modifiedInstruction := &dst.AssignStmt{
-				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
-				Tok: token.DEFINE,
-				Rhs: returnStmt.Results,
-			}
-			modifiedInstruction.Decs.End.Append("//sieve")
-
-			funcDecl.Body.List = append(funcDecl.Body.List, modifiedInstruction)
-
-			instrumentationReturn := &dst.ReturnStmt{
-				Results: []dst.Expr{&dst.Ident{Name: "err"}},
-			}
-			instrumentationReturn.Decs.End.Append("//sieve")
-			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
-		} else if switchStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.TypeSwitchStmt); ok {
-			defaultCaseClause, ok := switchStmt.Body.List[len(switchStmt.Body.List)-1].(*dst.CaseClause)
-			if !ok {
-				panic(fmt.Errorf("Last stmt in SwitchStmt is not CaseClause"))
-			}
-			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body)-1].(*dst.ReturnStmt); ok {
-				instrumentationExpr := &dst.ExprStmt{
-					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
-					},
-				}
-				instrumentationExpr.Decs.End.Append("//sieve")
-				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = instrumentationExpr
-
-				modifiedInstruction := &dst.AssignStmt{
-					Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
-					Tok: token.DEFINE,
-					Rhs: innerReturnStmt.Results,
-				}
-				modifiedInstruction.Decs.End.Append("//sieve")
-				defaultCaseClause.Body = append(defaultCaseClause.Body, modifiedInstruction)
 
 				instrumentationReturn := &dst.ReturnStmt{
 					Results: []dst.Expr{&dst.Ident{Name: "err"}},
