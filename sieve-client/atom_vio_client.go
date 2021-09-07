@@ -100,33 +100,3 @@ func NotifyAtomVioAfterSideEffects(sideEffectType string, object interface{}, k8
 	client.Close()
 }
 
-func NotifyAtomVioSideEffectsBefore(sideEffectType string, object interface{}) {
-	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
-		return
-	}
-	jsonObject, err := json.Marshal(object)
-	if err != nil {
-		printError(err, jsonError)
-	}
-	client, err := newClient()
-	if err != nil {
-		printError(err, connectionError)
-		return
-	}
-	errorString := "NoError"
-	request := &NotifyAtomVioSideEffectsRequest{
-		SideEffectType: sideEffectType,
-		Object:         string(jsonObject),
-		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
-		Error:          errorString,
-		Stack:          string(debug.Stack()),
-	}
-	var response Response
-	err = client.Call("AtomVioListener.NotifyAtomVioSideEffectsBefore", request, &response)
-	if err != nil {
-		printError(err, replyError)
-		return
-	}
-	checkResponse(response, "NotifyAtomVioSideEffectsBefore")
-	client.Close()
-}
