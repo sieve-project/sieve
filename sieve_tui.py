@@ -11,7 +11,8 @@ def run():
         operator = data["operator"]
         workload = data["workload"]
         action = data["action"]
-        print(operator, workload, action)
+        mode = controllers.test_suites[operator][workload].mode
+        print(operator, workload, action, mode)
         if action == "learn":
                 os.system("python3 sieve.py -p %s -t %s -s learn -d laphets"%(operator, workload))
         elif action == "test":
@@ -19,7 +20,7 @@ def run():
         elif action == "build for learn":
                 os.system("python3 build.py -p %s -m learn -d laphets"%(operator))
         elif action == "build for test":
-                os.system("python3 build.py -p %s -d laphets"%(operator))
+                os.system("python3 build.py -p %s -m %s -d laphets"%(operator, mode))
         elif action == "learn check only":
                 os.system("python3 sieve.py -p %s -t %s -s learn -d laphets --phase=check_only"%(operator, workload))
         elif action == "test check only":

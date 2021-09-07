@@ -1,0 +1,25 @@
+{{- if .Values.rbacEnable }}
+{{- range  $namespace := $.Values.namespaces }}
+{{- $_ := set $ "vals" $.Values }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    app: {{ template "nifikop.name" $ }}
+    chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    heritage: {{ $.Release.Service }}
+    release: {{ $.Release.Name }}
+  name: {{ template "nifikop.name" $ }}
+  namespace: {{$namespace}}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "nifikop.name" $ }}
+  namespace: {{$.Release.Namespace}}
+roleRef:
+  kind: Role
+  name: {{ template "nifikop.name" $ }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
+---

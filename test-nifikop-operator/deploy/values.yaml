@@ -1,0 +1,47 @@
+## NiFi Operator Image
+##
+image:
+  repository: ${SIEVE-DR}/nifikop-operator
+  tag: ${SIEVE-DT}
+  pullPolicy: Always
+  imagePullSecrets:
+    enabled: false
+#    name:
+vaultAddress: ""
+# vaultSecret containing a `ca.crt` key with the Vault CA Certificate
+vaultSecret: ""
+# set of namespaces where the operator watches resources
+namespaces: []
+
+## Prometheus-operator resource limits & requests
+## Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+resources:
+  requests:
+    cpu: 10m
+    memory: 50Mi
+  limits:
+    cpu: 1
+    memory: 512Mi
+
+## If true, create & deploy the CRD
+##
+createCustomResource: true
+
+## If true, create & use RBAC resources
+##
+rbacEnable: false
+
+## If true, create serviceAccount
+##
+serviceAccount:
+  create: false
+
+## if true deploy service for metrics access
+metricService: false
+
+debug:
+  enabled: false
+
+certManager:
+  enabled: false
+  clusterScoped: false

@@ -33,6 +33,7 @@ func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 		seNamespace: config["se-namespace"].(string),
 		seRtype:     config["se-rtype"].(string),
 		seEtype:     config["se-etype"].(string),
+		crashLocation: config["crash-location"].(string),
 	}
 	listener := &AtomVioListener{
 		Server: server,
@@ -50,9 +51,14 @@ func (l *AtomVioListener) Echo(request *sieve.EchoRequest, response *sieve.Respo
 	return nil
 }
 
-func (l *AtomVioListener) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyAtomVioSideEffects(request, response)
+func (l *AtomVioListener) NotifyAtomVioSideEffectsBefore(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyAtomVioSideEffects(request, response, "before")
 }
+
+func (l *AtomVioListener) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyAtomVioSideEffects(request, response, "after")
+}
+
 
 func (l *AtomVioListener) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAtomVioBeforeIndexerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyAtomVioBeforeIndexerWrite(request, response)
@@ -77,6 +83,7 @@ type atomVioServer struct {
 	seNamespace  string
 	seRtype      string
 	seEtype      string
+	crashLocation string
 }
 
 func (s *atomVioServer) Start() {
@@ -117,7 +124,7 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAto
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
 	if ew.eventObjectType == s.ceRtype && getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace {
-		log.Print("[sieve] we then check for crash condition", "s.crash", s.crash, "s.seenPrev", s.seenPrev)
+		log.Print("[sieve] we then check for crash condition: ", "s.crash: ", s.crash, "s.seenPrev: ", s.seenPrev)
 		if s.shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent) {
 			log.Println("[sieve] should crash the operator while issuing target side effect")
 			s.crucialEvent = ew
@@ -127,7 +134,11 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAto
 	return nil
 }
 
-func (s *atomVioServer) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
+func (s *atomVioServer) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response, location string) error {
+	if location != s.crashLocation {
+		*response = sieve.Response{Message: request.SideEffectType, Ok: true}
+		return nil
+	}
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SIEVE-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
 	if s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {

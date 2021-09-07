@@ -113,7 +113,7 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
         elif analyze_util.SIEVE_FINISH_RECONCILE_MARK in line:
             reconcile = analyze_util.parse_reconcile(line)
             controller_name = reconcile.controller_name
-            ongoing_reconciles.remove(controller_name)
+            ongoing_reconciles.discard(controller_name)
             # Clear the read keys and types set since all the ongoing reconciles are done
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()
@@ -373,6 +373,7 @@ def generate_atomic_yaml(triggering_points, path, project):
         yaml_map["se-namespace"] = effect["namespace"]
         yaml_map["se-rtype"] = effect["rtype"]
         yaml_map["se-etype"] = effect["etype"]
+        yaml_map["crash-location"] = "before" # TODO: should find a way to determine crash location
         yaml_map["description"] = ""
         yaml.dump(yaml_map, open(
             os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"), sort_keys=False)

@@ -1,0 +1,260 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: nifidataflows.nifi.orange.com
+spec:
+  group: nifi.orange.com
+  names:
+    kind: NifiDataflow
+    listKind: NifiDataflowList
+    plural: nifidataflows
+    singular: nifidataflow
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: NifiDataflow is the Schema for the nifidataflows API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: NifiDataflowSpec defines the desired state of NifiDataflow
+            properties:
+              bucketId:
+                description: the UUID of the Bucket containing the flow.
+                type: string
+              clusterRef:
+                description: contains the reference to the NifiCluster with the one
+                  the dataflow is linked.
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
+              flowId:
+                description: the UUID of the flow to run.
+                type: string
+              flowVersion:
+                description: the version of the flow to run, if not present or equals
+                  to -1, then the latest version of flow will be used.
+                format: int32
+                type: integer
+              parameterContextRef:
+                description: contains the reference to the ParameterContext with the
+                  one the dataflow is linked.
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
+              parentProcessGroupID:
+                description: the UUID of the parent process group where you want to
+                  deploy your dataflow, if not set deploy at root level.
+                type: string
+              registryClientRef:
+                description: contains the reference to the NifiRegistry with the one
+                  the dataflow is linked.
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
+              runOnce:
+                description: if the flow will be ran once or continuously checked
+                type: boolean
+              skipInvalidComponent:
+                description: whether the flow is considered as ran if some components
+                  are still invalid or not.
+                type: boolean
+              skipInvalidControllerService:
+                description: whether the flow is considered as ran if some controller
+                  services are still invalid or not.
+                type: boolean
+              updateStrategy:
+                description: 'describes the way the operator will deal with data when
+                  a dataflow will be updated : drop or drain'
+                enum:
+                - drop
+                - drain
+                type: string
+            required:
+            - bucketId
+            - flowId
+            - updateStrategy
+            type: object
+          status:
+            description: NifiDataflowStatus defines the observed state of NifiDataflow
+            properties:
+              latestDropRequest:
+                description: the latest queue drop request sent.
+                properties:
+                  connectionId:
+                    description: the connection id.
+                    type: string
+                  current:
+                    description: the count and size of flow files currently queued.
+                    type: string
+                  currentCount:
+                    description: the number of flow files currently queued.
+                    format: int32
+                    type: integer
+                  currentSize:
+                    description: the size of flow files currently queued in bytes.
+                    format: int64
+                    type: integer
+                  dropped:
+                    description: the count and size of flow files that have been dropped
+                      thus far.
+                    type: string
+                  droppedCount:
+                    description: the number of flow files that have been dropped thus
+                      far.
+                    format: int32
+                    type: integer
+                  droppedSize:
+                    description: the size of flow files currently queued in bytes.
+                    format: int64
+                    type: integer
+                  failureReason:
+                    description: an explication of why the request failed, or null
+                      if this request has not failed.
+                    type: string
+                  finished:
+                    description: whether the request has finished.
+                    type: boolean
+                  id:
+                    description: the id for this drop request.
+                    type: string
+                  lastUpdated:
+                    description: the last time this request was updated.
+                    type: string
+                  original:
+                    description: the count and size of flow files to be dropped as
+                      a result of this request.
+                    type: string
+                  originalCount:
+                    description: the number of flow files to be dropped as a result
+                      of this request.
+                    format: int32
+                    type: integer
+                  originalSize:
+                    description: the size of flow files to be dropped as a result
+                      of this request in bytes.
+                    format: int64
+                    type: integer
+                  percentCompleted:
+                    description: the percentage complete of the request, between 0
+                      and 100.
+                    format: int32
+                    type: integer
+                  state:
+                    description: the state of the request
+                    type: string
+                  uri:
+                    description: the uri for this request.
+                    type: string
+                required:
+                - connectionId
+                - current
+                - currentCount
+                - currentSize
+                - dropped
+                - droppedCount
+                - droppedSize
+                - failureReason
+                - finished
+                - id
+                - lastUpdated
+                - original
+                - originalCount
+                - originalSize
+                - percentCompleted
+                - state
+                - uri
+                type: object
+              latestUpdateRequest:
+                description: the latest version update request sent.
+                properties:
+                  complete:
+                    description: whether or not this request has completed.
+                    type: boolean
+                  failureReason:
+                    description: an explication of why the request failed, or null
+                      if this request has not failed.
+                    type: string
+                  id:
+                    description: the id of the update request.
+                    type: string
+                  lastUpdated:
+                    description: the last time this request was updated.
+                    type: string
+                  percentCompleted:
+                    description: the percentage complete of the request, between 0
+                      and 100.
+                    format: int32
+                    type: integer
+                  state:
+                    description: the state of the request
+                    type: string
+                  type:
+                    description: defines the type of versioned flow update request.
+                    type: string
+                  uri:
+                    description: the uri for this request.
+                    type: string
+                required:
+                - complete
+                - failureReason
+                - id
+                - lastUpdated
+                - percentCompleted
+                - state
+                - type
+                - uri
+                type: object
+              processGroupID:
+                description: process Group ID
+                type: string
+              state:
+                description: the dataflow current state.
+                type: string
+            required:
+            - processGroupID
+            - state
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

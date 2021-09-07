@@ -1,0 +1,21 @@
+project: nifikop-operator
+stage: test
+mode: atomicity-violation
+front-runner: kind-control-plane
+operator-pod-label: nifikop-operator
+deployment-name: nifikop-operator
+ce-name: simplenifi
+ce-namespace: default
+ce-rtype: nificluster
+ce-diff-current: '{"spec": {"nodes": [{"readOnlyConfig": {"nifiProperties": {"overrideConfigs":
+  "nifi.ui.banner.text=NiFiKop by Sieve - Node 1\n"}, "zookeeperProperties": {}, "bootstrapProperties":
+  {}, "logbackConfig": {}, "bootstrapNotificationServicesConfig": {}}}]}}'
+ce-diff-previous: '{}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+se-name: simplenifi-config-1
+se-namespace: default
+se-rtype: secret
+se-etype: Update
+crash-location: after
+description: ''

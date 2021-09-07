@@ -146,7 +146,10 @@ def parse_side_effect(line):
     assert SIEVE_SIDE_EFFECT_MARK in line
     tokens = line[line.find(SIEVE_SIDE_EFFECT_MARK):].strip(
         "\n").split("\t")
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6])
+    # if len(tokens) < 7:
+        # print(line)
+        # print(tokens)
+    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], {})
 
 
 def parse_cache_read(line):
