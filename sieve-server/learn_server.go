@@ -24,7 +24,9 @@ func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
 	server := &learnServer{
 		rateLimitedEventCh:  make(chan notificationWrapper, 500),
 		eventID:             -1,
+		sideEffectID:        -1,
 		eventChMap:          sync.Map{},
+		sideEffectChMap:     sync.Map{},
 		reconcileChMap:      sync.Map{},
 		notificationCh:      make(chan notificationWrapper, 500),
 		ongoingReconcileCnt: 0,
@@ -64,8 +66,12 @@ func (l *LearnListener) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfte
 	return l.Server.NotifyLearnAfterReconcile(request, response)
 }
 
-func (l *LearnListener) NotifyLearnSideEffects(request *sieve.NotifyLearnSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyLearnSideEffects(request, response)
+func (l *LearnListener) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBeforeSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnBeforeSideEffects(request, response)
+}
+
+func (l *LearnListener) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterSideEffects(request, response)
 }
 
 func (l *LearnListener) NotifyLearnCacheGet(request *sieve.NotifyLearnCacheGetRequest, response *sieve.Response) error {
@@ -81,6 +87,7 @@ type NotificationType int
 const (
 	beforeReconcile NotificationType = iota
 	afterReconcile
+	beforeSideEffect
 	afterSideEffect
 	afterRead
 	beforeEvent
@@ -95,7 +102,9 @@ type notificationWrapper struct {
 type learnServer struct {
 	rateLimitedEventCh  chan notificationWrapper
 	eventID             int32
+	sideEffectID        int32
 	eventChMap          sync.Map
+	sideEffectChMap     sync.Map
 	reconcileChMap      sync.Map
 	notificationCh      chan notificationWrapper
 	ongoingReconcileCnt int
@@ -144,10 +153,20 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterR
 	return nil
 }
 
-func (s *learnServer) NotifyLearnSideEffects(request *sieve.NotifyLearnSideEffectsRequest, response *sieve.Response) error {
+func (s *learnServer) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBeforeSideEffectsRequest, response *sieve.Response) error {
+	sID := atomic.AddInt32(&s.sideEffectID, 1)
+	waitingCh := make(chan int32)
+	s.sideEffectChMap.Store(fmt.Sprint(sID), waitingCh)
+	s.notificationCh <- notificationWrapper{ntype: beforeSideEffect, payload: fmt.Sprintf("%d", sID)}
+	<-waitingCh
+	*response = sieve.Response{Message: request.SideEffectType, Ok: true, Number: int(sID)}
+	return nil
+}
+
+func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
 	rtype := request.ResourceType
 	name, namespace := extractNameNamespace(request.Object)
-	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectType, rtype, namespace, name, request.Error, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, rtype, namespace, name, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
@@ -197,6 +216,17 @@ func (s *learnServer) coordinatingEvents() {
 					log.Fatalf("reconcileCnt cannot be lower than 0: %d\n", s.ongoingReconcileCnt)
 				}
 				log.Printf("[SIEVE-AFTER-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
+			case beforeSideEffect:
+				if s.ongoingReconcileCnt > 0 {
+					sideEffectID := strings.Split(nw.payload, "\t")[0]
+					if obj, ok := s.sideEffectChMap.Load(sideEffectID); ok {
+						log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\n", nw.payload)
+						ch := obj.(chan int32)
+						ch <- 0
+					} else {
+						log.Fatal("invalid object in eventChMap")
+					}
+				}
 			case afterSideEffect:
 				if s.ongoingReconcileCnt > 0 {
 					log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\n", nw.payload)

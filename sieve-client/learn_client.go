@@ -146,14 +146,34 @@ func NotifyLearnAfterReconcile(controllerName string) {
 }
 
 func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int {
-	return 0
+	if !checkStage(LEARN) {
+		return -1
+	}
+	// log.Printf("[sieve][NotifyLearnBeforeSideEffects] %v\n", reflect.TypeOf(object))
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
+		return -1
+	}
+	request := &NotifyLearnBeforeSideEffectsRequest{
+		SideEffectType: sideEffectType,
+	}
+	var response Response
+	err = client.Call("LearnListener.NotifyLearnBeforeSideEffects", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return -1
+	}
+	checkResponse(response, "NotifyLearnBeforeSideEffects")
+	client.Close()
+	return response.Number
 }
 
 func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if !checkStage(LEARN) {
 		return
 	}
-	// log.Printf("[sieve][NotifyLearnSideEffects] %v\n", reflect.TypeOf(object))
+	// log.Printf("[sieve][NotifyLearnAfterSideEffects] %v\n", reflect.TypeOf(object))
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, jsonError)
@@ -167,19 +187,20 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyLearnSideEffectsRequest{
+	request := &NotifyLearnAfterSideEffectsRequest{
+		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
 		Error:          errorString,
 	}
 	var response Response
-	err = client.Call("LearnListener.NotifyLearnSideEffects", request, &response)
+	err = client.Call("LearnListener.NotifyLearnAfterSideEffects", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyLearnSideEffects")
+	checkResponse(response, "NotifyLearnAfterSideEffects")
 	client.Close()
 }
 

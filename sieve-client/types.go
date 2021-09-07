@@ -101,10 +101,6 @@ type NotifyLearnAfterIndexerWriteRequest struct {
 	EventID int
 }
 
-type NotifyLearnBeforeQAddRequest struct {
-	Nothing string
-}
-
 type NotifyLearnBeforeReconcileRequest struct {
 	ControllerName string
 }
@@ -113,7 +109,12 @@ type NotifyLearnAfterReconcileRequest struct {
 	ControllerName string
 }
 
-type NotifyLearnSideEffectsRequest struct {
+type NotifyLearnBeforeSideEffectsRequest struct {
+	SideEffectType string
+}
+
+type NotifyLearnAfterSideEffectsRequest struct {
+	SideEffectID   int
 	SideEffectType string
 	Object         string
 	ResourceType   string
