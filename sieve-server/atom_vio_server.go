@@ -50,8 +50,12 @@ func (l *AtomVioListener) Echo(request *sieve.EchoRequest, response *sieve.Respo
 	return nil
 }
 
-func (l *AtomVioListener) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyAtomVioSideEffects(request, response)
+func (l *AtomVioListener) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtomVioBeforeSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyAtomVioBeforeSideEffects(request, response)
+}
+
+func (l *AtomVioListener) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyAtomVioAfterSideEffects(request, response)
 }
 
 func (l *AtomVioListener) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAtomVioBeforeIndexerWriteRequest, response *sieve.Response) error {
@@ -127,9 +131,9 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAto
 	return nil
 }
 
-func (s *atomVioServer) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSideEffectsRequest, response *sieve.Response) error {
+func (s *atomVioServer) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtomVioBeforeSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
+	log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Object)
 	if s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
 		// we should restart operator here
 		s.restarted = true
@@ -137,6 +141,13 @@ func (s *atomVioServer) NotifyAtomVioSideEffects(request *sieve.NotifyAtomVioSid
 		s.restartComponent()
 		return nil
 	}
+	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
+	return nil
+}
+
+func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
+	name, namespace := extractNameNamespace(request.Object)
+	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }

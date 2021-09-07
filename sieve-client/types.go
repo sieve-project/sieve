@@ -10,19 +10,6 @@ type EchoRequest struct {
 	Text string
 }
 
-type NotifySparseReadBeforeMakeQRequest struct {
-	QueueID        string
-	ControllerName string
-}
-
-type NotifySparseReadBeforeQAddRequest struct {
-	QueueID string
-}
-
-type NotifySparseReadBeforeReconcileRequest struct {
-	ControllerName string
-}
-
 type NotifyTimeTravelBeforeProcessEventRequest struct {
 	EventType    string
 	ResourceType string
@@ -43,35 +30,21 @@ type NotifyTimeTravelRestartPointRequest struct {
 	Namespace    string
 }
 
-type NotifyTimeTravelSideEffectsRequest struct {
+type NotifyTimeTravelAfterSideEffectsRequest struct {
 	SideEffectType string
 	Object         string
 	ResourceType   string
 	Error          string
 }
 
-type NotifyObsGapSideEffectsRequest struct {
+type NotifyObsGapAfterSideEffectsRequest struct {
 	SideEffectType string
 	Object         string
 	ResourceType   string
 	Error          string
-}
-
-type NotifyAtomVioSideEffectsRequest struct {
-	SideEffectType string
-	Object         string
-	ResourceType   string
-	Error          string
-	Stack          string
 }
 
 type NotifyObsGapBeforeIndexerWriteRequest struct {
-	OperationType string
-	Object        string
-	ResourceType  string
-}
-
-type NotifyAtomVioBeforeIndexerWriteRequest struct {
 	OperationType string
 	Object        string
 	ResourceType  string
@@ -89,6 +62,25 @@ type NotifyObsGapAfterIndexerWriteRequest struct {
 	OperationType string
 	Object        string
 	ResourceType  string
+}
+
+type NotifyAtomVioBeforeIndexerWriteRequest struct {
+	OperationType string
+	Object        string
+	ResourceType  string
+}
+
+type NotifyAtomVioBeforeSideEffectsRequest struct {
+	SideEffectType string
+	Object         string
+	ResourceType   string
+}
+
+type NotifyAtomVioAfterSideEffectsRequest struct {
+	SideEffectType string
+	Object         string
+	ResourceType   string
+	Error          string
 }
 
 type NotifyLearnBeforeIndexerWriteRequest struct {

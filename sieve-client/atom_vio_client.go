@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"reflect"
-	"runtime/debug"
+
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func NotifyAtomVioBeforeIndexerWrite(operationType string, object interface{}) {
@@ -51,24 +52,50 @@ func NotifyAtomVioBeforeSideEffects(sideEffectType string, object interface{}) {
 		printError(err, connectionError)
 		return
 	}
-	errorString := "NoError"
-	request := &NotifyAtomVioSideEffectsRequest{
+	request := &NotifyAtomVioBeforeSideEffectsRequest{
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
-		Error:          errorString,
-		Stack:          string(debug.Stack()),
 	}
 	var response Response
-	err = client.Call("AtomVioListener.NotifyAtomVioSideEffects", request, &response)
+	err = client.Call("AtomVioListener.NotifyAtomVioBeforeSideEffects", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyAtomVioSideEffects")
+	checkResponse(response, "NotifyAtomVioBeforeSideEffects")
 	client.Close()
 }
 
 func NotifyAtomVioAfterSideEffects(sideEffectType string, object interface{}, k8sErr error) {
-
+	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+		return
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, jsonError)
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, connectionError)
+		return
+	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	request := &NotifyAtomVioAfterSideEffectsRequest{
+		SideEffectType: sideEffectType,
+		Object:         string(jsonObject),
+		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		Error:          errorString,
+	}
+	var response Response
+	err = client.Call("AtomVioListener.NotifyAtomVioAfterSideEffects", request, &response)
+	if err != nil {
+		printError(err, replyError)
+		return
+	}
+	checkResponse(response, "NotifyAtomVioAfterSideEffects")
+	client.Close()
 }

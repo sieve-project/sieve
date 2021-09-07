@@ -115,7 +115,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectType string, object interface{},
 	if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
 		return
 	}
-	// log.Printf("[sieve][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
+	// log.Printf("[sieve][NotifyTimeTravelAfterSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, jsonError)
@@ -129,18 +129,18 @@ func NotifyTimeTravelAfterSideEffects(sideEffectType string, object interface{},
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyTimeTravelSideEffectsRequest{
+	request := &NotifyTimeTravelAfterSideEffectsRequest{
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
 		Error:          errorString,
 	}
 	var response Response
-	err = client.Call("TimeTravelListener.NotifyTimeTravelSideEffects", request, &response)
+	err = client.Call("TimeTravelListener.NotifyTimeTravelAfterSideEffects", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyTimeTravelSideEffects")
+	checkResponse(response, "NotifyTimeTravelAfterSideEffects")
 	client.Close()
 }

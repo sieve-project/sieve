@@ -59,8 +59,8 @@ func (l *ObsGapListener) NotifyObsGapAfterReconcile(request *sieve.NotifyObsGapA
 	return l.Server.NotifyObsGapAfterReconcile(request, response)
 }
 
-func (l *ObsGapListener) NotifyObsGapSideEffects(request *sieve.NotifyObsGapSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyObsGapSideEffects(request, response)
+func (l *ObsGapListener) NotifyObsGapAfterSideEffects(request *sieve.NotifyObsGapAfterSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyObsGapAfterSideEffects(request, response)
 }
 
 type obsGapServer struct {
@@ -199,9 +199,9 @@ func (s *obsGapServer) NotifyObsGapAfterReconcile(request *sieve.NotifyObsGapAft
 	return nil
 }
 
-func (s *obsGapServer) NotifyObsGapSideEffects(request *sieve.NotifyObsGapSideEffectsRequest, response *sieve.Response) error {
+func (s *obsGapServer) NotifyObsGapAfterSideEffects(request *sieve.NotifyObsGapAfterSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
+	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
