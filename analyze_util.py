@@ -57,11 +57,9 @@ class Event:
 
 
 class SideEffect:
-    side_effect_cnt = 0
 
-    def __init__(self, etype, rtype, namespace, name, error, obj):
-        self.id = SideEffect.side_effect_cnt
-        SideEffect.side_effect_cnt += 1
+    def __init__(self, id, etype, rtype, namespace, name, error, obj):
+        self.id = int(id)
         self.etype = etype
         self.rtype = rtype
         self.namespace = namespace
@@ -144,7 +142,7 @@ def parse_side_effect(line):
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
     tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip(
         "\n").split("\t")
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6])
+    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6], tokens[7])
 
 
 def parse_cache_read(line):
