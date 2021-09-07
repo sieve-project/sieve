@@ -54,8 +54,8 @@ func (l *TimeTravelListener) NotifyTimeTravelRestartPoint(request *sieve.NotifyT
 	return l.Server.NotifyTimeTravelRestartPoint(request, response)
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelSideEffects(request *sieve.NotifyTimeTravelSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyTimeTravelSideEffects(request, response)
+func (l *TimeTravelListener) NotifyTimeTravelAfterSideEffects(request *sieve.NotifyTimeTravelAfterSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyTimeTravelAfterSideEffects(request, response)
 }
 
 type timeTravelServer struct {
@@ -111,9 +111,9 @@ func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sieve.NotifyTim
 	return nil
 }
 
-func (s *timeTravelServer) NotifyTimeTravelSideEffects(request *sieve.NotifyTimeTravelSideEffectsRequest, response *sieve.Response) error {
+func (s *timeTravelServer) NotifyTimeTravelAfterSideEffects(request *sieve.NotifyTimeTravelAfterSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Error)
+	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }

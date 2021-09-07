@@ -121,7 +121,7 @@ func NotifyObsGapAfterReconcile(controllerName string) {
 	client.Close()
 }
 
-func NotifyObsGapSideEffects(sideEffectType string, object interface{}, k8sErr error) {
+func NotifyObsGapAfterSideEffects(sideEffectType string, object interface{}, k8sErr error) {
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
@@ -139,18 +139,18 @@ func NotifyObsGapSideEffects(sideEffectType string, object interface{}, k8sErr e
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyObsGapSideEffectsRequest{
+	request := &NotifyObsGapAfterSideEffectsRequest{
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
 		Error:          errorString,
 	}
 	var response Response
-	err = client.Call("ObsGapListener.NotifyObsGapSideEffects", request, &response)
+	err = client.Call("ObsGapListener.NotifyObsGapAfterSideEffects", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyObsGapSideEffects")
+	checkResponse(response, "NotifyObsGapAfterSideEffects")
 	client.Close()
 }

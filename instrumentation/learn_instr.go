@@ -1,8 +1,9 @@
 package main
 
 import (
-	"go/token"
 	"fmt"
+	"go/token"
+
 	"github.com/dave/dst"
 )
 
@@ -83,14 +84,14 @@ func instrumentSplitGoForLearn(ifilepath, ofilepath string) {
 func instrumentCacheRead(f *dst.File, etype string) {
 	_, funcDecl := findFuncDecl(f, etype)
 	if funcDecl != nil {
-		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List) - 1].(*dst.ReturnStmt); ok {
+		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 			modifiedInstruction := &dst.AssignStmt{
 				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
 				Tok: token.DEFINE,
 				Rhs: returnStmt.Results,
 			}
 			modifiedInstruction.Decs.End.Append("//sieve")
-			funcDecl.Body.List[len(funcDecl.Body.List) - 1] = modifiedInstruction
+			funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
 
 			if etype == "Get" {
 				instrumentationExpr := &dst.ExprStmt{
@@ -121,6 +122,115 @@ func instrumentCacheRead(f *dst.File, etype string) {
 			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
 		} else {
 			panic(fmt.Errorf("Last stmt of %s is not return", etype))
+		}
+	} else {
+		panic(fmt.Errorf("Cannot find function %s", etype))
+	}
+}
+
+func instrumentClientGoForLearn(ifilepath, ofilepath string) {
+	f := parseSourceFile(ifilepath, "client")
+
+	instrumentSideEffectForLearn(f, "Create")
+	instrumentSideEffectForLearn(f, "Update")
+	instrumentSideEffectForLearn(f, "Delete")
+	instrumentSideEffectForLearn(f, "DeleteAllOf")
+	instrumentSideEffectForLearn(f, "Patch")
+
+	writeInstrumentedFile(ofilepath, "client", f)
+}
+
+func instrumentSideEffectForLearn(f *dst.File, etype string) {
+	funNameBefore := "NotifyLearnBeforeSideEffects"
+	funNameAfter := "NotifyLearnAfterSideEffects"
+	_, funcDecl := findFuncDecl(f, etype)
+	if funcDecl != nil {
+		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
+			// Instrument before side effect
+			instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
+				Lhs: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}},
+				Rhs: []dst.Expr{&dst.CallExpr{
+					Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
+				}},
+				Tok: token.DEFINE,
+			}
+			instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
+			insertStmt(&funcDecl.Body.List, len(funcDecl.Body.List)-1, instrNotifyLearnBeforeSideEffect)
+
+			// Change return to assign
+			modifiedInstruction := &dst.AssignStmt{
+				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
+				Tok: token.DEFINE,
+				Rhs: returnStmt.Results,
+			}
+			modifiedInstruction.Decs.End.Append("//sieve")
+			funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
+
+			// Instrument after side effect
+			instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
+				X: &dst.CallExpr{
+					Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+					Args: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+				},
+			}
+			instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrNotifyLearnAfterSideEffect)
+
+			// return the error of side effect
+			instrumentationReturn := &dst.ReturnStmt{
+				Results: []dst.Expr{&dst.Ident{Name: "err"}},
+			}
+			instrumentationReturn.Decs.End.Append("//sieve")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
+		} else if switchStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.TypeSwitchStmt); ok {
+			defaultCaseClause, ok := switchStmt.Body.List[len(switchStmt.Body.List)-1].(*dst.CaseClause)
+			if !ok {
+				panic(fmt.Errorf("Last stmt in SwitchStmt is not CaseClause"))
+			}
+			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body)-1].(*dst.ReturnStmt); ok {
+				// Instrument before side effect
+				instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}},
+					Rhs: []dst.Expr{&dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
+					}},
+					Tok: token.DEFINE,
+				}
+				instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
+				insertStmt(&defaultCaseClause.Body, len(defaultCaseClause.Body)-1, instrNotifyLearnBeforeSideEffect)
+
+				// Change return to assign
+				modifiedInstruction := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
+					Tok: token.DEFINE,
+					Rhs: innerReturnStmt.Results,
+				}
+				modifiedInstruction.Decs.End.Append("//sieve")
+				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = modifiedInstruction
+
+				// Instrument after side effect
+				instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "sieveSideEffectID"}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					},
+				}
+				instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrNotifyLearnAfterSideEffect)
+
+				// return the error of side effect
+				instrumentationReturn := &dst.ReturnStmt{
+					Results: []dst.Expr{&dst.Ident{Name: "err"}},
+				}
+				instrumentationReturn.Decs.End.Append("//sieve")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationReturn)
+			} else {
+				panic(fmt.Errorf("Last stmt inside default case of %s is not return", etype))
+			}
+		} else {
+			panic(fmt.Errorf("Last stmt of %s is neither return nor typeswitch", etype))
 		}
 	} else {
 		panic(fmt.Errorf("Cannot find function %s", etype))

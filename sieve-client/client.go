@@ -128,7 +128,7 @@ func getConfigFromEnv() map[string]interface{} {
 func getConfig() (map[string]interface{}, error) {
 	configFromEnv := getConfigFromEnv()
 	if configFromEnv != nil {
-		log.Printf("[sieve] configFromEnv:\n%v\n", configFromEnv)
+		// log.Printf("[sieve] configFromEnv:\n%v\n", configFromEnv)
 		return configFromEnv, nil
 	}
 	configPath := "sieve.yaml"
@@ -144,7 +144,7 @@ func getConfig() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("[sieve] configFromYaml:\n%v\n", configFromYaml)
+	// log.Printf("[sieve] configFromYaml:\n%v\n", configFromYaml)
 	return configFromYaml, nil
 }
 
@@ -154,7 +154,7 @@ func printError(err error, text string) {
 
 func checkResponse(response Response, reqName string) {
 	if response.Ok {
-		log.Printf("[sieve][%s] receives good response: %s\n", reqName, response.Message)
+		// log.Printf("[sieve][%s] receives good response: %s\n", reqName, response.Message)
 	} else {
 		log.Printf("[sieve][error][%s] receives bad response: %s\n", reqName, response.Message)
 	}

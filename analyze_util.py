@@ -8,12 +8,12 @@ DELETE_ONLY_FILTER_FLAG = True
 FILTERED_ERROR_TYPE = ["NotFound", "Conflict"]
 ALLOWED_ERROR_TYPE = ["NoError"]
 
-SIEVE_EVENT_MARK = "[SIEVE-EVENT]"
-SIEVE_SIDE_EFFECT_MARK = "[SIEVE-SIDE-EFFECT]"
-SIEVE_CACHE_READ_MARK = "[SIEVE-CACHE-READ]"
-SIEVE_START_RECONCILE_MARK = "[SIEVE-START-RECONCILE]"
-SIEVE_FINISH_RECONCILE_MARK = "[SIEVE-FINISH-RECONCILE]"
-SIEVE_EVENT_APPLIED_MARK = "[SIEVE-EVENT-APPLIED]"
+SIEVE_BEFORE_EVENT_MARK = "[SIEVE-BEFORE-EVENT]"
+SIEVE_AFTER_EVENT_MARK = "[SIEVE-AFTER-EVENT]"
+SIEVE_AFTER_SIDE_EFFECT_MARK = "[SIEVE-AFTER-SIDE-EFFECT]"
+SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
+SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
+SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
 
 BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
                               "managedFields", "lastTransitionTime", "generation", "annotations", "deletionGracePeriodSeconds"]
@@ -23,8 +23,6 @@ SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
 
 TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
 IP_REG = '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
-
-PLACEHOLDER_FIELDS = ["nodeName", "containerID"]
 
 
 def translate_side_effect(side_effect, reverse=False):
@@ -59,11 +57,9 @@ class Event:
 
 
 class SideEffect:
-    side_effect_cnt = 0
 
-    def __init__(self, etype, rtype, namespace, name, error, obj):
-        self.id = SideEffect.side_effect_cnt
-        SideEffect.side_effect_cnt += 1
+    def __init__(self, id, etype, rtype, namespace, name, error, obj):
+        self.id = int(id)
         self.etype = etype
         self.rtype = rtype
         self.namespace = namespace
@@ -137,24 +133,21 @@ class Reconcile:
 
 
 def parse_event(line):
-    assert SIEVE_EVENT_MARK in line
-    tokens = line[line.find(SIEVE_EVENT_MARK):].strip("\n").split("\t")
+    assert SIEVE_BEFORE_EVENT_MARK in line
+    tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK):].strip("\n").split("\t")
     return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
 
 
 def parse_side_effect(line):
-    assert SIEVE_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SIEVE_SIDE_EFFECT_MARK):].strip(
+    assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip(
         "\n").split("\t")
-    # if len(tokens) < 7:
-        # print(line)
-        # print(tokens)
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], {})
+    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6], tokens[7])
 
 
 def parse_cache_read(line):
-    assert SIEVE_CACHE_READ_MARK in line
-    tokens = line[line.find(SIEVE_CACHE_READ_MARK):].strip("\n").split("\t")
+    assert SIEVE_AFTER_READ_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_READ_MARK):].strip("\n").split("\t")
     if tokens[1] == "Get":
         return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
     else:
@@ -162,23 +155,23 @@ def parse_cache_read(line):
 
 
 def parse_event_id_only(line):
-    assert SIEVE_EVENT_APPLIED_MARK in line or SIEVE_EVENT_MARK in line
-    if SIEVE_EVENT_APPLIED_MARK in line:
-        tokens = line[line.find(SIEVE_EVENT_APPLIED_MARK):].strip(
+    assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
+    if SIEVE_AFTER_EVENT_MARK in line:
+        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK):].strip(
             "\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_EVENT_MARK):].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK):].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
 
 
 def parse_reconcile(line):
-    assert SIEVE_START_RECONCILE_MARK in line or SIEVE_FINISH_RECONCILE_MARK in line
-    if SIEVE_START_RECONCILE_MARK in line:
-        tokens = line[line.find(SIEVE_START_RECONCILE_MARK)
-                                :].strip("\n").split("\t")
+    assert SIEVE_BEFORE_RECONCILE_MARK in line or SIEVE_AFTER_RECONCILE_MARK in line
+    if SIEVE_BEFORE_RECONCILE_MARK in line:
+        tokens = line[line.find(SIEVE_BEFORE_RECONCILE_MARK):].strip(
+            "\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
     else:
-        tokens = line[line.find(SIEVE_FINISH_RECONCILE_MARK):].strip(
+        tokens = line[line.find(SIEVE_AFTER_RECONCILE_MARK):].strip(
             "\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
