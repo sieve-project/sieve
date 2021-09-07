@@ -14,17 +14,17 @@ def run():
         mode = controllers.test_suites[operator][workload].mode
         print(operator, workload, action, mode)
         if action == "learn":
-                os.system("python3 sieve.py -p %s -t %s -s learn -d laphets"%(operator, workload))
+                os.system("python3 sieve.py -p %s -t %s -s learn"%(operator, workload))
         elif action == "test":
-                os.system("python3 sieve.py -p %s -t %s -d laphets"%(operator, workload))
+                os.system("python3 sieve.py -p %s -t %s"%(operator, workload))
         elif action == "build for learn":
-                os.system("python3 build.py -p %s -m learn -d laphets"%(operator))
+                os.system("python3 build.py -p %s -m learn"%(operator))
         elif action == "build for test":
-                os.system("python3 build.py -p %s -m %s -d laphets"%(operator, mode))
+                os.system("python3 build.py -p %s -m %s"%(operator, mode))
         elif action == "learn check only":
-                os.system("python3 sieve.py -p %s -t %s -s learn -d laphets --phase=check_only"%(operator, workload))
+                os.system("python3 sieve.py -p %s -t %s -s learn --phase=check_only"%(operator, workload))
         elif action == "test check only":
-                os.system("python3 sieve.py -p %s -t %s -d laphets --phase=check_only"%(operator, workload))
+                os.system("python3 sieve.py -p %s -t %s --phase=check_only"%(operator, workload))
 
 class SieveTUI:
 
