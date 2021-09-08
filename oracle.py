@@ -8,12 +8,15 @@ import os
 from common import *
 import io
 import sieve_config
+import re
 
 not_care_keys = ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences', 'managedFields', 'generateName', 'selfLink', 'annotations',
                  'pod-template-hash', 'secretName', 'image', 'lastTransitionTime', 'nodeName', 'podIPs', 'podIP', 'hostIP', 'containerID', 'imageID',
                  'startTime', 'startedAt', 'volumeMounts', 'finishedAt', 'volumeName', 'lastUpdateTime', 'env', 'message', 'currentRevision', 'updateRevision',
                  'controller-revision-hash']
 not_care = [jd.delete, jd.insert] + not_care_keys + ['name']
+side_effect_empty_entry = {"Create": 0, "Update": 0,
+                            "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
 
 
 def generate_digest(path):
@@ -26,8 +29,7 @@ def generate_digest(path):
 def generate_side_effect(path):
     print("Checking safety assertions ...")
     side_effect_map = {}
-    side_effect_empty_entry = {"Create": 0, "Update": 0,
-                               "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
+
     for line in open(path).readlines():
         if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK not in line:
             continue
@@ -193,10 +195,37 @@ def check_status(learning_status, testing_status):
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
+def preprocess_side_effect(side_effect, interest_objects):
+    result = {}
+    for interest in interest_objects:
+        rtype = interest["rtype"]
+        namespace = interest["namespace"]
+        name = interest["name"]
+        rule = re.compile(name, re.IGNORECASE)
+        if rtype in side_effect and namespace in side_effect[rtype]:
+            resource_map = side_effect[rtype][namespace]
+            se_map = copy.deepcopy(side_effect_empty_entry)
+            has_match = False
+            for rname in resource_map:
+                if rule.fullmatch(rname):
+                    has_match = True
+                    for setype in resource_map[rname]:
+                        se_map[setype] += resource_map[rname][setype]
+            if has_match:
+                if not rtype in result:
+                    result[rtype] = {}
+                if not namespace in result[rtype]:
+                    result[rtype][namespace] = {}
+                result[rtype][namespace][name] = se_map
+    return result
 
-def check_side_effect(learning_side_effect, testing_side_effect, interest_objects, selective=True):
+def check_side_effect(learning_side_effect, testing_side_effect, interest_objects, effect_to_check, selective=True):
     alarm = 0
     bug_report = ""
+    # Preporcess regex
+    learning_side_effect = preprocess_side_effect(learning_side_effect, interest_objects)
+    testing_side_effect = preprocess_side_effect(testing_side_effect, interest_objects)
+
     for interest in interest_objects:
         rtype = interest["rtype"]
         namespace = interest["namespace"]
@@ -217,7 +246,7 @@ def check_side_effect(learning_side_effect, testing_side_effect, interest_object
             testing_entry = testing_side_effect[rtype][namespace][name]
             for attr in learning_entry:
                 if selective:
-                    if attr not in sieve_config.config["effect_to_check"]:
+                    if attr not in effect_to_check:
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
@@ -255,19 +284,27 @@ def generate_obs_gap_debugging_hint(testing_config):
     return desc + "\n" + suggestion + "\n"
 
 
-def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config):
+def look_for_discrepancy_in_digest(learning_side_effect, learning_status, testing_side_effect, testing_status, config, oracle_config):
     testing_config = yaml.safe_load(open(config))
     alarm_status, bug_report_status = check_status(
         learning_status, testing_status)
     alarm = alarm_status
     bug_report = bug_report_status
     # TODO: implement side effect checking for obs gap
-    if testing_config["mode"] == sieve_modes.TIME_TRAVEL:
+    if testing_config["mode"] in [sieve_modes.TIME_TRAVEL, sieve_modes.ATOM_VIO]:
         interest_objects = []
-        interest_objects.append(
-            {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
+        if testing_config["mode"] == sieve_modes.TIME_TRAVEL:
+            interest_objects.append(
+                {"rtype": testing_config["se-rtype"], "namespace": testing_config["se-namespace"], "name": testing_config["se-name"]})
+        if "interest_objects" in oracle_config:
+            interest_objects.extend(oracle_config["interest_objects"])
+
+        effect_to_check = sieve_config.config["effect_to_check"]
+        if "effect_to_check" in oracle_config:
+            effect_to_check.extend(oracle_config["effect_to_check"])
+
         alarm_side_effect, bug_report_side_effect = check_side_effect(
-            learning_side_effect, testing_side_effect, interest_objects)
+            learning_side_effect, testing_side_effect, interest_objects, effect_to_check)
         alarm += alarm_side_effect
         bug_report += bug_report_side_effect
     return alarm, bug_report
@@ -305,15 +342,15 @@ def generate_debugging_hint(testing_config):
         assert False
 
 
-def check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log):
+def check(learned_side_effect, learned_status, learned_resources, testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log, oracle_config):
     testing_config = yaml.safe_load(open(test_config))
     # Skip case which target side effect event not appear in operator log under time-travel mode
     if testing_config["mode"] == sieve_modes.TIME_TRAVEL and not look_for_sleep_over_in_server_log(server_log):
         bug_report = "[WARN] target side effect event did't appear under time-travel workload"
         print(bug_report)
-        return bug_report
+        return 0, bug_report
     discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
-        learned_side_effect, learned_status, testing_side_effect, testing_status, test_config)
+        learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, oracle_config)
     panic_alarm, panic_bug_report = look_for_panic_in_operator_log(
         operator_log)
     alarm = discrepancy_alarm + panic_alarm

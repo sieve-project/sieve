@@ -44,6 +44,7 @@ jobs:
         run: |
           python3 build.py -p casskop-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p casskop-operator -m time-travel  -d $IMAGE_NAMESPACE
+          python3 build.py -p casskop-operator -m obs-gap  -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |
           python3 sieve.py -p casskop-operator -t recreate -s learn -d $IMAGE_NAMESPACE
@@ -96,6 +97,7 @@ jobs:
           mage -h
       - name: Build Image
         run: |
+          python3 build.py -p cass-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |
@@ -148,6 +150,7 @@ jobs:
           mage -h
       - name: Build Image
         run: |
+          python3 build.py -p xtradb-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p xtradb-operator -m time-travel -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |
@@ -199,6 +202,7 @@ jobs:
           kind
       - name: Build Image
         run: |
+          python3 build.py -p mongodb-operator -m learn  -d $IMAGE_NAMESPACE
           python3 build.py -p mongodb-operator -m time-travel  -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |

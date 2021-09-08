@@ -389,6 +389,7 @@ def generate_atomic_yaml(triggering_points, path, project):
         yaml_map["se-namespace"] = effect["namespace"]
         yaml_map["se-rtype"] = effect["rtype"]
         yaml_map["se-etype"] = effect["etype"]
+        yaml_map["crash-location"] = "before" # TODO: should find a way to determine crash location
         yaml_map["description"] = ""
         yaml.dump(yaml_map, open(
             os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"), sort_keys=False)

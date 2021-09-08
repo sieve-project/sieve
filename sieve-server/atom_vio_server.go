@@ -16,23 +16,24 @@ import (
 
 func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 	server := &atomVioServer{
-		restarted:   false,
-		crash:       false,
-		seenPrev:    false,
-		eventID:     -1,
-		frontRunner: config["front-runner"].(string),
-		deployName:  config["deployment-name"].(string),
-		namespace:   "default",
-		podLabel:    config["operator-pod-label"].(string),
-		crucialCur:  config["ce-diff-current"].(string),
-		crucialPrev: config["ce-diff-previous"].(string),
-		ceName:      config["ce-name"].(string),
-		ceNamespace: config["ce-namespace"].(string),
-		ceRtype:     config["ce-rtype"].(string),
-		seName:      config["se-name"].(string),
-		seNamespace: config["se-namespace"].(string),
-		seRtype:     config["se-rtype"].(string),
-		seEtype:     config["se-etype"].(string),
+		restarted:     false,
+		crash:         false,
+		seenPrev:      false,
+		eventID:       -1,
+		frontRunner:   config["front-runner"].(string),
+		deployName:    config["deployment-name"].(string),
+		namespace:     "default",
+		podLabel:      config["operator-pod-label"].(string),
+		crucialCur:    config["ce-diff-current"].(string),
+		crucialPrev:   config["ce-diff-previous"].(string),
+		ceName:        config["ce-name"].(string),
+		ceNamespace:   config["ce-namespace"].(string),
+		ceRtype:       config["ce-rtype"].(string),
+		seName:        config["se-name"].(string),
+		seNamespace:   config["se-namespace"].(string),
+		seRtype:       config["se-rtype"].(string),
+		seEtype:       config["se-etype"].(string),
+		crashLocation: config["crash-location"].(string),
 	}
 	listener := &AtomVioListener{
 		Server: server,
@@ -63,24 +64,25 @@ func (l *AtomVioListener) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyA
 }
 
 type atomVioServer struct {
-	restarted    bool
-	frontRunner  string
-	deployName   string
-	namespace    string
-	podLabel     string
-	crucialCur   string
-	crucialPrev  string
-	ceName       string
-	ceNamespace  string
-	ceRtype      string
-	crucialEvent eventWrapper
-	eventID      int32
-	seenPrev     bool
-	crash        bool
-	seName       string
-	seNamespace  string
-	seRtype      string
-	seEtype      string
+	restarted     bool
+	frontRunner   string
+	deployName    string
+	namespace     string
+	podLabel      string
+	crucialCur    string
+	crucialPrev   string
+	ceName        string
+	ceNamespace   string
+	ceRtype       string
+	crucialEvent  eventWrapper
+	eventID       int32
+	seenPrev      bool
+	crash         bool
+	seName        string
+	seNamespace   string
+	seRtype       string
+	seEtype       string
+	crashLocation string
 }
 
 func (s *atomVioServer) Start() {
@@ -121,7 +123,7 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAto
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
 	if ew.eventObjectType == s.ceRtype && getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace {
-		log.Print("[sieve] we then check for crash condition", "s.crash", s.crash, "s.seenPrev", s.seenPrev)
+		log.Print("[sieve] we then check for crash condition: ", "s.crash: ", s.crash, "s.seenPrev: ", s.seenPrev)
 		if s.shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent) {
 			log.Println("[sieve] should crash the operator while issuing target side effect")
 			s.crucialEvent = ew
@@ -134,7 +136,7 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAto
 func (s *atomVioServer) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtomVioBeforeSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Object)
-	if s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
+	if s.crashLocation == "before" && s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
 		// we should restart operator here
 		s.restarted = true
 		log.Printf("we restart operator pod here\n")
@@ -148,6 +150,13 @@ func (s *atomVioServer) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtom
 func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
+	if s.crashLocation == "after" && s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
+		// we should restart operator here
+		s.restarted = true
+		log.Printf("we restart operator pod here\n")
+		s.restartComponent()
+		return nil
+	}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }

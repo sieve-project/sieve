@@ -1,0 +1,19 @@
+{{- if .Values.metricService }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "nifikop.name" . }}-metrics
+  labels:
+    component: app
+    app: {{ template "nifikop.name" . }}-metrics
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    app: {{ template "nifikop.name" . }}
+  ports:
+  - name: metrics
+    port: 9710
+    protocol: TCP
+{{- end }}

@@ -2,6 +2,7 @@ package sieve
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -99,7 +100,7 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 	client.Close()
 }
 
-func NotifyLearnBeforeReconcile(controllerName string) {
+func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}) {
 	if !checkStage(LEARN) {
 		return
 	}
@@ -111,6 +112,7 @@ func NotifyLearnBeforeReconcile(controllerName string) {
 	}
 	request := &NotifyLearnBeforeReconcileRequest{
 		ControllerName: controllerName,
+		ControllerAddr: fmt.Sprintf("%p", controllerPtr),
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeReconcile", request, &response)
@@ -122,7 +124,7 @@ func NotifyLearnBeforeReconcile(controllerName string) {
 	client.Close()
 }
 
-func NotifyLearnAfterReconcile(controllerName string) {
+func NotifyLearnAfterReconcile(controllerName string, controllerPtr interface{}) {
 	if !checkStage(LEARN) {
 		return
 	}
@@ -134,6 +136,7 @@ func NotifyLearnAfterReconcile(controllerName string) {
 	}
 	request := &NotifyLearnAfterReconcileRequest{
 		ControllerName: controllerName,
+		ControllerAddr: fmt.Sprintf("%p", controllerPtr),
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterReconcile", request, &response)

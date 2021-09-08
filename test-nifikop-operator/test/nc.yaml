@@ -1,0 +1,77 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiCluster
+metadata:
+  name: simplenifi
+spec:
+  service:
+    headlessEnabled: true
+  zkAddress: "zookeeper:2181"
+  zkPath: "/simplenifi"
+  clusterImage: "apache/nifi:1.12.1"
+  oneNifiNodePerNode: false
+  nodeConfigGroups:
+    default_group:
+      isNode: true
+      storageConfigs:
+        - mountPath: "/opt/nifi/nifi-current/logs"
+          name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+      serviceAccountName: "default"
+      resourcesRequirements:
+        limits:
+          cpu: "0.5"
+          memory: 2Gi
+        requests:
+          cpu: "0.5"
+          memory: 2Gi
+  nodes:
+    - id: 1
+      nodeConfigGroup: "default_group"
+  propagateLabels: true
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
+  listenersConfig:
+    internalListeners:
+      - type: "http"
+        name: "http"
+        containerPort: 8080
+      - type: "cluster"
+        name: "cluster"
+        containerPort: 6007
+      - type: "s2s"
+        name: "s2s"
+        containerPort: 10000
+      - type: "prometheus"
+        name: "prometheus"
+        containerPort: 9090
+  externalServices:
+    - name: "clusterip"
+      spec:
+        type: ClusterIP
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
+    - name: "loadbalancer"
+      spec:
+        type: LoadBalancer
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
+    - name: "nodepart"
+      spec:
+        type: NodePort
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata

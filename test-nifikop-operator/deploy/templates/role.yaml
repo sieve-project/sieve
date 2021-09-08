@@ -1,0 +1,159 @@
+{{- if .Values.rbacEnable }}
+{{- range  $namespace := $.Values.namespaces }}
+{{- $_ := set $ "vals" $.Values }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: {{ template "nifikop.name" $_ }}
+    chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    heritage: {{ $.Release.Service }}
+    release: {{ $.Release.Name }}
+  name: {{ template "nifikop.name" $_ }}
+  namespace: {{$namespace}}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - services/finalizers
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  - configmaps
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - create
+- apiGroups:
+  - apps
+  resourceNames:
+  - nifikop
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  - deployments
+  verbs:
+  - get
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - "nifiusers"
+  - "nifiusergroups"
+  - "nificlusters"
+  - "nifidataflows"
+  - "nifiregistryclients"
+  - "nifiparametercontexts"
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+  - deletecollection
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - issuers
+  {{-  if $.Values.certManager.clusterScoped }}
+  - clusterissuers
+  {{- end }}
+  - certificates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusers/status
+  - nifiusergroups/status
+  - nificlusters/status
+  - nifidataflows/status
+  - nifiregistryclients/status
+  - nifiparametercontexts/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+    - ""
+    - coordination.k8s.io
+  resources:
+    - configmaps
+    - leases
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete
+- apiGroups:
+    - ""
+  resources:
+    - events
+  verbs:
+    - create
+    - patch
+---
+{{- end}}
+{{- end}}

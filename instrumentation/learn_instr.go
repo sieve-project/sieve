@@ -50,7 +50,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		beforeReconcileInstrumentation := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnBeforeReconcile", Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
+				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}, &dst.Ident{Name: "c"}},
 			},
 		}
 		beforeReconcileInstrumentation.Decs.End.Append("//sieve")
@@ -60,7 +60,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		afterReconcileInstrumentation := &dst.DeferStmt{
 			Call: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
+				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}, &dst.Ident{Name: "c"}},
 			},
 		}
 		afterReconcileInstrumentation.Decs.End.Append("//sieve")

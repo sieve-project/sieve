@@ -135,7 +135,7 @@ func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sieve.NotifyLearnAft
 }
 
 func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBeforeReconcileRequest, response *sieve.Response) error {
-	recID := request.ControllerName
+	recID := request.ControllerName + request.ControllerAddr
 	waitingCh := make(chan int32)
 	// use LoadOrStore here because the same controller may have mulitple workers concurrently running reconcile
 	// So the same recID may be stored before
@@ -148,7 +148,7 @@ func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBefor
 }
 
 func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterReconcileRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterReconcile, payload: request.ControllerName}
+	s.notificationCh <- notificationWrapper{ntype: afterReconcile, payload: request.ControllerName + request.ControllerAddr}
 	*response = sieve.Response{Ok: true}
 	return nil
 }

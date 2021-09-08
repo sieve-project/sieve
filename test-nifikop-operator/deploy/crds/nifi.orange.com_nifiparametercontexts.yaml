@@ -1,0 +1,156 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: nifiparametercontexts.nifi.orange.com
+spec:
+  group: nifi.orange.com
+  names:
+    kind: NifiParameterContext
+    listKind: NifiParameterContextList
+    plural: nifiparametercontexts
+    singular: nifiparametercontext
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: NifiParameterContext is the Schema for the nifiparametercontexts
+          API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: NifiParameterContextSpec defines the desired state of NifiParameterContext
+            properties:
+              clusterRef:
+                description: contains the reference to the NifiCluster with the one
+                  the user is linked.
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
+              description:
+                description: the Description of the Parameter Context.
+                type: string
+              parameters:
+                description: a list of non-sensitive Parameters.
+                items:
+                  properties:
+                    description:
+                      description: the description of the Parameter.
+                      type: string
+                    name:
+                      description: the name of the Parameter.
+                      type: string
+                    value:
+                      description: the value of the Parameter.
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+              secretRefs:
+                description: a list of secret containing sensitive parameters (the
+                  key will name of the parameter).
+                items:
+                  description: SecretReference states a reference to a secret for
+                    parameter context provisioning
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+            required:
+            - clusterRef
+            - parameters
+            type: object
+          status:
+            description: NifiParameterContextStatus defines the observed state of
+              NifiParameterContext
+            properties:
+              id:
+                description: the nifi parameter context id.
+                type: string
+              latestUpdateRequest:
+                description: the latest update request.
+                properties:
+                  complete:
+                    description: whether or not this request has completed.
+                    type: boolean
+                  failureReason:
+                    description: an explication of why the request failed, or null
+                      if this request has not failed.
+                    type: string
+                  id:
+                    description: the id of the update request.
+                    type: string
+                  lastUpdated:
+                    description: the last time this request was updated.
+                    type: string
+                  percentCompleted:
+                    description: the percentage complete of the request, between 0
+                      and 100.
+                    format: int32
+                    type: integer
+                  state:
+                    description: the state of the request.
+                    type: string
+                  submissionTime:
+                    description: the timestamp of when the request was submitted This
+                      property is read only.
+                    type: string
+                  uri:
+                    description: the uri for this request.
+                    type: string
+                required:
+                - complete
+                - failureReason
+                - id
+                - lastUpdated
+                - percentCompleted
+                - state
+                - submissionTime
+                - uri
+                type: object
+              version:
+                description: the last nifi parameter context revision version catched.
+                format: int64
+                type: integer
+            required:
+            - id
+            - version
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

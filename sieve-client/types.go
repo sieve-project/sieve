@@ -95,10 +95,12 @@ type NotifyLearnAfterIndexerWriteRequest struct {
 
 type NotifyLearnBeforeReconcileRequest struct {
 	ControllerName string
+	ControllerAddr string
 }
 
 type NotifyLearnAfterReconcileRequest struct {
 	ControllerName string
+	ControllerAddr string
 }
 
 type NotifyLearnBeforeSideEffectsRequest struct {

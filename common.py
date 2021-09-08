@@ -64,7 +64,7 @@ def cprint(message, color):
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, num_apiservers=1, num_workers=2, pvc_resize=False):
+    def __init__(self, workload, config, mode, two_sided=False, num_apiservers=1, num_workers=2, pvc_resize=False, oracle_config={}):
         self.workload = workload
         self.config = config
         self.mode = mode
@@ -72,6 +72,7 @@ class Suite:
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.pvc_resize = pvc_resize
+        self.oracle_config = oracle_config
         if self.pvc_resize:
             # For now, we only support one node cluster pvc resizing
             self.num_apiservers = 1

@@ -99,3 +99,4 @@ func NotifyAtomVioAfterSideEffects(sideEffectType string, object interface{}, k8
 	checkResponse(response, "NotifyAtomVioAfterSideEffects")
 	client.Close()
 }
+
