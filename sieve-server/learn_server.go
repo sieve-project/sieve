@@ -217,15 +217,15 @@ func (s *learnServer) coordinatingEvents() {
 				}
 				log.Printf("[SIEVE-AFTER-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
 			case beforeSideEffect:
-				if s.ongoingReconcileCnt > 0 {
-					sideEffectID := strings.Split(nw.payload, "\t")[0]
-					if obj, ok := s.sideEffectChMap.Load(sideEffectID); ok {
+				sideEffectID := strings.Split(nw.payload, "\t")[0]
+				if obj, ok := s.sideEffectChMap.Load(sideEffectID); ok {
+					if s.ongoingReconcileCnt > 0 {
 						log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\n", nw.payload)
-						ch := obj.(chan int32)
-						ch <- 0
-					} else {
-						log.Fatal("invalid object in eventChMap")
 					}
+					ch := obj.(chan int32)
+					ch <- 0
+				} else {
+					log.Fatal("invalid object in eventChMap")
 				}
 			case afterSideEffect:
 				if s.ongoingReconcileCnt > 0 {
