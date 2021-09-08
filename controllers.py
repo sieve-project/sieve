@@ -302,6 +302,7 @@ def nifikop_operator_deploy(dr, dt):
     os.system("test-nifikop-operator/deploy/zk.sh")
     os.system(
         "helm install -f %s nifikop-operator test-nifikop-operator/deploy" % (new_path))
+    os.system("rm %s"%(new_path))
 
 
 deploy = {
