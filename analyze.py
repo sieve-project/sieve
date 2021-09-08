@@ -57,7 +57,10 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
     cur_reconcile_is_trivial = {}
     # there could be multiple controllers running concurrently
     # we need to record all the ongoing controllers
-    ongoing_reconciles = set()
+    # there could be multiple workers running for a single controller
+    # so we need to count each worker for each controller
+    # ongoing_reconcile = { controller_name -> number of ongoing workers for this controller }
+    ongoing_reconciles = {}
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
@@ -102,7 +105,12 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
         elif analyze_util.SIEVE_BEFORE_RECONCILE_MARK in line:
             reconcile = analyze_util.parse_reconcile(line)
             controller_name = reconcile.controller_name
-            ongoing_reconciles.add(controller_name)
+            if controller_name not in ongoing_reconciles:
+                ongoing_reconciles[controller_name] = 1
+            else:
+                ongoing_reconciles[controller_name] += 1
+            # let's assume there should be only one worker for each controller here
+            assert ongoing_reconciles[controller_name] == 1
             # We use -1 as the initial value in any prev_reconcile_start_timestamp[controller_name]
             # which is super important.
             if controller_name not in cur_reconcile_start_timestamp:
@@ -119,7 +127,9 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
         elif analyze_util.SIEVE_AFTER_RECONCILE_MARK in line:
             reconcile = analyze_util.parse_reconcile(line)
             controller_name = reconcile.controller_name
-            ongoing_reconciles.remove(controller_name)
+            ongoing_reconciles[controller_name] -= 1
+            if ongoing_reconciles[controller_name] == 0:
+                del ongoing_reconciles[controller_name]
             # Clear the read keys and types set since all the ongoing reconciles are done
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()
