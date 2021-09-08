@@ -348,7 +348,7 @@ def check(learned_side_effect, learned_status, learned_resources, testing_side_e
     if testing_config["mode"] == sieve_modes.TIME_TRAVEL and not look_for_sleep_over_in_server_log(server_log):
         bug_report = "[WARN] target side effect event did't appear under time-travel workload"
         print(bug_report)
-        return bug_report
+        return 0, bug_report
     discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
         learned_side_effect, learned_status, testing_side_effect, testing_status, test_config, oracle_config)
     panic_alarm, panic_bug_report = look_for_panic_in_operator_log(
