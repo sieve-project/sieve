@@ -163,7 +163,7 @@ workloads = {
     "nifikop-operator": {
         "change-config": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-nifikop-operator/test/nc.yaml")
-        .wait(10).wait_for_pod_status("simplenifi-1-*", common.RUNNING)
+        .wait_for_pod_status("simplenifi-1-*", common.RUNNING)
         .cmd("kubectl apply -f test-nifikop-operator/test/nc1.yaml")
         .wait(30).wait_for_pod_status("simplenifi-1-*", common.RUNNING)
         .wait(60),
