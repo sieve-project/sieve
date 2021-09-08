@@ -10,6 +10,7 @@ ALLOWED_ERROR_TYPE = ["NoError"]
 
 SIEVE_BEFORE_EVENT_MARK = "[SIEVE-BEFORE-EVENT]"
 SIEVE_AFTER_EVENT_MARK = "[SIEVE-AFTER-EVENT]"
+SIEVE_BEFORE_SIDE_EFFECT_MARK = "[SIEVE-BEFORE-SIDE-EFFECT]"
 SIEVE_AFTER_SIDE_EFFECT_MARK = "[SIEVE-AFTER-SIDE-EFFECT]"
 SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
@@ -66,6 +67,7 @@ class SideEffect:
         self.name = name
         self.error = error
         self.obj = obj
+        self.start_timestamp = -1
         self.end_timestamp = -1
         self.read_types = set()
         self.read_keys = set()
@@ -82,6 +84,9 @@ class SideEffect:
         side_effect_as_dict["name"] = self.name
         side_effect_as_dict["error"] = self.error
         return side_effect_as_dict
+
+    def set_start_timestamp(self, start_timestamp):
+        self.start_timestamp = start_timestamp
 
     def set_end_timestamp(self, end_timestamp):
         self.end_timestamp = end_timestamp
@@ -122,7 +127,11 @@ class CacheRead:
 
 class EventIDOnly:
     def __init__(self, id):
-        # make the id integer to keep consistent with SideEffect
+        self.id = int(id)
+
+
+class SideEffectIDOnly:
+    def __init__(self, id):
         self.id = int(id)
 
 
@@ -151,18 +160,30 @@ def parse_cache_read(line):
     if tokens[1] == "Get":
         return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
     else:
+        # When using List, the resource type is like xxxlist so we need to trim the last four characters here
         return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
 
 
 def parse_event_id_only(line):
     assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
     if SIEVE_AFTER_EVENT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK):].strip(
-            "\n").split("\t")
+        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK):].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
         tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK):].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
+
+
+def parse_side_effect_id_only(line):
+    assert SIEVE_AFTER_SIDE_EFFECT_MARK in line or SIEVE_BEFORE_SIDE_EFFECT_MARK in line
+    if SIEVE_AFTER_SIDE_EFFECT_MARK in line:
+        tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip(
+            "\n").split("\t")
+        return SideEffectIDOnly(tokens[1])
+    else:
+        tokens = line[line.find(SIEVE_BEFORE_SIDE_EFFECT_MARK):].strip(
+            "\n").split("\t")
+        return SideEffectIDOnly(tokens[1])
 
 
 def parse_reconcile(line):
