@@ -111,6 +111,8 @@ test_suites = {
             workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "test-yugabyte-operator/test/time-travel-tls.yaml", sieve_modes.TIME_TRAVEL),
         "disable-enable-tserverUIPort": Suite(
             workloads.workloads["yugabyte-operator"]["disable-enable-tserverUIPort"], "test-yugabyte-operator/test/time-travel-tserverUIPort.yaml", sieve_modes.TIME_TRAVEL),
+                "scaleup-scaledown-tserver": Suite(
+            workloads.workloads["yugabyte-operator"]["scaleup-scaledown-tserver"], "test-yugabyte-operator/test/obs-gap-config-1.yaml", sieve_modes.OBS_GAP)
     },
 }
 
