@@ -118,7 +118,7 @@ test_suites = {
     },
     "nifikop-operator": {
         "change-config": Suite(
-            workloads.workloads["nifikop-operator"]["change-config"], "test-nifikop-operator/test/atomic-1.yaml", sieve_modes.ATOM_VIO
+            workloads.workloads["nifikop-operator"]["change-config"], "test-nifikop-operator/test/atomic-1.yaml", sieve_modes.ATOM_VIO, oracle_config={"interest_objects": [{"rtype": "pod", "namespace": "default", "name": "simplenifi-1.*"}], "effect_to_check": ["Create"]}
         ),
     },
 }

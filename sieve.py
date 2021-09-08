@@ -231,7 +231,7 @@ def run_workload(project, mode, test_workload, test_config, log_dir, docker_repo
     stop_sieve_server()
 
 
-def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided):
+def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config):
     if stage == "learn":
         analyze.analyze_trace(project, log_dir, two_sided=two_sided)
         cmd_early_exit("mkdir -p %s" % data_dir)
@@ -258,7 +258,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
                 server_log)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             alarm, bug_report = oracle.check(learned_side_effect, learned_status, learned_resources,
-                                             testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log)
+                                             testing_side_effect, testing_status, testing_resources, test_config, operator_log, server_log, oracle_config)
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
             json.dump(testing_side_effect, open(os.path.join(
                 log_dir, "side-effect.json"), "w"), indent=4)
@@ -270,7 +270,7 @@ def check_result(project, mode, stage, test_config, log_dir, data_dir, two_sided
     return 0
 
 
-def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize, data_dir, two_sided, phase):
+def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize, oracle_config, data_dir, two_sided, phase):
     if phase == "all" or phase == "setup_only":
         setup_cluster(project, stage, mode, test_config,
                       docker_repo, docker_tag, num_apiservers, num_workers, pvc_resize)
@@ -279,7 +279,7 @@ def run_test(project, mode, stage, test_workload, test_config, log_dir, docker_r
                      log_dir, docker_repo, docker_tag, num_apiservers)
     if phase == "all" or phase == "check_only" or phase == "workload_and_check":
         return check_result(project, mode, stage, test_config,
-                            log_dir, data_dir, two_sided)
+                            log_dir, data_dir, two_sided, oracle_config)
     return 0
 
 
@@ -313,12 +313,12 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
         generate_learn_config(learn_config, project,
                               mode, rate_limiter_enabled)
         return run_test(project, mode, stage, suite.workload,
-                        learn_config, log_dir, docker, stage, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, phase)
+                        learn_config, log_dir, docker, stage, suite.num_apiservers, suite.num_workers, suite.pvc_resize, suite.oracle_config, data_dir, suite.two_sided, phase)
     else:
         if mode == sieve_modes.VANILLA:
             blank_config = "config/none.yaml"
             return run_test(project, mode, stage, suite.workload,
-                            blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, phase)
+                            blank_config, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, suite.oracle_config, data_dir, suite.two_sided, phase)
         else:
             test_config = config if config != "none" else suite.config
             print("Testing with config: %s" % test_config)
@@ -328,7 +328,7 @@ def run(test_suites, project, test, log_dir, mode, stage, config, docker, rate_l
             if mode == sieve_modes.TIME_TRAVEL:
                 suite.num_apiservers = 3
             return run_test(project, mode, stage, suite.workload,
-                            test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, data_dir, suite.two_sided, phase)
+                            test_config_to_use, log_dir, docker, mode, suite.num_apiservers, suite.num_workers, suite.pvc_resize, suite.oracle_config, data_dir, suite.two_sided, phase)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
