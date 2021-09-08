@@ -49,6 +49,7 @@ def parse_events(path):
 def parse_side_effects(path, compress_trivial_reconcile=True):
     side_effect_id_map = {}
     side_effect_list = []
+    side_effect_id_to_start_ts_map = {}
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
     prev_reconcile_start_timestamp = {}
@@ -60,6 +61,9 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
+        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
+            side_effect_id_only = analyze_util.parse_side_effect_id_only(line)
+            side_effect_id_to_start_ts_map[side_effect_id_only.id] = i
         if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
@@ -74,6 +78,8 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile))
             side_effect.set_read_types(
                 copy.deepcopy(read_types_this_reconcile))
+            side_effect.set_start_timestamp(
+                side_effect_id_to_start_ts_map[side_effect.id])
             side_effect.set_end_timestamp(i)
             # We want to find the earilest timestamp before which any event will not affect the side effect.
             # The earlies timestamp should be min(the timestamp of the previous reconcile start of all ongoing reconiles).
