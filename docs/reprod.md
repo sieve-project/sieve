@@ -13,6 +13,7 @@ python3 build.py -p mongodb-operator -m time-travel -d DOCKER_REPO_NAME
 python3 build.py -p xtradb-operator -m time-travel -d DOCKER_REPO_NAME
 python3 build.py -p cass-operator -m time-travel -d DOCKER_REPO_NAME
 python3 build.py -p casskop-operator -m time-travel -d DOCKER_REPO_NAME
+python3 build.py -p yugabyte-operator -m time-travel -d DOCKER_REPO_NAME
 ```
 Please specify the `DOCKER_REPO_NAME` that you have write access to as sieve needs to push controller image to the repo.
 
@@ -191,6 +192,26 @@ If reproduced, you will see:
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
+### [yugabyte/yugabyte-operator-35](https://github.com/yugabyte/yugabyte-operator/issues/35)
+```
+python3 sieve.py -p yugabyte-operator -t disable-enable-tls -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] secret/default/yb-tserver-yugabyte-tls-cert DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+```
+This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882`.
+
+### [yugabyte/yugabyte-operator-36](https://github.com/yugabyte/yugabyte-operator/issues/36)
+```
+python3 sieve.py -p yugabyte-operator -t disable-enable-tls -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] service/default/yb-tserver-ui DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
+```
+This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882` with the prerequisite 
+[fix](https://github.com/yugabyte/yugabyte-operator/pull/34).
 
 ### Observability gaps
 First, build the operators:
