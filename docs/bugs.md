@@ -44,7 +44,7 @@ https://github.com/rabbitmq/cluster-operator/issues/653 confirmed and fixed by d
 
 https://github.com/rabbitmq/cluster-operator/issues/758 confirmed (observability gaps)
 
-https://github.com/rabbitmq/cluster-operator/issues/782 pending (broken atomicity)
+https://github.com/rabbitmq/cluster-operator/issues/782 confirmed (atomicity violation)
 
 ## [percona/percona-server-mongodb-operator](https://github.com/percona/percona-server-mongodb-operator)
 https://jira.percona.com/browse/K8SPSMDB-430 confirmed and fixed by us (time traveling)
@@ -70,3 +70,6 @@ https://github.com/yugabyte/yugabyte-operator/issues/33 pending (by-product)
 https://github.com/yugabyte/yugabyte-operator/issues/35 pending (time traveling)
 
 https://github.com/yugabyte/yugabyte-operator/issues/36 pending (time traveling)
+
+## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
+https://github.com/Orange-OpenSource/nifikop/issues/130 pending (atomicity violation)
