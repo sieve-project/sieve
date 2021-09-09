@@ -161,6 +161,7 @@ def parse_cache_read(line):
         return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
     else:
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
+        assert tokens[2].endswith("list")
         return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
 
 

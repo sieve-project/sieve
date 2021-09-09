@@ -233,7 +233,50 @@ def inter_pair_analysis(analysis_mode, event_effect_pairs, event_key_map):
         return event_effect_pairs
 
 
+def sanity_check_sieve_log(path):
+    lines = open(path).readlines()
+    reconcile_status = {}
+    side_effect_status = {}
+    event_status = {}
+    for i in range(len(lines)):
+        line = lines[i]
+        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
+            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
+            assert side_effect_id not in side_effect_status
+            side_effect_status[side_effect_id] = 1
+        elif analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK in line:
+            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
+            assert side_effect_id in side_effect_status
+            side_effect_status[side_effect_id] += 1
+        elif analyze_util.SIEVE_BEFORE_EVENT_MARK in line:
+            event_id = analyze_util.parse_event_id_only(line).id
+            assert event_id not in event_status
+            event_status[event_id] = 1
+        elif analyze_util.SIEVE_AFTER_EVENT_MARK in line:
+            event_id = analyze_util.parse_event_id_only(line).id
+            assert event_id in event_status
+            event_status[event_id] += 1
+        elif analyze_util.SIEVE_BEFORE_RECONCILE_MARK in line:
+            reconcile_id = analyze_util.parse_reconcile(line).controller_name
+            if reconcile_id not in reconcile_status:
+                reconcile_status[reconcile_id] = 0
+            reconcile_status[reconcile_id] += 1
+            assert reconcile_status[reconcile_id] == 1
+        elif analyze_util.SIEVE_AFTER_RECONCILE_MARK in line:
+            assert reconcile_id in reconcile_status
+            reconcile_status[reconcile_id] -= 1
+            assert reconcile_status[reconcile_id] == 0
+    for key in side_effect_status:
+        assert side_effect_status[key] == 1 or side_effect_status[key] == 2
+    for key in event_status:
+        assert event_status[key] == 1 or event_status[key] == 2
+    for key in reconcile_status:
+        assert reconcile_status[reconcile_id] == 0 or reconcile_status[reconcile_id] == 1
+
+
 def generate_event_effect_pairs(analysis_mode, path, use_sql, compress_trivial_reconcile):
+    print("Sanity checking the sieve log %s ..." % path)
+    sanity_check_sieve_log(path)
     print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
     event_list, event_key_map, event_id_map = parse_events(path)
     side_effect_list, side_effect_id_map = parse_side_effects(
@@ -389,7 +432,8 @@ def generate_atomic_yaml(triggering_points, path, project):
         yaml_map["se-namespace"] = effect["namespace"]
         yaml_map["se-rtype"] = effect["rtype"]
         yaml_map["se-etype"] = effect["etype"]
-        yaml_map["crash-location"] = "before" # TODO: should find a way to determine crash location
+        # TODO: should find a way to determine crash location
+        yaml_map["crash-location"] = "before"
         yaml_map["description"] = ""
         yaml.dump(yaml_map, open(
             os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
