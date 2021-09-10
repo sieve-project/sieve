@@ -159,6 +159,14 @@ workloads = {
         .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tserver\":{\"tserverUIPort\": 7000}}}'")
         .wait_for_service_existence("yb-tserver-ui", common.EXIST)
         .wait(70),
+        "scaleup-scaledown-tserver": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-1.yaml")
+        .wait_for_pod_status("yb-master-2", common.RUNNING)
+        .wait_for_pod_status("yb-tserver-2", common.RUNNING)
+        .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tserver\":{\"replicas\":4},\"replicationFactor\":4}}'")
+        .wait_for_pod_status("yb-tserver-3", common.RUNNING, 20)
+        .cmd("kubectl patch YBCluster example-ybcluster --type merge -p='{\"spec\":{\"tserver\":{\"replicas\":3},\"replicationFactor\":4}}'")
+        .wait(70),
     },
     "nifikop-operator": {
         "change-config": test_framework.new_built_in_workload()

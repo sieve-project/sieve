@@ -1,0 +1,2150 @@
+{
+    "deployment": [
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yugabyte-operator",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "progressDeadlineSeconds": 600,
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "name": "SIEVE-IGNORE",
+                        "sievetag": "yugabyte-operator"
+                    }
+                },
+                "strategy": {
+                    "rollingUpdate": {
+                        "maxSurge": "25%",
+                        "maxUnavailable": "25%"
+                    },
+                    "type": "RollingUpdate"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": "SIEVE-IGNORE",
+                        "labels": {
+                            "name": "SIEVE-IGNORE",
+                            "sievetag": "yugabyte-operator"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "command": [
+                                    "yugabyte-operator"
+                                ],
+                                "env": "SIEVE-IGNORE",
+                                "envFrom": [
+                                    {
+                                        "configMapRef": {
+                                            "name": "SIEVE-IGNORE"
+                                        }
+                                    }
+                                ],
+                                "image": "SIEVE-IGNORE",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "SIEVE-IGNORE",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "serviceAccount": "yugabyte-operator",
+                        "serviceAccountName": "yugabyte-operator",
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "conditions": [
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "SIEVE-IGNORE",
+                        "reason": "MinimumReplicasAvailable",
+                        "status": "True",
+                        "type": "Available"
+                    },
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "SIEVE-IGNORE",
+                        "reason": "NewReplicaSetAvailable",
+                        "status": "True",
+                        "type": "Progressing"
+                    }
+                ],
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updatedReplicas": 1
+            }
+        }
+    ],
+    "persistentvolumeclaim": [
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "yb-master",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir0-yb-master-0",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "yb-master",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir0-yb-master-1",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "yb-master",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir0-yb-master-2",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "yb-tserver",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir0-yb-tserver-0",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "yb-tserver",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir0-yb-tserver-1",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "yb-tserver",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir0-yb-tserver-2",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
+        },
+        {
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "yb-tserver",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "datadir0-yb-tserver-3",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
+        }
+    ],
+    "pod": [
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "yb-master",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "yb-master-0",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-master-0",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-master"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-master",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                            "--master_addresses=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--use_initial_sys_catalog_snapshot=true",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--replication_factor=3",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 7000,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 7100,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-master-0",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-masters",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-master-0"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "yb-master",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "yb-master-1",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-master-1",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-master"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-master",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                            "--master_addresses=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--use_initial_sys_catalog_snapshot=true",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--replication_factor=3",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 7000,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 7100,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-master-1",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-masters",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-master-1"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "yb-master",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "yb-master-2",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-master-2",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-master"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-master",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                            "--master_addresses=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--use_initial_sys_catalog_snapshot=true",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--replication_factor=4",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 7000,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 7100,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-master-2",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-masters",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-master-2"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "message": "SIEVE-IGNORE",
+                        "reason": "ContainersNotReady",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "message": "SIEVE-IGNORE",
+                        "reason": "ContainersNotReady",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 139,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Error",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        },
+                        "name": "SIEVE-IGNORE",
+                        "ready": false,
+                        "restartCount": 3,
+                        "started": false,
+                        "state": {
+                            "waiting": {
+                                "message": "SIEVE-IGNORE",
+                                "reason": "CrashLoopBackOff"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "yb-tserver",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "yb-tserver-0",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-tserver-0",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-tserver"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-tserver",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--start_pgsql_proxy",
+                            "--pgsql_proxy_bind_address=$(POD_IP):5433",
+                            "--tserver_master_addrs=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 9000,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9100,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9042,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 6379,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5433,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-tserver-0",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-tservers",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-tserver-0"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "yb-tserver",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "yb-tserver-1",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-tserver-1",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-tserver"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-tserver",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--start_pgsql_proxy",
+                            "--pgsql_proxy_bind_address=$(POD_IP):5433",
+                            "--tserver_master_addrs=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 9000,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9100,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9042,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 6379,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5433,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-tserver-1",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-tservers",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-tserver-1"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "yb-tserver",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "yb-tserver-2",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-tserver-2",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-tserver"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-tserver",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--start_pgsql_proxy",
+                            "--pgsql_proxy_bind_address=$(POD_IP):5433",
+                            "--tserver_master_addrs=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 9000,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9100,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9042,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 6379,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5433,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-tserver-2",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-tservers",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-tserver-2"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "yb-tserver",
+                    "controller-revision-hash": "SIEVE-IGNORE",
+                    "statefulset.kubernetes.io/pod-name": "yb-tserver-3",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-tserver-3",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-tserver"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-tserver",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--start_pgsql_proxy",
+                            "--pgsql_proxy_bind_address=$(POD_IP):5433",
+                            "--tserver_master_addrs=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "Always",
+                        "name": "SIEVE-IGNORE",
+                        "ports": [
+                            {
+                                "containerPort": 9000,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9100,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9042,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 6379,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5433,
+                                "name": "SIEVE-IGNORE",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-tserver-3",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-tservers",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-tserver-3"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "SIEVE-IGNORE",
+                "labels": {
+                    "name": "yugabyte-operator",
+                    "pod-template-hash": "SIEVE-IGNORE",
+                    "sievetag": "yugabyte-operator"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yugabyte-operator-6c8fdd6c47-s6d2n",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "yugabyte-operator"
+                        ],
+                        "env": "SIEVE-IGNORE",
+                        "envFrom": [
+                            {
+                                "configMapRef": {
+                                    "name": "SIEVE-IGNORE"
+                                }
+                            }
+                        ],
+                        "image": "SIEVE-IGNORE",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "SIEVE-IGNORE",
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": "SIEVE-IGNORE"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "yugabyte-operator",
+                "serviceAccountName": "yugabyte-operator",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "SIEVE-IGNORE",
+                        "imageID": "SIEVE-IGNORE",
+                        "lastState": {},
+                        "name": "SIEVE-IGNORE",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": "SIEVE-IGNORE",
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        }
+    ],
+    "statefulset": [
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 2,
+                "labels": {
+                    "app": "yb-master"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-master",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "podManagementPolicy": "Parallel",
+                "replicas": 3,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "app": "yb-master",
+                        "yugabyte.com/ybcluster-name": "example-ybcluster"
+                    }
+                },
+                "serviceName": "yb-masters",
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": "SIEVE-IGNORE",
+                        "labels": {
+                            "app": "yb-master",
+                            "yugabyte.com/ybcluster-name": "example-ybcluster"
+                        },
+                        "namespace": "default"
+                    },
+                    "spec": {
+                        "affinity": {
+                            "podAntiAffinity": {
+                                "preferredDuringSchedulingIgnoredDuringExecution": [
+                                    {
+                                        "podAffinityTerm": {
+                                            "labelSelector": {
+                                                "matchExpressions": [
+                                                    {
+                                                        "key": "app",
+                                                        "operator": "In",
+                                                        "values": [
+                                                            "yb-master"
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            "topologyKey": "kubernetes.io/hostname"
+                                        },
+                                        "weight": 100
+                                    }
+                                ]
+                            }
+                        },
+                        "containers": [
+                            {
+                                "command": [
+                                    "/home/yugabyte/bin/yb-master",
+                                    "--fs_data_dirs=/mnt/data0",
+                                    "--rpc_bind_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                                    "--server_broadcast_addresses=$(POD_NAME).yb-masters.default.svc.cluster.local:7100",
+                                    "--master_addresses=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                                    "--use_initial_sys_catalog_snapshot=true",
+                                    "--metric_node_name=$(POD_NAME)",
+                                    "--replication_factor=4",
+                                    "--dump_certificate_entries",
+                                    "--stderrthreshold=0",
+                                    "--logtostderr"
+                                ],
+                                "env": "SIEVE-IGNORE",
+                                "image": "SIEVE-IGNORE",
+                                "imagePullPolicy": "Always",
+                                "name": "SIEVE-IGNORE",
+                                "ports": [
+                                    {
+                                        "containerPort": 7000,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 7100,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": "SIEVE-IGNORE"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                },
+                "updateStrategy": {
+                    "type": "RollingUpdate"
+                },
+                "volumeClaimTemplates": [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "PersistentVolumeClaim",
+                        "metadata": {
+                            "creationTimestamp": "SIEVE-IGNORE",
+                            "name": "SIEVE-IGNORE"
+                        },
+                        "spec": {
+                            "accessModes": [
+                                "ReadWriteOnce"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "storage": "1Gi"
+                                }
+                            },
+                            "storageClassName": "standard",
+                            "volumeMode": "Filesystem"
+                        },
+                        "status": {
+                            "phase": "Pending"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "collisionCount": 0,
+                "currentReplicas": 2,
+                "currentRevision": "SIEVE-IGNORE",
+                "observedGeneration": 2,
+                "readyReplicas": 2,
+                "replicas": 3,
+                "updateRevision": "SIEVE-IGNORE",
+                "updatedReplicas": 1
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 2,
+                "labels": {
+                    "app": "yb-tserver"
+                },
+                "managedFields": "SIEVE-IGNORE",
+                "name": "yb-tserver",
+                "namespace": "default",
+                "ownerReferences": "SIEVE-IGNORE",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "podManagementPolicy": "Parallel",
+                "replicas": 4,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "app": "yb-tserver",
+                        "yugabyte.com/ybcluster-name": "example-ybcluster"
+                    }
+                },
+                "serviceName": "yb-tservers",
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": "SIEVE-IGNORE",
+                        "labels": {
+                            "app": "yb-tserver",
+                            "yugabyte.com/ybcluster-name": "example-ybcluster"
+                        },
+                        "namespace": "default"
+                    },
+                    "spec": {
+                        "affinity": {
+                            "podAntiAffinity": {
+                                "preferredDuringSchedulingIgnoredDuringExecution": [
+                                    {
+                                        "podAffinityTerm": {
+                                            "labelSelector": {
+                                                "matchExpressions": [
+                                                    {
+                                                        "key": "app",
+                                                        "operator": "In",
+                                                        "values": [
+                                                            "yb-tserver"
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            "topologyKey": "kubernetes.io/hostname"
+                                        },
+                                        "weight": 100
+                                    }
+                                ]
+                            }
+                        },
+                        "containers": [
+                            {
+                                "command": [
+                                    "/home/yugabyte/bin/yb-tserver",
+                                    "--fs_data_dirs=/mnt/data0",
+                                    "--rpc_bind_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                                    "--server_broadcast_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                                    "--start_pgsql_proxy",
+                                    "--pgsql_proxy_bind_address=$(POD_IP):5433",
+                                    "--tserver_master_addrs=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                                    "--metric_node_name=$(POD_NAME)",
+                                    "--dump_certificate_entries",
+                                    "--stderrthreshold=0",
+                                    "--logtostderr"
+                                ],
+                                "env": "SIEVE-IGNORE",
+                                "image": "SIEVE-IGNORE",
+                                "imagePullPolicy": "Always",
+                                "name": "SIEVE-IGNORE",
+                                "ports": [
+                                    {
+                                        "containerPort": 9000,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 9100,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 9042,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 6379,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 5433,
+                                        "name": "SIEVE-IGNORE",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": "SIEVE-IGNORE"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                },
+                "updateStrategy": {
+                    "type": "RollingUpdate"
+                },
+                "volumeClaimTemplates": [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "PersistentVolumeClaim",
+                        "metadata": {
+                            "creationTimestamp": "SIEVE-IGNORE",
+                            "name": "SIEVE-IGNORE"
+                        },
+                        "spec": {
+                            "accessModes": [
+                                "ReadWriteOnce"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "storage": "1Gi"
+                                }
+                            },
+                            "storageClassName": "standard",
+                            "volumeMode": "Filesystem"
+                        },
+                        "status": {
+                            "phase": "Pending"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "collisionCount": 0,
+                "currentReplicas": 4,
+                "currentRevision": "SIEVE-IGNORE",
+                "observedGeneration": 2,
+                "readyReplicas": 4,
+                "replicas": 4,
+                "updateRevision": "SIEVE-IGNORE",
+                "updatedReplicas": 4
+            }
+        }
+    ],
+    "ybcluster": [
+        {
+            "apiVersion": "yugabyte.com/v1alpha1",
+            "kind": "YBCluster",
+            "metadata": {
+                "annotations": "SIEVE-IGNORE",
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 3,
+                "managedFields": "SIEVE-IGNORE",
+                "name": "example-ybcluster",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "master": {
+                    "replicas": 3,
+                    "storage": {
+                        "size": "1Gi"
+                    }
+                },
+                "replicationFactor": 4,
+                "tserver": {
+                    "replicas": 3,
+                    "storage": {
+                        "count": 1,
+                        "size": "1Gi"
+                    }
+                }
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "message": "SIEVE-IGNORE",
+                        "reason": "NoScaleDownInProgress",
+                        "status": "False",
+                        "type": "ScalingDownTServers"
+                    }
+                ],
+                "masterReplicas": 0,
+                "targetedTServerReplicas": 4,
+                "tserverReplicas": 0
+            }
+        }
+    ]
+}
