@@ -1,0 +1,62 @@
+---
+- name: Install Docker
+  hosts: ec2
+  become: true
+  vars_files:
+    - vars/default.yaml
+
+  tasks:
+    - name: Update apt packages
+      apt:
+        update_cache: "yes"
+        force_apt_get: "yes"
+
+    - name: Install packages needed for Docker
+      apt:
+        name: "{{ DOCKER_DEPS }}"
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Save the current Ubuntu release version into a variable
+      shell: lsb_release -cs
+      register: ubuntu_version
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ubuntu_version.stdout }} stable"
+        state: present
+
+    - name: Update apt packages
+      apt:
+        update_cache: "yes"
+        force_apt_get: "yes"
+
+    - name: Install Docker
+      apt:
+        name: "{{ DOCKER_TOOLS }}"
+        state: latest
+        update_cache: yes
+
+    - name: Test Docker with hello world example
+      shell: "docker run hello-world"
+      register: hello_world_output
+
+    - name: Show output of hello word example
+      debug:
+        msg: "Container Output: {{ hello_world_output.stdout }}"
+
+    - name: Create docker group
+      group:
+        name: "docker"
+        state: present
+
+    - name: Adding user {{ USER }} to docker group
+      user:
+        name: "{{ USER }}"
+        groups: "docker"
+        append: "yes"
