@@ -38,6 +38,13 @@
         state: present
         insertafter: EOF
 
+    - name: Add GOPATH/bin to bashrc
+      ansible.builtin.lineinfile:
+        path: "/home/{{ USER }}/.bashrc"
+        line: export PATH=$PATH:$GOPATH/bin
+        state: present
+        insertafter: EOF
+
     - name: Test installed go version
       shell: "/usr/local/go/bin/go version"
       register: go_version_output
@@ -45,11 +52,3 @@
     - name: Show output of go version
       debug:
         msg: "Go Version Output: {{ go_version_output.stdout }}"
-
-    - name: Test env variables PATH
-      debug:
-        msg: "'{{ lookup('env', 'PATH') }}' is the PATH environment variable."
-
-    - name: Test env variables GOPATH
-      debug:
-        msg: "'{{ lookup('env', 'GOPATH') }}' is the GOPATH environment variable."

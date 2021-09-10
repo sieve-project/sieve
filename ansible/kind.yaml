@@ -1,0 +1,26 @@
+---
+- name: Install Kind
+  hosts: ec2
+  vars_files:
+    - vars/default.yaml
+
+  tasks:
+    - name: install kind
+      shell: "/usr/local/go/bin/go get sigs.k8s.io/kind@v0.11.1"
+      environment:
+        GO111MODULE: "on"
+
+    - name: Test kind
+      shell: "/home/{{ USER }}/go/bin/kind version"
+      register: kind_version_output
+
+    - name: Show output of kind version
+      debug:
+        msg: "Kind Output: {{ kind_version_output.stdout }}"
+
+    - name: Add KUBECONFIG to bashrc
+      ansible.builtin.lineinfile:
+        path: "/home/{{ USER }}/.bashrc"
+        line: export KUBECONFIG=$HOME/.kube/kind-test-config
+        state: present
+        insertafter: EOF
