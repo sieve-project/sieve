@@ -1,0 +1,13 @@
+---
+- name: Install kubectl
+  hosts: ec2
+  become: true
+  vars_files:
+    - vars/default.yaml
+
+  tasks:
+    - name: download kubectl
+      shell: curl -LO https://dl.k8s.io/release/v1.22.1/bin/linux/amd64/kubectl
+    
+    - name: install kubectl
+      shell: install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
