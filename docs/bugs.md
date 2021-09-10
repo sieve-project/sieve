@@ -71,5 +71,7 @@ https://github.com/yugabyte/yugabyte-operator/issues/35 pending (time traveling)
 
 https://github.com/yugabyte/yugabyte-operator/issues/36 pending (time traveling)
 
+https://github.com/yugabyte/yugabyte-operator/issues/39 pending (observability gaps)
+
 ## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
 https://github.com/Orange-OpenSource/nifikop/issues/130 pending (atomicity violation)
