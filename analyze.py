@@ -281,9 +281,13 @@ def sanity_check_sieve_log(path):
 
 def extract_events_and_effects(path, compress_trivial_reconcile):
     event_list, event_key_map, event_id_map = parse_events(path)
+    events_data_structure = analyze_util.EventsDataStructure(
+        event_list, event_key_map, event_id_map)
     side_effect_list, side_effect_id_map = parse_side_effects(
         path, compress_trivial_reconcile)
-    return event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map
+    side_effects_data_structure = analyze_util.SideEffectsDataStructure(
+        side_effect_list, side_effect_id_map)
+    return events_data_structure, side_effects_data_structure
 
 
 def generate_event_effect_pairs(analysis_mode, path, use_sql, event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map):
@@ -308,12 +312,15 @@ def generate_effect_event_pairs(event_list, side_effect_list, event_key_map):
     return effect_event_pairs
 
 
-def generate_triggering_points(event_map, event_effect_pairs):
+def generate_triggering_points(event_map, causality_graph: analyze_util.CausalityGraph):
     print("Generating triggering points from <event, side-effect> pairs ...")
     triggering_points = []
-    for pair in event_effect_pairs:
-        event = pair[0]
-        side_effect = pair[1]
+    for edge in causality_graph.get_edges():
+        assert isinstance(edge, analyze_util.CausalityEdge)
+        event = edge.get_source().get_content()
+        side_effect = edge.get_sink().get_content()
+        assert isinstance(event, analyze_util.Event)
+        assert isinstance(side_effect, analyze_util.SideEffect)
         prev_event, cur_event = analyze_event.find_previous_event(
             event, event_map)
         triggering_point = {"name": cur_event.name,
@@ -465,11 +472,11 @@ def dump_json_file(dir, data, json_file_name):
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
+def delete_then_recreate_filtering_pass(event_effect_pairs, event_key_map):
     print("Running optional pass: delete-then-recreate-filtering ...")
     # this should only be applied to time travel mode
-    filtered_causality_pairs = []
-    for pair in causality_pairs:
+    filtered_event_effect_pairs = []
+    for pair in event_effect_pairs:
         side_effect = pair[1]
         # time travel only cares about delete for now
         assert side_effect.etype == "Delete"
@@ -487,22 +494,45 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
             # so we should be cautious and keep this pair
             keep_this_pair = True
         if keep_this_pair:
-            filtered_causality_pairs.append(pair)
+            filtered_event_effect_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" %
-          (len(causality_pairs), len(filtered_causality_pairs)))
-    return filtered_causality_pairs
+          (len(event_effect_pairs), len(filtered_event_effect_pairs)))
+    return filtered_event_effect_pairs
+
+
+def build_causality_graph(log_path, analysis_mode, use_sql, events_data_structure, side_effects_data_structure):
+    event_effect_pairs = generate_event_effect_pairs(
+        analysis_mode, log_path, use_sql, events_data_structure.event_list, events_data_structure.event_key_map, events_data_structure.event_id_map, side_effects_data_structure.side_effect_list, side_effects_data_structure.side_effect_id_map)
+    effect_event_pairs = generate_effect_event_pairs(
+        events_data_structure.event_list, side_effects_data_structure.side_effect_list, events_data_structure.event_key_map)
+    causality_graph = analyze_util.CausalityGraph()
+    event_vertices = {}
+    side_effect_vertices = {}
+    for pair in event_effect_pairs:
+        event = pair[0]
+        side_effect = pair[1]
+        assert isinstance(event, analyze_util.Event)
+        assert isinstance(side_effect, analyze_util.SideEffect)
+        if event.id not in event_vertices:
+            event_vertices[event.id] = analyze_util.CausalityVertex(event)
+        if side_effect.id not in side_effect_vertices:
+            side_effect_vertices[side_effect.id] = analyze_util.CausalityVertex(
+                side_effect)
+        causality_graph.connect_vertex(
+            event_vertices[event.id], side_effect_vertices[side_effect.id], analyze_util.INTER_THREAD_EDGE)
+    return causality_graph
 
 
 def generate_test_config(analysis_mode, project, log_dir, two_sided, use_sql, compress_trivial_reconcile):
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s ..." % log_path)
     sanity_check_sieve_log(log_path)
-    event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map = extract_events_and_effects(
+    events_data_structure, side_effects_data_structure = extract_events_and_effects(
         log_path, compress_trivial_reconcile)
-    causality_pairs = generate_event_effect_pairs(
-        analysis_mode, log_path, use_sql, event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map)
+    causality_graph = build_causality_graph(
+        log_path, analysis_mode, use_sql, events_data_structure, side_effects_data_structure)
     triggering_points = generate_triggering_points(
-        event_key_map, causality_pairs)
+        events_data_structure.event_key_map, causality_graph)
     dump_json_file(log_dir, triggering_points,
                    "triggering-points.json")
     generated_config_dir = os.path.join(

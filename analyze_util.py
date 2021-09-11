@@ -150,11 +150,17 @@ class Reconcile:
         self.round_id = round_id
 
 
-class CausalityEdge:
-    def __init__(self, source, sink, type=INTER_THREAD_EDGE):
-        self.source = source
-        self.sink = sink
-        self.type = type
+class EventsDataStructure:
+    def __init__(self, event_list, event_key_map, event_id_map):
+        self.event_list = event_list
+        self.event_key_map = event_key_map
+        self.event_id_map = event_id_map
+
+
+class SideEffectsDataStructure:
+    def __init__(self, side_effect_list, side_effect_id_map):
+        self.side_effect_list = side_effect_list
+        self.side_effect_id_map = side_effect_id_map
 
 
 def parse_event(line):
@@ -165,7 +171,7 @@ def parse_event(line):
 
 def parse_side_effect(line):
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip("\n").split("\t")
+    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK)                  :].strip("\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
@@ -183,10 +189,10 @@ def parse_cache_read(line):
 def parse_event_id_only(line):
     assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
     if SIEVE_AFTER_EVENT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK):].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK)                      :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK):].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK)                      :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
 
 
@@ -212,3 +218,54 @@ def parse_reconcile(line):
         tokens = line[line.find(SIEVE_AFTER_RECONCILE_MARK):].strip(
             "\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
+
+
+class CausalityVertex:
+    vertex_cnt = 0
+
+    def __init__(self, content):
+        self.id = CausalityVertex.vertex_cnt
+        CausalityVertex.vertex_cnt += 1
+        self.content = content
+        self.outgoing_edges = {}
+
+    def get_content(self):
+        return self.content
+
+
+class CausalityEdge:
+    edge_cnt = 0
+
+    def __init__(self, source: CausalityVertex, sink: CausalityVertex, type: str):
+        self.id = CausalityEdge.edge_cnt
+        CausalityEdge.edge_cnt += 1
+        self.source = source
+        self.sink = sink
+        self.type = type
+
+    def get_source(self):
+        return self.source
+
+    def get_sink(self):
+        return self.sink
+
+
+class CausalityGraph:
+    def __init__(self):
+        self.vertices = {}
+        self.edges = {}
+
+    # def add_vertex(self, vertex):
+    #     if vertex.id not in self.vertices:
+    #         self.vertices[vertex.id] = vertex
+
+    def get_edges(self):
+        return list(self.edges.values())
+
+    def connect_vertex(self, source: CausalityVertex, sink: CausalityVertex, type: str):
+        if source.id not in self.vertices:
+            self.vertices[source.id] = source
+        if sink.id not in self.vertices:
+            self.vertices[sink.id] = sink
+        edge = CausalityEdge(source, sink, type)
+        self.edges[edge.id] = edge
