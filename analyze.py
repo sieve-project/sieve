@@ -3,10 +3,9 @@ import copy
 import os
 import analyze_util
 import oracle
-import analyze_event
+import shutil
 import json
 import optparse
-import analyze_sql
 import analyze_gen
 from common import sieve_modes
 
@@ -151,18 +150,6 @@ def base_pass(event_list, side_effect_list):
     return event_effect_pairs
 
 
-# def delete_only_filtering_pass(event_effect_pairs):
-#     print("Running optional pass: delete-only-filtering ...")
-#     reduced_event_effect_pairs = []
-#     for pair in event_effect_pairs:
-#         side_effect = pair[1]
-#         if side_effect.etype == "Delete":
-#             reduced_event_effect_pairs.append(pair)
-#     print("<e, s> pairs: %d -> %d" %
-#           (len(event_effect_pairs), len(reduced_event_effect_pairs)))
-#     return reduced_event_effect_pairs
-
-
 def write_read_overlap_filtering_pass(event_effect_pairs):
     print("Running optional pass: write-read-overlap-filtering ...")
     reduced_event_effect_pairs = []
@@ -190,9 +177,6 @@ def error_msg_filtering_pass(event_effect_pairs):
 
 def pipelined_passes(event_effect_pairs):
     reduced_event_effect_pairs = event_effect_pairs
-    # if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == sieve_modes.TIME_TRAVEL:
-    #     reduced_event_effect_pairs = delete_only_filtering_pass(
-    #         reduced_event_effect_pairs)
     if analyze_util.ERROR_MSG_FILTER_FLAG:
         reduced_event_effect_pairs = error_msg_filtering_pass(
             reduced_event_effect_pairs)
@@ -200,38 +184,6 @@ def pipelined_passes(event_effect_pairs):
         reduced_event_effect_pairs = write_read_overlap_filtering_pass(
             reduced_event_effect_pairs)
     return reduced_event_effect_pairs
-
-
-def intra_pair_analysis(use_sql, event_list, event_id_map, side_effect_list, side_effect_id_map):
-    reduced_event_effect_pairs = []
-    # if use_sql:
-    #     conn = analyze_sql.create_sqlite_db()
-    #     analyze_sql.record_event_list_in_sqlite(event_list, conn)
-    #     analyze_sql.record_side_effect_list_in_sqlite(side_effect_list, conn)
-    #     cur = conn.cursor()
-    #     query = analyze_sql.passes_as_sql_query(analysis_mode)
-    #     print("Running SQL query as below ...")
-    #     print(query)
-    #     cur.execute(query)
-    #     rows = cur.fetchall()
-    #     for row in rows:
-    #         event_id = row[0]
-    #         side_effect_id = row[1]
-    #         reduced_event_effect_pairs.append(
-    #             [event_id_map[event_id], side_effect_id_map[side_effect_id]])
-    # else:
-    event_effect_pairs = base_pass(event_list, side_effect_list)
-    reduced_event_effect_pairs = pipelined_passes(event_effect_pairs)
-    return reduced_event_effect_pairs
-
-
-def inter_pair_analysis(event_effect_pairs, event_key_map):
-    # if analysis_mode == sieve_modes.TIME_TRAVEL:
-    #     reduced_event_effect_pairs = delete_then_recreate_filtering_pass(
-    #         event_effect_pairs, event_key_map)
-    #     return reduced_event_effect_pairs
-    # else:
-    return event_effect_pairs
 
 
 def sanity_check_sieve_log(path):
@@ -286,13 +238,10 @@ def extract_events_and_effects(path, compress_trivial_reconcile):
     return events_data_structure, side_effects_data_structure
 
 
-def generate_event_effect_pairs(path, use_sql, event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map):
-    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
-    after_intra_pairs = intra_pair_analysis(
-        use_sql, event_list, event_id_map, side_effect_list, side_effect_id_map)
-    after_inter_pairs = inter_pair_analysis(
-        after_intra_pairs, event_key_map)
-    return after_inter_pairs
+def generate_event_effect_pairs(event_list, side_effect_list):
+    event_effect_pairs = base_pass(event_list, side_effect_list)
+    event_effect_pairs = pipelined_passes(event_effect_pairs)
+    return event_effect_pairs
 
 
 def generate_effect_event_pairs(event_list, side_effect_list, event_key_map):
@@ -308,75 +257,14 @@ def generate_effect_event_pairs(event_list, side_effect_list, event_key_map):
     return effect_event_pairs
 
 
-# def generate_triggering_points(event_map, causality_graph: analyze_util.CausalityGraph):
-#     print("Generating triggering points from <event, side-effect> pairs ...")
-#     triggering_points = []
-#     for edge in causality_graph.get_edges():
-#         assert isinstance(edge, analyze_util.CausalityEdge)
-#         event = edge.get_source().get_content()
-#         side_effect = edge.get_sink().get_content()
-#         assert isinstance(event, analyze_util.Event)
-#         assert isinstance(side_effect, analyze_util.SideEffect)
-#         prev_event, cur_event = analyze_event.find_previous_event(
-#             event, event_map)
-#         triggering_point = {"name": cur_event.name,
-#                             "namespace": cur_event.namespace,
-#                             "rtype": cur_event.rtype,
-#                             "effect": side_effect.to_dict(),
-#                             "curEventId": cur_event.id}
-#         if prev_event is None:
-#             continue
-#             # TODO: how to deal with the first event of each resource?
-#         else:
-#             slim_prev_obj, slim_cur_obj = analyze_event.diff_events(
-#                 prev_event, cur_event)
-#             if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
-#                 continue
-#             triggering_point["ttype"] = "event-delta"
-#             triggering_point["prevEvent"] = slim_prev_obj
-#             triggering_point["curEvent"] = slim_cur_obj
-#             triggering_point["prevEventType"] = prev_event.etype
-#             triggering_point["curEventType"] = cur_event.etype
-#         triggering_points.append(triggering_point)
-#     return triggering_points
-
-
 def dump_json_file(dir, data, json_file_name):
     json.dump(data, open(os.path.join(
         dir, json_file_name), "w"), indent=4, sort_keys=True)
 
 
-# def delete_then_recreate_filtering_pass(event_effect_pairs, event_key_map):
-#     print("Running optional pass: delete-then-recreate-filtering ...")
-#     # this should only be applied to time travel mode
-#     filtered_event_effect_pairs = []
-#     for pair in event_effect_pairs:
-#         side_effect = pair[1]
-#         # time travel only cares about delete for now
-#         assert side_effect.etype == "Delete"
-#         keep_this_pair = False
-#         if side_effect.key in event_key_map:
-#             for event in event_key_map[side_effect.key]:
-#                 # We will find add sth
-#                 if event.start_timestamp <= side_effect.end_timestamp:
-#                     continue
-#                 if event.etype == "Added":
-#                     keep_this_pair = True
-#         else:
-#             # if the side effect key never appears in the event_key_map
-#             # it means the operator does not watch on the resource
-#             # so we should be cautious and keep this pair
-#             keep_this_pair = True
-#         if keep_this_pair:
-#             filtered_event_effect_pairs.append(pair)
-#     print("<e, s> pairs: %d -> %d" %
-#           (len(event_effect_pairs), len(filtered_event_effect_pairs)))
-#     return filtered_event_effect_pairs
-
-
-def build_causality_graph(log_path, use_sql, events_data_structure, side_effects_data_structure):
-    event_effect_pairs = generate_event_effect_pairs(log_path, use_sql, events_data_structure.event_list, events_data_structure.event_key_map,
-                                                     events_data_structure.event_id_map, side_effects_data_structure.side_effect_list, side_effects_data_structure.side_effect_id_map)
+def build_causality_graph(events_data_structure, side_effects_data_structure):
+    event_effect_pairs = generate_event_effect_pairs(
+        events_data_structure.event_list, side_effects_data_structure.side_effect_list)
     effect_event_pairs = generate_effect_event_pairs(
         events_data_structure.event_list, side_effects_data_structure.side_effect_list, events_data_structure.event_key_map)
     causality_graph = analyze_util.CausalityGraph()
@@ -398,13 +286,9 @@ def build_causality_graph(log_path, use_sql, events_data_structure, side_effects
 
 
 def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_graph, events_data_structure):
-
-    # triggering_points = generate_triggering_points(
-    #     events_data_structure.event_key_map, causality_graph)
-    # dump_json_file(log_dir, triggering_points,
-    #                "triggering-points.json")
     generated_config_dir = os.path.join(
         log_dir, analysis_mode)
+    shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
         analyze_gen.time_travel_analysis(
@@ -447,7 +331,7 @@ def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, 
     events_data_structure, side_effects_data_structure = extract_events_and_effects(
         log_path, compress_trivial_reconcile)
     causality_graph = build_causality_graph(
-        log_path, use_sql, events_data_structure, side_effects_data_structure)
+        events_data_structure, side_effects_data_structure)
 
     if generate_config:
         for analysis_mode in [sieve_modes.TIME_TRAVEL, sieve_modes.OBS_GAP, sieve_modes.ATOM_VIO]:
