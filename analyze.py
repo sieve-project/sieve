@@ -94,7 +94,6 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
                 if prev_reconcile_start_timestamp[controller_name] < earliest_timestamp:
                     earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
             side_effect.set_range(earliest_timestamp, i)
-            side_effect_list.append(side_effect)
             side_effect_id_map[side_effect.id] = side_effect
         elif analyze_util.SIEVE_AFTER_READ_MARK in line:
             cache_read = analyze_util.parse_cache_read(line)
@@ -134,6 +133,12 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()
                 read_types_this_reconcile = set()
+    for i in range(len(lines)):
+        line = lines[i]
+        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
+            side_effect_id = analyze_util.parse_side_effect_id_only(line)
+            if side_effect_id.id in side_effect_id_map:
+                side_effect_list.append(side_effect_id_map[side_effect_id.id])
     return side_effect_list, side_effect_id_map
 
 
@@ -274,18 +279,33 @@ def sanity_check_sieve_log(path):
         assert reconcile_status[reconcile_id] == 0 or reconcile_status[reconcile_id] == 1
 
 
-def generate_event_effect_pairs(analysis_mode, path, use_sql, compress_trivial_reconcile):
-    print("Sanity checking the sieve log %s ..." % path)
-    sanity_check_sieve_log(path)
-    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
+def extract_events_and_effects(path, compress_trivial_reconcile):
     event_list, event_key_map, event_id_map = parse_events(path)
     side_effect_list, side_effect_id_map = parse_side_effects(
         path, compress_trivial_reconcile)
+    return event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map
+
+
+def generate_event_effect_pairs(analysis_mode, path, use_sql, event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map):
+    print("Analyzing %s to generate <event, side-effect> pairs ..." % path)
     after_intra_pairs = intra_pair_analysis(
         analysis_mode, use_sql, event_list, event_id_map, side_effect_list, side_effect_id_map)
     after_inter_pairs = inter_pair_analysis(
         analysis_mode, after_intra_pairs, event_key_map)
-    return after_inter_pairs, event_key_map
+    return after_inter_pairs
+
+
+def generate_effect_event_pairs(event_list, side_effect_list, event_key_map):
+    effect_event_pairs = []
+    for side_effect in side_effect_list:
+        assert isinstance(side_effect, analyze_util.SideEffect)
+        if side_effect.key in event_key_map:
+            for event in event_list:
+                assert isinstance(event, analyze_util.Event)
+                if event.obj_str == side_effect.obj_str and side_effect.start_timestamp < event.start_timestamp and analyze_util.consistent_type(event.etype, side_effect.etype):
+                    effect_event_pairs.append([side_effect, event])
+                    break
+    return effect_event_pairs
 
 
 def generate_triggering_points(event_map, event_effect_pairs):
@@ -475,8 +495,12 @@ def delete_then_recreate_filtering_pass(causality_pairs, event_key_map):
 
 def generate_test_config(analysis_mode, project, log_dir, two_sided, use_sql, compress_trivial_reconcile):
     log_path = os.path.join(log_dir, "sieve-server.log")
-    causality_pairs, event_key_map = generate_event_effect_pairs(
-        analysis_mode, log_path, use_sql, compress_trivial_reconcile)
+    print("Sanity checking the sieve log %s ..." % log_path)
+    sanity_check_sieve_log(log_path)
+    event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map = extract_events_and_effects(
+        log_path, compress_trivial_reconcile)
+    causality_pairs = generate_event_effect_pairs(
+        analysis_mode, log_path, use_sql, event_list, event_key_map, event_id_map, side_effect_list, side_effect_id_map)
     triggering_points = generate_triggering_points(
         event_key_map, causality_pairs)
     dump_json_file(log_dir, triggering_points,

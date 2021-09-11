@@ -164,9 +164,7 @@ func (s *learnServer) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBef
 }
 
 func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
-	rtype := request.ResourceType
-	name, namespace := extractNameNamespace(request.Object)
-	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, rtype, namespace, name, request.Error, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
@@ -235,7 +233,7 @@ func (s *learnServer) coordinatingEvents() {
 				if !s.rateLimiterEnabled {
 					eventID := strings.Split(nw.payload, "\t")[0]
 					if obj, ok := s.eventChMap.Load(eventID); ok {
-						log.Printf("release event\n")
+						// log.Printf("release event\n")
 						log.Printf("[SIEVE-BEFORE-EVENT]\t%s\n", nw.payload)
 						ch := obj.(chan int32)
 						ch <- 0

@@ -22,30 +22,40 @@ BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
 SIEVE_SKIP_MARKER = "SIEVE-SKIP"
 SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
 
-TIME_REG = '^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$'
-IP_REG = '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
+IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+
+INTRA_THREAD_EDGE = "INTRA-THREAD"
+INTER_THREAD_EDGE = "INTER-THREADS"
 
 
-def translate_side_effect(side_effect, reverse=False):
-    if side_effect == "ADDED":
-        return "deletion" if reverse else "creation"
-    elif side_effect == "DELETED":
-        return "creation" if reverse else "deletion"
-    else:
-        assert False
+def consistent_type(event_type, side_effect_type):
+    both_create = event_type == "Added" and side_effect_type == "Create"
+    both_update = event_type == "Updated" and side_effect_type == "Update"
+    both_delete = event_type == "Deleted" and side_effect_type == "Delete"
+    return both_create or both_update or both_delete
+
+
+def extract_namespace_name(obj):
+    assert "metadata" in obj, "missing metadata in: " + str(obj)
+    # TODO(Wenqing): Sometimes metadata doesn't carry namespace field, may dig into that later
+    obj_name = obj["metadata"]["name"]
+    obj_namespace = (
+        obj["metadata"]["namespace"]
+        if "namespace" in obj["metadata"]
+        else sieve_config.config["namespace"]
+    )
+    return obj_namespace, obj_name
 
 
 class Event:
-    def __init__(self, id, etype, rtype, obj):
-        # make the id integer to keep consistent with SideEffect
+    def __init__(self, id, etype, rtype, obj_str):
         self.id = int(id)
         self.etype = etype
         self.rtype = rtype
-        self.obj = obj
-        # TODO(Wenqing): In some case the metadata doesn't carry in namespace field, may dig into that later
-        self.namespace = self.obj["metadata"]["namespace"] if "namespace" in self.obj[
-            "metadata"] else sieve_config.config["namespace"]
-        self.name = self.obj["metadata"]["name"]
+        self.obj_str = obj_str
+        self.obj = json.loads(obj_str)
+        self.namespace, self.name = extract_namespace_name(self.obj)
         self.start_timestamp = -1
         self.end_timestamp = -1
         self.key = self.rtype + "/" + self.namespace + "/" + self.name
@@ -58,15 +68,14 @@ class Event:
 
 
 class SideEffect:
-
-    def __init__(self, id, etype, rtype, namespace, name, error, obj):
+    def __init__(self, id, etype, rtype, error, obj_str):
         self.id = int(id)
         self.etype = etype
         self.rtype = rtype
-        self.namespace = namespace
-        self.name = name
         self.error = error
-        self.obj = obj
+        self.obj_str = obj_str
+        self.obj = json.loads(obj_str)
+        self.namespace, self.name = extract_namespace_name(self.obj)
         self.start_timestamp = -1
         self.end_timestamp = -1
         self.read_types = set()
@@ -141,17 +150,23 @@ class Reconcile:
         self.round_id = round_id
 
 
+class CausalityEdge:
+    def __init__(self, source, sink, type=INTER_THREAD_EDGE):
+        self.source = source
+        self.sink = sink
+        self.type = type
+
+
 def parse_event(line):
     assert SIEVE_BEFORE_EVENT_MARK in line
     tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK):].strip("\n").split("\t")
-    return Event(tokens[1], tokens[2], tokens[3], json.loads(tokens[4]))
+    return Event(tokens[1], tokens[2], tokens[3], tokens[4])
 
 
 def parse_side_effect(line):
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip(
-        "\n").split("\t")
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6], tokens[7])
+    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip("\n").split("\t")
+    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
 def parse_cache_read(line):
