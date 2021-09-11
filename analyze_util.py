@@ -1,4 +1,5 @@
 import json
+from typing import List
 import sieve_config
 
 WRITE_READ_FILTER_FLAG = True
@@ -232,6 +233,12 @@ class CausalityVertex:
     def get_content(self):
         return self.content
 
+    def is_event(self):
+        return isinstance(self.content, Event)
+
+    def is_side_effect(self):
+        return isinstance(self.content, SideEffect)
+
 
 class CausalityEdge:
     edge_cnt = 0
@@ -259,7 +266,7 @@ class CausalityGraph:
     #     if vertex.id not in self.vertices:
     #         self.vertices[vertex.id] = vertex
 
-    def get_edges(self):
+    def get_edges(self) -> List[CausalityEdge]:
         return list(self.edges.values())
 
     def connect_vertex(self, source: CausalityVertex, sink: CausalityVertex, type: str):
