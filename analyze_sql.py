@@ -3,6 +3,20 @@ import json
 import analyze_util
 from common import sieve_modes
 
+#     conn = analyze_sql.create_sqlite_db()
+#     analyze_sql.record_event_list_in_sqlite(event_list, conn)
+#     analyze_sql.record_side_effect_list_in_sqlite(side_effect_list, conn)
+#     cur = conn.cursor()
+#     query = analyze_sql.passes_as_sql_query(analysis_mode)
+#     print("Running SQL query as below ...")
+#     print(query)
+#     cur.execute(query)
+#     rows = cur.fetchall()
+#     for row in rows:
+#         event_id = row[0]
+#         side_effect_id = row[1]
+#         reduced_event_effect_pairs.append(
+#             [event_id_map[event_id], side_effect_id_map[side_effect_id]])
 
 SQL_BASE_PASS_QUERY = "select e.sieve_event_id, se.sieve_side_effect_id from events e join side_effects se on se.range_start_timestamp < e.event_cache_update_time and se.range_end_timestamp > e.event_arrival_time"
 SQL_DELETE_ONLY_FILTER = "se.event_type = 'Delete'"
