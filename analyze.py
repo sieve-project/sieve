@@ -1,3 +1,4 @@
+from analyze_event import cancel_event_object
 from typing import List
 import copy
 import os
@@ -100,6 +101,32 @@ def parse_events(path):
             cur_event.slim_prev_obj_map = slim_prev_object
             cur_event.slim_cur_obj_map = slim_cur_object
             cur_event.prev_etype = prev_event.etype
+    for key in event_key_map:
+        for i in range(len(event_key_map[key]) - 1):
+            cancelled_by = set()
+            cur_event = event_key_map[key][i]
+            for j in range(i + 1, len(event_key_map[key])):
+                following_event = event_key_map[key][j]
+                if i == 0:
+                    cancelled_by.add(following_event.id)
+                    continue
+                if (
+                    cur_event.etype != "Delete"
+                    and following_event.etype != "Delete"
+                    and cancel_event_object(
+                        cur_event.slim_cur_obj_map, following_event.obj_map
+                    )
+                    or (
+                        cur_event.etype != "Delete"
+                        and following_event.etype == "Delete"
+                    )
+                    or (
+                        cur_event.etype == "Delete"
+                        and following_event.etype != "Delete"
+                    )
+                ):
+                    cancelled_by.add(following_event.id)
+            cur_event.cancelled_by = cancelled_by
     return event_list
 
 
