@@ -1,7 +1,7 @@
-from analyze_util import *
 import copy
 import re
-
+from typing import Dict, List
+from common import *
 
 # def find_previous_event(event, event_map):
 #     id = event.id
@@ -117,33 +117,31 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
     return False
 
 
-def diff_events(prev_event: Event, cur_event: Event):
-    prev_object = prev_event.obj_map
-    cur_object = cur_event.obj_map
+def diff_events(prev_object: Dict, cur_object: Dict):
     slim_prev_object = copy.deepcopy(prev_object)
     slim_cur_object = copy.deepcopy(cur_object)
     compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_object)
     return slim_prev_object, slim_cur_object
 
 
-def canonicalize_event_for_list(event_list):
+def canonicalize_event_object_for_list(event_list: List):
     for i in range(len(event_list)):
         if isinstance(event_list[i], list):
-            canonicalize_event_for_list(event_list[i])
+            canonicalize_event_object_for_list(event_list[i])
         elif isinstance(event_list[i], dict):
-            canonicalize_event(event_list[i])
+            canonicalize_event_object(event_list[i])
         elif isinstance(event_list[i], str):
             if re.match(TIME_REG, str(event_list[i])):
                 event_list[i] = SIEVE_CANONICALIZATION_MARKER
     return event_list
 
 
-def canonicalize_event(event):
+def canonicalize_event_object(event: Dict):
     for key in event:
         if isinstance(event[key], dict):
-            canonicalize_event(event[key])
+            canonicalize_event_object(event[key])
         elif isinstance(event[key], list):
-            canonicalize_event_for_list(event[key])
+            canonicalize_event_object_for_list(event[key])
         elif isinstance(event[key], str):
             if re.match(TIME_REG, str(event[key])):
                 event[key] = SIEVE_CANONICALIZATION_MARKER

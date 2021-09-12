@@ -1,6 +1,8 @@
 import json
 from typing import List, Dict, Optional, Union, Set
 import sieve_config
+from analyze_event import diff_events, canonicalize_event_object
+import copy
 
 WRITE_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -16,22 +18,6 @@ SIEVE_AFTER_SIDE_EFFECT_MARK = "[SIEVE-AFTER-SIDE-EFFECT]"
 SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
-
-BORING_EVENT_OBJECT_FIELDS = [
-    "resourceVersion",
-    "time",
-    "managedFields",
-    "lastTransitionTime",
-    "generation",
-    "annotations",
-    "deletionGracePeriodSeconds",
-]
-
-SIEVE_SKIP_MARKER = "SIEVE-SKIP"
-SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
-
-TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
-IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 
 INTRA_THREAD_EDGE = "INTRA-THREAD"
 INTER_THREAD_EDGE = "INTER-THREADS"
@@ -67,6 +53,9 @@ class Event:
         self.__start_timestamp = -1
         self.__end_timestamp = -1
         self.__key = self.rtype + "/" + self.namespace + "/" + self.name
+        self.__slim_prev_obj_map = None
+        self.__slim_cur_obj_map = None
+        self.__prev_etype = None
 
     @property
     def id(self):
@@ -108,6 +97,18 @@ class Event:
     def key(self):
         return self.__key
 
+    @property
+    def slim_prev_obj_map(self):
+        return self.__slim_prev_obj_map
+
+    @property
+    def slim_cur_obj_map(self):
+        return self.__slim_cur_obj_map
+
+    @property
+    def prev_etype(self):
+        return self.__prev_etype
+
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
@@ -115,6 +116,18 @@ class Event:
     @end_timestamp.setter
     def end_timestamp(self, end_timestamp: int):
         self.__end_timestamp = end_timestamp
+
+    @slim_prev_obj_map.setter
+    def slim_prev_obj_map(self, slim_prev_obj_map: Dict):
+        self.__slim_prev_obj_map = slim_prev_obj_map
+
+    @slim_cur_obj_map.setter
+    def slim_cur_obj_map(self, slim_cur_obj_map: Dict):
+        self.__slim_cur_obj_map = slim_cur_obj_map
+
+    @prev_etype.setter
+    def prev_etype(self, prev_etype: str):
+        self.__prev_etype = prev_etype
 
 
 class SideEffect:
@@ -486,3 +499,24 @@ class CausalityGraph:
         assert side_effect_vertex.is_side_effect()
         edge = CausalityEdge(side_effect_vertex, event_vertex, INTER_THREAD_EDGE)
         self.side_effect_event_edges.append(edge)
+
+    def finalize(self):
+        for key in self.event_key_to_event_vertices:
+            event_vertices = self.event_key_to_event_vertices[key]
+            for i in range(len(event_vertices)):
+                if i == 0:
+                    continue
+                prev_event = event_vertices[i - 1].content
+                cur_event = event_vertices[i].content
+                canonicalized_prev_object = canonicalize_event_object(
+                    copy.deepcopy(prev_event.obj_map)
+                )
+                canonicalized_cur_object = canonicalize_event_object(
+                    copy.deepcopy(cur_event.obj_map)
+                )
+                slim_prev_object, slim_cur_object = diff_events(
+                    canonicalized_prev_object, canonicalized_cur_object
+                )
+                cur_event.slim_prev_obj_map = slim_prev_object
+                cur_event.slim_cur_obj_map = slim_cur_object
+                cur_event.prev_etype = prev_event.etype

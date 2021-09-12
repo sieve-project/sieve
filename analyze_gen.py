@@ -22,7 +22,8 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
 
 
 def delete_then_recreate_filtering_pass(
-    causality_edges: List[CausalityEdge], event_key_map
+    causality_edges: List[CausalityEdge],
+    event_key_to_event_vertices: Dict[str, List[CausalityVertex]],
 ):
     print("Running optional pass: delete-then-recreate-filtering ...")
     # this should only be applied to time travel mode
@@ -32,8 +33,9 @@ def delete_then_recreate_filtering_pass(
         # time travel only cares about delete for now
         assert side_effect.etype == "Delete"
         keep_this_pair = False
-        if side_effect.key in event_key_map:
-            for event in event_key_map[side_effect.key]:
+        if side_effect.key in event_key_to_event_vertices:
+            for event_vertex in event_key_to_event_vertices[side_effect.key]:
+                event = event_vertex.content
                 if event.start_timestamp <= side_effect.end_timestamp:
                     continue
                 if event.etype == "Added":
@@ -76,13 +78,10 @@ def time_travel_analysis(
         assert isinstance(cur_event, Event)
         assert isinstance(side_effect, SideEffect)
 
-        prev_event_vertex = causality_graph.get_prev_event_with_key(
-            cur_event.key, cur_event.id
-        )
-        if prev_event_vertex is None:
+        slim_prev_obj = cur_event.slim_prev_obj_map
+        slim_cur_obj = cur_event.slim_cur_obj_map
+        if slim_prev_obj is None and slim_cur_obj is None:
             continue
-        prev_event = prev_event_vertex.content
-        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
@@ -90,14 +89,10 @@ def time_travel_analysis(
         yaml_map["ce-namespace"] = cur_event.namespace
         yaml_map["ce-rtype"] = cur_event.rtype
 
-        yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
-        )
-        yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj))
-        )
+        yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
+        yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
         yaml_map["ce-etype-current"] = cur_event.etype
-        yaml_map["ce-etype-previous"] = prev_event.etype
+        yaml_map["ce-etype-previous"] = cur_event.prev_etype
 
         yaml_map["se-name"] = side_effect.name
         yaml_map["se-namespace"] = side_effect.namespace
@@ -141,13 +136,10 @@ def obs_gap_analysis(
         else:
             continue
 
-        prev_event_vertex = causality_graph.get_prev_event_with_key(
-            cur_event.key, cur_event.id
-        )
-        if prev_event_vertex is None:
+        slim_prev_obj = cur_event.slim_prev_obj_map
+        slim_cur_obj = cur_event.slim_cur_obj_map
+        if slim_prev_obj is None and slim_cur_obj is None:
             continue
-        prev_event = prev_event_vertex.content
-        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
@@ -155,14 +147,10 @@ def obs_gap_analysis(
         yaml_map["ce-namespace"] = cur_event.namespace
         yaml_map["ce-rtype"] = cur_event.rtype
 
-        yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
-        )
-        yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj))
-        )
+        yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
+        yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
         yaml_map["ce-etype-current"] = cur_event.etype
-        yaml_map["ce-etype-previous"] = prev_event.etype
+        yaml_map["ce-etype-previous"] = cur_event.prev_etype
 
         i += 1
         yaml.dump(
@@ -194,13 +182,10 @@ def atom_vio_analysis(
         assert isinstance(cur_event, Event)
         assert isinstance(side_effect, SideEffect)
 
-        prev_event_vertex = causality_graph.get_prev_event_with_key(
-            cur_event.key, cur_event.id
-        )
-        if prev_event_vertex is None:
+        slim_prev_obj = cur_event.slim_prev_obj_map
+        slim_cur_obj = cur_event.slim_cur_obj_map
+        if slim_prev_obj is None and slim_cur_obj is None:
             continue
-        prev_event = prev_event_vertex.content
-        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
@@ -208,14 +193,10 @@ def atom_vio_analysis(
         yaml_map["ce-namespace"] = cur_event.namespace
         yaml_map["ce-rtype"] = cur_event.rtype
 
-        yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
-        )
-        yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj))
-        )
+        yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
+        yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
         yaml_map["ce-etype-current"] = cur_event.etype
-        yaml_map["ce-etype-previous"] = prev_event.etype
+        yaml_map["ce-etype-previous"] = cur_event.prev_etype
 
         yaml_map["se-name"] = side_effect.name
         yaml_map["se-namespace"] = side_effect.namespace

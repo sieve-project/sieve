@@ -268,6 +268,7 @@ def build_causality_graph(event_list, side_effect_list):
     for pair in effect_event_pairs:
         causality_graph.connect_side_effect_to_event(pair[0], pair[1])
 
+    causality_graph.finalize()
     causality_graph.sanity_check()
 
     return causality_graph

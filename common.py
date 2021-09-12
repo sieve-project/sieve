@@ -13,10 +13,26 @@ RUNNING = "Running"
 TERMINATED = "Terminated"
 BOUND = "Bound"
 
+SIEVE_SKIP_MARKER = "SIEVE-SKIP"
+SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
+
 EXIST = True
 NONEXIST = False
 
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
+
+BORING_EVENT_OBJECT_FIELDS = [
+    "resourceVersion",
+    "time",
+    "managedFields",
+    "lastTransitionTime",
+    "generation",
+    "annotations",
+    "deletionGracePeriodSeconds",
+]
+
+TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
+IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 
 
 def cmd_early_exit(cmd, early_exit=True):
