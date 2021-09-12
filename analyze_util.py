@@ -302,28 +302,6 @@ class Reconcile:
         return self.__round_id
 
 
-class EventsDataStructure:
-    def __init__(
-        self,
-        event_list: List[Event],
-        event_key_map: Dict[str, Event],
-        event_id_map: Dict[int, Event],
-    ):
-        self.event_list = event_list
-        self.event_key_map = event_key_map
-        self.event_id_map = event_id_map
-
-
-class SideEffectsDataStructure:
-    def __init__(
-        self,
-        side_effect_list: List[SideEffect],
-        side_effect_id_map: Dict[int, SideEffect],
-    ):
-        self.side_effect_list = side_effect_list
-        self.side_effect_id_map = side_effect_id_map
-
-
 def parse_event(line: str) -> Event:
     assert SIEVE_BEFORE_EVENT_MARK in line
     tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK) :].strip("\n").split("\t")

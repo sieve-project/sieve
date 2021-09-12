@@ -57,7 +57,6 @@ def parse_events(path):
     event_id_map = {}
     # { event key -> [events belonging to the key] }
     # we need this map to later find the previous event for each crucial event
-    event_key_map = {}
     event_list = []
     lines = open(path).readlines()
     largest_timestamp = len(lines)
@@ -78,11 +77,8 @@ def parse_events(path):
         line = lines[i]
         if SIEVE_BEFORE_EVENT_MARK in line:
             event = parse_event(line)
-            if event.key not in event_key_map:
-                event_key_map[event.key] = []
-            event_key_map[event.key].append(event_id_map[event.id])
             event_list.append(event_id_map[event.id])
-    return event_list, event_key_map, event_id_map
+    return event_list
 
 
 def parse_side_effects(path, compress_trivial_reconcile=True):
@@ -181,19 +177,13 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             side_effect_id = parse_side_effect_id_only(line)
             if side_effect_id.id in side_effect_id_map:
                 side_effect_list.append(side_effect_id_map[side_effect_id.id])
-    return side_effect_list, side_effect_id_map
+    return side_effect_list
 
 
 def extract_events_and_effects(path, compress_trivial_reconcile):
-    event_list, event_key_map, event_id_map = parse_events(path)
-    events_data_structure = EventsDataStructure(event_list, event_key_map, event_id_map)
-    side_effect_list, side_effect_id_map = parse_side_effects(
-        path, compress_trivial_reconcile
-    )
-    side_effects_data_structure = SideEffectsDataStructure(
-        side_effect_list, side_effect_id_map
-    )
-    return events_data_structure, side_effects_data_structure
+    event_list = parse_events(path)
+    side_effect_list = parse_side_effects(path, compress_trivial_reconcile)
+    return event_list, side_effect_list
 
 
 def base_pass(
@@ -264,15 +254,10 @@ def generate_effect_event_pairs(causality_graph: CausalityGraph):
     return vertex_pairs
 
 
-def build_causality_graph(
-    events_data_structure: EventsDataStructure,
-    side_effects_data_structure: SideEffectsDataStructure,
-):
+def build_causality_graph(event_list, side_effect_list):
     causality_graph = CausalityGraph()
-    causality_graph.add_sorted_events(events_data_structure.event_list)
-    causality_graph.add_sorted_side_effects(
-        side_effects_data_structure.side_effect_list
-    )
+    causality_graph.add_sorted_events(event_list)
+    causality_graph.add_sorted_side_effects(side_effect_list)
 
     event_effect_pairs = generate_event_effect_pairs(causality_graph)
     effect_event_pairs = generate_effect_event_pairs(causality_graph)
@@ -288,9 +273,7 @@ def build_causality_graph(
     return causality_graph
 
 
-def generate_test_config(
-    analysis_mode, project, log_dir, two_sided, causality_graph, events_data_structure
-):
+def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_graph):
     generated_config_dir = os.path.join(log_dir, analysis_mode)
     if os.path.isdir(generated_config_dir):
         shutil.rmtree(generated_config_dir)
@@ -334,12 +317,10 @@ def analyze_trace(
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s ..." % log_path)
     sanity_check_sieve_log(log_path)
-    events_data_structure, side_effects_data_structure = extract_events_and_effects(
+    event_list, side_effect_list = extract_events_and_effects(
         log_path, compress_trivial_reconcile
     )
-    causality_graph = build_causality_graph(
-        events_data_structure, side_effects_data_structure
-    )
+    causality_graph = build_causality_graph(event_list, side_effect_list)
 
     if generate_config:
         for analysis_mode in [
@@ -348,12 +329,7 @@ def analyze_trace(
             sieve_modes.ATOM_VIO,
         ]:
             generate_test_config(
-                analysis_mode,
-                project,
-                log_dir,
-                two_sided,
-                causality_graph,
-                events_data_structure,
+                analysis_mode, project, log_dir, two_sided, causality_graph
             )
 
     if generate_oracle:
