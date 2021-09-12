@@ -41,7 +41,16 @@ def generate_configmap(test_config):
 
 
 def generate_kind_config(mode, num_apiservers, num_workers):
-    kind_config_filename = "kind-%sa-%sw.yaml" % (str(num_apiservers), str(num_workers))
+    kind_config_dir = "kind_configs"
+    os.makedirs(kind_config_dir, exist_ok=True)
+    kind_config_filename = os.path.join(
+        kind_config_dir,
+        "kind-%sa-%sw.yaml"
+        % (
+            str(num_apiservers),
+            str(num_workers),
+        ),
+    )
     kind_config_file = open(kind_config_filename, "w")
     kind_config_file.writelines(
         ["kind: Cluster\n", "apiVersion: kind.x-k8s.io/v1alpha4\n", "nodes:\n"]
