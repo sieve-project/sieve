@@ -10,7 +10,8 @@ def get_pod(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pods = core_v1.list_namespaced_pod(
-        namespace=sieve_config.config["namespace"], watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False
+    ).items
     target_pod = None
     for pod in pods:
         if pod.metadata.name == resource_name:
@@ -28,7 +29,8 @@ def get_sts(resource_name):
     kubernetes.config.load_kube_config()
     apps_v1 = kubernetes.client.AppsV1Api()
     statefulsets = apps_v1.list_namespaced_stateful_set(
-        namespace=sieve_config.config["namespace"], watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False
+    ).items
     target_sts = None
     for sts in statefulsets:
         if sts.metadata.name == resource_name:
@@ -40,7 +42,8 @@ def get_pvc(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pvcs = core_v1.list_namespaced_persistent_volume_claim(
-        namespace=sieve_config.config["namespace"], watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False
+    ).items
     target_pvc = None
     for pvc in pvcs:
         if pvc.metadata.name == resource_name:
@@ -57,7 +60,8 @@ def get_secret(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     secrets = core_v1.list_namespaced_secret(
-        namespace=sieve_config.config["namespace"], watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False
+    ).items
     for secret in secrets:
         if secret.metadata.name == resource_name:
             return secret
@@ -73,7 +77,8 @@ def get_service(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     services = core_v1.list_namespaced_service(
-        namespace=sieve_config.config["namespace"], watch=False).items
+        namespace=sieve_config.config["namespace"], watch=False
+    ).items
     for service in services:
         if service.metadata.name == resource_name:
             return service
@@ -102,7 +107,9 @@ class TestWait:
 
 
 class TestWaitForStatus:
-    def __init__(self, resource_type, resource_name, status, obs_gap_waiting_time, time_out=600):
+    def __init__(
+        self, resource_type, resource_name, status, obs_gap_waiting_time, time_out=600
+    ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.status = status
@@ -151,16 +158,20 @@ class TestWaitForStatus:
 
     def run(self, mode):
         s = time.time()
-        print("wait until %s %s becomes %s..." %
-              (self.resource_type, self.resource_name, self.status))
+        print(
+            "wait until %s %s becomes %s..."
+            % (self.resource_type, self.resource_name, self.status)
+        )
         if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
             time.sleep(self.obs_gap_waiting_time)
             print("obs gap waiting time is reached")
         else:
             while True:
                 if time.time() - s > float(self.time_out):
-                    print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
-                          (self.resource_name, self.status, self.time_out))
+                    print(
+                        "[ERROR] waiting timeout: %s does not become %s within %d seconds"
+                        % (self.resource_name, self.status, self.time_out)
+                    )
                     os.system("kubectl describe pods")
                     return 1
                 if self.resource_type == common.POD:
@@ -177,7 +188,14 @@ class TestWaitForStatus:
 
 
 class TestWaitForStorage:
-    def __init__(self, resource_type, resource_name, storage_size, obs_gap_waiting_time, time_out=600):
+    def __init__(
+        self,
+        resource_type,
+        resource_name,
+        storage_size,
+        obs_gap_waiting_time,
+        time_out=600,
+    ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.storage_size = storage_size
@@ -190,22 +208,29 @@ class TestWaitForStorage:
         if sts is None:
             return False
         for volume_claim_template in sts.spec.volume_claim_templates:
-            if volume_claim_template.spec.resources.requests["storage"] == self.storage_size:
+            if (
+                volume_claim_template.spec.resources.requests["storage"]
+                == self.storage_size
+            ):
                 return True
         return True
 
     def run(self, mode):
         s = time.time()
-        print("wait until %s %s has storage size %s..." %
-              (self.resource_type, self.resource_name, self.storage_size))
+        print(
+            "wait until %s %s has storage size %s..."
+            % (self.resource_type, self.resource_name, self.storage_size)
+        )
         if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
             time.sleep(self.obs_gap_waiting_time)
             print("obs gap waiting time is reached")
         else:
             while True:
                 if time.time() - s > float(self.time_out):
-                    print("[ERROR] waiting timeout: %s does not have storage size %s within %d seconds" %
-                          (self.resource_name, self.storage_size, self.time_out))
+                    print(
+                        "[ERROR] waiting timeout: %s does not have storage size %s within %d seconds"
+                        % (self.resource_name, self.storage_size, self.time_out)
+                    )
                     return 1
                 if self.resource_type == common.STS:
                     if self.check_sts():
@@ -218,14 +243,21 @@ class TestWaitForStorage:
 
 
 class TestWaitForExistence:
-    def __init__(self, resource_type, resource_name, exist: bool, obs_gap_waiting_time, time_out=600):
-        '''Constructor
+    def __init__(
+        self,
+        resource_type,
+        resource_name,
+        exist: bool,
+        obs_gap_waiting_time,
+        time_out=600,
+    ):
+        """Constructor
 
         Parameters:
         resource_type -- type of resource, e.g. Secret, Service
         resource_name -- name of the resource
         exist -- True for waiting for the resource to exist, False to waiting for the resource to disappear
-        '''
+        """
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.exist = exist
@@ -268,16 +300,24 @@ class TestWaitForExistence:
 
     def run(self, mode):
         s = time.time()
-        print("wait until %s %s %s..." %
-              (self.resource_type, self.resource_name, "exist" if self.exist else "nonexist"))
+        print(
+            "wait until %s %s %s..."
+            % (
+                self.resource_type,
+                self.resource_name,
+                "exist" if self.exist else "nonexist",
+            )
+        )
         if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
             time.sleep(self.obs_gap_waiting_time)
             print("obs gap waiting time is reached")
         else:
             while True:
                 if time.time() - s > float(self.time_out):
-                    print("[ERROR] waiting timeout: %s does not become %s within %d seconds" %
-                          (self.resource_name, self.status, self.time_out))
+                    print(
+                        "[ERROR] waiting timeout: %s does not become %s within %d seconds"
+                        % (self.resource_name, self.status, self.time_out)
+                    )
                     os.system("kubectl describe pods")
                     return 1
                 if self.resource_type == common.SECRET:
@@ -304,31 +344,42 @@ class BuiltInWorkLoad:
 
     def wait_for_pod_status(self, pod_name, status, obs_gap_waiting_time=-1):
         test_wait = TestWaitForStatus(
-            common.POD, pod_name, status, obs_gap_waiting_time)
+            common.POD, pod_name, status, obs_gap_waiting_time
+        )
         self.work_list.append(test_wait)
         return self
 
     def wait_for_pvc_status(self, pvc_name, status, obs_gap_waiting_time=-1):
         test_wait = TestWaitForStatus(
-            common.PVC, pvc_name, status, obs_gap_waiting_time)
+            common.PVC, pvc_name, status, obs_gap_waiting_time
+        )
         self.work_list.append(test_wait)
         return self
 
-    def wait_for_secret_existence(self, secret_name, exist: bool, obs_gap_waiting_time=-1):
+    def wait_for_secret_existence(
+        self, secret_name, exist: bool, obs_gap_waiting_time=-1
+    ):
         test_wait = TestWaitForExistence(
-            common.SECRET, secret_name, exist, obs_gap_waiting_time)
+            common.SECRET, secret_name, exist, obs_gap_waiting_time
+        )
         self.work_list.append(test_wait)
         return self
 
-    def wait_for_service_existence(self, service_name, exist: bool, obs_gap_waiting_time=-1):
+    def wait_for_service_existence(
+        self, service_name, exist: bool, obs_gap_waiting_time=-1
+    ):
         test_wait = TestWaitForExistence(
-            common.SERVICE, service_name, exist, obs_gap_waiting_time)
+            common.SERVICE, service_name, exist, obs_gap_waiting_time
+        )
         self.work_list.append(test_wait)
         return self
 
-    def wait_for_sts_storage_size(self, sts_name, storage_size, obs_gap_waiting_time=-1):
+    def wait_for_sts_storage_size(
+        self, sts_name, storage_size, obs_gap_waiting_time=-1
+    ):
         test_wait = TestWaitForStorage(
-            common.STS, sts_name, storage_size, obs_gap_waiting_time)
+            common.STS, sts_name, storage_size, obs_gap_waiting_time
+        )
         self.work_list.append(test_wait)
         return self
 

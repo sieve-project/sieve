@@ -24,9 +24,9 @@ def evaluate_single(cmd, project, test_suite, mode):
     os.system(cmd)
     total_time = time.time() - s
     generated_config_dir = os.path.join(
-        "log", project, test_suite, "learn", mode, "analysis", "gen-" + mode)
-    num_configs = len(
-        glob.glob(os.path.join(generated_config_dir, "*.yaml")))
+        "log", project, test_suite, "learn", mode, "analysis", "gen-" + mode
+    )
+    num_configs = len(glob.glob(os.path.join(generated_config_dir, "*.yaml")))
     return total_time, num_configs
 
 
@@ -35,14 +35,14 @@ def evaluate(build):
     os.system("mkdir -p %s" % eva_dir)
     docker_repo_name = sieve_config.config["docker_repo"]
     if build:
-        os.system("python3 build.py -p kubernetes -m learn -d %s" %
-                  docker_repo_name)
+        os.system("python3 build.py -p kubernetes -m learn -d %s" % docker_repo_name)
     project_workload_map = controllers.test_suites
     f = open(os.path.join(eva_dir, "output.tsv"), "w")
     for project in project_workload_map.keys():
         if build:
-            os.system("python3 build.py -p %s -m learn -d %s" %
-                      (project, docker_repo_name))
+            os.system(
+                "python3 build.py -p %s -m learn -d %s" % (project, docker_repo_name)
+            )
         for test_suite in project_workload_map[project].keys():
             if project_workload_map[project][test_suite].mode != "time-travel":
                 continue
@@ -50,17 +50,34 @@ def evaluate(build):
                 continue
 
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn -r" % (
-                project, test_suite, docker_repo_name)
-            total_time_with_rl, num_configs_w_rl = evaluate_single(cmd, project, test_suite,
-                                                                   project_workload_map[project][test_suite].mode)
+                project,
+                test_suite,
+                docker_repo_name,
+            )
+            total_time_with_rl, num_configs_w_rl = evaluate_single(
+                cmd, project, test_suite, project_workload_map[project][test_suite].mode
+            )
 
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn" % (
-                project, test_suite, docker_repo_name)
-            total_time, num_configs = evaluate_single(cmd, project, test_suite,
-                                                      project_workload_map[project][test_suite].mode)
+                project,
+                test_suite,
+                docker_repo_name,
+            )
+            total_time, num_configs = evaluate_single(
+                cmd, project, test_suite, project_workload_map[project][test_suite].mode
+            )
 
-            f.write("%s\t%s\t%s\t%s\t%s\t%s\n" % (project, test_suite,
-                    total_time, num_configs, total_time_with_rl, num_configs_w_rl))
+            f.write(
+                "%s\t%s\t%s\t%s\t%s\t%s\n"
+                % (
+                    project,
+                    test_suite,
+                    total_time,
+                    num_configs,
+                    total_time_with_rl,
+                    num_configs_w_rl,
+                )
+            )
             f.flush()
     f.close()
 

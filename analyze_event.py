@@ -12,17 +12,23 @@ def find_previous_event(event, event_map):
             if i == 0:
                 return None, event_map[key][i]
             else:
-                return event_map[key][i-1], event_map[key][i]
+                return event_map[key][i - 1], event_map[key][i]
 
 
-def compress_event_object_for_list(prev_object, cur_object, slim_prev_object, slim_cur_object):
+def compress_event_object_for_list(
+    prev_object, cur_object, slim_prev_object, slim_cur_object
+):
     for i in range(min(len(cur_object), len(prev_object))):
         if str(cur_object[i]) != str(prev_object[i]):
             if isinstance(cur_object[i], dict):
                 if not isinstance(prev_object[i], dict):
                     continue
                 if compress_event_object(
-                        prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
+                    prev_object[i],
+                    cur_object[i],
+                    slim_prev_object[i],
+                    slim_cur_object[i],
+                ):
                     # SIEVE_SKIP means we can skip the value in list when later comparing to the events in testing run
                     slim_cur_object[i] = SIEVE_SKIP_MARKER
                     slim_prev_object[i] = SIEVE_SKIP_MARKER
@@ -30,7 +36,11 @@ def compress_event_object_for_list(prev_object, cur_object, slim_prev_object, sl
                 if not isinstance(prev_object[i], list):
                     continue
                 if compress_event_object_for_list(
-                        prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
+                    prev_object[i],
+                    cur_object[i],
+                    slim_prev_object[i],
+                    slim_cur_object[i],
+                ):
                     slim_cur_object[i] = SIEVE_SKIP_MARKER
                     slim_prev_object[i] = SIEVE_SKIP_MARKER
             else:
@@ -60,20 +70,27 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
                 if not isinstance(prev_object[key], dict):
                     continue
                 if compress_event_object(
-                        prev_object[key], cur_object[key], slim_prev_object[key], slim_cur_object[key]):
+                    prev_object[key],
+                    cur_object[key],
+                    slim_prev_object[key],
+                    slim_cur_object[key],
+                ):
                     to_del.append(key)
             elif isinstance(cur_object[key], list):
                 if not isinstance(prev_object[key], list):
                     continue
                 if compress_event_object_for_list(
-                        prev_object[key], cur_object[key], slim_prev_object[key], slim_cur_object[key]):
+                    prev_object[key],
+                    cur_object[key],
+                    slim_prev_object[key],
+                    slim_cur_object[key],
+                ):
                     to_del.append(key)
             else:
                 continue
         else:
             to_del.append(key)
-    sym_different_keys = set(
-        cur_object.keys()).symmetric_difference(prev_object.keys())
+    sym_different_keys = set(cur_object.keys()).symmetric_difference(prev_object.keys())
     for key in sym_different_keys:
         if key in BORING_EVENT_OBJECT_FIELDS:
             if key in cur_object.keys():
@@ -105,8 +122,7 @@ def diff_events(prev_event: Event, cur_event: Event):
     cur_object = cur_event.obj_map
     slim_prev_object = copy.deepcopy(prev_object)
     slim_cur_object = copy.deepcopy(cur_object)
-    compress_event_object(prev_object, cur_object,
-                          slim_prev_object, slim_cur_object)
+    compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_object)
     return slim_prev_object, slim_cur_object
 
 

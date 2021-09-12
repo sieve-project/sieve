@@ -1,4 +1,3 @@
-
 config = {
     "docker_repo": "xudongs",
     "namespace": "default",

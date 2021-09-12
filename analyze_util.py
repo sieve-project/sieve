@@ -17,8 +17,15 @@ SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
 
-BORING_EVENT_OBJECT_FIELDS = ["resourceVersion", "time",
-                              "managedFields", "lastTransitionTime", "generation", "annotations", "deletionGracePeriodSeconds"]
+BORING_EVENT_OBJECT_FIELDS = [
+    "resourceVersion",
+    "time",
+    "managedFields",
+    "lastTransitionTime",
+    "generation",
+    "annotations",
+    "deletionGracePeriodSeconds",
+]
 
 SIEVE_SKIP_MARKER = "SIEVE-SKIP"
 SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
@@ -220,7 +227,10 @@ class SideEffect:
         assert event.end_timestamp != -1
         assert self.range_start_timestamp < self.range_end_timestamp
         assert event.start_timestamp < event.end_timestamp
-        return self.range_start_timestamp < event.end_timestamp and self.range_end_timestamp > event.start_timestamp
+        return (
+            self.range_start_timestamp < event.end_timestamp
+            and self.range_end_timestamp > event.start_timestamp
+        )
 
     def interest_overlap(self, event: Event):
         return event.key in self.read_keys or event.rtype in self.read_types
@@ -293,33 +303,42 @@ class Reconcile:
 
 
 class EventsDataStructure:
-    def __init__(self, event_list: List[Event], event_key_map: Dict[str, Event], event_id_map: Dict[int, Event]):
+    def __init__(
+        self,
+        event_list: List[Event],
+        event_key_map: Dict[str, Event],
+        event_id_map: Dict[int, Event],
+    ):
         self.event_list = event_list
         self.event_key_map = event_key_map
         self.event_id_map = event_id_map
 
 
 class SideEffectsDataStructure:
-    def __init__(self, side_effect_list: List[SideEffect], side_effect_id_map: Dict[int, SideEffect]):
+    def __init__(
+        self,
+        side_effect_list: List[SideEffect],
+        side_effect_id_map: Dict[int, SideEffect],
+    ):
         self.side_effect_list = side_effect_list
         self.side_effect_id_map = side_effect_id_map
 
 
 def parse_event(line: str) -> Event:
     assert SIEVE_BEFORE_EVENT_MARK in line
-    tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK):].strip("\n").split("\t")
+    tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK) :].strip("\n").split("\t")
     return Event(tokens[1], tokens[2], tokens[3], tokens[4])
 
 
 def parse_side_effect(line: str) -> SideEffect:
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK)                  :].strip("\n").split("\t")
+    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
 def parse_cache_read(line: str) -> CacheRead:
     assert SIEVE_AFTER_READ_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_READ_MARK):].strip("\n").split("\t")
+    tokens = line[line.find(SIEVE_AFTER_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
         return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
     else:
@@ -331,34 +350,32 @@ def parse_cache_read(line: str) -> CacheRead:
 def parse_event_id_only(line: str) -> EventIDOnly:
     assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
     if SIEVE_AFTER_EVENT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK)                      :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK) :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK)                      :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK) :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
 
 
 def parse_side_effect_id_only(line: str) -> SideEffectIDOnly:
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line or SIEVE_BEFORE_SIDE_EFFECT_MARK in line
     if SIEVE_AFTER_SIDE_EFFECT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip(
-            "\n").split("\t")
+        tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
         return SideEffectIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_SIDE_EFFECT_MARK):].strip(
-            "\n").split("\t")
+        tokens = (
+            line[line.find(SIEVE_BEFORE_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
+        )
         return SideEffectIDOnly(tokens[1])
 
 
 def parse_reconcile(line: str) -> Reconcile:
     assert SIEVE_BEFORE_RECONCILE_MARK in line or SIEVE_AFTER_RECONCILE_MARK in line
     if SIEVE_BEFORE_RECONCILE_MARK in line:
-        tokens = line[line.find(SIEVE_BEFORE_RECONCILE_MARK):].strip(
-            "\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_RECONCILE_MARK) :].strip("\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
     else:
-        tokens = line[line.find(SIEVE_AFTER_RECONCILE_MARK):].strip(
-            "\n").split("\t")
+        tokens = line[line.find(SIEVE_AFTER_RECONCILE_MARK) :].strip("\n").split("\t")
         return Reconcile(tokens[1], tokens[2])
 
 
@@ -433,7 +450,8 @@ class CausalityGraph:
             assert edge.source.id in self.vertices
             assert edge.sink.id in self.vertices
             assert (edge.source.is_event() and edge.sink.is_side_effect()) or (
-                edge.sink.is_event() and edge.source.is_side_effect())
+                edge.sink.is_event() and edge.source.is_side_effect()
+            )
 
     def add_vertex(self, vertex: CausalityVertex):
         if vertex.id not in self.__vertices:

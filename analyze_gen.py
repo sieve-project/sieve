@@ -21,7 +21,9 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
     return candidate_edges
 
 
-def delete_then_recreate_filtering_pass(causality_edges: List[CausalityEdge], event_key_map):
+def delete_then_recreate_filtering_pass(
+    causality_edges: List[CausalityEdge], event_key_map
+):
     print("Running optional pass: delete-then-recreate-filtering ...")
     # this should only be applied to time travel mode
     candidate_edges = []
@@ -46,27 +48,47 @@ def delete_then_recreate_filtering_pass(causality_edges: List[CausalityEdge], ev
     return candidate_edges
 
 
-def time_travel_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str, timing="after"):
+def time_travel_analysis(
+    causality_graph: CausalityGraph,
+    events_data_structure: EventsDataStructure,
+    path: str,
+    project: str,
+    timing="after",
+):
     causality_edges = causality_graph.get_event_effect_edge_list()
     candidate_edges = delete_only_filtering_pass(causality_edges)
     candidate_edges = delete_then_recreate_filtering_pass(
-        candidate_edges, events_data_structure.event_key_map)
+        candidate_edges, events_data_structure.event_key_map
+    )
     generate_time_travel_yaml(
-        candidate_edges, path, project, events_data_structure.event_key_map, timing)
+        candidate_edges, path, project, events_data_structure.event_key_map, timing
+    )
 
 
-def obs_gap_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str):
+def obs_gap_analysis(
+    causality_graph: CausalityGraph,
+    events_data_structure: EventsDataStructure,
+    path: str,
+    project: str,
+):
     causality_edges = causality_graph.get_event_effect_edge_list()
     candidate_edges = causality_edges
     generate_obs_gap_yaml(
-        candidate_edges, path, project, events_data_structure.event_key_map)
+        candidate_edges, path, project, events_data_structure.event_key_map
+    )
 
 
-def atom_vio_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str):
+def atom_vio_analysis(
+    causality_graph: CausalityGraph,
+    events_data_structure: EventsDataStructure,
+    path: str,
+    project: str,
+):
     causality_edges = causality_graph.get_event_effect_edge_list()
     candidate_edges = causality_edges
     generate_atom_vio_yaml(
-        candidate_edges, path, project, events_data_structure.event_key_map)
+        candidate_edges, path, project, events_data_structure.event_key_map
+    )
 
 
 def generate_time_travel_yaml(causality_edges, path, project, event_key_map, timing):
@@ -87,12 +109,10 @@ def generate_time_travel_yaml(causality_edges, path, project, event_key_map, tim
         assert isinstance(event, Event)
         assert isinstance(side_effect, SideEffect)
 
-        prev_event, cur_event = analyze_event.find_previous_event(
-            event, event_key_map)
+        prev_event, cur_event = analyze_event.find_previous_event(event, event_key_map)
         if prev_event is None:
             continue
-        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(
-            prev_event, cur_event)
+        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
@@ -101,9 +121,11 @@ def generate_time_travel_yaml(causality_edges, path, project, event_key_map, tim
         yaml_map["ce-rtype"] = event.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj)))
+            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
+        )
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj)))
+            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj))
+        )
         yaml_map["ce-etype-current"] = cur_event.etype
         yaml_map["ce-etype-previous"] = prev_event.etype
 
@@ -113,8 +135,14 @@ def generate_time_travel_yaml(causality_edges, path, project, event_key_map, tim
         yaml_map["se-etype"] = "ADDED" if side_effect.etype == "Delete" else "DELETED"
 
         i += 1
-        yaml.dump(yaml_map, open(
-            os.path.join(path, "time-travel-config-%s%s.yaml" % (str(i), suffix)), "w"), sort_keys=False)
+        yaml.dump(
+            yaml_map,
+            open(
+                os.path.join(path, "time-travel-config-%s%s.yaml" % (str(i), suffix)),
+                "w",
+            ),
+            sort_keys=False,
+        )
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
@@ -137,12 +165,10 @@ def generate_obs_gap_yaml(causality_edges, path, project, event_key_map):
         else:
             continue
 
-        prev_event, cur_event = analyze_event.find_previous_event(
-            event, event_key_map)
+        prev_event, cur_event = analyze_event.find_previous_event(event, event_key_map)
         if prev_event is None:
             continue
-        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(
-            prev_event, cur_event)
+        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
@@ -151,15 +177,20 @@ def generate_obs_gap_yaml(causality_edges, path, project, event_key_map):
         yaml_map["ce-rtype"] = event.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj)))
+            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
+        )
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj)))
+            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj))
+        )
         yaml_map["ce-etype-current"] = cur_event.etype
         yaml_map["ce-etype-previous"] = prev_event.etype
 
         i += 1
-        yaml.dump(yaml_map, open(
-            os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
+        yaml.dump(
+            yaml_map,
+            open(os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"),
+            sort_keys=False,
+        )
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
 
@@ -178,12 +209,10 @@ def generate_atom_vio_yaml(causality_edges, path, project, event_key_map):
         assert isinstance(event, Event)
         assert isinstance(side_effect, SideEffect)
 
-        prev_event, cur_event = analyze_event.find_previous_event(
-            event, event_key_map)
+        prev_event, cur_event = analyze_event.find_previous_event(event, event_key_map)
         if prev_event is None:
             continue
-        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(
-            prev_event, cur_event)
+        slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
@@ -192,9 +221,11 @@ def generate_atom_vio_yaml(causality_edges, path, project, event_key_map):
         yaml_map["ce-rtype"] = event.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj)))
+            analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
+        )
         yaml_map["ce-diff-previous"] = json.dumps(
-            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj)))
+            analyze_event.canonicalize_event(copy.deepcopy(slim_prev_obj))
+        )
         yaml_map["ce-etype-current"] = cur_event.etype
         yaml_map["ce-etype-previous"] = prev_event.etype
 
@@ -206,6 +237,9 @@ def generate_atom_vio_yaml(causality_edges, path, project, event_key_map):
         # TODO: should find a way to determine crash location
         yaml_map["crash-location"] = "before"
         i += 1
-        yaml.dump(yaml_map, open(
-            os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"), sort_keys=False)
+        yaml.dump(
+            yaml_map,
+            open(os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"),
+            sort_keys=False,
+        )
     print("Generated %d atomic config(s) in %s" % (i, path))

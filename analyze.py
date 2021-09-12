@@ -47,7 +47,9 @@ def sanity_check_sieve_log(path):
     for key in event_status:
         assert event_status[key] == 1 or event_status[key] == 2
     for key in reconcile_status:
-        assert reconcile_status[reconcile_id] == 0 or reconcile_status[reconcile_id] == 1
+        assert (
+            reconcile_status[reconcile_id] == 0 or reconcile_status[reconcile_id] == 1
+        )
 
 
 def parse_events(path):
@@ -150,11 +152,16 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             if controller_name not in cur_reconcile_start_timestamp:
                 cur_reconcile_start_timestamp[controller_name] = -1
                 cur_reconcile_is_trivial[controller_name] = False
-            if (not compress_trivial_reconcile) or (compress_trivial_reconcile and not cur_reconcile_is_trivial[controller_name]):
+            if (not compress_trivial_reconcile) or (
+                compress_trivial_reconcile
+                and not cur_reconcile_is_trivial[controller_name]
+            ):
                 # When compress_trivial_reconcile is disabled, we directly set prev_reconcile_start_timestamp
                 # When compress_trivial_reconcile is enabled, we do not set prev_reconcile_start_timestamp
                 # if no side effects happen during the last reconcile
-                prev_reconcile_start_timestamp[controller_name] = cur_reconcile_start_timestamp[controller_name]
+                prev_reconcile_start_timestamp[
+                    controller_name
+                ] = cur_reconcile_start_timestamp[controller_name]
             cur_reconcile_start_timestamp[controller_name] = i
             # Reset cur_reconcile_is_trivial[controller_name] to True as a new round of reconcile just starts
             cur_reconcile_is_trivial[controller_name] = True
@@ -179,16 +186,19 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
 
 def extract_events_and_effects(path, compress_trivial_reconcile):
     event_list, event_key_map, event_id_map = parse_events(path)
-    events_data_structure = EventsDataStructure(
-        event_list, event_key_map, event_id_map)
+    events_data_structure = EventsDataStructure(event_list, event_key_map, event_id_map)
     side_effect_list, side_effect_id_map = parse_side_effects(
-        path, compress_trivial_reconcile)
+        path, compress_trivial_reconcile
+    )
     side_effects_data_structure = SideEffectsDataStructure(
-        side_effect_list, side_effect_id_map)
+        side_effect_list, side_effect_id_map
+    )
     return events_data_structure, side_effects_data_structure
 
 
-def base_pass(event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex]):
+def base_pass(
+    event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex]
+):
     print("Running base pass ...")
     vertex_pairs = []
     for side_effect_vertex in side_effect_vertices:
@@ -207,8 +217,7 @@ def write_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]])
         side_effect_vertex = pair[1]
         if side_effect_vertex.content.interest_overlap(event_vertex.content):
             pruned_vertex_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" %
-          (len(vertex_pairs), len(pruned_vertex_pairs)))
+    print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
@@ -219,43 +228,53 @@ def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
         side_effect_vertex = pair[1]
         if side_effect_vertex.content.error in ALLOWED_ERROR_TYPE:
             pruned_vertex_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" %
-          (len(vertex_pairs), len(pruned_vertex_pairs)))
+    print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
-def generate_event_effect_edges(event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex]):
+def generate_event_effect_edges(
+    event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex]
+):
     edges = []
     vertex_pairs = base_pass(event_vertices, side_effect_vertices)
     if ERROR_MSG_FILTER_FLAG:
-        vertex_pairs = error_msg_filtering_pass(
-            vertex_pairs)
+        vertex_pairs = error_msg_filtering_pass(vertex_pairs)
     if WRITE_READ_FILTER_FLAG:
-        vertex_pairs = write_read_overlap_filtering_pass(
-            vertex_pairs)
+        vertex_pairs = write_read_overlap_filtering_pass(vertex_pairs)
     for pair in vertex_pairs:
-        edges.append(CausalityEdge(
-            pair[0], pair[1], INTER_THREAD_EDGE))
+        edges.append(CausalityEdge(pair[0], pair[1], INTER_THREAD_EDGE))
     return edges
 
 
-def generate_effect_event_edges(event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex], event_key_map):
+def generate_effect_event_edges(
+    event_vertices: List[CausalityVertex],
+    side_effect_vertices: List[CausalityVertex],
+    event_key_map,
+):
     edges = []
     vertex_pairs = []
     for side_effect_vertex in side_effect_vertices:
         if side_effect_vertex.content.key in event_key_map:
             for event_vertex in event_vertices:
-                if event_vertex.content.obj_str == side_effect_vertex.content.obj_str and side_effect_vertex.content.start_timestamp < event_vertex.content.start_timestamp and consistent_type(event_vertex.content.etype, side_effect_vertex.content.etype):
-                    vertex_pairs.append(
-                        [side_effect_vertex, event_vertex])
+                if (
+                    event_vertex.content.obj_str == side_effect_vertex.content.obj_str
+                    and side_effect_vertex.content.start_timestamp
+                    < event_vertex.content.start_timestamp
+                    and consistent_type(
+                        event_vertex.content.etype, side_effect_vertex.content.etype
+                    )
+                ):
+                    vertex_pairs.append([side_effect_vertex, event_vertex])
                     break
     for pair in vertex_pairs:
-        edges.append(CausalityEdge(
-            pair[0], pair[1], INTER_THREAD_EDGE))
+        edges.append(CausalityEdge(pair[0], pair[1], INTER_THREAD_EDGE))
     return edges
 
 
-def build_causality_graph(events_data_structure: EventsDataStructure, side_effects_data_structure: SideEffectsDataStructure):
+def build_causality_graph(
+    events_data_structure: EventsDataStructure,
+    side_effects_data_structure: SideEffectsDataStructure,
+):
     causality_graph = CausalityGraph()
     for event in events_data_structure.event_list:
         causality_graph.add_vertex(CausalityVertex(event))
@@ -266,9 +285,11 @@ def build_causality_graph(events_data_structure: EventsDataStructure, side_effec
     side_effect_vertices = causality_graph.get_side_effect_vertex_list()
 
     event_effect_edges = generate_event_effect_edges(
-        event_vertices, side_effect_vertices)
+        event_vertices, side_effect_vertices
+    )
     effect_event_edges = generate_effect_event_edges(
-        event_vertices, side_effect_vertices, events_data_structure.event_key_map)
+        event_vertices, side_effect_vertices, events_data_structure.event_key_map
+    )
 
     for edge in event_effect_edges:
         causality_graph.add_edge(edge)
@@ -281,51 +302,80 @@ def build_causality_graph(events_data_structure: EventsDataStructure, side_effec
     return causality_graph
 
 
-def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_graph, events_data_structure):
-    generated_config_dir = os.path.join(
-        log_dir, analysis_mode)
+def generate_test_config(
+    analysis_mode, project, log_dir, two_sided, causality_graph, events_data_structure
+):
+    generated_config_dir = os.path.join(log_dir, analysis_mode)
     if os.path.isdir(generated_config_dir):
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
         analyze_gen.time_travel_analysis(
-            causality_graph, events_data_structure, generated_config_dir, project)
+            causality_graph, events_data_structure, generated_config_dir, project
+        )
         if two_sided:
             analyze_gen.time_travel_analysis(
-                causality_graph, events_data_structure, generated_config_dir, project, "before")
+                causality_graph,
+                events_data_structure,
+                generated_config_dir,
+                project,
+                "before",
+            )
     elif analysis_mode == sieve_modes.OBS_GAP:
         analyze_gen.obs_gap_analysis(
-            causality_graph, events_data_structure, generated_config_dir, project)
+            causality_graph, events_data_structure, generated_config_dir, project
+        )
     elif analysis_mode == sieve_modes.ATOM_VIO:
         analyze_gen.atom_vio_analysis(
-            causality_graph, events_data_structure, generated_config_dir, project)
+            causality_graph, events_data_structure, generated_config_dir, project
+        )
 
 
-def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, two_sided=False, use_sql=False, compress_trivial_reconcile=True):
-    print("generate-oracle feature is %s" %
-          ("enabled" if generate_oracle else "disabled"))
-    print("generate-config feature is %s" %
-          ("enabled" if generate_config else "disabled"))
+def analyze_trace(
+    project,
+    log_dir,
+    generate_oracle=True,
+    generate_config=True,
+    two_sided=False,
+    use_sql=False,
+    compress_trivial_reconcile=True,
+):
+    print(
+        "generate-oracle feature is %s" % ("enabled" if generate_oracle else "disabled")
+    )
+    print(
+        "generate-config feature is %s" % ("enabled" if generate_config else "disabled")
+    )
     if not generate_config:
         two_sided = False
         use_sql = False
-    print("two-sided feature is %s" %
-          ("enabled" if two_sided else "disabled"))
-    print("use-sql feature is %s" %
-          ("enabled" if use_sql else "disabled"))
+    print("two-sided feature is %s" % ("enabled" if two_sided else "disabled"))
+    print("use-sql feature is %s" % ("enabled" if use_sql else "disabled"))
 
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s ..." % log_path)
     sanity_check_sieve_log(log_path)
     events_data_structure, side_effects_data_structure = extract_events_and_effects(
-        log_path, compress_trivial_reconcile)
+        log_path, compress_trivial_reconcile
+    )
     causality_graph = build_causality_graph(
-        events_data_structure, side_effects_data_structure)
+        events_data_structure, side_effects_data_structure
+    )
 
     if generate_config:
-        for analysis_mode in [sieve_modes.TIME_TRAVEL, sieve_modes.OBS_GAP, sieve_modes.ATOM_VIO]:
-            generate_test_config(analysis_mode, project, log_dir,
-                                 two_sided, causality_graph, events_data_structure)
+        for analysis_mode in [
+            sieve_modes.TIME_TRAVEL,
+            sieve_modes.OBS_GAP,
+            sieve_modes.ATOM_VIO,
+        ]:
+            generate_test_config(
+                analysis_mode,
+                project,
+                log_dir,
+                two_sided,
+                causality_graph,
+                events_data_structure,
+            )
 
     if generate_oracle:
         oracle.generate_test_oracle(log_dir)
@@ -334,16 +384,34 @@ def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, 
 if __name__ == "__main__":
     usage = "usage: python3 analyze.py [options]"
     parser = optparse.OptionParser(usage=usage)
-    parser.add_option("-p", "--project", dest="project",
-                      help="specify PROJECT", metavar="PROJECT", default="cassandra-operator")
-    parser.add_option("-t", "--test", dest="test",
-                      help="specify TEST to run", metavar="TEST", default="recreate")
+    parser.add_option(
+        "-p",
+        "--project",
+        dest="project",
+        help="specify PROJECT",
+        metavar="PROJECT",
+        default="cassandra-operator",
+    )
+    parser.add_option(
+        "-t",
+        "--test",
+        dest="test",
+        help="specify TEST to run",
+        metavar="TEST",
+        default="recreate",
+    )
     (options, args) = parser.parse_args()
     project = options.project
     test = options.test
-    print("Analyzing controller trace for %s's test workload %s ..." %
-          (project, test))
+    print("Analyzing controller trace for %s's test workload %s ..." % (project, test))
     # hardcoded to time travel config only for now
     dir = os.path.join("log", project, test, "learn", "learn")
-    analyze_trace(project, dir, generate_oracle=False,
-                  generate_config=True, two_sided=False, use_sql=False, compress_trivial_reconcile=True)
+    analyze_trace(
+        project,
+        dir,
+        generate_oracle=False,
+        generate_config=True,
+        two_sided=False,
+        use_sql=False,
+        compress_trivial_reconcile=True,
+    )

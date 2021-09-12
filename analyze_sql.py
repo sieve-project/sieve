@@ -32,7 +32,8 @@ def create_sqlite_db():
 
     # TODO: SQlite3 does not type check by default, but
     # tighten the column types later
-    conn.execute('''
+    conn.execute(
+        """
         create table events
         (
            id integer not null primary key,
@@ -46,8 +47,10 @@ def create_sqlite_db():
            event_cache_update_time integer not null,
            fully_qualified_name text not null
         )
-    ''')
-    conn.execute('''
+    """
+    )
+    conn.execute(
+        """
         create table side_effects
         (
            id integer not null primary key,
@@ -64,7 +67,8 @@ def create_sqlite_db():
            end_timestamp integer not null,
            owner_controllers text not null
         )
-    ''')
+    """
+    )
     return conn
 
 
@@ -72,8 +76,21 @@ def record_event_list_in_sqlite(event_list, conn):
     for e in event_list:
         json_form = json.dumps(e.obj)
         # Skip the first column: Sqlite will use an auto-incrementing ID
-        conn.execute("insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                     (None, e.id, e.etype, e.rtype, json_form, e.namespace, e.name, e.start_timestamp, e.end_timestamp, e.key))
+        conn.execute(
+            "insert into events values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                None,
+                e.id,
+                e.etype,
+                e.rtype,
+                json_form,
+                e.namespace,
+                e.name,
+                e.start_timestamp,
+                e.end_timestamp,
+                e.key,
+            ),
+        )
     conn.commit()
 
 
@@ -83,15 +100,34 @@ def record_side_effect_list_in_sqlite(side_effect_list, conn):
         json_read_keys = json.dumps(list(e.read_keys))
         json_owner_controllers = json.dumps(list(e.owner_controllers))
         # Skip the first column: Sqlite will use an auto-incrementing ID
-        conn.execute("insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                     (None, e.id, e.etype, e.rtype, e.namespace, e.name, e.error, json_read_types, json_read_keys, e.range_start_timestamp, e.range_end_timestamp, e.end_timestamp, json_owner_controllers))
+        conn.execute(
+            "insert into side_effects values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                None,
+                e.id,
+                e.etype,
+                e.rtype,
+                e.namespace,
+                e.name,
+                e.error,
+                json_read_types,
+                json_read_keys,
+                e.range_start_timestamp,
+                e.range_end_timestamp,
+                e.end_timestamp,
+                json_owner_controllers,
+            ),
+        )
     conn.commit()
 
 
 def passes_as_sql_query(analysis_mode):
     query = SQL_BASE_PASS_QUERY
     first_optional_pass = True
-    if analyze_util.DELETE_ONLY_FILTER_FLAG and analysis_mode == sieve_modes.TIME_TRAVEL:
+    if (
+        analyze_util.DELETE_ONLY_FILTER_FLAG
+        and analysis_mode == sieve_modes.TIME_TRAVEL
+    ):
         query += " where " if first_optional_pass else " and "
         query += SQL_DELETE_ONLY_FILTER
         first_optional_pass = False

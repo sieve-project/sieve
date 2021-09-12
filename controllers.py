@@ -54,73 +54,165 @@ test_dir_test = {
 test_suites = {
     "cassandra-operator": {
         "scaledown": Suite(
-            workloads.workloads["cassandra-operator"]["scaledown"], "test-cassandra-operator/test/obs-gap-1.yaml", sieve_modes.OBS_GAP),
+            workloads.workloads["cassandra-operator"]["scaledown"],
+            "test-cassandra-operator/test/obs-gap-1.yaml",
+            sieve_modes.OBS_GAP,
+        ),
         "recreate": Suite(
-            workloads.workloads["cassandra-operator"]["recreate"], "test-cassandra-operator/test/time-travel-1.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["cassandra-operator"]["recreate"],
+            "test-cassandra-operator/test/time-travel-1.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "scaledown-scaleup": Suite(
-            workloads.workloads["cassandra-operator"]["scaledown-scaleup"], "test-cassandra-operator/test/time-travel-2.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["cassandra-operator"]["scaledown-scaleup"],
+            "test-cassandra-operator/test/time-travel-2.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
     },
     "zookeeper-operator": {
         "recreate": Suite(
-            workloads.workloads["zookeeper-operator"]["recreate"], "test-zookeeper-operator/test/time-travel-1.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["zookeeper-operator"]["recreate"],
+            "test-zookeeper-operator/test/time-travel-1.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "scaledown-scaleup": Suite(
-            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"], "test-zookeeper-operator/test/time-travel-2.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"],
+            "test-zookeeper-operator/test/time-travel-2.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "scaledown-scaleup-obs": Suite(
-            workloads.workloads["zookeeper-operator"]["scaledown-scaleup-obs"], "test-zookeeper-operator/test/obs-gap-1.yaml", sieve_modes.OBS_GAP),
+            workloads.workloads["zookeeper-operator"]["scaledown-scaleup-obs"],
+            "test-zookeeper-operator/test/obs-gap-1.yaml",
+            sieve_modes.OBS_GAP,
+        ),
     },
     "rabbitmq-operator": {
         "recreate": Suite(
-            workloads.workloads["rabbitmq-operator"]["recreate"], "test-rabbitmq-operator/test/time-travel-1.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["rabbitmq-operator"]["recreate"],
+            "test-rabbitmq-operator/test/time-travel-1.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "resize-pvc": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc"], "test-rabbitmq-operator/test/time-travel-2.yaml", sieve_modes.TIME_TRAVEL, two_sided=True),
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
+            "test-rabbitmq-operator/test/time-travel-2.yaml",
+            sieve_modes.TIME_TRAVEL,
+            two_sided=True,
+        ),
         "scaleup-scaledown": Suite(
-            workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"], "test-rabbitmq-operator/test/obs-gap-1.yaml", sieve_modes.OBS_GAP),
+            workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
+            "test-rabbitmq-operator/test/obs-gap-1.yaml",
+            sieve_modes.OBS_GAP,
+        ),
         "resize-pvc-atomic": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"], "test-rabbitmq-operator/test/atomic-1.yaml", sieve_modes.ATOM_VIO, pvc_resize=True)
+            workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"],
+            "test-rabbitmq-operator/test/atomic-1.yaml",
+            sieve_modes.ATOM_VIO,
+            pvc_resize=True,
+        ),
     },
     "mongodb-operator": {
         "recreate": Suite(
-            workloads.workloads["mongodb-operator"]["recreate"], "test-mongodb-operator/test/time-travel-1.yaml", sieve_modes.TIME_TRAVEL, num_workers=3),
+            workloads.workloads["mongodb-operator"]["recreate"],
+            "test-mongodb-operator/test/time-travel-1.yaml",
+            sieve_modes.TIME_TRAVEL,
+            num_workers=3,
+        ),
         "disable-enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-shard"], "test-mongodb-operator/test/time-travel-2.yaml", sieve_modes.TIME_TRAVEL, num_workers=3),
+            workloads.workloads["mongodb-operator"]["disable-enable-shard"],
+            "test-mongodb-operator/test/time-travel-2.yaml",
+            sieve_modes.TIME_TRAVEL,
+            num_workers=3,
+        ),
         "disable-enable-arbiter": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"], "test-mongodb-operator/test/time-travel-3.yaml", sieve_modes.TIME_TRAVEL, num_workers=5),
+            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"],
+            "test-mongodb-operator/test/time-travel-3.yaml",
+            sieve_modes.TIME_TRAVEL,
+            num_workers=5,
+        ),
     },
     "cass-operator": {
         "recreate": Suite(
-            workloads.workloads["cass-operator"]["recreate"], "test-cass-operator/test/time-travel-1.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["cass-operator"]["recreate"],
+            "test-cass-operator/test/time-travel-1.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
     },
     "casskop-operator": {
         "recreate": Suite(
-            workloads.workloads["casskop-operator"]["recreate"], "test-casskop-operator/test/time-travel-1.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["casskop-operator"]["recreate"],
+            "test-casskop-operator/test/time-travel-1.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "reducepdb": Suite(
-            workloads.workloads["casskop-operator"]["reducepdb"], "test-casskop-operator/test/time-travel-2.yaml", sieve_modes.TIME_TRAVEL, two_sided=True),
+            workloads.workloads["casskop-operator"]["reducepdb"],
+            "test-casskop-operator/test/time-travel-2.yaml",
+            sieve_modes.TIME_TRAVEL,
+            two_sided=True,
+        ),
         "nodesperrack": Suite(
-            workloads.workloads["casskop-operator"]["nodesperrack"], "test-casskop-operator/test/obs-gap-1.yaml", sieve_modes.OBS_GAP),
+            workloads.workloads["casskop-operator"]["nodesperrack"],
+            "test-casskop-operator/test/obs-gap-1.yaml",
+            sieve_modes.OBS_GAP,
+        ),
         "scaledown-obs-gap": Suite(
-            workloads.workloads["casskop-operator"]["scaledown"], "test-casskop-operator/test/obs-gap-2.yaml", sieve_modes.OBS_GAP),
+            workloads.workloads["casskop-operator"]["scaledown"],
+            "test-casskop-operator/test/obs-gap-2.yaml",
+            sieve_modes.OBS_GAP,
+        ),
     },
     "xtradb-operator": {
         "recreate": Suite(
-            workloads.workloads["xtradb-operator"]["recreate"], "test-xtradb-operator/test/time-travel-1.yaml", sieve_modes.TIME_TRAVEL, num_workers=4),
+            workloads.workloads["xtradb-operator"]["recreate"],
+            "test-xtradb-operator/test/time-travel-1.yaml",
+            sieve_modes.TIME_TRAVEL,
+            num_workers=4,
+        ),
         "disable-enable-haproxy": Suite(
-            workloads.workloads["xtradb-operator"]["disable-enable-haproxy"], "test-xtradb-operator/test/time-travel-2.yaml", sieve_modes.TIME_TRAVEL, num_workers=4),
+            workloads.workloads["xtradb-operator"]["disable-enable-haproxy"],
+            "test-xtradb-operator/test/time-travel-2.yaml",
+            sieve_modes.TIME_TRAVEL,
+            num_workers=4,
+        ),
         "disable-enable-proxysql": Suite(
-            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"], "test-xtradb-operator/test/time-travel-3.yaml", sieve_modes.TIME_TRAVEL, num_workers=4),
+            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"],
+            "test-xtradb-operator/test/time-travel-3.yaml",
+            sieve_modes.TIME_TRAVEL,
+            num_workers=4,
+        ),
     },
     "yugabyte-operator": {
         "recreate": Suite(
-            workloads.workloads["yugabyte-operator"]["recreate"], "null", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["yugabyte-operator"]["recreate"],
+            "null",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "disable-enable-tls": Suite(
-            workloads.workloads["yugabyte-operator"]["disable-enable-tls"], "test-yugabyte-operator/test/time-travel-tls.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["yugabyte-operator"]["disable-enable-tls"],
+            "test-yugabyte-operator/test/time-travel-tls.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "disable-enable-tserverUIPort": Suite(
-            workloads.workloads["yugabyte-operator"]["disable-enable-tserverUIPort"], "test-yugabyte-operator/test/time-travel-tserverUIPort.yaml", sieve_modes.TIME_TRAVEL),
+            workloads.workloads["yugabyte-operator"]["disable-enable-tserverUIPort"],
+            "test-yugabyte-operator/test/time-travel-tserverUIPort.yaml",
+            sieve_modes.TIME_TRAVEL,
+        ),
         "scaleup-scaledown-tserver": Suite(
-            workloads.workloads["yugabyte-operator"]["scaleup-scaledown-tserver"], "test-yugabyte-operator/test/obs-gap-config-1.yaml", sieve_modes.OBS_GAP)
+            workloads.workloads["yugabyte-operator"]["scaleup-scaledown-tserver"],
+            "test-yugabyte-operator/test/obs-gap-config-1.yaml",
+            sieve_modes.OBS_GAP,
+        ),
     },
     "nifikop-operator": {
         "change-config": Suite(
-            workloads.workloads["nifikop-operator"]["change-config"], "test-nifikop-operator/test/atomic-1.yaml", sieve_modes.ATOM_VIO, oracle_config={"interest_objects": [{"rtype": "pod", "namespace": "default", "name": "simplenifi-1.*"}], "effect_to_check": ["Create"]}
+            workloads.workloads["nifikop-operator"]["change-config"],
+            "test-nifikop-operator/test/atomic-1.yaml",
+            sieve_modes.ATOM_VIO,
+            oracle_config={
+                "interest_objects": [
+                    {"rtype": "pod", "namespace": "default", "name": "simplenifi-1.*"}
+                ],
+                "effect_to_check": ["Create"],
+            },
         ),
     },
 }
@@ -128,13 +220,26 @@ test_suites = {
 # This should be all lower case
 # TODO: we should make the CRD checking in learn client case insensitive
 CRDs = {
-    "cassandra-operator": ["cassandradatacenter", "cassandracluster", "cassandrabackup"],
+    "cassandra-operator": [
+        "cassandradatacenter",
+        "cassandracluster",
+        "cassandrabackup",
+    ],
     "zookeeper-operator": ["zookeepercluster"],
     "rabbitmq-operator": ["rabbitmqcluster"],
-    "mongodb-operator": ["perconaservermongodb", "perconaservermongodbbackup", "perconaservermongodbrestore"],
+    "mongodb-operator": [
+        "perconaservermongodb",
+        "perconaservermongodbbackup",
+        "perconaservermongodbrestore",
+    ],
     "cass-operator": ["cassandradatacenter"],
     "casskop-operator": ["cassandracluster", "cassandrarestore", "cassandrabackup"],
-    "xtradb-operator": ["perconaxtradbcluster", "perconaxtradbclusterbackup", "perconaxtradbclusterrestore", "perconaxtradbbackup"],
+    "xtradb-operator": [
+        "perconaxtradbcluster",
+        "perconaxtradbclusterbackup",
+        "perconaxtradbclusterrestore",
+        "perconaxtradbbackup",
+    ],
     "yugabyte-operator": ["ybcluster"],
     "nifikop-operator": ["nificluster"],
 }
@@ -213,7 +318,7 @@ docker_file = {
 
 
 def make_safe_filename(filename):
-    return re.sub(r'[^\w\d-]', '_', filename)
+    return re.sub(r"[^\w\d-]", "_", filename)
 
 
 def replace_docker_repo(path, dr, dt):
@@ -222,8 +327,8 @@ def replace_docker_repo(path, dr, dt):
     data = data.replace("${SIEVE-DR}", dr)
     data = data.replace("${SIEVE-DT}", dt)
     fin.close()
-    tokens = path.rsplit('.', 1)
-    new_path = tokens[0] + "-" + make_safe_filename(dr) + '.' + tokens[1]
+    tokens = path.rsplit(".", 1)
+    new_path = tokens[0] + "-" + make_safe_filename(dr) + "." + tokens[1]
     fin = open(new_path, "w")
     fin.write(data)
     fin.close()
@@ -231,42 +336,40 @@ def replace_docker_repo(path, dr, dt):
 
 
 def cassandra_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "test-cassandra-operator/deploy/bundle.yaml", dr, dt)
+    new_path = replace_docker_repo("test-cassandra-operator/deploy/bundle.yaml", dr, dt)
     os.system("kubectl apply -f test-cassandra-operator/deploy/crds.yaml")
-    os.system(
-        "kubectl apply -f %s" % new_path)
+    os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def zookeeper_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-zookeeper-operator/deploy/default_ns/operator.yaml", dr, dt)
+        "test-zookeeper-operator/deploy/default_ns/operator.yaml", dr, dt
+    )
     os.system("kubectl create -f test-zookeeper-operator/deploy/crds")
-    os.system(
-        "kubectl create -f test-zookeeper-operator/deploy/default_ns/rbac.yaml")
-    os.system(
-        "kubectl create -f %s" % new_path)
+    os.system("kubectl create -f test-zookeeper-operator/deploy/default_ns/rbac.yaml")
+    os.system("kubectl create -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def rabbitmq_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt)
+        "test-rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt
+    )
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def mongodb_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "test-mongodb-operator/deploy/bundle.yaml", dr, dt)
+    new_path = replace_docker_repo("test-mongodb-operator/deploy/bundle.yaml", dr, dt)
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def cass_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-cass-operator/deploy/controller-manifest.yaml", dr, dt)
+        "test-cass-operator/deploy/controller-manifest.yaml", dr, dt
+    )
     os.system("kubectl apply -f %s" % new_path)
     os.system("kubectl apply -f test-cass-operator/deploy/storageClass.yaml")
     os.system("rm %s" % new_path)
@@ -274,37 +377,38 @@ def cass_operator_deploy(dr, dt):
 
 def casskop_operator_deploy(dr, dt):
     # Using helm
-    new_path = replace_docker_repo(
-        "test-casskop-operator/deploy/values.yaml", dr, dt)
+    new_path = replace_docker_repo("test-casskop-operator/deploy/values.yaml", dr, dt)
     os.system(
-        "helm install -f %s casskop-operator test-casskop-operator/deploy" % (new_path))
+        "helm install -f %s casskop-operator test-casskop-operator/deploy" % (new_path)
+    )
 
 
 def xtradb_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "test-xtradb-operator/deploy/bundle.yaml", dr, dt)
+    new_path = replace_docker_repo("test-xtradb-operator/deploy/bundle.yaml", dr, dt)
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def yugabyte_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-yugabyte-operator/deploy/operator.yaml", dr, dt)
+        "test-yugabyte-operator/deploy/operator.yaml", dr, dt
+    )
     os.system("cp %s .." % new_path)
     os.system(
-        "kubectl create -f test-yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml")
+        "kubectl create -f test-yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
+    )
     os.system("kubectl create -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def nifikop_operator_deploy(dr, dt):
     # Using helm
-    new_path = replace_docker_repo(
-        "test-nifikop-operator/deploy/values.yaml", dr, dt)
+    new_path = replace_docker_repo("test-nifikop-operator/deploy/values.yaml", dr, dt)
     os.system("kubectl apply -f test-nifikop-operator/deploy/role.yaml")
     os.system("test-nifikop-operator/deploy/zk.sh")
     os.system(
-        "helm install -f %s nifikop-operator test-nifikop-operator/deploy" % (new_path))
+        "helm install -f %s nifikop-operator test-nifikop-operator/deploy" % (new_path)
+    )
     os.system("rm %s" % (new_path))
 
 

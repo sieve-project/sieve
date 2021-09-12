@@ -36,15 +36,15 @@ class sieve_modes:
 
 
 class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 def warn(message):
@@ -64,7 +64,17 @@ def cprint(message, color):
 
 
 class Suite:
-    def __init__(self, workload, config, mode, two_sided=False, num_apiservers=1, num_workers=2, pvc_resize=False, oracle_config={}):
+    def __init__(
+        self,
+        workload,
+        config,
+        mode,
+        two_sided=False,
+        num_apiservers=1,
+        num_workers=2,
+        pvc_resize=False,
+        oracle_config={},
+    ):
         self.workload = workload
         self.config = config
         self.mode = mode
