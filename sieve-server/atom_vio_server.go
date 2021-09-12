@@ -135,7 +135,7 @@ func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAto
 
 func (s *atomVioServer) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtomVioBeforeSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, namespace, name, request.Object)
+	log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, request.Object)
 	if s.crashLocation == "before" && s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
 		// we should restart operator here
 		s.restarted = true
@@ -149,7 +149,7 @@ func (s *atomVioServer) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtom
 
 func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
 	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
+	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, request.Error, request.Object)
 	if s.crashLocation == "after" && s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
 		// we should restart operator here
 		s.restarted = true

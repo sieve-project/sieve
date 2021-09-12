@@ -112,8 +112,7 @@ func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sieve.NotifyTim
 }
 
 func (s *timeTravelServer) NotifyTimeTravelAfterSideEffects(request *sieve.NotifyTimeTravelAfterSideEffectsRequest, response *sieve.Response) error {
-	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, namespace, name, request.Error, request.Object)
+	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, request.Error, request.Object)
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
