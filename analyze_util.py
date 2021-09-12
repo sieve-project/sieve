@@ -1,5 +1,5 @@
 import json
-from typing import List, Union
+from typing import List, Dict, Union, Set
 import sieve_config
 
 WRITE_READ_FILTER_FLAG = True
@@ -30,14 +30,14 @@ INTRA_THREAD_EDGE = "INTRA-THREAD"
 INTER_THREAD_EDGE = "INTER-THREADS"
 
 
-def consistent_type(event_type, side_effect_type):
+def consistent_type(event_type: str, side_effect_type: str):
     both_create = event_type == "Added" and side_effect_type == "Create"
     both_update = event_type == "Updated" and side_effect_type == "Update"
     both_delete = event_type == "Deleted" and side_effect_type == "Delete"
     return both_create or both_update or both_delete
 
 
-def extract_namespace_name(obj):
+def extract_namespace_name(obj: Dict):
     assert "metadata" in obj, "missing metadata in: " + str(obj)
     # TODO(Wenqing): Sometimes metadata doesn't carry namespace field, may dig into that later
     obj_name = obj["metadata"]["name"]
@@ -50,7 +50,7 @@ def extract_namespace_name(obj):
 
 
 class Event:
-    def __init__(self, id, etype, rtype, obj_str):
+    def __init__(self, id: str, etype: str, rtype: str, obj_str: str):
         self.__id = int(id)
         self.__etype = etype
         self.__rtype = rtype
@@ -102,16 +102,16 @@ class Event:
         return self.__key
 
     @start_timestamp.setter
-    def start_timestamp(self, start_timestamp):
+    def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
 
     @end_timestamp.setter
-    def end_timestamp(self, end_timestamp):
+    def end_timestamp(self, end_timestamp: int):
         self.__end_timestamp = end_timestamp
 
 
 class SideEffect:
-    def __init__(self, id, etype, rtype, error, obj_str):
+    def __init__(self, id: str, etype: str, rtype: str, error: str, obj_str: str):
         self.__id = int(id)
         self.__etype = etype
         self.__rtype = rtype
@@ -193,27 +193,27 @@ class SideEffect:
         return self.__key
 
     @start_timestamp.setter
-    def start_timestamp(self, start_timestamp):
+    def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
 
     @end_timestamp.setter
-    def end_timestamp(self, end_timestamp):
+    def end_timestamp(self, end_timestamp: int):
         self.__end_timestamp = end_timestamp
 
     @read_types.setter
-    def read_types(self, read_types):
+    def read_types(self, read_types: Set[str]):
         self.__read_types = read_types
 
     @read_keys.setter
-    def read_keys(self, read_keys):
+    def read_keys(self, read_keys: Set[str]):
         self.__read_keys = read_keys
 
-    def set_range(self, start_timestamp, end_timestamp):
+    def set_range(self, start_timestamp: int, end_timestamp: int):
         assert start_timestamp < end_timestamp
         self.__range_start_timestamp = start_timestamp
         self.__range_end_timestamp = end_timestamp
 
-    def range_overlap(self, event):
+    def range_overlap(self, event: Event):
         # This is the key method to generate the (event, side_effect) pairs
         assert self.range_end_timestamp != -1
         assert event.start_timestamp != -1
@@ -222,12 +222,12 @@ class SideEffect:
         assert event.start_timestamp < event.end_timestamp
         return self.range_start_timestamp < event.end_timestamp and self.range_end_timestamp > event.start_timestamp
 
-    def interest_overlap(self, event):
+    def interest_overlap(self, event: Event):
         return event.key in self.read_keys or event.rtype in self.read_types
 
 
 class CacheRead:
-    def __init__(self, etype, rtype, namespace, name, error):
+    def __init__(self, etype: str, rtype: str, namespace: str, name: str, error: str):
         self.__etype = etype
         self.__rtype = rtype
         self.__namespace = namespace
@@ -261,7 +261,7 @@ class CacheRead:
 
 
 class EventIDOnly:
-    def __init__(self, id):
+    def __init__(self, id: str):
         self.__id = int(id)
 
     @property
@@ -270,7 +270,7 @@ class EventIDOnly:
 
 
 class SideEffectIDOnly:
-    def __init__(self, id):
+    def __init__(self, id: str):
         self.__id = int(id)
 
     @property
@@ -279,7 +279,7 @@ class SideEffectIDOnly:
 
 
 class Reconcile:
-    def __init__(self, controller_name, round_id):
+    def __init__(self, controller_name: str, round_id: str):
         self.__controller_name = controller_name
         self.__round_id = round_id
 
@@ -293,14 +293,14 @@ class Reconcile:
 
 
 class EventsDataStructure:
-    def __init__(self, event_list, event_key_map, event_id_map):
+    def __init__(self, event_list: List[Event], event_key_map: Dict[str, Event], event_id_map: Dict[int, Event]):
         self.event_list = event_list
         self.event_key_map = event_key_map
         self.event_id_map = event_id_map
 
 
 class SideEffectsDataStructure:
-    def __init__(self, side_effect_list, side_effect_id_map):
+    def __init__(self, side_effect_list: List[SideEffect], side_effect_id_map: Dict[int, SideEffect]):
         self.side_effect_list = side_effect_list
         self.side_effect_id_map = side_effect_id_map
 
