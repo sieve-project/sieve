@@ -284,7 +284,8 @@ def build_causality_graph(events_data_structure: EventsDataStructure, side_effec
 def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_graph, events_data_structure):
     generated_config_dir = os.path.join(
         log_dir, analysis_mode)
-    shutil.rmtree(generated_config_dir)
+    if os.path.isdir(generated_config_dir):
+        shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
         analyze_gen.time_travel_analysis(
