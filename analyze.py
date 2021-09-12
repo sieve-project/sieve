@@ -1,10 +1,9 @@
 from typing import List
 import copy
 import os
-import analyze_util
+from analyze_util import *
 import oracle
 import shutil
-import json
 import optparse
 import analyze_gen
 from common import sieve_modes
@@ -17,29 +16,29 @@ def sanity_check_sieve_log(path):
     event_status = {}
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
-            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
+        if SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
+            side_effect_id = parse_side_effect_id_only(line).id
             assert side_effect_id not in side_effect_status
             side_effect_status[side_effect_id] = 1
-        elif analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK in line:
-            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
+        elif SIEVE_AFTER_SIDE_EFFECT_MARK in line:
+            side_effect_id = parse_side_effect_id_only(line).id
             assert side_effect_id in side_effect_status
             side_effect_status[side_effect_id] += 1
-        elif analyze_util.SIEVE_BEFORE_EVENT_MARK in line:
-            event_id = analyze_util.parse_event_id_only(line).id
+        elif SIEVE_BEFORE_EVENT_MARK in line:
+            event_id = parse_event_id_only(line).id
             assert event_id not in event_status
             event_status[event_id] = 1
-        elif analyze_util.SIEVE_AFTER_EVENT_MARK in line:
-            event_id = analyze_util.parse_event_id_only(line).id
+        elif SIEVE_AFTER_EVENT_MARK in line:
+            event_id = parse_event_id_only(line).id
             assert event_id in event_status
             event_status[event_id] += 1
-        elif analyze_util.SIEVE_BEFORE_RECONCILE_MARK in line:
-            reconcile_id = analyze_util.parse_reconcile(line).controller_name
+        elif SIEVE_BEFORE_RECONCILE_MARK in line:
+            reconcile_id = parse_reconcile(line).controller_name
             if reconcile_id not in reconcile_status:
                 reconcile_status[reconcile_id] = 0
             reconcile_status[reconcile_id] += 1
             assert reconcile_status[reconcile_id] == 1
-        elif analyze_util.SIEVE_AFTER_RECONCILE_MARK in line:
+        elif SIEVE_AFTER_RECONCILE_MARK in line:
             assert reconcile_id in reconcile_status
             reconcile_status[reconcile_id] -= 1
             assert reconcile_status[reconcile_id] == 0
@@ -62,21 +61,21 @@ def parse_events(path):
     largest_timestamp = len(lines)
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SIEVE_BEFORE_EVENT_MARK in line:
-            event = analyze_util.parse_event(line)
-            event.set_start_timestamp(i)
+        if SIEVE_BEFORE_EVENT_MARK in line:
+            event = parse_event(line)
+            event.start_timestamp = i
             # We initially set the event end time as the largest timestamp
             # so that if we never meet SIEVE_AFTER_EVENT_MARK for this event,
             # we will not pose any constraint on its end time in range_overlap
-            event.set_end_timestamp(largest_timestamp)
+            event.end_timestamp = largest_timestamp
             event_id_map[event.id] = event
-        elif analyze_util.SIEVE_AFTER_EVENT_MARK in line:
-            event_id_only = analyze_util.parse_event_id_only(line)
-            event_id_map[event_id_only.id].set_end_timestamp(i)
+        elif SIEVE_AFTER_EVENT_MARK in line:
+            event_id_only = parse_event_id_only(line)
+            event_id_map[event_id_only.id].end_timestamp = i
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SIEVE_BEFORE_EVENT_MARK in line:
-            event = analyze_util.parse_event(line)
+        if SIEVE_BEFORE_EVENT_MARK in line:
+            event = parse_event(line)
             if event.key not in event_key_map:
                 event_key_map[event.key] = []
             event_key_map[event.key].append(event_id_map[event.id])
@@ -102,26 +101,24 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
-            side_effect_id_only = analyze_util.parse_side_effect_id_only(line)
+        if SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
+            side_effect_id_only = parse_side_effect_id_only(line)
             side_effect_id_to_start_ts_map[side_effect_id_only.id] = i
-        if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK in line:
+        if SIEVE_AFTER_SIDE_EFFECT_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the side effect since it is not caused by reconcile
             # though it should not happen at all.
             if len(ongoing_reconciles) == 0:
                 continue
-            side_effect = analyze_util.parse_side_effect(line)
+            side_effect = parse_side_effect(line)
             # Do deepcopy here to ensure the later changes to the two sets
             # will not affect this side effect.
             # cache read during that possible interval
-            side_effect.set_read_keys(copy.deepcopy(read_keys_this_reconcile))
-            side_effect.set_read_types(
-                copy.deepcopy(read_types_this_reconcile))
-            side_effect.set_start_timestamp(
-                side_effect_id_to_start_ts_map[side_effect.id])
-            side_effect.set_end_timestamp(i)
+            side_effect.read_keys = copy.deepcopy(read_keys_this_reconcile)
+            side_effect.read_types = copy.deepcopy(read_types_this_reconcile)
+            side_effect.start_timestamp = side_effect_id_to_start_ts_map[side_effect.id]
+            side_effect.end_timestamp = i
             # We want to find the earilest timestamp before which any event will not affect the side effect.
             # The earlies timestamp should be min(the timestamp of the previous reconcile start of all ongoing reconiles).
             # One special case is that at least one of the ongoing reconcile is the first reconcile of that controller.
@@ -133,14 +130,14 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
                     earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
             side_effect.set_range(earliest_timestamp, i)
             side_effect_id_map[side_effect.id] = side_effect
-        elif analyze_util.SIEVE_AFTER_READ_MARK in line:
-            cache_read = analyze_util.parse_cache_read(line)
+        elif SIEVE_AFTER_READ_MARK in line:
+            cache_read = parse_cache_read(line)
             if cache_read.etype == "Get":
                 read_keys_this_reconcile.add(cache_read.key)
             else:
                 read_types_this_reconcile.add(cache_read.rtype)
-        elif analyze_util.SIEVE_BEFORE_RECONCILE_MARK in line:
-            reconcile = analyze_util.parse_reconcile(line)
+        elif SIEVE_BEFORE_RECONCILE_MARK in line:
+            reconcile = parse_reconcile(line)
             controller_name = reconcile.controller_name
             if controller_name not in ongoing_reconciles:
                 ongoing_reconciles[controller_name] = 1
@@ -161,8 +158,8 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
             cur_reconcile_start_timestamp[controller_name] = i
             # Reset cur_reconcile_is_trivial[controller_name] to True as a new round of reconcile just starts
             cur_reconcile_is_trivial[controller_name] = True
-        elif analyze_util.SIEVE_AFTER_RECONCILE_MARK in line:
-            reconcile = analyze_util.parse_reconcile(line)
+        elif SIEVE_AFTER_RECONCILE_MARK in line:
+            reconcile = parse_reconcile(line)
             controller_name = reconcile.controller_name
             ongoing_reconciles[controller_name] -= 1
             if ongoing_reconciles[controller_name] == 0:
@@ -173,8 +170,8 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
                 read_types_this_reconcile = set()
     for i in range(len(lines)):
         line = lines[i]
-        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
-            side_effect_id = analyze_util.parse_side_effect_id_only(line)
+        if SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
+            side_effect_id = parse_side_effect_id_only(line)
             if side_effect_id.id in side_effect_id_map:
                 side_effect_list.append(side_effect_id_map[side_effect_id.id])
     return side_effect_list, side_effect_id_map
@@ -182,91 +179,91 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
 
 def extract_events_and_effects(path, compress_trivial_reconcile):
     event_list, event_key_map, event_id_map = parse_events(path)
-    events_data_structure = analyze_util.EventsDataStructure(
+    events_data_structure = EventsDataStructure(
         event_list, event_key_map, event_id_map)
     side_effect_list, side_effect_id_map = parse_side_effects(
         path, compress_trivial_reconcile)
-    side_effects_data_structure = analyze_util.SideEffectsDataStructure(
+    side_effects_data_structure = SideEffectsDataStructure(
         side_effect_list, side_effect_id_map)
     return events_data_structure, side_effects_data_structure
 
 
-def base_pass(event_vertices: List[analyze_util.CausalityVertex], side_effect_vertices: List[analyze_util.CausalityVertex]):
+def base_pass(event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex]):
     print("Running base pass ...")
     vertex_pairs = []
     for side_effect_vertex in side_effect_vertices:
         for event_vertex in event_vertices:
             # events can lead to that side_effect
-            if side_effect_vertex.get_content().range_overlap(event_vertex.get_content()):
+            if side_effect_vertex.content.range_overlap(event_vertex.content):
                 vertex_pairs.append([event_vertex, side_effect_vertex])
     return vertex_pairs
 
 
-def write_read_overlap_filtering_pass(vertex_pairs: List[List[analyze_util.CausalityVertex]]):
+def write_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     print("Running optional pass: write-read-overlap-filtering ...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
         event_vertex = pair[0]
         side_effect_vertex = pair[1]
-        if side_effect_vertex.get_content().interest_overlap(event_vertex.get_content()):
+        if side_effect_vertex.content.interest_overlap(event_vertex.content):
             pruned_vertex_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" %
           (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
-def error_msg_filtering_pass(vertex_pairs: List[List[analyze_util.CausalityVertex]]):
+def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     print("Running optional pass: error-message-filtering ...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
         side_effect_vertex = pair[1]
-        if side_effect_vertex.get_content().error in analyze_util.ALLOWED_ERROR_TYPE:
+        if side_effect_vertex.content.error in ALLOWED_ERROR_TYPE:
             pruned_vertex_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" %
           (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
-def generate_event_effect_edges(event_vertices: List[analyze_util.CausalityVertex], side_effect_vertices: List[analyze_util.CausalityVertex]):
+def generate_event_effect_edges(event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex]):
     edges = []
     vertex_pairs = base_pass(event_vertices, side_effect_vertices)
-    if analyze_util.ERROR_MSG_FILTER_FLAG:
+    if ERROR_MSG_FILTER_FLAG:
         vertex_pairs = error_msg_filtering_pass(
             vertex_pairs)
-    if analyze_util.WRITE_READ_FILTER_FLAG:
+    if WRITE_READ_FILTER_FLAG:
         vertex_pairs = write_read_overlap_filtering_pass(
             vertex_pairs)
     for pair in vertex_pairs:
-        edges.append(analyze_util.CausalityEdge(
-            pair[0], pair[1], analyze_util.INTER_THREAD_EDGE))
+        edges.append(CausalityEdge(
+            pair[0], pair[1], INTER_THREAD_EDGE))
     return edges
 
 
-def generate_effect_event_edges(event_vertices: List[analyze_util.CausalityVertex], side_effect_vertices: List[analyze_util.CausalityVertex], event_key_map):
+def generate_effect_event_edges(event_vertices: List[CausalityVertex], side_effect_vertices: List[CausalityVertex], event_key_map):
     edges = []
     vertex_pairs = []
     for side_effect_vertex in side_effect_vertices:
-        if side_effect_vertex.get_content().key in event_key_map:
+        if side_effect_vertex.content.key in event_key_map:
             for event_vertex in event_vertices:
-                if event_vertex.get_content().obj_str == side_effect_vertex.get_content().obj_str and side_effect_vertex.get_content().start_timestamp < event_vertex.get_content().start_timestamp and analyze_util.consistent_type(event_vertex.get_content().etype, side_effect_vertex.get_content().etype):
+                if event_vertex.content.obj_str == side_effect_vertex.content.obj_str and side_effect_vertex.content.start_timestamp < event_vertex.content.start_timestamp and consistent_type(event_vertex.content.etype, side_effect_vertex.content.etype):
                     vertex_pairs.append(
                         [side_effect_vertex, event_vertex])
                     break
     for pair in vertex_pairs:
-        edges.append(analyze_util.CausalityEdge(
-            pair[0], pair[1], analyze_util.INTER_THREAD_EDGE))
+        edges.append(CausalityEdge(
+            pair[0], pair[1], INTER_THREAD_EDGE))
     return edges
 
 
-def build_causality_graph(events_data_structure: analyze_util.EventsDataStructure, side_effects_data_structure: analyze_util.SideEffectsDataStructure):
-    causality_graph = analyze_util.CausalityGraph()
+def build_causality_graph(events_data_structure: EventsDataStructure, side_effects_data_structure: SideEffectsDataStructure):
+    causality_graph = CausalityGraph()
     for event in events_data_structure.event_list:
-        causality_graph.add_vertex(analyze_util.CausalityVertex(event))
+        causality_graph.add_vertex(CausalityVertex(event))
     for side_effect in side_effects_data_structure.side_effect_list:
-        causality_graph.add_vertex(analyze_util.CausalityVertex(side_effect))
+        causality_graph.add_vertex(CausalityVertex(side_effect))
 
-    event_vertices = causality_graph.get_event_vertices()
-    side_effect_vertices = causality_graph.get_side_effect_vertices()
+    event_vertices = causality_graph.get_event_vertex_list()
+    side_effect_vertices = causality_graph.get_side_effect_vertex_list()
 
     event_effect_edges = generate_event_effect_edges(
         event_vertices, side_effect_vertices)

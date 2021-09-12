@@ -1,4 +1,4 @@
-from analyze_util import CausalityEdge, CausalityGraph, Event, EventsDataStructure, SideEffect, SideEffectsDataStructure
+from analyze_util import *
 import json
 from typing import List
 import yaml
@@ -15,8 +15,8 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
     print("Running optional pass: delete-only-filtering ...")
     candidate_edges = []
     for edge in causality_edges:
-        if edge.get_source().is_event() and edge.get_sink().is_side_effect():
-            if edge.get_sink().get_content().etype == "Delete":
+        if edge.source.is_event() and edge.sink.is_side_effect():
+            if edge.sink.content.etype == "Delete":
                 candidate_edges.append(edge)
     return candidate_edges
 
@@ -26,7 +26,7 @@ def delete_then_recreate_filtering_pass(causality_edges: List[CausalityEdge], ev
     # this should only be applied to time travel mode
     candidate_edges = []
     for edge in causality_edges:
-        side_effect = edge.get_sink().get_content()
+        side_effect = edge.sink.content
         # time travel only cares about delete for now
         assert side_effect.etype == "Delete"
         keep_this_pair = False
@@ -47,7 +47,7 @@ def delete_then_recreate_filtering_pass(causality_edges: List[CausalityEdge], ev
 
 
 def time_travel_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str, timing="after"):
-    causality_edges = causality_graph.get_event_effect_edge()
+    causality_edges = causality_graph.get_event_effect_edge_list()
     candidate_edges = delete_only_filtering_pass(causality_edges)
     candidate_edges = delete_then_recreate_filtering_pass(
         candidate_edges, events_data_structure.event_key_map)
@@ -56,14 +56,14 @@ def time_travel_analysis(causality_graph: CausalityGraph, events_data_structure:
 
 
 def obs_gap_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str):
-    causality_edges = causality_graph.get_event_effect_edge()
+    causality_edges = causality_graph.get_event_effect_edge_list()
     candidate_edges = causality_edges
     generate_obs_gap_yaml(
         candidate_edges, path, project, events_data_structure.event_key_map)
 
 
 def atom_vio_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str):
-    causality_edges = causality_graph.get_event_effect_edge()
+    causality_edges = causality_graph.get_event_effect_edge_list()
     candidate_edges = causality_edges
     generate_atom_vio_yaml(
         candidate_edges, path, project, events_data_structure.event_key_map)
@@ -82,8 +82,8 @@ def generate_time_travel_yaml(causality_edges, path, project, event_key_map, tim
     suffix = "-b" if timing == "before" else ""
     i = 0
     for edge in causality_edges:
-        event = edge.get_source().get_content()
-        side_effect = edge.get_sink().get_content()
+        event = edge.source.content
+        side_effect = edge.sink.content
         assert isinstance(event, Event)
         assert isinstance(side_effect, SideEffect)
 
@@ -127,8 +127,8 @@ def generate_obs_gap_yaml(causality_edges, path, project, event_key_map):
     i = 0
     events_set = set()
     for edge in causality_edges:
-        event = edge.get_source().get_content()
-        side_effect = edge.get_sink().get_content()
+        event = edge.source.content
+        side_effect = edge.sink.content
         assert isinstance(event, Event)
         assert isinstance(side_effect, SideEffect)
 
@@ -173,8 +173,8 @@ def generate_atom_vio_yaml(causality_edges, path, project, event_key_map):
     yaml_map["deployment-name"] = controllers.deployment_name[project]
     i = 0
     for edge in causality_edges:
-        event = edge.get_source().get_content()
-        side_effect = edge.get_sink().get_content()
+        event = edge.source.content
+        side_effect = edge.sink.content
         assert isinstance(event, Event)
         assert isinstance(side_effect, SideEffect)
 

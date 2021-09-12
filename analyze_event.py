@@ -1,4 +1,4 @@
-import analyze_util
+from analyze_util import *
 import copy
 import re
 
@@ -24,25 +24,25 @@ def compress_event_object_for_list(prev_object, cur_object, slim_prev_object, sl
                 if compress_event_object(
                         prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
                     # SIEVE_SKIP means we can skip the value in list when later comparing to the events in testing run
-                    slim_cur_object[i] = analyze_util.SIEVE_SKIP_MARKER
-                    slim_prev_object[i] = analyze_util.SIEVE_SKIP_MARKER
+                    slim_cur_object[i] = SIEVE_SKIP_MARKER
+                    slim_prev_object[i] = SIEVE_SKIP_MARKER
             elif isinstance(cur_object[i], list):
                 if not isinstance(prev_object[i], list):
                     continue
                 if compress_event_object_for_list(
                         prev_object[i], cur_object[i], slim_prev_object[i], slim_cur_object[i]):
-                    slim_cur_object[i] = analyze_util.SIEVE_SKIP_MARKER
-                    slim_prev_object[i] = analyze_util.SIEVE_SKIP_MARKER
+                    slim_cur_object[i] = SIEVE_SKIP_MARKER
+                    slim_prev_object[i] = SIEVE_SKIP_MARKER
             else:
                 continue
         else:
-            slim_cur_object[i] = analyze_util.SIEVE_SKIP_MARKER
-            slim_prev_object[i] = analyze_util.SIEVE_SKIP_MARKER
+            slim_cur_object[i] = SIEVE_SKIP_MARKER
+            slim_prev_object[i] = SIEVE_SKIP_MARKER
 
     if len(slim_cur_object) != len(slim_prev_object):
         return False
     for i in range(len(slim_cur_object)):
-        if slim_cur_object[i] != analyze_util.SIEVE_SKIP_MARKER:
+        if slim_cur_object[i] != SIEVE_SKIP_MARKER:
             return False
     return True
 
@@ -53,7 +53,7 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
     to_del_prev = []
     common_keys = set(cur_object.keys()).intersection(prev_object.keys())
     for key in common_keys:
-        if key in analyze_util.BORING_EVENT_OBJECT_FIELDS:
+        if key in BORING_EVENT_OBJECT_FIELDS:
             to_del.append(key)
         elif str(cur_object[key]) != str(prev_object[key]):
             if isinstance(cur_object[key], dict):
@@ -75,7 +75,7 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
     sym_different_keys = set(
         cur_object.keys()).symmetric_difference(prev_object.keys())
     for key in sym_different_keys:
-        if key in analyze_util.BORING_EVENT_OBJECT_FIELDS:
+        if key in BORING_EVENT_OBJECT_FIELDS:
             if key in cur_object.keys():
                 to_del_cur.append(key)
             else:
@@ -100,9 +100,9 @@ def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_ob
     return False
 
 
-def diff_events(prev_event, cur_event):
-    prev_object = prev_event.obj
-    cur_object = cur_event.obj
+def diff_events(prev_event: Event, cur_event: Event):
+    prev_object = prev_event.obj_map
+    cur_object = cur_event.obj_map
     slim_prev_object = copy.deepcopy(prev_object)
     slim_cur_object = copy.deepcopy(cur_object)
     compress_event_object(prev_object, cur_object,
@@ -117,8 +117,8 @@ def canonicalize_event_for_list(event_list):
         elif isinstance(event_list[i], dict):
             canonicalize_event(event_list[i])
         elif isinstance(event_list[i], str):
-            if re.match(analyze_util.TIME_REG, str(event_list[i])):
-                event_list[i] = analyze_util.SIEVE_CANONICALIZATION_MARKER
+            if re.match(TIME_REG, str(event_list[i])):
+                event_list[i] = SIEVE_CANONICALIZATION_MARKER
     return event_list
 
 
@@ -129,6 +129,6 @@ def canonicalize_event(event):
         elif isinstance(event[key], list):
             canonicalize_event_for_list(event[key])
         elif isinstance(event[key], str):
-            if re.match(analyze_util.TIME_REG, str(event[key])):
-                event[key] = analyze_util.SIEVE_CANONICALIZATION_MARKER
+            if re.match(TIME_REG, str(event[key])):
+                event[key] = SIEVE_CANONICALIZATION_MARKER
     return event

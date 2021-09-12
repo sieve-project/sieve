@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Union
 import sieve_config
 
 WRITE_READ_FILTER_FLAG = True
@@ -51,66 +51,167 @@ def extract_namespace_name(obj):
 
 class Event:
     def __init__(self, id, etype, rtype, obj_str):
-        self.id = int(id)
-        self.etype = etype
-        self.rtype = rtype
-        self.obj_str = obj_str
-        self.obj = json.loads(obj_str)
-        self.namespace, self.name = extract_namespace_name(self.obj)
-        self.start_timestamp = -1
-        self.end_timestamp = -1
-        self.key = self.rtype + "/" + self.namespace + "/" + self.name
+        self.__id = int(id)
+        self.__etype = etype
+        self.__rtype = rtype
+        self.__obj_str = obj_str
+        self.__obj_map = json.loads(obj_str)
+        self.__namespace, self.__name = extract_namespace_name(self.obj_map)
+        self.__start_timestamp = -1
+        self.__end_timestamp = -1
+        self.__key = self.rtype + "/" + self.namespace + "/" + self.name
 
-    def set_start_timestamp(self, start_timestamp):
-        self.start_timestamp = start_timestamp
+    @property
+    def id(self):
+        return self.__id
 
-    def set_end_timestamp(self, end_timestamp):
-        self.end_timestamp = end_timestamp
+    @property
+    def etype(self):
+        return self.__etype
+
+    @property
+    def rtype(self):
+        return self.__rtype
+
+    @property
+    def obj_str(self):
+        return self.__obj_str
+
+    @property
+    def obj_map(self):
+        return self.__obj_map
+
+    @property
+    def namespace(self):
+        return self.__namespace
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def start_timestamp(self):
+        return self.__start_timestamp
+
+    @property
+    def end_timestamp(self):
+        return self.__end_timestamp
+
+    @property
+    def key(self):
+        return self.__key
+
+    @start_timestamp.setter
+    def start_timestamp(self, start_timestamp):
+        self.__start_timestamp = start_timestamp
+
+    @end_timestamp.setter
+    def end_timestamp(self, end_timestamp):
+        self.__end_timestamp = end_timestamp
 
 
 class SideEffect:
     def __init__(self, id, etype, rtype, error, obj_str):
-        self.id = int(id)
-        self.etype = etype
-        self.rtype = rtype
-        self.error = error
-        self.obj_str = obj_str
-        self.obj = json.loads(obj_str)
-        self.namespace, self.name = extract_namespace_name(self.obj)
-        self.start_timestamp = -1
-        self.end_timestamp = -1
-        self.read_types = set()
-        self.read_keys = set()
-        self.range_start_timestamp = -1
-        self.range_end_timestamp = -1
-        self.owner_controllers = set()
-        self.key = self.rtype + "/" + self.namespace + "/" + self.name
+        self.__id = int(id)
+        self.__etype = etype
+        self.__rtype = rtype
+        self.__error = error
+        self.__obj_str = obj_str
+        self.__obj_map = json.loads(obj_str)
+        self.__namespace, self.__name = extract_namespace_name(self.obj_map)
+        self.__start_timestamp = -1
+        self.__end_timestamp = -1
+        self.__range_start_timestamp = -1
+        self.__range_end_timestamp = -1
+        self.__read_types = set()
+        self.__read_keys = set()
+        self.__owner_controllers = set()
+        self.__key = self.rtype + "/" + self.namespace + "/" + self.name
 
-    def to_dict(self):
-        side_effect_as_dict = {}
-        side_effect_as_dict["etype"] = self.etype
-        side_effect_as_dict["rtype"] = self.rtype
-        side_effect_as_dict["namespace"] = self.namespace
-        side_effect_as_dict["name"] = self.name
-        side_effect_as_dict["error"] = self.error
-        return side_effect_as_dict
+    @property
+    def id(self):
+        return self.__id
 
-    def set_start_timestamp(self, start_timestamp):
-        self.start_timestamp = start_timestamp
+    @property
+    def etype(self):
+        return self.__etype
 
-    def set_end_timestamp(self, end_timestamp):
-        self.end_timestamp = end_timestamp
+    @property
+    def rtype(self):
+        return self.__rtype
 
-    def set_read_types(self, read_types):
-        self.read_types = read_types
+    @property
+    def error(self):
+        return self.__error
 
-    def set_read_keys(self, read_keys):
-        self.read_keys = read_keys
+    @property
+    def obj_str(self):
+        return self.__obj_str
+
+    @property
+    def obj_map(self):
+        return self.__obj_map
+
+    @property
+    def namespace(self):
+        return self.__namespace
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def read_types(self):
+        return self.__read_types
+
+    @property
+    def read_keys(self):
+        return self.__read_keys
+
+    @property
+    def start_timestamp(self):
+        return self.__start_timestamp
+
+    @property
+    def end_timestamp(self):
+        return self.__end_timestamp
+
+    @property
+    def range_start_timestamp(self):
+        return self.__range_start_timestamp
+
+    @property
+    def range_end_timestamp(self):
+        return self.__range_end_timestamp
+
+    @property
+    def owner_controllers(self):
+        return self.__owner_controllers
+
+    @property
+    def key(self):
+        return self.__key
+
+    @start_timestamp.setter
+    def start_timestamp(self, start_timestamp):
+        self.__start_timestamp = start_timestamp
+
+    @end_timestamp.setter
+    def end_timestamp(self, end_timestamp):
+        self.__end_timestamp = end_timestamp
+
+    @read_types.setter
+    def read_types(self, read_types):
+        self.__read_types = read_types
+
+    @read_keys.setter
+    def read_keys(self, read_keys):
+        self.__read_keys = read_keys
 
     def set_range(self, start_timestamp, end_timestamp):
         assert start_timestamp < end_timestamp
-        self.range_start_timestamp = start_timestamp
-        self.range_end_timestamp = end_timestamp
+        self.__range_start_timestamp = start_timestamp
+        self.__range_end_timestamp = end_timestamp
 
     def range_overlap(self, event):
         # This is the key method to generate the (event, side_effect) pairs
@@ -127,28 +228,68 @@ class SideEffect:
 
 class CacheRead:
     def __init__(self, etype, rtype, namespace, name, error):
-        self.etype = etype
-        self.rtype = rtype
-        self.namespace = namespace
-        self.name = name
-        self.error = error
-        self.key = self.rtype + "/" + self.namespace + "/" + self.name
+        self.__etype = etype
+        self.__rtype = rtype
+        self.__namespace = namespace
+        self.__name = name
+        self.__error = error
+        self.__key = self.rtype + "/" + self.namespace + "/" + self.name
+
+    @property
+    def etype(self):
+        return self.__etype
+
+    @property
+    def rtype(self):
+        return self.__rtype
+
+    @property
+    def error(self):
+        return self.__error
+
+    @property
+    def key(self):
+        return self.__key
+
+    @property
+    def namespace(self):
+        return self.__namespace
+
+    @property
+    def name(self):
+        return self.__name
 
 
 class EventIDOnly:
     def __init__(self, id):
-        self.id = int(id)
+        self.__id = int(id)
+
+    @property
+    def id(self):
+        return self.__id
 
 
 class SideEffectIDOnly:
     def __init__(self, id):
-        self.id = int(id)
+        self.__id = int(id)
+
+    @property
+    def id(self):
+        return self.__id
 
 
 class Reconcile:
     def __init__(self, controller_name, round_id):
-        self.controller_name = controller_name
-        self.round_id = round_id
+        self.__controller_name = controller_name
+        self.__round_id = round_id
+
+    @property
+    def controller_name(self):
+        return self.__controller_name
+
+    @property
+    def round_id(self):
+        return self.__round_id
 
 
 class EventsDataStructure:
@@ -164,20 +305,19 @@ class SideEffectsDataStructure:
         self.side_effect_id_map = side_effect_id_map
 
 
-def parse_event(line):
+def parse_event(line: str) -> Event:
     assert SIEVE_BEFORE_EVENT_MARK in line
     tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK):].strip("\n").split("\t")
     return Event(tokens[1], tokens[2], tokens[3], tokens[4])
 
 
-def parse_side_effect(line):
+def parse_side_effect(line: str) -> SideEffect:
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK)
-                            :].strip("\n").split("\t")
+    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK)                  :].strip("\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
-def parse_cache_read(line):
+def parse_cache_read(line: str) -> CacheRead:
     assert SIEVE_AFTER_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_READ_MARK):].strip("\n").split("\t")
     if tokens[1] == "Get":
@@ -188,19 +328,17 @@ def parse_cache_read(line):
         return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
 
 
-def parse_event_id_only(line):
+def parse_event_id_only(line: str) -> EventIDOnly:
     assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
     if SIEVE_AFTER_EVENT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK)
-                                :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK)                      :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK)
-                                :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK)                      :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
 
 
-def parse_side_effect_id_only(line):
+def parse_side_effect_id_only(line: str) -> SideEffectIDOnly:
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line or SIEVE_BEFORE_SIDE_EFFECT_MARK in line
     if SIEVE_AFTER_SIDE_EFFECT_MARK in line:
         tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK):].strip(
@@ -212,7 +350,7 @@ def parse_side_effect_id_only(line):
         return SideEffectIDOnly(tokens[1])
 
 
-def parse_reconcile(line):
+def parse_reconcile(line: str) -> Reconcile:
     assert SIEVE_BEFORE_RECONCILE_MARK in line or SIEVE_AFTER_RECONCILE_MARK in line
     if SIEVE_BEFORE_RECONCILE_MARK in line:
         tokens = line[line.find(SIEVE_BEFORE_RECONCILE_MARK):].strip(
@@ -227,22 +365,23 @@ def parse_reconcile(line):
 class CausalityVertex:
     vertex_cnt = 0
 
-    def __init__(self, content):
-        self.id = CausalityVertex.vertex_cnt
+    def __init__(self, content: Union[Event, SideEffect]):
+        self.__id = CausalityVertex.vertex_cnt
         CausalityVertex.vertex_cnt += 1
-        self.content = content
-        self.outgoing_edges = {}
+        self.__content = content
 
-    def get_id(self):
-        return self.id
+    @property
+    def id(self):
+        return self.__id
 
-    def get_content(self):
-        return self.content
+    @property
+    def content(self):
+        return self.__content
 
-    def is_event(self):
+    def is_event(self) -> bool:
         return isinstance(self.content, Event)
 
-    def is_side_effect(self):
+    def is_side_effect(self) -> bool:
         return isinstance(self.content, SideEffect)
 
 
@@ -250,78 +389,86 @@ class CausalityEdge:
     edge_cnt = 0
 
     def __init__(self, source: CausalityVertex, sink: CausalityVertex, type: str):
-        self.id = CausalityEdge.edge_cnt
+        self.__id = CausalityEdge.edge_cnt
         CausalityEdge.edge_cnt += 1
-        self.source = source
-        self.sink = sink
-        self.type = type
+        self.__source = source
+        self.__sink = sink
+        self.__type = type
 
-    def get_source(self):
-        return self.source
+    @property
+    def id(self):
+        return self.__id
 
-    def get_sink(self):
-        return self.sink
+    @property
+    def source(self):
+        return self.__source
+
+    @property
+    def sink(self):
+        return self.__sink
+
+    @property
+    def type(self):
+        return self.__type
 
 
 class CausalityGraph:
     def __init__(self):
-        self.vertices = {}
-        self.edges = {}
+        self.__vertices = {}
+        self.__edges = {}
+
+    @property
+    def vertices(self):
+        return self.__vertices
+
+    @property
+    def edges(self):
+        return self.__edges
 
     def sanity_check(self):
         for edge in self.edges.values():
-            source = edge.get_source()
-            sink = edge.get_sink()
-            assert isinstance(source, CausalityVertex)
-            assert isinstance(sink, CausalityVertex)
-            assert source.get_id() != sink.get_id()
-            assert source.get_id() in self.vertices
-            assert sink.get_id() in self.vertices
-            assert (source.is_event() and sink.is_side_effect()) or (
-                sink.is_event() and source.is_side_effect())
+            assert isinstance(edge.source, CausalityVertex)
+            assert isinstance(edge.sink, CausalityVertex)
+            assert edge.source.id != edge.sink.id
+            assert edge.source.id in self.vertices
+            assert edge.sink.id in self.vertices
+            assert (edge.source.is_event() and edge.sink.is_side_effect()) or (
+                edge.sink.is_event() and edge.source.is_side_effect())
 
     def add_vertex(self, vertex: CausalityVertex):
-        if vertex.id not in self.vertices:
-            self.vertices[vertex.id] = vertex
+        if vertex.id not in self.__vertices:
+            self.__vertices[vertex.id] = vertex
 
     def add_edge(self, edge: CausalityEdge):
-        if edge.id not in self.edges:
-            self.edges[edge.id] = edge
+        if edge.id not in self.__edges:
+            self.__edges[edge.id] = edge
 
-    def get_vertices(self) -> List[CausalityVertex]:
+    def get_vertex_list(self) -> List[CausalityVertex]:
         return list(self.vertices.values())
 
-    def get_event_vertices(self) -> List[CausalityVertex]:
-        vertices = self.get_vertices()
+    def get_event_vertex_list(self) -> List[CausalityVertex]:
+        vertices = self.get_vertex_list()
         event_vertices = []
         for vertex in vertices:
             if vertex.is_event():
                 event_vertices.append(vertex)
         return event_vertices
 
-    def get_side_effect_vertices(self) -> List[CausalityVertex]:
-        vertices = self.get_vertices()
+    def get_side_effect_vertex_list(self) -> List[CausalityVertex]:
+        vertices = self.get_vertex_list()
         side_effect_vertices = []
         for vertex in vertices:
             if vertex.is_side_effect():
                 side_effect_vertices.append(vertex)
         return side_effect_vertices
 
-    def get_edges(self) -> List[CausalityEdge]:
+    def get_edge_list(self) -> List[CausalityEdge]:
         return list(self.edges.values())
 
-    def get_event_effect_edge(self) -> List[CausalityEdge]:
-        edges = self.get_edges()
+    def get_event_effect_edge_list(self) -> List[CausalityEdge]:
+        edges = self.get_edge_list()
         event_effect_edges = []
         for edge in edges:
-            if edge.get_source().is_event() and edge.get_sink().is_side_effect():
+            if edge.source.is_event() and edge.sink.is_side_effect():
                 event_effect_edges.append(edge)
         return event_effect_edges
-
-    def connect_vertex(self, source: CausalityVertex, sink: CausalityVertex, type: str):
-        if source.id not in self.vertices:
-            self.vertices[source.id] = source
-        if sink.id not in self.vertices:
-            self.vertices[sink.id] = sink
-        edge = CausalityEdge(source, sink, type)
-        self.edges[edge.id] = edge
