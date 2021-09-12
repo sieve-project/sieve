@@ -137,7 +137,7 @@ def canonicalize_event_object(event_object: Dict):
     return event_object
 
 
-def cancel_event_list(cur_object: List, following_object: List):
+def cancel_event_obj_for_list(cur_object: List, following_object: List):
     if len(following_object) < len(cur_object):
         return True
     for i in range(len(cur_object)):
@@ -150,10 +150,14 @@ def cancel_event_list(cur_object: List, following_object: List):
             elif isinstance(cur_object[i], list):
                 if not isinstance(following_object[i], list):
                     return True
-                elif cancel_event_list(cur_object[i], following_object[i]):
+                elif cancel_event_obj_for_list(cur_object[i], following_object[i]):
                     return True
             else:
-                return True
+                if (
+                    cur_object[i] != SIEVE_CANONICALIZATION_MARKER
+                    and cur_object[i] != SIEVE_SKIP_MARKER
+                ):
+                    return True
     return False
 
 
@@ -170,8 +174,9 @@ def cancel_event_object(cur_object: Dict, following_object: Dict):
             elif isinstance(cur_object[key], list):
                 if not isinstance(following_object[key], list):
                     return True
-                elif cancel_event_list(cur_object[key], following_object[key]):
+                elif cancel_event_obj_for_list(cur_object[key], following_object[key]):
                     return True
             else:
-                return True
+                if cur_object[key] != SIEVE_CANONICALIZATION_MARKER:
+                    return True
     return False
