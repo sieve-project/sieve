@@ -16,7 +16,20 @@ not_care_keys = ['uid', 'resourceVersion', 'creationTimestamp', 'ownerReferences
                  'controller-revision-hash']
 not_care = [jd.delete, jd.insert] + not_care_keys + ['name']
 side_effect_empty_entry = {"Create": 0, "Update": 0,
-                            "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
+                           "Delete": 0, "Patch": 0, "DeleteAllOf": 0}
+
+
+def dump_json_file(dir, data, json_file_name):
+    json.dump(data, open(os.path.join(
+        dir, json_file_name), "w"), indent=4, sort_keys=True)
+
+
+def generate_test_oracle(log_dir):
+    log_path = os.path.join(log_dir, "sieve-server.log")
+    side_effect, status, resources = generate_digest(log_path)
+    dump_json_file(log_dir, side_effect, "side-effect.json")
+    dump_json_file(log_dir, status, "status.json")
+    dump_json_file(log_dir, resources, "resources.json")
 
 
 def generate_digest(path):
@@ -195,6 +208,7 @@ def check_status(learning_status, testing_status):
         bug_report if bug_report != "" else ""
     return alarm, final_bug_report
 
+
 def preprocess_side_effect(side_effect, interest_objects):
     result = {}
     for interest in interest_objects:
@@ -219,12 +233,15 @@ def preprocess_side_effect(side_effect, interest_objects):
                 result[rtype][namespace][name] = se_map
     return result
 
+
 def check_side_effect(learning_side_effect, testing_side_effect, interest_objects, effect_to_check, selective=True):
     alarm = 0
     bug_report = ""
     # Preporcess regex
-    learning_side_effect = preprocess_side_effect(learning_side_effect, interest_objects)
-    testing_side_effect = preprocess_side_effect(testing_side_effect, interest_objects)
+    learning_side_effect = preprocess_side_effect(
+        learning_side_effect, interest_objects)
+    testing_side_effect = preprocess_side_effect(
+        testing_side_effect, interest_objects)
 
     for interest in interest_objects:
         rtype = interest["rtype"]

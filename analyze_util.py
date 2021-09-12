@@ -172,7 +172,8 @@ def parse_event(line):
 
 def parse_side_effect(line):
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK)                  :].strip("\n").split("\t")
+    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK)
+                            :].strip("\n").split("\t")
     return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
@@ -190,10 +191,12 @@ def parse_cache_read(line):
 def parse_event_id_only(line):
     assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
     if SIEVE_AFTER_EVENT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK)                      :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK)
+                                :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK)                      :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK)
+                                :].strip("\n").split("\t")
         return EventIDOnly(tokens[1])
 
 
@@ -230,6 +233,9 @@ class CausalityVertex:
         self.content = content
         self.outgoing_edges = {}
 
+    def get_id(self):
+        return self.id
+
     def get_content(self):
         return self.content
 
@@ -262,12 +268,55 @@ class CausalityGraph:
         self.vertices = {}
         self.edges = {}
 
-    # def add_vertex(self, vertex):
-    #     if vertex.id not in self.vertices:
-    #         self.vertices[vertex.id] = vertex
+    def sanity_check(self):
+        for edge in self.edges.values():
+            source = edge.get_source()
+            sink = edge.get_sink()
+            assert isinstance(source, CausalityVertex)
+            assert isinstance(sink, CausalityVertex)
+            assert source.get_id() != sink.get_id()
+            assert source.get_id() in self.vertices
+            assert sink.get_id() in self.vertices
+            assert (source.is_event() and sink.is_side_effect()) or (
+                sink.is_event() and source.is_side_effect())
+
+    def add_vertex(self, vertex: CausalityVertex):
+        if vertex.id not in self.vertices:
+            self.vertices[vertex.id] = vertex
+
+    def add_edge(self, edge: CausalityEdge):
+        if edge.id not in self.edges:
+            self.edges[edge.id] = edge
+
+    def get_vertices(self) -> List[CausalityVertex]:
+        return list(self.vertices.values())
+
+    def get_event_vertices(self) -> List[CausalityVertex]:
+        vertices = self.get_vertices()
+        event_vertices = []
+        for vertex in vertices:
+            if vertex.is_event():
+                event_vertices.append(vertex)
+        return event_vertices
+
+    def get_side_effect_vertices(self) -> List[CausalityVertex]:
+        vertices = self.get_vertices()
+        side_effect_vertices = []
+        for vertex in vertices:
+            if vertex.is_side_effect():
+                side_effect_vertices.append(vertex)
+        return side_effect_vertices
 
     def get_edges(self) -> List[CausalityEdge]:
         return list(self.edges.values())
+
+    def get_event_effect_edge(self) -> List[CausalityEdge]:
+        edges = self.get_edges()
+        event_effect_edges = []
+        for edge in edges:
+            if edge.get_source().is_event() and edge.get_sink().is_side_effect():
+                event_effect_edges.append(edge)
+        return event_effect_edges
 
     def connect_vertex(self, source: CausalityVertex, sink: CausalityVertex, type: str):
         if source.id not in self.vertices:

@@ -47,7 +47,7 @@ def delete_then_recreate_filtering_pass(causality_edges: List[CausalityEdge], ev
 
 
 def time_travel_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str, timing="after"):
-    causality_edges = causality_graph.get_edges()
+    causality_edges = causality_graph.get_event_effect_edge()
     candidate_edges = delete_only_filtering_pass(causality_edges)
     candidate_edges = delete_then_recreate_filtering_pass(
         candidate_edges, events_data_structure.event_key_map)
@@ -56,14 +56,14 @@ def time_travel_analysis(causality_graph: CausalityGraph, events_data_structure:
 
 
 def obs_gap_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str):
-    causality_edges = causality_graph.get_edges()
+    causality_edges = causality_graph.get_event_effect_edge()
     candidate_edges = causality_edges
     generate_obs_gap_yaml(
         candidate_edges, path, project, events_data_structure.event_key_map)
 
 
 def atom_vio_analysis(causality_graph: CausalityGraph, events_data_structure: EventsDataStructure, path: str, project: str):
-    causality_edges = causality_graph.get_edges()
+    causality_edges = causality_graph.get_event_effect_edge()
     candidate_edges = causality_edges
     generate_atom_vio_yaml(
         candidate_edges, path, project, events_data_structure.event_key_map)

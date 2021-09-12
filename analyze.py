@@ -1,4 +1,4 @@
-import json
+from typing import List
 import copy
 import os
 import analyze_util
@@ -8,6 +8,47 @@ import json
 import optparse
 import analyze_gen
 from common import sieve_modes
+
+
+def sanity_check_sieve_log(path):
+    lines = open(path).readlines()
+    reconcile_status = {}
+    side_effect_status = {}
+    event_status = {}
+    for i in range(len(lines)):
+        line = lines[i]
+        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
+            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
+            assert side_effect_id not in side_effect_status
+            side_effect_status[side_effect_id] = 1
+        elif analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK in line:
+            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
+            assert side_effect_id in side_effect_status
+            side_effect_status[side_effect_id] += 1
+        elif analyze_util.SIEVE_BEFORE_EVENT_MARK in line:
+            event_id = analyze_util.parse_event_id_only(line).id
+            assert event_id not in event_status
+            event_status[event_id] = 1
+        elif analyze_util.SIEVE_AFTER_EVENT_MARK in line:
+            event_id = analyze_util.parse_event_id_only(line).id
+            assert event_id in event_status
+            event_status[event_id] += 1
+        elif analyze_util.SIEVE_BEFORE_RECONCILE_MARK in line:
+            reconcile_id = analyze_util.parse_reconcile(line).controller_name
+            if reconcile_id not in reconcile_status:
+                reconcile_status[reconcile_id] = 0
+            reconcile_status[reconcile_id] += 1
+            assert reconcile_status[reconcile_id] == 1
+        elif analyze_util.SIEVE_AFTER_RECONCILE_MARK in line:
+            assert reconcile_id in reconcile_status
+            reconcile_status[reconcile_id] -= 1
+            assert reconcile_status[reconcile_id] == 0
+    for key in side_effect_status:
+        assert side_effect_status[key] == 1 or side_effect_status[key] == 2
+    for key in event_status:
+        assert event_status[key] == 1 or event_status[key] == 2
+    for key in reconcile_status:
+        assert reconcile_status[reconcile_id] == 0 or reconcile_status[reconcile_id] == 1
 
 
 def parse_events(path):
@@ -139,94 +180,6 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
     return side_effect_list, side_effect_id_map
 
 
-def base_pass(event_list, side_effect_list):
-    print("Running base pass ...")
-    event_effect_pairs = []
-    for side_effect in side_effect_list:
-        for event in event_list:
-            # events can lead to that side_effect
-            if side_effect.range_overlap(event):
-                event_effect_pairs.append([event, side_effect])
-    return event_effect_pairs
-
-
-def write_read_overlap_filtering_pass(event_effect_pairs):
-    print("Running optional pass: write-read-overlap-filtering ...")
-    reduced_event_effect_pairs = []
-    for pair in event_effect_pairs:
-        event = pair[0]
-        side_effect = pair[1]
-        if side_effect.interest_overlap(event):
-            reduced_event_effect_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" %
-          (len(event_effect_pairs), len(reduced_event_effect_pairs)))
-    return reduced_event_effect_pairs
-
-
-def error_msg_filtering_pass(event_effect_pairs):
-    print("Running optional pass: error-message-filtering ...")
-    reduced_event_effect_pairs = []
-    for pair in event_effect_pairs:
-        side_effect = pair[1]
-        if side_effect.error in analyze_util.ALLOWED_ERROR_TYPE:
-            reduced_event_effect_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" %
-          (len(event_effect_pairs), len(reduced_event_effect_pairs)))
-    return reduced_event_effect_pairs
-
-
-def pipelined_passes(event_effect_pairs):
-    reduced_event_effect_pairs = event_effect_pairs
-    if analyze_util.ERROR_MSG_FILTER_FLAG:
-        reduced_event_effect_pairs = error_msg_filtering_pass(
-            reduced_event_effect_pairs)
-    if analyze_util.WRITE_READ_FILTER_FLAG:
-        reduced_event_effect_pairs = write_read_overlap_filtering_pass(
-            reduced_event_effect_pairs)
-    return reduced_event_effect_pairs
-
-
-def sanity_check_sieve_log(path):
-    lines = open(path).readlines()
-    reconcile_status = {}
-    side_effect_status = {}
-    event_status = {}
-    for i in range(len(lines)):
-        line = lines[i]
-        if analyze_util.SIEVE_BEFORE_SIDE_EFFECT_MARK in line:
-            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
-            assert side_effect_id not in side_effect_status
-            side_effect_status[side_effect_id] = 1
-        elif analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK in line:
-            side_effect_id = analyze_util.parse_side_effect_id_only(line).id
-            assert side_effect_id in side_effect_status
-            side_effect_status[side_effect_id] += 1
-        elif analyze_util.SIEVE_BEFORE_EVENT_MARK in line:
-            event_id = analyze_util.parse_event_id_only(line).id
-            assert event_id not in event_status
-            event_status[event_id] = 1
-        elif analyze_util.SIEVE_AFTER_EVENT_MARK in line:
-            event_id = analyze_util.parse_event_id_only(line).id
-            assert event_id in event_status
-            event_status[event_id] += 1
-        elif analyze_util.SIEVE_BEFORE_RECONCILE_MARK in line:
-            reconcile_id = analyze_util.parse_reconcile(line).controller_name
-            if reconcile_id not in reconcile_status:
-                reconcile_status[reconcile_id] = 0
-            reconcile_status[reconcile_id] += 1
-            assert reconcile_status[reconcile_id] == 1
-        elif analyze_util.SIEVE_AFTER_RECONCILE_MARK in line:
-            assert reconcile_id in reconcile_status
-            reconcile_status[reconcile_id] -= 1
-            assert reconcile_status[reconcile_id] == 0
-    for key in side_effect_status:
-        assert side_effect_status[key] == 1 or side_effect_status[key] == 2
-    for key in event_status:
-        assert event_status[key] == 1 or event_status[key] == 2
-    for key in reconcile_status:
-        assert reconcile_status[reconcile_id] == 0 or reconcile_status[reconcile_id] == 1
-
-
 def extract_events_and_effects(path, compress_trivial_reconcile):
     event_list, event_key_map, event_id_map = parse_events(path)
     events_data_structure = analyze_util.EventsDataStructure(
@@ -238,50 +191,96 @@ def extract_events_and_effects(path, compress_trivial_reconcile):
     return events_data_structure, side_effects_data_structure
 
 
-def generate_event_effect_pairs(event_list, side_effect_list):
-    event_effect_pairs = base_pass(event_list, side_effect_list)
-    event_effect_pairs = pipelined_passes(event_effect_pairs)
-    return event_effect_pairs
+def base_pass(event_vertices: List[analyze_util.CausalityVertex], side_effect_vertices: List[analyze_util.CausalityVertex]):
+    print("Running base pass ...")
+    vertex_pairs = []
+    for side_effect_vertex in side_effect_vertices:
+        for event_vertex in event_vertices:
+            # events can lead to that side_effect
+            if side_effect_vertex.get_content().range_overlap(event_vertex.get_content()):
+                vertex_pairs.append([event_vertex, side_effect_vertex])
+    return vertex_pairs
 
 
-def generate_effect_event_pairs(event_list, side_effect_list, event_key_map):
-    effect_event_pairs = []
-    for side_effect in side_effect_list:
-        assert isinstance(side_effect, analyze_util.SideEffect)
-        if side_effect.key in event_key_map:
-            for event in event_list:
-                assert isinstance(event, analyze_util.Event)
-                if event.obj_str == side_effect.obj_str and side_effect.start_timestamp < event.start_timestamp and analyze_util.consistent_type(event.etype, side_effect.etype):
-                    effect_event_pairs.append([side_effect, event])
+def write_read_overlap_filtering_pass(vertex_pairs: List[List[analyze_util.CausalityVertex]]):
+    print("Running optional pass: write-read-overlap-filtering ...")
+    pruned_vertex_pairs = []
+    for pair in vertex_pairs:
+        event_vertex = pair[0]
+        side_effect_vertex = pair[1]
+        if side_effect_vertex.get_content().interest_overlap(event_vertex.get_content()):
+            pruned_vertex_pairs.append(pair)
+    print("<e, s> pairs: %d -> %d" %
+          (len(vertex_pairs), len(pruned_vertex_pairs)))
+    return pruned_vertex_pairs
+
+
+def error_msg_filtering_pass(vertex_pairs: List[List[analyze_util.CausalityVertex]]):
+    print("Running optional pass: error-message-filtering ...")
+    pruned_vertex_pairs = []
+    for pair in vertex_pairs:
+        side_effect_vertex = pair[1]
+        if side_effect_vertex.get_content().error in analyze_util.ALLOWED_ERROR_TYPE:
+            pruned_vertex_pairs.append(pair)
+    print("<e, s> pairs: %d -> %d" %
+          (len(vertex_pairs), len(pruned_vertex_pairs)))
+    return pruned_vertex_pairs
+
+
+def generate_event_effect_edges(event_vertices: List[analyze_util.CausalityVertex], side_effect_vertices: List[analyze_util.CausalityVertex]):
+    edges = []
+    vertex_pairs = base_pass(event_vertices, side_effect_vertices)
+    if analyze_util.ERROR_MSG_FILTER_FLAG:
+        vertex_pairs = error_msg_filtering_pass(
+            vertex_pairs)
+    if analyze_util.WRITE_READ_FILTER_FLAG:
+        vertex_pairs = write_read_overlap_filtering_pass(
+            vertex_pairs)
+    for pair in vertex_pairs:
+        edges.append(analyze_util.CausalityEdge(
+            pair[0], pair[1], analyze_util.INTER_THREAD_EDGE))
+    return edges
+
+
+def generate_effect_event_edges(event_vertices: List[analyze_util.CausalityVertex], side_effect_vertices: List[analyze_util.CausalityVertex], event_key_map):
+    edges = []
+    vertex_pairs = []
+    for side_effect_vertex in side_effect_vertices:
+        if side_effect_vertex.get_content().key in event_key_map:
+            for event_vertex in event_vertices:
+                if event_vertex.get_content().obj_str == side_effect_vertex.get_content().obj_str and side_effect_vertex.get_content().start_timestamp < event_vertex.get_content().start_timestamp and analyze_util.consistent_type(event_vertex.get_content().etype, side_effect_vertex.get_content().etype):
+                    vertex_pairs.append(
+                        [side_effect_vertex, event_vertex])
                     break
-    return effect_event_pairs
+    for pair in vertex_pairs:
+        edges.append(analyze_util.CausalityEdge(
+            pair[0], pair[1], analyze_util.INTER_THREAD_EDGE))
+    return edges
 
 
-def dump_json_file(dir, data, json_file_name):
-    json.dump(data, open(os.path.join(
-        dir, json_file_name), "w"), indent=4, sort_keys=True)
-
-
-def build_causality_graph(events_data_structure, side_effects_data_structure):
-    event_effect_pairs = generate_event_effect_pairs(
-        events_data_structure.event_list, side_effects_data_structure.side_effect_list)
-    effect_event_pairs = generate_effect_event_pairs(
-        events_data_structure.event_list, side_effects_data_structure.side_effect_list, events_data_structure.event_key_map)
+def build_causality_graph(events_data_structure: analyze_util.EventsDataStructure, side_effects_data_structure: analyze_util.SideEffectsDataStructure):
     causality_graph = analyze_util.CausalityGraph()
-    event_vertices = {}
-    side_effect_vertices = {}
-    for pair in event_effect_pairs:
-        event = pair[0]
-        side_effect = pair[1]
-        assert isinstance(event, analyze_util.Event)
-        assert isinstance(side_effect, analyze_util.SideEffect)
-        if event.id not in event_vertices:
-            event_vertices[event.id] = analyze_util.CausalityVertex(event)
-        if side_effect.id not in side_effect_vertices:
-            side_effect_vertices[side_effect.id] = analyze_util.CausalityVertex(
-                side_effect)
-        causality_graph.connect_vertex(
-            event_vertices[event.id], side_effect_vertices[side_effect.id], analyze_util.INTER_THREAD_EDGE)
+    for event in events_data_structure.event_list:
+        causality_graph.add_vertex(analyze_util.CausalityVertex(event))
+    for side_effect in side_effects_data_structure.side_effect_list:
+        causality_graph.add_vertex(analyze_util.CausalityVertex(side_effect))
+
+    event_vertices = causality_graph.get_event_vertices()
+    side_effect_vertices = causality_graph.get_side_effect_vertices()
+
+    event_effect_edges = generate_event_effect_edges(
+        event_vertices, side_effect_vertices)
+    effect_event_edges = generate_effect_event_edges(
+        event_vertices, side_effect_vertices, events_data_structure.event_key_map)
+
+    for edge in event_effect_edges:
+        causality_graph.add_edge(edge)
+
+    for edge in effect_event_edges:
+        causality_graph.add_edge(edge)
+
+    causality_graph.sanity_check()
+
     return causality_graph
 
 
@@ -302,14 +301,6 @@ def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_g
     elif analysis_mode == sieve_modes.ATOM_VIO:
         analyze_gen.atom_vio_analysis(
             causality_graph, events_data_structure, generated_config_dir, project)
-
-
-def generate_test_oracle(log_dir):
-    log_path = os.path.join(log_dir, "sieve-server.log")
-    side_effect, status, resources = oracle.generate_digest(log_path)
-    dump_json_file(log_dir, side_effect, "side-effect.json")
-    dump_json_file(log_dir, status, "status.json")
-    dump_json_file(log_dir, resources, "resources.json")
 
 
 def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, two_sided=False, use_sql=False, compress_trivial_reconcile=True):
@@ -339,7 +330,7 @@ def analyze_trace(project, log_dir, generate_oracle=True, generate_config=True, 
                                  two_sided, causality_graph, events_data_structure)
 
     if generate_oracle:
-        generate_test_oracle(log_dir)
+        oracle.generate_test_oracle(log_dir)
 
 
 if __name__ == "__main__":
