@@ -3,17 +3,6 @@ import re
 from typing import Dict, List
 from common import *
 
-# def find_previous_event(event, event_map):
-#     id = event.id
-#     key = event.key
-#     assert key in event_map, "invalid key %s, not found in event_map" % (key)
-#     for i in range(len(event_map[key])):
-#         if event_map[key][i].id == id:
-#             if i == 0:
-#                 return None, event_map[key][i]
-#             else:
-#                 return event_map[key][i - 1], event_map[key][i]
-
 
 def compress_event_object_for_list(
     prev_object, cur_object, slim_prev_object, slim_cur_object
@@ -136,13 +125,53 @@ def canonicalize_event_object_for_list(event_list: List):
     return event_list
 
 
-def canonicalize_event_object(event: Dict):
-    for key in event:
-        if isinstance(event[key], dict):
-            canonicalize_event_object(event[key])
-        elif isinstance(event[key], list):
-            canonicalize_event_object_for_list(event[key])
-        elif isinstance(event[key], str):
-            if re.match(TIME_REG, str(event[key])):
-                event[key] = SIEVE_CANONICALIZATION_MARKER
-    return event
+def canonicalize_event_object(event_object: Dict):
+    for key in event_object:
+        if isinstance(event_object[key], dict):
+            canonicalize_event_object(event_object[key])
+        elif isinstance(event_object[key], list):
+            canonicalize_event_object_for_list(event_object[key])
+        elif isinstance(event_object[key], str):
+            if re.match(TIME_REG, str(event_object[key])):
+                event_object[key] = SIEVE_CANONICALIZATION_MARKER
+    return event_object
+
+
+def cancel_event_list(cur_object: List, following_object: List):
+    if len(following_object) < len(cur_object):
+        return True
+    for i in range(len(cur_object)):
+        if str(following_object[i]) != str(cur_object[i]):
+            if isinstance(cur_object[i], dict):
+                if not isinstance(following_object[i], dict):
+                    return True
+                elif cancel_event_object(cur_object[i], following_object[i]):
+                    return True
+            elif isinstance(cur_object[i], list):
+                if not isinstance(following_object[i], list):
+                    return True
+                elif cancel_event_list(cur_object[i], following_object[i]):
+                    return True
+            else:
+                return True
+    return False
+
+
+def cancel_event_object(cur_object: Dict, following_object: Dict):
+    for key in cur_object:
+        if key not in following_object:
+            return True
+        elif str(following_object[key]) != str(cur_object[key]):
+            if isinstance(cur_object[key], dict):
+                if not isinstance(following_object[key], dict):
+                    return True
+                elif cancel_event_object(cur_object[key], following_object[key]):
+                    return True
+            elif isinstance(cur_object[key], list):
+                if not isinstance(following_object[key], list):
+                    return True
+                elif cancel_event_list(cur_object[key], following_object[key]):
+                    return True
+            else:
+                return True
+    return False

@@ -56,6 +56,7 @@ class Event:
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
         self.__prev_etype = None
+        self.__cancelled_by = set()
 
     @property
     def id(self):
@@ -109,6 +110,10 @@ class Event:
     def prev_etype(self):
         return self.__prev_etype
 
+    @property
+    def cancelled_by(self):
+        return self.__cancelled_by
+
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
@@ -128,6 +133,10 @@ class Event:
     @prev_etype.setter
     def prev_etype(self, prev_etype: str):
         self.__prev_etype = prev_etype
+
+    @cancelled_by.setter
+    def cancelled_by(self, cancelled_by: Set):
+        self.__cancelled_by = cancelled_by
 
 
 class SideEffect:
@@ -500,23 +509,23 @@ class CausalityGraph:
         edge = CausalityEdge(side_effect_vertex, event_vertex, INTER_THREAD_EDGE)
         self.side_effect_event_edges.append(edge)
 
-    def finalize(self):
-        for key in self.event_key_to_event_vertices:
-            event_vertices = self.event_key_to_event_vertices[key]
-            for i in range(len(event_vertices)):
-                if i == 0:
-                    continue
-                prev_event = event_vertices[i - 1].content
-                cur_event = event_vertices[i].content
-                canonicalized_prev_object = canonicalize_event_object(
-                    copy.deepcopy(prev_event.obj_map)
-                )
-                canonicalized_cur_object = canonicalize_event_object(
-                    copy.deepcopy(cur_event.obj_map)
-                )
-                slim_prev_object, slim_cur_object = diff_events(
-                    canonicalized_prev_object, canonicalized_cur_object
-                )
-                cur_event.slim_prev_obj_map = slim_prev_object
-                cur_event.slim_cur_obj_map = slim_cur_object
-                cur_event.prev_etype = prev_event.etype
+    # def finalize(self):
+    #     for key in self.event_key_to_event_vertices:
+    #         event_vertices = self.event_key_to_event_vertices[key]
+    #         for i in range(len(event_vertices)):
+    #             if i == 0:
+    #                 continue
+    #             prev_event = event_vertices[i - 1].content
+    #             cur_event = event_vertices[i].content
+    #             canonicalized_prev_object = canonicalize_event_object(
+    #                 copy.deepcopy(prev_event.obj_map)
+    #             )
+    #             canonicalized_cur_object = canonicalize_event_object(
+    #                 copy.deepcopy(cur_event.obj_map)
+    #             )
+    #             slim_prev_object, slim_cur_object = diff_events(
+    #                 canonicalized_prev_object, canonicalized_cur_object
+    #             )
+    #             cur_event.slim_prev_obj_map = slim_prev_object
+    #             cur_event.slim_cur_obj_map = slim_cur_object
+    #             cur_event.prev_etype = prev_event.etype

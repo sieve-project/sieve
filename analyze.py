@@ -56,6 +56,7 @@ def parse_events(path):
     # { event id -> event }
     event_id_map = {}
     # { event key -> [events belonging to the key] }
+    event_key_map = {}
     # we need this map to later find the previous event for each crucial event
     event_list = []
     lines = open(path).readlines()
@@ -78,6 +79,27 @@ def parse_events(path):
         if SIEVE_BEFORE_EVENT_MARK in line:
             event = parse_event(line)
             event_list.append(event_id_map[event.id])
+            if event.key not in event_key_map:
+                event_key_map[event.key] = []
+            event_key_map[event.key].append(event_id_map[event.id])
+    for key in event_key_map:
+        for i in range(len(event_key_map[key])):
+            if i == 0:
+                continue
+            prev_event = event_key_map[key][i - 1]
+            cur_event = event_key_map[key][i]
+            canonicalized_prev_object = canonicalize_event_object(
+                copy.deepcopy(prev_event.obj_map)
+            )
+            canonicalized_cur_object = canonicalize_event_object(
+                copy.deepcopy(cur_event.obj_map)
+            )
+            slim_prev_object, slim_cur_object = diff_events(
+                canonicalized_prev_object, canonicalized_cur_object
+            )
+            cur_event.slim_prev_obj_map = slim_prev_object
+            cur_event.slim_cur_obj_map = slim_cur_object
+            cur_event.prev_etype = prev_event.etype
     return event_list
 
 
@@ -268,7 +290,6 @@ def build_causality_graph(event_list, side_effect_list):
     for pair in effect_event_pairs:
         causality_graph.connect_side_effect_to_event(pair[0], pair[1])
 
-    causality_graph.finalize()
     causality_graph.sanity_check()
 
     return causality_graph
