@@ -17,8 +17,3 @@ se-name: rabbitmq-cluster-server
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/rabbitmqcluster/rabbitmq-cluster
-  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SIEVE-NON-NIL"}}
-  and the events before E should match {}. And restart the controller rabbitmq-operator
-  after kind-control-plane processes a ADDED default/statefulset/rabbitmq-cluster-server
-  event.'
