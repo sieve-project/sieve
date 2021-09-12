@@ -664,14 +664,18 @@ if __name__ == "__main__":
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
         "learn",
-    ], ("invalid mode option: %s" % options.mode)
+    ], (
+        "invalid mode option: %s" % options.mode
+    )
     assert options.phase in [
         "all",
         "setup_only",
         "workload_only",
         "check_only",
         "workload_and_check",
-    ], ("invalid phase option: %s" % options.phase)
+    ], (
+        "invalid phase option: %s" % options.phase
+    )
 
     print("Running Sieve with %s: %s..." % (options.stage, options.mode))
 

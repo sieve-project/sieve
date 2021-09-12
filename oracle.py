@@ -235,14 +235,11 @@ def check_status(learning_status, testing_status):
             for attr in learning_status[rtype]:
                 if learning_status[rtype][attr] != testing_status[rtype][attr]:
                     alarm += 1
-                    bug_report += (
-                        "[ERROR] %s %s inconsistency: %s seen after learning run, but %s seen after testing run\n"
-                        % (
-                            rtype,
-                            attr.upper(),
-                            str(learning_status[rtype][attr]),
-                            str(testing_status[rtype][attr]),
-                        )
+                    bug_report += "[ERROR] %s %s inconsistency: %s seen after learning run, but %s seen after testing run\n" % (
+                        rtype,
+                        attr.upper(),
+                        str(learning_status[rtype][attr]),
+                        str(testing_status[rtype][attr]),
                     )
     final_bug_report = (
         "Liveness assertion failed:\n" + bug_report if bug_report != "" else ""
@@ -328,16 +325,13 @@ def check_side_effect(
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
-                    bug_report += (
-                        "[ERROR] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n"
-                        % (
-                            rtype,
-                            namespace,
-                            name,
-                            attr.upper(),
-                            str(learning_entry[attr]),
-                            str(testing_entry[attr]),
-                        )
+                    bug_report += "[ERROR] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                        rtype,
+                        namespace,
+                        name,
+                        attr.upper(),
+                        str(learning_entry[attr]),
+                        str(testing_entry[attr]),
                     )
     final_bug_report = (
         "Safety assertion failed:\n" + bug_report if bug_report != "" else ""
@@ -346,34 +340,28 @@ def check_side_effect(
 
 
 def generate_time_travel_debugging_hint(testing_config):
-    desc = (
-        "Sieve makes the controller time travel back to the history to see the status just %s %s: %s"
-        % (
-            testing_config["timing"],
-            testing_config["ce-rtype"]
-            + "/"
-            + testing_config["ce-namespace"]
-            + "/"
-            + testing_config["ce-name"],
-            testing_config["ce-diff-current"],
-        )
+    desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
+        testing_config["timing"],
+        testing_config["ce-rtype"]
+        + "/"
+        + testing_config["ce-namespace"]
+        + "/"
+        + testing_config["ce-name"],
+        testing_config["ce-diff-current"],
     )
-    suggestion = (
-        "Please check how controller reacts when seeing %s: %s, the controller might issue %s to %s without proper checking"
-        % (
-            testing_config["ce-rtype"]
-            + "/"
-            + testing_config["ce-namespace"]
-            + "/"
-            + testing_config["ce-name"],
-            testing_config["ce-diff-current"],
-            "deletion" if testing_config["se-etype"] == "ADDED" else "creation",
-            testing_config["se-rtype"]
-            + "/"
-            + testing_config["se-namespace"]
-            + "/"
-            + testing_config["se-name"],
-        )
+    suggestion = "Please check how controller reacts when seeing %s: %s, the controller might issue %s to %s without proper checking" % (
+        testing_config["ce-rtype"]
+        + "/"
+        + testing_config["ce-namespace"]
+        + "/"
+        + testing_config["ce-name"],
+        testing_config["ce-diff-current"],
+        "deletion" if testing_config["se-etype"] == "ADDED" else "creation",
+        testing_config["se-rtype"]
+        + "/"
+        + testing_config["se-namespace"]
+        + "/"
+        + testing_config["se-name"],
     )
     return desc + "\n" + suggestion + "\n"
 
@@ -387,16 +375,13 @@ def generate_obs_gap_debugging_hint(testing_config):
         + testing_config["ce-name"],
         testing_config["ce-diff-current"],
     )
-    suggestion = (
-        "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events"
-        % (
-            testing_config["ce-rtype"]
-            + "/"
-            + testing_config["ce-namespace"]
-            + "/"
-            + testing_config["ce-name"],
-            testing_config["ce-diff-current"],
-        )
+    suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
+        testing_config["ce-rtype"]
+        + "/"
+        + testing_config["ce-namespace"]
+        + "/"
+        + testing_config["ce-name"],
+        testing_config["ce-diff-current"],
     )
     return desc + "\n" + suggestion + "\n"
 
