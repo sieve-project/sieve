@@ -207,7 +207,7 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 	client.Close()
 }
 
-func NotifyLearnCacheGet(readType string, key types.NamespacedName, object interface{}, k8sErr error) {
+func NotifyLearnCacheGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
 	if !checkStage(LEARN) {
 		return
 	}
@@ -222,8 +222,8 @@ func NotifyLearnCacheGet(readType string, key types.NamespacedName, object inter
 	}
 	request := &NotifyLearnCacheGetRequest{
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
-		Namespace:    key.Namespace,
-		Name:         key.Name,
+		Namespace:    namespacedName.Namespace,
+		Name:         namespacedName.Name,
 		Error:        errorString,
 	}
 	var response Response
