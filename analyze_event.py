@@ -3,16 +3,16 @@ import copy
 import re
 
 
-def find_previous_event(event, event_map):
-    id = event.id
-    key = event.key
-    assert key in event_map, "invalid key %s, not found in event_map" % (key)
-    for i in range(len(event_map[key])):
-        if event_map[key][i].id == id:
-            if i == 0:
-                return None, event_map[key][i]
-            else:
-                return event_map[key][i - 1], event_map[key][i]
+# def find_previous_event(event, event_map):
+#     id = event.id
+#     key = event.key
+#     assert key in event_map, "invalid key %s, not found in event_map" % (key)
+#     for i in range(len(event_map[key])):
+#         if event_map[key][i].id == id:
+#             if i == 0:
+#                 return None, event_map[key][i]
+#             else:
+#                 return event_map[key][i - 1], event_map[key][i]
 
 
 def compress_event_object_for_list(

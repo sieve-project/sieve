@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict, Union, Set
+from typing import List, Dict, Optional, Union, Set
 import sieve_config
 
 WRITE_READ_FILTER_FLAG = True
@@ -380,11 +380,8 @@ def parse_reconcile(line: str) -> Reconcile:
 
 
 class CausalityVertex:
-    vertex_cnt = 0
-
-    def __init__(self, content: Union[Event, SideEffect]):
-        self.__id = CausalityVertex.vertex_cnt
-        CausalityVertex.vertex_cnt += 1
+    def __init__(self, id: int, content: Union[Event, SideEffect]):
+        self.__id = id
         self.__content = content
 
     @property
@@ -403,18 +400,10 @@ class CausalityVertex:
 
 
 class CausalityEdge:
-    edge_cnt = 0
-
     def __init__(self, source: CausalityVertex, sink: CausalityVertex, type: str):
-        self.__id = CausalityEdge.edge_cnt
-        CausalityEdge.edge_cnt += 1
         self.__source = source
         self.__sink = sink
         self.__type = type
-
-    @property
-    def id(self):
-        return self.__id
 
     @property
     def source(self):
@@ -431,62 +420,91 @@ class CausalityEdge:
 
 class CausalityGraph:
     def __init__(self):
-        self.__vertices = {}
-        self.__edges = {}
+        self.__event_vertices = []
+        self.__side_effect_vertices = []
+        self.__event_key_to_event_vertices = {}
+        self.__event_side_effect_edges = []
+        self.__side_effect_event_edges = []
 
     @property
-    def vertices(self):
-        return self.__vertices
+    def event_vertices(self) -> List[CausalityVertex]:
+        return self.__event_vertices
 
     @property
-    def edges(self):
-        return self.__edges
+    def side_effect_vertices(self) -> List[CausalityVertex]:
+        return self.__side_effect_vertices
+
+    @property
+    def event_key_to_event_vertices(self) -> Dict[str, List[CausalityVertex]]:
+        return self.__event_key_to_event_vertices
+
+    @property
+    def event_side_effect_edges(self) -> List[CausalityEdge]:
+        return self.__event_side_effect_edges
+
+    @property
+    def side_effect_event_edges(self) -> List[CausalityEdge]:
+        return self.__side_effect_event_edges
+
+    def get_prev_event_with_key(self, key, cur_event_id) -> Optional[CausalityVertex]:
+        for i in range(len(self.event_key_to_event_vertices[key])):
+            event_vertex = self.event_key_to_event_vertices[key][i]
+            if event_vertex.id == cur_event_id:
+                if i == 0:
+                    return None
+                else:
+                    return self.event_key_to_event_vertices[key][i - 1]
 
     def sanity_check(self):
-        for edge in self.edges.values():
+        for i in range(len(self.event_vertices)):
+            if i > 0:
+                assert self.event_vertices[i].id > self.event_vertices[i - 1].id
+            assert self.event_vertices[i].is_event
+        for i in range(len(self.side_effect_vertices)):
+            if i > 0:
+                assert (
+                    self.side_effect_vertices[i].id
+                    > self.side_effect_vertices[i - 1].id
+                )
+            assert self.side_effect_vertices[i].is_side_effect
+        for edge in self.event_side_effect_edges:
             assert isinstance(edge.source, CausalityVertex)
             assert isinstance(edge.sink, CausalityVertex)
-            assert edge.source.id != edge.sink.id
-            assert edge.source.id in self.vertices
-            assert edge.sink.id in self.vertices
-            assert (edge.source.is_event() and edge.sink.is_side_effect()) or (
-                edge.sink.is_event() and edge.source.is_side_effect()
+            assert edge.source.is_event() and edge.sink.is_side_effect()
+        for edge in self.side_effect_event_edges:
+            assert isinstance(edge.source, CausalityVertex)
+            assert isinstance(edge.sink, CausalityVertex)
+            assert edge.sink.is_event() and edge.source.is_side_effect()
+
+    def add_sorted_events(self, event_list: List[Event]):
+        for i in range(len(event_list)):
+            event = event_list[i]
+            event_vertex = CausalityVertex(event.id, event)
+            self.event_vertices.append(event_vertex)
+            if event_vertex.content.key not in self.event_key_to_event_vertices:
+                self.event_key_to_event_vertices[event_vertex.content.key] = []
+            self.event_key_to_event_vertices[event_vertex.content.key].append(
+                event_vertex
             )
 
-    def add_vertex(self, vertex: CausalityVertex):
-        if vertex.id not in self.__vertices:
-            self.__vertices[vertex.id] = vertex
+    def add_sorted_side_effects(self, side_effect_list: List[SideEffect]):
+        for i in range(len(side_effect_list)):
+            side_effect = side_effect_list[i]
+            side_effect_vertex = CausalityVertex(side_effect.id, side_effect)
+            self.side_effect_vertices.append(side_effect_vertex)
 
-    def add_edge(self, edge: CausalityEdge):
-        if edge.id not in self.__edges:
-            self.__edges[edge.id] = edge
+    def connect_event_to_side_effect(
+        self, event_vertex: CausalityVertex, side_effect_vertex: CausalityVertex
+    ):
+        assert event_vertex.is_event()
+        assert side_effect_vertex.is_side_effect()
+        edge = CausalityEdge(event_vertex, side_effect_vertex, INTER_THREAD_EDGE)
+        self.event_side_effect_edges.append(edge)
 
-    def get_vertex_list(self) -> List[CausalityVertex]:
-        return list(self.vertices.values())
-
-    def get_event_vertex_list(self) -> List[CausalityVertex]:
-        vertices = self.get_vertex_list()
-        event_vertices = []
-        for vertex in vertices:
-            if vertex.is_event():
-                event_vertices.append(vertex)
-        return event_vertices
-
-    def get_side_effect_vertex_list(self) -> List[CausalityVertex]:
-        vertices = self.get_vertex_list()
-        side_effect_vertices = []
-        for vertex in vertices:
-            if vertex.is_side_effect():
-                side_effect_vertices.append(vertex)
-        return side_effect_vertices
-
-    def get_edge_list(self) -> List[CausalityEdge]:
-        return list(self.edges.values())
-
-    def get_event_effect_edge_list(self) -> List[CausalityEdge]:
-        edges = self.get_edge_list()
-        event_effect_edges = []
-        for edge in edges:
-            if edge.source.is_event() and edge.sink.is_side_effect():
-                event_effect_edges.append(edge)
-        return event_effect_edges
+    def connect_side_effect_to_event(
+        self, side_effect_vertex: CausalityVertex, event_vertex: CausalityVertex
+    ):
+        assert event_vertex.is_event()
+        assert side_effect_vertex.is_side_effect()
+        edge = CausalityEdge(side_effect_vertex, event_vertex, INTER_THREAD_EDGE)
+        self.side_effect_event_edges.append(edge)

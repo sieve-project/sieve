@@ -50,48 +50,15 @@ def delete_then_recreate_filtering_pass(
 
 def time_travel_analysis(
     causality_graph: CausalityGraph,
-    events_data_structure: EventsDataStructure,
     path: str,
     project: str,
     timing="after",
 ):
-    causality_edges = causality_graph.get_event_effect_edge_list()
+    causality_edges = causality_graph.event_side_effect_edges
     candidate_edges = delete_only_filtering_pass(causality_edges)
     candidate_edges = delete_then_recreate_filtering_pass(
-        candidate_edges, events_data_structure.event_key_map
+        candidate_edges, causality_graph.event_key_to_event_vertices
     )
-    generate_time_travel_yaml(
-        candidate_edges, path, project, events_data_structure.event_key_map, timing
-    )
-
-
-def obs_gap_analysis(
-    causality_graph: CausalityGraph,
-    events_data_structure: EventsDataStructure,
-    path: str,
-    project: str,
-):
-    causality_edges = causality_graph.get_event_effect_edge_list()
-    candidate_edges = causality_edges
-    generate_obs_gap_yaml(
-        candidate_edges, path, project, events_data_structure.event_key_map
-    )
-
-
-def atom_vio_analysis(
-    causality_graph: CausalityGraph,
-    events_data_structure: EventsDataStructure,
-    path: str,
-    project: str,
-):
-    causality_edges = causality_graph.get_event_effect_edge_list()
-    candidate_edges = causality_edges
-    generate_atom_vio_yaml(
-        candidate_edges, path, project, events_data_structure.event_key_map
-    )
-
-
-def generate_time_travel_yaml(causality_edges, path, project, event_key_map, timing):
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -103,22 +70,25 @@ def generate_time_travel_yaml(causality_edges, path, project, event_key_map, tim
     yaml_map["timing"] = timing
     suffix = "-b" if timing == "before" else ""
     i = 0
-    for edge in causality_edges:
-        event = edge.source.content
+    for edge in candidate_edges:
+        cur_event = edge.source.content
         side_effect = edge.sink.content
-        assert isinstance(event, Event)
+        assert isinstance(cur_event, Event)
         assert isinstance(side_effect, SideEffect)
 
-        prev_event, cur_event = analyze_event.find_previous_event(event, event_key_map)
-        if prev_event is None:
+        prev_event_vertex = causality_graph.get_prev_event_with_key(
+            cur_event.key, cur_event.id
+        )
+        if prev_event_vertex is None:
             continue
+        prev_event = prev_event_vertex.content
         slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
-        yaml_map["ce-name"] = event.name
-        yaml_map["ce-namespace"] = event.namespace
-        yaml_map["ce-rtype"] = event.rtype
+        yaml_map["ce-name"] = cur_event.name
+        yaml_map["ce-namespace"] = cur_event.namespace
+        yaml_map["ce-rtype"] = cur_event.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(
             analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
@@ -146,7 +116,13 @@ def generate_time_travel_yaml(causality_edges, path, project, event_key_map, tim
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
-def generate_obs_gap_yaml(causality_edges, path, project, event_key_map):
+def obs_gap_analysis(
+    causality_graph: CausalityGraph,
+    path: str,
+    project: str,
+):
+    causality_edges = causality_graph.event_side_effect_edges
+    candidate_edges = causality_edges
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -154,27 +130,30 @@ def generate_obs_gap_yaml(causality_edges, path, project, event_key_map):
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     i = 0
     events_set = set()
-    for edge in causality_edges:
-        event = edge.source.content
+    for edge in candidate_edges:
+        cur_event = edge.source.content
         side_effect = edge.sink.content
-        assert isinstance(event, Event)
+        assert isinstance(cur_event, Event)
         assert isinstance(side_effect, SideEffect)
 
-        if event.id not in events_set:
-            events_set.add(event.id)
+        if cur_event.id not in events_set:
+            events_set.add(cur_event.id)
         else:
             continue
 
-        prev_event, cur_event = analyze_event.find_previous_event(event, event_key_map)
-        if prev_event is None:
+        prev_event_vertex = causality_graph.get_prev_event_with_key(
+            cur_event.key, cur_event.id
+        )
+        if prev_event_vertex is None:
             continue
+        prev_event = prev_event_vertex.content
         slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
-        yaml_map["ce-name"] = event.name
-        yaml_map["ce-namespace"] = event.namespace
-        yaml_map["ce-rtype"] = event.rtype
+        yaml_map["ce-name"] = cur_event.name
+        yaml_map["ce-namespace"] = cur_event.namespace
+        yaml_map["ce-rtype"] = cur_event.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(
             analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
@@ -194,7 +173,13 @@ def generate_obs_gap_yaml(causality_edges, path, project, event_key_map):
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
 
-def generate_atom_vio_yaml(causality_edges, path, project, event_key_map):
+def atom_vio_analysis(
+    causality_graph: CausalityGraph,
+    path: str,
+    project: str,
+):
+    causality_edges = causality_graph.event_side_effect_edges
+    candidate_edges = causality_edges
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -203,22 +188,25 @@ def generate_atom_vio_yaml(causality_edges, path, project, event_key_map):
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
     i = 0
-    for edge in causality_edges:
-        event = edge.source.content
+    for edge in candidate_edges:
+        cur_event = edge.source.content
         side_effect = edge.sink.content
-        assert isinstance(event, Event)
+        assert isinstance(cur_event, Event)
         assert isinstance(side_effect, SideEffect)
 
-        prev_event, cur_event = analyze_event.find_previous_event(event, event_key_map)
-        if prev_event is None:
+        prev_event_vertex = causality_graph.get_prev_event_with_key(
+            cur_event.key, cur_event.id
+        )
+        if prev_event_vertex is None:
             continue
+        prev_event = prev_event_vertex.content
         slim_prev_obj, slim_cur_obj = analyze_event.diff_events(prev_event, cur_event)
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
-        yaml_map["ce-name"] = event.name
-        yaml_map["ce-namespace"] = event.namespace
-        yaml_map["ce-rtype"] = event.rtype
+        yaml_map["ce-name"] = cur_event.name
+        yaml_map["ce-namespace"] = cur_event.namespace
+        yaml_map["ce-rtype"] = cur_event.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(
             analyze_event.canonicalize_event(copy.deepcopy(slim_cur_obj))
