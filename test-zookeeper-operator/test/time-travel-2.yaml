@@ -17,8 +17,3 @@ se-name: data-zookeeper-cluster-1
 se-namespace: default
 se-rtype: persistentvolumeclaim
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/zookeepercluster/zookeeper-cluster
-  event E. E should match the pattern {"status": {"readyReplicas": 1}} and the events
-  before E should match {"status": {"readyReplicas": 2}}. And restart the controller
-  zookeeper-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/data-zookeeper-cluster-1
-  event.'

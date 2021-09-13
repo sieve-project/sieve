@@ -17,8 +17,3 @@ se-name: mongodb-cluster-cfg
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/perconaservermongodb/mongodb-cluster
-  event E. E should match the pattern {"spec": {"sharding": {"enabled": false}}} and
-  the events before E should match {"spec": {"sharding": {"enabled": true}}}. And
-  restart the controller mongodb-operator after kind-control-plane processes a ADDED
-  default/statefulset/mongodb-cluster-cfg event.'
