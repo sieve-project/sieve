@@ -111,18 +111,18 @@ def parse_events(path):
                     cancelled_by.add(following_event.id)
                     continue
                 if (
-                    cur_event.etype != "Deleted"
-                    and following_event.etype != "Deleted"
+                    cur_event.etype != EventTypes.DELETED
+                    and following_event.etype != EventTypes.DELETED
                     and cancel_event_object(
                         cur_event.slim_cur_obj_map, following_event.obj_map
                     )
                     or (
-                        cur_event.etype != "Deleted"
-                        and following_event.etype == "Deleted"
+                        cur_event.etype != EventTypes.DELETED
+                        and following_event.etype == EventTypes.DELETED
                     )
                     or (
-                        cur_event.etype == "Deleted"
-                        and following_event.etype != "Deleted"
+                        cur_event.etype == EventTypes.DELETED
+                        and following_event.etype != EventTypes.DELETED
                     )
                 ):
                     cancelled_by.add(following_event.id)

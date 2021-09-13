@@ -23,10 +23,28 @@ INTRA_THREAD_EDGE = "INTRA-THREAD"
 INTER_THREAD_EDGE = "INTER-THREADS"
 
 
+class EventTypes:
+    ADDED = "Added"
+    UPDATED = "Updated"
+    DELETED = "Deleted"
+
+
+class SideEffectTypes:
+    CREATE = "Create"
+    UPDATE = "Update"
+    DELETE = "Delete"
+
+
 def consistent_type(event_type: str, side_effect_type: str):
-    both_create = event_type == "Added" and side_effect_type == "Create"
-    both_update = event_type == "Updated" and side_effect_type == "Update"
-    both_delete = event_type == "Deleted" and side_effect_type == "Delete"
+    both_create = (
+        event_type == EventTypes.ADDED and side_effect_type == SideEffectTypes.CREATE
+    )
+    both_update = (
+        event_type == EventTypes.UPDATED and side_effect_type == SideEffectTypes.UPDATE
+    )
+    both_delete = (
+        event_type == EventTypes.DELETED and side_effect_type == SideEffectTypes.DELETE
+    )
     return both_create or both_update or both_delete
 
 

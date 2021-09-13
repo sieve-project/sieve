@@ -16,7 +16,7 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
     candidate_edges = []
     for edge in causality_edges:
         if edge.source.is_event() and edge.sink.is_side_effect():
-            if edge.sink.content.etype == "Delete":
+            if edge.sink.content.etype == SideEffectTypes.DELETE:
                 candidate_edges.append(edge)
     return candidate_edges
 
@@ -31,14 +31,14 @@ def delete_then_recreate_filtering_pass(
     for edge in causality_edges:
         side_effect = edge.sink.content
         # time travel only cares about delete for now
-        assert side_effect.etype == "Delete"
+        assert side_effect.etype == SideEffectTypes.DELETE
         keep_this_pair = False
         if side_effect.key in event_key_to_event_vertices:
             for event_vertex in event_key_to_event_vertices[side_effect.key]:
                 event = event_vertex.content
                 if event.start_timestamp <= side_effect.end_timestamp:
                     continue
-                if event.etype == "Added":
+                if event.etype == EventTypes.ADDED:
                     keep_this_pair = True
         else:
             # if the side effect key never appears in the event_key_map
@@ -97,7 +97,8 @@ def time_travel_analysis(
         yaml_map["se-name"] = side_effect.name
         yaml_map["se-namespace"] = side_effect.namespace
         yaml_map["se-rtype"] = side_effect.rtype
-        yaml_map["se-etype"] = "ADDED" if side_effect.etype == "Delete" else "DELETED"
+        assert side_effect.etype == SideEffectTypes.DELETE
+        yaml_map["se-etype"] = "ADDED"
 
         i += 1
         yaml.dump(
