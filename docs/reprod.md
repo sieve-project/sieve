@@ -257,6 +257,7 @@ python3 sieve.py -p casskop-operator -t scaledown-to-zero -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
+[ERROR] persistentvolumeclaim SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
 [ERROR] pod SIZE inconsistency: 2 seen after learning run, but 3 seen after testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
