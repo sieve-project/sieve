@@ -40,6 +40,7 @@ def sanity_check_sieve_log(path):
             reconcile_status[reconcile_id] += 1
             assert reconcile_status[reconcile_id] == 1
         elif SIEVE_AFTER_RECONCILE_MARK in line:
+            reconcile_id = parse_reconcile(line).controller_name
             assert reconcile_id in reconcile_status
             reconcile_status[reconcile_id] -= 1
             assert reconcile_status[reconcile_id] == 0
