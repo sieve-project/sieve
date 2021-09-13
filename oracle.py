@@ -62,7 +62,7 @@ def generate_test_oracle(log_dir):
     side_effect, status, resources = generate_digest(log_path)
     dump_json_file(log_dir, side_effect, "side-effect.json")
     dump_json_file(log_dir, status, "status.json")
-    dump_json_file(log_dir, resources, "resources.json")
+    # dump_json_file(log_dir, resources, "resources.json")
 
 
 def generate_digest(path):
