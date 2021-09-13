@@ -496,6 +496,9 @@ class CausalityGraph:
                     return self.event_key_to_event_vertices[key][i - 1]
 
     def sanity_check(self):
+        # Be careful!!! The event_id and side_effect_id are only used to differentiate events/side effects
+        # the id value does not indicate which event/side effect happens earlier/later
+        # TODO(xudong): maybe we should also make the id consistent with start_timestamp?
         print("%d event vertices" % len(self.event_vertices))
         print("%d side_effect vertices" % len(self.side_effect_vertices))
         print("%d edges from event to side_effect" % len(self.event_side_effect_edges))
@@ -504,8 +507,8 @@ class CausalityGraph:
             if i > 0:
                 assert self.event_vertices[i].gid == self.event_vertices[i - 1].gid + 1
                 assert (
-                    self.event_vertices[i].content.id
-                    > self.event_vertices[i - 1].content.id
+                    self.event_vertices[i].content.start_timestamp
+                    > self.event_vertices[i - 1].content.start_timestamp
                 )
             assert self.event_vertices[i].is_event
         for i in range(len(self.side_effect_vertices)):
@@ -515,8 +518,8 @@ class CausalityGraph:
                     == self.side_effect_vertices[i - 1].gid + 1
                 )
                 assert (
-                    self.side_effect_vertices[i].content.id
-                    > self.side_effect_vertices[i - 1].content.id
+                    self.side_effect_vertices[i].content.start_timestamp
+                    > self.side_effect_vertices[i - 1].content.start_timestamp
                 )
             assert self.side_effect_vertices[i].is_side_effect
         for edge in self.event_side_effect_edges:
