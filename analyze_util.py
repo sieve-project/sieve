@@ -511,6 +511,8 @@ class CausalityGraph:
                     > self.event_vertices[i - 1].content.start_timestamp
                 )
             assert self.event_vertices[i].is_event
+            for edge in self.event_vertices[i].out_edges:
+                assert self.event_vertices[i].gid == edge.source.gid
         for i in range(len(self.side_effect_vertices)):
             if i > 0:
                 assert (
@@ -522,14 +524,22 @@ class CausalityGraph:
                     > self.side_effect_vertices[i - 1].content.start_timestamp
                 )
             assert self.side_effect_vertices[i].is_side_effect
+            for edge in self.event_vertices[i].out_edges:
+                assert self.event_vertices[i].gid == edge.source.gid
         for edge in self.event_side_effect_edges:
             assert isinstance(edge.source, CausalityVertex)
             assert isinstance(edge.sink, CausalityVertex)
             assert edge.source.is_event() and edge.sink.is_side_effect()
+            assert (
+                edge.source.content.start_timestamp < edge.sink.content.start_timestamp
+            )
         for edge in self.side_effect_event_edges:
             assert isinstance(edge.source, CausalityVertex)
             assert isinstance(edge.sink, CausalityVertex)
             assert edge.sink.is_event() and edge.source.is_side_effect()
+            assert (
+                edge.source.content.start_timestamp < edge.sink.content.start_timestamp
+            )
 
     def add_sorted_events(self, event_list: List[Event]):
         for i in range(len(event_list)):
@@ -557,6 +567,10 @@ class CausalityGraph:
     ):
         assert event_vertex.is_event()
         assert side_effect_vertex.is_side_effect()
+        assert (
+            event_vertex.content.start_timestamp
+            < side_effect_vertex.content.start_timestamp
+        )
         edge = CausalityEdge(event_vertex, side_effect_vertex, INTER_THREAD_EDGE)
         event_vertex.add_out_edge(edge)
         self.event_side_effect_edges.append(edge)
@@ -566,6 +580,10 @@ class CausalityGraph:
     ):
         assert event_vertex.is_event()
         assert side_effect_vertex.is_side_effect()
+        assert (
+            side_effect_vertex.content.start_timestamp
+            < event_vertex.content.start_timestamp
+        )
         edge = CausalityEdge(side_effect_vertex, event_vertex, INTER_THREAD_EDGE)
         side_effect_vertex.add_out_edge(edge)
         self.side_effect_event_edges.append(edge)
@@ -574,12 +592,22 @@ class CausalityGraph:
 def causality_vertice_connected(source: CausalityVertex, sink: CausalityVertex):
     # there should be no cycles in the casuality graph
     queue = []
+    visited = set()
     queue.append(source)
+    visited.add(source.gid)
+    if source.gid == sink.gid:
+        return True
     while len(queue) != 0:
         cur = queue.pop(0)
         for edge in cur.out_edges:
+            assert cur.gid == edge.source.gid
+            assert (
+                edge.source.content.start_timestamp < edge.sink.content.start_timestamp
+            )
             if edge.sink.gid == sink.gid:
                 return True
             else:
-                queue.append(edge.sink)
+                if edge.sink.gid not in visited:
+                    visited.add(edge.sink.gid)
+                    queue.append(edge.sink)
     return False
