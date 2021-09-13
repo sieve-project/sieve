@@ -266,10 +266,12 @@ class SideEffect:
         assert event.start_timestamp != -1
         assert event.end_timestamp != -1
         assert self.range_start_timestamp < self.range_end_timestamp
+        assert self.start_timestamp < self.end_timestamp
+        assert self.end_timestamp == self.range_end_timestamp
         assert event.start_timestamp < event.end_timestamp
         return (
             self.range_start_timestamp < event.end_timestamp
-            and self.range_end_timestamp > event.start_timestamp
+            and self.start_timestamp > event.start_timestamp
         )
 
     def interest_overlap(self, event: Event):
