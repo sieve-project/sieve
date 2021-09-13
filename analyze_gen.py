@@ -111,30 +111,31 @@ def time_travel_analysis(
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
+def cancellable_filtering_pass(causality_vertices: List[CausalityVertex]):
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        if len(vertex.content.cancelled_by) > 0:
+            candidate_vertices.append(vertex)
+    return candidate_vertices
+
+
 def obs_gap_analysis(
     causality_graph: CausalityGraph,
     path: str,
     project: str,
 ):
-    causality_edges = causality_graph.event_side_effect_edges
-    candidate_edges = causality_edges
+    event_vertices = causality_graph.event_vertices
+    candidate_vertices = event_vertices
+    candidate_vertices = cancellable_filtering_pass(candidate_vertices)
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
     yaml_map["mode"] = sieve_modes.OBS_GAP
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     i = 0
-    events_set = set()
-    for edge in candidate_edges:
-        cur_event = edge.source.content
-        side_effect = edge.sink.content
+    for vertex in candidate_vertices:
+        cur_event = vertex.content
         assert isinstance(cur_event, Event)
-        assert isinstance(side_effect, SideEffect)
-
-        if cur_event.id not in events_set:
-            events_set.add(cur_event.id)
-        else:
-            continue
 
         slim_prev_obj = cur_event.slim_prev_obj_map
         slim_cur_obj = cur_event.slim_cur_obj_map
