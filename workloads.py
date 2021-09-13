@@ -59,9 +59,8 @@ workloads = {
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-2.yaml")
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", common.RUNNING)
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-1.yaml")
-        .wait(10)
+        .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", common.TERMINATED, 10)
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-0.yaml")
-        .wait(10)
         .wait(50),
         "scaledown": test_framework.new_built_in_workload().cmd(
             "kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml"
