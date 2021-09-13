@@ -49,7 +49,7 @@ jobs:
         run: |
           python3 sieve.py -p casskop-operator -t recreate -s learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p casskop-operator -t reducepdb -s learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p casskop-operator -t nodesperrack -s learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p casskop-operator -t scaledown-to-zero -s learn -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-casskop-data
@@ -58,7 +58,7 @@ jobs:
         run: |
           python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
           python3 sieve.py -p casskop-operator -t reducepdb -d $IMAGE_NAMESPACE
-          python3 sieve.py -p casskop-operator -t nodesperrack -d $IMAGE_NAMESPACE
+          python3 sieve.py -p casskop-operator -t scaledown-to-zero -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-casskop-artifact

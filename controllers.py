@@ -80,11 +80,6 @@ test_suites = {
             "test-zookeeper-operator/test/time-travel-2.yaml",
             sieve_modes.TIME_TRAVEL,
         ),
-        "scaledown-scaleup-obs": Suite(
-            workloads.workloads["zookeeper-operator"]["scaledown-scaleup-obs"],
-            "test-zookeeper-operator/test/obs-gap-1.yaml",
-            sieve_modes.OBS_GAP,
-        ),
     },
     "rabbitmq-operator": {
         "recreate": Suite(
@@ -149,8 +144,8 @@ test_suites = {
             sieve_modes.TIME_TRAVEL,
             two_sided=True,
         ),
-        "nodesperrack": Suite(
-            workloads.workloads["casskop-operator"]["nodesperrack"],
+        "scaledown-to-zero": Suite(
+            workloads.workloads["casskop-operator"]["scaledown-to-zero"],
             "test-casskop-operator/test/obs-gap-1.yaml",
             sieve_modes.OBS_GAP,
         ),

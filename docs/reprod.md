@@ -253,7 +253,7 @@ The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [orange-opensource-casskop-342](https://github.com/Orange-OpenSource/casskop/issues/342)
 ```
-python3 sieve.py -p casskop-operator -t nodesperrack -d DOCKER_REPO_NAME
+python3 sieve.py -p casskop-operator -t scaledown-to-zero -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
