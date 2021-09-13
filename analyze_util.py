@@ -398,17 +398,25 @@ def parse_reconcile(line: str) -> Reconcile:
 
 
 class CausalityVertex:
-    def __init__(self, id: int, content: Union[Event, SideEffect]):
-        self.__id = id
+    def __init__(self, gid: int, content: Union[Event, SideEffect]):
+        self.__gid = gid
         self.__content = content
+        self.__out_edges = []
 
     @property
-    def id(self):
-        return self.__id
+    def gid(self):
+        return self.__gid
 
     @property
     def content(self):
         return self.__content
+
+    @property
+    def out_edges(self):
+        return self.__out_edges
+
+    def add_out_edge(self, edge):
+        self.out_edges.append(edge)
 
     def is_event(self) -> bool:
         return isinstance(self.content, Event)
@@ -438,9 +446,11 @@ class CausalityEdge:
 
 class CausalityGraph:
     def __init__(self):
+        self.__vertex_cnt = 0
         self.__event_vertices = []
         self.__side_effect_vertices = []
         self.__event_key_to_event_vertices = {}
+        self.__event_id_to_event_vertices = {}
         self.__event_side_effect_edges = []
         self.__side_effect_event_edges = []
 
@@ -457,6 +467,10 @@ class CausalityGraph:
         return self.__event_key_to_event_vertices
 
     @property
+    def event_id_to_event_vertices(self) -> Dict[int, List[CausalityVertex]]:
+        return self.__event_id_to_event_vertices
+
+    @property
     def event_side_effect_edges(self) -> List[CausalityEdge]:
         return self.__event_side_effect_edges
 
@@ -464,25 +478,43 @@ class CausalityGraph:
     def side_effect_event_edges(self) -> List[CausalityEdge]:
         return self.__side_effect_event_edges
 
+    def get_event_with_id(self, event_id) -> Optional[CausalityVertex]:
+        if event_id in self.event_id_to_event_vertices:
+            return self.event_id_to_event_vertices[event_id]
+        else:
+            return None
+
     def get_prev_event_with_key(self, key, cur_event_id) -> Optional[CausalityVertex]:
         for i in range(len(self.event_key_to_event_vertices[key])):
             event_vertex = self.event_key_to_event_vertices[key][i]
-            if event_vertex.id == cur_event_id:
+            if event_vertex.content.id == cur_event_id:
                 if i == 0:
                     return None
                 else:
                     return self.event_key_to_event_vertices[key][i - 1]
 
     def sanity_check(self):
+        print("%d event vertices" % len(self.event_vertices))
+        print("%d side_effect vertices" % len(self.side_effect_vertices))
+        print("%d edges from event to side_effect" % len(self.event_side_effect_edges))
+        print("%d edges from side_effect to event" % len(self.side_effect_event_edges))
         for i in range(len(self.event_vertices)):
             if i > 0:
-                assert self.event_vertices[i].id > self.event_vertices[i - 1].id
+                assert self.event_vertices[i].gid == self.event_vertices[i - 1].gid + 1
+                assert (
+                    self.event_vertices[i].content.id
+                    > self.event_vertices[i - 1].content.id
+                )
             assert self.event_vertices[i].is_event
         for i in range(len(self.side_effect_vertices)):
             if i > 0:
                 assert (
-                    self.side_effect_vertices[i].id
-                    > self.side_effect_vertices[i - 1].id
+                    self.side_effect_vertices[i].gid
+                    == self.side_effect_vertices[i - 1].gid + 1
+                )
+                assert (
+                    self.side_effect_vertices[i].content.id
+                    > self.side_effect_vertices[i - 1].content.id
                 )
             assert self.side_effect_vertices[i].is_side_effect
         for edge in self.event_side_effect_edges:
@@ -497,18 +529,22 @@ class CausalityGraph:
     def add_sorted_events(self, event_list: List[Event]):
         for i in range(len(event_list)):
             event = event_list[i]
-            event_vertex = CausalityVertex(event.id, event)
+            event_vertex = CausalityVertex(self.__vertex_cnt, event)
+            self.__vertex_cnt += 1
             self.event_vertices.append(event_vertex)
             if event_vertex.content.key not in self.event_key_to_event_vertices:
                 self.event_key_to_event_vertices[event_vertex.content.key] = []
             self.event_key_to_event_vertices[event_vertex.content.key].append(
                 event_vertex
             )
+            assert event_vertex.content.id not in self.event_id_to_event_vertices
+            self.event_id_to_event_vertices[event_vertex.content.id] = event_vertex
 
     def add_sorted_side_effects(self, side_effect_list: List[SideEffect]):
         for i in range(len(side_effect_list)):
             side_effect = side_effect_list[i]
-            side_effect_vertex = CausalityVertex(side_effect.id, side_effect)
+            side_effect_vertex = CausalityVertex(self.__vertex_cnt, side_effect)
+            self.__vertex_cnt += 1
             self.side_effect_vertices.append(side_effect_vertex)
 
     def connect_event_to_side_effect(
@@ -517,6 +553,7 @@ class CausalityGraph:
         assert event_vertex.is_event()
         assert side_effect_vertex.is_side_effect()
         edge = CausalityEdge(event_vertex, side_effect_vertex, INTER_THREAD_EDGE)
+        event_vertex.add_out_edge(edge)
         self.event_side_effect_edges.append(edge)
 
     def connect_side_effect_to_event(
@@ -525,25 +562,19 @@ class CausalityGraph:
         assert event_vertex.is_event()
         assert side_effect_vertex.is_side_effect()
         edge = CausalityEdge(side_effect_vertex, event_vertex, INTER_THREAD_EDGE)
+        side_effect_vertex.add_out_edge(edge)
         self.side_effect_event_edges.append(edge)
 
-    # def finalize(self):
-    #     for key in self.event_key_to_event_vertices:
-    #         event_vertices = self.event_key_to_event_vertices[key]
-    #         for i in range(len(event_vertices)):
-    #             if i == 0:
-    #                 continue
-    #             prev_event = event_vertices[i - 1].content
-    #             cur_event = event_vertices[i].content
-    #             canonicalized_prev_object = canonicalize_event_object(
-    #                 copy.deepcopy(prev_event.obj_map)
-    #             )
-    #             canonicalized_cur_object = canonicalize_event_object(
-    #                 copy.deepcopy(cur_event.obj_map)
-    #             )
-    #             slim_prev_object, slim_cur_object = diff_events(
-    #                 canonicalized_prev_object, canonicalized_cur_object
-    #             )
-    #             cur_event.slim_prev_obj_map = slim_prev_object
-    #             cur_event.slim_cur_obj_map = slim_cur_object
-    #             cur_event.prev_etype = prev_event.etype
+
+def causality_vertice_connected(source: CausalityVertex, sink: CausalityVertex):
+    # there should be no cycles in the casuality graph
+    queue = []
+    queue.append(source)
+    while len(queue) != 0:
+        cur = queue.pop(0)
+        for edge in cur.out_edges:
+            if edge.sink.gid == sink.gid:
+                return True
+            else:
+                queue.append(edge.sink)
+    return False

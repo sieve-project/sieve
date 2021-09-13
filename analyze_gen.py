@@ -2,10 +2,8 @@ from analyze_util import *
 import json
 from typing import List
 import yaml
-import copy
 import os
 import controllers
-import analyze_event
 import json
 import sieve_config
 from common import sieve_modes
@@ -112,11 +110,18 @@ def time_travel_analysis(
     print("Generated %d time-travel config(s) in %s" % (i, path))
 
 
-def cancellable_filtering_pass(causality_vertices: List[CausalityVertex]):
+def cancellable_filtering_pass(
+    causality_vertices: List[CausalityVertex], causality_graph: CausalityGraph
+):
     candidate_vertices = []
     for vertex in causality_vertices:
         if len(vertex.content.cancelled_by) > 0:
-            candidate_vertices.append(vertex)
+            for event_id in vertex.content.cancelled_by:
+                sink = causality_graph.get_event_with_id(event_id)
+                if not causality_vertice_connected(vertex, sink):
+                    candidate_vertices.append(vertex)
+                    break
+
     return candidate_vertices
 
 
@@ -127,7 +132,7 @@ def obs_gap_analysis(
 ):
     event_vertices = causality_graph.event_vertices
     candidate_vertices = event_vertices
-    candidate_vertices = cancellable_filtering_pass(candidate_vertices)
+    candidate_vertices = cancellable_filtering_pass(candidate_vertices, causality_graph)
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
