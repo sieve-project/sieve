@@ -339,49 +339,49 @@ def check_side_effect(
     return alarm, final_bug_report
 
 
-def generate_time_travel_debugging_hint(testing_config):
+def generate_time_travel_debugging_hint(test_config_content):
     desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
-        testing_config["timing"],
-        testing_config["ce-rtype"]
+        test_config_content["timing"],
+        test_config_content["ce-rtype"]
         + "/"
-        + testing_config["ce-namespace"]
+        + test_config_content["ce-namespace"]
         + "/"
-        + testing_config["ce-name"],
-        testing_config["ce-diff-current"],
+        + test_config_content["ce-name"],
+        test_config_content["ce-diff-current"],
     )
     suggestion = "Please check how controller reacts when seeing %s: %s, the controller might issue %s to %s without proper checking" % (
-        testing_config["ce-rtype"]
+        test_config_content["ce-rtype"]
         + "/"
-        + testing_config["ce-namespace"]
+        + test_config_content["ce-namespace"]
         + "/"
-        + testing_config["ce-name"],
-        testing_config["ce-diff-current"],
-        "deletion" if testing_config["se-etype"] == "ADDED" else "creation",
-        testing_config["se-rtype"]
+        + test_config_content["ce-name"],
+        test_config_content["ce-diff-current"],
+        "deletion" if test_config_content["se-etype"] == "ADDED" else "creation",
+        test_config_content["se-rtype"]
         + "/"
-        + testing_config["se-namespace"]
+        + test_config_content["se-namespace"]
         + "/"
-        + testing_config["se-name"],
+        + test_config_content["se-name"],
     )
     return desc + "\n" + suggestion + "\n"
 
 
-def generate_obs_gap_debugging_hint(testing_config):
+def generate_obs_gap_debugging_hint(test_config_content):
     desc = "Sieve makes the controller miss the event %s: %s" % (
-        testing_config["ce-rtype"]
+        test_config_content["ce-rtype"]
         + "/"
-        + testing_config["ce-namespace"]
+        + test_config_content["ce-namespace"]
         + "/"
-        + testing_config["ce-name"],
-        testing_config["ce-diff-current"],
+        + test_config_content["ce-name"],
+        test_config_content["ce-diff-current"],
     )
     suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
-        testing_config["ce-rtype"]
+        test_config_content["ce-rtype"]
         + "/"
-        + testing_config["ce-namespace"]
+        + test_config_content["ce-namespace"]
         + "/"
-        + testing_config["ce-name"],
-        testing_config["ce-diff-current"],
+        + test_config_content["ce-name"],
+        test_config_content["ce-diff-current"],
     )
     return desc + "\n" + suggestion + "\n"
 
@@ -394,19 +394,19 @@ def look_for_discrepancy_in_digest(
     config,
     oracle_config,
 ):
-    testing_config = yaml.safe_load(open(config))
+    test_config_content = yaml.safe_load(open(config))
     alarm_status, bug_report_status = check_status(learning_status, testing_status)
     alarm = alarm_status
     bug_report = bug_report_status
     # TODO: implement side effect checking for obs gap
-    if testing_config["mode"] in [sieve_modes.TIME_TRAVEL, sieve_modes.ATOM_VIO]:
+    if test_config_content["mode"] in [sieve_modes.TIME_TRAVEL, sieve_modes.ATOM_VIO]:
         interest_objects = []
-        if testing_config["mode"] == sieve_modes.TIME_TRAVEL:
+        if test_config_content["mode"] == sieve_modes.TIME_TRAVEL:
             interest_objects.append(
                 {
-                    "rtype": testing_config["se-rtype"],
-                    "namespace": testing_config["se-namespace"],
-                    "name": testing_config["se-name"],
+                    "rtype": test_config_content["se-rtype"],
+                    "namespace": test_config_content["se-namespace"],
+                    "name": test_config_content["se-name"],
                 }
             )
         if "interest_objects" in oracle_config:
@@ -447,16 +447,29 @@ def look_for_sleep_over_in_server_log(server_log):
     return "[sieve] sleep over" in file.read()
 
 
-def generate_debugging_hint(testing_config):
-    mode = testing_config["mode"]
+def generate_debugging_hint(test_config_content):
+    mode = test_config_content["mode"]
     if mode == sieve_modes.TIME_TRAVEL:
-        return generate_time_travel_debugging_hint(testing_config)
+        return generate_time_travel_debugging_hint(test_config_content)
     elif mode == sieve_modes.OBS_GAP:
-        return generate_obs_gap_debugging_hint(testing_config)
+        return generate_obs_gap_debugging_hint(test_config_content)
     elif mode == sieve_modes.ATOM_VIO:
         return "TODO: generate debugging hint for atomic bugs"
     else:
         assert False
+
+
+def print_error_and_debugging_info(bug_report, test_config):
+    test_config_content = yaml.safe_load(open(test_config))
+    hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
+    print(
+        bcolors.FAIL
+        + "[BUG FOUND]\n"
+        + bug_report
+        + bcolors.WARNING
+        + hint
+        + bcolors.ENDC
+    )
 
 
 def check(
@@ -471,9 +484,9 @@ def check(
     server_log,
     oracle_config,
 ):
-    testing_config = yaml.safe_load(open(test_config))
+    test_config_content = yaml.safe_load(open(test_config))
     # Skip case which target side effect event not appear in operator log under time-travel mode
-    if testing_config[
+    if test_config_content[
         "mode"
     ] == sieve_modes.TIME_TRAVEL and not look_for_sleep_over_in_server_log(server_log):
         bug_report = (
@@ -499,10 +512,7 @@ def check(
             learned_resources, testing_resources
         )
     if alarm != 0:
-        bug_report = "[BUG FOUND]\n" + bug_report
-        hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(testing_config)
-        print(bcolors.FAIL + bug_report + bcolors.WARNING + hint + bcolors.ENDC)
-        bug_report += hint
+        print_error_and_debugging_info(bug_report, test_config)
     return alarm, bug_report
 
 
