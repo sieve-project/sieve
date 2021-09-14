@@ -1,3 +1,4 @@
+from typing import Tuple
 import docker
 import optparse
 import os
@@ -13,7 +14,15 @@ import yaml
 import subprocess
 import signal
 from datetime import datetime
-from common import cprint, bcolors, ok, sieve_modes, cmd_early_exit
+from common import (
+    cprint,
+    bcolors,
+    fail,
+    ok,
+    sieve_modes,
+    cmd_early_exit,
+    NO_ERROR_MESSAGE,
+)
 
 
 def watch_crd(project, addrs):
@@ -240,7 +249,7 @@ def run_workload(
     docker_repo,
     docker_tag,
     num_apiservers,
-):
+) -> Tuple[int, str]:
     cprint("Setting up Sieve server ...", bcolors.OKGREEN)
     start_sieve_server()
     ok("Sieve server set up")
@@ -270,8 +279,13 @@ def run_workload(
     )
 
     cprint("Running test workload ...", bcolors.OKGREEN)
-    test_workload.run(mode)
-    ok("Test workload finished")
+    alarm, bug_report = test_workload.run(mode)
+    if alarm == 0:
+        ok("Test workload finished")
+    else:
+        fail("Test workload failed")
+        bug_report = "Liveness assertion (in test) failed:\n" + bug_report
+        oracle.print_error_and_debugging_info(bug_report, test_config)
 
     pod_name = (
         kubernetes.client.CoreV1Api()
@@ -304,10 +318,12 @@ def run_workload(
     streamed_log_file.close()
     stop_sieve_server()
 
+    return alarm, bug_report
+
 
 def check_result(
     project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
-):
+) -> Tuple[int, str]:
     if stage == "learn":
         analyze.analyze_trace(project, log_dir, two_sided=two_sided)
         cmd_early_exit("mkdir -p %s" % data_dir)
@@ -383,8 +399,8 @@ def check_result(
                 open(os.path.join(log_dir, "resources.json"), "w"),
                 indent=4,
             )
-            return alarm
-    return 0
+            return alarm, bug_report
+    return 0, NO_ERROR_MESSAGE
 
 
 def run_test(
@@ -403,7 +419,7 @@ def run_test(
     data_dir,
     two_sided,
     phase,
-):
+) -> Tuple[int, str]:
     if phase == "all" or phase == "setup_only":
         setup_cluster(
             project,
@@ -417,7 +433,7 @@ def run_test(
             pvc_resize,
         )
     if phase == "all" or phase == "workload_only" or phase == "workload_and_check":
-        run_workload(
+        alarm, bug_report = run_workload(
             project,
             mode,
             test_workload,
@@ -427,8 +443,10 @@ def run_test(
             docker_tag,
             num_apiservers,
         )
+        if alarm != 0:
+            return alarm, bug_report
     if phase == "all" or phase == "check_only" or phase == "workload_and_check":
-        return check_result(
+        alarm, bug_report = check_result(
             project,
             mode,
             stage,
@@ -438,7 +456,8 @@ def run_test(
             two_sided,
             oracle_config,
         )
-    return 0
+        return alarm, bug_report
+    return 0, NO_ERROR_MESSAGE
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
@@ -550,16 +569,17 @@ def run_batch(project, test, dir, mode, stage, docker):
     configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
     print("Configs to test:")
     print("\n".join(configs))
-    batch_test_result = open(
-        "bt_%s_%s_%s_%s.tsv"
-        % (project, test, mode, datetime.now().strftime("%Y%m%d%H%M%S")),
+    batch_test_result_tsv = open(
+        "sieve_%s_%s_%s.tsv" % (project, test, mode),
         "w",
     )
+    result_map = {}
     for config in configs:
+        s = time.time()
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(dir, project, test, stage, mode + "-batch", num)
         try:
-            alarm = run(
+            alarm, bug_report = run(
                 controllers.test_suites,
                 project,
                 test,
@@ -569,12 +589,43 @@ def run_batch(project, test, dir, mode, stage, docker):
                 config,
                 docker,
             )
-            batch_test_result.write("%s\t%s\n" % (config, str(alarm)))
+            duration = time.time() - s
             if alarm != 0:
                 cprint("Bug happens when running %s" % config, bcolors.FAIL)
+            result_map[config] = {
+                "duration": duration,
+                "alarm": alarm,
+                "bug_report": bug_report,
+            }
+            batch_test_result_tsv.write(
+                "%s\t%f\t%d\t%s\n"
+                % (config, duration, alarm, bug_report.replace("\n", "[EOL]"))
+            )
+            batch_test_result_tsv.flush()
         except Exception as err:
+            duration = time.time() - s
             print("Error occurs when running %s: %s" % (config, repr(err)))
-    batch_test_result.close()
+            result_map[config] = {
+                "duration": duration,
+                "alarm": -1,
+                "bug_report": repr(err),
+            }
+            batch_test_result_tsv.write(
+                "%s\t%f\t%d\t%s\n"
+                % (config, duration, -1, repr(err).replace("\n", "[EOL]"))
+            )
+            batch_test_result_tsv.flush()
+    batch_test_result_tsv.close()
+    batch_test_result_json = open(
+        "sieve_%s_%s_%s.json" % (project, test, mode),
+        "w",
+    )
+    json.dump(
+        result_map,
+        batch_test_result_json,
+        indent=4,
+    )
+    batch_test_result_json.close()
 
 
 if __name__ == "__main__":
