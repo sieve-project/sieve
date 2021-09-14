@@ -395,7 +395,7 @@ class BuiltInWorkLoad:
             return_code, error_message = work.run(mode)
             if return_code != 0:
                 return return_code, error_message
-            return 0, common.NO_ERROR_MESSAGE
+        return 0, common.NO_ERROR_MESSAGE
 
 
 def new_built_in_workload():
