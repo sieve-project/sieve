@@ -645,13 +645,20 @@ def look_for_resources_diff_v2(learn, test):
                         break
                 if has_not_care:
                     continue
-                rType = path[0]
-                name = nested_get(test, path[:2] + ['metadata', 'name'])
-                namespace = nested_get(test, path[:2] + ['metadata', 'namespace'])
-                if name == "sieve-testing-global-config":
-                    continue
-                alarm += 1
-                print(t, rType, namespace, name, '/'.join(map(str, path[2:])), key.t1, " => ", key.t2, file=f)
+                try:
+                    rType = path[0]
+                    name = nested_get(test, path[:2] + ['metadata', 'name'])
+                    namespace = nested_get(test, path[:2] + ['metadata', 'namespace'])
+                    if name == "sieve-testing-global-config":
+                        continue
+                    alarm += 1
+                    print(t, rType, namespace, name, '/'.join(map(str, path[2:])), key.t1, " => ", key.t2, file=f)
+                except Exception as e:
+                    print(e)
+                    print(path)
+                    print(key)
+                    print(test)
+
     result = f.getvalue()
     f.close()
     return alarm, "[RESOURCE DIFF]\n" + result;
