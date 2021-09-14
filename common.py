@@ -1,6 +1,8 @@
 import os
 import sys
 
+NO_ERROR_MESSAGE = ""
+
 POD = "pod"
 PVC = "persistentvolumeclaim"
 DEPLOYMENT = "deployment"

@@ -1,3 +1,4 @@
+from typing import Tuple
 import kubernetes
 import os
 import common
@@ -89,21 +90,21 @@ class TestCmd:
     def __init__(self, cmd):
         self.cmd = cmd
 
-    def run(self, mode):
+    def run(self, mode) -> Tuple[int, str]:
         print(self.cmd)
         # TODO: need to check the return code of the os.system
         os.system(self.cmd)
-        return 0
+        return 0, common.NO_ERROR_MESSAGE
 
 
 class TestWait:
     def __init__(self, time_out):
         self.time_out = time_out
 
-    def run(self, mode):
+    def run(self, mode) -> Tuple[int, str]:
         print("wait for %s seconds" % str(self.time_out))
         time.sleep(self.time_out)
-        return 0
+        return 0, common.NO_ERROR_MESSAGE
 
 
 class TestWaitForStatus:
@@ -156,7 +157,7 @@ class TestWaitForStatus:
             assert False, "status not supported yet"
         return False
 
-    def run(self, mode):
+    def run(self, mode) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s becomes %s..."
@@ -168,12 +169,12 @@ class TestWaitForStatus:
         else:
             while True:
                 if time.time() - s > float(self.time_out):
-                    print(
+                    error_message = (
                         "[ERROR] waiting timeout: %s does not become %s within %d seconds"
                         % (self.resource_name, self.status, self.time_out)
                     )
-                    os.system("kubectl describe pods")
-                    return 1
+                    print(error_message)
+                    return 1, error_message
                 if self.resource_type == common.POD:
                     if self.check_pod():
                         break
@@ -184,7 +185,7 @@ class TestWaitForStatus:
                     assert False, "type not supported yet"
                 time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
-        return 0
+        return 0, common.NO_ERROR_MESSAGE
 
 
 class TestWaitForStorage:
@@ -215,7 +216,7 @@ class TestWaitForStorage:
                 return True
         return True
 
-    def run(self, mode):
+    def run(self, mode) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s has storage size %s..."
@@ -227,11 +228,12 @@ class TestWaitForStorage:
         else:
             while True:
                 if time.time() - s > float(self.time_out):
-                    print(
+                    error_message = (
                         "[ERROR] waiting timeout: %s does not have storage size %s within %d seconds"
                         % (self.resource_name, self.storage_size, self.time_out)
                     )
-                    return 1
+                    print(error_message)
+                    return 1, error_message
                 if self.resource_type == common.STS:
                     if self.check_sts():
                         break
@@ -239,7 +241,7 @@ class TestWaitForStorage:
                     assert False, "type not supported yet"
                 time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
-        return 0
+        return 0, common.NO_ERROR_MESSAGE
 
 
 class TestWaitForExistence:
@@ -298,7 +300,7 @@ class TestWaitForExistence:
                 return True
         return False
 
-    def run(self, mode):
+    def run(self, mode) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s %s..."
@@ -314,12 +316,12 @@ class TestWaitForExistence:
         else:
             while True:
                 if time.time() - s > float(self.time_out):
-                    print(
+                    error_message = (
                         "[ERROR] waiting timeout: %s does not become %s within %d seconds"
                         % (self.resource_name, self.status, self.time_out)
                     )
-                    os.system("kubectl describe pods")
-                    return 1
+                    print(error_message)
+                    return 1, error_message
                 if self.resource_type == common.SECRET:
                     if self.check_secret():
                         break
@@ -330,7 +332,7 @@ class TestWaitForExistence:
                     assert False, "type not supported yet"
                 time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
-        return 0
+        return 0, common.NO_ERROR_MESSAGE
 
 
 class BuiltInWorkLoad:
@@ -388,12 +390,12 @@ class BuiltInWorkLoad:
         self.work_list.append(test_wait)
         return self
 
-    def run(self, mode):
+    def run(self, mode) -> Tuple[int, str]:
         for work in self.work_list:
-            # print(work, str(datetime.now()))
-            if work.run(mode) != 0:
-                print("[ERROR] cannot fullfill workload")
-                return 1
+            return_code, error_message = work.run(mode)
+            if return_code != 0:
+                return return_code, error_message
+            return 0, common.NO_ERROR_MESSAGE
 
 
 def new_built_in_workload():
@@ -407,7 +409,7 @@ class ExtendedWorkload:
         self.test_cmd = test_cmd
         self.check_mode = check_mode
 
-    def run(self, mode):
+    def run(self, mode) -> Tuple[int, str]:
         org_dir = os.getcwd()
         os.chdir(self.test_dir)
         # TODO: need to check the return code of the os.system
@@ -416,4 +418,4 @@ class ExtendedWorkload:
         else:
             os.system(self.test_cmd)
         os.chdir(org_dir)
-        return 0
+        return 0, common.NO_ERROR_MESSAGE
