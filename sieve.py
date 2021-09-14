@@ -325,7 +325,7 @@ def check_result(
     project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
 ) -> Tuple[int, str]:
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, two_sided=two_sided)
+        analyze.analyze_trace(project, log_dir, data_dir, two_sided=two_sided, learn_twice=(mode=="learn-twice"))
         cmd_early_exit("mkdir -p %s" % data_dir)
         cmd_early_exit(
             "cp %s %s"
@@ -401,7 +401,6 @@ def check_result(
             # )
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
-
 
 def run_test(
     project,
@@ -498,7 +497,7 @@ def run(
     if stage == "learn":
         learn_config = os.path.join(log_dir, "learn.yaml")
         print("Learning stage with config %s" % learn_config)
-        generate_learn_config(learn_config, project, mode, rate_limiter_enabled)
+        generate_learn_config(learn_config, project, "learn", rate_limiter_enabled)
         return run_test(
             project,
             mode,
@@ -579,6 +578,19 @@ def run_batch(project, test, dir, mode, stage, docker):
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(dir, project, test, stage, mode + "-batch", num)
         try:
+            if mode == "learn-twice":
+                # Run learn first
+                run(
+                    controllers.test_suites,
+                    project,
+                    test,
+                    os.path.join(dir, project, test, stage, "learn" + "-batch", num),
+                    "learn",
+                    stage,
+                    config,
+                    docker,
+                )
+
             alarm, bug_report = run(
                 controllers.test_suites,
                 project,
@@ -710,7 +722,7 @@ if __name__ == "__main__":
         options.mode = sieve_modes.ATOM_VIO
 
     if options.stage == "learn":
-        options.mode = "learn"
+        options.mode = "learn-twice"
 
     if options.mode == "none" and options.stage == "test":
         options.mode = controllers.test_suites[options.project][options.test].mode
@@ -724,6 +736,7 @@ if __name__ == "__main__":
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
         "learn",
+        "learn-twice"
     ], (
         "invalid mode option: %s" % options.mode
     )
@@ -752,6 +765,21 @@ if __name__ == "__main__":
         log_dir = os.path.join(
             options.log, options.project, options.test, options.stage, options.mode
         )
+        if options.mode == "learn-twice":
+            # Run learn first
+            run(
+                controllers.test_suites,
+                options.project,
+                options.test,
+                os.path.join(options.log, options.project, options.test, options.stage, "learn"),
+                "learn",
+                options.stage,
+                options.config,
+                options.docker,
+                options.rate_limiter,
+                options.phase,
+            )
+
         run(
             controllers.test_suites,
             options.project,

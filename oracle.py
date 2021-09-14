@@ -9,6 +9,7 @@ from common import *
 import io
 import sieve_config
 import re
+from deepdiff import DeepDiff
 
 not_care_keys = [
     "uid",
@@ -57,18 +58,18 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(log_dir):
+def generate_test_oracle(log_dir, data_dir, learn_twice=False):
     log_path = os.path.join(log_dir, "sieve-server.log")
-    side_effect, status, resources = generate_digest(log_path)
+    side_effect, status, resources = generate_digest(log_path, data_dir, learn_twice)
     dump_json_file(log_dir, side_effect, "side-effect.json")
     dump_json_file(log_dir, status, "status.json")
-    # dump_json_file(log_dir, resources, "resources.json")
+    dump_json_file(log_dir, resources, "resources.json")
 
 
-def generate_digest(path):
+def generate_digest(path, data_dir="", learn_twice=False):
     side_effect = generate_side_effect(path)
     status = generate_status()
-    resources = generate_resources()
+    resources = generate_resources(path, data_dir, learn_twice)
     return side_effect, status, resources
 
 
@@ -179,7 +180,25 @@ def get_crd(crd):
     return data
 
 
-def generate_resources(path=""):
+def learn_twice_trim(base_resources, twice_resources):
+    def nested_set(dic, keys, value):
+        for key in keys[:-1]:
+            dic = dic[key]
+        dic[keys[-1]] = value
+
+
+    stored_learn = copy.deepcopy(base_resources)
+    ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view='tree')
+
+    for key in ddiff['values_changed']:
+        nested_set(stored_learn, key.path(output_format='list'), "SIEVE-IGNORE")
+
+    for key in ddiff['dictionary_item_added']:
+        nested_set(stored_learn, key.path(output_format='list'), "SIEVE-IGNORE")
+
+    return stored_learn
+
+def generate_resources(path = "", data_dir="", learn_twice=False):
     # print("Generating cluster resources digest ...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -214,7 +233,10 @@ def generate_resources(path=""):
     for crd in crd_list:
         resources[crd] = get_crd(crd)
 
-    trim_resource(resources)
+
+    if learn_twice and data_dir != "":
+        base_resources = json.loads(open(os.path.join(data_dir, "resources.json")).read())
+        resources = learn_twice_trim(base_resources, resources)
     return resources
 
 
@@ -506,25 +528,25 @@ def check(
     alarm = discrepancy_alarm + panic_alarm
     bug_report = discrepancy_bug_report + panic_bug_report
     # TODO(urgent): we should use learned_resources to replace learned_status, instead of using both
-    # and look_for_resouces_diff() should return alarm as well
+    # and look_for_resources_diff() should return alarm as well
     if learned_resources != None:
-        bug_report += "\n" + look_for_resouces_diff(
+        resource_alarm, resource_bug_report = look_for_resources_diff_v2(
             learned_resources, testing_resources
         )
+        if resource_alarm != 0:
+            alarm += resource_alarm
+            bug_report += resource_bug_report
     if alarm != 0:
         print_error_and_debugging_info(bug_report, test_config)
     return alarm, bug_report
 
 
-def look_for_resouces_diff(learn, test):
+def look_for_resources_diff(learn, test):
     f = io.StringIO()
+    alarm = 0
     learn_trim = copy.deepcopy(learn)
     test_trim = copy.deepcopy(test)
-    trim_resource(learn_trim)
-    trim_resource(test_trim)
     diff = jd.diff(learn_trim, test_trim, syntax="symmetric")
-
-    print("[RESOURCE DIFF REPORT]", file=f)
     for rtype in diff:
         rdiff = diff[rtype]
         # Check for resource level delete/insert
@@ -596,7 +618,43 @@ def look_for_resouces_diff(learn, test):
 
     result = f.getvalue()
     f.close()
-    return result
+    alarm = len(result.split("\n"))
+    return alarm, "[RESOURCE DIFF REPORT]\n" + result
+
+def look_for_resources_diff_v2(learn, test):
+    f = io.StringIO()
+    alarm = 0
+
+    def nested_get(dic, keys):
+        for key in keys:
+            dic = dic[key]
+        return dic
+
+    tdiff = DeepDiff(learn, test, ignore_order=False, view='tree')
+    stored_test = copy.deepcopy(test)
+    not_care_keys = set(['annotations', 'managedFields', 'image', 'imageID', 'nodeName', 'hostIP', 'message', 'labels', 'generateName', 'ownerReferences', 'podIP', 'ip'])
+
+    for t in tdiff:
+        for key in tdiff[t]:
+            path = key.path(output_format='list')
+            if key.t1 != "SIEVE-IGNORE":
+                has_not_care = False
+                for kp in path:
+                    if kp in not_care_keys:
+                        has_not_care = True
+                        break
+                if has_not_care:
+                    continue
+                rType = path[0]
+                name = nested_get(test, path[:2] + ['metadata', 'name'])
+                namespace = nested_get(test, path[:2] + ['metadata', 'namespace'])
+                if name == "sieve-testing-global-config":
+                    continue
+                alarm += 1
+                print(t, rType, namespace, name, '/'.join(path[2:]), key.t1, " => ", key.t2, file=f)
+    result = f.getvalue()
+    f.close()
+    return alarm, "[RESOURCE DIFF]\n" + result;
 
 
 if __name__ == "__main__":
