@@ -651,7 +651,7 @@ def look_for_resources_diff_v2(learn, test):
                 if name == "sieve-testing-global-config":
                     continue
                 alarm += 1
-                print(t, rType, namespace, name, '/'.join(path[2:]), key.t1, " => ", key.t2, file=f)
+                print(t, rType, namespace, name, '/'.join(map(str, path[2:])), key.t1, " => ", key.t2, file=f)
     result = f.getvalue()
     f.close()
     return alarm, "[RESOURCE DIFF]\n" + result;
