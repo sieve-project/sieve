@@ -524,8 +524,8 @@ class CausalityGraph:
                     > self.side_effect_vertices[i - 1].content.start_timestamp
                 )
             assert self.side_effect_vertices[i].is_side_effect
-            for edge in self.event_vertices[i].out_edges:
-                assert self.event_vertices[i].gid == edge.source.gid
+            for edge in self.side_effect_vertices[i].out_edges:
+                assert self.side_effect_vertices[i].gid == edge.source.gid
         for edge in self.event_side_effect_edges:
             assert isinstance(edge.source, CausalityVertex)
             assert isinstance(edge.sink, CausalityVertex)
