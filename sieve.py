@@ -341,13 +341,13 @@ def check_result(
                 os.path.join(data_dir, "side-effect.json"),
             )
         )
-        cmd_early_exit(
-            "cp %s %s"
-            % (
-                os.path.join(log_dir, "resources.json"),
-                os.path.join(data_dir, "resources.json"),
-            )
-        )
+        # cmd_early_exit(
+        #     "cp %s %s"
+        #     % (
+        #         os.path.join(log_dir, "resources.json"),
+        #         os.path.join(data_dir, "resources.json"),
+        #     )
+        # )
     else:
         if os.path.exists(test_config):
             open(os.path.join(log_dir, "config.yaml"), "w").write(
@@ -394,11 +394,11 @@ def check_result(
                 open(os.path.join(log_dir, "status.json"), "w"),
                 indent=4,
             )
-            json.dump(
-                testing_resources,
-                open(os.path.join(log_dir, "resources.json"), "w"),
-                indent=4,
-            )
+            # json.dump(
+            #     testing_resources,
+            #     open(os.path.join(log_dir, "resources.json"), "w"),
+            #     indent=4,
+            # )
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
 
