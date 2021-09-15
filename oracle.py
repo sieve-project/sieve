@@ -9,6 +9,7 @@ from common import *
 import io
 import sieve_config
 import re
+import deepdiff
 from deepdiff import DeepDiff
 
 not_care_keys = [
@@ -647,7 +648,7 @@ def look_for_resources_diff_v2(learn, test):
                     continue
                 try:
                     rType = path[0]
-                    if len(path) == 2 and key.t2 == "not present":
+                    if len(path) == 2 and not key.t2:
                         source = learn
                     else:
                         source = test
