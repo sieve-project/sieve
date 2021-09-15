@@ -647,8 +647,12 @@ def look_for_resources_diff_v2(learn, test):
                     continue
                 try:
                     rType = path[0]
-                    name = nested_get(test, path[:2] + ['metadata', 'name'])
-                    namespace = nested_get(test, path[:2] + ['metadata', 'namespace'])
+                    if len(path) == 2 and key.t2 == "not present":
+                        source = learn
+                    else:
+                        source = test
+                    name = nested_get(source, path[:2] + ['metadata', 'name'])
+                    namespace = nested_get(source, path[:2] + ['metadata', 'namespace'])
                     if name == "sieve-testing-global-config":
                         continue
                     alarm += 1
