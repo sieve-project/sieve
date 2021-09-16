@@ -28,18 +28,18 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(log_dir, data_dir, learn_twice=False):
+def generate_test_oracle(log_dir, data_dir, canonicalize_resource=False):
     log_path = os.path.join(log_dir, "sieve-server.log")
-    side_effect, status, resources = generate_digest(log_path, data_dir, learn_twice)
+    side_effect, status, resources = generate_digest(log_path, data_dir, canonicalize_resource)
     dump_json_file(log_dir, side_effect, "side-effect.json")
     dump_json_file(log_dir, status, "status.json")
     dump_json_file(log_dir, resources, "resources.json")
 
 
-def generate_digest(path, data_dir="", learn_twice=False):
+def generate_digest(path, canonicalize_resource=False):
     side_effect = generate_side_effect(path)
     status = generate_status()
-    resources = generate_resources(path, data_dir, learn_twice)
+    resources = generate_resources(path, canonicalize_resource)
     return side_effect, status, resources
 
 
@@ -151,7 +151,7 @@ def learn_twice_trim(base_resources, twice_resources):
 
     return stored_learn
 
-def generate_resources(path = "", data_dir="", learn_twice=False):
+def generate_resources(path = "", canonicalize_resource=False):
     # print("Generating cluster resources digest ...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -186,7 +186,7 @@ def generate_resources(path = "", data_dir="", learn_twice=False):
     for crd in crd_list:
         resources[crd] = get_crd(crd)
 
-    if learn_twice and data_dir != "":
+    if canonicalize_resource and data_dir != "":
         base_resources = json.loads(open(os.path.join(data_dir, "resources.json")).read())
         resources = learn_twice_trim(base_resources, resources)
     return resources
@@ -431,7 +431,7 @@ def generate_debugging_hint(test_config_content):
         return "TODO: generate debugging hint for atomic bugs"
     else:
         print("mode wrong", mode, test_config_content)
-        assert False
+        return "WRONG MODE"
 
 
 def print_error_and_debugging_info(bug_report, test_config):
