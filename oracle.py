@@ -11,6 +11,7 @@ import sieve_config
 import re
 import deepdiff
 from deepdiff import DeepDiff
+import pathlib
 
 
 side_effect_empty_entry = {
@@ -28,26 +29,25 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(log_dir, data_dir, canonicalize_resource=False):
-    log_path = os.path.join(log_dir, "sieve-server.log")
-    side_effect, status, resources = generate_digest(log_path, data_dir, canonicalize_resource)
+def generate_test_oracle(log_dir, canonicalize_resource=False):
+    side_effect, status, resources = generate_digest(log_dir, canonicalize_resource)
     dump_json_file(log_dir, side_effect, "side-effect.json")
     dump_json_file(log_dir, status, "status.json")
     dump_json_file(log_dir, resources, "resources.json")
 
 
-def generate_digest(path, canonicalize_resource=False):
-    side_effect = generate_side_effect(path)
+def generate_digest(log_dir, canonicalize_resource=False):
+    side_effect = generate_side_effect(log_dir)
     status = generate_status()
-    resources = generate_resources(path, canonicalize_resource)
+    resources = generate_resources(log_dir, canonicalize_resource)
     return side_effect, status, resources
 
 
-def generate_side_effect(path):
+def generate_side_effect(log_dir):
     print("Checking safety assertions ...")
     side_effect_map = {}
-
-    for line in open(path).readlines():
+    log_path = os.path.join(log_dir, "sieve-server.log")
+    for line in open(log_path).readlines():
         if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK not in line:
             continue
         side_effect = analyze_util.parse_side_effect(line)
@@ -151,7 +151,7 @@ def learn_twice_trim(base_resources, twice_resources):
 
     return stored_learn
 
-def generate_resources(path = "", canonicalize_resource=False):
+def generate_resources(log_dir="", canonicalize_resource=False):
     # print("Generating cluster resources digest ...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -170,8 +170,9 @@ def generate_resources(path = "", canonicalize_resource=False):
     crd_list = get_crd_list()
 
     resource_set = set(["statefulset", "pod", "persistentvolumeclaim", "deployment"])
-    if path != "":
-        for line in open(path).readlines():
+    if log_dir != "":
+        log_path = os.path.join(log_dir, "sieve-server.log")
+        for line in open(log_path).readlines():
             if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK not in line:
                 continue
             side_effect = analyze_util.parse_side_effect(line)
@@ -186,8 +187,11 @@ def generate_resources(path = "", canonicalize_resource=False):
     for crd in crd_list:
         resources[crd] = get_crd(crd)
 
-    if canonicalize_resource and data_dir != "":
-        base_resources = json.loads(open(os.path.join(data_dir, "resources.json")).read())
+    if canonicalize_resource:
+        # Suppose we are current at learn/learn-twice/xxx
+        learn_dir = pathlib.Path(log_dir).parent
+        learn_once_dir = (learn_dir / "learn-once")
+        base_resources = json.loads(open(os.path.join(learn_once_dir, "resources.json")).read())
         resources = learn_twice_trim(base_resources, resources)
     return resources
 

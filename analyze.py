@@ -352,7 +352,7 @@ def analyze_trace(
     two_sided=False,
     use_sql=False,
     compress_trivial_reconcile=True,
-    learn_twice=False,
+    canonicalize_resource=False,
 ):
     print(
         "generate-oracle feature is %s" % ("enabled" if generate_oracle else "disabled")
@@ -374,7 +374,7 @@ def analyze_trace(
     )
     causality_graph = build_causality_graph(event_list, side_effect_list)
 
-    if generate_config and not learn_twice:
+    if generate_config and not canonicalize_resource:
         for analysis_mode in [
             sieve_modes.TIME_TRAVEL,
             sieve_modes.OBS_GAP,
@@ -385,7 +385,7 @@ def analyze_trace(
             )
 
     if generate_oracle:
-        oracle.generate_test_oracle(log_dir, data_dir, learn_twice)
+        oracle.generate_test_oracle(log_dir, canonicalize_resource)
 
 
 if __name__ == "__main__":

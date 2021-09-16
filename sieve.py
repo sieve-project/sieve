@@ -325,29 +325,31 @@ def check_result(
     project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
 ) -> Tuple[int, str]:
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, data_dir, two_sided=two_sided, learn_twice=(mode=="learn-twice"))
+        analyze.analyze_trace(project, log_dir, data_dir, two_sided=two_sided, canonicalize_resource=(mode=="learn-twice"))
         cmd_early_exit("mkdir -p %s" % data_dir)
-        cmd_early_exit(
-            "cp %s %s"
-            % (
-                os.path.join(log_dir, "status.json"),
-                os.path.join(data_dir, "status.json"),
+        if mode == "learn-once":
+            cmd_early_exit(
+                "cp %s %s"
+                % (
+                    os.path.join(log_dir, "status.json"),
+                    os.path.join(data_dir, "status.json"),
+                )
             )
-        )
-        cmd_early_exit(
-            "cp %s %s"
-            % (
-                os.path.join(log_dir, "side-effect.json"),
-                os.path.join(data_dir, "side-effect.json"),
+            cmd_early_exit(
+                "cp %s %s"
+                % (
+                    os.path.join(log_dir, "side-effect.json"),
+                    os.path.join(data_dir, "side-effect.json"),
+                )
             )
-        )
-        cmd_early_exit(
-            "cp %s %s"
-            % (
-                os.path.join(log_dir, "resources.json"),
-                os.path.join(data_dir, "resources.json"),
+        if mode == "learn-twice":
+            cmd_early_exit(
+                "cp %s %s"
+                % (
+                    os.path.join(log_dir, "resources.json"),
+                    os.path.join(data_dir, "resources.json"),
+                )
             )
-        )
     else:
         if os.path.exists(test_config):
             open(os.path.join(log_dir, "config.yaml"), "w").write(
@@ -579,12 +581,12 @@ def run_batch(project, test, dir, mode, stage, docker):
         log_dir = os.path.join(dir, project, test, stage, mode + "-batch", num)
         try:
             if mode == "learn-twice":
-                # Run learn first
+                # Run learn-once first
                 run(
                     controllers.test_suites,
                     project,
                     test,
-                    os.path.join(dir, project, test, stage, "learn" + "-batch", num),
+                    os.path.join(dir, project, test, stage, "learn-once" + "-batch", num),
                     "learn",
                     stage,
                     config,
@@ -721,8 +723,8 @@ if __name__ == "__main__":
     elif options.mode == "atom-vio":
         options.mode = sieve_modes.ATOM_VIO
 
-    if options.stage == "learn":
-        options.mode = "learn-twice"
+    if options.stage == "learn" and options.mode in ["none", "learn"]:
+        options.mode = "learn-once"
 
     if options.mode == "none" and options.stage == "test":
         options.mode = controllers.test_suites[options.project][options.test].mode
@@ -735,7 +737,7 @@ if __name__ == "__main__":
         sieve_modes.TIME_TRAVEL,
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
-        "learn",
+        "learn-once",
         "learn-twice"
     ], (
         "invalid mode option: %s" % options.mode
@@ -765,14 +767,15 @@ if __name__ == "__main__":
         log_dir = os.path.join(
             options.log, options.project, options.test, options.stage, options.mode
         )
+
         if options.mode == "learn-twice":
-            # Run learn first
+            # Run learn-once first
             run(
                 controllers.test_suites,
                 options.project,
                 options.test,
-                os.path.join(options.log, options.project, options.test, options.stage, "learn"),
-                "learn",
+                os.path.join(options.log, options.project, options.test, options.stage, "learn-once"),
+                "learn-once",
                 options.stage,
                 options.config,
                 options.docker,
