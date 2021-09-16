@@ -139,17 +139,17 @@ def learn_twice_trim(base_resources, twice_resources):
             dic = dic[key]
         dic[keys[-1]] = value
 
-
     stored_learn = copy.deepcopy(base_resources)
-    ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view='tree')
+    ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view="tree")
 
-    for key in ddiff['values_changed']:
-        nested_set(stored_learn, key.path(output_format='list'), "SIEVE-IGNORE")
+    for key in ddiff["values_changed"]:
+        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
 
-    for key in ddiff['dictionary_item_added']:
-        nested_set(stored_learn, key.path(output_format='list'), "SIEVE-IGNORE")
+    for key in ddiff["dictionary_item_added"]:
+        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
 
     return stored_learn
+
 
 def generate_resources(log_dir="", canonicalize_resource=False):
     # print("Generating cluster resources digest ...")
@@ -190,8 +190,10 @@ def generate_resources(log_dir="", canonicalize_resource=False):
     if canonicalize_resource:
         # Suppose we are current at learn/learn-twice/xxx
         learn_dir = pathlib.Path(log_dir).parent
-        learn_once_dir = (learn_dir / "learn-once")
-        base_resources = json.loads(open(os.path.join(learn_once_dir, "resources.json")).read())
+        learn_once_dir = learn_dir / "learn-once"
+        base_resources = json.loads(
+            open(os.path.join(learn_once_dir, "resources.json")).read()
+        )
         resources = learn_twice_trim(base_resources, resources)
     return resources
 
@@ -507,13 +509,28 @@ def look_for_resources_diff(learn, test):
             dic = dic[key]
         return dic
 
-    tdiff = DeepDiff(learn, test, ignore_order=False, view='tree')
+    tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
     stored_test = copy.deepcopy(test)
-    not_care_keys = set(['annotations', 'managedFields', 'image', 'imageID', 'nodeName', 'hostIP', 'message', 'labels', 'generateName', 'ownerReferences', 'podIP', 'ip'])
+    not_care_keys = set(
+        [
+            "annotations",
+            "managedFields",
+            "image",
+            "imageID",
+            "nodeName",
+            "hostIP",
+            "message",
+            "labels",
+            "generateName",
+            "ownerReferences",
+            "podIP",
+            "ip",
+        ]
+    )
 
     for t in tdiff:
         for key in tdiff[t]:
-            path = key.path(output_format='list')
+            path = key.path(output_format="list")
             if key.t1 != "SIEVE-IGNORE":
                 has_not_care = False
                 for kp in path:
@@ -528,12 +545,22 @@ def look_for_resources_diff(learn, test):
                         source = learn
                     else:
                         source = test
-                    name = nested_get(source, path[:2] + ['metadata', 'name'])
-                    namespace = nested_get(source, path[:2] + ['metadata', 'namespace'])
+                    name = nested_get(source, path[:2] + ["metadata", "name"])
+                    namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
                     if name == "sieve-testing-global-config":
                         continue
                     alarm += 1
-                    print(t, rType, namespace, name, '/'.join(map(str, path[2:])), key.t1, " => ", key.t2, file=f)
+                    print(
+                        t,
+                        rType,
+                        namespace,
+                        name,
+                        "/".join(map(str, path[2:])),
+                        key.t1,
+                        " => ",
+                        key.t2,
+                        file=f,
+                    )
                 except Exception as e:
                     print(e)
                     print(path)
@@ -542,7 +569,7 @@ def look_for_resources_diff(learn, test):
 
     result = f.getvalue()
     f.close()
-    return alarm, "[RESOURCE DIFF]\n" + result;
+    return alarm, "[RESOURCE DIFF]\n" + result
 
 
 if __name__ == "__main__":

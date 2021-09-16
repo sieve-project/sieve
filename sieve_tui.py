@@ -13,7 +13,9 @@ def run():
     mode = controllers.test_suites[operator][workload].mode
     print(operator, workload, action, mode)
     if action in ["learn-once", "learn-twice"]:
-        os.system("python3 sieve.py -p %s -t %s -s learn -m %s" % (operator, workload, action))
+        os.system(
+            "python3 sieve.py -p %s -t %s -s learn -m %s" % (operator, workload, action)
+        )
     elif action == "test":
         os.system("python3 sieve.py -p %s -t %s" % (operator, workload))
     elif action == "build for learn":

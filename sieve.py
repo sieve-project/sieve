@@ -325,7 +325,13 @@ def check_result(
     project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
 ) -> Tuple[int, str]:
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, data_dir, two_sided=two_sided, canonicalize_resource=(mode==sieve_modes.LEARN_TWICE))
+        analyze.analyze_trace(
+            project,
+            log_dir,
+            data_dir,
+            two_sided=two_sided,
+            canonicalize_resource=(mode == sieve_modes.LEARN_TWICE),
+        )
         cmd_early_exit("mkdir -p %s" % data_dir)
         if mode == sieve_modes.LEARN_ONCE:
             cmd_early_exit(
@@ -403,6 +409,7 @@ def check_result(
             )
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
+
 
 def run_test(
     project,
@@ -565,7 +572,9 @@ def run(
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
-    config_dir = os.path.join("log", project, test, "learn", sieve_modes.LEARN_ONCE, mode)
+    config_dir = os.path.join(
+        "log", project, test, "learn", sieve_modes.LEARN_ONCE, mode
+    )
     configs = glob.glob(os.path.join(config_dir, "*.yaml"))
     configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
     print("Configs to test:")
@@ -586,7 +595,14 @@ def run_batch(project, test, dir, mode, stage, docker):
                     controllers.test_suites,
                     project,
                     test,
-                    os.path.join(dir, project, test, stage, sieve_modes.LEARN_ONCE + "-batch", num),
+                    os.path.join(
+                        dir,
+                        project,
+                        test,
+                        stage,
+                        sieve_modes.LEARN_ONCE + "-batch",
+                        num,
+                    ),
                     sieve_modes.LEARN_ONCE,
                     stage,
                     config,
@@ -774,7 +790,13 @@ if __name__ == "__main__":
                 controllers.test_suites,
                 options.project,
                 options.test,
-                os.path.join(options.log, options.project, options.test, options.stage, sieve_modes.LEARN_ONCE),
+                os.path.join(
+                    options.log,
+                    options.project,
+                    options.test,
+                    options.stage,
+                    sieve_modes.LEARN_ONCE,
+                ),
                 sieve_modes.LEARN_ONCE,
                 options.stage,
                 options.config,
