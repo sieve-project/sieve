@@ -648,7 +648,7 @@ def look_for_resources_diff_v2(learn, test):
                     continue
                 try:
                     rType = path[0]
-                    if len(path) == 2 and not key.t2:
+                    if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
                         source = learn
                     else:
                         source = test
