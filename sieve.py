@@ -372,13 +372,13 @@ def check_result(
                 if os.path.isfile(resources_path)
                 else None
             )
-            server_log = os.path.join(log_dir, "sieve-server.log")
             (
                 testing_side_effect,
                 testing_status,
                 testing_resources,
-            ) = oracle.generate_digest(server_log)
+            ) = oracle.generate_digest(log_dir)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
+            server_log = os.path.join(log_dir, "sieve-server.log")
             alarm, bug_report = oracle.check(
                 learned_side_effect,
                 learned_status,
