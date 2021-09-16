@@ -528,8 +528,8 @@ def look_for_resources_diff(learn, test):
         ]
     )
 
-    for t in tdiff:
-        for key in tdiff[t]:
+    for delta_type in tdiff:
+        for key in tdiff[delta_type]:
             path = key.path(output_format="list")
             if key.t1 != "SIEVE-IGNORE":
                 has_not_care = False
@@ -540,7 +540,7 @@ def look_for_resources_diff(learn, test):
                 if has_not_care:
                     continue
                 try:
-                    rType = path[0]
+                    resource_type = path[0]
                     if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
                         source = learn
                     else:
@@ -551,8 +551,8 @@ def look_for_resources_diff(learn, test):
                         continue
                     alarm += 1
                     print(
-                        t,
-                        rType,
+                        delta_type,
+                        resource_type,
                         namespace,
                         name,
                         "/".join(map(str, path[2:])),
