@@ -12,38 +12,7 @@ import re
 import deepdiff
 from deepdiff import DeepDiff
 
-not_care_keys = [
-    "uid",
-    "resourceVersion",
-    "creationTimestamp",
-    "ownerReferences",
-    "managedFields",
-    "generateName",
-    "selfLink",
-    "annotations",
-    "pod-template-hash",
-    "secretName",
-    "image",
-    "lastTransitionTime",
-    "nodeName",
-    "podIPs",
-    "podIP",
-    "hostIP",
-    "containerID",
-    "imageID",
-    "startTime",
-    "startedAt",
-    "volumeMounts",
-    "finishedAt",
-    "volumeName",
-    "lastUpdateTime",
-    "env",
-    "message",
-    "currentRevision",
-    "updateRevision",
-    "controller-revision-hash",
-]
-not_care = [jd.delete, jd.insert] + not_care_keys + ["name"]
+
 side_effect_empty_entry = {
     "Create": 0,
     "Update": 0,
@@ -133,23 +102,6 @@ def generate_status():
                 terminating += 1
         status[ktype]["terminating"] = terminating
     return status
-
-# Deprecated
-def trim_resource(cur, key_trace=[]):
-    if type(cur) is list:
-        idx = 0
-        for item in cur:
-            trim_resource(item, key_trace)
-            idx += 1
-
-    if type(cur) is dict:
-        for key in list(cur):
-            if key in not_care_keys:
-                cur[key] = "SIEVE-IGNORE"
-            elif key == "name" and key_trace[1] != "metadata":
-                cur[key] = "SIEVE-IGNORE"
-            else:
-                trim_resource(cur[key], key_trace + [key])
 
 
 def get_resource_helper(func):
@@ -531,7 +483,7 @@ def check(
     # TODO(urgent): we should use learned_resources to replace learned_status, instead of using both
     # and look_for_resources_diff() should return alarm as well
     if test_config_content["mode"] != "learn" and learned_resources != None:
-        resource_alarm, resource_bug_report = look_for_resources_diff_v2(
+        resource_alarm, resource_bug_report = look_for_resources_diff(
             learned_resources, testing_resources
         )
         if resource_alarm != 0:
@@ -543,86 +495,6 @@ def check(
 
 
 def look_for_resources_diff(learn, test):
-    f = io.StringIO()
-    alarm = 0
-    learn_trim = copy.deepcopy(learn)
-    test_trim = copy.deepcopy(test)
-    diff = jd.diff(learn_trim, test_trim, syntax="symmetric")
-    for rtype in diff:
-        rdiff = diff[rtype]
-        # Check for resource level delete/insert
-        if jd.delete in rdiff:
-            # Any resource deleted
-            for (idx, item) in rdiff[jd.delete]:
-                print(
-                    "[resource deleted]",
-                    rtype,
-                    item["metadata"]["namespace"],
-                    item["metadata"]["name"],
-                    file=f,
-                )
-        if jd.insert in rdiff:
-            # Any resource added
-            for (idx, item) in rdiff[jd.insert]:
-                print(
-                    "[resource added]",
-                    rtype,
-                    item["metadata"]["namespace"],
-                    item["metadata"]["name"],
-                    file=f,
-                )
-
-        # Check for resource internal fields
-        for idx in rdiff:
-            if not type(idx) is int:
-                continue
-            resource = test[rtype][idx]
-            name = resource["metadata"]["name"]
-            namespace = resource["metadata"]["namespace"]
-            item = rdiff[idx]
-            for majorfield in item:
-                if majorfield == jd.delete:
-                    print("[field deleted]", item[majorfield], file=f)
-                    continue
-                if majorfield == jd.insert:
-                    print("[field added]", item[majorfield], file=f)
-                    continue
-                data = item[majorfield]
-                for subfield in data:
-                    if not subfield in not_care:
-                        print(
-                            "[%s field changed]" % (majorfield),
-                            rtype,
-                            name,
-                            subfield,
-                            "changed",
-                            "delta: ",
-                            data[subfield],
-                            file=f,
-                        )
-                if jd.delete in data:
-                    print(
-                        "[%s field deleted]" % (majorfield),
-                        rtype,
-                        name,
-                        data[jd.delete],
-                        file=f,
-                    )
-                if jd.insert in data:
-                    print(
-                        "[%s field added]" % (majorfield),
-                        rtype,
-                        name,
-                        data[jd.insert],
-                        file=f,
-                    )
-
-    result = f.getvalue()
-    f.close()
-    alarm = len(result.split("\n"))
-    return alarm, "[RESOURCE DIFF REPORT]\n" + result
-
-def look_for_resources_diff_v2(learn, test):
     f = io.StringIO()
     alarm = 0
 
