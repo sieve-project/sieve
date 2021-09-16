@@ -6,8 +6,17 @@ import copy
 
 WRITE_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
-# TODO: for now, only consider Delete
+
+# flags for time travel only
 DELETE_ONLY_FILTER_FLAG = True
+DELETE_THEN_RECREATE_FLAG = True
+
+# flags for obs gap only
+CANCELLABLE_FLAG = True
+
+# flags for atom vio only
+READ_BEFORE_EFFECT_FLAG = True
+
 FILTERED_ERROR_TYPE = ["NotFound", "Conflict"]
 ALLOWED_ERROR_TYPE = ["NoError"]
 

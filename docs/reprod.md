@@ -44,8 +44,7 @@ python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d DOCKER_REPO_NAME
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim.size inconsistent: learning: 2, testing: 1
-[ERROR] persistentvolumeclaim.delete inconsistent: learning: 1, testing: 2
+[ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
 ```
 The bug was found in commit `bd8077a478997f63862848d66d4912c59e4c46ff`.
 

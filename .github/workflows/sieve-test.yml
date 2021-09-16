@@ -1,6 +1,10 @@
 name: Sieve Test
 
-on: [pull_request, workflow_dispatch]
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'
 
 env:
   IMAGE_NAMESPACE: ghcr.io/sieve-project/action

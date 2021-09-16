@@ -250,9 +250,10 @@ def run_workload(
     docker_tag,
     num_apiservers,
 ) -> Tuple[int, str]:
-    cprint("Setting up Sieve server ...", bcolors.OKGREEN)
-    start_sieve_server()
-    ok("Sieve server set up")
+    if mode != sieve_modes.VANILLA:
+        cprint("Setting up Sieve server ...", bcolors.OKGREEN)
+        start_sieve_server()
+        ok("Sieve server set up")
 
     cprint("Deploying operator ...", bcolors.OKGREEN)
     start_operator(project, docker_repo, docker_tag, num_apiservers)
@@ -308,15 +309,17 @@ def run_workload(
             % (apiserver_name, log_dir, apiserver_log)
         )
 
-    cmd_early_exit(
-        "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log"
-        % (log_dir)
-    )
+    if mode != sieve_modes.VANILLA:
+        cmd_early_exit(
+            "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log"
+            % (log_dir)
+        )
 
     cmd_early_exit("kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
-    stop_sieve_server()
+    if mode != sieve_modes.VANILLA:
+        stop_sieve_server()
 
     return alarm, bug_report
 
@@ -357,11 +360,11 @@ def check_result(
                 )
             )
     else:
-        if os.path.exists(test_config):
-            open(os.path.join(log_dir, "config.yaml"), "w").write(
-                open(test_config).read()
-            )
         if mode != sieve_modes.VANILLA:
+            if os.path.exists(test_config):
+                open(os.path.join(log_dir, "config.yaml"), "w").write(
+                    open(test_config).read()
+                )
             learned_side_effect = json.load(
                 open(os.path.join(data_dir, "side-effect.json"))
             )

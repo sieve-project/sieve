@@ -16,6 +16,7 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
         if edge.source.is_event() and edge.sink.is_side_effect():
             if edge.sink.content.etype == SideEffectTypes.DELETE:
                 candidate_edges.append(edge)
+    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
 
 
@@ -45,6 +46,7 @@ def delete_then_recreate_filtering_pass(
             keep_this_pair = True
         if keep_this_pair:
             candidate_edges.append(edge)
+    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
 
 
@@ -55,10 +57,12 @@ def time_travel_analysis(
     timing="after",
 ):
     causality_edges = causality_graph.event_side_effect_edges
-    candidate_edges = delete_only_filtering_pass(causality_edges)
-    candidate_edges = delete_then_recreate_filtering_pass(
-        candidate_edges, causality_graph.event_key_to_event_vertices
-    )
+    if DELETE_ONLY_FILTER_FLAG:
+        candidate_edges = delete_only_filtering_pass(causality_edges)
+    if DELETE_THEN_RECREATE_FLAG:
+        candidate_edges = delete_then_recreate_filtering_pass(
+            candidate_edges, causality_graph.event_key_to_event_vertices
+        )
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -113,6 +117,7 @@ def time_travel_analysis(
 def cancellable_filtering_pass(
     causality_vertices: List[CausalityVertex], causality_graph: CausalityGraph
 ):
+    print("Running optional pass: cancellable-filtering ...")
     candidate_vertices = []
     for vertex in causality_vertices:
         if len(vertex.content.cancelled_by) > 0:
@@ -121,7 +126,7 @@ def cancellable_filtering_pass(
                 if not causality_vertice_connected(vertex, sink):
                     candidate_vertices.append(vertex)
                     break
-
+    print("%d -> %d vertices ..." % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -132,7 +137,10 @@ def obs_gap_analysis(
 ):
     event_vertices = causality_graph.event_vertices
     candidate_vertices = event_vertices
-    candidate_vertices = cancellable_filtering_pass(candidate_vertices, causality_graph)
+    if CANCELLABLE_FLAG:
+        candidate_vertices = cancellable_filtering_pass(
+            candidate_vertices, causality_graph
+        )
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -168,6 +176,21 @@ def obs_gap_analysis(
     print("Generated %d obs-gap config(s) in %s" % (i, path))
 
 
+def read_before_effect_resources_filtering_pass(causality_edges: List[CausalityEdge]):
+    print("Running optional pass: read-before-effect-filtering ...")
+    candidate_edges = []
+    for edge in causality_edges:
+        if edge.source.is_event() and edge.sink.is_side_effect():
+            side_effect = edge.sink.content
+            if (
+                side_effect.key in side_effect.read_keys
+                or side_effect.rtype in side_effect.read_types
+            ):
+                candidate_edges.append(edge)
+    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
+    return candidate_edges
+
+
 def atom_vio_analysis(
     causality_graph: CausalityGraph,
     path: str,
@@ -175,6 +198,8 @@ def atom_vio_analysis(
 ):
     causality_edges = causality_graph.event_side_effect_edges
     candidate_edges = causality_edges
+    if READ_BEFORE_EFFECT_FLAG:
+        candidate_edges = read_before_effect_resources_filtering_pass(candidate_edges)
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
