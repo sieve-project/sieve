@@ -134,7 +134,7 @@ def generate_status():
         status[ktype]["terminating"] = terminating
     return status
 
-
+# Deprecated
 def trim_resource(cur, key_trace=[]):
     if type(cur) is list:
         idx = 0
@@ -233,7 +233,6 @@ def generate_resources(path = "", data_dir="", learn_twice=False):
     # Fetch for crd
     for crd in crd_list:
         resources[crd] = get_crd(crd)
-
 
     if learn_twice and data_dir != "":
         base_resources = json.loads(open(os.path.join(data_dir, "resources.json")).read())
