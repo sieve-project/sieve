@@ -562,10 +562,7 @@ def look_for_resources_diff(learn, test):
                         file=f,
                     )
                 except Exception as e:
-                    print(e)
-                    print(path)
-                    print(key)
-                    print(test)
+                    print(e, path, key)
 
     result = f.getvalue()
     f.close()
