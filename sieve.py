@@ -49,7 +49,7 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def generate_kind_config(mode, num_apiservers, num_workers):
+def generate_kind_config(num_apiservers, num_workers):
     kind_config_dir = "kind_configs"
     os.makedirs(kind_config_dir, exist_ok=True)
     kind_config_filename = os.path.join(
@@ -146,7 +146,7 @@ def setup_cluster(
 ):
     cmd_early_exit("kind delete cluster")
     setup_kind_cluster(
-        generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag
+        generate_kind_config(num_apiservers, num_workers), docker_repo, docker_tag
     )
 
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
@@ -325,9 +325,9 @@ def check_result(
     project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
 ) -> Tuple[int, str]:
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, data_dir, two_sided=two_sided, canonicalize_resource=(mode=="learn-twice"))
+        analyze.analyze_trace(project, log_dir, data_dir, two_sided=two_sided, canonicalize_resource=(mode==sieve_modes.LEARN_TWICE))
         cmd_early_exit("mkdir -p %s" % data_dir)
-        if mode == "learn-once":
+        if mode == sieve_modes.LEARN_ONCE:
             cmd_early_exit(
                 "cp %s %s"
                 % (
@@ -342,7 +342,7 @@ def check_result(
                     os.path.join(data_dir, "side-effect.json"),
                 )
             )
-        if mode == "learn-twice":
+        if mode == sieve_modes.LEARN_TWICE:
             cmd_early_exit(
                 "cp %s %s"
                 % (
@@ -565,7 +565,7 @@ def run(
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
-    config_dir = os.path.join("log", project, test, "learn", "learn", mode)
+    config_dir = os.path.join("log", project, test, "learn", sieve_modes.LEARN_ONCE, mode)
     configs = glob.glob(os.path.join(config_dir, "*.yaml"))
     configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
     print("Configs to test:")
@@ -580,14 +580,14 @@ def run_batch(project, test, dir, mode, stage, docker):
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(dir, project, test, stage, mode + "-batch", num)
         try:
-            if mode == "learn-twice":
+            if mode == sieve_modes.LEARN_TWICE:
                 # Run learn-once first
                 run(
                     controllers.test_suites,
                     project,
                     test,
-                    os.path.join(dir, project, test, stage, "learn-once" + "-batch", num),
-                    "learn",
+                    os.path.join(dir, project, test, stage, sieve_modes.LEARN_ONCE + "-batch", num),
+                    sieve_modes.LEARN_ONCE,
                     stage,
                     config,
                     docker,
@@ -724,7 +724,7 @@ if __name__ == "__main__":
         options.mode = sieve_modes.ATOM_VIO
 
     if options.stage == "learn" and options.mode in ["none", "learn"]:
-        options.mode = "learn-once"
+        options.mode = sieve_modes.LEARN_ONCE
 
     if options.mode == "none" and options.stage == "test":
         options.mode = controllers.test_suites[options.project][options.test].mode
@@ -737,8 +737,8 @@ if __name__ == "__main__":
         sieve_modes.TIME_TRAVEL,
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
-        "learn-once",
-        "learn-twice"
+        sieve_modes.LEARN_ONCE,
+        sieve_modes.LEARN_TWICE,
     ], (
         "invalid mode option: %s" % options.mode
     )
@@ -768,14 +768,14 @@ if __name__ == "__main__":
             options.log, options.project, options.test, options.stage, options.mode
         )
 
-        if options.mode == "learn-twice":
+        if options.mode == sieve_modes.LEARN_TWICE:
             # Run learn-once first
             run(
                 controllers.test_suites,
                 options.project,
                 options.test,
-                os.path.join(options.log, options.project, options.test, options.stage, "learn-once"),
-                "learn-once",
+                os.path.join(options.log, options.project, options.test, options.stage, sieve_modes.LEARN_ONCE),
+                sieve_modes.LEARN_ONCE,
                 options.stage,
                 options.config,
                 options.docker,
