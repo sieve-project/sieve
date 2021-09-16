@@ -479,6 +479,7 @@ def generate_debugging_hint(test_config_content):
     elif mode == sieve_modes.ATOM_VIO:
         return "TODO: generate debugging hint for atomic bugs"
     else:
+        print("mode wrong", mode, test_config_content)
         assert False
 
 
