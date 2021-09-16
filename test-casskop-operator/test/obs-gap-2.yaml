@@ -1,0 +1,18 @@
+project: casskop-operator
+stage: test
+mode: obs-gap
+operator-pod-label: casskop-operator
+ce-name: sonar-cassandra-cluster
+ce-namespace: sieve
+ce-rtype: cassandracluster
+ce-diff-current: '{"spec": {"topology": {"dc": ["SONAR-SKIP", "SONAR-SKIP"]}}}'
+ce-diff-previous: '{"spec": {"topology": {"dc": ["SONAR-SKIP", "SONAR-SKIP", {"name":
+  "dc3", "rack": [{"name": "rack1"}], "nodesPerRacks": 0, "resources": {}}]}}}'
+ce-etype-current: Updated
+ce-etype-previous: Updated
+description: 'Pause any reconcile on casskop-operator after it sees a sieve/cassandracluster/sonar-cassandra-cluster
+  event E. E should match the pattern {"spec": {"topology": {"dc": ["SONAR-SKIP",
+  "SONAR-SKIP"]}}} and the events before E should match {"spec": {"topology": {"dc":
+  ["SONAR-SKIP", "SONAR-SKIP", {"name": "dc3", "rack": [{"name": "rack1"}], "nodesPerRacks":
+  0, "resources": {}}]}}}. And resume reconcile on the controller casskop-operator
+  after it sees an event cancel event E.'
