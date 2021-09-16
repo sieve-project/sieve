@@ -261,11 +261,22 @@ If reproduced, you will see:
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
+### [orange-opensource-casskop-357](https://github.com/Orange-OpenSource/casskop/issues/357)
+```
+python3 sieve.py -p casskop-operator -t scaledown-obs-gap -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[RESOURCE DIFF]
+[spec field changed] cassandracluster sonar-cassandra-cluster topology changed delta:  {'dc': {insert: [(0, {'name': 'SIEVE-IGNORE', 'nodesPerRacks': 1, 'rack': [{'name': 'SIEVE-IGNORE'}], 'resources': {}}), (1, {'name': 'SIEVE-IGNORE', 'nodesPerRacks': 1, 'rack': [{'name': 'SIEVE-IGNORE'}], 'resources': {}})]}}
+[status field changed] cassandracluster sonar-cassandra-cluster cassandraRackStatus changed delta:  {insert: {'dc2-rack1': {'cassandraLastAction': {'name': 'SIEVE-IGNORE', 'status': 'Ongoing'}, 'phase': 'Initializing', 'podLastOperation': {}}, 'dc3-rack1': {'cassandraLastAction': {'name': 'SIEVE-IGNORE', 'status': 'Ongoing'}, 'phase': 'Initializing', 'podLastOperation': {}}}}
+```
+The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
+
 ### [K8SPSMDB-434](https://jira.percona.com/browse/K8SPSMDB-434)
 to be updated
 
 ### Broken atomicity
-to do
 
 ### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
 ```
@@ -278,3 +289,14 @@ values_changed persistentvolumeclaim default persistence-rabbitmq-cluster-server
 values_changed persistentvolumeclaim default persistence-rabbitmq-cluster-server-0 status/capacity/storage 15Gi  =>  10Gi
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
+
+## [orange-opensource-nifikop-130](https://github.com/Orange-OpenSource/nifikop/issues/130)
+```
+python3 sieve.py -p nifikop-operator -t change-config -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[ERROR] pod/default/simplenifi-1.* CREATE inconsistency: 2 events seen during learning run, but 1 seen during testing run
+[ERROR] pod/default/simplenifi-1.* DELETE inconsistency: 1 events seen during learning run, but 0 seen during testing run
+```
+The bug was found in commit `1546e0242107bf2f2c1256db50f47c79956dd1c6`.
