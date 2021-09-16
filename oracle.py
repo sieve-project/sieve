@@ -531,7 +531,7 @@ def check(
     bug_report = discrepancy_bug_report + panic_bug_report
     # TODO(urgent): we should use learned_resources to replace learned_status, instead of using both
     # and look_for_resources_diff() should return alarm as well
-    if learned_resources != None:
+    if test_config_content["mode"] != "learn" and learned_resources != None:
         resource_alarm, resource_bug_report = look_for_resources_diff_v2(
             learned_resources, testing_resources
         )
