@@ -1,5 +1,8 @@
 # Sieve: Testing datacenter infrastructures using partial histories
 
+[![Kubernetes Image Build](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml)
+[![Sieve Test](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml)
+
 ## Requirements
 * Docker daemon must be running (please ensure you can run `docker` commands without sudo)
 * A docker repo that you have write access to
