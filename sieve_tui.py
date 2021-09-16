@@ -12,8 +12,10 @@ def run():
     action = data["action"]
     mode = controllers.test_suites[operator][workload].mode
     print(operator, workload, action, mode)
-    if action == "learn":
-        os.system("python3 sieve.py -p %s -t %s -s learn" % (operator, workload))
+    if action in ["learn-once", "learn-twice"]:
+        os.system(
+            "python3 sieve.py -p %s -t %s -s learn -m %s" % (operator, workload, action)
+        )
     elif action == "test":
         os.system("python3 sieve.py -p %s -t %s" % (operator, workload))
     elif action == "build for learn":
@@ -73,7 +75,8 @@ class SieveTUI:
         operator = self.operator_scroll_cell.get()
         workload = self.workload_scroll_cell.get()
         actions = [
-            "learn",
+            "learn-once",
+            "learn-twice",
             "test",
             "build for learn",
             "build for test",

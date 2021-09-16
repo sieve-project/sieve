@@ -50,7 +50,8 @@ class sieve_modes:
     OBS_GAP = "observability-gap"
     ATOM_VIO = "atomicity-violation"
     VANILLA = "vanilla"
-    LEARN = "learn"
+    LEARN_ONCE = "learn-once"
+    LEARN_TWICE = "learn-twice"
 
 
 class bcolors:

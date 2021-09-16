@@ -268,4 +268,13 @@ to be updated
 to do
 
 ### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
-to do
+```
+python3 sieve.py -p rabbitmq-operator -t resize-pvc-atomic -d DOCKER_REPO_NAME
+```
+If reproduced, you will see:
+```
+[RESOURCE DIFF]
+values_changed persistentvolumeclaim default persistence-rabbitmq-cluster-server-0 spec/resources/requests/storage 15Gi  =>  10Gi
+values_changed persistentvolumeclaim default persistence-rabbitmq-cluster-server-0 status/capacity/storage 15Gi  =>  10Gi
+```
+The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.

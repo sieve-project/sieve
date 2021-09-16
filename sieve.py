@@ -49,7 +49,7 @@ def generate_configmap(test_config):
     return configmap_path
 
 
-def generate_kind_config(mode, num_apiservers, num_workers):
+def generate_kind_config(num_apiservers, num_workers):
     kind_config_dir = "kind_configs"
     os.makedirs(kind_config_dir, exist_ok=True)
     kind_config_filename = os.path.join(
@@ -146,7 +146,7 @@ def setup_cluster(
 ):
     cmd_early_exit("kind delete cluster")
     setup_kind_cluster(
-        generate_kind_config(mode, num_apiservers, num_workers), docker_repo, docker_tag
+        generate_kind_config(num_apiservers, num_workers), docker_repo, docker_tag
     )
 
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
@@ -328,29 +328,37 @@ def check_result(
     project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
 ) -> Tuple[int, str]:
     if stage == "learn":
-        analyze.analyze_trace(project, log_dir, two_sided=two_sided)
+        analyze.analyze_trace(
+            project,
+            log_dir,
+            data_dir,
+            two_sided=two_sided,
+            canonicalize_resource=(mode == sieve_modes.LEARN_TWICE),
+        )
         cmd_early_exit("mkdir -p %s" % data_dir)
-        cmd_early_exit(
-            "cp %s %s"
-            % (
-                os.path.join(log_dir, "status.json"),
-                os.path.join(data_dir, "status.json"),
+        if mode == sieve_modes.LEARN_ONCE:
+            cmd_early_exit(
+                "cp %s %s"
+                % (
+                    os.path.join(log_dir, "status.json"),
+                    os.path.join(data_dir, "status.json"),
+                )
             )
-        )
-        cmd_early_exit(
-            "cp %s %s"
-            % (
-                os.path.join(log_dir, "side-effect.json"),
-                os.path.join(data_dir, "side-effect.json"),
+            cmd_early_exit(
+                "cp %s %s"
+                % (
+                    os.path.join(log_dir, "side-effect.json"),
+                    os.path.join(data_dir, "side-effect.json"),
+                )
             )
-        )
-        # cmd_early_exit(
-        #     "cp %s %s"
-        #     % (
-        #         os.path.join(log_dir, "resources.json"),
-        #         os.path.join(data_dir, "resources.json"),
-        #     )
-        # )
+        if mode == sieve_modes.LEARN_TWICE:
+            cmd_early_exit(
+                "cp %s %s"
+                % (
+                    os.path.join(log_dir, "resources.json"),
+                    os.path.join(data_dir, "resources.json"),
+                )
+            )
     else:
         if mode != sieve_modes.VANILLA:
             if os.path.exists(test_config):
@@ -367,13 +375,13 @@ def check_result(
                 if os.path.isfile(resources_path)
                 else None
             )
-            server_log = os.path.join(log_dir, "sieve-server.log")
             (
                 testing_side_effect,
                 testing_status,
                 testing_resources,
-            ) = oracle.generate_digest(server_log)
+            ) = oracle.generate_digest(log_dir)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
+            server_log = os.path.join(log_dir, "sieve-server.log")
             alarm, bug_report = oracle.check(
                 learned_side_effect,
                 learned_status,
@@ -397,11 +405,11 @@ def check_result(
                 open(os.path.join(log_dir, "status.json"), "w"),
                 indent=4,
             )
-            # json.dump(
-            #     testing_resources,
-            #     open(os.path.join(log_dir, "resources.json"), "w"),
-            #     indent=4,
-            # )
+            json.dump(
+                testing_resources,
+                open(os.path.join(log_dir, "resources.json"), "w"),
+                indent=4,
+            )
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
 
@@ -501,7 +509,7 @@ def run(
     if stage == "learn":
         learn_config = os.path.join(log_dir, "learn.yaml")
         print("Learning stage with config %s" % learn_config)
-        generate_learn_config(learn_config, project, mode, rate_limiter_enabled)
+        generate_learn_config(learn_config, project, "learn", rate_limiter_enabled)
         return run_test(
             project,
             mode,
@@ -567,7 +575,9 @@ def run(
 
 def run_batch(project, test, dir, mode, stage, docker):
     assert stage == "test", "can only run batch mode under test stage"
-    config_dir = os.path.join("log", project, test, "learn", "learn", mode)
+    config_dir = os.path.join(
+        "log", project, test, "learn", sieve_modes.LEARN_ONCE, mode
+    )
     configs = glob.glob(os.path.join(config_dir, "*.yaml"))
     configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
     print("Configs to test:")
@@ -582,6 +592,26 @@ def run_batch(project, test, dir, mode, stage, docker):
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(dir, project, test, stage, mode + "-batch", num)
         try:
+            if mode == sieve_modes.LEARN_TWICE:
+                # Run learn-once first
+                run(
+                    controllers.test_suites,
+                    project,
+                    test,
+                    os.path.join(
+                        dir,
+                        project,
+                        test,
+                        stage,
+                        sieve_modes.LEARN_ONCE + "-batch",
+                        num,
+                    ),
+                    sieve_modes.LEARN_ONCE,
+                    stage,
+                    config,
+                    docker,
+                )
+
             alarm, bug_report = run(
                 controllers.test_suites,
                 project,
@@ -712,8 +742,8 @@ if __name__ == "__main__":
     elif options.mode == "atom-vio":
         options.mode = sieve_modes.ATOM_VIO
 
-    if options.stage == "learn":
-        options.mode = "learn"
+    if options.stage == "learn" and options.mode in ["none", "learn"]:
+        options.mode = sieve_modes.LEARN_ONCE
 
     if options.mode == "none" and options.stage == "test":
         options.mode = controllers.test_suites[options.project][options.test].mode
@@ -726,7 +756,8 @@ if __name__ == "__main__":
         sieve_modes.TIME_TRAVEL,
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
-        "learn",
+        sieve_modes.LEARN_ONCE,
+        sieve_modes.LEARN_TWICE,
     ], (
         "invalid mode option: %s" % options.mode
     )
@@ -755,6 +786,28 @@ if __name__ == "__main__":
         log_dir = os.path.join(
             options.log, options.project, options.test, options.stage, options.mode
         )
+
+        if options.mode == sieve_modes.LEARN_TWICE:
+            # Run learn-once first
+            run(
+                controllers.test_suites,
+                options.project,
+                options.test,
+                os.path.join(
+                    options.log,
+                    options.project,
+                    options.test,
+                    options.stage,
+                    sieve_modes.LEARN_ONCE,
+                ),
+                sieve_modes.LEARN_ONCE,
+                options.stage,
+                options.config,
+                options.docker,
+                options.rate_limiter,
+                options.phase,
+            )
+
         run(
             controllers.test_suites,
             options.project,

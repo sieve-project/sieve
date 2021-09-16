@@ -346,11 +346,13 @@ def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_g
 def analyze_trace(
     project,
     log_dir,
+    data_dir,
     generate_oracle=True,
     generate_config=True,
     two_sided=False,
     use_sql=False,
     compress_trivial_reconcile=True,
+    canonicalize_resource=False,
 ):
     print(
         "generate-oracle feature is %s" % ("enabled" if generate_oracle else "disabled")
@@ -372,7 +374,7 @@ def analyze_trace(
     )
     causality_graph = build_causality_graph(event_list, side_effect_list)
 
-    if generate_config:
+    if generate_config and not canonicalize_resource:
         for analysis_mode in [
             sieve_modes.TIME_TRAVEL,
             sieve_modes.OBS_GAP,
@@ -383,7 +385,7 @@ def analyze_trace(
             )
 
     if generate_oracle:
-        oracle.generate_test_oracle(log_dir)
+        oracle.generate_test_oracle(log_dir, canonicalize_resource)
 
 
 if __name__ == "__main__":
@@ -414,6 +416,7 @@ if __name__ == "__main__":
     analyze_trace(
         project,
         dir,
+        "",
         generate_oracle=False,
         generate_config=True,
         two_sided=False,

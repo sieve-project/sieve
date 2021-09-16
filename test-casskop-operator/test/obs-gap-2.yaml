@@ -1,0 +1,12 @@
+project: casskop-operator
+stage: test
+mode: observability-gap
+operator-pod-label: casskop-operator
+ce-name: cassandra-cluster
+ce-namespace: default
+ce-rtype: cassandracluster
+ce-diff-current: '{"spec": {"topology": {"dc": ["SIEVE-SKIP", "SIEVE-SKIP"]}}}'
+ce-diff-previous: '{"spec": {"topology": {"dc": ["SIEVE-SKIP", "SIEVE-SKIP", {"name":
+  "dc3", "rack": [{"name": "rack1"}], "nodesPerRacks": 1, "resources": {}}]}}}'
+ce-etype-current: Updated
+ce-etype-previous: Updated

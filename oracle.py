@@ -9,39 +9,11 @@ from common import *
 import io
 import sieve_config
 import re
+import deepdiff
+from deepdiff import DeepDiff
+import pathlib
 
-not_care_keys = [
-    "uid",
-    "resourceVersion",
-    "creationTimestamp",
-    "ownerReferences",
-    "managedFields",
-    "generateName",
-    "selfLink",
-    "annotations",
-    "pod-template-hash",
-    "secretName",
-    "image",
-    "lastTransitionTime",
-    "nodeName",
-    "podIPs",
-    "podIP",
-    "hostIP",
-    "containerID",
-    "imageID",
-    "startTime",
-    "startedAt",
-    "volumeMounts",
-    "finishedAt",
-    "volumeName",
-    "lastUpdateTime",
-    "env",
-    "message",
-    "currentRevision",
-    "updateRevision",
-    "controller-revision-hash",
-]
-not_care = [jd.delete, jd.insert] + not_care_keys + ["name"]
+
 side_effect_empty_entry = {
     "Create": 0,
     "Update": 0,
@@ -57,26 +29,25 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(log_dir):
-    log_path = os.path.join(log_dir, "sieve-server.log")
-    side_effect, status, resources = generate_digest(log_path)
+def generate_test_oracle(log_dir, canonicalize_resource=False):
+    side_effect, status, resources = generate_digest(log_dir, canonicalize_resource)
     dump_json_file(log_dir, side_effect, "side-effect.json")
     dump_json_file(log_dir, status, "status.json")
-    # dump_json_file(log_dir, resources, "resources.json")
+    dump_json_file(log_dir, resources, "resources.json")
 
 
-def generate_digest(path):
-    side_effect = generate_side_effect(path)
+def generate_digest(log_dir, canonicalize_resource=False):
+    side_effect = generate_side_effect(log_dir)
     status = generate_status()
-    resources = generate_resources()
+    resources = generate_resources(log_dir, canonicalize_resource)
     return side_effect, status, resources
 
 
-def generate_side_effect(path):
+def generate_side_effect(log_dir):
     print("Checking safety assertions ...")
     side_effect_map = {}
-
-    for line in open(path).readlines():
+    log_path = os.path.join(log_dir, "sieve-server.log")
+    for line in open(log_path).readlines():
         if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK not in line:
             continue
         side_effect = analyze_util.parse_side_effect(line)
@@ -133,23 +104,6 @@ def generate_status():
     return status
 
 
-def trim_resource(cur, key_trace=[]):
-    if type(cur) is list:
-        idx = 0
-        for item in cur:
-            trim_resource(item, key_trace)
-            idx += 1
-
-    if type(cur) is dict:
-        for key in list(cur):
-            if key in not_care_keys:
-                cur[key] = "SIEVE-IGNORE"
-            elif key == "name" and key_trace[1] != "metadata":
-                cur[key] = "SIEVE-IGNORE"
-            else:
-                trim_resource(cur[key], key_trace + [key])
-
-
 def get_resource_helper(func):
     k8s_namespace = sieve_config.config["namespace"]
     response = func(k8s_namespace, _preload_content=False, watch=False)
@@ -179,7 +133,25 @@ def get_crd(crd):
     return data
 
 
-def generate_resources(path=""):
+def learn_twice_trim(base_resources, twice_resources):
+    def nested_set(dic, keys, value):
+        for key in keys[:-1]:
+            dic = dic[key]
+        dic[keys[-1]] = value
+
+    stored_learn = copy.deepcopy(base_resources)
+    ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view="tree")
+
+    for key in ddiff["values_changed"]:
+        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+
+    for key in ddiff["dictionary_item_added"]:
+        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+
+    return stored_learn
+
+
+def generate_resources(log_dir="", canonicalize_resource=False):
     # print("Generating cluster resources digest ...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -198,8 +170,9 @@ def generate_resources(path=""):
     crd_list = get_crd_list()
 
     resource_set = set(["statefulset", "pod", "persistentvolumeclaim", "deployment"])
-    if path != "":
-        for line in open(path).readlines():
+    if log_dir != "":
+        log_path = os.path.join(log_dir, "sieve-server.log")
+        for line in open(log_path).readlines():
             if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK not in line:
                 continue
             side_effect = analyze_util.parse_side_effect(line)
@@ -214,7 +187,14 @@ def generate_resources(path=""):
     for crd in crd_list:
         resources[crd] = get_crd(crd)
 
-    trim_resource(resources)
+    if canonicalize_resource:
+        # Suppose we are current at learn/learn-twice/xxx
+        learn_dir = pathlib.Path(log_dir).parent
+        learn_once_dir = learn_dir / "learn-once"
+        base_resources = json.loads(
+            open(os.path.join(learn_once_dir, "resources.json")).read()
+        )
+        resources = learn_twice_trim(base_resources, resources)
     return resources
 
 
@@ -456,7 +436,8 @@ def generate_debugging_hint(test_config_content):
     elif mode == sieve_modes.ATOM_VIO:
         return "TODO: generate debugging hint for atomic bugs"
     else:
-        assert False
+        print("mode wrong", mode, test_config_content)
+        return "WRONG MODE"
 
 
 def print_error_and_debugging_info(bug_report, test_config):
@@ -506,97 +487,86 @@ def check(
     alarm = discrepancy_alarm + panic_alarm
     bug_report = discrepancy_bug_report + panic_bug_report
     # TODO(urgent): we should use learned_resources to replace learned_status, instead of using both
-    # and look_for_resouces_diff() should return alarm as well
-    if learned_resources != None:
-        bug_report += "\n" + look_for_resouces_diff(
+    # and look_for_resources_diff() should return alarm as well
+    if test_config_content["mode"] != "learn" and learned_resources != None:
+        resource_alarm, resource_bug_report = look_for_resources_diff(
             learned_resources, testing_resources
         )
+        if resource_alarm != 0:
+            alarm += resource_alarm
+            bug_report += resource_bug_report
     if alarm != 0:
         print_error_and_debugging_info(bug_report, test_config)
     return alarm, bug_report
 
 
-def look_for_resouces_diff(learn, test):
+def look_for_resources_diff(learn, test):
     f = io.StringIO()
-    learn_trim = copy.deepcopy(learn)
-    test_trim = copy.deepcopy(test)
-    trim_resource(learn_trim)
-    trim_resource(test_trim)
-    diff = jd.diff(learn_trim, test_trim, syntax="symmetric")
+    alarm = 0
 
-    print("[RESOURCE DIFF REPORT]", file=f)
-    for rtype in diff:
-        rdiff = diff[rtype]
-        # Check for resource level delete/insert
-        if jd.delete in rdiff:
-            # Any resource deleted
-            for (idx, item) in rdiff[jd.delete]:
-                print(
-                    "[resource deleted]",
-                    rtype,
-                    item["metadata"]["namespace"],
-                    item["metadata"]["name"],
-                    file=f,
-                )
-        if jd.insert in rdiff:
-            # Any resource added
-            for (idx, item) in rdiff[jd.insert]:
-                print(
-                    "[resource added]",
-                    rtype,
-                    item["metadata"]["namespace"],
-                    item["metadata"]["name"],
-                    file=f,
-                )
+    def nested_get(dic, keys):
+        for key in keys:
+            dic = dic[key]
+        return dic
 
-        # Check for resource internal fields
-        for idx in rdiff:
-            if not type(idx) is int:
-                continue
-            resource = test[rtype][idx]
-            name = resource["metadata"]["name"]
-            namespace = resource["metadata"]["namespace"]
-            item = rdiff[idx]
-            for majorfield in item:
-                if majorfield == jd.delete:
-                    print("[field deleted]", item[majorfield], file=f)
+    tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
+    stored_test = copy.deepcopy(test)
+    not_care_keys = set(
+        [
+            "annotations",
+            "managedFields",
+            "image",
+            "imageID",
+            "nodeName",
+            "hostIP",
+            "message",
+            "labels",
+            "generateName",
+            "ownerReferences",
+            "podIP",
+            "ip",
+        ]
+    )
+
+    for delta_type in tdiff:
+        for key in tdiff[delta_type]:
+            path = key.path(output_format="list")
+            if key.t1 != "SIEVE-IGNORE":
+                has_not_care = False
+                for kp in path:
+                    if kp in not_care_keys:
+                        has_not_care = True
+                        break
+                if has_not_care:
                     continue
-                if majorfield == jd.insert:
-                    print("[field added]", item[majorfield], file=f)
-                    continue
-                data = item[majorfield]
-                for subfield in data:
-                    if not subfield in not_care:
-                        print(
-                            "[%s field changed]" % (majorfield),
-                            rtype,
-                            name,
-                            subfield,
-                            "changed",
-                            "delta: ",
-                            data[subfield],
-                            file=f,
-                        )
-                if jd.delete in data:
+                try:
+                    resource_type = path[0]
+                    if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
+                        source = learn
+                    else:
+                        source = test
+                    name = nested_get(source, path[:2] + ["metadata", "name"])
+                    namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
+                    if name == "sieve-testing-global-config":
+                        continue
+                    alarm += 1
                     print(
-                        "[%s field deleted]" % (majorfield),
-                        rtype,
+                        delta_type,
+                        resource_type,
+                        namespace,
                         name,
-                        data[jd.delete],
+                        "/".join(map(str, path[2:])),
+                        key.t1,
+                        " => ",
+                        key.t2,
                         file=f,
                     )
-                if jd.insert in data:
-                    print(
-                        "[%s field added]" % (majorfield),
-                        rtype,
-                        name,
-                        data[jd.insert],
-                        file=f,
-                    )
+                except Exception as e:
+                    print(e, path, key)
 
     result = f.getvalue()
     f.close()
-    return result
+    return alarm, "[RESOURCE DIFF]\n" + result
 
 
 if __name__ == "__main__":
