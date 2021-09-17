@@ -22,6 +22,7 @@ from common import (
     sieve_modes,
     cmd_early_exit,
     NO_ERROR_MESSAGE,
+    sieve_stages,
 )
 
 
@@ -327,7 +328,7 @@ def run_workload(
 def check_result(
     project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
 ) -> Tuple[int, str]:
-    if stage == "learn":
+    if stage == sieve_stages.LEARN:
         analyze.analyze_trace(
             project,
             log_dir,
@@ -473,7 +474,7 @@ def run_test(
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
     learn_config_map = {}
-    learn_config_map["stage"] = "learn"
+    learn_config_map["stage"] = sieve_stages.LEARN
     learn_config_map["mode"] = mode
     learn_config_map["crd-list"] = controllers.CRDs[project]
     if rate_limiter_enabled:
@@ -500,16 +501,18 @@ def run(
     phase="all",
 ):
     suite = test_suites[project][test]
-    data_dir = os.path.join("data", project, test, "learn")
+    data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
     print("Log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
         cmd_early_exit("rm -rf %s" % log_dir)
         cmd_early_exit("mkdir -p %s" % log_dir)
 
-    if stage == "learn":
+    if stage == sieve_stages.LEARN:
         learn_config = os.path.join(log_dir, "learn.yaml")
         print("Learning stage with config %s" % learn_config)
-        generate_learn_config(learn_config, project, "learn", rate_limiter_enabled)
+        generate_learn_config(
+            learn_config, project, sieve_stages.LEARN, rate_limiter_enabled
+        )
         return run_test(
             project,
             mode,
@@ -574,9 +577,9 @@ def run(
 
 
 def run_batch(project, test, dir, mode, stage, docker):
-    assert stage == "test", "can only run batch mode under test stage"
+    assert stage == sieve_stages.TEST, "can only run batch mode in test stage"
     config_dir = os.path.join(
-        "log", project, test, "learn", sieve_modes.LEARN_ONCE, mode
+        "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE, mode
     )
     configs = glob.glob(os.path.join(config_dir, "*.yaml"))
     configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
@@ -698,7 +701,7 @@ if __name__ == "__main__":
         dest="mode",
         help="test MODE: vanilla, time-travel, obs-gap, atom-vio",
         metavar="MODE",
-        default="none",
+        default=sieve_modes.NONE,
     )
     parser.add_option(
         "-c",
@@ -724,7 +727,11 @@ if __name__ == "__main__":
         default="all",
     )
     parser.add_option(
-        "-s", "--stage", dest="stage", help="STAGE: learn, test", default="test"
+        "-s",
+        "--stage",
+        dest="stage",
+        help="STAGE: learn, test",
+        default=sieve_stages.TEST,
     )
     parser.add_option(
         "-r",
@@ -742,13 +749,13 @@ if __name__ == "__main__":
     elif options.mode == "atom-vio":
         options.mode = sieve_modes.ATOM_VIO
 
-    if options.stage == "learn" and options.mode in ["none", "learn"]:
+    if options.stage == sieve_stages.LEARN and options.mode == sieve_modes.NONE:
         options.mode = sieve_modes.LEARN_ONCE
 
-    if options.mode == "none" and options.stage == "test":
+    if options.stage == sieve_stages.TEST and options.mode == sieve_modes.NONE:
         options.mode = controllers.test_suites[options.project][options.test].mode
 
-    assert options.stage in ["learn", "test"], (
+    assert options.stage in [sieve_stages.LEARN, sieve_stages.TEST], (
         "invalid stage option: %s" % options.stage
     )
     assert options.mode in [
