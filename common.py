@@ -45,6 +45,11 @@ def cmd_early_exit(cmd, early_exit=True):
     return return_code
 
 
+class sieve_stages:
+    LEARN = "learn"
+    TEST = "test"
+
+
 class sieve_modes:
     TIME_TRAVEL = "time-travel"
     OBS_GAP = "observability-gap"
@@ -52,6 +57,7 @@ class sieve_modes:
     VANILLA = "vanilla"
     LEARN_ONCE = "learn-once"
     LEARN_TWICE = "learn-twice"
+    NONE = "none"
 
 
 class bcolors:

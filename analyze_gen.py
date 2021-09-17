@@ -6,7 +6,7 @@ import os
 import controllers
 import json
 import sieve_config
-from common import sieve_modes
+from common import *
 
 
 def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
@@ -111,7 +111,7 @@ def time_travel_analysis(
             ),
             sort_keys=False,
         )
-    print("Generated %d time-travel config(s) in %s" % (i, path))
+    cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
 def cancellable_filtering_pass(
@@ -173,7 +173,7 @@ def obs_gap_analysis(
             open(os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"),
             sort_keys=False,
         )
-    print("Generated %d obs-gap config(s) in %s" % (i, path))
+    cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
 def read_before_effect_resources_filtering_pass(causality_edges: List[CausalityEdge]):
@@ -243,4 +243,4 @@ def atom_vio_analysis(
             open(os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"),
             sort_keys=False,
         )
-    print("Generated %d atomic config(s) in %s" % (i, path))
+    cprint("Generated %d atomic config(s) in %s" % (i, path), bcolors.OKGREEN)
