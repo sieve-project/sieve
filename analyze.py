@@ -1,4 +1,4 @@
-from analyze_event import cancel_event_object
+from analyze_event import cancel_event_object, canonicalize_event_object, diff_events
 from typing import List
 import copy
 import os
@@ -244,7 +244,7 @@ def base_pass(
     for side_effect_vertex in side_effect_vertices:
         for event_vertex in event_vertices:
             # events can lead to that side_effect
-            if side_effect_vertex.content.range_overlap(event_vertex.content):
+            if range_overlap(side_effect_vertex.content, event_vertex.content):
                 vertex_pairs.append([event_vertex, side_effect_vertex])
     return vertex_pairs
 
@@ -255,7 +255,7 @@ def write_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]])
     for pair in vertex_pairs:
         event_vertex = pair[0]
         side_effect_vertex = pair[1]
-        if side_effect_vertex.content.interest_overlap(event_vertex.content):
+        if interest_overlap(side_effect_vertex.content, event_vertex.content):
             pruned_vertex_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs

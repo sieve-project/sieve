@@ -1,8 +1,6 @@
 import json
 from typing import List, Dict, Optional, Union, Set
 import sieve_config
-from analyze_event import diff_events, canonicalize_event_object
-import copy
 
 WRITE_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -69,6 +67,10 @@ def extract_namespace_name(obj: Dict):
     return obj_namespace, obj_name
 
 
+def generate_key(resource_type: str, namespace: str, name: str):
+    return "/".join([resource_type, namespace, name])
+
+
 class Event:
     def __init__(self, id: str, etype: str, rtype: str, obj_str: str):
         self.__id = int(id)
@@ -79,7 +81,7 @@ class Event:
         self.__namespace, self.__name = extract_namespace_name(self.obj_map)
         self.__start_timestamp = -1
         self.__end_timestamp = -1
-        self.__key = self.rtype + "/" + self.namespace + "/" + self.name
+        self.__key = generate_key(self.rtype, self.namespace, self.name)
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
         self.__prev_etype = None
@@ -182,7 +184,7 @@ class SideEffect:
         self.__read_types = set()
         self.__read_keys = set()
         self.__owner_controllers = set()
-        self.__key = self.rtype + "/" + self.namespace + "/" + self.name
+        self.__key = generate_key(self.rtype, self.namespace, self.name)
 
     @property
     def id(self):
@@ -269,22 +271,24 @@ class SideEffect:
         self.__range_start_timestamp = start_timestamp
         self.__range_end_timestamp = end_timestamp
 
-    def range_overlap(self, event: Event):
-        # This is the key method to generate the (event, side_effect) pairs
-        assert self.range_end_timestamp != -1
-        assert event.start_timestamp != -1
-        assert event.end_timestamp != -1
-        assert self.range_start_timestamp < self.range_end_timestamp
-        assert self.start_timestamp < self.end_timestamp
-        assert self.end_timestamp == self.range_end_timestamp
-        assert event.start_timestamp < event.end_timestamp
-        return (
-            self.range_start_timestamp < event.end_timestamp
-            and self.start_timestamp > event.start_timestamp
-        )
 
-    def interest_overlap(self, event: Event):
-        return event.key in self.read_keys or event.rtype in self.read_types
+def range_overlap(side_effect: SideEffect, event: Event):
+    # This is the key method to generate the (event, side_effect) pairs
+    assert side_effect.range_end_timestamp != -1
+    assert event.start_timestamp != -1
+    assert event.end_timestamp != -1
+    assert side_effect.range_start_timestamp < side_effect.range_end_timestamp
+    assert side_effect.start_timestamp < side_effect.end_timestamp
+    assert side_effect.end_timestamp == side_effect.range_end_timestamp
+    assert event.start_timestamp < event.end_timestamp
+    return (
+        side_effect.range_start_timestamp < event.end_timestamp
+        and side_effect.start_timestamp > event.start_timestamp
+    )
+
+
+def interest_overlap(side_effect: SideEffect, event: Event):
+    return event.key in side_effect.read_keys or event.rtype in side_effect.read_types
 
 
 class CacheRead:
@@ -304,16 +308,12 @@ class CacheRead:
         self.__key_set = set()
         if etype == "Get":
             self.obj_list.append(json.loads(obj_str))
-            self.key_set.add(self.rtype + "/" + namespace + "/" + name)
+            self.key_set.add(generate_key(self.rtype, namespace, name))
         else:
             self.obj_list.extend(json.loads(obj_str)["items"])
             for obj in self.obj_list:
-                key = (
-                    self.rtype
-                    + "/"
-                    + obj["metadata"]["namespace"]
-                    + "/"
-                    + obj["metadata"]["name"]
+                key = generate_key(
+                    self.rtype, obj["metadata"]["namespace"], obj["metadata"]["name"]
                 )
                 self.key_set.add(key)
 
@@ -336,18 +336,6 @@ class CacheRead:
     @property
     def obj_list(self):
         return self.__obj_list
-
-    # @property
-    # def key(self):
-    #     return self.__key
-
-    # @property
-    # def namespace(self):
-    #     return self.__namespace
-
-    # @property
-    # def name(self):
-    #     return self.__name
 
 
 class EventIDOnly:
