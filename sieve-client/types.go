@@ -119,10 +119,12 @@ type NotifyLearnCacheGetRequest struct {
 	ResourceType string
 	Namespace    string
 	Name         string
+	Object       string
 	Error        string
 }
 
 type NotifyLearnCacheListRequest struct {
 	ResourceType string
+	ObjectList   string
 	Error        string
 }

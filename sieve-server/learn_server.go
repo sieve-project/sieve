@@ -170,13 +170,13 @@ func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfte
 }
 
 func (s *learnServer) NotifyLearnCacheGet(request *sieve.NotifyLearnCacheGetRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)}
 	*response = sieve.Response{Message: "Get", Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnCacheList(request *sieve.NotifyLearnCacheListRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s", request.ResourceType, request.Error)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)}
 	*response = sieve.Response{Message: "List", Ok: true}
 	return nil
 }

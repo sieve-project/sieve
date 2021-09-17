@@ -211,6 +211,11 @@ func NotifyLearnCacheGet(readType string, namespacedName types.NamespacedName, o
 	if !checkStage(LEARN) {
 		return
 	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, jsonError)
+	}
+	// log.Printf("[SIEVE] GET %s\n", string(jsonObject))
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -224,6 +229,7 @@ func NotifyLearnCacheGet(readType string, namespacedName types.NamespacedName, o
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
 		Namespace:    namespacedName.Namespace,
 		Name:         namespacedName.Name,
+		Object:       string(jsonObject),
 		Error:        errorString,
 	}
 	var response Response
@@ -240,6 +246,11 @@ func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
 	if !checkStage(LEARN) {
 		return
 	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, jsonError)
+	}
+	// log.Printf("[SIEVE] LIST %s\n", string(jsonObject))
 	client, err := newClient()
 	if err != nil {
 		printError(err, connectionError)
@@ -251,6 +262,7 @@ func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
 	}
 	request := &NotifyLearnCacheListRequest{
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		ObjectList:   string(jsonObject),
 		Error:        errorString,
 	}
 	var response Response
