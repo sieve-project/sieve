@@ -30,13 +30,13 @@ INTRA_THREAD_EDGE = "INTRA-THREAD"
 INTER_THREAD_EDGE = "INTER-THREADS"
 
 
-class EventTypes:
+class OperatorHearTypes:
     ADDED = "Added"
     UPDATED = "Updated"
     DELETED = "Deleted"
 
 
-class SideEffectTypes:
+class OperatorWriteTypes:
     CREATE = "Create"
     UPDATE = "Update"
     DELETE = "Delete"
@@ -44,13 +44,16 @@ class SideEffectTypes:
 
 def consistent_type(event_type: str, side_effect_type: str):
     both_create = (
-        event_type == EventTypes.ADDED and side_effect_type == SideEffectTypes.CREATE
+        event_type == OperatorHearTypes.ADDED
+        and side_effect_type == OperatorWriteTypes.CREATE
     )
     both_update = (
-        event_type == EventTypes.UPDATED and side_effect_type == SideEffectTypes.UPDATE
+        event_type == OperatorHearTypes.UPDATED
+        and side_effect_type == OperatorWriteTypes.UPDATE
     )
     both_delete = (
-        event_type == EventTypes.DELETED and side_effect_type == SideEffectTypes.DELETE
+        event_type == OperatorHearTypes.DELETED
+        and side_effect_type == OperatorWriteTypes.DELETE
     )
     return both_create or both_update or both_delete
 
@@ -71,7 +74,7 @@ def generate_key(resource_type: str, namespace: str, name: str):
     return "/".join([resource_type, namespace, name])
 
 
-class Event:
+class OperatorHear:
     def __init__(self, id: str, etype: str, rtype: str, obj_str: str):
         self.__id = int(id)
         self.__etype = etype
@@ -168,7 +171,7 @@ class Event:
         self.__cancelled_by = cancelled_by
 
 
-class SideEffect:
+class OperatorWrite:
     def __init__(self, id: str, etype: str, rtype: str, error: str, obj_str: str):
         self.__id = int(id)
         self.__etype = etype
@@ -272,7 +275,7 @@ class SideEffect:
         self.__range_end_timestamp = end_timestamp
 
 
-def range_overlap(side_effect: SideEffect, event: Event):
+def range_overlap(side_effect: OperatorWrite, event: OperatorHear):
     # This is the key method to generate the (event, side_effect) pairs
     assert side_effect.range_end_timestamp != -1
     assert event.start_timestamp != -1
@@ -287,11 +290,11 @@ def range_overlap(side_effect: SideEffect, event: Event):
     )
 
 
-def interest_overlap(side_effect: SideEffect, event: Event):
+def interest_overlap(side_effect: OperatorWrite, event: OperatorHear):
     return event.key in side_effect.read_keys or event.rtype in side_effect.read_types
 
 
-class CacheRead:
+class OperatorRead:
     def __init__(
         self,
         etype: str,
@@ -338,7 +341,7 @@ class CacheRead:
         return self.__obj_list
 
 
-class EventIDOnly:
+class OperatorHearIDOnly:
     def __init__(self, id: str):
         self.__id = int(id)
 
@@ -347,7 +350,7 @@ class EventIDOnly:
         return self.__id
 
 
-class SideEffectIDOnly:
+class OperatorWriteIDOnly:
     def __init__(self, id: str):
         self.__id = int(id)
 
@@ -370,51 +373,51 @@ class Reconcile:
         return self.__round_id
 
 
-def parse_event(line: str) -> Event:
+def parse_event(line: str) -> OperatorHear:
     assert SIEVE_BEFORE_EVENT_MARK in line
     tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK) :].strip("\n").split("\t")
-    return Event(tokens[1], tokens[2], tokens[3], tokens[4])
+    return OperatorHear(tokens[1], tokens[2], tokens[3], tokens[4])
 
 
-def parse_side_effect(line: str) -> SideEffect:
+def parse_side_effect(line: str) -> OperatorWrite:
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
     tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
-    return SideEffect(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
+    return OperatorWrite(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
-def parse_cache_read(line: str) -> CacheRead:
+def parse_cache_read(line: str) -> OperatorRead:
     assert SIEVE_AFTER_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
-        return CacheRead(
+        return OperatorRead(
             tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6]
         )
     else:
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
         assert tokens[2].endswith("list")
-        return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3], tokens[4])
+        return OperatorRead(tokens[1], tokens[2][:-4], "", "", tokens[3], tokens[4])
 
 
-def parse_event_id_only(line: str) -> EventIDOnly:
+def parse_event_id_only(line: str) -> OperatorHearIDOnly:
     assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
     if SIEVE_AFTER_EVENT_MARK in line:
         tokens = line[line.find(SIEVE_AFTER_EVENT_MARK) :].strip("\n").split("\t")
-        return EventIDOnly(tokens[1])
+        return OperatorHearIDOnly(tokens[1])
     else:
         tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK) :].strip("\n").split("\t")
-        return EventIDOnly(tokens[1])
+        return OperatorHearIDOnly(tokens[1])
 
 
-def parse_side_effect_id_only(line: str) -> SideEffectIDOnly:
+def parse_side_effect_id_only(line: str) -> OperatorWriteIDOnly:
     assert SIEVE_AFTER_SIDE_EFFECT_MARK in line or SIEVE_BEFORE_SIDE_EFFECT_MARK in line
     if SIEVE_AFTER_SIDE_EFFECT_MARK in line:
         tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
-        return SideEffectIDOnly(tokens[1])
+        return OperatorWriteIDOnly(tokens[1])
     else:
         tokens = (
             line[line.find(SIEVE_BEFORE_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
         )
-        return SideEffectIDOnly(tokens[1])
+        return OperatorWriteIDOnly(tokens[1])
 
 
 def parse_reconcile(line: str) -> Reconcile:
@@ -428,7 +431,7 @@ def parse_reconcile(line: str) -> Reconcile:
 
 
 class CausalityVertex:
-    def __init__(self, gid: int, content: Union[Event, SideEffect]):
+    def __init__(self, gid: int, content: Union[OperatorHear, OperatorWrite]):
         self.__gid = gid
         self.__content = content
         self.__out_edges = []
@@ -449,10 +452,10 @@ class CausalityVertex:
         self.out_edges.append(edge)
 
     def is_event(self) -> bool:
-        return isinstance(self.content, Event)
+        return isinstance(self.content, OperatorHear)
 
     def is_side_effect(self) -> bool:
-        return isinstance(self.content, SideEffect)
+        return isinstance(self.content, OperatorWrite)
 
 
 class CausalityEdge:
@@ -569,7 +572,7 @@ class CausalityGraph:
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
             )
 
-    def add_sorted_events(self, event_list: List[Event]):
+    def add_sorted_events(self, event_list: List[OperatorHear]):
         for i in range(len(event_list)):
             event = event_list[i]
             event_vertex = CausalityVertex(self.__vertex_cnt, event)
@@ -583,7 +586,7 @@ class CausalityGraph:
             assert event_vertex.content.id not in self.event_id_to_event_vertices
             self.event_id_to_event_vertices[event_vertex.content.id] = event_vertex
 
-    def add_sorted_side_effects(self, side_effect_list: List[SideEffect]):
+    def add_sorted_side_effects(self, side_effect_list: List[OperatorWrite]):
         for i in range(len(side_effect_list)):
             side_effect = side_effect_list[i]
             side_effect_vertex = CausalityVertex(self.__vertex_cnt, side_effect)

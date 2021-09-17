@@ -14,7 +14,7 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
     candidate_edges = []
     for edge in causality_edges:
         if edge.source.is_event() and edge.sink.is_side_effect():
-            if edge.sink.content.etype == SideEffectTypes.DELETE:
+            if edge.sink.content.etype == OperatorWriteTypes.DELETE:
                 candidate_edges.append(edge)
     print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
@@ -30,14 +30,14 @@ def delete_then_recreate_filtering_pass(
     for edge in causality_edges:
         side_effect = edge.sink.content
         # time travel only cares about delete for now
-        assert side_effect.etype == SideEffectTypes.DELETE
+        assert side_effect.etype == OperatorWriteTypes.DELETE
         keep_this_pair = False
         if side_effect.key in event_key_to_event_vertices:
             for event_vertex in event_key_to_event_vertices[side_effect.key]:
                 event = event_vertex.content
                 if event.start_timestamp <= side_effect.end_timestamp:
                     continue
-                if event.etype == EventTypes.ADDED:
+                if event.etype == OperatorHearTypes.ADDED:
                     keep_this_pair = True
         else:
             # if the side effect key never appears in the event_key_map
@@ -77,8 +77,8 @@ def time_travel_analysis(
     for edge in candidate_edges:
         cur_event = edge.source.content
         side_effect = edge.sink.content
-        assert isinstance(cur_event, Event)
-        assert isinstance(side_effect, SideEffect)
+        assert isinstance(cur_event, OperatorHear)
+        assert isinstance(side_effect, OperatorWrite)
 
         slim_prev_obj = cur_event.slim_prev_obj_map
         slim_cur_obj = cur_event.slim_cur_obj_map
@@ -99,7 +99,7 @@ def time_travel_analysis(
         yaml_map["se-name"] = side_effect.name
         yaml_map["se-namespace"] = side_effect.namespace
         yaml_map["se-rtype"] = side_effect.rtype
-        assert side_effect.etype == SideEffectTypes.DELETE
+        assert side_effect.etype == OperatorWriteTypes.DELETE
         yaml_map["se-etype"] = "ADDED"
 
         i += 1
@@ -149,7 +149,7 @@ def obs_gap_analysis(
     i = 0
     for vertex in candidate_vertices:
         cur_event = vertex.content
-        assert isinstance(cur_event, Event)
+        assert isinstance(cur_event, OperatorHear)
 
         slim_prev_obj = cur_event.slim_prev_obj_map
         slim_cur_obj = cur_event.slim_cur_obj_map
@@ -211,8 +211,8 @@ def atom_vio_analysis(
     for edge in candidate_edges:
         cur_event = edge.source.content
         side_effect = edge.sink.content
-        assert isinstance(cur_event, Event)
-        assert isinstance(side_effect, SideEffect)
+        assert isinstance(cur_event, OperatorHear)
+        assert isinstance(side_effect, OperatorWrite)
 
         slim_prev_obj = cur_event.slim_prev_obj_map
         slim_cur_obj = cur_event.slim_cur_obj_map
