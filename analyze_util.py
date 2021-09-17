@@ -288,13 +288,34 @@ class SideEffect:
 
 
 class CacheRead:
-    def __init__(self, etype: str, rtype: str, namespace: str, name: str, error: str):
+    def __init__(
+        self,
+        etype: str,
+        rtype: str,
+        namespace: str,
+        name: str,
+        error: str,
+        obj_str: str,
+    ):
         self.__etype = etype
         self.__rtype = rtype
-        self.__namespace = namespace
-        self.__name = name
         self.__error = error
-        self.__key = self.rtype + "/" + self.namespace + "/" + self.name
+        self.__obj_list = []
+        self.__key_set = set()
+        if etype == "Get":
+            self.obj_list.append(json.loads(obj_str))
+            self.key_set.add(self.rtype + "/" + namespace + "/" + name)
+        else:
+            self.obj_list.extend(json.loads(obj_str)["items"])
+            for obj in self.obj_list:
+                key = (
+                    self.rtype
+                    + "/"
+                    + obj["metadata"]["namespace"]
+                    + "/"
+                    + obj["metadata"]["name"]
+                )
+                self.key_set.add(key)
 
     @property
     def etype(self):
@@ -309,16 +330,24 @@ class CacheRead:
         return self.__error
 
     @property
-    def key(self):
-        return self.__key
+    def key_set(self):
+        return self.__key_set
 
     @property
-    def namespace(self):
-        return self.__namespace
+    def obj_list(self):
+        return self.__obj_list
 
-    @property
-    def name(self):
-        return self.__name
+    # @property
+    # def key(self):
+    #     return self.__key
+
+    # @property
+    # def namespace(self):
+    #     return self.__namespace
+
+    # @property
+    # def name(self):
+    #     return self.__name
 
 
 class EventIDOnly:
@@ -369,11 +398,13 @@ def parse_cache_read(line: str) -> CacheRead:
     assert SIEVE_AFTER_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
-        return CacheRead(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
+        return CacheRead(
+            tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6]
+        )
     else:
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
         assert tokens[2].endswith("list")
-        return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3])
+        return CacheRead(tokens[1], tokens[2][:-4], "", "", tokens[3], tokens[4])
 
 
 def parse_event_id_only(line: str) -> EventIDOnly:

@@ -7,7 +7,7 @@ import oracle
 import shutil
 import optparse
 import analyze_gen
-from common import sieve_modes
+from common import sieve_modes, sieve_stages
 
 
 def sanity_check_sieve_log(path):
@@ -181,7 +181,7 @@ def parse_side_effects(path, compress_trivial_reconcile=True):
         elif SIEVE_AFTER_READ_MARK in line:
             cache_read = parse_cache_read(line)
             if cache_read.etype == "Get":
-                read_keys_this_reconcile.add(cache_read.key)
+                read_keys_this_reconcile.update(cache_read.key_set)
             else:
                 read_types_this_reconcile.add(cache_read.rtype)
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     test = options.test
     print("Analyzing controller trace for %s's test workload %s ..." % (project, test))
     # hardcoded to time travel config only for now
-    dir = os.path.join("log", project, test, "learn", "learn")
+    dir = os.path.join("log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE)
     analyze_trace(
         project,
         dir,
