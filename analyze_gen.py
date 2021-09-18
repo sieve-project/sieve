@@ -125,7 +125,7 @@ def cancellable_filtering_pass(
         if len(vertex.content.cancelled_by) > 0:
             for operator_hear_id in vertex.content.cancelled_by:
                 sink = causality_graph.get_operator_hear_with_id(operator_hear_id)
-                if not causality_vertice_connected(vertex, sink):
+                if not causality_vertices_connected(vertex, sink):
                     candidate_vertices.append(vertex)
                     break
     print("%d -> %d vertices ..." % (len(causality_vertices), len(candidate_vertices)))

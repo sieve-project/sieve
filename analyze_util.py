@@ -26,8 +26,8 @@ SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
 
-INTRA_THREAD_EDGE = "INTRA-THREAD"
-INTER_THREAD_EDGE = "INTER-THREADS"
+HEAR_WRITE_EDGE = "HEAR-WRITE"
+WRITE_HEAR_EDGE = "WRITE-HEAR"
 
 
 class OperatorHearTypes:
@@ -312,6 +312,7 @@ class OperatorRead:
         self.__error = error
         self.__obj_list = []
         self.__key_set = set()
+        self.__end_timestamp = -1
         if etype == "Get":
             self.obj_list.append(json.loads(obj_str))
             self.key_set.add(generate_key(self.rtype, namespace, name))
@@ -342,6 +343,14 @@ class OperatorRead:
     @property
     def obj_list(self):
         return self.__obj_list
+
+    @property
+    def end_timestamp(self):
+        return self.__end_timestamp
+
+    @end_timestamp.setter
+    def end_timestamp(self, end_timestamp: int):
+        self.__end_timestamp = end_timestamp
 
 
 class OperatorHearIDOnly:
@@ -388,7 +397,7 @@ def parse_operator_write(line: str) -> OperatorWrite:
     return OperatorWrite(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
-def parse_cache_read(line: str) -> OperatorRead:
+def parse_operator_read(line: str) -> OperatorRead:
     assert SIEVE_AFTER_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
@@ -621,7 +630,7 @@ class CausalityGraph:
             self.__vertex_cnt += 1
             self.operator_write_vertices.append(operator_write_vertex)
 
-    def connect_operator_hear_to_operator_write(
+    def connect_hear_to_write(
         self,
         operator_hear_vertex: CausalityVertex,
         operator_write_vertex: CausalityVertex,
@@ -633,12 +642,12 @@ class CausalityGraph:
             < operator_write_vertex.content.start_timestamp
         )
         edge = CausalityEdge(
-            operator_hear_vertex, operator_write_vertex, INTER_THREAD_EDGE
+            operator_hear_vertex, operator_write_vertex, HEAR_WRITE_EDGE
         )
         operator_hear_vertex.add_out_edge(edge)
         self.operator_hear_operator_write_edges.append(edge)
 
-    def connect_operator_write_to_operator_hear(
+    def connect_write_to_hear(
         self,
         operator_write_vertex: CausalityVertex,
         operator_hear_vertex: CausalityVertex,
@@ -650,13 +659,13 @@ class CausalityGraph:
             < operator_hear_vertex.content.start_timestamp
         )
         edge = CausalityEdge(
-            operator_write_vertex, operator_hear_vertex, INTER_THREAD_EDGE
+            operator_write_vertex, operator_hear_vertex, WRITE_HEAR_EDGE
         )
         operator_write_vertex.add_out_edge(edge)
         self.operator_write_operator_hear_edges.append(edge)
 
 
-def causality_vertice_connected(source: CausalityVertex, sink: CausalityVertex):
+def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex):
     # there should be no cycles in the casuality graph
     queue = []
     visited = set()

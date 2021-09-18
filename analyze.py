@@ -138,6 +138,7 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
     operator_write_id_map = {}
     operator_write_list = []
     operator_write_id_to_start_ts_map = {}
+    operator_read_list = []
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
     prev_reconcile_start_timestamp = {}
@@ -184,11 +185,13 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             operator_write.set_range(earliest_timestamp, i)
             operator_write_id_map[operator_write.id] = operator_write
         elif SIEVE_AFTER_READ_MARK in line:
-            cache_read = parse_cache_read(line)
-            if cache_read.etype == "Get":
-                read_keys_this_reconcile.update(cache_read.key_set)
+            operator_read = parse_operator_read(line)
+            operator_read.end_timestamp = i
+            operator_read_list.append(operator_read)
+            if operator_read.etype == "Get":
+                read_keys_this_reconcile.update(operator_read.key_set)
             else:
-                read_types_this_reconcile.add(cache_read.rtype)
+                read_types_this_reconcile.add(operator_read.rtype)
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
             reconcile = parse_reconcile(line)
             controller_name = reconcile.controller_name
@@ -232,13 +235,15 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             operator_write_id = parse_operator_write_id_only(line)
             if operator_write_id.id in operator_write_id_map:
                 operator_write_list.append(operator_write_id_map[operator_write_id.id])
-    return operator_write_list
+    return operator_write_list, operator_read_list
 
 
-def extract_operator_hears_and_operator_writes(path, compress_trivial_reconcile):
+def extract_events(path, compress_trivial_reconcile):
     operator_hear_list = parse_operator_hears(path)
-    operator_write_list = parse_operator_writes(path, compress_trivial_reconcile)
-    return operator_hear_list, operator_write_list
+    operator_write_list, operator_read_list = parse_operator_writes(
+        path, compress_trivial_reconcile
+    )
+    return operator_hear_list, operator_write_list, operator_read_list
 
 
 def base_pass(
@@ -316,7 +321,11 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
     return vertex_pairs
 
 
-def build_causality_graph(operator_hear_list, operator_write_list):
+def build_causality_graph(log_path, compress_trivial_reconcile):
+    (operator_hear_list, operator_write_list, operator_read_list) = extract_events(
+        log_path, compress_trivial_reconcile
+    )
+
     causality_graph = CausalityGraph()
     causality_graph.add_sorted_operator_hears(operator_hear_list)
     causality_graph.add_sorted_operator_writes(operator_write_list)
@@ -325,10 +334,10 @@ def build_causality_graph(operator_hear_list, operator_write_list):
     write_hear_pairs = generate_write_hear_pairs(causality_graph)
 
     for pair in hear_write_pairs:
-        causality_graph.connect_operator_hear_to_operator_write(pair[0], pair[1])
+        causality_graph.connect_hear_to_write(pair[0], pair[1])
 
     for pair in write_hear_pairs:
-        causality_graph.connect_operator_write_to_operator_hear(pair[0], pair[1])
+        causality_graph.connect_write_to_hear(pair[0], pair[1])
 
     causality_graph.sanity_check()
 
@@ -381,11 +390,7 @@ def analyze_trace(
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s ..." % log_path)
     sanity_check_sieve_log(log_path)
-    (
-        operator_hear_list,
-        operator_write_list,
-    ) = extract_operator_hears_and_operator_writes(log_path, compress_trivial_reconcile)
-    causality_graph = build_causality_graph(operator_hear_list, operator_write_list)
+    causality_graph = build_causality_graph(log_path, compress_trivial_reconcile)
 
     if generate_config and not canonicalize_resource:
         for analysis_mode in [
