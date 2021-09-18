@@ -139,6 +139,7 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
     operator_write_list = []
     operator_write_id_to_start_ts_map = {}
     operator_read_list = []
+    operator_read_key_map = {}
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
     prev_reconcile_start_timestamp = {}
@@ -188,6 +189,10 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             operator_read = parse_operator_read(line)
             operator_read.end_timestamp = i
             operator_read_list.append(operator_read)
+            for key in operator_read.key_set:
+                if key not in operator_read_key_map:
+                    operator_read_key_map[key] = []
+                operator_read_key_map[key].append(operator_read)
             if operator_read.etype == "Get":
                 read_keys_this_reconcile.update(operator_read.key_set)
             else:
@@ -235,6 +240,40 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             operator_write_id = parse_operator_write_id_only(line)
             if operator_write_id.id in operator_write_id_map:
                 operator_write_list.append(operator_write_id_map[operator_write_id.id])
+    for operator_write in operator_write_list:
+        key = operator_write.key
+        for i in range(len(operator_read_key_map[key])):
+            if (
+                i == 0
+                and operator_read_key_map[key][i].end_timestamp
+                > operator_write.start_timestamp
+            ):
+                break
+            if (
+                i != len(operator_read_key_map[key]) - 1
+                and operator_read_key_map[key][i + 1].end_timestamp
+                < operator_write.start_timestamp
+            ):
+                continue
+
+            operator_read = operator_read_key_map[key][i]
+            assert operator_write.key in operator_read.key_set
+            assert operator_read.end_timestamp < operator_write.start_timestamp
+
+            canonicalized_read_object = canonicalize_event_object(
+                copy.deepcopy(operator_read.key_to_obj[key])
+            )
+            canonicalized_write_object = canonicalize_event_object(
+                copy.deepcopy(operator_write.obj_map)
+            )
+            slim_prev_object, slim_cur_object = diff_events(
+                canonicalized_read_object, canonicalized_write_object
+            )
+            operator_write.slim_prev_obj_map = slim_prev_object
+            operator_write.slim_cur_obj_map = slim_cur_object
+            operator_write.prev_etype = operator_read.etype
+            break
+
     return operator_write_list, operator_read_list
 
 

@@ -188,6 +188,8 @@ class OperatorWrite:
         self.__read_keys = set()
         self.__owner_controllers = set()
         self.__key = generate_key(self.rtype, self.namespace, self.name)
+        self.__slim_prev_obj_map = None
+        self.__slim_cur_obj_map = None
 
     @property
     def id(self):
@@ -253,6 +255,18 @@ class OperatorWrite:
     def key(self):
         return self.__key
 
+    @property
+    def slim_prev_obj_map(self):
+        return self.__slim_prev_obj_map
+
+    @property
+    def slim_cur_obj_map(self):
+        return self.__slim_cur_obj_map
+
+    @property
+    def prev_etype(self):
+        return self.__prev_etype
+
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
@@ -268,6 +282,18 @@ class OperatorWrite:
     @read_keys.setter
     def read_keys(self, read_keys: Set[str]):
         self.__read_keys = read_keys
+
+    @slim_prev_obj_map.setter
+    def slim_prev_obj_map(self, slim_prev_obj_map: Dict):
+        self.__slim_prev_obj_map = slim_prev_obj_map
+
+    @slim_cur_obj_map.setter
+    def slim_cur_obj_map(self, slim_cur_obj_map: Dict):
+        self.__slim_cur_obj_map = slim_cur_obj_map
+
+    @prev_etype.setter
+    def prev_etype(self, prev_etype: str):
+        self.__prev_etype = prev_etype
 
     def set_range(self, start_timestamp: int, end_timestamp: int):
         assert start_timestamp < end_timestamp
@@ -310,19 +336,23 @@ class OperatorRead:
         self.__etype = etype
         self.__rtype = rtype
         self.__error = error
-        self.__obj_list = []
+        self.__key_to_obj = {}
         self.__key_set = set()
         self.__end_timestamp = -1
         if etype == "Get":
-            self.obj_list.append(json.loads(obj_str))
-            self.key_set.add(generate_key(self.rtype, namespace, name))
+            key = generate_key(self.rtype, namespace, name)
+            self.key_set.add(key)
+            self.key_to_obj[key] = json.loads(obj_str)
         else:
-            self.obj_list.extend(json.loads(obj_str)["items"])
-            for obj in self.obj_list:
+            objs = json.loads(obj_str)["items"]
+            for obj in objs:
                 key = generate_key(
                     self.rtype, obj["metadata"]["namespace"], obj["metadata"]["name"]
                 )
+                assert key not in self.key_set
+                assert key not in self.key_to_obj
                 self.key_set.add(key)
+                self.key_to_obj[key] = obj
 
     @property
     def etype(self):
@@ -341,8 +371,8 @@ class OperatorRead:
         return self.__key_set
 
     @property
-    def obj_list(self):
-        return self.__obj_list
+    def key_to_obj(self):
+        return self.__key_to_obj
 
     @property
     def end_timestamp(self):

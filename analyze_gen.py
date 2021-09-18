@@ -178,6 +178,50 @@ def obs_gap_analysis(
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
+def atom_vio_analysis_to_do(
+    causality_graph: CausalityGraph,
+    path: str,
+    project: str,
+):
+    operator_write_vertices = causality_graph.operator_write_vertices
+    candidate_vertices = operator_write_vertices
+    yaml_map = {}
+    yaml_map["project"] = project
+    yaml_map["stage"] = "test"
+    yaml_map["mode"] = sieve_modes.ATOM_VIO
+    yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
+    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
+    yaml_map["deployment-name"] = controllers.deployment_name[project]
+    i = 0
+    for vertex in candidate_vertices:
+        operator_write = vertex.content
+        assert isinstance(operator_write, OperatorWrite)
+
+        slim_prev_obj = operator_write.slim_prev_obj_map
+        slim_cur_obj = operator_write.slim_cur_obj_map
+        if slim_prev_obj is None and slim_cur_obj is None:
+            continue
+        if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
+            continue
+
+        yaml_map["se-name"] = operator_write.name
+        yaml_map["se-namespace"] = operator_write.namespace
+        yaml_map["se-rtype"] = operator_write.rtype
+        yaml_map["se-etype"] = operator_write.etype
+        yaml_map["se-diff-current"] = json.dumps(slim_cur_obj)
+        yaml_map["se-diff-previous"] = json.dumps(slim_prev_obj)
+        yaml_map["se-etype-current"] = operator_write.etype
+        yaml_map["se-etype-previous"] = operator_write.prev_etype
+        yaml_map["crash-location"] = "after"
+        i += 1
+        yaml.dump(
+            yaml_map,
+            open(os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"),
+            sort_keys=False,
+        )
+    cprint("Generated %d atomic config(s) in %s" % (i, path), bcolors.OKGREEN)
+
+
 def read_before_write_filtering_pass(
     causality_edges: List[CausalityEdge],
 ):
