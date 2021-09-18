@@ -74,12 +74,12 @@ func (l *LearnListener) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAf
 	return l.Server.NotifyLearnAfterSideEffects(request, response)
 }
 
-func (l *LearnListener) NotifyLearnCacheGet(request *sieve.NotifyLearnCacheGetRequest, response *sieve.Response) error {
-	return l.Server.NotifyLearnCacheGet(request, response)
+func (l *LearnListener) NotifyLearnAfterOperatorGet(request *sieve.NotifyLearnAfterOperatorGetRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterOperatorGet(request, response)
 }
 
-func (l *LearnListener) NotifyLearnCacheList(request *sieve.NotifyLearnCacheListRequest, response *sieve.Response) error {
-	return l.Server.NotifyLearnCacheList(request, response)
+func (l *LearnListener) NotifyLearnAfterOperatorList(request *sieve.NotifyLearnAfterOperatorListRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterOperatorList(request, response)
 }
 
 type NotificationType int
@@ -169,13 +169,13 @@ func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfte
 	return nil
 }
 
-func (s *learnServer) NotifyLearnCacheGet(request *sieve.NotifyLearnCacheGetRequest, response *sieve.Response) error {
+func (s *learnServer) NotifyLearnAfterOperatorGet(request *sieve.NotifyLearnAfterOperatorGetRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)}
 	*response = sieve.Response{Message: "Get", Ok: true}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnCacheList(request *sieve.NotifyLearnCacheListRequest, response *sieve.Response) error {
+func (s *learnServer) NotifyLearnAfterOperatorList(request *sieve.NotifyLearnAfterOperatorListRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)}
 	*response = sieve.Response{Message: "List", Ok: true}
 	return nil

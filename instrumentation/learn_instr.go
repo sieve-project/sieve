@@ -96,7 +96,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 			if etype == "Get" {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnCacheGet", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnAfterOperatorGet", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
@@ -105,7 +105,7 @@ func instrumentCacheRead(f *dst.File, etype string) {
 			} else if etype == "List" {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnCacheList", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnAfterOperatorList", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
 					},
 				}

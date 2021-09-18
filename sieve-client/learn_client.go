@@ -207,7 +207,7 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 	client.Close()
 }
 
-func NotifyLearnCacheGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
+func NotifyLearnAfterOperatorGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
 	if !checkStage(LEARN) {
 		return
 	}
@@ -225,7 +225,7 @@ func NotifyLearnCacheGet(readType string, namespacedName types.NamespacedName, o
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyLearnCacheGetRequest{
+	request := &NotifyLearnAfterOperatorGetRequest{
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
 		Namespace:    namespacedName.Namespace,
 		Name:         namespacedName.Name,
@@ -233,16 +233,16 @@ func NotifyLearnCacheGet(readType string, namespacedName types.NamespacedName, o
 		Error:        errorString,
 	}
 	var response Response
-	err = client.Call("LearnListener.NotifyLearnCacheGet", request, &response)
+	err = client.Call("LearnListener.NotifyLearnAfterOperatorGet", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyLearnCacheGet")
+	checkResponse(response, "NotifyLearnAfterOperatorGet")
 	client.Close()
 }
 
-func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
+func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr error) {
 	if !checkStage(LEARN) {
 		return
 	}
@@ -260,17 +260,17 @@ func NotifyLearnCacheList(readType string, object interface{}, k8sErr error) {
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyLearnCacheListRequest{
+	request := &NotifyLearnAfterOperatorListRequest{
 		ResourceType: regularizeType(reflect.TypeOf(object).String()),
 		ObjectList:   string(jsonObject),
 		Error:        errorString,
 	}
 	var response Response
-	err = client.Call("LearnListener.NotifyLearnCacheList", request, &response)
+	err = client.Call("LearnListener.NotifyLearnAfterOperatorList", request, &response)
 	if err != nil {
 		printError(err, replyError)
 		return
 	}
-	checkResponse(response, "NotifyLearnCacheList")
+	checkResponse(response, "NotifyLearnAfterOperatorList")
 	client.Close()
 }
