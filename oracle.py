@@ -48,7 +48,7 @@ def generate_side_effect(log_dir):
     side_effect_map = {}
     log_path = os.path.join(log_dir, "sieve-server.log")
     for line in open(log_path).readlines():
-        if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK not in line:
+        if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
             continue
         side_effect = analyze_util.parse_side_effect(line)
         if analyze_util.ERROR_MSG_FILTER_FLAG:
@@ -173,7 +173,7 @@ def generate_resources(log_dir="", canonicalize_resource=False):
     if log_dir != "":
         log_path = os.path.join(log_dir, "sieve-server.log")
         for line in open(log_path).readlines():
-            if analyze_util.SIEVE_AFTER_SIDE_EFFECT_MARK not in line:
+            if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
                 continue
             side_effect = analyze_util.parse_side_effect(line)
             resource_set.add(side_effect.rtype)

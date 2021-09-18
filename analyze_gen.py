@@ -13,7 +13,7 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
     print("Running optional pass: delete-only-filtering ...")
     candidate_edges = []
     for edge in causality_edges:
-        if edge.source.is_event() and edge.sink.is_side_effect():
+        if edge.source.is_operator_hear() and edge.sink.is_operator_write():
             if edge.sink.content.etype == OperatorWriteTypes.DELETE:
                 candidate_edges.append(edge)
     print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
@@ -22,25 +22,27 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
 
 def delete_then_recreate_filtering_pass(
     causality_edges: List[CausalityEdge],
-    event_key_to_event_vertices: Dict[str, List[CausalityVertex]],
+    operator_hear_key_to_operator_hear_vertices: Dict[str, List[CausalityVertex]],
 ):
     print("Running optional pass: delete-then-recreate-filtering ...")
     # this should only be applied to time travel mode
     candidate_edges = []
     for edge in causality_edges:
-        side_effect = edge.sink.content
+        operator_write = edge.sink.content
         # time travel only cares about delete for now
-        assert side_effect.etype == OperatorWriteTypes.DELETE
+        assert operator_write.etype == OperatorWriteTypes.DELETE
         keep_this_pair = False
-        if side_effect.key in event_key_to_event_vertices:
-            for event_vertex in event_key_to_event_vertices[side_effect.key]:
-                event = event_vertex.content
-                if event.start_timestamp <= side_effect.end_timestamp:
+        if operator_write.key in operator_hear_key_to_operator_hear_vertices:
+            for operator_hear_vertex in operator_hear_key_to_operator_hear_vertices[
+                operator_write.key
+            ]:
+                operator_hear = operator_hear_vertex.content
+                if operator_hear.start_timestamp <= operator_write.end_timestamp:
                     continue
-                if event.etype == OperatorHearTypes.ADDED:
+                if operator_hear.etype == OperatorHearTypes.ADDED:
                     keep_this_pair = True
         else:
-            # if the side effect key never appears in the event_key_map
+            # if the operator_write key never appears in the operator_hear_key_map
             # it means the operator does not watch on the resource
             # so we should be cautious and keep this edge
             keep_this_pair = True
@@ -56,12 +58,12 @@ def time_travel_analysis(
     project: str,
     timing="after",
 ):
-    causality_edges = causality_graph.event_side_effect_edges
+    causality_edges = causality_graph.operator_hear_operator_write_edges
     if DELETE_ONLY_FILTER_FLAG:
         candidate_edges = delete_only_filtering_pass(causality_edges)
     if DELETE_THEN_RECREATE_FLAG:
         candidate_edges = delete_then_recreate_filtering_pass(
-            candidate_edges, causality_graph.event_key_to_event_vertices
+            candidate_edges, causality_graph.operator_hear_key_to_operator_hear_vertices
         )
     yaml_map = {}
     yaml_map["project"] = project
@@ -75,31 +77,31 @@ def time_travel_analysis(
     suffix = "-b" if timing == "before" else ""
     i = 0
     for edge in candidate_edges:
-        cur_event = edge.source.content
-        side_effect = edge.sink.content
-        assert isinstance(cur_event, OperatorHear)
-        assert isinstance(side_effect, OperatorWrite)
+        cur_operator_hear = edge.source.content
+        operator_write = edge.sink.content
+        assert isinstance(cur_operator_hear, OperatorHear)
+        assert isinstance(operator_write, OperatorWrite)
 
-        slim_prev_obj = cur_event.slim_prev_obj_map
-        slim_cur_obj = cur_event.slim_cur_obj_map
+        slim_prev_obj = cur_operator_hear.slim_prev_obj_map
+        slim_cur_obj = cur_operator_hear.slim_cur_obj_map
         if slim_prev_obj is None and slim_cur_obj is None:
             continue
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
-        yaml_map["ce-name"] = cur_event.name
-        yaml_map["ce-namespace"] = cur_event.namespace
-        yaml_map["ce-rtype"] = cur_event.rtype
+        yaml_map["ce-name"] = cur_operator_hear.name
+        yaml_map["ce-namespace"] = cur_operator_hear.namespace
+        yaml_map["ce-rtype"] = cur_operator_hear.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
         yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["ce-etype-current"] = cur_event.etype
-        yaml_map["ce-etype-previous"] = cur_event.prev_etype
+        yaml_map["ce-etype-current"] = cur_operator_hear.etype
+        yaml_map["ce-etype-previous"] = cur_operator_hear.prev_etype
 
-        yaml_map["se-name"] = side_effect.name
-        yaml_map["se-namespace"] = side_effect.namespace
-        yaml_map["se-rtype"] = side_effect.rtype
-        assert side_effect.etype == OperatorWriteTypes.DELETE
+        yaml_map["se-name"] = operator_write.name
+        yaml_map["se-namespace"] = operator_write.namespace
+        yaml_map["se-rtype"] = operator_write.rtype
+        assert operator_write.etype == OperatorWriteTypes.DELETE
         yaml_map["se-etype"] = "ADDED"
 
         i += 1
@@ -121,8 +123,8 @@ def cancellable_filtering_pass(
     candidate_vertices = []
     for vertex in causality_vertices:
         if len(vertex.content.cancelled_by) > 0:
-            for event_id in vertex.content.cancelled_by:
-                sink = causality_graph.get_event_with_id(event_id)
+            for operator_hear_id in vertex.content.cancelled_by:
+                sink = causality_graph.get_operator_hear_with_id(operator_hear_id)
                 if not causality_vertice_connected(vertex, sink):
                     candidate_vertices.append(vertex)
                     break
@@ -135,8 +137,8 @@ def obs_gap_analysis(
     path: str,
     project: str,
 ):
-    event_vertices = causality_graph.event_vertices
-    candidate_vertices = event_vertices
+    operator_hear_vertices = causality_graph.operator_hear_vertices
+    candidate_vertices = operator_hear_vertices
     if CANCELLABLE_FLAG:
         candidate_vertices = cancellable_filtering_pass(
             candidate_vertices, causality_graph
@@ -148,24 +150,24 @@ def obs_gap_analysis(
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     i = 0
     for vertex in candidate_vertices:
-        cur_event = vertex.content
-        assert isinstance(cur_event, OperatorHear)
+        cur_operator_hear = vertex.content
+        assert isinstance(cur_operator_hear, OperatorHear)
 
-        slim_prev_obj = cur_event.slim_prev_obj_map
-        slim_cur_obj = cur_event.slim_cur_obj_map
+        slim_prev_obj = cur_operator_hear.slim_prev_obj_map
+        slim_cur_obj = cur_operator_hear.slim_cur_obj_map
         if slim_prev_obj is None and slim_cur_obj is None:
             continue
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
-        yaml_map["ce-name"] = cur_event.name
-        yaml_map["ce-namespace"] = cur_event.namespace
-        yaml_map["ce-rtype"] = cur_event.rtype
+        yaml_map["ce-name"] = cur_operator_hear.name
+        yaml_map["ce-namespace"] = cur_operator_hear.namespace
+        yaml_map["ce-rtype"] = cur_operator_hear.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
         yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["ce-etype-current"] = cur_event.etype
-        yaml_map["ce-etype-previous"] = cur_event.prev_etype
+        yaml_map["ce-etype-current"] = cur_operator_hear.etype
+        yaml_map["ce-etype-previous"] = cur_operator_hear.prev_etype
 
         i += 1
         yaml.dump(
@@ -176,15 +178,17 @@ def obs_gap_analysis(
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
-def read_before_effect_resources_filtering_pass(causality_edges: List[CausalityEdge]):
-    print("Running optional pass: read-before-effect-filtering ...")
+def read_before_write_filtering_pass(
+    causality_edges: List[CausalityEdge],
+):
+    print("Running optional pass: read-before-write-filtering ...")
     candidate_edges = []
     for edge in causality_edges:
-        if edge.source.is_event() and edge.sink.is_side_effect():
-            side_effect = edge.sink.content
+        if edge.source.is_operator_hear() and edge.sink.is_operator_write():
+            operator_write = edge.sink.content
             if (
-                side_effect.key in side_effect.read_keys
-                or side_effect.rtype in side_effect.read_types
+                operator_write.key in operator_write.read_keys
+                or operator_write.rtype in operator_write.read_types
             ):
                 candidate_edges.append(edge)
     print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
@@ -196,10 +200,10 @@ def atom_vio_analysis(
     path: str,
     project: str,
 ):
-    causality_edges = causality_graph.event_side_effect_edges
+    causality_edges = causality_graph.operator_hear_operator_write_edges
     candidate_edges = causality_edges
-    if READ_BEFORE_EFFECT_FLAG:
-        candidate_edges = read_before_effect_resources_filtering_pass(candidate_edges)
+    if READ_BEFORE_WRITE_FLAG:
+        candidate_edges = read_before_write_filtering_pass(candidate_edges)
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
@@ -209,31 +213,31 @@ def atom_vio_analysis(
     yaml_map["deployment-name"] = controllers.deployment_name[project]
     i = 0
     for edge in candidate_edges:
-        cur_event = edge.source.content
-        side_effect = edge.sink.content
-        assert isinstance(cur_event, OperatorHear)
-        assert isinstance(side_effect, OperatorWrite)
+        cur_operator_hear = edge.source.content
+        operator_write = edge.sink.content
+        assert isinstance(cur_operator_hear, OperatorHear)
+        assert isinstance(operator_write, OperatorWrite)
 
-        slim_prev_obj = cur_event.slim_prev_obj_map
-        slim_cur_obj = cur_event.slim_cur_obj_map
+        slim_prev_obj = cur_operator_hear.slim_prev_obj_map
+        slim_cur_obj = cur_operator_hear.slim_cur_obj_map
         if slim_prev_obj is None and slim_cur_obj is None:
             continue
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
-        yaml_map["ce-name"] = cur_event.name
-        yaml_map["ce-namespace"] = cur_event.namespace
-        yaml_map["ce-rtype"] = cur_event.rtype
+        yaml_map["ce-name"] = cur_operator_hear.name
+        yaml_map["ce-namespace"] = cur_operator_hear.namespace
+        yaml_map["ce-rtype"] = cur_operator_hear.rtype
 
         yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
         yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["ce-etype-current"] = cur_event.etype
-        yaml_map["ce-etype-previous"] = cur_event.prev_etype
+        yaml_map["ce-etype-current"] = cur_operator_hear.etype
+        yaml_map["ce-etype-previous"] = cur_operator_hear.prev_etype
 
-        yaml_map["se-name"] = side_effect.name
-        yaml_map["se-namespace"] = side_effect.namespace
-        yaml_map["se-rtype"] = side_effect.rtype
-        yaml_map["se-etype"] = side_effect.etype
+        yaml_map["se-name"] = operator_write.name
+        yaml_map["se-namespace"] = operator_write.namespace
+        yaml_map["se-rtype"] = operator_write.rtype
+        yaml_map["se-etype"] = operator_write.etype
 
         # TODO: should find a way to determine crash location
         yaml_map["crash-location"] = "before"

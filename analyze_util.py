@@ -2,7 +2,7 @@ import json
 from typing import List, Dict, Optional, Union, Set
 import sieve_config
 
-WRITE_READ_FILTER_FLAG = True
+HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
 
 # flags for time travel only
@@ -13,15 +13,15 @@ DELETE_THEN_RECREATE_FLAG = True
 CANCELLABLE_FLAG = True
 
 # flags for atom vio only
-READ_BEFORE_EFFECT_FLAG = True
+READ_BEFORE_WRITE_FLAG = True
 
 FILTERED_ERROR_TYPE = ["NotFound", "Conflict"]
 ALLOWED_ERROR_TYPE = ["NoError"]
 
-SIEVE_BEFORE_EVENT_MARK = "[SIEVE-BEFORE-EVENT]"
-SIEVE_AFTER_EVENT_MARK = "[SIEVE-AFTER-EVENT]"
-SIEVE_BEFORE_SIDE_EFFECT_MARK = "[SIEVE-BEFORE-SIDE-EFFECT]"
-SIEVE_AFTER_SIDE_EFFECT_MARK = "[SIEVE-AFTER-SIDE-EFFECT]"
+SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-EVENT]"
+SIEVE_AFTER_HEAR_MARK = "[SIEVE-AFTER-EVENT]"
+SIEVE_BEFORE_WRITE_MARK = "[SIEVE-BEFORE-SIDE-EFFECT]"
+SIEVE_AFTER_WRITE_MARK = "[SIEVE-AFTER-SIDE-EFFECT]"
 SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
@@ -42,18 +42,18 @@ class OperatorWriteTypes:
     DELETE = "Delete"
 
 
-def consistent_type(event_type: str, side_effect_type: str):
+def consistent_type(operator_hear_type: str, operator_write_type: str):
     both_create = (
-        event_type == OperatorHearTypes.ADDED
-        and side_effect_type == OperatorWriteTypes.CREATE
+        operator_hear_type == OperatorHearTypes.ADDED
+        and operator_write_type == OperatorWriteTypes.CREATE
     )
     both_update = (
-        event_type == OperatorHearTypes.UPDATED
-        and side_effect_type == OperatorWriteTypes.UPDATE
+        operator_hear_type == OperatorHearTypes.UPDATED
+        and operator_write_type == OperatorWriteTypes.UPDATE
     )
     both_delete = (
-        event_type == OperatorHearTypes.DELETED
-        and side_effect_type == OperatorWriteTypes.DELETE
+        operator_hear_type == OperatorHearTypes.DELETED
+        and operator_write_type == OperatorWriteTypes.DELETE
     )
     return both_create or both_update or both_delete
 
@@ -275,23 +275,26 @@ class OperatorWrite:
         self.__range_end_timestamp = end_timestamp
 
 
-def range_overlap(side_effect: OperatorWrite, event: OperatorHear):
-    # This is the key method to generate the (event, side_effect) pairs
-    assert side_effect.range_end_timestamp != -1
-    assert event.start_timestamp != -1
-    assert event.end_timestamp != -1
-    assert side_effect.range_start_timestamp < side_effect.range_end_timestamp
-    assert side_effect.start_timestamp < side_effect.end_timestamp
-    assert side_effect.end_timestamp == side_effect.range_end_timestamp
-    assert event.start_timestamp < event.end_timestamp
+def range_overlap(operator_write: OperatorWrite, operator_hear: OperatorHear):
+    # This is the key method to generate the (operator_hear, operator_write) pairs
+    assert operator_write.range_end_timestamp != -1
+    assert operator_hear.start_timestamp != -1
+    assert operator_hear.end_timestamp != -1
+    assert operator_write.range_start_timestamp < operator_write.range_end_timestamp
+    assert operator_write.start_timestamp < operator_write.end_timestamp
+    assert operator_write.end_timestamp == operator_write.range_end_timestamp
+    assert operator_hear.start_timestamp < operator_hear.end_timestamp
     return (
-        side_effect.range_start_timestamp < event.end_timestamp
-        and side_effect.start_timestamp > event.start_timestamp
+        operator_write.range_start_timestamp < operator_hear.end_timestamp
+        and operator_write.start_timestamp > operator_hear.start_timestamp
     )
 
 
-def interest_overlap(side_effect: OperatorWrite, event: OperatorHear):
-    return event.key in side_effect.read_keys or event.rtype in side_effect.read_types
+def interest_overlap(operator_write: OperatorWrite, operator_hear: OperatorHear):
+    return (
+        operator_hear.key in operator_write.read_keys
+        or operator_hear.rtype in operator_write.read_types
+    )
 
 
 class OperatorRead:
@@ -373,15 +376,15 @@ class Reconcile:
         return self.__round_id
 
 
-def parse_event(line: str) -> OperatorHear:
-    assert SIEVE_BEFORE_EVENT_MARK in line
-    tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK) :].strip("\n").split("\t")
+def parse_operator_hear(line: str) -> OperatorHear:
+    assert SIEVE_BEFORE_HEAR_MARK in line
+    tokens = line[line.find(SIEVE_BEFORE_HEAR_MARK) :].strip("\n").split("\t")
     return OperatorHear(tokens[1], tokens[2], tokens[3], tokens[4])
 
 
-def parse_side_effect(line: str) -> OperatorWrite:
-    assert SIEVE_AFTER_SIDE_EFFECT_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
+def parse_operator_write(line: str) -> OperatorWrite:
+    assert SIEVE_AFTER_WRITE_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_WRITE_MARK) :].strip("\n").split("\t")
     return OperatorWrite(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
 
 
@@ -398,25 +401,23 @@ def parse_cache_read(line: str) -> OperatorRead:
         return OperatorRead(tokens[1], tokens[2][:-4], "", "", tokens[3], tokens[4])
 
 
-def parse_event_id_only(line: str) -> OperatorHearIDOnly:
-    assert SIEVE_AFTER_EVENT_MARK in line or SIEVE_BEFORE_EVENT_MARK in line
-    if SIEVE_AFTER_EVENT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_EVENT_MARK) :].strip("\n").split("\t")
+def parse_operator_hear_id_only(line: str) -> OperatorHearIDOnly:
+    assert SIEVE_AFTER_HEAR_MARK in line or SIEVE_BEFORE_HEAR_MARK in line
+    if SIEVE_AFTER_HEAR_MARK in line:
+        tokens = line[line.find(SIEVE_AFTER_HEAR_MARK) :].strip("\n").split("\t")
         return OperatorHearIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_EVENT_MARK) :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_HEAR_MARK) :].strip("\n").split("\t")
         return OperatorHearIDOnly(tokens[1])
 
 
-def parse_side_effect_id_only(line: str) -> OperatorWriteIDOnly:
-    assert SIEVE_AFTER_SIDE_EFFECT_MARK in line or SIEVE_BEFORE_SIDE_EFFECT_MARK in line
-    if SIEVE_AFTER_SIDE_EFFECT_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
+def parse_operator_write_id_only(line: str) -> OperatorWriteIDOnly:
+    assert SIEVE_AFTER_WRITE_MARK in line or SIEVE_BEFORE_WRITE_MARK in line
+    if SIEVE_AFTER_WRITE_MARK in line:
+        tokens = line[line.find(SIEVE_AFTER_WRITE_MARK) :].strip("\n").split("\t")
         return OperatorWriteIDOnly(tokens[1])
     else:
-        tokens = (
-            line[line.find(SIEVE_BEFORE_SIDE_EFFECT_MARK) :].strip("\n").split("\t")
-        )
+        tokens = line[line.find(SIEVE_BEFORE_WRITE_MARK) :].strip("\n").split("\t")
         return OperatorWriteIDOnly(tokens[1])
 
 
@@ -451,10 +452,10 @@ class CausalityVertex:
     def add_out_edge(self, edge):
         self.out_edges.append(edge)
 
-    def is_event(self) -> bool:
+    def is_operator_hear(self) -> bool:
         return isinstance(self.content, OperatorHear)
 
-    def is_side_effect(self) -> bool:
+    def is_operator_write(self) -> bool:
         return isinstance(self.content, OperatorWrite)
 
 
@@ -480,144 +481,179 @@ class CausalityEdge:
 class CausalityGraph:
     def __init__(self):
         self.__vertex_cnt = 0
-        self.__event_vertices = []
-        self.__side_effect_vertices = []
-        self.__event_key_to_event_vertices = {}
-        self.__event_id_to_event_vertices = {}
-        self.__event_side_effect_edges = []
-        self.__side_effect_event_edges = []
+        self.__operator_hear_vertices = []
+        self.__operator_write_vertices = []
+        self.__operator_hear_key_to_operator_hear_vertices = {}
+        self.__operator_hear_id_to_operator_hear_vertices = {}
+        self.__operator_hear_operator_write_edges = []
+        self.__operator_write_operator_hear_edges = []
 
     @property
-    def event_vertices(self) -> List[CausalityVertex]:
-        return self.__event_vertices
+    def operator_hear_vertices(self) -> List[CausalityVertex]:
+        return self.__operator_hear_vertices
 
     @property
-    def side_effect_vertices(self) -> List[CausalityVertex]:
-        return self.__side_effect_vertices
+    def operator_write_vertices(self) -> List[CausalityVertex]:
+        return self.__operator_write_vertices
 
     @property
-    def event_key_to_event_vertices(self) -> Dict[str, List[CausalityVertex]]:
-        return self.__event_key_to_event_vertices
+    def operator_hear_key_to_operator_hear_vertices(
+        self,
+    ) -> Dict[str, List[CausalityVertex]]:
+        return self.__operator_hear_key_to_operator_hear_vertices
 
     @property
-    def event_id_to_event_vertices(self) -> Dict[int, List[CausalityVertex]]:
-        return self.__event_id_to_event_vertices
+    def operator_hear_id_to_operator_hear_vertices(
+        self,
+    ) -> Dict[int, List[CausalityVertex]]:
+        return self.__operator_hear_id_to_operator_hear_vertices
 
     @property
-    def event_side_effect_edges(self) -> List[CausalityEdge]:
-        return self.__event_side_effect_edges
+    def operator_hear_operator_write_edges(self) -> List[CausalityEdge]:
+        return self.__operator_hear_operator_write_edges
 
     @property
-    def side_effect_event_edges(self) -> List[CausalityEdge]:
-        return self.__side_effect_event_edges
+    def operator_write_operator_hear_edges(self) -> List[CausalityEdge]:
+        return self.__operator_write_operator_hear_edges
 
-    def get_event_with_id(self, event_id) -> Optional[CausalityVertex]:
-        if event_id in self.event_id_to_event_vertices:
-            return self.event_id_to_event_vertices[event_id]
+    def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
+        if operator_hear_id in self.operator_hear_id_to_operator_hear_vertices:
+            return self.operator_hear_id_to_operator_hear_vertices[operator_hear_id]
         else:
             return None
 
-    def get_prev_event_with_key(self, key, cur_event_id) -> Optional[CausalityVertex]:
-        for i in range(len(self.event_key_to_event_vertices[key])):
-            event_vertex = self.event_key_to_event_vertices[key][i]
-            if event_vertex.content.id == cur_event_id:
+    def get_prev_operator_hear_with_key(
+        self, key, cur_operator_hear_id
+    ) -> Optional[CausalityVertex]:
+        for i in range(len(self.operator_hear_key_to_operator_hear_vertices[key])):
+            operator_hear_vertex = self.operator_hear_key_to_operator_hear_vertices[
+                key
+            ][i]
+            if operator_hear_vertex.content.id == cur_operator_hear_id:
                 if i == 0:
                     return None
                 else:
-                    return self.event_key_to_event_vertices[key][i - 1]
+                    return self.operator_hear_key_to_operator_hear_vertices[key][i - 1]
 
     def sanity_check(self):
-        # Be careful!!! The event_id and side_effect_id are only used to differentiate events/side effects
-        # the id value does not indicate which event/side effect happens earlier/later
+        # Be careful!!! The operator_hear_id and operator_write_id are only used to differentiate operator_hears/operator_writes
+        # the id value does not indicate which operator_hear/operator_write happens earlier/later
         # TODO(xudong): maybe we should also make the id consistent with start_timestamp?
-        print("%d event vertices" % len(self.event_vertices))
-        print("%d side_effect vertices" % len(self.side_effect_vertices))
-        print("%d edges from event to side_effect" % len(self.event_side_effect_edges))
-        print("%d edges from side_effect to event" % len(self.side_effect_event_edges))
-        for i in range(len(self.event_vertices)):
-            if i > 0:
-                assert self.event_vertices[i].gid == self.event_vertices[i - 1].gid + 1
-                assert (
-                    self.event_vertices[i].content.start_timestamp
-                    > self.event_vertices[i - 1].content.start_timestamp
-                )
-            assert self.event_vertices[i].is_event
-            for edge in self.event_vertices[i].out_edges:
-                assert self.event_vertices[i].gid == edge.source.gid
-        for i in range(len(self.side_effect_vertices)):
+        print("%d operator_hear vertices" % len(self.operator_hear_vertices))
+        print("%d operator_write vertices" % len(self.operator_write_vertices))
+        print(
+            "%d edges from operator_hear to operator_write"
+            % len(self.operator_hear_operator_write_edges)
+        )
+        print(
+            "%d edges from operator_write to operator_hear"
+            % len(self.operator_write_operator_hear_edges)
+        )
+        for i in range(len(self.operator_hear_vertices)):
             if i > 0:
                 assert (
-                    self.side_effect_vertices[i].gid
-                    == self.side_effect_vertices[i - 1].gid + 1
+                    self.operator_hear_vertices[i].gid
+                    == self.operator_hear_vertices[i - 1].gid + 1
                 )
                 assert (
-                    self.side_effect_vertices[i].content.start_timestamp
-                    > self.side_effect_vertices[i - 1].content.start_timestamp
+                    self.operator_hear_vertices[i].content.start_timestamp
+                    > self.operator_hear_vertices[i - 1].content.start_timestamp
                 )
-            assert self.side_effect_vertices[i].is_side_effect
-            for edge in self.side_effect_vertices[i].out_edges:
-                assert self.side_effect_vertices[i].gid == edge.source.gid
-        for edge in self.event_side_effect_edges:
+            assert self.operator_hear_vertices[i].is_operator_hear
+            for edge in self.operator_hear_vertices[i].out_edges:
+                assert self.operator_hear_vertices[i].gid == edge.source.gid
+        for i in range(len(self.operator_write_vertices)):
+            if i > 0:
+                assert (
+                    self.operator_write_vertices[i].gid
+                    == self.operator_write_vertices[i - 1].gid + 1
+                )
+                assert (
+                    self.operator_write_vertices[i].content.start_timestamp
+                    > self.operator_write_vertices[i - 1].content.start_timestamp
+                )
+            assert self.operator_write_vertices[i].is_operator_write
+            for edge in self.operator_write_vertices[i].out_edges:
+                assert self.operator_write_vertices[i].gid == edge.source.gid
+        for edge in self.operator_hear_operator_write_edges:
             assert isinstance(edge.source, CausalityVertex)
             assert isinstance(edge.sink, CausalityVertex)
-            assert edge.source.is_event() and edge.sink.is_side_effect()
+            assert edge.source.is_operator_hear() and edge.sink.is_operator_write()
             assert (
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
             )
-        for edge in self.side_effect_event_edges:
+        for edge in self.operator_write_operator_hear_edges:
             assert isinstance(edge.source, CausalityVertex)
             assert isinstance(edge.sink, CausalityVertex)
-            assert edge.sink.is_event() and edge.source.is_side_effect()
+            assert edge.sink.is_operator_hear() and edge.source.is_operator_write()
             assert (
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
             )
 
-    def add_sorted_events(self, event_list: List[OperatorHear]):
-        for i in range(len(event_list)):
-            event = event_list[i]
-            event_vertex = CausalityVertex(self.__vertex_cnt, event)
+    def add_sorted_operator_hears(self, operator_hear_list: List[OperatorHear]):
+        for i in range(len(operator_hear_list)):
+            operator_hear = operator_hear_list[i]
+            operator_hear_vertex = CausalityVertex(self.__vertex_cnt, operator_hear)
             self.__vertex_cnt += 1
-            self.event_vertices.append(event_vertex)
-            if event_vertex.content.key not in self.event_key_to_event_vertices:
-                self.event_key_to_event_vertices[event_vertex.content.key] = []
-            self.event_key_to_event_vertices[event_vertex.content.key].append(
-                event_vertex
+            self.operator_hear_vertices.append(operator_hear_vertex)
+            if (
+                operator_hear_vertex.content.key
+                not in self.operator_hear_key_to_operator_hear_vertices
+            ):
+                self.operator_hear_key_to_operator_hear_vertices[
+                    operator_hear_vertex.content.key
+                ] = []
+            self.operator_hear_key_to_operator_hear_vertices[
+                operator_hear_vertex.content.key
+            ].append(operator_hear_vertex)
+            assert (
+                operator_hear_vertex.content.id
+                not in self.operator_hear_id_to_operator_hear_vertices
             )
-            assert event_vertex.content.id not in self.event_id_to_event_vertices
-            self.event_id_to_event_vertices[event_vertex.content.id] = event_vertex
+            self.operator_hear_id_to_operator_hear_vertices[
+                operator_hear_vertex.content.id
+            ] = operator_hear_vertex
 
-    def add_sorted_side_effects(self, side_effect_list: List[OperatorWrite]):
-        for i in range(len(side_effect_list)):
-            side_effect = side_effect_list[i]
-            side_effect_vertex = CausalityVertex(self.__vertex_cnt, side_effect)
+    def add_sorted_operator_writes(self, operator_write_list: List[OperatorWrite]):
+        for i in range(len(operator_write_list)):
+            operator_write = operator_write_list[i]
+            operator_write_vertex = CausalityVertex(self.__vertex_cnt, operator_write)
             self.__vertex_cnt += 1
-            self.side_effect_vertices.append(side_effect_vertex)
+            self.operator_write_vertices.append(operator_write_vertex)
 
-    def connect_event_to_side_effect(
-        self, event_vertex: CausalityVertex, side_effect_vertex: CausalityVertex
+    def connect_operator_hear_to_operator_write(
+        self,
+        operator_hear_vertex: CausalityVertex,
+        operator_write_vertex: CausalityVertex,
     ):
-        assert event_vertex.is_event()
-        assert side_effect_vertex.is_side_effect()
+        assert operator_hear_vertex.is_operator_hear()
+        assert operator_write_vertex.is_operator_write()
         assert (
-            event_vertex.content.start_timestamp
-            < side_effect_vertex.content.start_timestamp
+            operator_hear_vertex.content.start_timestamp
+            < operator_write_vertex.content.start_timestamp
         )
-        edge = CausalityEdge(event_vertex, side_effect_vertex, INTER_THREAD_EDGE)
-        event_vertex.add_out_edge(edge)
-        self.event_side_effect_edges.append(edge)
+        edge = CausalityEdge(
+            operator_hear_vertex, operator_write_vertex, INTER_THREAD_EDGE
+        )
+        operator_hear_vertex.add_out_edge(edge)
+        self.operator_hear_operator_write_edges.append(edge)
 
-    def connect_side_effect_to_event(
-        self, side_effect_vertex: CausalityVertex, event_vertex: CausalityVertex
+    def connect_operator_write_to_operator_hear(
+        self,
+        operator_write_vertex: CausalityVertex,
+        operator_hear_vertex: CausalityVertex,
     ):
-        assert event_vertex.is_event()
-        assert side_effect_vertex.is_side_effect()
+        assert operator_hear_vertex.is_operator_hear()
+        assert operator_write_vertex.is_operator_write()
         assert (
-            side_effect_vertex.content.start_timestamp
-            < event_vertex.content.start_timestamp
+            operator_write_vertex.content.start_timestamp
+            < operator_hear_vertex.content.start_timestamp
         )
-        edge = CausalityEdge(side_effect_vertex, event_vertex, INTER_THREAD_EDGE)
-        side_effect_vertex.add_out_edge(edge)
-        self.side_effect_event_edges.append(edge)
+        edge = CausalityEdge(
+            operator_write_vertex, operator_hear_vertex, INTER_THREAD_EDGE
+        )
+        operator_write_vertex.add_out_edge(edge)
+        self.operator_write_operator_hear_edges.append(edge)
 
 
 def causality_vertice_connected(source: CausalityVertex, sink: CausalityVertex):
