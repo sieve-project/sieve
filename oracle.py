@@ -14,7 +14,7 @@ from deepdiff import DeepDiff
 import pathlib
 
 
-side_effect_empty_entry = {
+operator_write_empty_entry = {
     "Create": 0,
     "Update": 0,
     "Delete": 0,
@@ -30,45 +30,45 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def generate_test_oracle(log_dir, canonicalize_resource=False):
-    side_effect, status, resources = generate_digest(log_dir, canonicalize_resource)
-    dump_json_file(log_dir, side_effect, "side-effect.json")
+    operator_write, status, resources = generate_digest(log_dir, canonicalize_resource)
+    dump_json_file(log_dir, operator_write, "side-effect.json")
     dump_json_file(log_dir, status, "status.json")
     dump_json_file(log_dir, resources, "resources.json")
 
 
 def generate_digest(log_dir, canonicalize_resource=False):
-    side_effect = generate_side_effect(log_dir)
+    operator_write = generate_operator_write(log_dir)
     status = generate_status()
     resources = generate_resources(log_dir, canonicalize_resource)
-    return side_effect, status, resources
+    return operator_write, status, resources
 
 
-def generate_side_effect(log_dir):
+def generate_operator_write(log_dir):
     print("Checking safety assertions ...")
-    side_effect_map = {}
+    operator_write_map = {}
     log_path = os.path.join(log_dir, "sieve-server.log")
     for line in open(log_path).readlines():
         if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
             continue
-        side_effect = analyze_util.parse_side_effect(line)
+        operator_write = analyze_util.parse_operator_write(line)
         if analyze_util.ERROR_MSG_FILTER_FLAG:
             # TODO: maybe make the ignored errors configurable
-            if side_effect.error not in analyze_util.ALLOWED_ERROR_TYPE:
+            if operator_write.error not in analyze_util.ALLOWED_ERROR_TYPE:
                 continue
-        rtype = side_effect.rtype
-        namespace = side_effect.namespace
-        name = side_effect.name
-        etype = side_effect.etype
-        if rtype not in side_effect_map:
-            side_effect_map[rtype] = {}
-        if namespace not in side_effect_map[rtype]:
-            side_effect_map[rtype][namespace] = {}
-        if name not in side_effect_map[rtype][namespace]:
-            side_effect_map[rtype][namespace][name] = copy.deepcopy(
-                side_effect_empty_entry
+        rtype = operator_write.rtype
+        namespace = operator_write.namespace
+        name = operator_write.name
+        etype = operator_write.etype
+        if rtype not in operator_write_map:
+            operator_write_map[rtype] = {}
+        if namespace not in operator_write_map[rtype]:
+            operator_write_map[rtype][namespace] = {}
+        if name not in operator_write_map[rtype][namespace]:
+            operator_write_map[rtype][namespace][name] = copy.deepcopy(
+                operator_write_empty_entry
             )
-        side_effect_map[rtype][namespace][name][etype] += 1
-    return side_effect_map
+        operator_write_map[rtype][namespace][name][etype] += 1
+    return operator_write_map
 
 
 def generate_status():
@@ -175,8 +175,8 @@ def generate_resources(log_dir="", canonicalize_resource=False):
         for line in open(log_path).readlines():
             if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
                 continue
-            side_effect = analyze_util.parse_side_effect(line)
-            resource_set.add(side_effect.rtype)
+            operator_write = analyze_util.parse_operator_write(line)
+            resource_set.add(operator_write.rtype)
 
     for resource in resource_set:
         if resource in resource_handler:
@@ -227,16 +227,16 @@ def check_status(learning_status, testing_status):
     return alarm, final_bug_report
 
 
-def preprocess_side_effect(side_effect, interest_objects):
+def preprocess_operator_write(operator_write, interest_objects):
     result = {}
     for interest in interest_objects:
         rtype = interest["rtype"]
         namespace = interest["namespace"]
         name = interest["name"]
         rule = re.compile(name, re.IGNORECASE)
-        if rtype in side_effect and namespace in side_effect[rtype]:
-            resource_map = side_effect[rtype][namespace]
-            se_map = copy.deepcopy(side_effect_empty_entry)
+        if rtype in operator_write and namespace in operator_write[rtype]:
+            resource_map = operator_write[rtype][namespace]
+            se_map = copy.deepcopy(operator_write_empty_entry)
             has_match = False
             for rname in resource_map:
                 if rule.fullmatch(rname):
@@ -252,9 +252,9 @@ def preprocess_side_effect(side_effect, interest_objects):
     return result
 
 
-def check_side_effect(
-    learning_side_effect,
-    testing_side_effect,
+def check_operator_write(
+    learning_operator_write,
+    testing_operator_write,
     interest_objects,
     effect_to_check,
     selective=True,
@@ -262,10 +262,12 @@ def check_side_effect(
     alarm = 0
     bug_report = ""
     # Preporcess regex
-    learning_side_effect = preprocess_side_effect(
-        learning_side_effect, interest_objects
+    learning_operator_write = preprocess_operator_write(
+        learning_operator_write, interest_objects
     )
-    testing_side_effect = preprocess_side_effect(testing_side_effect, interest_objects)
+    testing_operator_write = preprocess_operator_write(
+        testing_operator_write, interest_objects
+    )
 
     for interest in interest_objects:
         rtype = interest["rtype"]
@@ -273,9 +275,9 @@ def check_side_effect(
         name = interest["name"]
         exist = True
         if (
-            rtype not in learning_side_effect
-            or namespace not in learning_side_effect[rtype]
-            or name not in learning_side_effect[rtype][namespace]
+            rtype not in learning_operator_write
+            or namespace not in learning_operator_write[rtype]
+            or name not in learning_operator_write[rtype][namespace]
         ):
             bug_report += "[ERROR] %s/%s/%s not in learning side effect digest\n" % (
                 rtype,
@@ -285,9 +287,9 @@ def check_side_effect(
             alarm += 1
             exist = False
         if (
-            rtype not in testing_side_effect
-            or namespace not in testing_side_effect[rtype]
-            or name not in testing_side_effect[rtype][namespace]
+            rtype not in testing_operator_write
+            or namespace not in testing_operator_write[rtype]
+            or name not in testing_operator_write[rtype][namespace]
         ):
             bug_report += "[ERROR] %s/%s/%s not in testing side effect digest\n" % (
                 rtype,
@@ -297,8 +299,8 @@ def check_side_effect(
             alarm += 1
             exist = False
         if exist:
-            learning_entry = learning_side_effect[rtype][namespace][name]
-            testing_entry = testing_side_effect[rtype][namespace][name]
+            learning_entry = learning_operator_write[rtype][namespace][name]
+            testing_entry = testing_operator_write[rtype][namespace][name]
             for attr in learning_entry:
                 if selective:
                     if attr not in effect_to_check:
@@ -367,9 +369,9 @@ def generate_obs_gap_debugging_hint(test_config_content):
 
 
 def look_for_discrepancy_in_digest(
-    learning_side_effect,
+    learning_operator_write,
     learning_status,
-    testing_side_effect,
+    testing_operator_write,
     testing_status,
     config,
     oracle_config,
@@ -396,11 +398,14 @@ def look_for_discrepancy_in_digest(
         if "effect_to_check" in oracle_config:
             effect_to_check.extend(oracle_config["effect_to_check"])
 
-        alarm_side_effect, bug_report_side_effect = check_side_effect(
-            learning_side_effect, testing_side_effect, interest_objects, effect_to_check
+        alarm_operator_write, bug_report_operator_write = check_operator_write(
+            learning_operator_write,
+            testing_operator_write,
+            interest_objects,
+            effect_to_check,
         )
-        alarm += alarm_side_effect
-        bug_report += bug_report_side_effect
+        alarm += alarm_operator_write
+        bug_report += bug_report_operator_write
     return alarm, bug_report
 
 
@@ -454,10 +459,10 @@ def print_error_and_debugging_info(bug_report, test_config):
 
 
 def check(
-    learned_side_effect,
+    learned_operator_write,
     learned_status,
     learned_resources,
-    testing_side_effect,
+    testing_operator_write,
     testing_status,
     testing_resources,
     test_config,
@@ -476,9 +481,9 @@ def check(
         print(bug_report)
         return 0, bug_report
     discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
-        learned_side_effect,
+        learned_operator_write,
         learned_status,
-        testing_side_effect,
+        testing_operator_write,
         testing_status,
         test_config,
         oracle_config,
