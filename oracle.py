@@ -439,7 +439,7 @@ def generate_debugging_hint(test_config_content):
     elif mode == sieve_modes.OBS_GAP:
         return generate_obs_gap_debugging_hint(test_config_content)
     elif mode == sieve_modes.ATOM_VIO:
-        return "TODO: generate debugging hint for atomic bugs"
+        return "TODO: generate debugging hint for atom-vio bugs"
     else:
         print("mode wrong", mode, test_config_content)
         return "WRONG MODE"

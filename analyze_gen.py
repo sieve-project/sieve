@@ -219,7 +219,7 @@ def atom_vio_analysis(
         i += 1
         yaml.dump(
             yaml_map,
-            open(os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"),
+            open(os.path.join(path, "atom-vio-config-%s.yaml" % (str(i))), "w"),
             sort_keys=False,
         )
-    cprint("Generated %d atomic config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint("Generated %d atom-vio config(s) in %s" % (i, path), bcolors.OKGREEN)

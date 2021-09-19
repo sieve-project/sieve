@@ -100,7 +100,7 @@ test_suites = {
         ),
         "resize-pvc-atomic": Suite(
             workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"],
-            "test-rabbitmq-operator/test/atomic-1.yaml",
+            "test-rabbitmq-operator/test/atom-vio-1.yaml",
             sieve_modes.ATOM_VIO,
             pvc_resize=True,
         ),
@@ -200,7 +200,7 @@ test_suites = {
     "nifikop-operator": {
         "change-config": Suite(
             workloads.workloads["nifikop-operator"]["change-config"],
-            "test-nifikop-operator/test/atomic-1.yaml",
+            "test-nifikop-operator/test/atom-vio-1.yaml",
             sieve_modes.ATOM_VIO,
             oracle_config={
                 "interest_objects": [
