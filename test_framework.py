@@ -170,7 +170,7 @@ class TestWaitForStatus:
             while True:
                 if time.time() - s > float(self.time_out):
                     error_message = (
-                        "[ERROR] waiting timeout: %s does not become %s within %d seconds"
+                        "[ERROR] waiting timeout: %s does not become %s within %d seconds\n"
                         % (self.resource_name, self.status, self.time_out)
                     )
                     print(error_message)
@@ -229,7 +229,7 @@ class TestWaitForStorage:
             while True:
                 if time.time() - s > float(self.time_out):
                     error_message = (
-                        "[ERROR] waiting timeout: %s does not have storage size %s within %d seconds"
+                        "[ERROR] waiting timeout: %s does not have storage size %s within %d seconds\n"
                         % (self.resource_name, self.storage_size, self.time_out)
                     )
                     print(error_message)
@@ -317,7 +317,7 @@ class TestWaitForExistence:
             while True:
                 if time.time() - s > float(self.time_out):
                     error_message = (
-                        "[ERROR] waiting timeout: %s does not become %s within %d seconds"
+                        "[ERROR] waiting timeout: %s does not become %s within %d seconds\n"
                         % (self.resource_name, self.status, self.time_out)
                     )
                     print(error_message)
