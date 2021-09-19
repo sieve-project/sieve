@@ -117,7 +117,7 @@ test_suites = {
         "scaledown-to-zero": Suite(
             workloads.workloads["casskop-operator"]["scaledown-to-zero"],
         ),
-        "scaledown-obs-gap": Suite(
+        "scaledown": Suite(
             workloads.workloads["casskop-operator"]["scaledown"],
         ),
     },
