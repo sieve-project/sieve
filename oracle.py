@@ -516,6 +516,7 @@ def look_for_resources_diff(learn, test):
 
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
     stored_test = copy.deepcopy(test)
+    # TODO(wenqing): not_care_keys should be consistent with BORING_EVENT_OBJECT_FIELDS in common.py
     not_care_keys = set(
         [
             "annotations",
@@ -530,6 +531,7 @@ def look_for_resources_diff(learn, test):
             "ownerReferences",
             "podIP",
             "ip",
+            "resourceVersion",
         ]
     )
 
