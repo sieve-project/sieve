@@ -111,7 +111,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 // 	return name, namespace
 // }
 
-func NotifyTimeTravelAfterSideEffects(sideEffectType string, object interface{}, k8sErr error) {
+func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
 		return
 	}
@@ -130,6 +130,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectType string, object interface{},
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyTimeTravelAfterSideEffectsRequest{
+		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),

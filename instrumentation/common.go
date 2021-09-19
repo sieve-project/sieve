@@ -94,23 +94,41 @@ func preprocess(path string) {
 	check(err)
 }
 
-func instrumentClientGoForAllTest(ifilepath, ofilepath, mode string) {
-	funName := "Notify" + mode + "AfterSideEffects"
+func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, "client")
 
-	instrumentAfterSideEffect(f, "Create", funName)
-	instrumentAfterSideEffect(f, "Update", funName)
-	instrumentAfterSideEffect(f, "Delete", funName)
-	instrumentAfterSideEffect(f, "DeleteAllOf", funName)
-	instrumentAfterSideEffect(f, "Patch", funName)
+	instrumentSideEffect(f, "Create", mode, instrumentBefore)
+	instrumentSideEffect(f, "Update", mode, instrumentBefore)
+	instrumentSideEffect(f, "Delete", mode, instrumentBefore)
+	instrumentSideEffect(f, "DeleteAllOf", mode, instrumentBefore)
+	instrumentSideEffect(f, "Patch", mode, instrumentBefore)
 
 	writeInstrumentedFile(ofilepath, "client", f)
 }
 
-func instrumentAfterSideEffect(f *dst.File, etype, funName string) {
+func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool) {
+	funNameBefore := "Notify" + mode + "BeforeSideEffects"
+	funNameAfter := "Notify" + mode + "AfterSideEffects"
 	_, funcDecl := findFuncDecl(f, etype)
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
+			// Instrument before side effect
+			sideEffectIDVar := "-1"
+			if instrumentBefore {
+				sideEffectIDVar = "sieveSideEffectID"
+				instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
+					Rhs: []dst.Expr{&dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
+					}},
+					Tok: token.DEFINE,
+				}
+				instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
+				insertStmt(&funcDecl.Body.List, len(funcDecl.Body.List)-1, instrNotifyLearnBeforeSideEffect)
+			}
+
+			// Change return to assign
 			modifiedInstruction := &dst.AssignStmt{
 				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
 				Tok: token.DEFINE,
@@ -119,15 +137,17 @@ func instrumentAfterSideEffect(f *dst.File, etype, funName string) {
 			modifiedInstruction.Decs.End.Append("//sieve")
 			funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
 
-			instrumentationExpr := &dst.ExprStmt{
+			// Instrument after side effect
+			instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
 				X: &dst.CallExpr{
-					Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-					Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+					Args: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 				},
 			}
-			instrumentationExpr.Decs.End.Append("//sieve")
-			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+			instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrNotifyLearnAfterSideEffect)
 
+			// return the error of side effect
 			instrumentationReturn := &dst.ReturnStmt{
 				Results: []dst.Expr{&dst.Ident{Name: "err"}},
 			}
@@ -139,6 +159,23 @@ func instrumentAfterSideEffect(f *dst.File, etype, funName string) {
 				panic(fmt.Errorf("Last stmt in SwitchStmt is not CaseClause"))
 			}
 			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body)-1].(*dst.ReturnStmt); ok {
+				// Instrument before side effect
+				sideEffectIDVar := "-1"
+				if instrumentBefore {
+					sideEffectIDVar = "sieveSideEffectID"
+					instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
+						Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
+						Rhs: []dst.Expr{&dst.CallExpr{
+							Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+							Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}},
+						}},
+						Tok: token.DEFINE,
+					}
+					instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
+					insertStmt(&defaultCaseClause.Body, len(defaultCaseClause.Body)-1, instrNotifyLearnBeforeSideEffect)
+				}
+
+				// Change return to assign
 				modifiedInstruction := &dst.AssignStmt{
 					Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
 					Tok: token.DEFINE,
@@ -147,15 +184,17 @@ func instrumentAfterSideEffect(f *dst.File, etype, funName string) {
 				modifiedInstruction.Decs.End.Append("//sieve")
 				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = modifiedInstruction
 
-				instrumentationExpr := &dst.ExprStmt{
+				// Instrument after side effect
+				instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", etype)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
-				instrumentationExpr.Decs.End.Append("//sieve")
-				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
+				instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrNotifyLearnAfterSideEffect)
 
+				// return the error of side effect
 				instrumentationReturn := &dst.ReturnStmt{
 					Results: []dst.Expr{&dst.Ident{Name: "err"}},
 				}
@@ -173,16 +212,16 @@ func instrumentAfterSideEffect(f *dst.File, etype, funName string) {
 }
 
 func instrumentSplitGoForAll(ifilepath, ofilepath, mode string) {
-	funName := "Notify" + mode + "AfterOperator"
 	f := parseSourceFile(ifilepath, "client")
 
-	instrumentCacheRead(f, "Get", funName+"Get")
-	instrumentCacheRead(f, "List", funName+"List")
+	instrumentCacheRead(f, "Get", mode)
+	instrumentCacheRead(f, "List", mode)
 
 	writeInstrumentedFile(ofilepath, "client", f)
 }
 
-func instrumentCacheRead(f *dst.File, etype, funName string) {
+func instrumentCacheRead(f *dst.File, etype, mode string) {
+	funName := "Notify" + mode + "AfterOperator" + etype
 	_, funcDecl := findFuncDecl(f, etype)
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {

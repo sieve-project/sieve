@@ -7,17 +7,6 @@ import (
 )
 
 func instrumentKubernetesForTimeTravel(k8s_filepath string) {
-	// In reflector.go, we need to create GetExpectedTypeName() in reflector.go
-	// because sieve server needs this information.
-	// reflectorGoFile := path.Join(filepath, "staging", "src", "k8s.io", "client-go", "tools", "cache", "reflector.go")
-	// fmt.Printf("instrumenting %s\n", reflectorGoFile)
-	// instrumentReflectorGo(reflectorGoFile, reflectorGoFile)
-
-	// In cacher.go, we need to pass the expectedTypeName from reflector to watch_cache.
-	// cacherGoFile := path.Join(filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "cacher.go")
-	// fmt.Printf("instrumenting %s\n", cacherGoFile)
-	// instrumentCacherGo(cacherGoFile, cacherGoFile)
-
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
 	instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
@@ -26,7 +15,7 @@ func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 func instrumentControllerForTimeTravel(controller_runtime_filepath string) {
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAllTest(clientGoFile, clientGoFile, "TimeTravel")
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel", false)
 }
 
 /* API interface:
@@ -46,7 +35,7 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAllTest(clientGoFile, clientGoFile, "ObsGap")
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "ObsGap", false)
 }
 
 func instrumentControllerForAtomVio(controller_runtime_filepath string, client_go_filepath string) {
@@ -56,7 +45,7 @@ func instrumentControllerForAtomVio(controller_runtime_filepath string, client_g
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAllTest(clientGoFile, clientGoFile, "AtomVio")
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "AtomVio", false)
 }
 
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
@@ -66,7 +55,7 @@ func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepat
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForLearn(clientGoFile, clientGoFile)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "Learn", true)
 
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)

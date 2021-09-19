@@ -74,7 +74,7 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 	client.Close()
 }
 
-func NotifyAtomVioAfterSideEffects(sideEffectType string, object interface{}, k8sErr error) {
+func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
@@ -92,6 +92,7 @@ func NotifyAtomVioAfterSideEffects(sideEffectType string, object interface{}, k8
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyAtomVioAfterSideEffectsRequest{
+		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(reflect.TypeOf(object).String()),

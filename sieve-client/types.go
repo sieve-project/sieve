@@ -31,6 +31,7 @@ type NotifyTimeTravelRestartPointRequest struct {
 }
 
 type NotifyTimeTravelAfterSideEffectsRequest struct {
+	SideEffectID   int
 	SideEffectType string
 	Object         string
 	ResourceType   string
@@ -38,6 +39,7 @@ type NotifyTimeTravelAfterSideEffectsRequest struct {
 }
 
 type NotifyObsGapAfterSideEffectsRequest struct {
+	SideEffectID   int
 	SideEffectType string
 	Object         string
 	ResourceType   string
@@ -64,19 +66,8 @@ type NotifyObsGapAfterIndexerWriteRequest struct {
 	ResourceType  string
 }
 
-type NotifyAtomVioBeforeIndexerWriteRequest struct {
-	OperationType string
-	Object        string
-	ResourceType  string
-}
-
-type NotifyAtomVioBeforeSideEffectsRequest struct {
-	SideEffectType string
-	Object         string
-	ResourceType   string
-}
-
 type NotifyAtomVioAfterSideEffectsRequest struct {
+	SideEffectID   int
 	SideEffectType string
 	Object         string
 	ResourceType   string
