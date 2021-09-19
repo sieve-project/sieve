@@ -92,8 +92,6 @@ class Suite:
     def __init__(
         self,
         workload,
-        config,
-        mode,
         two_sided=False,
         num_apiservers=1,
         num_workers=2,
@@ -101,8 +99,6 @@ class Suite:
         oracle_config={},
     ):
         self.workload = workload
-        self.config = config
-        self.mode = mode
         self.two_sided = two_sided
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers

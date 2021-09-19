@@ -551,7 +551,7 @@ def run(
                 phase,
             )
         else:
-            test_config = config if config != "none" else suite.config
+            test_config = config
             print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(log_dir, os.path.basename(test_config))
             cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
@@ -672,9 +672,9 @@ if __name__ == "__main__":
         "-p",
         "--project",
         dest="project",
-        help="specify PROJECT to test: cassandra-operator or zookeeper-operator",
+        help="specify PROJECT to test",
         metavar="PROJECT",
-        default="cassandra-operator",
+        # default="cassandra-operator",
     )
     parser.add_option(
         "-t",
@@ -682,7 +682,7 @@ if __name__ == "__main__":
         dest="test",
         help="specify TEST to run",
         metavar="TEST",
-        default="recreate",
+        # default="recreate",
     )
     parser.add_option(
         "-d",
@@ -701,7 +701,7 @@ if __name__ == "__main__":
         dest="mode",
         help="test MODE: vanilla, time-travel, obs-gap, atom-vio",
         metavar="MODE",
-        default=sieve_modes.NONE,
+        # default=sieve_modes.NONE,
     )
     parser.add_option(
         "-c",
@@ -709,7 +709,7 @@ if __name__ == "__main__":
         dest="config",
         help="test CONFIG",
         metavar="CONFIG",
-        default="none",
+        # default="none",
     )
     parser.add_option(
         "-b",
@@ -731,7 +731,7 @@ if __name__ == "__main__":
         "--stage",
         dest="stage",
         help="STAGE: learn, test",
-        default=sieve_stages.TEST,
+        # default=sieve_stages.TEST,
     )
     parser.add_option(
         "-r",
@@ -744,39 +744,51 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
+    if options.stage is None:
+        parser.error("parameter stage required")
+
+    if options.test is None:
+        parser.error("parameter test required")
+
+    if options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
+        parser.error("invalid stage option: %s" % options.stage)
+
+    if options.stage == sieve_stages.LEARN and options.mode is None:
+        options.mode = sieve_modes.LEARN_ONCE
+
+    if options.stage == sieve_stages.TEST and options.mode is None:
+        parser.error("parameter mode required in test stage")
+
+    if options.stage == sieve_stages.TEST and options.config is None:
+        parser.error("parameter config required in test stage")
+
     if options.mode == "obs-gap":
         options.mode = sieve_modes.OBS_GAP
     elif options.mode == "atom-vio":
         options.mode = sieve_modes.ATOM_VIO
 
-    if options.stage == sieve_stages.LEARN and options.mode == sieve_modes.NONE:
-        options.mode = sieve_modes.LEARN_ONCE
+    if options.stage == sieve_stages.LEARN and options.mode not in [
+        sieve_modes.LEARN_ONCE,
+        sieve_modes.LEARN_TWICE,
+    ]:
+        parser.error("invalid learn mode option: %s" % options.mode)
 
-    if options.stage == sieve_stages.TEST and options.mode == sieve_modes.NONE:
-        options.mode = controllers.test_suites[options.project][options.test].mode
-
-    assert options.stage in [sieve_stages.LEARN, sieve_stages.TEST], (
-        "invalid stage option: %s" % options.stage
-    )
-    assert options.mode in [
+    if options.stage == sieve_stages.TEST and options.mode not in [
         sieve_modes.VANILLA,
         sieve_modes.TIME_TRAVEL,
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
-        sieve_modes.LEARN_ONCE,
-        sieve_modes.LEARN_TWICE,
-    ], (
-        "invalid mode option: %s" % options.mode
-    )
-    assert options.phase in [
+    ]:
+        parser.error("invalid test mode option: %s" % options.mode)
+
+    if options.phase not in [
         "all",
         "setup_only",
         "workload_only",
         "check_only",
         "workload_and_check",
-    ], (
-        "invalid phase option: %s" % options.phase
-    )
+    ]:
+        parser.error("invalid phase option: %s" % options.phase)
 
     print("Running Sieve with %s: %s..." % (options.stage, options.mode))
 

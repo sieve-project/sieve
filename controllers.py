@@ -55,153 +55,100 @@ test_suites = {
     "cassandra-operator": {
         "scaledown": Suite(
             workloads.workloads["cassandra-operator"]["scaledown"],
-            "test-cassandra-operator/test/obs-gap-1.yaml",
-            sieve_modes.OBS_GAP,
         ),
         "recreate": Suite(
             workloads.workloads["cassandra-operator"]["recreate"],
-            "test-cassandra-operator/test/time-travel-1.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
         "scaledown-scaleup": Suite(
             workloads.workloads["cassandra-operator"]["scaledown-scaleup"],
-            "test-cassandra-operator/test/time-travel-2.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
     },
     "zookeeper-operator": {
         "recreate": Suite(
             workloads.workloads["zookeeper-operator"]["recreate"],
-            "test-zookeeper-operator/test/time-travel-1.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
         "scaledown-scaleup": Suite(
             workloads.workloads["zookeeper-operator"]["scaledown-scaleup"],
-            "test-zookeeper-operator/test/time-travel-2.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
     },
     "rabbitmq-operator": {
         "recreate": Suite(
             workloads.workloads["rabbitmq-operator"]["recreate"],
-            "test-rabbitmq-operator/test/time-travel-1.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
         "resize-pvc": Suite(
             workloads.workloads["rabbitmq-operator"]["resize-pvc"],
-            "test-rabbitmq-operator/test/time-travel-2.yaml",
-            sieve_modes.TIME_TRAVEL,
             two_sided=True,
         ),
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
-            "test-rabbitmq-operator/test/obs-gap-1.yaml",
-            sieve_modes.OBS_GAP,
         ),
         "resize-pvc-atomic": Suite(
             workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"],
-            "test-rabbitmq-operator/test/atom-vio-1.yaml",
-            sieve_modes.ATOM_VIO,
             pvc_resize=True,
         ),
     },
     "mongodb-operator": {
         "recreate": Suite(
             workloads.workloads["mongodb-operator"]["recreate"],
-            "test-mongodb-operator/test/time-travel-1.yaml",
-            sieve_modes.TIME_TRAVEL,
             num_workers=3,
         ),
         "disable-enable-shard": Suite(
             workloads.workloads["mongodb-operator"]["disable-enable-shard"],
-            "test-mongodb-operator/test/time-travel-2.yaml",
-            sieve_modes.TIME_TRAVEL,
             num_workers=3,
         ),
         "disable-enable-arbiter": Suite(
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"],
-            "test-mongodb-operator/test/time-travel-3.yaml",
-            sieve_modes.TIME_TRAVEL,
             num_workers=5,
         ),
     },
     "cass-operator": {
         "recreate": Suite(
             workloads.workloads["cass-operator"]["recreate"],
-            "test-cass-operator/test/time-travel-1.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
     },
     "casskop-operator": {
         "recreate": Suite(
             workloads.workloads["casskop-operator"]["recreate"],
-            "test-casskop-operator/test/time-travel-1.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
         "reducepdb": Suite(
             workloads.workloads["casskop-operator"]["reducepdb"],
-            "test-casskop-operator/test/time-travel-2.yaml",
-            sieve_modes.TIME_TRAVEL,
             two_sided=True,
         ),
         "scaledown-to-zero": Suite(
             workloads.workloads["casskop-operator"]["scaledown-to-zero"],
-            "test-casskop-operator/test/obs-gap-1.yaml",
-            sieve_modes.OBS_GAP,
         ),
         "scaledown-obs-gap": Suite(
             workloads.workloads["casskop-operator"]["scaledown"],
-            "test-casskop-operator/test/obs-gap-2.yaml",
-            sieve_modes.OBS_GAP,
         ),
     },
     "xtradb-operator": {
         "recreate": Suite(
             workloads.workloads["xtradb-operator"]["recreate"],
-            "test-xtradb-operator/test/time-travel-1.yaml",
-            sieve_modes.TIME_TRAVEL,
             num_workers=4,
         ),
         "disable-enable-haproxy": Suite(
             workloads.workloads["xtradb-operator"]["disable-enable-haproxy"],
-            "test-xtradb-operator/test/time-travel-2.yaml",
-            sieve_modes.TIME_TRAVEL,
             num_workers=4,
         ),
         "disable-enable-proxysql": Suite(
             workloads.workloads["xtradb-operator"]["disable-enable-proxysql"],
-            "test-xtradb-operator/test/time-travel-3.yaml",
-            sieve_modes.TIME_TRAVEL,
             num_workers=4,
         ),
     },
     "yugabyte-operator": {
-        "recreate": Suite(
-            workloads.workloads["yugabyte-operator"]["recreate"],
-            "null",
-            sieve_modes.TIME_TRAVEL,
-        ),
         "disable-enable-tls": Suite(
             workloads.workloads["yugabyte-operator"]["disable-enable-tls"],
-            "test-yugabyte-operator/test/time-travel-tls.yaml",
-            sieve_modes.TIME_TRAVEL,
         ),
-        "disable-enable-tserverUIPort": Suite(
-            workloads.workloads["yugabyte-operator"]["disable-enable-tserverUIPort"],
-            "test-yugabyte-operator/test/time-travel-tserverUIPort.yaml",
-            sieve_modes.TIME_TRAVEL,
+        "disable-enable-tuiport": Suite(
+            workloads.workloads["yugabyte-operator"]["disable-enable-tuiport"],
         ),
         "scaleup-scaledown-tserver": Suite(
             workloads.workloads["yugabyte-operator"]["scaleup-scaledown-tserver"],
-            "test-yugabyte-operator/test/obs-gap-config-1.yaml",
-            sieve_modes.OBS_GAP,
         ),
     },
     "nifikop-operator": {
         "change-config": Suite(
             workloads.workloads["nifikop-operator"]["change-config"],
-            "test-nifikop-operator/test/atom-vio-1.yaml",
-            sieve_modes.ATOM_VIO,
             oracle_config={
                 "interest_objects": [
                     {"rtype": "pod", "namespace": "default", "name": "simplenifi-1.*"}
