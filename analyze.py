@@ -242,6 +242,8 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
                 operator_write_list.append(operator_write_id_map[operator_write_id.id])
     for operator_write in operator_write_list:
         key = operator_write.key
+        if key not in operator_read_key_map:
+            continue
         for i in range(len(operator_read_key_map[key])):
             if (
                 i == 0
