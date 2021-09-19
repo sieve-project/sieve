@@ -215,7 +215,6 @@ def atom_vio_analysis(
         yaml_map["se-diff-current"] = json.dumps(slim_cur_obj)
         yaml_map["se-diff-previous"] = json.dumps(slim_prev_obj)
         yaml_map["se-etype-previous"] = operator_write.prev_etype
-        yaml_map["crash-location"] = "after"
         i += 1
         yaml.dump(
             yaml_map,
