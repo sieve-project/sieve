@@ -63,6 +63,7 @@ workloads = {
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", common.TERMINATED, 10)
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-0.yaml")
         .wait(50),
+        # TODO(wenqing): Please fix this test case. As hinted in the operator log, we have to first set nodePerRack to 0 before resizing the dc
         "scaledown": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
         .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml")
@@ -118,19 +119,6 @@ workloads = {
         )
         .wait_for_pod_status("zookeeper-cluster-1", common.RUNNING)
         .wait(50),
-        # "scaledown-scaleup-obs": test_framework.new_built_in_workload()
-        # .cmd("kubectl apply -f test-zookeeper-operator/test/zkc-2.yaml")
-        # .wait_for_pod_status("zookeeper-cluster-1", common.RUNNING)
-        # .wait(30)
-        # .cmd(
-        #     'kubectl patch ZookeeperCluster zookeeper-cluster --type merge -p=\'{"spec":{"replicas":1}}\''
-        # )
-        # .wait(55)
-        # .cmd(
-        #     'kubectl patch ZookeeperCluster zookeeper-cluster --type merge -p=\'{"spec":{"replicas":2}}\''
-        # )
-        # .wait(60)
-        # .wait(50),
     },
     "rabbitmq-operator": {
         "recreate": test_framework.new_built_in_workload()
@@ -209,11 +197,6 @@ workloads = {
         .wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", common.RUNNING)
         .wait_for_pod_status("mongodb-cluster-rs0-4", common.TERMINATED)
         .wait(50),
-        # "enable-shard": test_framework.new_built_in_workload()
-        # .cmd("kubectl apply -f test-mongodb-operator/test/cr.yaml").wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
-        # .cmd("kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p='{\"spec\":{\"sharding\":{\"enabled\":true}}}'").wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING).wait_for_pod_status("mongodb-cluster-mongos-*", common.RUNNING)
-        # TODO: in learning mode the digest sometimes is incorrect. We may need to have a recording mode for it
-        # .wait(50),
     },
     "xtradb-operator": {
         "recreate": test_framework.new_built_in_workload()
@@ -246,16 +229,6 @@ workloads = {
         .wait(70),
     },
     "yugabyte-operator": {
-        "recreate": test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-1.yaml")
-        .wait_for_pod_status("yb-master-0", common.RUNNING)
-        .cmd("kubectl delete YBCluster example-ybcluster")
-        .wait_for_pod_status("yb-master-0", common.TERMINATED)
-        .wait_for_pod_status("yb-master-1", common.TERMINATED)
-        .wait_for_pod_status("yb-master-2", common.TERMINATED)
-        .cmd("kubectl apply -f test-yugabyte-operator/test/yb-1.yaml")
-        .wait_for_pod_status("yb-master-0", common.RUNNING)
-        .wait(70),
         "disable-enable-tls": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-yugabyte-operator/test/yb-tls-enabled.yaml")
         .wait_for_pod_status("yb-master-2", common.RUNNING)
@@ -271,7 +244,7 @@ workloads = {
         .wait_for_secret_existence("yb-master-yugabyte-tls-cert", common.EXIST)
         .wait_for_secret_existence("yb-tserver-yugabyte-tls-cert", common.EXIST)
         .wait(70),
-        "disable-enable-tserverUIPort": test_framework.new_built_in_workload()
+        "disable-enable-tuiport": test_framework.new_built_in_workload()
         .cmd(
             "kubectl apply -f test-yugabyte-operator/test/yb-tserverUIPort-enabled.yaml"
         )
