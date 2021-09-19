@@ -214,7 +214,7 @@ class TestWaitForStorage:
                 == self.storage_size
             ):
                 return True
-        return True
+        return False
 
     def run(self, mode) -> Tuple[int, str]:
         s = time.time()
