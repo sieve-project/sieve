@@ -16,12 +16,12 @@ const ATOM_VIO string = "atomicity-violation"
 const TEST string = "test"
 const LEARN string = "learn"
 
-type eventWrapper struct {
-	eventID         int32
-	eventType       string
-	eventObject     string
-	eventObjectType string
-}
+// type eventWrapper struct {
+// 	eventID         int32
+// 	eventType       string
+// 	eventObject     string
+// 	eventObjectType string
+// }
 
 func getConfig() map[interface{}]interface{} {
 
@@ -395,4 +395,8 @@ func cancelEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 		}
 	}
 	return false
+}
+
+func isSameObject(currentEvent map[string]interface{}, namespace string, name string) bool {
+	return getEventResourceNamespace(currentEvent) == namespace && getEventResourceName(currentEvent) == name
 }

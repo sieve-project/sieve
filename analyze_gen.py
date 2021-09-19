@@ -178,7 +178,7 @@ def obs_gap_analysis(
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
-def atom_vio_analysis_to_do(
+def atom_vio_analysis(
     causality_graph: CausalityGraph,
     path: str,
     project: str,
@@ -201,7 +201,11 @@ def atom_vio_analysis_to_do(
         slim_cur_obj = operator_write.slim_cur_obj_map
         if slim_prev_obj is None and slim_cur_obj is None:
             continue
-        if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
+        if (
+            len(slim_prev_obj) == 0
+            and len(slim_cur_obj) == 0
+            and operator_write.etype == OperatorWriteTypes.UPDATE
+        ):
             continue
 
         yaml_map["se-name"] = operator_write.name
@@ -210,81 +214,8 @@ def atom_vio_analysis_to_do(
         yaml_map["se-etype"] = operator_write.etype
         yaml_map["se-diff-current"] = json.dumps(slim_cur_obj)
         yaml_map["se-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["se-etype-current"] = operator_write.etype
         yaml_map["se-etype-previous"] = operator_write.prev_etype
         yaml_map["crash-location"] = "after"
-        i += 1
-        yaml.dump(
-            yaml_map,
-            open(os.path.join(path, "atomic-config-%s.yaml" % (str(i))), "w"),
-            sort_keys=False,
-        )
-    cprint("Generated %d atomic config(s) in %s" % (i, path), bcolors.OKGREEN)
-
-
-def read_before_write_filtering_pass(
-    causality_edges: List[CausalityEdge],
-):
-    print("Running optional pass: read-before-write-filtering ...")
-    candidate_edges = []
-    for edge in causality_edges:
-        if edge.source.is_operator_hear() and edge.sink.is_operator_write():
-            operator_write = edge.sink.content
-            if (
-                operator_write.key in operator_write.read_keys
-                or operator_write.rtype in operator_write.read_types
-            ):
-                candidate_edges.append(edge)
-    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
-    return candidate_edges
-
-
-def atom_vio_analysis(
-    causality_graph: CausalityGraph,
-    path: str,
-    project: str,
-):
-    causality_edges = causality_graph.operator_hear_operator_write_edges
-    candidate_edges = causality_edges
-    if READ_BEFORE_WRITE_FLAG:
-        candidate_edges = read_before_write_filtering_pass(candidate_edges)
-    yaml_map = {}
-    yaml_map["project"] = project
-    yaml_map["stage"] = "test"
-    yaml_map["mode"] = sieve_modes.ATOM_VIO
-    yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
-    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
-    yaml_map["deployment-name"] = controllers.deployment_name[project]
-    i = 0
-    for edge in candidate_edges:
-        cur_operator_hear = edge.source.content
-        operator_write = edge.sink.content
-        assert isinstance(cur_operator_hear, OperatorHear)
-        assert isinstance(operator_write, OperatorWrite)
-
-        slim_prev_obj = cur_operator_hear.slim_prev_obj_map
-        slim_cur_obj = cur_operator_hear.slim_cur_obj_map
-        if slim_prev_obj is None and slim_cur_obj is None:
-            continue
-        if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
-            continue
-
-        yaml_map["ce-name"] = cur_operator_hear.name
-        yaml_map["ce-namespace"] = cur_operator_hear.namespace
-        yaml_map["ce-rtype"] = cur_operator_hear.rtype
-
-        yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
-        yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["ce-etype-current"] = cur_operator_hear.etype
-        yaml_map["ce-etype-previous"] = cur_operator_hear.prev_etype
-
-        yaml_map["se-name"] = operator_write.name
-        yaml_map["se-namespace"] = operator_write.namespace
-        yaml_map["se-rtype"] = operator_write.rtype
-        yaml_map["se-etype"] = operator_write.etype
-
-        # TODO: should find a way to determine crash location
-        yaml_map["crash-location"] = "before"
         i += 1
         yaml.dump(
             yaml_map,

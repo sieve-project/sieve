@@ -269,6 +269,10 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             slim_prev_object, slim_cur_object = diff_events(
                 canonicalized_read_object, canonicalized_write_object
             )
+            slim_prev_object.pop("kind", None)
+            slim_prev_object.pop("apiVersion", None)
+            slim_cur_object.pop("kind", None)
+            slim_cur_object.pop("apiVersion", None)
             operator_write.slim_prev_obj_map = slim_prev_object
             operator_write.slim_cur_obj_map = slim_cur_object
             operator_write.prev_etype = operator_read.etype

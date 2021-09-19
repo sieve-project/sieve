@@ -50,14 +50,12 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 }
 
 func instrumentControllerForAtomVio(controller_runtime_filepath string, client_go_filepath string) {
-	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
-	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
-	preprocess(sharedInformerGoFile)
-	instrumentSharedInformerGoForAtomVio(sharedInformerGoFile, sharedInformerGoFile)
+	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
+	fmt.Printf("instrumenting %s\n", splitGoFile)
+	instrumentSplitGoForAll(splitGoFile, splitGoFile, "AtomVio")
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAtomVio(clientGoFile, clientGoFile)
 	instrumentClientGoForAllTest(clientGoFile, clientGoFile, "AtomVio")
 }
 
@@ -72,7 +70,7 @@ func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepat
 
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)
-	instrumentSplitGoForLearn(splitGoFile, splitGoFile)
+	instrumentSplitGoForAll(splitGoFile, splitGoFile, "Learn")
 
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)

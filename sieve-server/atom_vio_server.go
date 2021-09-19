@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"sync/atomic"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -16,24 +15,20 @@ import (
 
 func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 	server := &atomVioServer{
-		restarted:     false,
-		crash:         false,
-		seenPrev:      false,
-		eventID:       -1,
-		frontRunner:   config["front-runner"].(string),
-		deployName:    config["deployment-name"].(string),
-		namespace:     "default",
-		podLabel:      config["operator-pod-label"].(string),
-		crucialCur:    config["ce-diff-current"].(string),
-		crucialPrev:   config["ce-diff-previous"].(string),
-		ceName:        config["ce-name"].(string),
-		ceNamespace:   config["ce-namespace"].(string),
-		ceRtype:       config["ce-rtype"].(string),
-		seName:        config["se-name"].(string),
-		seNamespace:   config["se-namespace"].(string),
-		seRtype:       config["se-rtype"].(string),
-		seEtype:       config["se-etype"].(string),
-		crashLocation: config["crash-location"].(string),
+		restarted:   false,
+		crash:       false,
+		seenPrev:    false,
+		eventID:     -1,
+		frontRunner: config["front-runner"].(string),
+		deployName:  config["deployment-name"].(string),
+		namespace:   "default",
+		podLabel:    config["operator-pod-label"].(string),
+		seName:      config["se-name"].(string),
+		seNamespace: config["se-namespace"].(string),
+		seRtype:     config["se-rtype"].(string),
+		seEtype:     config["se-etype"].(string),
+		crucialCur:  config["se-diff-current"].(string),
+		crucialPrev: config["se-diff-previous"].(string),
 	}
 	listener := &AtomVioListener{
 		Server: server,
@@ -51,43 +46,37 @@ func (l *AtomVioListener) Echo(request *sieve.EchoRequest, response *sieve.Respo
 	return nil
 }
 
-func (l *AtomVioListener) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtomVioBeforeSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyAtomVioBeforeSideEffects(request, response)
+func (l *AtomVioListener) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
+	return l.Server.NotifyAtomVioAfterOperatorGet(request, response)
+}
+
+func (l *AtomVioListener) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtomVioAfterOperatorListRequest, response *sieve.Response) error {
+	return l.Server.NotifyAtomVioAfterOperatorList(request, response)
 }
 
 func (l *AtomVioListener) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
 	return l.Server.NotifyAtomVioAfterSideEffects(request, response)
 }
 
-func (l *AtomVioListener) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAtomVioBeforeIndexerWriteRequest, response *sieve.Response) error {
-	return l.Server.NotifyAtomVioBeforeIndexerWrite(request, response)
-}
-
 type atomVioServer struct {
-	restarted     bool
-	frontRunner   string
-	deployName    string
-	namespace     string
-	podLabel      string
-	crucialCur    string
-	crucialPrev   string
-	ceName        string
-	ceNamespace   string
-	ceRtype       string
-	crucialEvent  eventWrapper
-	eventID       int32
-	seenPrev      bool
-	crash         bool
-	seName        string
-	seNamespace   string
-	seRtype       string
-	seEtype       string
-	crashLocation string
+	restarted   bool
+	frontRunner string
+	deployName  string
+	namespace   string
+	podLabel    string
+	eventID     int32
+	seenPrev    bool
+	crash       bool
+	seName      string
+	seNamespace string
+	seRtype     string
+	seEtype     string
+	crucialCur  string
+	crucialPrev string
 }
 
 func (s *atomVioServer) Start() {
 	log.Println("start atomicServer...")
-	// go s.coordinatingEvents()
 }
 
 func (s *atomVioServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
@@ -108,54 +97,42 @@ func (s *atomVioServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEv
 	return false
 }
 
-// For now, we get an cruial event from API server, we want to see if any later event cancel this one
-func (s *atomVioServer) NotifyAtomVioBeforeIndexerWrite(request *sieve.NotifyAtomVioBeforeIndexerWriteRequest, response *sieve.Response) error {
-	eID := atomic.AddInt32(&s.eventID, 1)
-	ew := eventWrapper{
-		eventID:         eID,
-		eventType:       request.OperationType,
-		eventObject:     request.Object,
-		eventObjectType: request.ResourceType,
-	}
-	log.Println("NotifyAtomVioBeforeIndexerWrite", ew.eventID, ew.eventType, ew.eventObjectType, ew.eventObject)
-	currentEvent := strToMap(request.Object)
-	crucialCurEvent := strToMap(s.crucialCur)
-	crucialPrevEvent := strToMap(s.crucialPrev)
-	// We then check for the crucial event
-	if ew.eventObjectType == s.ceRtype && getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace {
-		log.Print("[sieve] we then check for crash condition: ", "s.crash: ", s.crash, "s.seenPrev: ", s.seenPrev)
-		if s.shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent) {
-			log.Println("[sieve] should crash the operator while issuing target side effect")
-			s.crucialEvent = ew
+func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
+	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
+	if request.Error == "NoError" {
+		readObj := strToMap(request.Object)
+		crucialCurEvent := strToMap(s.crucialCur)
+		crucialPrevEvent := strToMap(s.crucialPrev)
+		if request.ResourceType == s.seRtype && isSameObject(readObj, s.seNamespace, s.seName) {
+			if !s.seenPrev {
+				s.shouldCrash(crucialCurEvent, crucialPrevEvent, readObj)
+			}
 		}
 	}
-	*response = sieve.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
+	*response = sieve.Response{Message: request.ResourceType, Ok: true}
 	return nil
 }
 
-func (s *atomVioServer) NotifyAtomVioBeforeSideEffects(request *sieve.NotifyAtomVioBeforeSideEffectsRequest, response *sieve.Response) error {
-	name, namespace := extractNameNamespace(request.Object)
-	log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\t%s\t%s\n", request.SideEffectType, request.ResourceType, request.Object)
-	if s.crashLocation == "before" && s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
-		// we should restart operator here
-		s.restarted = true
-		log.Printf("we restart operator pod here\n")
-		s.restartComponent()
-		return nil
-	}
-	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
+func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtomVioAfterOperatorListRequest, response *sieve.Response) error {
+	log.Printf("[SIEVE-AFTER-READ]\tList\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)
+
+	*response = sieve.Response{Message: request.ResourceType, Ok: true}
 	return nil
 }
 
 func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
-	name, namespace := extractNameNamespace(request.Object)
 	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\n", -1, request.SideEffectType, request.ResourceType, request.Error, request.Object)
-	if s.crashLocation == "after" && s.crash && !s.restarted && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype && name == s.seName && namespace == s.seNamespace {
-		// we should restart operator here
-		s.restarted = true
-		log.Printf("we restart operator pod here\n")
-		s.restartComponent()
-		return nil
+
+	writeObj := strToMap(request.Object)
+	crucialCurEvent := strToMap(s.crucialCur)
+	crucialPrevEvent := strToMap(s.crucialPrev)
+	if request.ResourceType == s.seRtype && isSameObject(writeObj, s.seNamespace, s.seName) && request.SideEffectType == s.seEtype {
+		if s.seenPrev {
+			if s.shouldCrash(crucialCurEvent, crucialPrevEvent, writeObj) {
+				log.Println("ready to crash!")
+				s.restartComponent()
+			}
+		}
 	}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
