@@ -14,7 +14,7 @@ https://github.com/instaclustr/cassandra-operator/issues/404 confirmed and fixed
 
 https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed by us (time traveling)
 
-https://github.com/instaclustr/cassandra-operator/issues/410 pending (observability gaps)
+https://github.com/instaclustr/cassandra-operator/issues/410 pending (by-product)
 
 ## [datastax/cass-operator](https://github.com/datastax/cass-operator)
 https://github.com/k8ssandra/cass-operator/issues/118 confirmed (time traveling)
@@ -51,7 +51,7 @@ https://jira.percona.com/browse/K8SPSMDB-430 confirmed and fixed by us (time tra
 
 https://jira.percona.com/browse/K8SPSMDB-433 confirmed (time traveling)
 
-https://jira.percona.com/browse/K8SPSMDB-434 confirmed and fixed by us (observability gaps)
+https://jira.percona.com/browse/K8SPSMDB-434 confirmed and fixed by us (by-product)
 
 https://jira.percona.com/browse/K8SPSMDB-438 confirmed (time traveling)
 
@@ -74,4 +74,4 @@ https://github.com/yugabyte/yugabyte-operator/issues/36 pending (time traveling)
 https://github.com/yugabyte/yugabyte-operator/issues/39 pending (observability gaps)
 
 ## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
-https://github.com/Orange-OpenSource/nifikop/issues/130 pending (atomicity violation)
+https://github.com/Orange-OpenSource/nifikop/issues/130 confirmed (atomicity violation)

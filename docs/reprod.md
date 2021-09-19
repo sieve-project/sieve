@@ -236,9 +236,6 @@ If reproduced, you will find
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
-### [instaclustr-cassandra-operator-410](https://github.com/instaclustr/cassandra-operator/issues/410)
-to do (we need to improve the oracle)
-
 ### [rabbitmq-cluster-operator-758](https://github.com/rabbitmq/cluster-operator/issues/758)
 ```
 python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -d DOCKER_REPO_NAME
@@ -272,9 +269,6 @@ If reproduced, you will see:
 [status field changed] cassandracluster sonar-cassandra-cluster cassandraRackStatus changed delta:  {insert: {'dc2-rack1': {'cassandraLastAction': {'name': 'SIEVE-IGNORE', 'status': 'Ongoing'}, 'phase': 'Initializing', 'podLastOperation': {}}, 'dc3-rack1': {'cassandraLastAction': {'name': 'SIEVE-IGNORE', 'status': 'Ongoing'}, 'phase': 'Initializing', 'podLastOperation': {}}}}
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
-
-### [K8SPSMDB-434](https://jira.percona.com/browse/K8SPSMDB-434)
-to be updated
 
 ### Broken atomicity
 
