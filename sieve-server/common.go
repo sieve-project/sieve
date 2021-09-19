@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"reflect"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v2"
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 const TIME_TRAVEL string = "time-travel"
@@ -15,13 +22,6 @@ const OBS_GAP string = "observability-gap"
 const ATOM_VIO string = "atomicity-violation"
 const TEST string = "test"
 const LEARN string = "learn"
-
-// type eventWrapper struct {
-// 	eventID         int32
-// 	eventType       string
-// 	eventObject     string
-// 	eventObjectType string
-// }
 
 func getConfig() map[interface{}]interface{} {
 
@@ -270,24 +270,6 @@ func isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
 	}
 }
 
-func getEventResourceName(event map[string]interface{}) string {
-	if event["metadata"] != nil {
-		metadata := event["metadata"].(map[string]interface{})
-		return metadata["name"].(string)
-	} else {
-		return event["name"].(string)
-	}
-}
-
-func getEventResourceNamespace(event map[string]interface{}) string {
-	if event["metadata"] != nil {
-		metadata := event["metadata"].(map[string]interface{})
-		return metadata["namespace"].(string)
-	} else {
-		return event["namespace"].(string)
-	}
-}
-
 func cancelEventList(crucialEvent, currentEvent []interface{}) bool {
 	if len(currentEvent) < len(crucialEvent) {
 		return true
@@ -397,6 +379,104 @@ func cancelEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	return false
 }
 
+func getEventResourceName(event map[string]interface{}) string {
+	if event["metadata"] != nil {
+		metadata := event["metadata"].(map[string]interface{})
+		return metadata["name"].(string)
+	} else {
+		return event["name"].(string)
+	}
+}
+
+func getEventResourceNamespace(event map[string]interface{}) string {
+	if event["metadata"] != nil {
+		metadata := event["metadata"].(map[string]interface{})
+		return metadata["namespace"].(string)
+	} else {
+		return event["namespace"].(string)
+	}
+}
+
 func isSameObject(currentEvent map[string]interface{}, namespace string, name string) bool {
 	return getEventResourceNamespace(currentEvent) == namespace && getEventResourceName(currentEvent) == name
+}
+
+func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI string, redirect bool) {
+	masterUrl := "https://" + leadingAPI + ":6443"
+	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
+	checkError(err)
+	clientset, err := kubernetes.NewForConfig(config)
+	checkError(err)
+
+	deployment, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), deployName, metav1.GetOptions{})
+	checkError(err)
+	log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
+
+	clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), deployName, metav1.DeleteOptions{})
+
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	for {
+		time.Sleep(time.Duration(1) * time.Second)
+		pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
+		checkError(err)
+		if len(pods.Items) != 0 {
+			log.Printf("operator pod not deleted yet\n")
+		} else {
+			log.Printf("operator pod gets deleted\n")
+			break
+		}
+	}
+
+	newDeployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      deployment.ObjectMeta.Name,
+			Namespace: deployment.ObjectMeta.Namespace,
+			Labels:    deployment.ObjectMeta.Labels,
+		},
+		Spec: deployment.Spec,
+	}
+
+	if redirect {
+		containersNum := len(newDeployment.Spec.Template.Spec.Containers)
+		for i := 0; i < containersNum; i++ {
+			envNum := len(newDeployment.Spec.Template.Spec.Containers[i].Env)
+			for j := 0; j < envNum; j++ {
+				if newDeployment.Spec.Template.Spec.Containers[i].Env[j].Name == "KUBERNETES_SERVICE_HOST" {
+					log.Printf("change api to %s\n", followingAPI)
+					newDeployment.Spec.Template.Spec.Containers[i].Env[j].Value = followingAPI
+					break
+				}
+			}
+		}
+	}
+
+	newDeployment, err = clientset.AppsV1().Deployments(namespace).Create(context.TODO(), newDeployment, metav1.CreateOptions{})
+	checkError(err)
+	log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
+
+	for {
+		time.Sleep(time.Duration(1) * time.Second)
+		pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
+		checkError(err)
+		if len(pods.Items) == 0 {
+			log.Printf("operator pod not created yet\n")
+		} else {
+			ready := true
+			for i := 0; i < len(pods.Items); i++ {
+				if pods.Items[i].Status.Phase == "Running" {
+					log.Printf("operator pod %d ready now\n", i)
+				} else {
+					log.Printf("operator pod %d not ready yet\n", i)
+					ready = false
+				}
+			}
+			if ready {
+				break
+			}
+		}
+	}
 }

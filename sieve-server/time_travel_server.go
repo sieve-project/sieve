@@ -1,15 +1,9 @@
 package main
 
 import (
-	"context"
 	"log"
 	"time"
 
-	appsv1 "k8s.io/api/apps/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	sieve "sieve.client"
 )
 
@@ -119,7 +113,7 @@ func (s *timeTravelServer) NotifyTimeTravelAfterSideEffects(request *sieve.Notif
 
 func (s *timeTravelServer) waitAndRestartComponent() {
 	time.Sleep(time.Duration(10) * time.Second)
-	s.restartComponent()
+	restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, s.straggler, true)
 	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }
@@ -155,82 +149,5 @@ func (s *timeTravelServer) shouldRestart() bool {
 		return true
 	} else {
 		return false
-	}
-}
-
-func (s *timeTravelServer) restartComponent() {
-	masterUrl := "https://" + s.frontRunner + ":6443"
-	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
-	checkError(err)
-	clientset, err := kubernetes.NewForConfig(config)
-	checkError(err)
-
-	deployment, err := clientset.AppsV1().Deployments(s.namespace).Get(context.TODO(), s.deployName, metav1.GetOptions{})
-	checkError(err)
-	log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
-
-	clientset.AppsV1().Deployments(s.namespace).Delete(context.TODO(), s.deployName, metav1.DeleteOptions{})
-
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": s.podLabel}}
-	listOptions := metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	}
-
-	for {
-		time.Sleep(time.Duration(1) * time.Second)
-		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
-		checkError(err)
-		if len(pods.Items) != 0 {
-			log.Printf("operator pod not deleted yet\n")
-		} else {
-			log.Printf("operator pod gets deleted\n")
-			break
-		}
-	}
-
-	newDeployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      deployment.ObjectMeta.Name,
-			Namespace: deployment.ObjectMeta.Namespace,
-			Labels:    deployment.ObjectMeta.Labels,
-		},
-		Spec: deployment.Spec,
-	}
-
-	containersNum := len(newDeployment.Spec.Template.Spec.Containers)
-	for i := 0; i < containersNum; i++ {
-		envNum := len(newDeployment.Spec.Template.Spec.Containers[i].Env)
-		for j := 0; j < envNum; j++ {
-			if newDeployment.Spec.Template.Spec.Containers[i].Env[j].Name == "KUBERNETES_SERVICE_HOST" {
-				log.Printf("change api to %s\n", s.straggler)
-				newDeployment.Spec.Template.Spec.Containers[i].Env[j].Value = s.straggler
-				break
-			}
-		}
-	}
-	newDeployment, err = clientset.AppsV1().Deployments(s.namespace).Create(context.TODO(), newDeployment, metav1.CreateOptions{})
-	checkError(err)
-	log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
-
-	for {
-		time.Sleep(time.Duration(1) * time.Second)
-		pods, err := clientset.CoreV1().Pods(s.namespace).List(context.TODO(), listOptions)
-		checkError(err)
-		if len(pods.Items) == 0 {
-			log.Printf("operator pod not created yet\n")
-		} else {
-			ready := true
-			for i := 0; i < len(pods.Items); i++ {
-				if pods.Items[i].Status.Phase == "Running" {
-					log.Printf("operator pod %d ready now\n", i)
-				} else {
-					log.Printf("operator pod %d not ready yet\n", i)
-					ready = false
-				}
-			}
-			if ready {
-				break
-			}
-		}
 	}
 }
