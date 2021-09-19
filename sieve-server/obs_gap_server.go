@@ -101,10 +101,6 @@ func (s *obsGapServer) shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, c
 	return false
 }
 
-func (s *obsGapServer) isSameTarget(currentEvent map[string]interface{}) bool {
-	return getEventResourceName(currentEvent) == s.ceName && getEventResourceNamespace(currentEvent) == s.ceNamespace
-}
-
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
 func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGapBeforeIndexerWriteRequest, response *sieve.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
@@ -113,7 +109,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGa
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
-	if request.ResourceType == s.ceRtype && s.isSameTarget(currentEvent) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
+	if request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
 		s.reconcilingMutex.Lock()
 		log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 		s.mutex.Lock()
@@ -148,7 +144,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 	if pausingReconcile {
 		currentEvent := strToMap(request.Object)
 		crucialEvent := strToMap(s.crucialCur)
-		if request.OperationType == "Deleted" && request.ResourceType == s.ceRtype && s.isSameTarget(currentEvent) {
+		if request.OperationType == "Deleted" && request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) {
 			// Then we can resume all the reconcile
 			log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
@@ -156,7 +152,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 			s.pausingReconcile = false
 			s.cond.Broadcast()
 			s.mutex.Unlock()
-		} else if request.ResourceType == s.ceRtype && s.isSameTarget(currentEvent) {
+		} else if request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) {
 			// We also propose a diff based method for the cancel
 			if cancelEvent(crucialEvent, currentEvent) {
 				log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)

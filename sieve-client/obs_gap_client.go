@@ -12,9 +12,7 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	// if !triggerReconcile(object) {
-	// 	return -1
-	// }
+
 	log.Printf("[sieve][NotifyObsGapBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
@@ -27,8 +25,6 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 		return
 	}
 
-	// if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
-	// }
 	request := &NotifyObsGapBeforeIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),

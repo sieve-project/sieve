@@ -115,7 +115,7 @@ type NotifyLearnAfterSideEffectsRequest struct {
 	Error          string
 }
 
-type NotifyLearnCacheGetRequest struct {
+type NotifyLearnAfterOperatorGetRequest struct {
 	ResourceType string
 	Namespace    string
 	Name         string
@@ -123,7 +123,21 @@ type NotifyLearnCacheGetRequest struct {
 	Error        string
 }
 
-type NotifyLearnCacheListRequest struct {
+type NotifyLearnAfterOperatorListRequest struct {
+	ResourceType string
+	ObjectList   string
+	Error        string
+}
+
+type NotifyAtomVioAfterOperatorGetRequest struct {
+	ResourceType string
+	Namespace    string
+	Name         string
+	Object       string
+	Error        string
+}
+
+type NotifyAtomVioAfterOperatorListRequest struct {
 	ResourceType string
 	ObjectList   string
 	Error        string
