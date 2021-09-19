@@ -21,16 +21,12 @@ func main() {
 
 	case TEST:
 		switch config["mode"] {
-		// time-travel: Replay the partial history to the controller by
-		// injecting delay to apiservers and restarting the controllers.
 		case TIME_TRAVEL:
 			log.Println(TIME_TRAVEL)
 			rpc.Register(NewTimeTravelListener(config))
-		// obs-gap: Observabiliy Gaps
 		case OBS_GAP:
 			log.Println(OBS_GAP)
 			rpc.Register(NewObsGapListener(config))
-		// atomic: atomic side effect during reconcile
 		case ATOM_VIO:
 			log.Println(ATOM_VIO)
 			rpc.Register(NewAtomVioListener(config))

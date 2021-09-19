@@ -76,7 +76,7 @@ type atomVioServer struct {
 }
 
 func (s *atomVioServer) Start() {
-	log.Println("start atomicServer...")
+	log.Println("start atomVioServer...")
 }
 
 func (s *atomVioServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
