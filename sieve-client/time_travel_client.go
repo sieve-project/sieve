@@ -102,15 +102,6 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	}
 }
 
-// func extractNameNamespaceFromObj(object interface{}) (string, string) {
-// 	name := "unknown"
-// 	namespace := "unknown"
-// 	if o, err := meta.Accessor(object); err == nil {
-// 		return o.GetName(), o.GetNamespace()
-// 	}
-// 	return name, namespace
-// }
-
 func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
 		return
