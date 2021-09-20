@@ -335,7 +335,6 @@ def yugabyte_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "test-yugabyte-operator/deploy/operator.yaml", dr, dt
     )
-    os.system("cp %s .." % new_path)
     os.system(
         "kubectl create -f test-yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
     )
