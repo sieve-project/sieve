@@ -379,26 +379,55 @@ func cancelEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	return false
 }
 
-func getEventResourceName(event map[string]interface{}) string {
-	if event["metadata"] != nil {
-		metadata := event["metadata"].(map[string]interface{})
-		return metadata["name"].(string)
-	} else {
-		return event["name"].(string)
-	}
+func extractNameNamespaceFromObjString(objStr string) (string, string) {
+	objMap := strToMap(objStr)
+	return extractNameNamespaceFromObjMap(objMap)
 }
 
-func getEventResourceNamespace(event map[string]interface{}) string {
-	if event["metadata"] != nil {
-		metadata := event["metadata"].(map[string]interface{})
-		return metadata["namespace"].(string)
+func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, string) {
+	name := ""
+	namespace := ""
+	if _, ok := objMap["metadata"]; ok {
+		if metadataMap, ok := objMap["metadata"].(map[string]interface{}); ok {
+			if _, ok := metadataMap["name"]; ok {
+				name = metadataMap["name"].(string)
+			}
+			if _, ok := metadataMap["namespace"]; ok {
+				namespace = metadataMap["namespace"].(string)
+			}
+		}
 	} else {
-		return event["namespace"].(string)
+		if _, ok := objMap["name"]; ok {
+			name = objMap["name"].(string)
+		}
+		if _, ok := objMap["namespace"]; ok {
+			namespace = objMap["namespace"].(string)
+		}
 	}
+	return name, namespace
 }
+
+// func getEventResourceName(event map[string]interface{}) string {
+// 	if event["metadata"] != nil {
+// 		metadata := event["metadata"].(map[string]interface{})
+// 		return metadata["name"].(string)
+// 	} else {
+// 		return event["name"].(string)
+// 	}
+// }
+
+// func getEventResourceNamespace(event map[string]interface{}) string {
+// 	if event["metadata"] != nil {
+// 		metadata := event["metadata"].(map[string]interface{})
+// 		return metadata["namespace"].(string)
+// 	} else {
+// 		return event["namespace"].(string)
+// 	}
+// }
 
 func isSameObject(currentEvent map[string]interface{}, namespace string, name string) bool {
-	return getEventResourceNamespace(currentEvent) == namespace && getEventResourceName(currentEvent) == name
+	extractedName, extractedNamespace := extractNameNamespaceFromObjMap(currentEvent)
+	return extractedNamespace == namespace && extractedName == name
 }
 
 func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI string, redirect bool) {
@@ -479,21 +508,4 @@ func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI s
 			}
 		}
 	}
-}
-
-func extractNameNamespace(Object string) (string, string) {
-	objectMap := strToMap(Object)
-	name := ""
-	namespace := ""
-	if _, ok := objectMap["metadata"]; ok {
-		if metadataMap, ok := objectMap["metadata"].(map[string]interface{}); ok {
-			if _, ok := metadataMap["name"]; ok {
-				name = metadataMap["name"].(string)
-			}
-			if _, ok := metadataMap["namespace"]; ok {
-				namespace = metadataMap["namespace"].(string)
-			}
-		}
-	}
-	return name, namespace
 }

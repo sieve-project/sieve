@@ -22,6 +22,7 @@ func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 		seEtype:     config["se-etype"].(string),
 		crucialCur:  config["se-diff-current"].(string),
 		crucialPrev: config["se-diff-previous"].(string),
+		seEtypePrev: config["se-etype-previous"].(string),
 	}
 	listener := &AtomVioListener{
 		Server: server,
@@ -66,6 +67,7 @@ type atomVioServer struct {
 	seEtype     string
 	crucialCur  string
 	crucialPrev string
+	seEtypePrev string
 }
 
 func (s *atomVioServer) Start() {
@@ -92,12 +94,12 @@ func (s *atomVioServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEv
 
 func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
 	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
-	if request.Error == "NoError" {
+	if request.Error == "NoError" && request.ResourceType == s.seRtype && s.seEtypePrev == "Get" {
 		readObj := strToMap(request.Object)
-		crucialCurEvent := strToMap(s.crucialCur)
-		crucialPrevEvent := strToMap(s.crucialPrev)
-		if request.ResourceType == s.seRtype && isSameObject(readObj, s.seNamespace, s.seName) {
+		if isSameObject(readObj, s.seNamespace, s.seName) {
 			if !s.seenPrev {
+				crucialCurEvent := strToMap(s.crucialCur)
+				crucialPrevEvent := strToMap(s.crucialPrev)
 				s.shouldCrash(crucialCurEvent, crucialPrevEvent, readObj)
 			}
 		}
@@ -108,22 +110,35 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomV
 
 func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtomVioAfterOperatorListRequest, response *sieve.Response) error {
 	log.Printf("[SIEVE-AFTER-READ]\tList\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)
-	// TODO(xudong): implement List handler
+	if request.Error == "NoError" && request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List" {
+		readObjs := strToMap(request.ObjectList)["items"].([]interface{})
+		for _, readObj := range readObjs {
+			if isSameObject(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
+				if !s.seenPrev {
+					crucialCurEvent := strToMap(s.crucialCur)
+					crucialPrevEvent := strToMap(s.crucialPrev)
+					s.shouldCrash(crucialCurEvent, crucialPrevEvent, readObj.(map[string]interface{}))
+				}
+				break
+			}
+		}
+	}
 	*response = sieve.Response{Message: request.ResourceType, Ok: true}
 	return nil
 }
 
 func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
 	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
-
-	writeObj := strToMap(request.Object)
-	crucialCurEvent := strToMap(s.crucialCur)
-	crucialPrevEvent := strToMap(s.crucialPrev)
-	if request.ResourceType == s.seRtype && isSameObject(writeObj, s.seNamespace, s.seName) && request.SideEffectType == s.seEtype {
-		if s.seenPrev {
-			if s.shouldCrash(crucialCurEvent, crucialPrevEvent, writeObj) {
-				log.Println("ready to crash!")
-				restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
+	if request.Error == "NoError" && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype {
+		writeObj := strToMap(request.Object)
+		if isSameObject(writeObj, s.seNamespace, s.seName) {
+			if s.seenPrev {
+				crucialCurEvent := strToMap(s.crucialCur)
+				crucialPrevEvent := strToMap(s.crucialPrev)
+				if s.shouldCrash(crucialCurEvent, crucialPrevEvent, writeObj) {
+					log.Println("ready to crash!")
+					restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
+				}
 			}
 		}
 	}
