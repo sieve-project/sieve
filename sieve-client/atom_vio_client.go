@@ -14,11 +14,11 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -35,7 +35,7 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 	var response Response
 	err = client.Call("AtomVioListener.NotifyAtomVioAfterOperatorGet", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyAtomVioAfterOperatorGet")
@@ -48,11 +48,11 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -67,7 +67,7 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 	var response Response
 	err = client.Call("AtomVioListener.NotifyAtomVioAfterOperatorList", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyAtomVioAfterOperatorList")
@@ -80,11 +80,11 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -101,7 +101,7 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 	var response Response
 	err = client.Call("AtomVioListener.NotifyAtomVioAfterSideEffects", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyAtomVioAfterSideEffects")

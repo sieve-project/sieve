@@ -17,11 +17,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-const TIME_TRAVEL string = "time-travel"
-const OBS_GAP string = "observability-gap"
-const ATOM_VIO string = "atomicity-violation"
-const TEST string = "test"
-const LEARN string = "learn"
+func checkError(err error) {
+	if err != nil {
+		log.Fatalf("Fail due to error: %v\n", err)
+	}
+}
 
 func getConfig() map[interface{}]interface{} {
 
@@ -479,4 +479,21 @@ func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI s
 			}
 		}
 	}
+}
+
+func extractNameNamespace(Object string) (string, string) {
+	objectMap := strToMap(Object)
+	name := ""
+	namespace := ""
+	if _, ok := objectMap["metadata"]; ok {
+		if metadataMap, ok := objectMap["metadata"].(map[string]interface{}); ok {
+			if _, ok := metadataMap["name"]; ok {
+				name = metadataMap["name"].(string)
+			}
+			if _, ok := metadataMap["namespace"]; ok {
+				namespace = metadataMap["namespace"].(string)
+			}
+		}
+	}
+	return name, namespace
 }

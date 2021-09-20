@@ -47,16 +47,16 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		log.Printf("[sieve][rt-ns-name][curcial-event] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
-			printError(err, jsonError)
+			printError(err, SIEVE_JSON_ERR)
 		}
 		client, err := newClient()
 		if err != nil {
-			printError(err, connectionError)
+			printError(err, SIEVE_CONN_ERR)
 			return
 		}
 		hostname, err := os.Hostname()
 		if err != nil {
-			printError(err, hostError)
+			printError(err, SIEVE_HOST_ERR)
 			return
 		}
 		request := &NotifyTimeTravelCrucialEventRequest{
@@ -67,7 +67,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		var response Response
 		err = client.Call("TimeTravelListener.NotifyTimeTravelCrucialEvent", request, &response)
 		if err != nil {
-			printError(err, replyError)
+			printError(err, SIEVE_REPLY_ERR)
 			return
 		}
 		checkResponse(response, "NotifyTimeTravelCrucialEvent")
@@ -76,12 +76,12 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		log.Printf("[sieve][rt-ns-name][side-effect] %s %s %s", resourceType, namespace, name)
 		client, err := newClient()
 		if err != nil {
-			printError(err, connectionError)
+			printError(err, SIEVE_CONN_ERR)
 			return
 		}
 		hostname, err := os.Hostname()
 		if err != nil {
-			printError(err, hostError)
+			printError(err, SIEVE_HOST_ERR)
 			return
 		}
 		request := &NotifyTimeTravelRestartPointRequest{
@@ -94,7 +94,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		var response Response
 		err = client.Call("TimeTravelListener.NotifyTimeTravelRestartPoint", request, &response)
 		if err != nil {
-			printError(err, replyError)
+			printError(err, SIEVE_REPLY_ERR)
 			return
 		}
 		checkResponse(response, "NotifyTimeTravelRestartPoint")
@@ -118,11 +118,11 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 	// log.Printf("[sieve][NotifyTimeTravelAfterSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -139,7 +139,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 	var response Response
 	err = client.Call("TimeTravelListener.NotifyTimeTravelAfterSideEffects", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyTimeTravelAfterSideEffects")

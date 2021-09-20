@@ -16,12 +16,12 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 	log.Printf("[sieve][NotifyObsGapBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 		return
 	}
 
@@ -33,7 +33,7 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapBeforeIndexerWrite", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyObsGapBeforeIndexerWrite")
@@ -47,12 +47,12 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 	log.Printf("[sieve][NotifyObsGapAfterIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 		return
 	}
 
@@ -64,7 +64,7 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapAfterIndexerWrite", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyObsGapAfterIndexerWrite")
@@ -78,7 +78,7 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 	log.Printf("[sieve][NotifyObsGapBeforeReconcile]\n")
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	request := &NotifyObsGapBeforeReconcileRequest{
@@ -87,7 +87,7 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapBeforeReconcile", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyObsGapBeforeReconcile")
@@ -101,7 +101,7 @@ func NotifyObsGapAfterReconcile(controllerName string) {
 	log.Printf("[sieve][NotifyObsGapAfterReconcile]\n")
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	request := &NotifyObsGapAfterReconcileRequest{
@@ -110,7 +110,7 @@ func NotifyObsGapAfterReconcile(controllerName string) {
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapAfterReconcile", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyObsGapAfterReconcile")
@@ -124,11 +124,11 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 	// log.Printf("[sieve][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -145,7 +145,7 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapAfterSideEffects", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyObsGapAfterSideEffects")

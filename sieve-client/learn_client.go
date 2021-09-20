@@ -50,12 +50,12 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 	// log.Printf("[sieve][NotifyLearnBeforeIndexerWrite] operationType: %s\n", operationType)
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return -1
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 		return -1
 	}
 	request := &NotifyLearnBeforeIndexerWriteRequest{
@@ -66,7 +66,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeIndexerWrite", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return -1
 	}
 	checkResponse(response, "NotifyLearnBeforeIndexerWrite")
@@ -84,7 +84,7 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 	// log.Printf("[sieve][NotifyLearnAfterIndexerWrite]\n")
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	request := &NotifyLearnAfterIndexerWriteRequest{
@@ -93,7 +93,7 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterIndexerWrite", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterIndexerWrite")
@@ -107,7 +107,7 @@ func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}
 	// log.Printf("[sieve][NotifyLearnBeforeReconcile]\n")
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	request := &NotifyLearnBeforeReconcileRequest{
@@ -117,7 +117,7 @@ func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeReconcile", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyLearnBeforeReconcile")
@@ -131,7 +131,7 @@ func NotifyLearnAfterReconcile(controllerName string, controllerPtr interface{})
 	// log.Printf("[sieve][NotifyLearnAfterReconcile]\n")
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	request := &NotifyLearnAfterReconcileRequest{
@@ -141,7 +141,7 @@ func NotifyLearnAfterReconcile(controllerName string, controllerPtr interface{})
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterReconcile", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterReconcile")
@@ -155,7 +155,7 @@ func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int
 	// log.Printf("[sieve][NotifyLearnBeforeSideEffects] %v\n", reflect.TypeOf(object))
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return -1
 	}
 	request := &NotifyLearnBeforeSideEffectsRequest{
@@ -164,7 +164,7 @@ func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeSideEffects", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return -1
 	}
 	checkResponse(response, "NotifyLearnBeforeSideEffects")
@@ -179,11 +179,11 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 	// log.Printf("[sieve][NotifyLearnAfterSideEffects] %v\n", reflect.TypeOf(object))
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -200,7 +200,7 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterSideEffects", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterSideEffects")
@@ -213,12 +213,12 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	// log.Printf("[SIEVE] GET %s\n", string(jsonObject))
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -235,7 +235,7 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterOperatorGet", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterOperatorGet")
@@ -248,12 +248,12 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, jsonError)
+		printError(err, SIEVE_JSON_ERR)
 	}
 	// log.Printf("[SIEVE] LIST %s\n", string(jsonObject))
 	client, err := newClient()
 	if err != nil {
-		printError(err, connectionError)
+		printError(err, SIEVE_CONN_ERR)
 		return
 	}
 	errorString := "NoError"
@@ -268,7 +268,7 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterOperatorList", request, &response)
 	if err != nil {
-		printError(err, replyError)
+		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterOperatorList")

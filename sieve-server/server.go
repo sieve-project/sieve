@@ -4,6 +4,8 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+
+	sieve "sieve.client"
 )
 
 // Sieve server runs on one of the kind-control-plane node (not in the pod).
@@ -15,20 +17,20 @@ func main() {
 	config := getConfig()
 
 	switch config["stage"] {
-	case LEARN:
-		log.Println(LEARN)
+	case sieve.LEARN:
+		log.Println(sieve.LEARN)
 		rpc.Register(NewLearnListener(config))
 
-	case TEST:
+	case sieve.TEST:
 		switch config["mode"] {
-		case TIME_TRAVEL:
-			log.Println(TIME_TRAVEL)
+		case sieve.TIME_TRAVEL:
+			log.Println(sieve.TIME_TRAVEL)
 			rpc.Register(NewTimeTravelListener(config))
-		case OBS_GAP:
-			log.Println(OBS_GAP)
+		case sieve.OBS_GAP:
+			log.Println(sieve.OBS_GAP)
 			rpc.Register(NewObsGapListener(config))
-		case ATOM_VIO:
-			log.Println(ATOM_VIO)
+		case sieve.ATOM_VIO:
+			log.Println(sieve.ATOM_VIO)
 			rpc.Register(NewAtomVioListener(config))
 
 		default:
@@ -45,27 +47,4 @@ func main() {
 	inbound, err := net.ListenTCP("tcp", addr)
 	checkError(err)
 	rpc.Accept(inbound)
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatalf("Fail due to error: %v\n", err)
-	}
-}
-
-func extractNameNamespace(Object string) (string, string) {
-	objectMap := strToMap(Object)
-	name := ""
-	namespace := ""
-	if _, ok := objectMap["metadata"]; ok {
-		if metadataMap, ok := objectMap["metadata"].(map[string]interface{}); ok {
-			if _, ok := metadataMap["name"]; ok {
-				name = metadataMap["name"].(string)
-			}
-			if _, ok := metadataMap["namespace"]; ok {
-				namespace = metadataMap["namespace"].(string)
-			}
-		}
-	}
-	return name, namespace
 }

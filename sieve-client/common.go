@@ -11,20 +11,22 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var defaultHostPort string = "kind-control-plane:12345"
-var connectionError string = "[sieve] connectionError"
-var replyError string = "[sieve] replyError"
-var hostError string = "[sieve] hostError"
-var jsonError string = "[sieve] jsonError"
-var config map[string]interface{} = nil
-
-var taintMap sync.Map = sync.Map{}
-
 const TIME_TRAVEL string = "time-travel"
 const OBS_GAP string = "observability-gap"
 const ATOM_VIO string = "atomicity-violation"
 const LEARN string = "learn"
 const TEST string = "test"
+
+// TODO(xudong): make SIEVE_SERVER_ADDR configurable
+const SIEVE_SERVER_ADDR string = "kind-control-plane:12345"
+const SIEVE_CONN_ERR string = "[SIEVE CONN ERR]"
+const SIEVE_REPLY_ERR string = "[SIEVE REPLY ERR]"
+const SIEVE_HOST_ERR string = "[SIEVE HOST ERR]"
+const SIEVE_JSON_ERR string = "[SIEVE JSON ERR]"
+
+var config map[string]interface{} = nil
+
+var taintMap sync.Map = sync.Map{}
 
 func checkMode(mode string) bool {
 	if config == nil {
@@ -88,13 +90,12 @@ func getCRDs() []string {
 
 func newClient() (*rpc.Client, error) {
 	config, _ := getConfig()
-	hostPort := defaultHostPort
+	hostPort := SIEVE_SERVER_ADDR
 	if config != nil {
 		if val, ok := config["server-endpoint"]; ok {
 			hostPort = val.(string)
 		}
 	}
-	log.Println(hostPort)
 	client, err := rpc.Dial("tcp", hostPort)
 	if err != nil {
 		log.Printf("[sieve] error in setting up connection to %s due to %v\n", hostPort, err)
