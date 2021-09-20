@@ -18,7 +18,7 @@ reprod_map = {
         "time-travel-1": ["recreate", "cassandra3_time_travel_1.yaml"],
         "time-travel-2": ["reducepdb", "cassandra3_time_travel_2.yaml"],
     },
-    "nifi-operator": {
+    "nifikop-operator": {
         "atom-vio-1": ["change-config", "nifi_atom_vio_1.yaml"],
     },
     "rabbitmq-operator": {
