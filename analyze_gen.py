@@ -178,6 +178,16 @@ def obs_gap_analysis(
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
+def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
+    print("Running optional pass:  no-error-write-filtering ...")
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        if vertex.content.error in ALLOWED_ERROR_TYPE:
+            candidate_vertices.append(vertex)
+    print("%d -> %d vertices ..." % (len(causality_vertices), len(candidate_vertices)))
+    return candidate_vertices
+
+
 def atom_vio_analysis(
     causality_graph: CausalityGraph,
     path: str,
@@ -185,6 +195,7 @@ def atom_vio_analysis(
 ):
     operator_write_vertices = causality_graph.operator_write_vertices
     candidate_vertices = operator_write_vertices
+    candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
     yaml_map = {}
     yaml_map["project"] = project
     yaml_map["stage"] = "test"
