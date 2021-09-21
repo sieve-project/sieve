@@ -310,10 +310,13 @@ jobs:
           python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
           python3 build.py -p rabbitmq-operator -m time-travel  -d $IMAGE_NAMESPACE
           python3 build.py -p rabbitmq-operator -m obs-gap  -d $IMAGE_NAMESPACE
+          python3 build.py -p rabbitmq-operator -m atom-vio  -d $IMAGE_NAMESPACE
       - name: Sieve Learn
         run: |
           python3 sieve.py -p rabbitmq-operator -t recreate -s learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc-atomic -s learn -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-rabbitmq-data
@@ -376,3 +379,101 @@ jobs:
         with:
           name: sieve-zookeeper-data
           path: data/zookeeper-operator
+  yugabyte-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install -r requirements.txt
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Build Image
+        run: |
+          python3 build.py -p yugabyte-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p yugabyte-operator -m time-travel  -d $IMAGE_NAMESPACE
+          python3 build.py -p yugabyte-operator -m obs-gap  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p yugabyte-operator -t disable-enable-tls -s learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p yugabyte-operator -t disable-enable-tuiport -s learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s learn -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-yugabyte-artifact
+          path: log
+      - name: Sieve Test
+        run: |
+          python3 reprod.py -p yugabyte-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p yugabyte-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p yugabyte-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-yugabyte-data
+          path: data/yugabyte-operator
+  nifikop-operator:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/go
+      KUBECONFIG: /home/runner/.kube/config
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global user.name "sieve"
+          git config --global user.email "sieve@sieve.com"
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+      - name: Setup GitHub Package Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Install Python Packages
+        run: |
+          pip install -r requirements.txt
+      - name: Install Kind
+        run: |
+          go get sigs.k8s.io/kind
+          kind
+      - name: Build Image
+        run: |
+          python3 build.py -p nifikop-operator -m learn -d $IMAGE_NAMESPACE
+          python3 build.py -p nifikop-operator -m atom-vio  -d $IMAGE_NAMESPACE
+      - name: Sieve Learn
+        run: |
+          python3 sieve.py -p nifikop-operator -t change-config -s learn -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-nifikop-artifact
+          path: log
+      - name: Sieve Test
+        run: |
+          python3 reprod.py -p nifikop-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sieve-nifikop-data
+          path: data/nifikop-operator
+
