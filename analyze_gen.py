@@ -52,12 +52,37 @@ def delete_then_recreate_filtering_pass(
     return candidate_edges
 
 
-def time_travel_analysis(
-    causality_graph: CausalityGraph,
-    path: str,
-    project: str,
-    timing="after",
-):
+def decide_time_travel_timing(vertex: CausalityVertex):
+    assert vertex.is_operator_write()
+    assert vertex.content.etype == OperatorWriteTypes.DELETE
+    reconcile_cnt = 0
+    cur_vertex = vertex
+    while True:
+        if len(cur_vertex.out_intra_reconciler_edges) == 1:
+            next_vertex = cur_vertex.out_intra_reconciler_edges[0].sink
+            if next_vertex.is_reconcile_end():
+                reconcile_cnt += 1
+                if reconcile_cnt == 2:
+                    return "after"
+            elif next_vertex.is_operator_write():
+                if (
+                    next_vertex.content.etype == OperatorWriteTypes.CREATE
+                    and next_vertex.content.key == vertex.content.key
+                ):
+                    if reconcile_cnt == 0:
+                        print("decide timing: before")
+                        return "before"
+                    else:
+                        print("decide timing: both")
+                        return "both"
+            cur_vertex = next_vertex
+        elif len(vertex.out_intra_reconciler_edges) == 0:
+            return "after"
+        else:
+            assert False
+
+
+def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: str):
     causality_edges = causality_graph.operator_hear_operator_write_edges
     if DELETE_ONLY_FILTER_FLAG:
         candidate_edges = delete_only_filtering_pass(causality_edges)
@@ -73,8 +98,8 @@ def time_travel_analysis(
     yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
-    yaml_map["timing"] = timing
-    suffix = "-b" if timing == "before" else ""
+    # yaml_map["timing"] = timing
+    # suffix = "-b" if timing == "before" else ""
     i = 0
     for edge in candidate_edges:
         cur_operator_hear = edge.source.content
@@ -88,6 +113,8 @@ def time_travel_analysis(
             continue
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
+
+        timing = decide_time_travel_timing(edge.sink)
 
         yaml_map["ce-name"] = cur_operator_hear.name
         yaml_map["ce-namespace"] = cur_operator_hear.namespace
@@ -104,15 +131,38 @@ def time_travel_analysis(
         assert operator_write.etype == OperatorWriteTypes.DELETE
         yaml_map["se-etype"] = "ADDED"
 
-        i += 1
-        yaml.dump(
-            yaml_map,
-            open(
-                os.path.join(path, "time-travel-config-%s%s.yaml" % (str(i), suffix)),
-                "w",
-            ),
-            sort_keys=False,
-        )
+        if timing == "after" or timing == "before":
+            yaml_map["timing"] = timing
+            i += 1
+            yaml.dump(
+                yaml_map,
+                open(
+                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
+                    "w",
+                ),
+                sort_keys=False,
+            )
+        else:
+            yaml_map["timing"] = "after"
+            i += 1
+            yaml.dump(
+                yaml_map,
+                open(
+                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
+                    "w",
+                ),
+                sort_keys=False,
+            )
+            yaml_map["timing"] = "before"
+            i += 1
+            yaml.dump(
+                yaml_map,
+                open(
+                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
+                    "w",
+                ),
+                sort_keys=False,
+            )
     cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
