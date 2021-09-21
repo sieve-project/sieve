@@ -326,14 +326,12 @@ def run_workload(
 
 
 def check_result(
-    project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
+    project, mode, stage, test_config, log_dir, data_dir, oracle_config
 ) -> Tuple[int, str]:
     if stage == sieve_stages.LEARN:
         analyze.analyze_trace(
             project,
             log_dir,
-            data_dir,
-            two_sided=two_sided,
             canonicalize_resource=(mode == sieve_modes.LEARN_TWICE),
         )
         cmd_early_exit("mkdir -p %s" % data_dir)
@@ -429,7 +427,6 @@ def run_test(
     pvc_resize,
     oracle_config,
     data_dir,
-    two_sided,
     phase,
 ) -> Tuple[int, str]:
     if phase == "all" or phase == "setup_only":
@@ -465,7 +462,6 @@ def run_test(
             test_config,
             log_dir,
             data_dir,
-            two_sided,
             oracle_config,
         )
         return alarm, bug_report
@@ -527,7 +523,6 @@ def run(
             suite.pvc_resize,
             suite.oracle_config,
             data_dir,
-            suite.two_sided,
             phase,
         )
     else:
@@ -547,7 +542,6 @@ def run(
                 suite.pvc_resize,
                 suite.oracle_config,
                 data_dir,
-                suite.two_sided,
                 phase,
             )
         else:
@@ -571,7 +565,6 @@ def run(
                 suite.pvc_resize,
                 suite.oracle_config,
                 data_dir,
-                suite.two_sided,
                 phase,
             )
 

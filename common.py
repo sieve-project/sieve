@@ -92,14 +92,12 @@ class Suite:
     def __init__(
         self,
         workload,
-        two_sided=False,
         num_apiservers=1,
         num_workers=2,
         pvc_resize=False,
         oracle_config={},
     ):
         self.workload = workload
-        self.two_sided = two_sided
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.pvc_resize = pvc_resize

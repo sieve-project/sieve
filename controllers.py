@@ -77,7 +77,6 @@ test_suites = {
         ),
         "resize-pvc": Suite(
             workloads.workloads["rabbitmq-operator"]["resize-pvc"],
-            two_sided=True,
         ),
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
@@ -112,7 +111,6 @@ test_suites = {
         ),
         "reducepdb": Suite(
             workloads.workloads["casskop-operator"]["reducepdb"],
-            two_sided=True,
         ),
         "scaledown-to-zero": Suite(
             workloads.workloads["casskop-operator"]["scaledown-to-zero"],

@@ -98,8 +98,6 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
     yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
-    # yaml_map["timing"] = timing
-    # suffix = "-b" if timing == "before" else ""
     i = 0
     for edge in candidate_edges:
         cur_operator_hear = edge.source.content
