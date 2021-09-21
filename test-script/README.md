@@ -12,11 +12,26 @@
     `bash runtest.sh`  
     If you want to pull from your own docker repo, modify the first step in the runtest.sh to add `-d ${DOCKERREPO}` to the python command.  
 
+### Behavior  
 This shell script will
 1. generate all the docker pull commands and test commands needed into files.
-2. Run docker pull commands on all nodes
-3. scp configs files to worker nodes
-4. Run all tests in parallel on all the nodes
+2. Run the same docker pull commands on all nodes
+3. scp configs files to all worker nodes
+4. Run all tests in distributed manner on the nodes  
+    e.g. if we have three jobs and 2 vms
+    ```
+    1. python3 sieve.py -p yugabyte-operator -c config-1.yaml
+    2. python3 sieve.py -p yugabyte-operator -c config-2.yaml
+    3. python3 sieve.py -p yugabyte-operator -c config-3.yaml
+    ```
+    GNU parallel will distribute the jobs dynamically as
+    ```
+    vm1:
+    python3 sieve.py -p yugabyte-operator -c config-1.yaml
+    python3 sieve.py -p yugabyte-operator -c config-3.yaml
+    vm2:
+    python3 sieve.py -p yugabyte-operator -c config-2.yaml
+    ```
 
 ### Note
 It assumes the sieve project home directory is under `/home/ubuntu`

@@ -5,9 +5,10 @@ set -x
 python3 gen_commands.py
 
 # 2. Run docker pull commands on all nodes
+#
+# --onall - run the same commands on all worker nodes
 parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
          --sshloginfile hosts \
-         -j 1 \
          --onall \
          --env PATH \
          < pull-commands.txt
