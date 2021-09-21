@@ -60,9 +60,9 @@ jobs:
           path: data/casskop-operator
       - name: Sieve Test
         run: |
-          python3 sieve.py -p casskop-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p casskop-operator -t reducepdb -d $IMAGE_NAMESPACE
-          python3 sieve.py -p casskop-operator -t scaledown-to-zero -d $IMAGE_NAMESPACE
+          python3 reprod.py -p casskop-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p casskop-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p casskop-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-casskop-artifact
@@ -113,7 +113,7 @@ jobs:
             data/cass-operator
       - name: Sieve Test
         run: |
-          python3 sieve.py -p cass-operator -t recreate -d $IMAGE_NAMESPACE
+          python3 reprod.py -p cass-operator -b time-travel-1 -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-cass-artifact
@@ -168,9 +168,9 @@ jobs:
             data/xtradb-operator
       - name: Sieve Test
         run: |
-          python3 sieve.py -p xtradb-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -d $IMAGE_NAMESPACE
-          python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -d $IMAGE_NAMESPACE
+          python3 reprod.py -p xtradb-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p xtradb-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p xtradb-operator -b time-travel-3 -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-xtradb-artifact
@@ -212,14 +212,16 @@ jobs:
         run: |
           python3 sieve.py -p mongodb-operator -t recreate -s learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p mongodb-operator -t disable-enable-shard -s learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -s learn -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-mongodb-data
           path: data/mongodb-operator
       - name: Sieve Test
         run: |
-          python3 sieve.py -p mongodb-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p mongodb-operator -t disable-enable-shard -d $IMAGE_NAMESPACE
+          python3 reprod.py -p mongodb-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p mongodb-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p mongodb-operator -b time-travel-3 -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-mongodb-artifact
@@ -268,9 +270,9 @@ jobs:
           path: data/cassandra-operator
       - name: Sieve Test
         run: |
-          python3 sieve.py -p cassandra-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p cassandra-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
-          python3 sieve.py -p cassandra-operator -t scaledown -d $IMAGE_NAMESPACE
+          python3 reprod.py -p cassandra-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p cassandra-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p cassandra-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-cassandra-artifact
@@ -318,8 +320,10 @@ jobs:
           path: data/rabbitmq-operator
       - name: Sieve Test
         run: |
-          python3 sieve.py -p rabbitmq-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -d $IMAGE_NAMESPACE
+          python3 reprod.py -p rabbitmq-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p rabbitmq-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p rabbitmq-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p rabbitmq-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-rabbitmq-artifact
@@ -366,8 +370,8 @@ jobs:
           path: log
       - name: Sieve Test
         run: |
-          python3 sieve.py -p zookeeper-operator -t recreate -d $IMAGE_NAMESPACE
-          python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -d $IMAGE_NAMESPACE
+          python3 reprod.py -p zookeeper-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+          python3 reprod.py -p zookeeper-operator -b time-travel-2 -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-zookeeper-data
