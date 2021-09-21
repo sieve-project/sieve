@@ -10,13 +10,13 @@ from common import *
 
 
 def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
-    print("Running optional pass: delete-only-filtering ...")
+    print("Running optional pass: delete-only-filtering...")
     candidate_edges = []
     for edge in causality_edges:
         if edge.source.is_operator_hear() and edge.sink.is_operator_write():
             if edge.sink.content.etype == OperatorWriteTypes.DELETE:
                 candidate_edges.append(edge)
-    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
+    print("%d -> %d edges" % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
 
 
@@ -24,7 +24,7 @@ def delete_then_recreate_filtering_pass(
     causality_edges: List[CausalityEdge],
     operator_hear_key_to_operator_hear_vertices: Dict[str, List[CausalityVertex]],
 ):
-    print("Running optional pass: delete-then-recreate-filtering ...")
+    print("Running optional pass: delete-then-recreate-filtering...")
     # this should only be applied to time travel mode
     candidate_edges = []
     for edge in causality_edges:
@@ -48,7 +48,7 @@ def delete_then_recreate_filtering_pass(
             keep_this_pair = True
         if keep_this_pair:
             candidate_edges.append(edge)
-    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
+    print("%d -> %d edges" % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
 
 
@@ -167,7 +167,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
 def cancellable_filtering_pass(
     causality_vertices: List[CausalityVertex], causality_graph: CausalityGraph
 ):
-    print("Running optional pass: cancellable-filtering ...")
+    print("Running optional pass: cancellable-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
         if len(vertex.content.cancelled_by) > 0:
@@ -176,7 +176,7 @@ def cancellable_filtering_pass(
                 if not causality_vertices_connected(vertex, sink):
                     candidate_vertices.append(vertex)
                     break
-    print("%d -> %d vertices ..." % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -227,12 +227,12 @@ def obs_gap_analysis(
 
 
 def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
-    print("Running optional pass:  no-error-write-filtering ...")
+    print("Running optional pass:  no-error-write-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
         if vertex.content.error in ALLOWED_ERROR_TYPE:
             candidate_vertices.append(vertex)
-    print("%d -> %d vertices ..." % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 

@@ -295,7 +295,7 @@ def base_pass(
     operator_hear_vertices: List[CausalityVertex],
     operator_write_vertices: List[CausalityVertex],
 ):
-    print("Running base pass ...")
+    print("Running base pass...")
     vertex_pairs = []
     for operator_write_vertex in operator_write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
@@ -308,7 +308,7 @@ def base_pass(
 
 
 def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
-    print("Running optional pass: hear-read-overlap-filtering ...")
+    print("Running optional pass: hear-read-overlap-filtering...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
         operator_hear_vertex = pair[0]
@@ -322,7 +322,7 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
 
 
 def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
-    print("Running optional pass: error-message-filtering ...")
+    print("Running optional pass: error-message-filtering...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
         operator_write_vertex = pair[1]
@@ -416,7 +416,7 @@ def analyze_trace(
     )
 
     log_path = os.path.join(log_dir, "sieve-server.log")
-    print("Sanity checking the sieve log %s ..." % log_path)
+    print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
     causality_graph = build_causality_graph(log_path)
 
@@ -454,7 +454,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
     project = options.project
     test = options.test
-    print("Analyzing controller trace for %s's test workload %s ..." % (project, test))
+    print("Analyzing controller trace for %s's test workload %s..." % (project, test))
     dir = os.path.join("log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE)
     analyze_trace(
         project,

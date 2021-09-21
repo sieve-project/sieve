@@ -149,6 +149,7 @@ def setup_cluster(
     setup_kind_cluster(
         generate_kind_config(num_apiservers, num_workers), docker_repo, docker_tag
     )
+    print("\n\n")
 
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
     # cmd_early_exit("kubectl config set-context --current --namespace=%s" %
@@ -169,6 +170,7 @@ def setup_cluster(
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Then we wait apiservers to be ready
+    print("Waiting for apiservers to be ready...")
     apiserver_list = []
     for i in range(num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + (
@@ -194,7 +196,7 @@ def setup_cluster(
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (docker_repo, project, docker_tag)
     kind_load_cmd = "kind load docker-image %s" % (image)
-    print("We are loading image %s to kind nodes..." % (image))
+    print("Loading image %s to kind nodes..." % (image))
     if cmd_early_exit(kind_load_cmd, early_exit=False) != 0:
         print("Cannot load image %s locally, try to pull from remote" % (image))
         cmd_early_exit("docker pull %s" % (image))
@@ -202,6 +204,7 @@ def setup_cluster(
 
     if pvc_resize:
         # Install csi provisioner
+        print("Installing csi provisioner...")
         cmd_early_exit("cd csi-driver && ./install.sh")
 
 
@@ -252,11 +255,11 @@ def run_workload(
     num_apiservers,
 ) -> Tuple[int, str]:
     if mode != sieve_modes.VANILLA:
-        cprint("Setting up Sieve server ...", bcolors.OKGREEN)
+        cprint("Setting up Sieve server...", bcolors.OKGREEN)
         start_sieve_server()
         ok("Sieve server set up")
 
-    cprint("Deploying operator ...", bcolors.OKGREEN)
+    cprint("Deploying operator...", bcolors.OKGREEN)
     start_operator(project, docker_repo, docker_tag, num_apiservers)
     ok("Operator deployed")
 
@@ -280,7 +283,7 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
-    cprint("Running test workload ...", bcolors.OKGREEN)
+    cprint("Running test workload...", bcolors.OKGREEN)
     alarm, bug_report = test_workload.run(mode)
     if alarm == 0:
         ok("Test workload finished")

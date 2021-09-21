@@ -44,7 +44,7 @@ def generate_digest(log_dir, canonicalize_resource=False):
 
 
 def generate_operator_write(log_dir):
-    print("Checking safety assertions ...")
+    print("Checking safety assertions...")
     operator_write_map = {}
     log_path = os.path.join(log_dir, "sieve-server.log")
     for line in open(log_path).readlines():
@@ -72,7 +72,7 @@ def generate_operator_write(log_dir):
 
 
 def generate_status():
-    print("Checking liveness assertions ...")
+    print("Checking liveness assertions...")
     status = {}
     status_empty_entry = {"size": 0, "terminating": 0}
     kubernetes.config.load_kube_config()
@@ -152,7 +152,7 @@ def learn_twice_trim(base_resources, twice_resources):
 
 
 def generate_resources(log_dir="", canonicalize_resource=False):
-    # print("Generating cluster resources digest ...")
+    # print("Generating cluster resources digest...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
