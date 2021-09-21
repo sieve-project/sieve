@@ -26,8 +26,8 @@ SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
 
-HEAR_WRITE_EDGE = "HEAR-WRITE"
-WRITE_HEAR_EDGE = "WRITE-HEAR"
+INTER_RECONCILER_EDGE = "INTER-RECONCILER"
+INTRA_RECONCILER_EDGE = "INTRA-RECONCILER"
 
 
 class OperatorHearTypes:
@@ -401,10 +401,11 @@ class OperatorWriteIDOnly:
         return self.__id
 
 
-class Reconcile:
+class ReconcileBegin:
     def __init__(self, controller_name: str, round_id: str):
         self.__controller_name = controller_name
         self.__round_id = round_id
+        self.__end_timestamp = -1
 
     @property
     def controller_name(self):
@@ -413,6 +414,37 @@ class Reconcile:
     @property
     def round_id(self):
         return self.__round_id
+
+    @property
+    def end_timestamp(self):
+        return self.__end_timestamp
+
+    @end_timestamp.setter
+    def end_timestamp(self, end_timestamp: int):
+        self.__end_timestamp = end_timestamp
+
+
+class ReconcileEnd:
+    def __init__(self, controller_name: str, round_id: str):
+        self.__controller_name = controller_name
+        self.__round_id = round_id
+        self.__end_timestamp = -1
+
+    @property
+    def controller_name(self):
+        return self.__controller_name
+
+    @property
+    def round_id(self):
+        return self.__round_id
+
+    @property
+    def end_timestamp(self):
+        return self.__end_timestamp
+
+    @end_timestamp.setter
+    def end_timestamp(self, end_timestamp: int):
+        self.__end_timestamp = end_timestamp
 
 
 def parse_operator_hear(line: str) -> OperatorHear:
@@ -460,21 +492,28 @@ def parse_operator_write_id_only(line: str) -> OperatorWriteIDOnly:
         return OperatorWriteIDOnly(tokens[1])
 
 
-def parse_reconcile(line: str) -> Reconcile:
+def parse_reconcile(line: str) -> Union[ReconcileBegin, ReconcileEnd]:
     assert SIEVE_BEFORE_RECONCILE_MARK in line or SIEVE_AFTER_RECONCILE_MARK in line
     if SIEVE_BEFORE_RECONCILE_MARK in line:
         tokens = line[line.find(SIEVE_BEFORE_RECONCILE_MARK) :].strip("\n").split("\t")
-        return Reconcile(tokens[1], tokens[2])
+        return ReconcileBegin(tokens[1], tokens[2])
     else:
         tokens = line[line.find(SIEVE_AFTER_RECONCILE_MARK) :].strip("\n").split("\t")
-        return Reconcile(tokens[1], tokens[2])
+        return ReconcileEnd(tokens[1], tokens[2])
 
 
 class CausalityVertex:
-    def __init__(self, gid: int, content: Union[OperatorHear, OperatorWrite]):
+    def __init__(
+        self,
+        gid: int,
+        content: Union[
+            OperatorHear, OperatorWrite, OperatorRead, ReconcileBegin, ReconcileEnd
+        ],
+    ):
         self.__gid = gid
         self.__content = content
-        self.__out_edges = []
+        self.__out_inter_reconciler_edges = []
+        self.__out_intra_reconciler_edges = []
 
     @property
     def gid(self):
@@ -485,17 +524,33 @@ class CausalityVertex:
         return self.__content
 
     @property
-    def out_edges(self):
-        return self.__out_edges
+    def out_inter_reconciler_edges(self) -> List:
+        return self.__out_inter_reconciler_edges
 
-    def add_out_edge(self, edge):
-        self.out_edges.append(edge)
+    @property
+    def out_intra_reconciler_edges(self) -> List:
+        return self.__out_intra_reconciler_edges
+
+    def add_out_inter_reconciler_edge(self, edge):
+        self.out_inter_reconciler_edges.append(edge)
+
+    def add_out_intra_reconciler_edge(self, edge):
+        self.out_intra_reconciler_edges.append(edge)
 
     def is_operator_hear(self) -> bool:
         return isinstance(self.content, OperatorHear)
 
     def is_operator_write(self) -> bool:
         return isinstance(self.content, OperatorWrite)
+
+    def is_operator_read(self) -> bool:
+        return isinstance(self.content, OperatorRead)
+
+    def is_reconcile_begin(self) -> bool:
+        return isinstance(self.content, ReconcileBegin)
+
+    def is_reconcile_end(self) -> bool:
+        return isinstance(self.content, ReconcileEnd)
 
 
 class CausalityEdge:
@@ -522,10 +577,14 @@ class CausalityGraph:
         self.__vertex_cnt = 0
         self.__operator_hear_vertices = []
         self.__operator_write_vertices = []
+        self.__operator_read_vertices = []
+        self.__reconcile_begin_vertices = []
+        self.__reconcile_end_vertices = []
         self.__operator_hear_key_to_operator_hear_vertices = {}
         self.__operator_hear_id_to_operator_hear_vertices = {}
         self.__operator_hear_operator_write_edges = []
         self.__operator_write_operator_hear_edges = []
+        self.__intra_reconciler_edges = []
 
     @property
     def operator_hear_vertices(self) -> List[CausalityVertex]:
@@ -534,6 +593,18 @@ class CausalityGraph:
     @property
     def operator_write_vertices(self) -> List[CausalityVertex]:
         return self.__operator_write_vertices
+
+    @property
+    def operator_read_vertices(self) -> List[CausalityVertex]:
+        return self.__operator_read_vertices
+
+    @property
+    def reconcile_begin_vertices(self) -> List[CausalityVertex]:
+        return self.__reconcile_begin_vertices
+
+    @property
+    def reconcile_end_vertices(self) -> List[CausalityVertex]:
+        return self.__reconcile_end_vertices
 
     @property
     def operator_hear_key_to_operator_hear_vertices(
@@ -554,6 +625,10 @@ class CausalityGraph:
     @property
     def operator_write_operator_hear_edges(self) -> List[CausalityEdge]:
         return self.__operator_write_operator_hear_edges
+
+    @property
+    def intra_reconciler_edges(self) -> List[CausalityEdge]:
+        return self.__intra_reconciler_edges
 
     def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
         if operator_hear_id in self.operator_hear_id_to_operator_hear_vertices:
@@ -590,29 +665,29 @@ class CausalityGraph:
         )
         for i in range(len(self.operator_hear_vertices)):
             if i > 0:
-                assert (
-                    self.operator_hear_vertices[i].gid
-                    == self.operator_hear_vertices[i - 1].gid + 1
-                )
+                # assert (
+                #     self.operator_hear_vertices[i].gid
+                #     == self.operator_hear_vertices[i - 1].gid + 1
+                # )
                 assert (
                     self.operator_hear_vertices[i].content.start_timestamp
                     > self.operator_hear_vertices[i - 1].content.start_timestamp
                 )
             assert self.operator_hear_vertices[i].is_operator_hear
-            for edge in self.operator_hear_vertices[i].out_edges:
+            for edge in self.operator_hear_vertices[i].out_inter_reconciler_edges:
                 assert self.operator_hear_vertices[i].gid == edge.source.gid
         for i in range(len(self.operator_write_vertices)):
             if i > 0:
-                assert (
-                    self.operator_write_vertices[i].gid
-                    == self.operator_write_vertices[i - 1].gid + 1
-                )
+                # assert (
+                #     self.operator_write_vertices[i].gid
+                #     == self.operator_write_vertices[i - 1].gid + 1
+                # )
                 assert (
                     self.operator_write_vertices[i].content.start_timestamp
                     > self.operator_write_vertices[i - 1].content.start_timestamp
                 )
             assert self.operator_write_vertices[i].is_operator_write
-            for edge in self.operator_write_vertices[i].out_edges:
+            for edge in self.operator_write_vertices[i].out_inter_reconciler_edges:
                 assert self.operator_write_vertices[i].gid == edge.source.gid
         for edge in self.operator_hear_operator_write_edges:
             assert isinstance(edge.source, CausalityVertex)
@@ -653,12 +728,40 @@ class CausalityGraph:
                 operator_hear_vertex.content.id
             ] = operator_hear_vertex
 
-    def add_sorted_operator_writes(self, operator_write_list: List[OperatorWrite]):
-        for i in range(len(operator_write_list)):
-            operator_write = operator_write_list[i]
-            operator_write_vertex = CausalityVertex(self.__vertex_cnt, operator_write)
+    # def add_sorted_operator_writes(self, operator_write_list: List[OperatorWrite]):
+    #     for i in range(len(operator_write_list)):
+    #         operator_write = operator_write_list[i]
+    #         operator_write_vertex = CausalityVertex(self.__vertex_cnt, operator_write)
+    #         self.__vertex_cnt += 1
+    #         self.operator_write_vertices.append(operator_write_vertex)
+
+    def add_sorted_reconciler_events(
+        self,
+        reconciler_event_list: List[
+            Union[OperatorWrite, OperatorRead, ReconcileBegin, ReconcileEnd]
+        ],
+    ):
+        event_vertex_list = []
+        for event in reconciler_event_list:
+            event_vertex = CausalityVertex(self.__vertex_cnt, event)
             self.__vertex_cnt += 1
-            self.operator_write_vertices.append(operator_write_vertex)
+            if event_vertex.is_operator_write():
+                self.operator_write_vertices.append(event_vertex)
+            elif event_vertex.is_operator_read():
+                self.operator_read_vertices.append(event_vertex)
+            elif event_vertex.is_reconcile_begin():
+                self.reconcile_begin_vertices.append(event_vertex)
+            elif event_vertex.is_reconcile_end():
+                self.reconcile_end_vertices.append(event_vertex)
+            else:
+                assert False
+            event_vertex_list.append(event_vertex)
+        for i in range(1, len(event_vertex_list)):
+            prev_vertex = event_vertex_list[i - 1]
+            cur_vertex = event_vertex_list[i]
+            edge = CausalityEdge(prev_vertex, cur_vertex, INTRA_RECONCILER_EDGE)
+            prev_vertex.add_out_intra_reconciler_edge(edge)
+            self.intra_reconciler_edges.append(edge)
 
     def connect_hear_to_write(
         self,
@@ -672,9 +775,9 @@ class CausalityGraph:
             < operator_write_vertex.content.start_timestamp
         )
         edge = CausalityEdge(
-            operator_hear_vertex, operator_write_vertex, HEAR_WRITE_EDGE
+            operator_hear_vertex, operator_write_vertex, INTER_RECONCILER_EDGE
         )
-        operator_hear_vertex.add_out_edge(edge)
+        operator_hear_vertex.add_out_inter_reconciler_edge(edge)
         self.operator_hear_operator_write_edges.append(edge)
 
     def connect_write_to_hear(
@@ -689,9 +792,9 @@ class CausalityGraph:
             < operator_hear_vertex.content.start_timestamp
         )
         edge = CausalityEdge(
-            operator_write_vertex, operator_hear_vertex, WRITE_HEAR_EDGE
+            operator_write_vertex, operator_hear_vertex, INTER_RECONCILER_EDGE
         )
-        operator_write_vertex.add_out_edge(edge)
+        operator_write_vertex.add_out_inter_reconciler_edge(edge)
         self.operator_write_operator_hear_edges.append(edge)
 
 
@@ -705,7 +808,7 @@ def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex)
         return True
     while len(queue) != 0:
         cur = queue.pop(0)
-        for edge in cur.out_edges:
+        for edge in cur.out_inter_reconciler_edges:
             assert cur.gid == edge.source.gid
             assert (
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
