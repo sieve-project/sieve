@@ -2,8 +2,13 @@
 
 ### How to run
 1. Finish the learning mode and generate all the test configs on a master node(could be any worker node)
-2. Create a file called `hosts` under this test-script directory and list all the node's address. Except for this master node, write `:` to indicate that this is a local node.
-2. On this master node's test-script directory, run:  
+2. Create a file called `hosts` under this test-script directory and list all the node's address. Except for this master node, write `:` to indicate that this is a local node. An example of a `hosts` file:
+    ```
+    :
+    ubuntu@vm1.com
+    ubuntu@vm2.com
+    ```
+3. On this master node's test-script directory, run:  
     `bash runtest.sh`  
     If you want to pull from your own docker repo, modify the first step in the runtest.sh to add `-d ${DOCKERREPO}` to the python command.  
 
