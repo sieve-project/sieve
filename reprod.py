@@ -52,7 +52,7 @@ reprod_map = {
 def reproduce_bug(operator, bug):
     mode = bug[:-2]
     test = reprod_map[operator][bug][0]
-    config = os.path.join("reprod", reprod_map[operator][options.bug][1])
+    config = os.path.join("reprod", reprod_map[operator][bug][1])
     sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s" % (
         operator,
         mode,
