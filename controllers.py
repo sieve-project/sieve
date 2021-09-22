@@ -75,15 +75,15 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["rabbitmq-operator"]["recreate"],
         ),
-        "resize-pvc": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
-        ),
+        # "resize-pvc": Suite(
+        #     workloads.workloads["rabbitmq-operator"]["resize-pvc"],
+        # ),
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
         ),
         "resize-pvc-atomic": Suite(
             workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"],
-            pvc_resize=True,
+            use_csi_driver=True,
         ),
     },
     "mongodb-operator": {

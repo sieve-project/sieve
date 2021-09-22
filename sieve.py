@@ -143,7 +143,7 @@ def setup_cluster(
     docker_tag,
     num_apiservers,
     num_workers,
-    pvc_resize,
+    use_csi_driver,
 ):
     cmd_early_exit("kind delete cluster")
     setup_kind_cluster(
@@ -202,8 +202,8 @@ def setup_cluster(
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
 
-    if pvc_resize:
-        # Install csi provisioner
+    # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
+    if mode != sieve_modes.TIME_TRAVEL and use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd csi-driver && ./install.sh")
 
@@ -427,7 +427,7 @@ def run_test(
     docker_tag,
     num_apiservers,
     num_workers,
-    pvc_resize,
+    use_csi_driver,
     oracle_config,
     data_dir,
     phase,
@@ -442,7 +442,7 @@ def run_test(
             docker_tag,
             num_apiservers,
             num_workers,
-            pvc_resize,
+            use_csi_driver,
         )
     if phase == "all" or phase == "workload_only" or phase == "workload_and_check":
         alarm, bug_report = run_workload(
@@ -523,7 +523,7 @@ def run(
             stage,
             suite.num_apiservers,
             suite.num_workers,
-            suite.pvc_resize,
+            suite.use_csi_driver,
             suite.oracle_config,
             data_dir,
             phase,
@@ -542,7 +542,7 @@ def run(
                 mode,
                 suite.num_apiservers,
                 suite.num_workers,
-                suite.pvc_resize,
+                suite.use_csi_driver,
                 suite.oracle_config,
                 data_dir,
                 phase,
@@ -552,8 +552,11 @@ def run(
             print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(log_dir, os.path.basename(test_config))
             cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
-            if mode == sieve_modes.TIME_TRAVEL:
+            if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
                 suite.num_apiservers = 3
+            elif suite.use_csi_driver:
+                suite.num_apiservers = 1
+                suite.num_workers = 0
             return run_test(
                 project,
                 mode,
@@ -565,7 +568,7 @@ def run(
                 mode,
                 suite.num_apiservers,
                 suite.num_workers,
-                suite.pvc_resize,
+                suite.use_csi_driver,
                 suite.oracle_config,
                 data_dir,
                 phase,
