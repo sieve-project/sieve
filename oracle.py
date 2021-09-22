@@ -85,6 +85,8 @@ def generate_status():
         if ktype not in status:
             status[ktype] = copy.deepcopy(status_empty_entry)
     for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
+        if pod.metadata.name in BORING_POD_LIST:
+            continue
         resources[POD].append(pod)
     for pvc in core_v1.list_namespaced_persistent_volume_claim(
         k8s_namespace, watch=False
@@ -93,6 +95,8 @@ def generate_status():
     for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
         resources[DEPLOYMENT].append(dp)
     for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
+        if sts.metadata.name in BORING_STS_LIST:
+            continue
         resources[STS].append(sts)
     for ktype in KTYPES:
         status[ktype]["size"] = len(resources[ktype])
