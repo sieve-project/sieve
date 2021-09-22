@@ -299,6 +299,8 @@ if __name__ == "__main__":
         options.mode = sieve_modes.OBS_GAP
     elif options.mode == "atom-vio":
         options.mode = sieve_modes.ATOM_VIO
+    if options.project == "k8s":
+        options.project = "kubernetes"
 
     img_repo = (
         options.docker
@@ -308,6 +310,20 @@ if __name__ == "__main__":
     img_tag = options.mode
     if options.project == "kubernetes":
         setup_kubernetes(options.mode, img_repo, img_tag)
+    elif options.project == "all":
+        for controller in controllers.github_link:
+            setup_controller(
+                controller,
+                options.mode,
+                img_repo,
+                img_tag,
+                controllers.github_link[controller],
+                controllers.sha[controller],
+                controllers.controller_runtime_version[controller],
+                controllers.client_go_version[controller],
+                controllers.docker_file[controller],
+                options.build_only,
+            )
     else:
         sha = options.sha if options.sha != "none" else controllers.sha[options.project]
         setup_controller(
