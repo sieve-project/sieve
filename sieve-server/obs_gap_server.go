@@ -13,7 +13,7 @@ func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 	server := &obsGapServer{
 		seenPrev:           false,
 		eventID:            -1,
-		paused:             false,
+		seenCur:            false,
 		pausingReconcile:   false,
 		crucialCur:         config["ce-diff-current"].(string),
 		crucialPrev:        config["ce-diff-previous"].(string),
@@ -66,7 +66,7 @@ func (l *ObsGapListener) NotifyObsGapAfterSideEffects(request *sieve.NotifyObsGa
 type obsGapServer struct {
 	seenPrev           bool
 	eventID            int32
-	paused             bool
+	seenCur            bool
 	pausingReconcile   bool
 	crucialCur         string
 	crucialPrev        string
@@ -83,50 +83,34 @@ func (s *obsGapServer) Start() {
 	log.Println("start obsGapServer...")
 }
 
-func (s *obsGapServer) shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
-	if !s.paused {
-		if !s.seenPrev {
-			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
-				log.Println("Meet crucialPrevEvent: set seenPrev to true")
-				s.seenPrev = true
-			}
-		} else {
-			if isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !isCrucial(crucialPrevEvent, currentEvent)) {
-				log.Println("Meet crucialCurEvent: set paused to true and start to pause")
-				s.paused = true
-				return true
-			}
-		}
-	}
-	return false
-}
-
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
 func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGapBeforeIndexerWriteRequest, response *sieve.Response) error {
 	eID := atomic.AddInt32(&s.eventID, 1)
 	log.Println("NotifyObsGapBeforeIndexerWrite", eID, request.OperationType, request.ResourceType, request.Object)
 	currentEvent := strToMap(request.Object)
-	crucialCurEvent := strToMap(s.crucialCur)
-	crucialPrevEvent := strToMap(s.crucialPrev)
 	// We then check for the crucial event
-	if request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) && s.shouldPauseReconcile(crucialCurEvent, crucialPrevEvent, currentEvent) {
-		s.reconcilingMutex.Lock()
-		log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
-		s.mutex.Lock()
-		s.pausingReconcile = true
-		s.mutex.Unlock()
-		s.reconcilingMutex.Unlock()
-
-		go func() {
-			time.Sleep(time.Second * 30)
+	if request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) {
+		crucialCurEvent := strToMap(s.crucialCur)
+		crucialPrevEvent := strToMap(s.crucialPrev)
+		if seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, currentEvent) {
+			s.reconcilingMutex.Lock()
+			log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 			s.mutex.Lock()
-			if s.pausingReconcile {
-				s.pausingReconcile = false
-				s.cond.Broadcast()
-				log.Println("[sieve] we met the timeout for reconcile pausing, reconcile is resumed", s.pausedReconcileCnt)
-			}
+			s.pausingReconcile = true
 			s.mutex.Unlock()
-		}()
+			s.reconcilingMutex.Unlock()
+
+			go func() {
+				time.Sleep(time.Second * 30)
+				s.mutex.Lock()
+				if s.pausingReconcile {
+					s.pausingReconcile = false
+					s.cond.Broadcast()
+					log.Println("[sieve] we met the timeout for reconcile pausing, reconcile is resumed", s.pausedReconcileCnt)
+				}
+				s.mutex.Unlock()
+			}()
+		}
 	}
 	*response = sieve.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
 	return nil

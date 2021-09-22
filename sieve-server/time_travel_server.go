@@ -12,7 +12,7 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 	server := &timeTravelServer{
 		project:     config["project"].(string),
 		seenPrev:    false,
-		paused:      false,
+		seenCur:     false,
 		restarted:   false,
 		pauseCh:     make(chan int),
 		straggler:   config["straggler"].(string),
@@ -60,7 +60,7 @@ type timeTravelServer struct {
 	crucialPrev string
 	podLabel    string
 	seenPrev    bool
-	paused      bool
+	seenCur     bool
 	restarted   bool
 	pauseCh     chan int
 	deployName  string
@@ -81,7 +81,7 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	crucialCurEvent := strToMap(s.crucialCur)
 	crucialPrevEvent := strToMap(s.crucialPrev)
 	log.Printf("[sieve][current-event] %s\n", request.Object)
-	if s.shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent) {
+	if seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, currentEvent) {
 		log.Println("[sieve] should sleep here")
 		<-s.pauseCh
 		log.Println("[sieve] sleep over")
@@ -99,7 +99,7 @@ func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sieve.NotifyTim
 	log.Printf("[sieve][restart-point] %s %s %s %s\n", request.Name, request.Namespace, request.ResourceType, request.EventType)
 	if s.shouldRestart() {
 		log.Println("[sieve] should restart here")
-		go s.waitAndRestartComponent()
+		go s.waitAndRestartOperator()
 	}
 	*response = sieve.Response{Message: request.Hostname, Ok: true}
 	return nil
@@ -111,40 +111,15 @@ func (s *timeTravelServer) NotifyTimeTravelAfterSideEffects(request *sieve.Notif
 	return nil
 }
 
-func (s *timeTravelServer) waitAndRestartComponent() {
+func (s *timeTravelServer) waitAndRestartOperator() {
 	time.Sleep(time.Duration(10) * time.Second)
 	restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, s.straggler, true)
 	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }
 
-func (s *timeTravelServer) shouldPause(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
-	if !s.paused {
-		if !s.seenPrev {
-			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
-				log.Println("Meet crucialPrevEvent: set seenPrev to true")
-				s.seenPrev = true
-			}
-		} else {
-			if isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !isCrucial(crucialPrevEvent, currentEvent)) {
-				log.Println("Meet crucialCurEvent: set paused to true and start to pause")
-				s.paused = true
-				return true
-			}
-			// else if s.isCrucial(crucialPrevEvent, currentEvent) {
-			// 	log.Println("Meet crucialPrevEvent: keep seenPrev as true")
-			// 	// s.seenPrev = true
-			// } else {
-			// 	log.Println("Not meet anything: set seenPrev back to false")
-			// 	s.seenPrev = false
-			// }
-		}
-	}
-	return false
-}
-
 func (s *timeTravelServer) shouldRestart() bool {
-	if s.paused && !s.restarted {
+	if s.seenCur && !s.restarted {
 		s.restarted = true
 		return true
 	} else {
