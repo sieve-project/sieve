@@ -5,7 +5,6 @@ straggler: kind-control-plane3
 front-runner: kind-control-plane
 operator-pod-label: xtradb-operator
 deployment-name: percona-xtradb-cluster-operator
-timing: after
 ce-name: xtradb-cluster
 ce-namespace: default
 ce-rtype: perconaxtradbcluster
@@ -17,8 +16,4 @@ se-name: xtradb-cluster-proxysql
 se-namespace: default
 se-rtype: statefulset
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/perconaxtradbcluster/xtradb-cluster
-  event E. E should match the pattern {} and the events before E should match {"spec":
-  {"proxysql": {"enabled": true}}}. And restart the controller xtradb-operator after
-  kind-control-plane processes a ADDED default/statefulset/xtradb-cluster-proxysql
-  event.'
+timing: after
