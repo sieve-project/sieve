@@ -81,8 +81,8 @@ test_suites = {
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
         ),
-        "resize-pvc-atomic": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"],
+        "resize-pvc": Suite(
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
             use_csi_driver=True,
         ),
     },

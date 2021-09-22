@@ -316,7 +316,7 @@ jobs:
           python3 sieve.py -p rabbitmq-operator -t recreate -s learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn -d $IMAGE_NAMESPACE
           python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -d $IMAGE_NAMESPACE
-          python3 sieve.py -p rabbitmq-operator -t resize-pvc-atomic -s learn -d $IMAGE_NAMESPACE
+          python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn -d $IMAGE_NAMESPACE
       - uses: actions/upload-artifact@v2
         with:
           name: sieve-rabbitmq-data

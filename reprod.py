@@ -22,10 +22,10 @@ reprod_map = {
         "atom-vio-1": ["change-config", "nifi_atom_vio_1.yaml"],
     },
     "rabbitmq-operator": {
-        "atom-vio-1": ["resize-pvc-atomic", "rabbitmq_atom_vio_1.yaml"],
+        "atom-vio-1": ["resize-pvc", "rabbitmq_atom_vio_1.yaml"],
         "obs-gap-1": ["scaleup-scaledown", "rabbitmq_obs_gap_1.yaml"],
         "time-travel-1": ["recreate", "rabbitmq_time_travel_1.yaml"],
-        "time-travel-2": ["resize-pvc-atomic", "rabbitmq_time_travel_2.yaml"],
+        "time-travel-2": ["resize-pvc", "rabbitmq_time_travel_2.yaml"],
     },
     "mongodb-operator": {
         "time-travel-1": ["recreate", "mongodb_time_travel_1.yaml"],
