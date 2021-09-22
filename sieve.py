@@ -96,7 +96,7 @@ def redirect_kubectl():
     target_prefix = "    server: https://127.0.0.1:"
     fin = open(kube_config)
     data = fin.read()
-    print("repalce %s w %s in %s" % (balancer_port, cp_port, kube_config))
+    print("replace %s w %s in %s" % (balancer_port, cp_port, kube_config))
     data = data.replace(target_prefix + balancer_port, target_prefix + cp_port)
     fin.close()
     fin = open(kube_config, "w")
