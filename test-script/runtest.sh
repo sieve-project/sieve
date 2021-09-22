@@ -40,5 +40,5 @@ parallel --workdir '/home/ubuntu/sieve' \
 
 # 5. scp results back
 parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
-	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/sieve_test_results ../sieve_test_results; else {}; fi' \
+	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/sieve_test_results ../; else {}; fi' \
 	     < hosts
