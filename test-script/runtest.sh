@@ -36,5 +36,9 @@ parallel --workdir '/home/ubuntu/sieve' \
          --env PATH \
          --env KUBECONFIG \
          --env GOPATH \
-         < commands.txt \
-         & disown
+         < commands.txt
+
+# 5. scp results back
+parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/sieve_test_results ../sieve_test_results; else {}; fi' \
+	     < hosts
