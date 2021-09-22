@@ -13,6 +13,7 @@ import oracle
 import yaml
 import subprocess
 import signal
+import errno
 from datetime import datetime
 from common import (
     cprint,
@@ -551,13 +552,14 @@ def run(
                 phase,
             )
         else:
+            s = time.time()
             test_config = config
             print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(log_dir, os.path.basename(test_config))
             cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
             if mode == sieve_modes.TIME_TRAVEL:
                 suite.num_apiservers = 3
-            return run_test(
+            alarm, bug_report = run_test(
                 project,
                 mode,
                 stage,
@@ -574,6 +576,29 @@ def run(
                 suite.two_sided,
                 phase,
             )
+
+            result_map = {
+                "duration": time.time() - s,
+                "alarm": alarm,
+                "bug_report": bug_report,
+            }
+
+            # Testing mode, write test result under sieve_test_result directory
+            result_filename = "sieve_test_results/{}-{}-{}.json".format(project, mode, os.path.basename(test_config))
+            if not os.path.exists(os.path.dirname(result_filename)):
+                try:
+                    os.makedirs(os.path.dirname(result_filename))
+                except OSError as exception:
+                    if exception.errno != errno.EEXIST:
+                        raise
+
+            with open(result_filename, 'w') as test_result_json:
+                json.dump(
+                    result_map,
+                    test_result_json,
+                    indent=4,
+                )
+            return alarm, bug_report
 
 
 def run_batch(project, test, dir, mode, stage, docker):

@@ -36,4 +36,5 @@ parallel --workdir '/home/ubuntu/sieve' \
          --env PATH \
          --env KUBECONFIG \
          --env GOPATH \
-         < commands.txt
+         < commands.txt \
+         & disown
