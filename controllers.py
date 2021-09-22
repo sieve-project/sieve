@@ -115,9 +115,9 @@ test_suites = {
         "scaledown-to-zero": Suite(
             workloads.workloads["casskop-operator"]["scaledown-to-zero"],
         ),
-        "scaledown": Suite(
-            workloads.workloads["casskop-operator"]["scaledown"],
-        ),
+        # "scaledown": Suite(
+        #     workloads.workloads["casskop-operator"]["scaledown"],
+        # ),
     },
     "xtradb-operator": {
         "recreate": Suite(

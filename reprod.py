@@ -14,7 +14,7 @@ reprod_map = {
     },
     "casskop-operator": {
         "obs-gap-1": ["scaledown-to-zero", "cassandra3_obs_gap_1.yaml"],
-        "obs-gap-2": ["scaledown", "cassandra3_obs_gap_2.yaml"],
+        # "obs-gap-2": ["scaledown", "cassandra3_obs_gap_2.yaml"],
         "time-travel-1": ["recreate", "cassandra3_time_travel_1.yaml"],
         "time-travel-2": ["reducepdb", "cassandra3_time_travel_2.yaml"],
     },
