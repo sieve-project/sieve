@@ -157,7 +157,7 @@ workloads = {
             'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"persistence":{"storage":"15Gi"}}}\''
         )
         .wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
-        .wait(120),
+        .wait(80),
     },
     "mongodb-operator": {
         "recreate": test_framework.new_built_in_workload()
