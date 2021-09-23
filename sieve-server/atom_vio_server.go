@@ -9,7 +9,7 @@ import (
 func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 	server := &atomVioServer{
 		restarted:   false,
-		crash:       false,
+		seenCur:     false,
 		seenPrev:    false,
 		eventID:     -1,
 		frontRunner: config["front-runner"].(string),
@@ -60,7 +60,7 @@ type atomVioServer struct {
 	podLabel    string
 	eventID     int32
 	seenPrev    bool
-	crash       bool
+	seenCur     bool
 	seName      string
 	seNamespace string
 	seRtype     string
@@ -74,24 +74,6 @@ func (s *atomVioServer) Start() {
 	log.Println("start atomVioServer...")
 }
 
-func (s *atomVioServer) shouldCrash(crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
-	if !s.crash {
-		if !s.seenPrev {
-			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
-				log.Println("Meet crucialPrevEvent: set seenPrev to true")
-				s.seenPrev = true
-			}
-		} else {
-			if isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !isCrucial(crucialPrevEvent, currentEvent)) {
-				log.Println("Meet crucialCurEvent: set paused to true and start to pause")
-				s.crash = true
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
 	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
 	if request.Error == "NoError" && request.ResourceType == s.seRtype && s.seEtypePrev == "Get" {
@@ -100,7 +82,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomV
 			if !s.seenPrev {
 				crucialCurEvent := strToMap(s.crucialCur)
 				crucialPrevEvent := strToMap(s.crucialPrev)
-				s.shouldCrash(crucialCurEvent, crucialPrevEvent, readObj)
+				seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, readObj)
 			}
 		}
 	}
@@ -117,7 +99,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtom
 				if !s.seenPrev {
 					crucialCurEvent := strToMap(s.crucialCur)
 					crucialPrevEvent := strToMap(s.crucialPrev)
-					s.shouldCrash(crucialCurEvent, crucialPrevEvent, readObj.(map[string]interface{}))
+					seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, readObj.(map[string]interface{}))
 				}
 				break
 			}
@@ -135,7 +117,7 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 			if s.seenPrev {
 				crucialCurEvent := strToMap(s.crucialCur)
 				crucialPrevEvent := strToMap(s.crucialPrev)
-				if s.shouldCrash(crucialCurEvent, crucialPrevEvent, writeObj) {
+				if seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, writeObj) {
 					log.Println("ready to crash!")
 					restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
 				}

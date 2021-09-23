@@ -9,8 +9,3 @@ ce-diff-current: '{"spec": {"replicationFactor": 4, "tserver": {"replicas": 4}}}
 ce-diff-previous: '{"spec": {"replicationFactor": 3, "tserver": {"replicas": 3}}}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
-description: 'Pause any reconcile on yugabyte-operator after it sees a default/ybcluster/example-ybcluster
-  event E. E should match the pattern {"spec": {"replicationFactor": 4, "tserver":
-  {"replicas": 4}}} and the events before E should match {"spec": {"replicationFactor":
-  3, "tserver": {"replicas": 3}}}. And resume reconcile on the controller yugabyte-operator
-  after it sees an event cancel event E.'

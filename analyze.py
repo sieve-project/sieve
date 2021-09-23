@@ -54,7 +54,7 @@ def sanity_check_sieve_log(path):
         )
 
 
-def parse_operator_hears(path):
+def parse_receiver_events(path):
     # { operator_hear id -> operator_hear }
     operator_hear_id_map = {}
     # { operator_hear key -> [operator_hears belonging to the key] }
@@ -134,7 +134,7 @@ def parse_operator_hears(path):
     return operator_hear_list
 
 
-def parse_operator_writes(path, compress_trivial_reconcile=True):
+def parse_reconciler_events(path):
     operator_write_id_map = {}
     operator_write_list = []
     operator_write_id_to_start_ts_map = {}
@@ -145,6 +145,7 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
     prev_reconcile_start_timestamp = {}
     cur_reconcile_start_timestamp = {}
     cur_reconcile_is_trivial = {}
+    ts_to_event_map = {}
     # there could be multiple controllers running concurrently
     # we need to record all the ongoing controllers
     # there could be multiple workers running for a single controller
@@ -185,9 +186,11 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
                     earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
             operator_write.set_range(earliest_timestamp, i)
             operator_write_id_map[operator_write.id] = operator_write
+            ts_to_event_map[operator_write.start_timestamp] = operator_write
         elif SIEVE_AFTER_READ_MARK in line:
             operator_read = parse_operator_read(line)
             operator_read.end_timestamp = i
+            ts_to_event_map[operator_read.end_timestamp] = operator_read
             operator_read_list.append(operator_read)
             for key in operator_read.key_set:
                 if key not in operator_read_key_map:
@@ -197,9 +200,12 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
                 read_keys_this_reconcile.update(operator_read.key_set)
             else:
                 read_types_this_reconcile.add(operator_read.rtype)
+
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
-            reconcile = parse_reconcile(line)
-            controller_name = reconcile.controller_name
+            reconcile_begin = parse_reconcile(line)
+            reconcile_begin.end_timestamp = i
+            ts_to_event_map[reconcile_begin.end_timestamp] = reconcile_begin
+            controller_name = reconcile_begin.controller_name
             if controller_name not in ongoing_reconciles:
                 ongoing_reconciles[controller_name] = 1
             else:
@@ -211,8 +217,8 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             if controller_name not in cur_reconcile_start_timestamp:
                 cur_reconcile_start_timestamp[controller_name] = -1
                 cur_reconcile_is_trivial[controller_name] = False
-            if (not compress_trivial_reconcile) or (
-                compress_trivial_reconcile
+            if (not sieve_config.config["compress_trivial_reconcile"]) or (
+                sieve_config.config["compress_trivial_reconcile"]
                 and not cur_reconcile_is_trivial[controller_name]
             ):
                 # When compress_trivial_reconcile is disabled, we directly set prev_reconcile_start_timestamp
@@ -225,8 +231,10 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             # Reset cur_reconcile_is_trivial[controller_name] to True as a new round of reconcile just starts
             cur_reconcile_is_trivial[controller_name] = True
         elif SIEVE_AFTER_RECONCILE_MARK in line:
-            reconcile = parse_reconcile(line)
-            controller_name = reconcile.controller_name
+            reconcile_end = parse_reconcile(line)
+            reconcile_end.end_timestamp = i
+            ts_to_event_map[reconcile_end.end_timestamp] = reconcile_end
+            controller_name = reconcile_end.controller_name
             ongoing_reconciles[controller_name] -= 1
             if ongoing_reconciles[controller_name] == 0:
                 del ongoing_reconciles[controller_name]
@@ -279,23 +287,15 @@ def parse_operator_writes(path, compress_trivial_reconcile=True):
             operator_write.slim_cur_obj_map = slim_cur_object
             operator_write.prev_etype = operator_read.etype
             break
-
-    return operator_write_list, operator_read_list
-
-
-def extract_events(path, compress_trivial_reconcile):
-    operator_hear_list = parse_operator_hears(path)
-    operator_write_list, operator_read_list = parse_operator_writes(
-        path, compress_trivial_reconcile
-    )
-    return operator_hear_list, operator_write_list, operator_read_list
+    reconciler_event_list = [event for ts, event in sorted(ts_to_event_map.items())]
+    return reconciler_event_list
 
 
 def base_pass(
     operator_hear_vertices: List[CausalityVertex],
     operator_write_vertices: List[CausalityVertex],
 ):
-    print("Running base pass ...")
+    print("Running base pass...")
     vertex_pairs = []
     for operator_write_vertex in operator_write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
@@ -308,7 +308,7 @@ def base_pass(
 
 
 def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
-    print("Running optional pass: hear-read-overlap-filtering ...")
+    print("Running optional pass: hear-read-overlap-filtering...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
         operator_hear_vertex = pair[0]
@@ -322,7 +322,7 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
 
 
 def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
-    print("Running optional pass: error-message-filtering ...")
+    print("Running optional pass: error-message-filtering...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
         operator_write_vertex = pair[1]
@@ -366,14 +366,13 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
     return vertex_pairs
 
 
-def build_causality_graph(log_path, compress_trivial_reconcile):
-    (operator_hear_list, operator_write_list, operator_read_list) = extract_events(
-        log_path, compress_trivial_reconcile
-    )
+def build_causality_graph(log_path):
+    operator_hear_list = parse_receiver_events(log_path)
+    reconciler_event_list = parse_reconciler_events(log_path)
 
     causality_graph = CausalityGraph()
     causality_graph.add_sorted_operator_hears(operator_hear_list)
-    causality_graph.add_sorted_operator_writes(operator_write_list)
+    causality_graph.add_sorted_reconciler_events(reconciler_event_list)
 
     hear_write_pairs = generate_hear_write_pairs(causality_graph)
     write_hear_pairs = generate_write_hear_pairs(causality_graph)
@@ -389,20 +388,13 @@ def build_causality_graph(log_path, compress_trivial_reconcile):
     return causality_graph
 
 
-def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_graph):
+def generate_test_config(analysis_mode, project, log_dir, causality_graph):
     generated_config_dir = os.path.join(log_dir, analysis_mode)
     if os.path.isdir(generated_config_dir):
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
         analyze_gen.time_travel_analysis(causality_graph, generated_config_dir, project)
-        if two_sided:
-            analyze_gen.time_travel_analysis(
-                causality_graph,
-                generated_config_dir,
-                project,
-                "before",
-            )
     elif analysis_mode == sieve_modes.OBS_GAP:
         analyze_gen.obs_gap_analysis(causality_graph, generated_config_dir, project)
     elif analysis_mode == sieve_modes.ATOM_VIO:
@@ -412,12 +404,8 @@ def generate_test_config(analysis_mode, project, log_dir, two_sided, causality_g
 def analyze_trace(
     project,
     log_dir,
-    data_dir,
     generate_oracle=True,
     generate_config=True,
-    two_sided=False,
-    use_sql=False,
-    compress_trivial_reconcile=True,
     canonicalize_resource=False,
 ):
     print(
@@ -426,16 +414,11 @@ def analyze_trace(
     print(
         "generate-config feature is %s" % ("enabled" if generate_config else "disabled")
     )
-    if not generate_config:
-        two_sided = False
-        use_sql = False
-    print("two-sided feature is %s" % ("enabled" if two_sided else "disabled"))
-    print("use-sql feature is %s" % ("enabled" if use_sql else "disabled"))
 
     log_path = os.path.join(log_dir, "sieve-server.log")
-    print("Sanity checking the sieve log %s ..." % log_path)
+    print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
-    causality_graph = build_causality_graph(log_path, compress_trivial_reconcile)
+    causality_graph = build_causality_graph(log_path)
 
     if generate_config and not canonicalize_resource:
         for analysis_mode in [
@@ -443,9 +426,7 @@ def analyze_trace(
             sieve_modes.OBS_GAP,
             sieve_modes.ATOM_VIO,
         ]:
-            generate_test_config(
-                analysis_mode, project, log_dir, two_sided, causality_graph
-            )
+            generate_test_config(analysis_mode, project, log_dir, causality_graph)
 
     if generate_oracle:
         oracle.generate_test_oracle(log_dir, canonicalize_resource)
@@ -473,16 +454,11 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
     project = options.project
     test = options.test
-    print("Analyzing controller trace for %s's test workload %s ..." % (project, test))
-    # hardcoded to time travel config only for now
+    print("Analyzing controller trace for %s's test workload %s..." % (project, test))
     dir = os.path.join("log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE)
     analyze_trace(
         project,
         dir,
-        "",
         generate_oracle=False,
         generate_config=True,
-        two_sided=False,
-        use_sql=False,
-        compress_trivial_reconcile=True,
     )

@@ -270,6 +270,29 @@ func isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
 	}
 }
 
+func seenCrucialEvent(seenPrev, seenCur *bool, crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
+	if !*seenCur {
+		if !*seenPrev {
+			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
+				log.Println("Meet crucialPrevEvent: set seenPrev to true")
+				*seenPrev = true
+			}
+		} else {
+			if isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !isCrucial(crucialPrevEvent, currentEvent)) {
+				log.Println("Meet crucialCurEvent: set seenCur to true")
+				*seenCur = true
+				return true
+			} else if isCrucial(crucialPrevEvent, currentEvent) {
+				log.Println("Meet crucialPrevEvent: keep seenPrev as true")
+			} else {
+				log.Println("Not meet anything: set seenPrev back to false")
+				*seenPrev = false
+			}
+		}
+	}
+	return false
+}
+
 func cancelEventList(crucialEvent, currentEvent []interface{}) bool {
 	if len(currentEvent) < len(crucialEvent) {
 		return true

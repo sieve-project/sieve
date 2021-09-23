@@ -129,14 +129,14 @@ workloads = {
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
         .wait(50),
-        "resize-pvc": test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
-        .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
-        .cmd(
-            'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"persistence":{"storage":"15Gi"}}}\''
-        )
-        .wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
-        .wait(50),
+        # "resize-pvc": test_framework.new_built_in_workload()
+        # .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
+        # .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
+        # .cmd(
+        #     'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"persistence":{"storage":"15Gi"}}}\''
+        # )
+        # .wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
+        # .wait(50),
         "scaleup-scaledown": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
@@ -149,7 +149,7 @@ workloads = {
         )
         .wait(10)
         .wait(50),
-        "resize-pvc-atomic": test_framework.new_built_in_workload()
+        "resize-pvc": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
         # 10Gi -> 15Gi
@@ -157,7 +157,7 @@ workloads = {
             'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"persistence":{"storage":"15Gi"}}}\''
         )
         .wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
-        .wait(120),
+        .wait(80),
     },
     "mongodb-operator": {
         "recreate": test_framework.new_built_in_workload()

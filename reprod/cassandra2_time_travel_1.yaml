@@ -5,12 +5,10 @@ straggler: kind-control-plane3
 front-runner: kind-control-plane
 operator-pod-label: cass-operator
 deployment-name: cass-operator
-timing: after
 ce-name: cassandra-datacenter
 ce-namespace: default
 ce-rtype: cassandradatacenter
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL", "deletionGracePeriodSeconds":
-  0}}'
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL"}}'
 ce-diff-previous: '{}'
 ce-etype-current: Updated
 ce-etype-previous: Updated
@@ -18,8 +16,4 @@ se-name: server-data-cluster1-cassandra-datacenter-default-sts-0
 se-namespace: default
 se-rtype: persistentvolumeclaim
 se-etype: ADDED
-description: 'Pause kind-control-plane3 after it processes a default/cassandradatacenter/cassandra-datacenter
-  event E. E should match the pattern {"metadata": {"deletionTimestamp": "SIEVE-NON-NIL",
-  "deletionGracePeriodSeconds": 0}} and the events before E should match {}. And restart
-  the controller cass-operator after kind-control-plane processes a ADDED default/persistentvolumeclaim/server-data-cluster1-cassandra-datacenter-default-sts-0
-  event.'
+timing: after

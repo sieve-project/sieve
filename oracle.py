@@ -44,7 +44,7 @@ def generate_digest(log_dir, canonicalize_resource=False):
 
 
 def generate_operator_write(log_dir):
-    print("Checking safety assertions ...")
+    print("Checking safety assertions...")
     operator_write_map = {}
     log_path = os.path.join(log_dir, "sieve-server.log")
     for line in open(log_path).readlines():
@@ -72,7 +72,7 @@ def generate_operator_write(log_dir):
 
 
 def generate_status():
-    print("Checking liveness assertions ...")
+    print("Checking liveness assertions...")
     status = {}
     status_empty_entry = {"size": 0, "terminating": 0}
     kubernetes.config.load_kube_config()
@@ -85,6 +85,8 @@ def generate_status():
         if ktype not in status:
             status[ktype] = copy.deepcopy(status_empty_entry)
     for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
+        if pod.metadata.name in BORING_POD_LIST:
+            continue
         resources[POD].append(pod)
     for pvc in core_v1.list_namespaced_persistent_volume_claim(
         k8s_namespace, watch=False
@@ -93,6 +95,8 @@ def generate_status():
     for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
         resources[DEPLOYMENT].append(dp)
     for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
+        if sts.metadata.name in BORING_STS_LIST:
+            continue
         resources[STS].append(sts)
     for ktype in KTYPES:
         status[ktype]["size"] = len(resources[ktype])
@@ -152,7 +156,7 @@ def learn_twice_trim(base_resources, twice_resources):
 
 
 def generate_resources(log_dir="", canonicalize_resource=False):
-    # print("Generating cluster resources digest ...")
+    # print("Generating cluster resources digest...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
@@ -515,25 +519,7 @@ def look_for_resources_diff(learn, test):
         return dic
 
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
-    stored_test = copy.deepcopy(test)
-    # TODO(wenqing): not_care_keys should be consistent with BORING_EVENT_OBJECT_FIELDS in common.py
-    not_care_keys = set(
-        [
-            "annotations",
-            "managedFields",
-            "image",
-            "imageID",
-            "nodeName",
-            "hostIP",
-            "message",
-            "labels",
-            "generateName",
-            "ownerReferences",
-            "podIP",
-            "ip",
-            "resourceVersion",
-        ]
-    )
+    not_care_keys = set(BORING_EVENT_OBJECT_FIELDS)
 
     for delta_type in tdiff:
         for key in tdiff[delta_type]:

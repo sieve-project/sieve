@@ -97,7 +97,7 @@ def redirect_kubectl():
     target_prefix = "    server: https://127.0.0.1:"
     fin = open(kube_config)
     data = fin.read()
-    print("repalce %s w %s in %s" % (balancer_port, cp_port, kube_config))
+    print("replace %s w %s in %s" % (balancer_port, cp_port, kube_config))
     data = data.replace(target_prefix + balancer_port, target_prefix + cp_port)
     fin.close()
     fin = open(kube_config, "w")
@@ -144,12 +144,13 @@ def setup_cluster(
     docker_tag,
     num_apiservers,
     num_workers,
-    pvc_resize,
+    use_csi_driver,
 ):
     cmd_early_exit("kind delete cluster")
     setup_kind_cluster(
         generate_kind_config(num_apiservers, num_workers), docker_repo, docker_tag
     )
+    print("\n\n")
 
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
     # cmd_early_exit("kubectl config set-context --current --namespace=%s" %
@@ -170,6 +171,7 @@ def setup_cluster(
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Then we wait apiservers to be ready
+    print("Waiting for apiservers to be ready...")
     apiserver_list = []
     for i in range(num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + (
@@ -195,14 +197,15 @@ def setup_cluster(
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (docker_repo, project, docker_tag)
     kind_load_cmd = "kind load docker-image %s" % (image)
-    print("We are loading image %s to kind nodes..." % (image))
+    print("Loading image %s to kind nodes..." % (image))
     if cmd_early_exit(kind_load_cmd, early_exit=False) != 0:
         print("Cannot load image %s locally, try to pull from remote" % (image))
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
 
-    if pvc_resize:
-        # Install csi provisioner
+    # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
+    if mode != sieve_modes.TIME_TRAVEL and use_csi_driver:
+        print("Installing csi provisioner...")
         cmd_early_exit("cd csi-driver && ./install.sh")
 
 
@@ -253,11 +256,11 @@ def run_workload(
     num_apiservers,
 ) -> Tuple[int, str]:
     if mode != sieve_modes.VANILLA:
-        cprint("Setting up Sieve server ...", bcolors.OKGREEN)
+        cprint("Setting up Sieve server...", bcolors.OKGREEN)
         start_sieve_server()
         ok("Sieve server set up")
 
-    cprint("Deploying operator ...", bcolors.OKGREEN)
+    cprint("Deploying operator...", bcolors.OKGREEN)
     start_operator(project, docker_repo, docker_tag, num_apiservers)
     ok("Operator deployed")
 
@@ -281,7 +284,7 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
-    cprint("Running test workload ...", bcolors.OKGREEN)
+    cprint("Running test workload...", bcolors.OKGREEN)
     alarm, bug_report = test_workload.run(mode)
     if alarm == 0:
         ok("Test workload finished")
@@ -327,14 +330,12 @@ def run_workload(
 
 
 def check_result(
-    project, mode, stage, test_config, log_dir, data_dir, two_sided, oracle_config
+    project, mode, stage, test_config, log_dir, data_dir, oracle_config
 ) -> Tuple[int, str]:
     if stage == sieve_stages.LEARN:
         analyze.analyze_trace(
             project,
             log_dir,
-            data_dir,
-            two_sided=two_sided,
             canonicalize_resource=(mode == sieve_modes.LEARN_TWICE),
         )
         cmd_early_exit("mkdir -p %s" % data_dir)
@@ -427,10 +428,9 @@ def run_test(
     docker_tag,
     num_apiservers,
     num_workers,
-    pvc_resize,
+    use_csi_driver,
     oracle_config,
     data_dir,
-    two_sided,
     phase,
 ) -> Tuple[int, str]:
     if phase == "all" or phase == "setup_only":
@@ -443,7 +443,7 @@ def run_test(
             docker_tag,
             num_apiservers,
             num_workers,
-            pvc_resize,
+            use_csi_driver,
         )
     if phase == "all" or phase == "workload_only" or phase == "workload_and_check":
         alarm, bug_report = run_workload(
@@ -466,7 +466,6 @@ def run_test(
             test_config,
             log_dir,
             data_dir,
-            two_sided,
             oracle_config,
         )
         return alarm, bug_report
@@ -525,10 +524,9 @@ def run(
             stage,
             suite.num_apiservers,
             suite.num_workers,
-            suite.pvc_resize,
+            suite.use_csi_driver,
             suite.oracle_config,
             data_dir,
-            suite.two_sided,
             phase,
         )
     else:
@@ -545,10 +543,9 @@ def run(
                 mode,
                 suite.num_apiservers,
                 suite.num_workers,
-                suite.pvc_resize,
+                suite.use_csi_driver,
                 suite.oracle_config,
                 data_dir,
-                suite.two_sided,
                 phase,
             )
         else:
@@ -557,9 +554,16 @@ def run(
             print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(log_dir, os.path.basename(test_config))
             cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
-            if mode == sieve_modes.TIME_TRAVEL:
+            if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
                 suite.num_apiservers = 3
+<<<<<<< HEAD
             alarm, bug_report = run_test(
+=======
+            elif suite.use_csi_driver:
+                suite.num_apiservers = 1
+                suite.num_workers = 0
+            return run_test(
+>>>>>>> origin/main
                 project,
                 mode,
                 stage,
@@ -570,10 +574,9 @@ def run(
                 mode,
                 suite.num_apiservers,
                 suite.num_workers,
-                suite.pvc_resize,
+                suite.use_csi_driver,
                 suite.oracle_config,
                 data_dir,
-                suite.two_sided,
                 phase,
             )
 

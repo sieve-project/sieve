@@ -31,10 +31,23 @@ BORING_EVENT_OBJECT_FIELDS = [
     "generation",
     "annotations",
     "deletionGracePeriodSeconds",
+    "image",
+    "imageID",
+    "nodeName",
+    "hostIP",
+    "message",
+    "labels",
+    "generateName",
+    "ownerReferences",
+    "podIP",
+    "ip",
 ]
 
 TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+
+BORING_POD_LIST = ["csi-hostpathplugin-0", "snapshot-controller-0"]
+BORING_STS_LIST = ["csi-hostpathplugin", "snapshot-controller"]
 
 
 def cmd_early_exit(cmd, early_exit=True):
@@ -92,19 +105,17 @@ class Suite:
     def __init__(
         self,
         workload,
-        two_sided=False,
         num_apiservers=1,
         num_workers=2,
-        pvc_resize=False,
+        use_csi_driver=False,
         oracle_config={},
     ):
         self.workload = workload
-        self.two_sided = two_sided
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
-        self.pvc_resize = pvc_resize
+        self.use_csi_driver = use_csi_driver
         self.oracle_config = oracle_config
-        if self.pvc_resize:
-            # For now, we only support one node cluster pvc resizing
-            self.num_apiservers = 1
-            self.num_workers = 0
+        # if self.use_csi_driver:
+        #     # For now, we only support one node cluster pvc resizing
+        #     self.num_apiservers = 1
+        #     self.num_workers = 0

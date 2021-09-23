@@ -14,7 +14,7 @@ reprod_map = {
     },
     "casskop-operator": {
         "obs-gap-1": ["scaledown-to-zero", "cassandra3_obs_gap_1.yaml"],
-        "obs-gap-2": ["scaledown", "cassandra3_obs_gap_2.yaml"],
+        # "obs-gap-2": ["scaledown", "cassandra3_obs_gap_2.yaml"],
         "time-travel-1": ["recreate", "cassandra3_time_travel_1.yaml"],
         "time-travel-2": ["reducepdb", "cassandra3_time_travel_2.yaml"],
     },
@@ -22,7 +22,7 @@ reprod_map = {
         "atom-vio-1": ["change-config", "nifi_atom_vio_1.yaml"],
     },
     "rabbitmq-operator": {
-        "atom-vio-1": ["resize-pvc-atomic", "rabbitmq_atom_vio_1.yaml"],
+        "atom-vio-1": ["resize-pvc", "rabbitmq_atom_vio_1.yaml"],
         "obs-gap-1": ["scaleup-scaledown", "rabbitmq_obs_gap_1.yaml"],
         "time-travel-1": ["recreate", "rabbitmq_time_travel_1.yaml"],
         "time-travel-2": ["resize-pvc", "rabbitmq_time_travel_2.yaml"],
@@ -47,6 +47,21 @@ reprod_map = {
         "time-travel-2": ["scaledown-scaleup", "zookeeper_time_travel_2.yaml"],
     },
 }
+
+
+def reproduce_bug(operator, bug):
+    mode = bug[:-2]
+    test = reprod_map[operator][bug][0]
+    config = os.path.join("reprod", reprod_map[operator][bug][1])
+    sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s" % (
+        operator,
+        mode,
+        test,
+        config,
+    )
+    cprint(sieve_cmd, bcolors.OKGREEN)
+    os.system(sieve_cmd)
+
 
 if __name__ == "__main__":
     usage = "usage: python3 sieve.py [options]"
@@ -81,18 +96,12 @@ if __name__ == "__main__":
     if options.project is None:
         parser.error("parameter project required")
 
-    if options.bug is None:
+    if options.bug is None and options.project != "all":
         parser.error("parameter bug required")
 
-    mode = options.bug[:-2]
-    test = reprod_map[options.project][options.bug][0]
-    config = os.path.join("reprod", reprod_map[options.project][options.bug][1])
-
-    sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s" % (
-        options.project,
-        mode,
-        test,
-        config,
-    )
-    cprint(sieve_cmd, bcolors.OKGREEN)
-    os.system(sieve_cmd)
+    if options.project == "all":
+        for operator in reprod_map:
+            for bug in reprod_map[operator]:
+                reproduce_bug(operator, bug)
+    else:
+        reproduce_bug(options.project, options.bug)

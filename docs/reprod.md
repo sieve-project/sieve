@@ -132,7 +132,7 @@ python3 reprod.py -p zookeeper-operator -b time-travel-2 -d SIEVE_IMAGE
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim/default/data-zookeeper-cluster-1 DELETE inconsistency: 1 events seen during learning run, but 5 seen during testing run
+[ERROR] persistentvolumeclaim/default/data-zookeeper-cluster-1 DELETE inconsistency: 1 events seen during learning run, but 7 seen during testing run
 ```
 The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 

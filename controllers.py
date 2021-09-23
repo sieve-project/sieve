@@ -75,16 +75,15 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["rabbitmq-operator"]["recreate"],
         ),
-        "resize-pvc": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
-            two_sided=True,
-        ),
+        # "resize-pvc": Suite(
+        #     workloads.workloads["rabbitmq-operator"]["resize-pvc"],
+        # ),
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
         ),
-        "resize-pvc-atomic": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc-atomic"],
-            pvc_resize=True,
+        "resize-pvc": Suite(
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
+            use_csi_driver=True,
         ),
     },
     "mongodb-operator": {
@@ -112,14 +111,13 @@ test_suites = {
         ),
         "reducepdb": Suite(
             workloads.workloads["casskop-operator"]["reducepdb"],
-            two_sided=True,
         ),
         "scaledown-to-zero": Suite(
             workloads.workloads["casskop-operator"]["scaledown-to-zero"],
         ),
-        "scaledown": Suite(
-            workloads.workloads["casskop-operator"]["scaledown"],
-        ),
+        # "scaledown": Suite(
+        #     workloads.workloads["casskop-operator"]["scaledown"],
+        # ),
     },
     "xtradb-operator": {
         "recreate": Suite(

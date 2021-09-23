@@ -10,13 +10,13 @@ from common import *
 
 
 def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
-    print("Running optional pass: delete-only-filtering ...")
+    print("Running optional pass: delete-only-filtering...")
     candidate_edges = []
     for edge in causality_edges:
         if edge.source.is_operator_hear() and edge.sink.is_operator_write():
             if edge.sink.content.etype == OperatorWriteTypes.DELETE:
                 candidate_edges.append(edge)
-    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
+    print("%d -> %d edges" % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
 
 
@@ -24,7 +24,7 @@ def delete_then_recreate_filtering_pass(
     causality_edges: List[CausalityEdge],
     operator_hear_key_to_operator_hear_vertices: Dict[str, List[CausalityVertex]],
 ):
-    print("Running optional pass: delete-then-recreate-filtering ...")
+    print("Running optional pass: delete-then-recreate-filtering...")
     # this should only be applied to time travel mode
     candidate_edges = []
     for edge in causality_edges:
@@ -48,16 +48,41 @@ def delete_then_recreate_filtering_pass(
             keep_this_pair = True
         if keep_this_pair:
             candidate_edges.append(edge)
-    print("%d -> %d edges ..." % (len(causality_edges), len(candidate_edges)))
+    print("%d -> %d edges" % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
 
 
-def time_travel_analysis(
-    causality_graph: CausalityGraph,
-    path: str,
-    project: str,
-    timing="after",
-):
+def decide_time_travel_timing(vertex: CausalityVertex):
+    assert vertex.is_operator_write()
+    assert vertex.content.etype == OperatorWriteTypes.DELETE
+    reconcile_cnt = 0
+    cur_vertex = vertex
+    while True:
+        if len(cur_vertex.out_intra_reconciler_edges) == 1:
+            next_vertex = cur_vertex.out_intra_reconciler_edges[0].sink
+            if next_vertex.is_reconcile_end():
+                reconcile_cnt += 1
+                if reconcile_cnt == 2:
+                    return "after"
+            elif next_vertex.is_operator_write():
+                if (
+                    next_vertex.content.etype == OperatorWriteTypes.CREATE
+                    and next_vertex.content.key == vertex.content.key
+                ):
+                    if reconcile_cnt == 0:
+                        print("decide timing: before")
+                        return "before"
+                    else:
+                        print("decide timing: both")
+                        return "both"
+            cur_vertex = next_vertex
+        elif len(vertex.out_intra_reconciler_edges) == 0:
+            return "after"
+        else:
+            assert False
+
+
+def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: str):
     causality_edges = causality_graph.operator_hear_operator_write_edges
     if DELETE_ONLY_FILTER_FLAG:
         candidate_edges = delete_only_filtering_pass(causality_edges)
@@ -73,8 +98,6 @@ def time_travel_analysis(
     yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
     yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
     yaml_map["deployment-name"] = controllers.deployment_name[project]
-    yaml_map["timing"] = timing
-    suffix = "-b" if timing == "before" else ""
     i = 0
     for edge in candidate_edges:
         cur_operator_hear = edge.source.content
@@ -88,6 +111,8 @@ def time_travel_analysis(
             continue
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
+
+        timing = decide_time_travel_timing(edge.sink)
 
         yaml_map["ce-name"] = cur_operator_hear.name
         yaml_map["ce-namespace"] = cur_operator_hear.namespace
@@ -104,22 +129,45 @@ def time_travel_analysis(
         assert operator_write.etype == OperatorWriteTypes.DELETE
         yaml_map["se-etype"] = "ADDED"
 
-        i += 1
-        yaml.dump(
-            yaml_map,
-            open(
-                os.path.join(path, "time-travel-config-%s%s.yaml" % (str(i), suffix)),
-                "w",
-            ),
-            sort_keys=False,
-        )
+        if timing == "after" or timing == "before":
+            yaml_map["timing"] = timing
+            i += 1
+            yaml.dump(
+                yaml_map,
+                open(
+                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
+                    "w",
+                ),
+                sort_keys=False,
+            )
+        else:
+            yaml_map["timing"] = "after"
+            i += 1
+            yaml.dump(
+                yaml_map,
+                open(
+                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
+                    "w",
+                ),
+                sort_keys=False,
+            )
+            yaml_map["timing"] = "before"
+            i += 1
+            yaml.dump(
+                yaml_map,
+                open(
+                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
+                    "w",
+                ),
+                sort_keys=False,
+            )
     cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
 def cancellable_filtering_pass(
     causality_vertices: List[CausalityVertex], causality_graph: CausalityGraph
 ):
-    print("Running optional pass: cancellable-filtering ...")
+    print("Running optional pass: cancellable-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
         if len(vertex.content.cancelled_by) > 0:
@@ -128,7 +176,7 @@ def cancellable_filtering_pass(
                 if not causality_vertices_connected(vertex, sink):
                     candidate_vertices.append(vertex)
                     break
-    print("%d -> %d vertices ..." % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -179,12 +227,12 @@ def obs_gap_analysis(
 
 
 def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
-    print("Running optional pass:  no-error-write-filtering ...")
+    print("Running optional pass:  no-error-write-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
         if vertex.content.error in ALLOWED_ERROR_TYPE:
             candidate_vertices.append(vertex)
-    print("%d -> %d vertices ..." % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
