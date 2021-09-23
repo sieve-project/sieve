@@ -1,3 +1,4 @@
+# The file is automatically generated based on reprod.py
 name: Sieve Test
 'on':
   pull_request: null
@@ -54,10 +55,10 @@ jobs:
 
         python3 build.py -p cassandra-operator -m observability-gap -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p cassandra-operator -t recreate -s learn -m learn-twice
+      run: 'python3 sieve.py -p cassandra-operator -t scaledown -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p cassandra-operator -t scaledown -s learn -m learn-twice
+        python3 sieve.py -p cassandra-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
 
         python3 sieve.py -p cassandra-operator -t scaledown-scaleup -s learn -m learn-twice
@@ -308,10 +309,10 @@ jobs:
 
         python3 build.py -p rabbitmq-operator -m atomicity-violation -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p rabbitmq-operator -t recreate -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE
+      run: 'python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -m learn-twice
+        python3 sieve.py -p rabbitmq-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
 
         python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn -m learn-twice
@@ -447,10 +448,10 @@ jobs:
       run: 'python3 sieve.py -p xtradb-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -s learn -m
+        python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -s learn -m
         learn-twice -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -s learn -m
+        python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -s learn -m
         learn-twice -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:

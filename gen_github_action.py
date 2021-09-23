@@ -47,7 +47,7 @@ for operator in reprod_map:
         sieve_modes.ATOM_VIO: False
     }
     workload_set = set()
-    
+
     for bug in reprod_map[operator]:
         workload = reprod_map[operator][bug][0]
         config_name = reprod_map[operator][bug][1]
@@ -55,7 +55,7 @@ for operator in reprod_map:
         build_modes[config['mode']] = True
         workload_set.add(workload)
 #         print(operator, bug, workload, config['mode'])
-    
+
     build_image_run = []
     for mode in build_modes:
         if build_modes[mode]:
@@ -83,5 +83,5 @@ config = {
 
 # dump
 config_path = ".github/workflows/sieve-test.yml"
-open(config_path, "w").write(yaml.dump(config, default_flow_style=False, sort_keys=False))
+open(config_path, "w").write("# The file is automatically generated based on reprod.py\n"+yaml.dump(config, default_flow_style=False, sort_keys=False))
 print("CI config generated to %s"%(config_path))
