@@ -35,6 +35,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -50,11 +54,13 @@ jobs:
 
         python3 build.py -p cassandra-operator -m observability-gap -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p cassandra-operator -t recreate -s learn-twice -d $IMAGE_NAMESPACE
+      run: 'python3 sieve.py -p cassandra-operator -t recreate -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p cassandra-operator -t scaledown -s learn-twice -d $IMAGE_NAMESPACE
+        python3 sieve.py -p cassandra-operator -t scaledown -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p cassandra-operator -t scaledown-scaleup -s learn-twice
+        python3 sieve.py -p cassandra-operator -t scaledown-scaleup -s learn -m learn-twice
         -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:
@@ -98,6 +104,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -111,7 +121,8 @@ jobs:
 
         python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: python3 sieve.py -p cass-operator -t recreate -s learn-twice -d $IMAGE_NAMESPACE
+      run: python3 sieve.py -p cass-operator -t recreate -s learn -m learn-twice -d
+        $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-cass-operator-data
@@ -150,6 +161,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -165,22 +180,20 @@ jobs:
 
         python3 build.py -p casskop-operator -m observability-gap -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p casskop-operator -t scaledown -s learn-twice -d $IMAGE_NAMESPACE
+      run: 'python3 sieve.py -p casskop-operator -t recreate -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p casskop-operator -t recreate -s learn-twice -d $IMAGE_NAMESPACE
+        python3 sieve.py -p casskop-operator -t scaledown-to-zero -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p casskop-operator -t scaledown-to-zero -s learn-twice -d
-        $IMAGE_NAMESPACE
-
-        python3 sieve.py -p casskop-operator -t reducepdb -s learn-twice -d $IMAGE_NAMESPACE'
+        python3 sieve.py -p casskop-operator -t reducepdb -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-casskop-operator-data
         path: data/casskop-operator
     - name: Sieve Test
       run: 'python3 reprod.py -p casskop-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p casskop-operator -b obs-gap-2 -d $IMAGE_NAMESPACE
 
         python3 reprod.py -p casskop-operator -b time-travel-1 -d $IMAGE_NAMESPACE
 
@@ -217,6 +230,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -230,8 +247,8 @@ jobs:
 
         python3 build.py -p nifikop-operator -m atomicity-violation -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: python3 sieve.py -p nifikop-operator -t change-config -s learn-twice -d
-        $IMAGE_NAMESPACE
+      run: python3 sieve.py -p nifikop-operator -t change-config -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-nifikop-operator-data
@@ -270,6 +287,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -287,14 +308,13 @@ jobs:
 
         python3 build.py -p rabbitmq-operator -m atomicity-violation -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p rabbitmq-operator -t recreate -s learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p rabbitmq-operator -t resize-pvc-atomic -s learn-twice
+      run: 'python3 sieve.py -p rabbitmq-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn-twice -d $IMAGE_NAMESPACE
+        python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn-twice
+        python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn -m learn-twice
         -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:
@@ -340,6 +360,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -353,12 +377,13 @@ jobs:
 
         python3 build.py -p mongodb-operator -m time-travel -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p mongodb-operator -t recreate -s learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p mongodb-operator -t disable-enable-shard -s learn-twice
+      run: 'python3 sieve.py -p mongodb-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -s learn-twice
+        python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
+
+        python3 sieve.py -p mongodb-operator -t disable-enable-shard -s learn -m learn-twice
         -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:
@@ -402,6 +427,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -415,13 +444,14 @@ jobs:
 
         python3 build.py -p xtradb-operator -m time-travel -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p xtradb-operator -t recreate -s learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -s learn-twice
+      run: 'python3 sieve.py -p xtradb-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -s learn-twice
-        -d $IMAGE_NAMESPACE'
+        python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
+
+        python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-xtradb-operator-data
@@ -464,6 +494,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -479,13 +513,13 @@ jobs:
 
         python3 build.py -p yugabyte-operator -m observability-gap -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p yugabyte-operator -t disable-enable-tuiport -s learn-twice
-        -d $IMAGE_NAMESPACE
+      run: 'python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s
+        learn -m learn-twice -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p yugabyte-operator -t disable-enable-tls -s learn-twice
-        -d $IMAGE_NAMESPACE
+        python3 sieve.py -p yugabyte-operator -t disable-enable-tuiport -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s learn-twice
+        python3 sieve.py -p yugabyte-operator -t disable-enable-tls -s learn -m learn-twice
         -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:
@@ -529,6 +563,10 @@ jobs:
       run: 'go get sigs.k8s.io/kind
 
         kind'
+    - name: Install Mage
+      run: 'go get -u github.com/magefile/mage
+
+        mage -h'
     - name: Install Helm
       run: 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
 
@@ -542,9 +580,10 @@ jobs:
 
         python3 build.py -p zookeeper-operator -m time-travel -d $IMAGE_NAMESPACE'
     - name: Sieve Learn
-      run: 'python3 sieve.py -p zookeeper-operator -t recreate -s learn-twice -d $IMAGE_NAMESPACE
+      run: 'python3 sieve.py -p zookeeper-operator -t recreate -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
 
-        python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -s learn-twice
+        python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -s learn -m learn-twice
         -d $IMAGE_NAMESPACE'
     - uses: actions/upload-artifact@v2
       with:
