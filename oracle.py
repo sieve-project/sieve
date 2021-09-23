@@ -519,25 +519,7 @@ def look_for_resources_diff(learn, test):
         return dic
 
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
-    stored_test = copy.deepcopy(test)
-    # TODO(wenqing): not_care_keys should be consistent with BORING_EVENT_OBJECT_FIELDS in common.py
-    not_care_keys = set(
-        [
-            "annotations",
-            "managedFields",
-            "image",
-            "imageID",
-            "nodeName",
-            "hostIP",
-            "message",
-            "labels",
-            "generateName",
-            "ownerReferences",
-            "podIP",
-            "ip",
-            "resourceVersion",
-        ]
-    )
+    not_care_keys = set(BORING_EVENT_OBJECT_FIELDS)
 
     for delta_type in tdiff:
         for key in tdiff[delta_type]:

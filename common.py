@@ -31,6 +31,16 @@ BORING_EVENT_OBJECT_FIELDS = [
     "generation",
     "annotations",
     "deletionGracePeriodSeconds",
+    "image",
+    "imageID",
+    "nodeName",
+    "hostIP",
+    "message",
+    "labels",
+    "generateName",
+    "ownerReferences",
+    "podIP",
+    "ip",
 ]
 
 TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
