@@ -556,14 +556,7 @@ def run(
             cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
             if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
                 suite.num_apiservers = 3
-<<<<<<< HEAD
             alarm, bug_report = run_test(
-=======
-            elif suite.use_csi_driver:
-                suite.num_apiservers = 1
-                suite.num_workers = 0
-            return run_test(
->>>>>>> origin/main
                 project,
                 mode,
                 stage,
