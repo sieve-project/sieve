@@ -18,7 +18,14 @@ parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     'if [[ "{}" != ":" ]]; then scp -r ../log {}:/home/ubuntu/sieve; else {}; fi' \
 	     < hosts
 
-# 4. Run all tests in parallel
+# 4. clean up previous run result in sieve_test_results
+parallel --workdir '/home/ubuntu/sieve' \
+         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+         --sshloginfile hosts \
+         --onall \
+         'rm -rf ./sieve_test_results'
+
+# 5. Run all tests in parallel
 #
 # workdir      - work directory on remote
 # ssh          - specify idenity files for ssh
@@ -38,7 +45,10 @@ parallel --workdir '/home/ubuntu/sieve' \
          --env GOPATH \
          < commands.txt
 
-# 5. scp results back
+# 6. scp results back
 parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/sieve_test_results ../; else {}; fi' \
 	     < hosts
+
+# 7. combine test results in sieve_test_results and save it
+python3 combine_json.py
