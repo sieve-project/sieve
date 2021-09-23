@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from reprod import reprod_map
 import yaml
 import os
@@ -33,10 +32,8 @@ for operator in reprod_map:
         ]
     }
     build_image = {'name': 'Build Image', 'run': ''}
-    sieve_learn = {'name': 'Sieve Learn', 'run': ''}
     collect_resources = {'uses': 'actions/upload-artifact@v2',
         'with': {'name': 'sieve-%s-data'%(operator), 'path': 'data/%s'%(operator)}}
-    sieve_test = {'name': 'Sieve Test', 'run': ''}
     collect_log = {'uses': 'actions/upload-artifact@v2',
         'with': {'name': 'sieve-%s-log'%(operator), 'path': 'log'}}
 
@@ -47,7 +44,7 @@ for operator in reprod_map:
         sieve_modes.ATOM_VIO: False
     }
     workload_set = set()
-
+    
     for bug in reprod_map[operator]:
         workload = reprod_map[operator][bug][0]
         config_name = reprod_map[operator][bug][1]
@@ -55,19 +52,19 @@ for operator in reprod_map:
         build_modes[config['mode']] = True
         workload_set.add(workload)
 #         print(operator, bug, workload, config['mode'])
-
+    
     build_image_run = []
     for mode in build_modes:
         if build_modes[mode]:
             build_image_run.append('python3 build.py -p %s -m %s -d $IMAGE_NAMESPACE'%(operator, mode))
 
     build_image['run'] = '\n'.join(build_image_run)
-    sieve_learn['run'] = '\n'.join(['python3 sieve.py -p %s -t %s -s learn -m learn-twice -d $IMAGE_NAMESPACE'%(operator, workload) for workload in workload_set])
-    sieve_test['run'] = '\n'.join(['python3 reprod.py -p %s -b %s -d $IMAGE_NAMESPACE'%(operator, bug) for bug in reprod_map[operator].keys()])
+    sieve_learn = [{'name': 'Sieve Learn: %s %s'%(operator, workload), 'run': 'python3 sieve.py -p %s -t %s -s learn -m learn-twice -d $IMAGE_NAMESPACE'%(operator, workload)} for workload in workload_set]
+    sieve_test = [{'name': 'Sieve Test: %s %s'%(operator, bug), 'run': 'python3 reprod.py -p %s -b %s -d $IMAGE_NAMESPACE'%(operator, bug)} for bug in reprod_map[operator].keys()]
     job['steps'].append(build_image)
-    job['steps'].append(sieve_learn)
+    job['steps'].extend(sieve_learn)
     job['steps'].append(collect_resources)
-    job['steps'].append(sieve_test)
+    job['steps'].extend(sieve_test)
     job['steps'].append(collect_log)
     jobs[operator] = job
 

@@ -54,25 +54,25 @@ jobs:
         python3 build.py -p cassandra-operator -m time-travel -d $IMAGE_NAMESPACE
 
         python3 build.py -p cassandra-operator -m observability-gap -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
-      run: 'python3 sieve.py -p cassandra-operator -t scaledown -s learn -m learn-twice
+    - name: 'Sieve Learn: cassandra-operator recreate'
+      run: python3 sieve.py -p cassandra-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p cassandra-operator -t recreate -s learn -m learn-twice
+    - name: 'Sieve Learn: cassandra-operator scaledown'
+      run: python3 sieve.py -p cassandra-operator -t scaledown -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p cassandra-operator -t scaledown-scaleup -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Learn: cassandra-operator scaledown-scaleup'
+      run: python3 sieve.py -p cassandra-operator -t scaledown-scaleup -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-cassandra-operator-data
         path: data/cassandra-operator
-    - name: Sieve Test
-      run: 'python3 reprod.py -p cassandra-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p cassandra-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p cassandra-operator -b time-travel-2 -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Test: cassandra-operator obs-gap-1'
+      run: python3 reprod.py -p cassandra-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: cassandra-operator time-travel-1'
+      run: python3 reprod.py -p cassandra-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: cassandra-operator time-travel-2'
+      run: python3 reprod.py -p cassandra-operator -b time-travel-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-cassandra-operator-log
@@ -121,14 +121,14 @@ jobs:
       run: 'python3 build.py -p cass-operator -m learn -d $IMAGE_NAMESPACE
 
         python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
+    - name: 'Sieve Learn: cass-operator recreate'
       run: python3 sieve.py -p cass-operator -t recreate -s learn -m learn-twice -d
         $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-cass-operator-data
         path: data/cass-operator
-    - name: Sieve Test
+    - name: 'Sieve Test: cass-operator time-travel-1'
       run: python3 reprod.py -p cass-operator -b time-travel-1 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
@@ -180,25 +180,30 @@ jobs:
         python3 build.py -p casskop-operator -m time-travel -d $IMAGE_NAMESPACE
 
         python3 build.py -p casskop-operator -m observability-gap -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
-      run: 'python3 sieve.py -p casskop-operator -t recreate -s learn -m learn-twice
+    - name: 'Sieve Learn: casskop-operator scaledown'
+      run: python3 sieve.py -p casskop-operator -t scaledown -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p casskop-operator -t scaledown-to-zero -s learn -m learn-twice
+    - name: 'Sieve Learn: casskop-operator recreate'
+      run: python3 sieve.py -p casskop-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p casskop-operator -t reducepdb -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Learn: casskop-operator scaledown-to-zero'
+      run: python3 sieve.py -p casskop-operator -t scaledown-to-zero -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
+    - name: 'Sieve Learn: casskop-operator reducepdb'
+      run: python3 sieve.py -p casskop-operator -t reducepdb -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-casskop-operator-data
         path: data/casskop-operator
-    - name: Sieve Test
-      run: 'python3 reprod.py -p casskop-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p casskop-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p casskop-operator -b time-travel-2 -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Test: casskop-operator obs-gap-1'
+      run: python3 reprod.py -p casskop-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: casskop-operator obs-gap-2'
+      run: python3 reprod.py -p casskop-operator -b obs-gap-2 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: casskop-operator time-travel-1'
+      run: python3 reprod.py -p casskop-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: casskop-operator time-travel-2'
+      run: python3 reprod.py -p casskop-operator -b time-travel-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-casskop-operator-log
@@ -247,14 +252,14 @@ jobs:
       run: 'python3 build.py -p nifikop-operator -m learn -d $IMAGE_NAMESPACE
 
         python3 build.py -p nifikop-operator -m atomicity-violation -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
+    - name: 'Sieve Learn: nifikop-operator change-config'
       run: python3 sieve.py -p nifikop-operator -t change-config -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-nifikop-operator-data
         path: data/nifikop-operator
-    - name: Sieve Test
+    - name: 'Sieve Test: nifikop-operator atom-vio-1'
       run: python3 reprod.py -p nifikop-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
@@ -308,27 +313,30 @@ jobs:
         python3 build.py -p rabbitmq-operator -m observability-gap -d $IMAGE_NAMESPACE
 
         python3 build.py -p rabbitmq-operator -m atomicity-violation -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
-      run: 'python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -m
-        learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p rabbitmq-operator -t recreate -s learn -m learn-twice
+    - name: 'Sieve Learn: rabbitmq-operator recreate'
+      run: python3 sieve.py -p rabbitmq-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Learn: rabbitmq-operator resize-pvc-atomic'
+      run: python3 sieve.py -p rabbitmq-operator -t resize-pvc-atomic -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
+    - name: 'Sieve Learn: rabbitmq-operator resize-pvc'
+      run: python3 sieve.py -p rabbitmq-operator -t resize-pvc -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
+    - name: 'Sieve Learn: rabbitmq-operator scaleup-scaledown'
+      run: python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-rabbitmq-operator-data
         path: data/rabbitmq-operator
-    - name: Sieve Test
-      run: 'python3 reprod.py -p rabbitmq-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p rabbitmq-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p rabbitmq-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p rabbitmq-operator -b time-travel-2 -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Test: rabbitmq-operator atom-vio-1'
+      run: python3 reprod.py -p rabbitmq-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: rabbitmq-operator obs-gap-1'
+      run: python3 reprod.py -p rabbitmq-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: rabbitmq-operator time-travel-1'
+      run: python3 reprod.py -p rabbitmq-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: rabbitmq-operator time-travel-2'
+      run: python3 reprod.py -p rabbitmq-operator -b time-travel-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-rabbitmq-operator-log
@@ -377,25 +385,25 @@ jobs:
       run: 'python3 build.py -p mongodb-operator -m learn -d $IMAGE_NAMESPACE
 
         python3 build.py -p mongodb-operator -m time-travel -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
-      run: 'python3 sieve.py -p mongodb-operator -t recreate -s learn -m learn-twice
+    - name: 'Sieve Learn: mongodb-operator recreate'
+      run: python3 sieve.py -p mongodb-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -s learn -m
+    - name: 'Sieve Learn: mongodb-operator disable-enable-shard'
+      run: python3 sieve.py -p mongodb-operator -t disable-enable-shard -s learn -m
         learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p mongodb-operator -t disable-enable-shard -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Learn: mongodb-operator disable-enable-arbiter'
+      run: python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -s learn
+        -m learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-mongodb-operator-data
         path: data/mongodb-operator
-    - name: Sieve Test
-      run: 'python3 reprod.py -p mongodb-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p mongodb-operator -b time-travel-2 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p mongodb-operator -b time-travel-3 -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Test: mongodb-operator time-travel-1'
+      run: python3 reprod.py -p mongodb-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: mongodb-operator time-travel-2'
+      run: python3 reprod.py -p mongodb-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: mongodb-operator time-travel-3'
+      run: python3 reprod.py -p mongodb-operator -b time-travel-3 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-mongodb-operator-log
@@ -444,25 +452,25 @@ jobs:
       run: 'python3 build.py -p xtradb-operator -m learn -d $IMAGE_NAMESPACE
 
         python3 build.py -p xtradb-operator -m time-travel -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
-      run: 'python3 sieve.py -p xtradb-operator -t recreate -s learn -m learn-twice
+    - name: 'Sieve Learn: xtradb-operator recreate'
+      run: python3 sieve.py -p xtradb-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -s learn -m
-        learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -s learn -m
-        learn-twice -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Learn: xtradb-operator disable-enable-proxysql'
+      run: python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -s learn
+        -m learn-twice -d $IMAGE_NAMESPACE
+    - name: 'Sieve Learn: xtradb-operator disable-enable-haproxy'
+      run: python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -s learn
+        -m learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-xtradb-operator-data
         path: data/xtradb-operator
-    - name: Sieve Test
-      run: 'python3 reprod.py -p xtradb-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p xtradb-operator -b time-travel-2 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p xtradb-operator -b time-travel-3 -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Test: xtradb-operator time-travel-1'
+      run: python3 reprod.py -p xtradb-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: xtradb-operator time-travel-2'
+      run: python3 reprod.py -p xtradb-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: xtradb-operator time-travel-3'
+      run: python3 reprod.py -p xtradb-operator -b time-travel-3 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-xtradb-operator-log
@@ -513,25 +521,25 @@ jobs:
         python3 build.py -p yugabyte-operator -m time-travel -d $IMAGE_NAMESPACE
 
         python3 build.py -p yugabyte-operator -m observability-gap -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
-      run: 'python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s
-        learn -m learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p yugabyte-operator -t disable-enable-tuiport -s learn -m
+    - name: 'Sieve Learn: yugabyte-operator disable-enable-tuiport'
+      run: python3 sieve.py -p yugabyte-operator -t disable-enable-tuiport -s learn
+        -m learn-twice -d $IMAGE_NAMESPACE
+    - name: 'Sieve Learn: yugabyte-operator disable-enable-tls'
+      run: python3 sieve.py -p yugabyte-operator -t disable-enable-tls -s learn -m
         learn-twice -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p yugabyte-operator -t disable-enable-tls -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Learn: yugabyte-operator scaleup-scaledown-tserver'
+      run: python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s learn
+        -m learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-yugabyte-operator-data
         path: data/yugabyte-operator
-    - name: Sieve Test
-      run: 'python3 reprod.py -p yugabyte-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p yugabyte-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p yugabyte-operator -b time-travel-2 -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Test: yugabyte-operator obs-gap-1'
+      run: python3 reprod.py -p yugabyte-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: yugabyte-operator time-travel-1'
+      run: python3 reprod.py -p yugabyte-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: yugabyte-operator time-travel-2'
+      run: python3 reprod.py -p yugabyte-operator -b time-travel-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-yugabyte-operator-log
@@ -580,20 +588,20 @@ jobs:
       run: 'python3 build.py -p zookeeper-operator -m learn -d $IMAGE_NAMESPACE
 
         python3 build.py -p zookeeper-operator -m time-travel -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn
-      run: 'python3 sieve.py -p zookeeper-operator -t recreate -s learn -m learn-twice
+    - name: 'Sieve Learn: zookeeper-operator recreate'
+      run: python3 sieve.py -p zookeeper-operator -t recreate -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-
-        python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Learn: zookeeper-operator scaledown-scaleup'
+      run: python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -s learn -m
+        learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-zookeeper-operator-data
         path: data/zookeeper-operator
-    - name: Sieve Test
-      run: 'python3 reprod.py -p zookeeper-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-
-        python3 reprod.py -p zookeeper-operator -b time-travel-2 -d $IMAGE_NAMESPACE'
+    - name: 'Sieve Test: zookeeper-operator time-travel-1'
+      run: python3 reprod.py -p zookeeper-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: 'Sieve Test: zookeeper-operator time-travel-2'
+      run: python3 reprod.py -p zookeeper-operator -b time-travel-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-zookeeper-operator-log
