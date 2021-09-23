@@ -16,13 +16,13 @@
         name: apt-transport-https
         state: present
       
-    - name: Add ansible APT repositories
+    - name: Add helm apt repositories
       apt_repository:
         repo: deb https://baltocdn.com/helm/stable/debian/ all main
         state: present
         filename: helm-stable-debian
 
-    - name: install Helm
+    - name: install helm
       apt:
         name: helm
         state: present
