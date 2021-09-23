@@ -584,7 +584,7 @@ def run(
             }
 
             # Testing mode, write test result under sieve_test_result directory
-            result_filename = "sieve_test_results/{}-{}-{}.json".format(project, mode, os.path.basename(test_config))
+            result_filename = "sieve_test_results/{}-{}-{}.json".format(project, test, os.path.basename(test_config))
             if not os.path.exists(os.path.dirname(result_filename)):
                 try:
                     os.makedirs(os.path.dirname(result_filename))
