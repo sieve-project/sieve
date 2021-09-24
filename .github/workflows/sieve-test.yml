@@ -9,7 +9,9 @@ env:
   IMAGE_NAMESPACE: ghcr.io/sieve-project/action
 jobs:
   cassandra-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -82,7 +84,9 @@ jobs:
         name: sieve-cassandra-operator-log
         path: log
   cass-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -143,7 +147,9 @@ jobs:
         name: sieve-cass-operator-log
         path: log
   casskop-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -216,7 +222,9 @@ jobs:
         name: sieve-casskop-operator-log
         path: log
   nifikop-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -277,7 +285,9 @@ jobs:
         name: sieve-nifikop-operator-log
         path: log
   rabbitmq-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -354,7 +364,9 @@ jobs:
         name: sieve-rabbitmq-operator-log
         path: log
   mongodb-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -425,7 +437,9 @@ jobs:
         name: sieve-mongodb-operator-log
         path: log
   xtradb-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -475,12 +489,12 @@ jobs:
     - name: Sieve Learn - xtradb-operator disable-enable-haproxy
       run: python3 sieve.py -p xtradb-operator -t disable-enable-haproxy -s learn
         -m learn-twice -d $IMAGE_NAMESPACE
-    - name: Sieve Learn - xtradb-operator recreate
-      run: python3 sieve.py -p xtradb-operator -t recreate -s learn -m learn-twice
-        -d $IMAGE_NAMESPACE
     - name: Sieve Learn - xtradb-operator disable-enable-proxysql
       run: python3 sieve.py -p xtradb-operator -t disable-enable-proxysql -s learn
         -m learn-twice -d $IMAGE_NAMESPACE
+    - name: Sieve Learn - xtradb-operator recreate
+      run: python3 sieve.py -p xtradb-operator -t recreate -s learn -m learn-twice
+        -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-xtradb-operator-data
@@ -496,7 +510,9 @@ jobs:
         name: sieve-xtradb-operator-log
         path: log
   yugabyte-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config
@@ -545,15 +561,15 @@ jobs:
         python3 build.py -p yugabyte-operator -m time-travel -d $IMAGE_NAMESPACE
 
         python3 build.py -p yugabyte-operator -m observability-gap -d $IMAGE_NAMESPACE'
-    - name: Sieve Learn - yugabyte-operator scaleup-scaledown-tserver
-      run: python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s learn
-        -m learn-twice -d $IMAGE_NAMESPACE
     - name: Sieve Learn - yugabyte-operator disable-enable-tuiport
       run: python3 sieve.py -p yugabyte-operator -t disable-enable-tuiport -s learn
         -m learn-twice -d $IMAGE_NAMESPACE
     - name: Sieve Learn - yugabyte-operator disable-enable-tls
       run: python3 sieve.py -p yugabyte-operator -t disable-enable-tls -s learn -m
         learn-twice -d $IMAGE_NAMESPACE
+    - name: Sieve Learn - yugabyte-operator scaleup-scaledown-tserver
+      run: python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s learn
+        -m learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       with:
         name: sieve-yugabyte-operator-data
@@ -569,7 +585,9 @@ jobs:
         name: sieve-yugabyte-operator-log
         path: log
   zookeeper-operator:
-    runs-on: ubuntu-latest
+    runs-on:
+    - self-hosted
+    - linux
     env:
       GOPATH: /home/runner/go
       KUBECONFIG: /home/runner/.kube/config

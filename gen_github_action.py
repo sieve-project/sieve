@@ -8,7 +8,7 @@ jobs = {}
 
 for operator in reprod_map:
     job = {
-        'runs-on': 'ubuntu-latest',
+        'runs-on': ['self-hosted', 'linux'],
         'env': {'GOPATH': '/home/runner/go',
         'KUBECONFIG': '/home/runner/.kube/config'},
         'steps': [
@@ -47,7 +47,7 @@ for operator in reprod_map:
         sieve_modes.ATOM_VIO: False
     }
     workload_set = set()
-    
+
     for bug in reprod_map[operator]:
         workload = reprod_map[operator][bug][0]
         config_name = reprod_map[operator][bug][1]
@@ -55,7 +55,7 @@ for operator in reprod_map:
         build_modes[config['mode']] = True
         workload_set.add(workload)
 #         print(operator, bug, workload, config['mode'])
-    
+
     build_image_run = []
     for mode in build_modes:
         if build_modes[mode]:
