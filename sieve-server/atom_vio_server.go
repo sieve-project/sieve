@@ -20,8 +20,8 @@ func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 		seNamespace: config["se-namespace"].(string),
 		seRtype:     config["se-rtype"].(string),
 		seEtype:     config["se-etype"].(string),
-		crucialCur:  config["se-diff-current"].(string),
-		crucialPrev: config["se-diff-previous"].(string),
+		crucialCur:  strToMap(config["se-diff-current"].(string)),
+		crucialPrev: strToMap(config["se-diff-previous"].(string)),
 		seEtypePrev: config["se-etype-previous"].(string),
 	}
 	listener := &AtomVioListener{
@@ -65,8 +65,8 @@ type atomVioServer struct {
 	seNamespace string
 	seRtype     string
 	seEtype     string
-	crucialCur  string
-	crucialPrev string
+	crucialCur  map[string]interface{}
+	crucialPrev map[string]interface{}
 	seEtypePrev string
 }
 
@@ -80,9 +80,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomV
 		readObj := strToMap(request.Object)
 		if isSameObject(readObj, s.seNamespace, s.seName) {
 			if !s.seenPrev {
-				crucialCurEvent := strToMap(s.crucialCur)
-				crucialPrevEvent := strToMap(s.crucialPrev)
-				seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, readObj)
+				seenCrucialEvent(&s.seenPrev, &s.seenCur, s.crucialCur, s.crucialPrev, readObj)
 			}
 		}
 	}
@@ -97,9 +95,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtom
 		for _, readObj := range readObjs {
 			if isSameObject(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
 				if !s.seenPrev {
-					crucialCurEvent := strToMap(s.crucialCur)
-					crucialPrevEvent := strToMap(s.crucialPrev)
-					seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, readObj.(map[string]interface{}))
+					seenCrucialEvent(&s.seenPrev, &s.seenCur, s.crucialCur, s.crucialPrev, readObj.(map[string]interface{}))
 				}
 				break
 			}
@@ -115,9 +111,7 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 		writeObj := strToMap(request.Object)
 		if isSameObject(writeObj, s.seNamespace, s.seName) {
 			if s.seenPrev {
-				crucialCurEvent := strToMap(s.crucialCur)
-				crucialPrevEvent := strToMap(s.crucialPrev)
-				if seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, writeObj) {
+				if seenCrucialEvent(&s.seenPrev, &s.seenCur, s.crucialCur, s.crucialPrev, writeObj) {
 					log.Println("ready to crash!")
 					restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
 				}

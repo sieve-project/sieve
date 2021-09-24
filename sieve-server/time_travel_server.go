@@ -16,8 +16,8 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		restarted:   false,
 		pauseCh:     make(chan int),
 		straggler:   config["straggler"].(string),
-		crucialCur:  config["ce-diff-current"].(string),
-		crucialPrev: config["ce-diff-previous"].(string),
+		crucialCur:  strToMap(config["ce-diff-current"].(string)),
+		crucialPrev: strToMap(config["ce-diff-previous"].(string)),
 		podLabel:    config["operator-pod-label"].(string),
 		frontRunner: config["front-runner"].(string),
 		deployName:  config["deployment-name"].(string),
@@ -56,8 +56,8 @@ type timeTravelServer struct {
 	project     string
 	straggler   string
 	frontRunner string
-	crucialCur  string
-	crucialPrev string
+	crucialCur  map[string]interface{}
+	crucialPrev map[string]interface{}
 	podLabel    string
 	seenPrev    bool
 	seenCur     bool
@@ -78,10 +78,8 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 		return nil
 	}
 	currentEvent := strToMap(request.Object)
-	crucialCurEvent := strToMap(s.crucialCur)
-	crucialPrevEvent := strToMap(s.crucialPrev)
 	log.Printf("[sieve][current-event] %s\n", request.Object)
-	if seenCrucialEvent(&s.seenPrev, &s.seenCur, crucialCurEvent, crucialPrevEvent, currentEvent) {
+	if seenCrucialEvent(&s.seenPrev, &s.seenCur, s.crucialCur, s.crucialPrev, currentEvent) {
 		log.Println("[sieve] should sleep here")
 		<-s.pauseCh
 		log.Println("[sieve] sleep over")
