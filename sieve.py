@@ -594,6 +594,13 @@ def run(
                     test_result_json,
                     indent=4,
                 )
+
+            # XXX: Temporarily copy log information to save it for later analysis
+            test_log_save = os.path.join("log_save", project, test, stage)
+            os.system("mkdir -p {}".format(test_log_save))
+            os.system('cp -r {} {}'.format(log_dir, os.path.join(
+                test_log_save, os.path.splitext(os.path.basename(test_config))[0])))
+
             return alarm, bug_report
 
 
