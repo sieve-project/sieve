@@ -78,7 +78,7 @@ config_test = {
 }
 
 jobs_daily = copy.deepcopy(jobs)
-jobs_daily['runs-on'] = ['self-hosted']
+jobs_daily['runs-on'] = 'self-hosted'
 config_daily = {
     'name': 'Sieve Daily Integration',
     'on': {
