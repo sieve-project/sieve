@@ -33,7 +33,7 @@ for operator in reprod_map:
             {'name': 'Install Helm',
              'run': 'wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz\ntar -zxvf helm-v3.6.0-linux-amd64.tar.gz\nsudo mv linux-amd64/helm /usr/local/bin/helm\nhelm'},
             {'name': 'Sieve CI config generate',
-             'run': 'echo "{\\"workload_wait_timeout\\": 1200}" > sieve_config.json\ncat sieve_config.json'}
+             'run': 'echo "{\\"workload_wait_timeout\\": 600}" > sieve_config.json\ncat sieve_config.json'}
         ]
     }
     collect_resources = {'uses': 'actions/upload-artifact@v2',
@@ -67,7 +67,6 @@ for operator in reprod_map:
     jobs[operator] = job
 
 jobs_test = copy.deepcopy(jobs)
-jobs_test.pop('xtradb-operator', None)
 config_test = {
     'name': 'Sieve Test',
     'on': {
