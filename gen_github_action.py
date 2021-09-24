@@ -36,50 +36,45 @@ for operator in reprod_map:
              'run': 'echo "{\\"workload_wait_timeout\\": 1200}" > sieve_config.json\ncat sieve_config.json'}
         ]
     }
-    build_image = {'name': 'Build Image', 'run': ''}
     collect_resources = {'uses': 'actions/upload-artifact@v2',
         'with': {'name': 'sieve-%s-data'%(operator), 'path': 'data/%s'%(operator)}}
     collect_log = {'uses': 'actions/upload-artifact@v2',
         'with': {'name': 'sieve-%s-log'%(operator), 'path': 'log'}}
 
-    build_modes = {
-        "learn": True,
-        sieve_modes.TIME_TRAVEL: False,
-        sieve_modes.OBS_GAP: False,
-        sieve_modes.ATOM_VIO: False
-    }
+    build_modes = [
+        "learn",
+        sieve_modes.TIME_TRAVEL,
+        sieve_modes.OBS_GAP,
+        sieve_modes.ATOM_VIO
+    ]
     workload_set = set()
 
     for bug in reprod_map[operator]:
         workload = reprod_map[operator][bug][0]
         config_name = reprod_map[operator][bug][1]
         config = yaml.safe_load(open(os.path.join("reprod", config_name)).read())
-        build_modes[config['mode']] = True
         workload_set.add(workload)
 #         print(operator, bug, workload, config['mode'])
 
-    build_image_run = []
-    for mode in build_modes:
-        if build_modes[mode]:
-            build_image_run.append('python3 build.py -p %s -m %s -d $IMAGE_NAMESPACE'%(operator, mode))
-
-    build_image['run'] = '\n'.join(build_image_run)
+    build_image = [{'name': 'Build Image - %s'%(mode), 'run': 'python3 build.py -p %s -m %s -d $IMAGE_NAMESPACE'%(operator, mode)} for mode in build_modes]
     sieve_learn = [{'name': 'Sieve Learn - %s %s'%(operator, workload), 'run': 'python3 sieve.py -p %s -t %s -s learn -m learn-twice -d $IMAGE_NAMESPACE'%(operator, workload)} for workload in workload_set]
     sieve_test = [{'name': 'Sieve Test - %s %s'%(operator, bug), 'run': 'python3 reprod.py -p %s -b %s -d $IMAGE_NAMESPACE'%(operator, bug)} for bug in reprod_map[operator].keys()]
-    job['steps'].append(build_image)
+    job['steps'].extend(build_image)
     job['steps'].extend(sieve_learn)
     job['steps'].append(collect_resources)
     job['steps'].extend(sieve_test)
     job['steps'].append(collect_log)
     jobs[operator] = job
 
+jobs_test = copy.deepcopy(jobs)
+jobs_test.pop('xtradb-operator', None)
 config_test = {
     'name': 'Sieve Test',
     'on': {
         'pull_request': None,
         'workflow_dispatch': None},
     'env': {'IMAGE_NAMESPACE': 'ghcr.io/sieve-project/action'},
-    'jobs': jobs,
+    'jobs': jobs_test,
 }
 
 jobs_daily = copy.deepcopy(jobs)
