@@ -10,6 +10,7 @@ jobs = {}
 
 for operator in reprod_map:
     job = {
+        'runs-on': 'ubuntu-latest',
         'env': {'GOPATH': '/home/runner/go',
         'KUBECONFIG': '/home/runner/.kube/config'},
         'steps': [
