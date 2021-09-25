@@ -43,6 +43,9 @@ def compress_event_object_for_list(
     for i in range(len(slim_cur_object)):
         if slim_cur_object[i] != SIEVE_SKIP_MARKER:
             return False
+    for i in range(len(slim_prev_object)):
+        if slim_prev_object[i] != SIEVE_SKIP_MARKER:
+            return False
     return True
 
 
