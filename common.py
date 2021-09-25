@@ -25,23 +25,21 @@ NONEXIST = False
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
 BORING_EVENT_OBJECT_FIELDS = [
-    "resourceVersion",
-    "time",
-    "managedFields",
-    "lastTransitionTime",
-    "generation",
-    "annotations",
-    "deletionGracePeriodSeconds",
-    "image",
-    "imageID",
-    "nodeName",
-    "hostIP",
-    "message",
-    "labels",
-    "generateName",
-    "ownerReferences",
-    "podIP",
-    "ip",
+    "uid",  # random
+    "resourceVersion",  # random
+    "generation",  # random
+    "annotations",  # verbose
+    "managedFields",  # verbose
+    "lastTransitionTime",  # timing
+    "deletionGracePeriodSeconds",  # timing
+    "time",  # timing
+    "podIP",  # IP assignment is random
+    "ip",  # IP assignment is random
+    "hostIP",  # IP assignment is random
+    "nodeName",  # node assignment is random
+    "imageID",  # image ID is randome
+    "ContainerID",  # container ID is random
+    "labels",  # label can contain random strings e.g., controller-revision-hash
 ]
 
 TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
