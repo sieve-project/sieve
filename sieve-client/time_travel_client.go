@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	// "k8s.io/apimachinery/pkg/api/meta"
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
@@ -42,8 +41,9 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	}
 	namespace := tokens[len(tokens)-2]
 	name := tokens[len(tokens)-1]
-	log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
+		log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
+		// startTime := time.Now()
 		log.Printf("[sieve][rt-ns-name][curcial-event] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
@@ -72,7 +72,10 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		}
 		checkResponse(response, "NotifyTimeTravelCrucialEvent")
 		client.Close()
+		// timeInterval := time.Since(startTime).String()
+		// log.Printf("[NotifyTimeTravelAboutProcessEvent] takes %s\n", timeInterval)
 	} else if name == config["se-name"].(string) && namespace == config["se-namespace"].(string) && resourceType == config["se-rtype"].(string) && eventType == config["se-etype"] {
+		log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 		log.Printf("[sieve][rt-ns-name][side-effect] %s %s %s", resourceType, namespace, name)
 		client, err := newClient()
 		if err != nil {
