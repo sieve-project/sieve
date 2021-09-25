@@ -1,4 +1,4 @@
-from common import sieve_modes, cmd_early_exit
+from common import sieve_modes, cmd_early_exit, sieve_stages
 import os
 import controllers
 import optparse
@@ -301,6 +301,15 @@ if __name__ == "__main__":
         options.mode = sieve_modes.ATOM_VIO
     if options.project == "k8s":
         options.project = "kubernetes"
+
+    if options.mode not in [
+        sieve_modes.VANILLA,
+        sieve_modes.TIME_TRAVEL,
+        sieve_modes.OBS_GAP,
+        sieve_modes.ATOM_VIO,
+        sieve_stages.LEARN,
+    ]:
+        parser.error("invalid build mode option: %s" % options.mode)
 
     img_repo = (
         options.docker
