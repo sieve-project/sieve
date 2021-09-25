@@ -41,16 +41,13 @@ func strToMap(str string) map[string]interface{} {
 	if err != nil {
 		log.Fatalf("cannot unmarshal to map: %s\n", str)
 	}
-	// toLowerMap(m)
 	return m
 }
 
-func deepCopyMap(src map[string]interface{}, dest map[string]interface{}) {
+func deepCopyMap(src map[string]interface{}) map[string]interface{} {
+	dest := make(map[string]interface{})
 	if src == nil {
 		log.Fatalf("src is nil. You cannot read from a nil map")
-	}
-	if dest == nil {
-		log.Fatalf("dest is nil. You cannot insert to a nil map")
 	}
 	jsonStr, err := json.Marshal(src)
 	if err != nil {
@@ -60,6 +57,7 @@ func deepCopyMap(src map[string]interface{}, dest map[string]interface{}) {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+	return dest
 }
 
 func subEventList(crucialEvent, currentEvent []interface{}) bool {
@@ -196,8 +194,7 @@ func subEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
 		return false
 	}
 	if _, ok := crucialEvent["metadata"]; ok {
-		copiedCrucialEvent := make(map[string]interface{})
-		deepCopyMap(crucialEvent, copiedCrucialEvent)
+		copiedCrucialEvent := deepCopyMap(crucialEvent)
 		metadataMap := copiedCrucialEvent["metadata"]
 		if m, ok := metadataMap.(map[string]interface{}); ok {
 			for key := range m {
@@ -379,24 +376,6 @@ func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, stri
 	}
 	return name, namespace
 }
-
-// func getEventResourceName(event map[string]interface{}) string {
-// 	if event["metadata"] != nil {
-// 		metadata := event["metadata"].(map[string]interface{})
-// 		return metadata["name"].(string)
-// 	} else {
-// 		return event["name"].(string)
-// 	}
-// }
-
-// func getEventResourceNamespace(event map[string]interface{}) string {
-// 	if event["metadata"] != nil {
-// 		metadata := event["metadata"].(map[string]interface{})
-// 		return metadata["namespace"].(string)
-// 	} else {
-// 		return event["namespace"].(string)
-// 	}
-// }
 
 func isSameObject(currentEvent map[string]interface{}, namespace string, name string) bool {
 	extractedName, extractedNamespace := extractNameNamespaceFromObjMap(currentEvent)
