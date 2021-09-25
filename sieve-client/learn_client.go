@@ -3,7 +3,6 @@ package sieve
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -22,7 +21,7 @@ func isCRD(rType string, crds []string) bool {
 
 func triggerReconcile(object interface{}) bool {
 	crds := getCRDs()
-	rType := regularizeType(reflect.TypeOf(object).String())
+	rType := regularizeType(object)
 	if isCRD(rType, crds) {
 		return true
 	}
@@ -61,7 +60,7 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 	request := &NotifyLearnBeforeIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:  regularizeType(object),
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeIndexerWrite", request, &response)
@@ -194,7 +193,7 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
-		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:   regularizeType(object),
 		Error:          errorString,
 	}
 	var response Response
@@ -226,7 +225,7 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyLearnAfterOperatorGetRequest{
-		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		ResourceType: regularizeType(object),
 		Namespace:    namespacedName.Namespace,
 		Name:         namespacedName.Name,
 		Object:       string(jsonObject),
@@ -261,7 +260,7 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyLearnAfterOperatorListRequest{
-		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		ResourceType: regularizeType(object),
 		ObjectList:   string(jsonObject),
 		Error:        errorString,
 	}

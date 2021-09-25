@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"reflect"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -127,7 +126,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
-		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:   regularizeType(object),
 		Error:          errorString,
 	}
 	var response Response

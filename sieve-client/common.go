@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/rpc"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -161,7 +162,8 @@ func checkResponse(response Response, reqName string) {
 	}
 }
 
-func regularizeType(rtype string) string {
+func regularizeType(object interface{}) string {
+	rtype := reflect.TypeOf(object).String()
 	tokens := strings.Split(rtype, ".")
 	return strings.ToLower(tokens[len(tokens)-1])
 }

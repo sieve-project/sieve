@@ -2,7 +2,6 @@ package sieve
 
 import (
 	"encoding/json"
-	"reflect"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -26,7 +25,7 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyAtomVioAfterOperatorGetRequest{
-		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		ResourceType: regularizeType(object),
 		Namespace:    namespacedName.Namespace,
 		Name:         namespacedName.Name,
 		Object:       string(jsonObject),
@@ -60,7 +59,7 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyAtomVioAfterOperatorListRequest{
-		ResourceType: regularizeType(reflect.TypeOf(object).String()),
+		ResourceType: regularizeType(object),
 		ObjectList:   string(jsonObject),
 		Error:        errorString,
 	}
@@ -95,7 +94,7 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
-		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:   regularizeType(object),
 		Error:          errorString,
 	}
 	var response Response

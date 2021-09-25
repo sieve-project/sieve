@@ -3,7 +3,6 @@ package sieve
 import (
 	"encoding/json"
 	"log"
-	"reflect"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 )
@@ -28,7 +27,7 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 	request := &NotifyObsGapBeforeIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:  regularizeType(object),
 	}
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapBeforeIndexerWrite", request, &response)
@@ -59,7 +58,7 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 	request := &NotifyObsGapAfterIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:  regularizeType(object),
 	}
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapAfterIndexerWrite", request, &response)
@@ -139,7 +138,7 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
-		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:   regularizeType(object),
 		Error:          errorString,
 	}
 	var response Response
