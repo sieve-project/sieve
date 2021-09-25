@@ -81,6 +81,8 @@ type obsGapServer struct {
 
 func (s *obsGapServer) Start() {
 	log.Println("start obsGapServer...")
+	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
+	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one

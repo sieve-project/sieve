@@ -4,29 +4,47 @@ import (
 	"encoding/json"
 	"log"
 	"regexp"
+	"strings"
 )
 
 const TIME_REG string = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 
+// mark a list item to skip
 const SIEVE_SKIP_MARKER string = "SIEVE-SKIP"
+
+// mark a canonicalized value
 const SIEVE_CANONICALIZATION_MARKER string = "SIEVE-NON-NIL"
 
-var BORING_KEYS = [...]string{
-	"uid",                        // random
-	"resourceVersion",            // random
-	"generation",                 // random
-	"annotations",                // verbose
-	"managedFields",              // verbose
-	"lastTransitionTime",         // timing
-	"deletionGracePeriodSeconds", // timing
-	"time",                       // timing
-	"podIP",                      // IP assignment is random
-	"ip",                         // IP assignment is random
-	"hostIP",                     // IP assignment is random
-	"nodeName",                   // node assignment is random
-	"imageID",                    // image ID is randome
-	"ContainerID",                // container ID is random
-	"labels",                     // label can contain random strings e.g., controller-revision-hash
+var exists = struct{}{}
+
+// resources that have different representation between API and controller side
+var CONFORM_TYPES = map[string]struct{}{"pod": exists}
+
+// keys that to ignore when computing event diff
+var BORING_KEYS = map[string]struct{}{
+	"uid":                        exists, // random
+	"resourceVersion":            exists, // random
+	"generation":                 exists, // random
+	"annotations":                exists, // verbose
+	"managedFields":              exists, // verbose
+	"lastTransitionTime":         exists, // timing
+	"deletionGracePeriodSeconds": exists, // timing
+	"time":                       exists, // timing
+	"podIP":                      exists, // IP assignment is random
+	"ip":                         exists, // IP assignment is random
+	"hostIP":                     exists, // IP assignment is random
+	"nodeName":                   exists, // node assignment is random
+	"imageID":                    exists, // image ID is randome
+	"ContainerID":                exists, // container ID is random
+	"labels":                     exists, // label can contain random strings e.g., controller-revision-hash
+}
+
+func inSet(key string, set map[string]struct{}) bool {
+	if _, ok := set[key]; ok {
+		return true
+	} else {
+		return false
+	}
 }
 
 func mapToStr(m map[string]interface{}) string {
@@ -71,15 +89,6 @@ func mapKeySymDiff(mapA, mapB map[string]interface{}) []string {
 	diffBAKeys := mapKeyDiff(mapB, mapA)
 	symDiffKeys := append(diffABKeys, diffBAKeys...)
 	return symDiffKeys
-}
-
-func boringKey(key string) bool {
-	for _, bKey := range BORING_KEYS {
-		if key == bKey {
-			return true
-		}
-	}
-	return false
 }
 
 func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interface{}) {
@@ -166,7 +175,7 @@ func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]inte
 	diffPrevEvent := make(map[string]interface{})
 	diffCurEvent := make(map[string]interface{})
 	for _, key := range mapKeyIntersection(prevEvent, curEvent) {
-		if boringKey(key) {
+		if inSet(key, BORING_KEYS) {
 			continue
 		} else if interfaceToStr(prevEvent[key]) == interfaceToStr(curEvent[key]) {
 			continue
@@ -204,13 +213,13 @@ func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]inte
 		}
 	}
 	for _, key := range mapKeyDiff(prevEvent, curEvent) {
-		if boringKey(key) {
+		if inSet(key, BORING_KEYS) {
 			continue
 		}
 		diffPrevEvent[key] = prevEvent[key]
 	}
 	for _, key := range mapKeyDiff(curEvent, prevEvent) {
-		if boringKey(key) {
+		if inSet(key, BORING_KEYS) {
 			continue
 		}
 		diffCurEvent[key] = curEvent[key]
@@ -218,13 +227,16 @@ func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]inte
 	return diffPrevEvent, diffCurEvent
 }
 
-func diffEvent(prevEvent, curEvent map[string]interface{}) (map[string]interface{}, map[string]interface{}) {
-	diffPrevEvent, diffCurEvent := diffEventAsMap(prevEvent, curEvent)
-	copiedDiffPrevEvent := deepCopyMap(diffPrevEvent)
-	copiedDiffCurEvent := deepCopyMap(diffCurEvent)
-	canonicalizeEventAsMap(copiedDiffPrevEvent)
-	canonicalizeEventAsMap(copiedDiffCurEvent)
-	return copiedDiffPrevEvent, copiedDiffCurEvent
+func canonicalizeValue(value string) string {
+	match, err := regexp.MatchString(TIME_REG, value)
+	if err != nil {
+		log.Fatalf("fail to compile %s", TIME_REG)
+	}
+	if match {
+		return SIEVE_CANONICALIZATION_MARKER
+	} else {
+		return value
+	}
 }
 
 func canonicalizeEventAsList(event []interface{}) {
@@ -253,16 +265,19 @@ func canonicalizeEventAsMap(event map[string]interface{}) {
 	}
 }
 
-func canonicalizeValue(value string) string {
-	match, err := regexp.MatchString(TIME_REG, value)
-	if err != nil {
-		log.Fatalf("fail to compile %s", TIME_REG)
-	}
-	if match {
-		return SIEVE_CANONICALIZATION_MARKER
-	} else {
-		return value
-	}
+func diffEvent(prevEvent, curEvent map[string]interface{}) (map[string]interface{}, map[string]interface{}) {
+	// We first compute the diff between the prevEvent and the curEvent
+	diffPrevEvent, diffCurEvent := diffEventAsMap(prevEvent, curEvent)
+	// Deepcopy the diff[Prev|Cur]Event as we need to modify them during canonicalization
+	copiedDiffPrevEvent := deepCopyMap(diffPrevEvent)
+	copiedDiffCurEvent := deepCopyMap(diffCurEvent)
+	// We canonicalize all the timing related fields
+	canonicalizeEventAsMap(copiedDiffPrevEvent)
+	canonicalizeEventAsMap(copiedDiffCurEvent)
+	// After canonicalization some values are replaced by SIEVE_CANONICALIZATION_MARKER, we compute diff again
+	diffPrevEventAfterCan, diffCurEventAfterCan := diffEventAsMap(copiedDiffPrevEvent, copiedDiffCurEvent)
+	// Note that we do not perform canonicalization at the beginning as it is more expensive to do so
+	return diffPrevEventAfterCan, diffCurEventAfterCan
 }
 
 func equivalentEvent(eventA, eventB map[string]interface{}) bool {
@@ -282,4 +297,70 @@ func seenCrucialEvent(prevEvent, curEvent, targetDiffPrevEvent, targetDiffCurEve
 	} else {
 		return false
 	}
+}
+
+func capitalizeKey(key string) string {
+	return strings.ToUpper(key[0:1]) + key[1:]
+}
+
+func capitalizeEventAsList(event []interface{}) []interface{} {
+	capitalizedEvent := make([]interface{}, len(event))
+	for i, val := range event {
+		switch typedVal := val.(type) {
+		case map[string]interface{}:
+			capitalizedEvent[i] = capitalizeEventAsMap(typedVal)
+		case []interface{}:
+			capitalizedEvent[i] = capitalizeEventAsList(typedVal)
+		default:
+			capitalizedEvent[i] = typedVal
+		}
+	}
+	return capitalizedEvent
+}
+
+func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
+	capitalizedEvent := make(map[string]interface{})
+	for key, val := range event {
+		switch typedVal := val.(type) {
+		case map[string]interface{}:
+			capitalizedEvent[capitalizeKey(key)] = capitalizeEventAsMap(typedVal)
+		case []interface{}:
+			capitalizedEvent[capitalizeKey(key)] = capitalizeEventAsList(typedVal)
+		default:
+			capitalizedEvent[capitalizeKey(key)] = typedVal
+
+		}
+	}
+	return capitalizedEvent
+}
+
+func conformToAPIEvent(event map[string]interface{}, rType string) map[string]interface{} {
+	if !inSet(rType, CONFORM_TYPES) {
+		return event
+	}
+
+	log.Println("Need to conform")
+
+	// Sometimes the event object representation is different between the API side and the operator side
+	// There are mainly two difference:
+	// 1. `metadata` is missing at the API side but the inner fields still exist
+	// 2. field name starts with a capitalized word if not inside `metadata` at the API side
+	conformedEvent := make(map[string]interface{})
+
+	// step 1: move any field inside `metadata` outside
+	if val, ok := event["metadata"]; ok {
+		metadataMap := val.(map[string]interface{})
+		for mkey, mval := range metadataMap {
+			conformedEvent[mkey] = mval
+		}
+		delete(event, "metadata")
+	}
+
+	// step 2: capitalized each key if it is not in `metadata`
+	capitalizedEvent := capitalizeEventAsMap(event)
+	for key, val := range capitalizedEvent {
+		conformedEvent[key] = val
+	}
+
+	return conformedEvent
 }

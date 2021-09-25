@@ -72,6 +72,8 @@ type atomVioServer struct {
 
 func (s *atomVioServer) Start() {
 	log.Println("start atomVioServer...")
+	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
+	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
 
 func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {

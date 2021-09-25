@@ -14,8 +14,8 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		restarted:     false,
 		pauseCh:       make(chan int),
 		straggler:     config["straggler"].(string),
-		diffCurEvent:  strToMap(config["ce-diff-current"].(string)),
-		diffPrevEvent: strToMap(config["ce-diff-previous"].(string)),
+		diffCurEvent:  conformToAPIEvent(strToMap(config["ce-diff-current"].(string)), config["ce-rtype"].(string)),
+		diffPrevEvent: conformToAPIEvent(strToMap(config["ce-diff-previous"].(string)), config["ce-rtype"].(string)),
 		podLabel:      config["operator-pod-label"].(string),
 		frontRunner:   config["front-runner"].(string),
 		deployName:    config["deployment-name"].(string),
@@ -71,6 +71,8 @@ type timeTravelServer struct {
 
 func (s *timeTravelServer) Start() {
 	log.Println("start timeTravelServer...")
+	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
+	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
 
 func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTimeTravelCrucialEventRequest, response *sieve.Response) error {
