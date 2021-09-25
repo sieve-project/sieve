@@ -1,0 +1,2328 @@
+{
+    "configmap": [
+        {
+            "data": {
+                "SIEVE-CRD-LIST": "zookeepercluster",
+                "SIEVE-MODE": "learn",
+                "SIEVE-RATE-LIMITER-ENABLED": "false",
+                "SIEVE-RATE-LIMITER-INTERVAL": "3",
+                "SIEVE-STAGE": "learn"
+            },
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"zookeepercluster\",\"SIEVE-MODE\":\"learn\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:data": {
+                                ".": {},
+                                "f:SIEVE-CRD-LIST": {},
+                                "f:SIEVE-MODE": {},
+                                "f:SIEVE-RATE-LIMITER-ENABLED": {},
+                                "f:SIEVE-RATE-LIMITER-INTERVAL": {},
+                                "f:SIEVE-STAGE": {}
+                            },
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                }
+                            }
+                        },
+                        "manager": "kubectl-client-side-apply",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "sieve-testing-global-config",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/sieve-testing-global-config",
+                "uid": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "data": {
+                "env.sh": "#!/usr/bin/env bash\n\nDOMAIN=zookeeper-cluster-headless.default.svc.cluster.local\nQUORUM_PORT=2888\nLEADER_PORT=3888\nCLIENT_HOST=zookeeper-cluster-client\nCLIENT_PORT=2181\nADMIN_SERVER_HOST=zookeeper-cluster-admin-server\nADMIN_SERVER_PORT=8080\nCLUSTER_NAME=zookeeper-cluster\nCLUSTER_SIZE=1\n",
+                "log4j-quiet.properties": "log4j.rootLogger=ERROR, CONSOLE\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\nlog4j.appender.CONSOLE.Threshold=ERROR\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n\n",
+                "log4j.properties": "zookeeper.root.logger=CONSOLE\nzookeeper.console.threshold=INFO\nlog4j.rootLogger=${zookeeper.root.logger}\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\nlog4j.appender.CONSOLE.Threshold=${zookeeper.console.threshold}\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n\n",
+                "zoo.cfg": "4lw.commands.whitelist=cons, envi, conf, crst, srvr, stat, mntr, ruok\ndataDir=/data\nstandaloneEnabled=false\nreconfigEnabled=true\nskipACL=yes\nmetricsProvider.className=org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider\nmetricsProvider.httpPort=7000\nmetricsProvider.exportJvmInfo=true\ninitLimit=10\nsyncLimit=2\ntickTime=2000\nglobalOutstandingLimit=1000\npreAllocSize=65536\nsnapCount=10000\ncommitLogCount=500\nsnapSizeLimitInKb=4194304\nmaxCnxns=0\nmaxClientCnxns=60\nminSessionTimeout=4000\nmaxSessionTimeout=40000\nautopurge.snapRetainCount=3\nautopurge.purgeInterval=1\nquorumListenOnAllIPs=false\nadmin.serverPort=8080\ndynamicConfigFile=/data/zoo.cfg.dynamic\n"
+            },
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "release": "zookeeper-cluster"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:data": {
+                                ".": {},
+                                "f:env.sh": {},
+                                "f:log4j-quiet.properties": {},
+                                "f:log4j.properties": {},
+                                "f:zoo.cfg": {}
+                            },
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:release": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"904fb008-675a-44ba-b5a5-ed5d93f9e17f\"}": "SIEVE-IGNORE"
+                                }
+                            }
+                        },
+                        "manager": "zookeeper-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-cluster-configmap",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "zookeeper.pravega.io/v1beta1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ZookeeperCluster",
+                        "name": "zookeeper-cluster",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/zookeeper-cluster-configmap",
+                "uid": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"dafcebb7-9050-4b01-82f5-afc214910021\"}": "SIEVE-IGNORE"
+                                }
+                            }
+                        },
+                        "manager": "zookeeper-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-operator-lock",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "Pod",
+                        "name": "SIEVE-IGNORE",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/zookeeper-operator-lock",
+                "uid": "SIEVE-IGNORE"
+            }
+        }
+    ],
+    "deployment": [
+        {
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "managedFields": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:spec": {
+                                "f:progressDeadlineSeconds": {},
+                                "f:replicas": {},
+                                "f:revisionHistoryLimit": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:sievetag": {}
+                                    }
+                                },
+                                "f:strategy": {
+                                    "f:rollingUpdate": {
+                                        ".": {},
+                                        "f:maxSurge": {},
+                                        "f:maxUnavailable": {}
+                                    },
+                                    "f:type": {}
+                                },
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:sievetag": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:containers": {
+                                            "k:{\"name\":\"zookeeper-operator\"}": {
+                                                ".": {},
+                                                "f:command": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"OPERATOR_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"POD_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    },
+                                                    "k:{\"name\":\"WATCH_NAMESPACE\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "f:envFrom": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:ports": {
+                                                    ".": {},
+                                                    "k:{\"containerPort\":60000,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    }
+                                                },
+                                                "f:resources": {},
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {}
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {},
+                                        "f:serviceAccount": {},
+                                        "f:serviceAccountName": {},
+                                        "f:terminationGracePeriodSeconds": {}
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kubectl-create",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:deployment.kubernetes.io/revision": {}
+                                }
+                            },
+                            "f:status": {
+                                "f:availableReplicas": {},
+                                "f:conditions": {
+                                    ".": {},
+                                    "k:{\"type\":\"Available\"}": {
+                                        ".": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:lastUpdateTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Progressing\"}": {
+                                        ".": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:lastUpdateTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {},
+                                "f:updatedReplicas": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-operator",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/apps/v1/namespaces/default/deployments/zookeeper-operator",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "progressDeadlineSeconds": 600,
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "name": "zookeeper-operator",
+                        "sievetag": "zookeeper-operator"
+                    }
+                },
+                "strategy": {
+                    "rollingUpdate": {
+                        "maxSurge": "25%",
+                        "maxUnavailable": "25%"
+                    },
+                    "type": "RollingUpdate"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "zookeeper-operator",
+                            "sievetag": "zookeeper-operator"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "command": [
+                                    "zookeeper-operator"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "WATCH_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "POD_NAME",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "OPERATOR_NAME",
+                                        "value": "zookeeper-operator"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_HOST",
+                                        "value": "kind-control-plane"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_PORT",
+                                        "value": "6443"
+                                    }
+                                ],
+                                "envFrom": [
+                                    {
+                                        "configMapRef": {
+                                            "name": "sieve-testing-global-config"
+                                        }
+                                    }
+                                ],
+                                "image": "ghcr.io/sieve-project/action/zookeeper-operator:learn",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "zookeeper-operator",
+                                "ports": [
+                                    {
+                                        "containerPort": 60000,
+                                        "name": "metrics",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "serviceAccount": "zookeeper-operator",
+                        "serviceAccountName": "zookeeper-operator",
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "conditions": [
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "Deployment has minimum availability.",
+                        "reason": "MinimumReplicasAvailable",
+                        "status": "True",
+                        "type": "Available"
+                    },
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "ReplicaSet \"zookeeper-operator-5fc77867c7\" has successfully progressed.",
+                        "reason": "NewReplicaSetAvailable",
+                        "status": "True",
+                        "type": "Progressing"
+                    }
+                ],
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updatedReplicas": 1
+            }
+        }
+    ],
+    "persistentvolumeclaim": [
+        {
+            "metadata": {
+                "annotations": {
+                    "pv.kubernetes.io/bind-completed": "yes",
+                    "pv.kubernetes.io/bound-by-controller": "yes",
+                    "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "release": "zookeeper-cluster"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:volume.kubernetes.io/selected-node": {}
+                                }
+                            }
+                        },
+                        "manager": "kube-scheduler",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:pv.kubernetes.io/bind-completed": {},
+                                    "f:pv.kubernetes.io/bound-by-controller": {},
+                                    "f:volume.beta.kubernetes.io/storage-provisioner": {}
+                                },
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:release": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:accessModes": {},
+                                "f:resources": {
+                                    "f:requests": {
+                                        ".": {},
+                                        "f:storage": {}
+                                    }
+                                },
+                                "f:volumeMode": {},
+                                "f:volumeName": {}
+                            },
+                            "f:status": {
+                                "f:accessModes": {},
+                                "f:capacity": {
+                                    ".": {},
+                                    "f:storage": {}
+                                },
+                                "f:phase": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "data-zookeeper-cluster-0",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/persistentvolumeclaims/data-zookeeper-cluster-0",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "20Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "20Gi"
+                },
+                "phase": "Bound"
+            }
+        }
+    ],
+    "pod": [
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "zookeeper-cluster-",
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "controller-revision-hash": "zookeeper-cluster-7cf668f98b",
+                    "kind": "ZookeeperMember",
+                    "release": "zookeeper-cluster",
+                    "statefulset.kubernetes.io/pod-name": "zookeeper-cluster-0"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:controller-revision-hash": {},
+                                    "f:kind": {},
+                                    "f:release": {},
+                                    "f:statefulset.kubernetes.io/pod-name": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"b435fcfa-2ca1-46b2-aad1-c03a2c9b937a\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:affinity": {
+                                    ".": {},
+                                    "f:podAntiAffinity": {
+                                        ".": {},
+                                        "f:preferredDuringSchedulingIgnoredDuringExecution": {}
+                                    }
+                                },
+                                "f:containers": {
+                                    "k:{\"name\":\"zookeeper\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"ENVOY_SIDECAR_STATUS\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:lifecycle": {
+                                            ".": {},
+                                            "f:preStop": {
+                                                ".": {},
+                                                "f:exec": {
+                                                    ".": {},
+                                                    "f:command": {}
+                                                }
+                                            }
+                                        },
+                                        "f:livenessProbe": {
+                                            ".": {},
+                                            "f:exec": {
+                                                ".": {},
+                                                "f:command": {}
+                                            },
+                                            "f:failureThreshold": {},
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":2181,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":2888,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":3888,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":7000,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":8080,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:readinessProbe": {
+                                            ".": {},
+                                            "f:exec": {
+                                                ".": {},
+                                                "f:command": {}
+                                            },
+                                            "f:failureThreshold": {},
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:resources": {},
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/conf\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/data\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:hostname": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {},
+                                "f:serviceAccount": {},
+                                "f:serviceAccountName": {},
+                                "f:subdomain": {},
+                                "f:terminationGracePeriodSeconds": {},
+                                "f:volumes": {
+                                    ".": {},
+                                    "k:{\"name\":\"conf\"}": {
+                                        ".": {},
+                                        "f:configMap": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:name": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"data\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:persistentVolumeClaim": {
+                                            ".": {},
+                                            "f:claimName": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.2.6\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-cluster-0",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "StatefulSet",
+                        "name": "zookeeper-cluster",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/pods/zookeeper-cluster-0",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "zookeeper-cluster"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 20
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/usr/local/bin/zookeeperStart.sh"
+                        ],
+                        "env": [
+                            {
+                                "name": "ENVOY_SIDECAR_STATUS",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.annotations['sidecar.istio.io/status']"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "pravega/zookeeper:0.2.8",
+                        "imagePullPolicy": "Always",
+                        "lifecycle": {
+                            "preStop": {
+                                "exec": {
+                                    "command": [
+                                        "zookeeperTeardown.sh"
+                                    ]
+                                }
+                            }
+                        },
+                        "livenessProbe": {
+                            "exec": {
+                                "command": [
+                                    "zookeeperLive.sh"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 10
+                        },
+                        "name": "zookeeper",
+                        "ports": [
+                            {
+                                "containerPort": 2181,
+                                "name": "client",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 2888,
+                                "name": "quorum",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 3888,
+                                "name": "leader-election",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 7000,
+                                "name": "metrics",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 8080,
+                                "name": "admin-server",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "zookeeperReady.sh"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 10
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/data",
+                                "name": "data"
+                            },
+                            {
+                                "mountPath": "/conf",
+                                "name": "conf"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "SIEVE-IGNORE",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "zookeeper-cluster-0",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "zookeeper-cluster-headless",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "data",
+                        "persistentVolumeClaim": {
+                            "claimName": "data-zookeeper-cluster-0"
+                        }
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "zookeeper-cluster-configmap"
+                        },
+                        "name": "conf"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "docker.io/pravega/zookeeper:0.2.8",
+                        "imageID": "docker.io/pravega/zookeeper@sha256:7c082d18d48b38a20cf4c19e0031d3a2603a2595a9af5a4413aac7af0225b3d5",
+                        "lastState": {},
+                        "name": "zookeeper",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "10.244.2.6",
+                "podIPs": [
+                    {
+                        "ip": "10.244.2.6"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "zookeeper-operator-5fc77867c7-",
+                "labels": {
+                    "name": "zookeeper-operator",
+                    "pod-template-hash": "5fc77867c7",
+                    "sievetag": "zookeeper-operator"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:name": {},
+                                    "f:pod-template-hash": {},
+                                    "f:sievetag": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"52b5b73c-86de-4ddd-88a0-cb3d8d1ceac9\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:containers": {
+                                    "k:{\"name\":\"zookeeper-operator\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"OPERATOR_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"POD_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"WATCH_NAMESPACE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:envFrom": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":60000,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:resources": {},
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {},
+                                "f:serviceAccount": {},
+                                "f:serviceAccountName": {},
+                                "f:terminationGracePeriodSeconds": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    ".": {},
+                                    "k:{\"type\":\"PodScheduled\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kube-scheduler",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.1.2\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "SIEVE-IGNORE",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "zookeeper-operator-5fc77867c7",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "SIEVE-IGNORE",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "zookeeper-operator"
+                        ],
+                        "env": [
+                            {
+                                "name": "WATCH_NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.name"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "OPERATOR_NAME",
+                                "value": "zookeeper-operator"
+                            },
+                            {
+                                "name": "KUBERNETES_SERVICE_HOST",
+                                "value": "kind-control-plane"
+                            },
+                            {
+                                "name": "KUBERNETES_SERVICE_PORT",
+                                "value": "6443"
+                            }
+                        ],
+                        "envFrom": [
+                            {
+                                "configMapRef": {
+                                    "name": "sieve-testing-global-config"
+                                }
+                            }
+                        ],
+                        "image": "ghcr.io/sieve-project/action/zookeeper-operator:learn",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "zookeeper-operator",
+                        "ports": [
+                            {
+                                "containerPort": 60000,
+                                "name": "metrics",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "SIEVE-IGNORE",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "zookeeper-operator",
+                "serviceAccountName": "zookeeper-operator",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "ghcr.io/sieve-project/action/zookeeper-operator:learn",
+                        "imageID": "sha256:19c8e43edb05ae990cd454479db7407c264c8e01c0db39099941d288c4b587fb",
+                        "lastState": {},
+                        "name": "zookeeper-operator",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "10.244.1.2",
+                "podIPs": [
+                    {
+                        "ip": "10.244.1.2"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        }
+    ],
+    "service": [
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "component": "apiserver",
+                    "provider": "kubernetes"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:component": {},
+                                    "f:provider": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:clusterIP": {},
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "kube-apiserver",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "kubernetes",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/kubernetes",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "10.96.0.1",
+                "ports": [
+                    {
+                        "name": "https",
+                        "port": 443,
+                        "protocol": "TCP",
+                        "targetPort": 6443
+                    }
+                ],
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "headless": "false",
+                    "release": "zookeeper-cluster"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:headless": {},
+                                    "f:release": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"904fb008-675a-44ba-b5a5-ed5d93f9e17f\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:externalTrafficPolicy": {},
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":8080,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:selector": {
+                                    ".": {},
+                                    "f:app": {}
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "zookeeper-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-cluster-admin-server",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "zookeeper.pravega.io/v1beta1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ZookeeperCluster",
+                        "name": "zookeeper-cluster",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/zookeeper-cluster-admin-server",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "SIEVE-IGNORE",
+                "externalTrafficPolicy": "Cluster",
+                "ports": [
+                    {
+                        "name": "tcp-admin-server",
+                        "nodePort": "SIEVE-IGNORE",
+                        "port": 8080,
+                        "protocol": "TCP",
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "app": "zookeeper-cluster"
+                },
+                "sessionAffinity": "None",
+                "type": "LoadBalancer"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "headless": "false",
+                    "release": "zookeeper-cluster"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:headless": {},
+                                    "f:release": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"904fb008-675a-44ba-b5a5-ed5d93f9e17f\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":2181,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:selector": {
+                                    ".": {},
+                                    "f:app": {}
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "zookeeper-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-cluster-client",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "zookeeper.pravega.io/v1beta1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ZookeeperCluster",
+                        "name": "zookeeper-cluster",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/zookeeper-cluster-client",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "SIEVE-IGNORE",
+                "ports": [
+                    {
+                        "name": "tcp-client",
+                        "port": 2181,
+                        "protocol": "TCP",
+                        "targetPort": 2181
+                    }
+                ],
+                "selector": {
+                    "app": "zookeeper-cluster"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "headless": "true",
+                    "release": "zookeeper-cluster"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:headless": {},
+                                    "f:release": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"904fb008-675a-44ba-b5a5-ed5d93f9e17f\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:clusterIP": {},
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":2181,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    },
+                                    "k:{\"port\":2888,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    },
+                                    "k:{\"port\":3888,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    },
+                                    "k:{\"port\":7000,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    },
+                                    "k:{\"port\":8080,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:selector": {
+                                    ".": {},
+                                    "f:app": {}
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "zookeeper-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-cluster-headless",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "zookeeper.pravega.io/v1beta1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ZookeeperCluster",
+                        "name": "zookeeper-cluster",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/zookeeper-cluster-headless",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "None",
+                "ports": [
+                    {
+                        "name": "tcp-client",
+                        "port": 2181,
+                        "protocol": "TCP",
+                        "targetPort": 2181
+                    },
+                    {
+                        "name": "tcp-quorum",
+                        "port": 2888,
+                        "protocol": "TCP",
+                        "targetPort": 2888
+                    },
+                    {
+                        "name": "tcp-leader-election",
+                        "port": 3888,
+                        "protocol": "TCP",
+                        "targetPort": 3888
+                    },
+                    {
+                        "name": "tcp-metrics",
+                        "port": 7000,
+                        "protocol": "TCP",
+                        "targetPort": 7000
+                    },
+                    {
+                        "name": "tcp-admin-server",
+                        "port": 8080,
+                        "protocol": "TCP",
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "app": "zookeeper-cluster"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    ],
+    "statefulset": [
+        {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "release": "zookeeper-cluster"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:release": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"904fb008-675a-44ba-b5a5-ed5d93f9e17f\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:podManagementPolicy": {},
+                                "f:replicas": {},
+                                "f:revisionHistoryLimit": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:app": {}
+                                    }
+                                },
+                                "f:serviceName": {},
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:generateName": {},
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:app": {},
+                                            "f:kind": {},
+                                            "f:release": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:affinity": {
+                                            ".": {},
+                                            "f:podAntiAffinity": {
+                                                ".": {},
+                                                "f:preferredDuringSchedulingIgnoredDuringExecution": {}
+                                            }
+                                        },
+                                        "f:containers": {
+                                            "k:{\"name\":\"zookeeper\"}": {
+                                                ".": {},
+                                                "f:command": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"ENVOY_SIDECAR_STATUS\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:lifecycle": {
+                                                    ".": {},
+                                                    "f:preStop": {
+                                                        ".": {},
+                                                        "f:exec": {
+                                                            ".": {},
+                                                            "f:command": {}
+                                                        }
+                                                    }
+                                                },
+                                                "f:livenessProbe": {
+                                                    ".": {},
+                                                    "f:exec": {
+                                                        ".": {},
+                                                        "f:command": {}
+                                                    },
+                                                    "f:failureThreshold": {},
+                                                    "f:initialDelaySeconds": {},
+                                                    "f:periodSeconds": {},
+                                                    "f:successThreshold": {},
+                                                    "f:timeoutSeconds": {}
+                                                },
+                                                "f:name": {},
+                                                "f:ports": {
+                                                    ".": {},
+                                                    "k:{\"containerPort\":2181,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    },
+                                                    "k:{\"containerPort\":2888,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    },
+                                                    "k:{\"containerPort\":3888,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    },
+                                                    "k:{\"containerPort\":7000,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    },
+                                                    "k:{\"containerPort\":8080,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    }
+                                                },
+                                                "f:readinessProbe": {
+                                                    ".": {},
+                                                    "f:exec": {
+                                                        ".": {},
+                                                        "f:command": {}
+                                                    },
+                                                    "f:failureThreshold": {},
+                                                    "f:initialDelaySeconds": {},
+                                                    "f:periodSeconds": {},
+                                                    "f:successThreshold": {},
+                                                    "f:timeoutSeconds": {}
+                                                },
+                                                "f:resources": {},
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {},
+                                                "f:volumeMounts": {
+                                                    ".": {},
+                                                    "k:{\"mountPath\":\"/conf\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    },
+                                                    "k:{\"mountPath\":\"/data\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {},
+                                        "f:serviceAccount": {},
+                                        "f:serviceAccountName": {},
+                                        "f:terminationGracePeriodSeconds": {},
+                                        "f:volumes": {
+                                            ".": {},
+                                            "k:{\"name\":\"conf\"}": {
+                                                ".": {},
+                                                "f:configMap": {
+                                                    ".": {},
+                                                    "f:defaultMode": {},
+                                                    "f:name": {}
+                                                },
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:updateStrategy": {
+                                    "f:type": {}
+                                },
+                                "f:volumeClaimTemplates": {}
+                            }
+                        },
+                        "manager": "zookeeper-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:collisionCount": {},
+                                "f:currentReplicas": {},
+                                "f:currentRevision": {},
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {},
+                                "f:updateRevision": {},
+                                "f:updatedReplicas": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "zookeeper-cluster",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "zookeeper.pravega.io/v1beta1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ZookeeperCluster",
+                        "name": "zookeeper-cluster",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/apps/v1/namespaces/default/statefulsets/zookeeper-cluster",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "podManagementPolicy": "OrderedReady",
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "app": "zookeeper-cluster"
+                    }
+                },
+                "serviceName": "zookeeper-cluster-headless",
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "generateName": "zookeeper-cluster",
+                        "labels": {
+                            "app": "zookeeper-cluster",
+                            "kind": "ZookeeperMember",
+                            "release": "zookeeper-cluster"
+                        }
+                    },
+                    "spec": {
+                        "affinity": {
+                            "podAntiAffinity": {
+                                "preferredDuringSchedulingIgnoredDuringExecution": [
+                                    {
+                                        "podAffinityTerm": {
+                                            "labelSelector": {
+                                                "matchExpressions": [
+                                                    {
+                                                        "key": "app",
+                                                        "operator": "In",
+                                                        "values": [
+                                                            "zookeeper-cluster"
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            "topologyKey": "kubernetes.io/hostname"
+                                        },
+                                        "weight": 20
+                                    }
+                                ]
+                            }
+                        },
+                        "containers": [
+                            {
+                                "command": [
+                                    "/usr/local/bin/zookeeperStart.sh"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "ENVOY_SIDECAR_STATUS",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.annotations['sidecar.istio.io/status']"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "image": "pravega/zookeeper:0.2.8",
+                                "imagePullPolicy": "Always",
+                                "lifecycle": {
+                                    "preStop": {
+                                        "exec": {
+                                            "command": [
+                                                "zookeeperTeardown.sh"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "livenessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "zookeeperLive.sh"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 10
+                                },
+                                "name": "zookeeper",
+                                "ports": [
+                                    {
+                                        "containerPort": 2181,
+                                        "name": "client",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 2888,
+                                        "name": "quorum",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 3888,
+                                        "name": "leader-election",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 7000,
+                                        "name": "metrics",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 8080,
+                                        "name": "admin-server",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "zookeeperReady.sh"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 10
+                                },
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/data",
+                                        "name": "data"
+                                    },
+                                    {
+                                        "mountPath": "/conf",
+                                        "name": "conf"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "serviceAccount": "default",
+                        "serviceAccountName": "default",
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "configMap": {
+                                    "defaultMode": 420,
+                                    "name": "zookeeper-cluster-configmap"
+                                },
+                                "name": "conf"
+                            }
+                        ]
+                    }
+                },
+                "updateStrategy": {
+                    "type": "RollingUpdate"
+                },
+                "volumeClaimTemplates": [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "PersistentVolumeClaim",
+                        "metadata": {
+                            "creationTimestamp": null,
+                            "labels": {
+                                "app": "zookeeper-cluster",
+                                "release": "zookeeper-cluster"
+                            },
+                            "name": "data"
+                        },
+                        "spec": {
+                            "accessModes": [
+                                "ReadWriteOnce"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "storage": "20Gi"
+                                }
+                            },
+                            "volumeMode": "Filesystem"
+                        },
+                        "status": {
+                            "phase": "Pending"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "collisionCount": 0,
+                "currentReplicas": 1,
+                "currentRevision": "zookeeper-cluster-7cf668f98b",
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updateRevision": "zookeeper-cluster-7cf668f98b",
+                "updatedReplicas": 1
+            }
+        }
+    ],
+    "zookeepercluster": [
+        {
+            "apiVersion": "zookeeper.pravega.io/v1beta1",
+            "kind": "ZookeeperCluster",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"zookeeper.pravega.io/v1beta1\",\"kind\":\"ZookeeperCluster\",\"metadata\":{\"annotations\":{},\"name\":\"zookeeper-cluster\",\"namespace\":\"default\"},\"spec\":{\"persistence\":{\"reclaimPolicy\":\"Delete\"},\"replicas\":1}}\n"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "cleanUpZookeeperPVC"
+                ],
+                "generation": 2,
+                "name": "zookeeper-cluster",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/zookeeper.pravega.io/v1beta1/namespaces/default/zookeeperclusters/zookeeper-cluster",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "config": {
+                    "autoPurgePurgeInterval": 1,
+                    "autoPurgeSnapRetainCount": 3,
+                    "commitLogCount": 500,
+                    "globalOutstandingLimit": 1000,
+                    "initLimit": 10,
+                    "maxClientCnxns": 60,
+                    "maxSessionTimeout": 40000,
+                    "minSessionTimeout": 4000,
+                    "preAllocSize": 65536,
+                    "snapCount": 10000,
+                    "snapSizeLimitInKb": 4194304,
+                    "syncLimit": 2,
+                    "tickTime": 2000
+                },
+                "image": {
+                    "pullPolicy": "Always",
+                    "repository": "pravega/zookeeper",
+                    "tag": "0.2.8"
+                },
+                "labels": {
+                    "app": "zookeeper-cluster",
+                    "release": "zookeeper-cluster"
+                },
+                "persistence": {
+                    "reclaimPolicy": "Delete",
+                    "spec": {
+                        "accessModes": [
+                            "ReadWriteOnce"
+                        ],
+                        "resources": {
+                            "requests": {
+                                "storage": "20Gi"
+                            }
+                        }
+                    }
+                },
+                "pod": {
+                    "affinity": {
+                        "podAntiAffinity": {
+                            "preferredDuringSchedulingIgnoredDuringExecution": [
+                                {
+                                    "podAffinityTerm": {
+                                        "labelSelector": {
+                                            "matchExpressions": [
+                                                {
+                                                    "key": "app",
+                                                    "operator": "In",
+                                                    "values": [
+                                                        "zookeeper-cluster"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "topologyKey": "kubernetes.io/hostname"
+                                    },
+                                    "weight": 20
+                                }
+                            ]
+                        }
+                    },
+                    "labels": {
+                        "app": "zookeeper-cluster",
+                        "release": "zookeeper-cluster"
+                    },
+                    "resources": {},
+                    "serviceAccountName": "default",
+                    "terminationGracePeriodSeconds": 30
+                },
+                "ports": [
+                    {
+                        "containerPort": 2181,
+                        "name": "client"
+                    },
+                    {
+                        "containerPort": 2888,
+                        "name": "quorum"
+                    },
+                    {
+                        "containerPort": 3888,
+                        "name": "leader-election"
+                    },
+                    {
+                        "containerPort": 7000,
+                        "name": "metrics"
+                    },
+                    {
+                        "containerPort": 8080,
+                        "name": "admin-server"
+                    }
+                ],
+                "probes": {
+                    "livenessProbe": {
+                        "failureThreshold": 3,
+                        "initialDelaySeconds": 10,
+                        "periodSeconds": 10,
+                        "successThreshold": 0,
+                        "timeoutSeconds": 10
+                    },
+                    "readinessProbe": {
+                        "failureThreshold": 3,
+                        "initialDelaySeconds": 10,
+                        "periodSeconds": 10,
+                        "successThreshold": 1,
+                        "timeoutSeconds": 10
+                    }
+                },
+                "replicas": 1,
+                "storageType": "persistence"
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodsReady"
+                    },
+                    {
+                        "status": "False",
+                        "type": "Upgrading"
+                    },
+                    {
+                        "status": "False",
+                        "type": "Error"
+                    }
+                ],
+                "currentVersion": "0.2.8",
+                "externalClientEndpoint": "N/A",
+                "internalClientEndpoint": "SIEVE-IGNORE",
+                "members": {
+                    "ready": [
+                        "zookeeper-cluster-0"
+                    ]
+                },
+                "metaRootCreated": true,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        }
+    ]
+}

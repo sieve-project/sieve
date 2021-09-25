@@ -109,7 +109,7 @@ class TestWait:
 
 class TestWaitForStatus:
     def __init__(
-        self, resource_type, resource_name, status, obs_gap_waiting_time, time_out=600
+        self, resource_type, resource_name, status, obs_gap_waiting_time, time_out=sieve_config.config["workload_wait_timeout"],
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
@@ -195,7 +195,7 @@ class TestWaitForStorage:
         resource_name,
         storage_size,
         obs_gap_waiting_time,
-        time_out=600,
+        time_out=sieve_config.config["workload_wait_timeout"],
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
@@ -251,7 +251,7 @@ class TestWaitForExistence:
         resource_name,
         exist: bool,
         obs_gap_waiting_time,
-        time_out=600,
+        time_out=sieve_config.config["workload_wait_timeout"],
     ):
         """Constructor
 
