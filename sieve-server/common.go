@@ -222,7 +222,7 @@ func isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
 	}
 }
 
-func seenCrucialEvent(seenPrev, seenCur *bool, crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
+func seenCrucialEventDeprecated(seenPrev, seenCur *bool, crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
 	if !*seenCur {
 		if !*seenPrev {
 			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {

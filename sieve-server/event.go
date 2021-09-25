@@ -269,7 +269,7 @@ func equivalentEvent(eventA, eventB map[string]interface{}) bool {
 	return mapToStr(eventA) == mapToStr(eventB)
 }
 
-func seenCrucialEventV2(prevEvent, curEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}) bool {
+func seenCrucialEvent(prevEvent, curEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}) bool {
 	if prevEvent == nil || curEvent == nil || targetDiffPrevEvent == nil || targetDiffCurEvent == nil {
 		return false
 	}

@@ -10,18 +10,19 @@ import (
 // The listener is actually a wrapper around the server.
 func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
 	server := &timeTravelServer{
-		project:     config["project"].(string),
-		seenPrev:    false,
-		seenCur:     false,
-		restarted:   false,
-		pauseCh:     make(chan int),
-		straggler:   config["straggler"].(string),
-		crucialCur:  strToMap(config["ce-diff-current"].(string)),
-		crucialPrev: strToMap(config["ce-diff-previous"].(string)),
-		podLabel:    config["operator-pod-label"].(string),
-		frontRunner: config["front-runner"].(string),
-		deployName:  config["deployment-name"].(string),
-		namespace:   "default",
+		project:       config["project"].(string),
+		restarted:     false,
+		pauseCh:       make(chan int),
+		straggler:     config["straggler"].(string),
+		diffCurEvent:  strToMap(config["ce-diff-current"].(string)),
+		diffPrevEvent: strToMap(config["ce-diff-previous"].(string)),
+		podLabel:      config["operator-pod-label"].(string),
+		frontRunner:   config["front-runner"].(string),
+		deployName:    config["deployment-name"].(string),
+		namespace:     "default",
+		prevEvent:     nil,
+		curEvent:      nil,
+		sleeped:       false,
 	}
 	listener := &TimeTravelListener{
 		Server: server,
@@ -53,18 +54,19 @@ func (l *TimeTravelListener) NotifyTimeTravelAfterSideEffects(request *sieve.Not
 }
 
 type timeTravelServer struct {
-	project     string
-	straggler   string
-	frontRunner string
-	crucialCur  map[string]interface{}
-	crucialPrev map[string]interface{}
-	podLabel    string
-	seenPrev    bool
-	seenCur     bool
-	restarted   bool
-	pauseCh     chan int
-	deployName  string
-	namespace   string
+	project       string
+	straggler     string
+	frontRunner   string
+	diffCurEvent  map[string]interface{}
+	diffPrevEvent map[string]interface{}
+	podLabel      string
+	restarted     bool
+	pauseCh       chan int
+	deployName    string
+	namespace     string
+	prevEvent     map[string]interface{}
+	curEvent      map[string]interface{}
+	sleeped       bool
 }
 
 func (s *timeTravelServer) Start() {
@@ -79,7 +81,10 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	}
 	currentEvent := strToMap(request.Object)
 	log.Printf("[sieve][current-event] %s\n", request.Object)
-	if seenCrucialEvent(&s.seenPrev, &s.seenCur, s.crucialCur, s.crucialPrev, currentEvent) {
+	s.prevEvent = s.curEvent
+	s.curEvent = currentEvent
+	if seenCrucialEvent(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent) {
+		s.sleeped = true
 		log.Println("[sieve] should sleep here")
 		<-s.pauseCh
 		log.Println("[sieve] sleep over")
@@ -117,7 +122,7 @@ func (s *timeTravelServer) waitAndRestartOperator() {
 }
 
 func (s *timeTravelServer) shouldRestart() bool {
-	if s.seenCur && !s.restarted {
+	if s.sleeped && !s.restarted {
 		s.restarted = true
 		return true
 	} else {
