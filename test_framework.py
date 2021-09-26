@@ -5,6 +5,7 @@ import common
 import time
 import traceback
 import sieve_config
+import datetime
 
 
 def get_pod(resource_name):
@@ -109,7 +110,12 @@ class TestWait:
 
 class TestWaitForStatus:
     def __init__(
-        self, resource_type, resource_name, status, obs_gap_waiting_time, time_out=sieve_config.config["workload_wait_timeout"],
+        self,
+        resource_type,
+        resource_name,
+        status,
+        obs_gap_waiting_time,
+        time_out=sieve_config.config["workload_wait_timeout"],
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
@@ -393,6 +399,7 @@ class BuiltInWorkLoad:
     def run(self, mode) -> Tuple[int, str]:
         for work in self.work_list:
             return_code, error_message = work.run(mode)
+            print(datetime.datetime.now())
             if return_code != 0:
                 return return_code, error_message
         return 0, common.NO_ERROR_MESSAGE
