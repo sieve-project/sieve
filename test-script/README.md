@@ -17,7 +17,8 @@ This shell script will
 1. generate all the docker pull commands and test commands needed into files.
 2. Run the same docker pull commands on all nodes
 3. scp configs files to all worker nodes
-4. Run all tests in distributed manner on the nodes  
+4. clean up previous run results in sieve_test_results
+5. Run all tests in distributed manner on the nodes  
     e.g. if we have three jobs and 2 vms
     ```
     1. python3 sieve.py -p yugabyte-operator -c config-1.yaml
@@ -32,6 +33,9 @@ This shell script will
     vm2:
     python3 sieve.py -p yugabyte-operator -c config-2.yaml
     ```
+6. collect run results back to master node
+7. squash all the test results into one file and save it with a uniqle name under test-script directory
 
 ### Note
-It assumes the sieve project home directory is under `/home/ubuntu`
+- It assumes the sieve project home directory is under `/home/ubuntu`  
+- CAUTION: Do not leave critical results in sieve_test_results directory. It gets cleared every time when the testrun.sh script is executed. The results are automatically saved in a summary file under test-script directory after each mass testing.

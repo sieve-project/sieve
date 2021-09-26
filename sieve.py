@@ -13,6 +13,7 @@ import oracle
 import yaml
 import subprocess
 import signal
+import errno
 from datetime import datetime
 from common import (
     cprint,
@@ -548,6 +549,7 @@ def run(
                 phase,
             )
         else:
+            s = time.time()
             test_config = config
             print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(log_dir, os.path.basename(test_config))
@@ -557,7 +559,8 @@ def run(
             elif suite.use_csi_driver:
                 suite.num_apiservers = 1
                 suite.num_workers = 0
-            return run_test(
+
+            alarm, bug_report = run_test(
                 project,
                 mode,
                 stage,
@@ -573,6 +576,36 @@ def run(
                 data_dir,
                 phase,
             )
+
+            result_map = {
+                "duration": time.time() - s,
+                "alarm": alarm,
+                "bug_report": bug_report,
+            }
+
+            # Testing mode, write test result under sieve_test_result directory
+            result_filename = "sieve_test_results/{}-{}-{}.json".format(project, test, os.path.basename(test_config))
+            if not os.path.exists(os.path.dirname(result_filename)):
+                try:
+                    os.makedirs(os.path.dirname(result_filename))
+                except OSError as exception:
+                    if exception.errno != errno.EEXIST:
+                        raise
+
+            with open(result_filename, 'w') as test_result_json:
+                json.dump(
+                    result_map,
+                    test_result_json,
+                    indent=4,
+                )
+
+            # XXX: Temporarily copy log information to save it for later analysis
+            test_log_save = os.path.join("log_save", project, test, stage)
+            os.system("mkdir -p {}".format(test_log_save))
+            os.system('cp -r {} {}'.format(log_dir, os.path.join(
+                test_log_save, os.path.splitext(os.path.basename(test_config))[0])))
+
+            return alarm, bug_report
 
 
 def run_batch(project, test, dir, mode, stage, docker):
