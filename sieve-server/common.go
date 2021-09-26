@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"reflect"
-	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -36,57 +35,13 @@ func getConfig() map[interface{}]interface{} {
 	return m
 }
 
-func toLowerMap(m map[string]interface{}) {
-	for key, val := range m {
-		switch v := val.(type) {
-		case map[string]interface{}:
-			if e, ok := m[key].(map[string]interface{}); ok {
-				toLowerMap(e)
-				if strings.ToLower(key) != key {
-					m[strings.ToLower(key)] = e
-					delete(m, key)
-				}
-			} else {
-				log.Println("m[key] assertion to map[string]interface{} fail")
-			}
-
-		case []interface{}:
-			if e, ok := m[key].([]interface{}); ok {
-				for idx := range e {
-					switch e[idx].(type) {
-					case map[string]interface{}:
-						if eSlice, ok := e[idx].(map[string]interface{}); ok {
-							toLowerMap(eSlice)
-						}
-					case []interface{}:
-						log.Println("toLowerMap does not support slice in slice for now")
-					}
-				}
-				if strings.ToLower(key) != key {
-					m[strings.ToLower(key)] = e
-					delete(m, key)
-				}
-			} else {
-				log.Println("m[key] assertion to []interface{} fail")
-			}
-
-		default:
-			m[strings.ToLower(key)] = v
-			if strings.ToLower(key) != key {
-				delete(m, key)
-			}
-
-		}
-	}
-}
-
 func strToMap(str string) map[string]interface{} {
 	m := make(map[string]interface{})
 	err := json.Unmarshal([]byte(str), &m)
 	if err != nil {
 		log.Fatalf("cannot unmarshal to map: %s\n", str)
 	}
-	toLowerMap(m)
+	// toLowerMap(m)
 	return m
 }
 
@@ -107,7 +62,7 @@ func deepCopyMap(src map[string]interface{}, dest map[string]interface{}) {
 	}
 }
 
-func equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
+func subEventList(crucialEvent, currentEvent []interface{}) bool {
 	if len(crucialEvent) != len(currentEvent) {
 		return false
 	}
@@ -149,7 +104,7 @@ func equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
 			}
 		case map[string]interface{}:
 			if e, ok := currentEvent[i].(map[string]interface{}); ok {
-				if !equivalentEvent(v, e) {
+				if !subEvent(v, e) {
 					return false
 				}
 			} else {
@@ -163,7 +118,7 @@ func equivalentEventList(crucialEvent, currentEvent []interface{}) bool {
 	return true
 }
 
-func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
+func subEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	for key, val := range crucialEvent {
 		if _, ok := currentEvent[key]; !ok {
 			log.Println("Match fail", key, val, "currentEvent keys", reflect.ValueOf(currentEvent).MapKeys())
@@ -206,7 +161,7 @@ func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 			}
 		case map[string]interface{}:
 			if e, ok := currentEvent[key].(map[string]interface{}); ok {
-				if !equivalentEvent(v, e) {
+				if !subEvent(v, e) {
 					return false
 				}
 			} else {
@@ -214,7 +169,7 @@ func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 			}
 		case []interface{}:
 			if e, ok := currentEvent[key].([]interface{}); ok {
-				if !equivalentEventList(v, e) {
+				if !subEventList(v, e) {
 					return false
 				}
 			} else {
@@ -236,7 +191,7 @@ func equivalentEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	return true
 }
 
-func equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
+func subEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
 	if _, ok := currentEvent["metadata"]; ok {
 		return false
 	}
@@ -249,7 +204,7 @@ func equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{})
 				copiedCrucialEvent[key] = m[key]
 			}
 			delete(copiedCrucialEvent, "metadata")
-			return equivalentEvent(copiedCrucialEvent, currentEvent)
+			return subEvent(copiedCrucialEvent, currentEvent)
 		} else {
 			return false
 		}
@@ -259,11 +214,11 @@ func equivalentEventSecondTry(crucialEvent, currentEvent map[string]interface{})
 }
 
 func isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
-	if equivalentEvent(crucialEvent, currentEvent) {
-		log.Println("Meet")
+	if subEvent(crucialEvent, currentEvent) {
+		// log.Println("Meet")
 		return true
-	} else if equivalentEventSecondTry(crucialEvent, currentEvent) {
-		log.Println("Meet for the second try")
+	} else if subEventSecondTry(crucialEvent, currentEvent) {
+		// log.Println("Meet for the second try")
 		return true
 	} else {
 		return false
@@ -402,11 +357,6 @@ func cancelEvent(crucialEvent, currentEvent map[string]interface{}) bool {
 	return false
 }
 
-func extractNameNamespaceFromObjString(objStr string) (string, string) {
-	objMap := strToMap(objStr)
-	return extractNameNamespaceFromObjMap(objMap)
-}
-
 func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, string) {
 	name := ""
 	namespace := ""
@@ -532,3 +482,47 @@ func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI s
 		}
 	}
 }
+
+// func toLowerMap(m map[string]interface{}) {
+// 	for key, val := range m {
+// 		switch v := val.(type) {
+// 		case map[string]interface{}:
+// 			if e, ok := m[key].(map[string]interface{}); ok {
+// 				toLowerMap(e)
+// 				if strings.ToLower(key) != key {
+// 					m[strings.ToLower(key)] = e
+// 					delete(m, key)
+// 				}
+// 			} else {
+// 				log.Println("m[key] assertion to map[string]interface{} fail")
+// 			}
+
+// 		case []interface{}:
+// 			if e, ok := m[key].([]interface{}); ok {
+// 				for idx := range e {
+// 					switch e[idx].(type) {
+// 					case map[string]interface{}:
+// 						if eSlice, ok := e[idx].(map[string]interface{}); ok {
+// 							toLowerMap(eSlice)
+// 						}
+// 					case []interface{}:
+// 						log.Println("toLowerMap does not support slice in slice for now")
+// 					}
+// 				}
+// 				if strings.ToLower(key) != key {
+// 					m[strings.ToLower(key)] = e
+// 					delete(m, key)
+// 				}
+// 			} else {
+// 				log.Println("m[key] assertion to []interface{} fail")
+// 			}
+
+// 		default:
+// 			m[strings.ToLower(key)] = v
+// 			if strings.ToLower(key) != key {
+// 				delete(m, key)
+// 			}
+
+// 		}
+// 	}
+// }

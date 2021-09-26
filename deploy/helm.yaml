@@ -1,0 +1,29 @@
+---
+- name: Install Helm
+  hosts: ec2
+  become: true
+  vars_files:
+    - vars/default.yaml
+
+  tasks:
+    - name: Add helm apt key
+      apt_key:
+        url: https://baltocdn.com/helm/signing.asc
+        state: present
+
+    - name: install apt-transport-https
+      apt:
+        name: apt-transport-https
+        state: present
+      
+    - name: Add helm apt repositories
+      apt_repository:
+        repo: deb https://baltocdn.com/helm/stable/debian/ all main
+        state: present
+        filename: helm-stable-debian
+
+    - name: install helm
+      apt:
+        name: helm
+        state: present
+        update_cache: yes

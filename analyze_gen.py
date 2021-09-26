@@ -82,6 +82,18 @@ def decide_time_travel_timing(vertex: CausalityVertex):
             assert False
 
 
+def time_travel_template(project):
+    return {
+        "project": project,
+        "stage": sieve_stages.TEST,
+        "mode": sieve_modes.TIME_TRAVEL,
+        "straggler": sieve_config.config["time_travel_straggler"],
+        "front-runner": sieve_config.config["time_travel_front_runner"],
+        "operator-pod-label": controllers.operator_pod_label[project],
+        "deployment-name": controllers.deployment_name[project],
+    }
+
+
 def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: str):
     causality_edges = causality_graph.operator_hear_operator_write_edges
     if DELETE_ONLY_FILTER_FLAG:
@@ -90,23 +102,16 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         candidate_edges = delete_then_recreate_filtering_pass(
             candidate_edges, causality_graph.operator_hear_key_to_operator_hear_vertices
         )
-    yaml_map = {}
-    yaml_map["project"] = project
-    yaml_map["stage"] = "test"
-    yaml_map["mode"] = sieve_modes.TIME_TRAVEL
-    yaml_map["straggler"] = sieve_config.config["time_travel_straggler"]
-    yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
-    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
-    yaml_map["deployment-name"] = controllers.deployment_name[project]
+
     i = 0
     for edge in candidate_edges:
-        cur_operator_hear = edge.source.content
+        operator_hear = edge.source.content
         operator_write = edge.sink.content
-        assert isinstance(cur_operator_hear, OperatorHear)
+        assert isinstance(operator_hear, OperatorHear)
         assert isinstance(operator_write, OperatorWrite)
 
-        slim_prev_obj = cur_operator_hear.slim_prev_obj_map
-        slim_cur_obj = cur_operator_hear.slim_cur_obj_map
+        slim_prev_obj = operator_hear.slim_prev_obj_map
+        slim_cur_obj = operator_hear.slim_cur_obj_map
         if slim_prev_obj is None and slim_cur_obj is None:
             continue
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
@@ -114,53 +119,36 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
 
         timing = decide_time_travel_timing(edge.sink)
 
-        yaml_map["ce-name"] = cur_operator_hear.name
-        yaml_map["ce-namespace"] = cur_operator_hear.namespace
-        yaml_map["ce-rtype"] = cur_operator_hear.rtype
-
-        yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
-        yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["ce-etype-current"] = cur_operator_hear.etype
-        yaml_map["ce-etype-previous"] = cur_operator_hear.prev_etype
-
-        yaml_map["se-name"] = operator_write.name
-        yaml_map["se-namespace"] = operator_write.namespace
-        yaml_map["se-rtype"] = operator_write.rtype
+        time_travel_config = time_travel_template(project)
+        time_travel_config["ce-name"] = operator_hear.name
+        time_travel_config["ce-namespace"] = operator_hear.namespace
+        time_travel_config["ce-rtype"] = operator_hear.rtype
+        time_travel_config["ce-diff-current"] = json.dumps(slim_cur_obj)
+        time_travel_config["ce-diff-previous"] = json.dumps(slim_prev_obj)
+        time_travel_config["ce-etype-current"] = operator_hear.etype
+        time_travel_config["ce-etype-previous"] = operator_hear.prev_etype
+        time_travel_config["se-name"] = operator_write.name
+        time_travel_config["se-namespace"] = operator_write.namespace
+        time_travel_config["se-rtype"] = operator_write.rtype
         assert operator_write.etype == OperatorWriteTypes.DELETE
-        yaml_map["se-etype"] = "ADDED"
+        time_travel_config["se-etype"] = "ADDED"
 
         if timing == "after" or timing == "before":
-            yaml_map["timing"] = timing
+            time_travel_config["timing"] = timing
             i += 1
-            yaml.dump(
-                yaml_map,
-                open(
-                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
-                    "w",
-                ),
-                sort_keys=False,
-            )
+            file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
+            dump_to_yaml(time_travel_config, file_name)
         else:
-            yaml_map["timing"] = "after"
+            time_travel_config["timing"] = "after"
             i += 1
-            yaml.dump(
-                yaml_map,
-                open(
-                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
-                    "w",
-                ),
-                sort_keys=False,
-            )
-            yaml_map["timing"] = "before"
+            file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
+            dump_to_yaml(time_travel_config, file_name)
+
+            time_travel_config["timing"] = "before"
             i += 1
-            yaml.dump(
-                yaml_map,
-                open(
-                    os.path.join(path, "time-travel-config-%s.yaml" % (str(i))),
-                    "w",
-                ),
-                sort_keys=False,
-            )
+            file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
+            dump_to_yaml(time_travel_config, file_name)
+
     cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
@@ -180,6 +168,15 @@ def cancellable_filtering_pass(
     return candidate_vertices
 
 
+def obs_gap_template(project):
+    return {
+        "project": project,
+        "stage": sieve_stages.TEST,
+        "mode": sieve_modes.OBS_GAP,
+        "operator-pod-label": controllers.operator_pod_label[project],
+    }
+
+
 def obs_gap_analysis(
     causality_graph: CausalityGraph,
     path: str,
@@ -191,38 +188,32 @@ def obs_gap_analysis(
         candidate_vertices = cancellable_filtering_pass(
             candidate_vertices, causality_graph
         )
-    yaml_map = {}
-    yaml_map["project"] = project
-    yaml_map["stage"] = "test"
-    yaml_map["mode"] = sieve_modes.OBS_GAP
-    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
+
     i = 0
     for vertex in candidate_vertices:
-        cur_operator_hear = vertex.content
-        assert isinstance(cur_operator_hear, OperatorHear)
+        operator_hear = vertex.content
+        assert isinstance(operator_hear, OperatorHear)
 
-        slim_prev_obj = cur_operator_hear.slim_prev_obj_map
-        slim_cur_obj = cur_operator_hear.slim_cur_obj_map
+        slim_prev_obj = operator_hear.slim_prev_obj_map
+        slim_cur_obj = operator_hear.slim_cur_obj_map
         if slim_prev_obj is None and slim_cur_obj is None:
             continue
         if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
             continue
 
-        yaml_map["ce-name"] = cur_operator_hear.name
-        yaml_map["ce-namespace"] = cur_operator_hear.namespace
-        yaml_map["ce-rtype"] = cur_operator_hear.rtype
-
-        yaml_map["ce-diff-current"] = json.dumps(slim_cur_obj)
-        yaml_map["ce-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["ce-etype-current"] = cur_operator_hear.etype
-        yaml_map["ce-etype-previous"] = cur_operator_hear.prev_etype
+        obs_gap_config = obs_gap_template(project)
+        obs_gap_config["ce-name"] = operator_hear.name
+        obs_gap_config["ce-namespace"] = operator_hear.namespace
+        obs_gap_config["ce-rtype"] = operator_hear.rtype
+        obs_gap_config["ce-diff-current"] = json.dumps(slim_cur_obj)
+        obs_gap_config["ce-diff-previous"] = json.dumps(slim_prev_obj)
+        obs_gap_config["ce-etype-current"] = operator_hear.etype
+        obs_gap_config["ce-etype-previous"] = operator_hear.prev_etype
 
         i += 1
-        yaml.dump(
-            yaml_map,
-            open(os.path.join(path, "obs-gap-config-%s.yaml" % (str(i))), "w"),
-            sort_keys=False,
-        )
+        file_name = os.path.join(path, "obs-gap-config-%s.yaml" % (str(i)))
+        dump_to_yaml(obs_gap_config, file_name)
+
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
@@ -236,6 +227,17 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
+def atom_vio_template(project):
+    return {
+        "project": project,
+        "stage": sieve_stages.TEST,
+        "mode": sieve_modes.ATOM_VIO,
+        "front-runner": sieve_config.config["time_travel_front_runner"],
+        "operator-pod-label": controllers.operator_pod_label[project],
+        "deployment-name": controllers.deployment_name[project],
+    }
+
+
 def atom_vio_analysis(
     causality_graph: CausalityGraph,
     path: str,
@@ -244,13 +246,7 @@ def atom_vio_analysis(
     operator_write_vertices = causality_graph.operator_write_vertices
     candidate_vertices = operator_write_vertices
     candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
-    yaml_map = {}
-    yaml_map["project"] = project
-    yaml_map["stage"] = "test"
-    yaml_map["mode"] = sieve_modes.ATOM_VIO
-    yaml_map["front-runner"] = sieve_config.config["time_travel_front_runner"]
-    yaml_map["operator-pod-label"] = controllers.operator_pod_label[project]
-    yaml_map["deployment-name"] = controllers.deployment_name[project]
+
     i = 0
     for vertex in candidate_vertices:
         operator_write = vertex.content
@@ -267,17 +263,17 @@ def atom_vio_analysis(
         ):
             continue
 
-        yaml_map["se-name"] = operator_write.name
-        yaml_map["se-namespace"] = operator_write.namespace
-        yaml_map["se-rtype"] = operator_write.rtype
-        yaml_map["se-etype"] = operator_write.etype
-        yaml_map["se-diff-current"] = json.dumps(slim_cur_obj)
-        yaml_map["se-diff-previous"] = json.dumps(slim_prev_obj)
-        yaml_map["se-etype-previous"] = operator_write.prev_etype
+        atom_vio_config = atom_vio_template(project)
+        atom_vio_config["se-name"] = operator_write.name
+        atom_vio_config["se-namespace"] = operator_write.namespace
+        atom_vio_config["se-rtype"] = operator_write.rtype
+        atom_vio_config["se-etype"] = operator_write.etype
+        atom_vio_config["se-diff-current"] = json.dumps(slim_cur_obj)
+        atom_vio_config["se-diff-previous"] = json.dumps(slim_prev_obj)
+        atom_vio_config["se-etype-previous"] = operator_write.prev_etype
+
         i += 1
-        yaml.dump(
-            yaml_map,
-            open(os.path.join(path, "atom-vio-config-%s.yaml" % (str(i))), "w"),
-            sort_keys=False,
-        )
+        file_name = os.path.join(path, "atom-vio-config-%s.yaml" % (str(i)))
+        dump_to_yaml(atom_vio_config, file_name)
+
     cprint("Generated %d atom-vio config(s) in %s" % (i, path), bcolors.OKGREEN)

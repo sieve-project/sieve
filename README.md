@@ -2,6 +2,8 @@
 
 [![Kubernetes Image Build](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml)
 [![Sieve Test](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml)
+[![Sieve Daily Integration](https://github.com/sieve-project/sieve/actions/workflows/sieve-daily.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-daily.yml)
+
 
 ## Requirements
 * Docker daemon must be running (please ensure you can run `docker` commands without sudo)

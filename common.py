@@ -1,5 +1,6 @@
 import os
 import sys
+import yaml
 
 NO_ERROR_MESSAGE = ""
 
@@ -119,3 +120,14 @@ class Suite:
         #     # For now, we only support one node cluster pvc resizing
         #     self.num_apiservers = 1
         #     self.num_workers = 0
+
+
+def dump_to_yaml(file_content, file_name):
+    yaml.dump(
+        file_content,
+        open(
+            file_name,
+            "w",
+        ),
+        sort_keys=False,
+    )

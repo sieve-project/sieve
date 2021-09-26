@@ -162,9 +162,7 @@ python3 reprod.py -p mongodb-operator -b time-travel-1 -d SIEVE_IMAGE
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim/default/mongod-data-mongodb-cluster-rs0-2 DELETE inconsistency: 1 events seen during learning run, but 10 seen during testing run
-[ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
-[ERROR] persistentvolumeclaim SIZE inconsistency: 3 seen after learning run, but 2 seen after testing run
+[ERROR] persistentvolumeclaim/default/mongod-data-mongodb-cluster-rs0-2 DELETE inconsistency: 1 events seen during learning run, but 11 seen during testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
