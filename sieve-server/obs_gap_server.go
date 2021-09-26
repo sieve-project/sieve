@@ -130,7 +130,6 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 	if pausingReconcile {
 		currentEvent := strToMap(request.Object)
 		if request.OperationType == "Deleted" && request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) {
-			// Then we can resume all the reconcile
 			log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 			s.mutex.Lock()
@@ -139,8 +138,8 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 			s.mutex.Unlock()
 			finishObsGapInjection()
 		} else if request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) {
-			// We also propose a diff based method for the cancel
-			if cancelEvent(s.diffCurEvent, currentEvent) {
+			// TODO: we should also consider the corner case where s.diffCurEvent == {}
+			if conflictingEventAsMap(s.diffCurEvent, currentEvent) {
 				log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
 				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 				s.mutex.Lock()
@@ -159,7 +158,6 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sieve.NotifyObsGapBeforeReconcileRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
 	recID := request.ControllerName
-	// In py part, we can analyze the exisiting of side effect event
 	s.mutex.Lock()
 	log.Println("NotifyObsGapBeforeReconcile[0/1]", recID, s.pausingReconcile)
 	if s.pausingReconcile {

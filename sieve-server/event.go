@@ -290,8 +290,12 @@ func partOfEventAsList(eventA, eventB []interface{}) bool {
 	if len(eventA) != len(eventB) {
 		return false
 	}
-	for i, val := range eventA {
-		switch typedValA := val.(type) {
+	for i, valA := range eventA {
+		valB := eventB[i]
+		if interfaceToStr(valA) == interfaceToStr(valB) {
+			continue
+		}
+		switch typedValA := valA.(type) {
 		case map[string]interface{}:
 			if typedValB, ok := eventB[i].(map[string]interface{}); ok {
 				if !partOfEventAsMap(typedValA, typedValB) {
@@ -308,10 +312,12 @@ func partOfEventAsList(eventA, eventB []interface{}) bool {
 			} else {
 				return false
 			}
-		default:
-			if interfaceToStr(eventA[i]) != interfaceToStr(eventB[i]) {
+		case string:
+			if typedValA != SIEVE_CANONICALIZATION_MARKER && typedValA != SIEVE_SKIP_MARKER {
 				return false
 			}
+		default:
+			return false
 		}
 	}
 	return true
@@ -323,8 +329,12 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 			return false
 		}
 	}
-	for key, val := range eventA {
-		switch typedValA := val.(type) {
+	for key, valA := range eventA {
+		valB := eventB[key]
+		if interfaceToStr(valA) == interfaceToStr(valB) {
+			continue
+		}
+		switch typedValA := valA.(type) {
 		case map[string]interface{}:
 			if typedValB, ok := eventB[key].(map[string]interface{}); ok {
 				if !partOfEventAsMap(typedValA, typedValB) {
@@ -341,13 +351,19 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 			} else {
 				return false
 			}
-		default:
-			if interfaceToStr(eventA[key]) != interfaceToStr(eventB[key]) {
+		case string:
+			if typedValA != SIEVE_CANONICALIZATION_MARKER {
 				return false
 			}
+		default:
+			return false
 		}
 	}
 	return true
+}
+
+func conflictingEventAsMap(eventA, eventB map[string]interface{}) bool {
+	return !partOfEventAsMap(eventA, eventB)
 }
 
 func findTargetDiff(prevEvent, curEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
