@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/api/meta"
 )
 
 const TIME_TRAVEL string = "time-travel"
@@ -176,4 +177,16 @@ func pluralToSingle(rtype string) string {
 	} else {
 		return rtype
 	}
+}
+
+func extractNameNamespaceFromObj(object interface{}) (string, string) {
+	if o, err := meta.Accessor(object); err == nil {
+		return o.GetName(), o.GetNamespace()
+	}
+	return "", ""
+}
+
+func isSameObjectClientSide(object interface{}, namespace string, name string) bool {
+	extractedName, extractedNamespace := extractNameNamespaceFromObj(object)
+	return extractedNamespace == namespace && extractedName == name
 }

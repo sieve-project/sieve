@@ -80,7 +80,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomV
 	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
 	if request.Error == "NoError" && request.ResourceType == s.seRtype && s.seEtypePrev == "Get" {
 		readObj := strToMap(request.Object)
-		if isSameObject(readObj, s.seNamespace, s.seName) {
+		if isSameObjectServerSide(readObj, s.seNamespace, s.seName) {
 			s.prevEvent = readObj
 		}
 	}
@@ -93,7 +93,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtom
 	if request.Error == "NoError" && request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List" {
 		readObjs := strToMap(request.ObjectList)["items"].([]interface{})
 		for _, readObj := range readObjs {
-			if isSameObject(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
+			if isSameObjectServerSide(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
 				s.prevEvent = readObj.(map[string]interface{})
 				break
 			}
@@ -107,7 +107,7 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
 	if request.Error == "NoError" && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype {
 		writeObj := strToMap(request.Object)
-		if isSameObject(writeObj, s.seNamespace, s.seName) {
+		if isSameObjectServerSide(writeObj, s.seNamespace, s.seName) {
 			s.curEvent = writeObj
 			if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
 				log.Println("ready to crash!")

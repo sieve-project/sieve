@@ -106,7 +106,7 @@ func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, stri
 	return name, namespace
 }
 
-func isSameObject(currentEvent map[string]interface{}, namespace string, name string) bool {
+func isSameObjectServerSide(currentEvent map[string]interface{}, namespace string, name string) bool {
 	extractedName, extractedNamespace := extractNameNamespaceFromObjMap(currentEvent)
 	return extractedNamespace == namespace && extractedName == name
 }

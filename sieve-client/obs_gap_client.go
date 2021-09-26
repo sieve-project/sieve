@@ -11,8 +11,13 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-
-	log.Printf("[sieve][NotifyObsGapBeforeIndexerWrite] operationType: %s\n", operationType)
+	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
+		return
+	}
+	rType := regularizeType(object)
+	if config["ce-rtype"].(string) != rType {
+		return
+	}
 	client, err := newClient()
 	if err != nil {
 		printError(err, SIEVE_CONN_ERR)
@@ -23,11 +28,11 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-
+	log.Printf("[sieve][NotifyObsGapBeforeIndexerWrite] type: %s object: %s\n", operationType, string(jsonObject))
 	request := &NotifyObsGapBeforeIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(object),
+		ResourceType:  rType,
 	}
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapBeforeIndexerWrite", request, &response)
@@ -43,7 +48,13 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	log.Printf("[sieve][NotifyObsGapAfterIndexerWrite] operationType: %s\n", operationType)
+	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
+		return
+	}
+	rType := regularizeType(object)
+	if config["ce-rtype"].(string) != rType {
+		return
+	}
 	client, err := newClient()
 	if err != nil {
 		printError(err, SIEVE_CONN_ERR)
@@ -54,11 +65,11 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-
+	log.Printf("[sieve][NotifyObsGapAfterIndexerWrite] type: %s object: %s\n", operationType, string(jsonObject))
 	request := &NotifyObsGapAfterIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(object),
+		ResourceType:  rType,
 	}
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapAfterIndexerWrite", request, &response)
@@ -120,7 +131,7 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	// log.Printf("[sieve][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
+	log.Printf("[sieve][NotifyObsGapAfterSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
