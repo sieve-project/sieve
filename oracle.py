@@ -424,16 +424,11 @@ def look_for_panic_in_operator_log(operator_log):
             bug_report += "[ERROR] %s\n" % panic_in_file
             alarm += 1
     final_bug_report = (
-        "Checking for any panic in operator log...\n" + bug_report
+        "Safety assertion failed (operator crash):\n" + bug_report
         if bug_report != ""
         else ""
     )
     return alarm, final_bug_report
-
-
-def look_for_sleep_over_in_server_log(server_log):
-    file = open(server_log)
-    return "[sieve] sleep over" in file.read()
 
 
 def generate_debugging_hint(test_config_content):
@@ -462,6 +457,21 @@ def print_error_and_debugging_info(bug_report, test_config):
     )
 
 
+def is_time_travel_finished(server_log):
+    file = open(server_log)
+    return "FINISH-SIEVE-TIME-TRAVEL" in file.read()
+
+
+def is_obs_gap_finished(server_log):
+    file = open(server_log)
+    return "FINISH-SIEVE-OBSERVABILITY-GAPS" in file.read()
+
+
+def is_atom_vio_finished(server_log):
+    file = open(server_log)
+    return "FINISH-SIEVE-ATOMICITY-VIOLATION" in file.read()
+
+
 def check(
     learned_operator_write,
     learned_status,
@@ -475,35 +485,43 @@ def check(
     oracle_config,
 ):
     test_config_content = yaml.safe_load(open(test_config))
-    # Skip case which target side effect event not appear in operator log under time-travel mode
-    if test_config_content[
-        "mode"
-    ] == sieve_modes.TIME_TRAVEL and not look_for_sleep_over_in_server_log(server_log):
-        bug_report = (
-            "[WARN] target side effect event did't appear under time-travel workload"
+
+    test_mode = test_config_content["mode"]
+    if test_mode == sieve_modes.TIME_TRAVEL and not is_time_travel_finished(server_log):
+        bug_report = "[WARN] time travel is not finished yet"
+        cprint(bug_report, bcolors.WARNING)
+        return -1, bug_report
+    elif test_mode == sieve_modes.OBS_GAP and not is_obs_gap_finished(server_log):
+        bug_report = "[WARN] obs gap is not finished yet"
+        cprint(bug_report, bcolors.WARNING)
+        return -1, bug_report
+    elif test_mode == sieve_modes.ATOM_VIO and not is_atom_vio_finished(server_log):
+        bug_report = "[WARN] atom vio is not finished yet"
+        cprint(bug_report, bcolors.WARNING)
+        return -1, bug_report
+    alarm = 0
+    bug_report = ""
+    if sieve_config.config["check_digest"]:
+        discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
+            learned_operator_write,
+            learned_status,
+            testing_operator_write,
+            testing_status,
+            test_config,
+            oracle_config,
         )
-        print(bug_report)
-        return 0, bug_report
-    discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
-        learned_operator_write,
-        learned_status,
-        testing_operator_write,
-        testing_status,
-        test_config,
-        oracle_config,
-    )
-    panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
-    alarm = discrepancy_alarm + panic_alarm
-    bug_report = discrepancy_bug_report + panic_bug_report
-    # TODO(urgent): we should use learned_resources to replace learned_status, instead of using both
-    # and look_for_resources_diff() should return alarm as well
-    if test_config_content["mode"] != "learn" and learned_resources != None:
+        alarm += discrepancy_alarm
+        bug_report += discrepancy_bug_report
+    if sieve_config.config["check_operator_log"]:
+        panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
+        alarm += panic_alarm
+        bug_report += panic_bug_report
+    if sieve_config.config["check_resource"] and learned_resources != None:
         resource_alarm, resource_bug_report = look_for_resources_diff(
             learned_resources, testing_resources
         )
-        if resource_alarm != 0:
-            alarm += resource_alarm
-            bug_report += resource_bug_report
+        alarm += resource_alarm
+        bug_report += resource_bug_report
     if alarm != 0:
         print_error_and_debugging_info(bug_report, test_config)
     return alarm, bug_report
@@ -559,7 +577,12 @@ def look_for_resources_diff(learn, test):
 
     result = f.getvalue()
     f.close()
-    return alarm, "[RESOURCE DIFF]\n" + result
+    final_bug_report = (
+        "Liveness assertion failed (status diff):\n[ERROR]\n" + result
+        if alarm != 0
+        else ""
+    )
+    return alarm, final_bug_report
 
 
 if __name__ == "__main__":
