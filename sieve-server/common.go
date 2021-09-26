@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"reflect"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -60,189 +59,28 @@ func deepCopyMap(src map[string]interface{}) map[string]interface{} {
 	return dest
 }
 
-func subEventList(crucialEvent, currentEvent []interface{}) bool {
-	if len(crucialEvent) != len(currentEvent) {
-		return false
-	}
-	for i, val := range crucialEvent {
-		switch v := val.(type) {
-		case int64:
-			if e, ok := currentEvent[i].(int64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case float64:
-			if e, ok := currentEvent[i].(float64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case bool:
-			if e, ok := currentEvent[i].(bool); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case string:
-			if v == "SIEVE-NON-NIL" || v == "SIEVE-SKIP" {
-				continue
-			} else if e, ok := currentEvent[i].(string); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case map[string]interface{}:
-			if e, ok := currentEvent[i].(map[string]interface{}); ok {
-				if !subEvent(v, e) {
-					return false
-				}
-			} else {
-				return false
-			}
-		default:
-			log.Printf("Unsupported type: %v %T\n", v, v)
-			return false
-		}
-	}
-	return true
+func startTimeTravelInjection() {
+	log.Println("START-SIEVE-TIME-TRAVEL")
 }
 
-func subEvent(crucialEvent, currentEvent map[string]interface{}) bool {
-	for key, val := range crucialEvent {
-		if _, ok := currentEvent[key]; !ok {
-			log.Println("Match fail", key, val, "currentEvent keys", reflect.ValueOf(currentEvent).MapKeys())
-			return false
-		}
-		switch v := val.(type) {
-		case int64:
-			if e, ok := currentEvent[key].(int64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case float64:
-			if e, ok := currentEvent[key].(float64); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case bool:
-			if e, ok := currentEvent[key].(bool); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case string:
-			if v == "SIEVE-NON-NIL" {
-				continue
-			} else if e, ok := currentEvent[key].(string); ok {
-				if v != e {
-					return false
-				}
-			} else {
-				return false
-			}
-		case map[string]interface{}:
-			if e, ok := currentEvent[key].(map[string]interface{}); ok {
-				if !subEvent(v, e) {
-					return false
-				}
-			} else {
-				return false
-			}
-		case []interface{}:
-			if e, ok := currentEvent[key].([]interface{}); ok {
-				if !subEventList(v, e) {
-					return false
-				}
-			} else {
-				return false
-			}
-
-		default:
-			if e, ok := currentEvent[key]; ok {
-				if val == nil && e == nil {
-					log.Printf("Both nil type: %v and %v , key: %s\n", v, e, key)
-					return true
-				}
-			}
-
-			log.Printf("Unsupported type: %v %T, key: %s\n", v, v, key)
-			return false
-		}
-	}
-	return true
+func startObsGapInjection() {
+	log.Println("START-SIEVE-OBSERVABILITY-GAPS")
 }
 
-func subEventSecondTry(crucialEvent, currentEvent map[string]interface{}) bool {
-	if _, ok := currentEvent["metadata"]; ok {
-		return false
-	}
-	if _, ok := crucialEvent["metadata"]; ok {
-		copiedCrucialEvent := deepCopyMap(crucialEvent)
-		metadataMap := copiedCrucialEvent["metadata"]
-		if m, ok := metadataMap.(map[string]interface{}); ok {
-			for key := range m {
-				copiedCrucialEvent[key] = m[key]
-			}
-			delete(copiedCrucialEvent, "metadata")
-			return subEvent(copiedCrucialEvent, currentEvent)
-		} else {
-			return false
-		}
-	} else {
-		return false
-	}
+func startAtomVioInjection() {
+	log.Println("START-SIEVE-ATOMICITY-VIOLATION")
 }
 
-func isCrucial(crucialEvent, currentEvent map[string]interface{}) bool {
-	if subEvent(crucialEvent, currentEvent) {
-		// log.Println("Meet")
-		return true
-	} else if subEventSecondTry(crucialEvent, currentEvent) {
-		// log.Println("Meet for the second try")
-		return true
-	} else {
-		return false
-	}
+func finishTimeTravelInjection() {
+	log.Println("FINISH-SIEVE-TIME-TRAVEL")
 }
 
-func seenCrucialEventDeprecated(seenPrev, seenCur *bool, crucialCurEvent, crucialPrevEvent, currentEvent map[string]interface{}) bool {
-	if !*seenCur {
-		if !*seenPrev {
-			if isCrucial(crucialPrevEvent, currentEvent) && (len(crucialCurEvent) == 0 || !isCrucial(crucialCurEvent, currentEvent)) {
-				log.Println("Meet crucialPrevEvent: set seenPrev to true")
-				*seenPrev = true
-			}
-		} else {
-			if isCrucial(crucialCurEvent, currentEvent) && (len(crucialPrevEvent) == 0 || !isCrucial(crucialPrevEvent, currentEvent)) {
-				log.Println("Meet crucialCurEvent: set seenCur to true")
-				*seenCur = true
-				return true
-			} else if isCrucial(crucialPrevEvent, currentEvent) {
-				log.Println("Meet crucialPrevEvent: keep seenPrev as true")
-			} else {
-				log.Println("Not meet anything: set seenPrev back to false")
-				*seenPrev = false
-			}
-		}
-	}
-	return false
+func finishObsGapInjection() {
+	log.Println("FINISH-SIEVE-OBSERVABILITY-GAPS")
+}
+
+func finishAtomVioInjection() {
+	log.Println("FINISH-SIEVE-ATOMICITY-VIOLATION")
 }
 
 func cancelEventList(crucialEvent, currentEvent []interface{}) bool {

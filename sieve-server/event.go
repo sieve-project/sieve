@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var seenTargetDiff = false
+
 const TIME_REG string = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 
 // mark a list item to skip
@@ -284,19 +286,92 @@ func equivalentEvent(eventA, eventB map[string]interface{}) bool {
 	return mapToStr(eventA) == mapToStr(eventB)
 }
 
-func seenCrucialEvent(prevEvent, curEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}) bool {
+func partOfEventAsList(eventA, eventB []interface{}) bool {
+	if len(eventA) != len(eventB) {
+		return false
+	}
+	for i, val := range eventA {
+		switch typedValA := val.(type) {
+		case map[string]interface{}:
+			if typedValB, ok := eventB[i].(map[string]interface{}); ok {
+				if !partOfEventAsMap(typedValA, typedValB) {
+					return false
+				}
+			} else {
+				return false
+			}
+		case []interface{}:
+			if typedValB, ok := eventB[i].([]interface{}); ok {
+				if !partOfEventAsList(typedValA, typedValB) {
+					return false
+				}
+			} else {
+				return false
+			}
+		default:
+			if interfaceToStr(eventA[i]) != interfaceToStr(eventB[i]) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
+	for key := range eventA {
+		if _, ok := eventB[key]; !ok {
+			return false
+		}
+	}
+	for key, val := range eventA {
+		switch typedValA := val.(type) {
+		case map[string]interface{}:
+			if typedValB, ok := eventB[key].(map[string]interface{}); ok {
+				if !partOfEventAsMap(typedValA, typedValB) {
+					return false
+				}
+			} else {
+				return false
+			}
+		case []interface{}:
+			if typedValB, ok := eventB[key].([]interface{}); ok {
+				if !partOfEventAsList(typedValA, typedValB) {
+					return false
+				}
+			} else {
+				return false
+			}
+		default:
+			if interfaceToStr(eventA[key]) != interfaceToStr(eventB[key]) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func findTargetDiff(prevEvent, curEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
+	if seenTargetDiff {
+		return false
+	}
 	if prevEvent == nil || curEvent == nil || targetDiffPrevEvent == nil || targetDiffCurEvent == nil {
 		return false
 	}
 	onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(prevEvent, curEvent)
-	log.Printf("online delta: prev: %s\n", mapToStr(onlineDiffPrevEvent))
-	log.Printf("online delta: cur: %s\n", mapToStr(onlineDiffCurEvent))
+	log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
+	log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
 	if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
-		log.Println("Find the crucial event")
+		log.Println("Find the target diff")
+		seenTargetDiff = true
 		return true
-	} else {
-		return false
+	} else if forgiving {
+		if partOfEventAsMap(targetDiffPrevEvent, onlineDiffPrevEvent) && partOfEventAsMap(targetDiffCurEvent, onlineDiffCurEvent) {
+			log.Println("Find the target diff by being forgiving")
+			seenTargetDiff = true
+			return true
+		}
 	}
+	return false
 }
 
 func capitalizeKey(key string) string {
@@ -328,7 +403,6 @@ func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
 			capitalizedEvent[capitalizeKey(key)] = capitalizeEventAsList(typedVal)
 		default:
 			capitalizedEvent[capitalizeKey(key)] = typedVal
-
 		}
 	}
 	return capitalizedEvent

@@ -4,7 +4,6 @@ import (
 	"log"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	sieve "sieve.client"
 )
@@ -94,7 +93,8 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGa
 	if request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) {
 		s.prevEvent = s.curEvent
 		s.curEvent = currentEvent
-		if seenCrucialEvent(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent) {
+		if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
+			startObsGapInjection()
 			s.reconcilingMutex.Lock()
 			log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 			s.mutex.Lock()
@@ -102,16 +102,16 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGa
 			s.mutex.Unlock()
 			s.reconcilingMutex.Unlock()
 
-			go func() {
-				time.Sleep(time.Second * 30)
-				s.mutex.Lock()
-				if s.pausingReconcile {
-					s.pausingReconcile = false
-					s.cond.Broadcast()
-					log.Println("[sieve] we met the timeout for reconcile pausing, reconcile is resumed", s.pausedReconcileCnt)
-				}
-				s.mutex.Unlock()
-			}()
+			// go func() {
+			// 	time.Sleep(time.Second * 30)
+			// 	s.mutex.Lock()
+			// 	if s.pausingReconcile {
+			// 		s.pausingReconcile = false
+			// 		s.cond.Broadcast()
+			// 		log.Println("[sieve] we met the timeout for reconcile pausing, reconcile is resumed", s.pausedReconcileCnt)
+			// 	}
+			// 	s.mutex.Unlock()
+			// }()
 		}
 	}
 	*response = sieve.Response{Message: request.OperationType, Ok: true, Number: int(eID)}
@@ -137,6 +137,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 			s.pausingReconcile = false
 			s.cond.Broadcast()
 			s.mutex.Unlock()
+			finishObsGapInjection()
 		} else if request.ResourceType == s.ceRtype && isSameObject(currentEvent, s.ceNamespace, s.ceName) {
 			// We also propose a diff based method for the cancel
 			if cancelEvent(s.diffCurEvent, currentEvent) {
@@ -146,6 +147,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 				s.pausingReconcile = false
 				s.cond.Broadcast()
 				s.mutex.Unlock()
+				finishObsGapInjection()
 			}
 		}
 

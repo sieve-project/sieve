@@ -109,9 +109,11 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 		writeObj := strToMap(request.Object)
 		if isSameObject(writeObj, s.seNamespace, s.seName) {
 			s.curEvent = writeObj
-			if seenCrucialEvent(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent) {
+			if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
 				log.Println("ready to crash!")
+				startAtomVioInjection()
 				restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
+				finishAtomVioInjection()
 			}
 		}
 	}

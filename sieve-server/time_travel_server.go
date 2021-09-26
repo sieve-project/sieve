@@ -85,11 +85,13 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	log.Printf("[sieve][current-event] %s\n", request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
-	if seenCrucialEvent(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent) {
+	if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, true) {
 		s.sleeped = true
+		startTimeTravelInjection()
 		log.Println("[sieve] should sleep here")
 		<-s.pauseCh
 		log.Println("[sieve] sleep over")
+		finishTimeTravelInjection()
 	}
 	*response = sieve.Response{Message: request.Hostname, Ok: true}
 	return nil
