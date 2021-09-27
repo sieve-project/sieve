@@ -8,14 +8,17 @@ import (
 )
 
 func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string) {
 		return
 	}
-	rType := regularizeType(object)
-	if config["ce-rtype"].(string) != rType {
+	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
 		return
 	}
 	client, err := newClient()
@@ -45,14 +48,17 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string) {
 		return
 	}
-	rType := regularizeType(object)
-	if config["ce-rtype"].(string) != rType {
+	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
 		return
 	}
 	client, err := newClient()
@@ -82,6 +88,9 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapBeforeReconcile(controllerName string) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
@@ -105,6 +114,9 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 }
 
 func NotifyObsGapAfterReconcile(controllerName string) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
@@ -128,6 +140,9 @@ func NotifyObsGapAfterReconcile(controllerName string) {
 }
 
 func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
@@ -135,6 +150,7 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
+		return
 	}
 	client, err := newClient()
 	if err != nil {

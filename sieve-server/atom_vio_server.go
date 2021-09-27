@@ -77,26 +77,26 @@ func (s *atomVioServer) Start() {
 }
 
 func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
-	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
-	if request.Error == "NoError" && request.ResourceType == s.seRtype && s.seEtypePrev == "Get" {
-		readObj := strToMap(request.Object)
-		if isSameObjectServerSide(readObj, s.seNamespace, s.seName) {
-			s.prevEvent = readObj
-		}
+	readObj := strToMap(request.Object)
+	if !(request.Error == "NoError" && request.ResourceType == s.seRtype && s.seEtypePrev == "Get" && isSameObjectServerSide(readObj, s.seNamespace, s.seName)) {
+		log.Fatalf("encounter unexpected Get: %s %s %s", request.ResourceType, request.Error, request.Object)
 	}
+	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
+	s.prevEvent = readObj
 	*response = sieve.Response{Message: request.ResourceType, Ok: true}
 	return nil
 }
 
 func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtomVioAfterOperatorListRequest, response *sieve.Response) error {
+	if !(request.Error == "NoError" && request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List") {
+		log.Fatalf("encounter unexpected List: %s %s %s", request.ResourceType, request.Error, request.ObjectList)
+	}
 	log.Printf("[SIEVE-AFTER-READ]\tList\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)
-	if request.Error == "NoError" && request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List" {
-		readObjs := strToMap(request.ObjectList)["items"].([]interface{})
-		for _, readObj := range readObjs {
-			if isSameObjectServerSide(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
-				s.prevEvent = readObj.(map[string]interface{})
-				break
-			}
+	readObjs := strToMap(request.ObjectList)["items"].([]interface{})
+	for _, readObj := range readObjs {
+		if isSameObjectServerSide(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
+			s.prevEvent = readObj.(map[string]interface{})
+			break
 		}
 	}
 	*response = sieve.Response{Message: request.ResourceType, Ok: true}

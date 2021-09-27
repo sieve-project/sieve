@@ -86,11 +86,11 @@ func (s *obsGapServer) Start() {
 
 // For now, we get an cruial event from API server, we want to see if any later event cancel this one
 func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGapBeforeIndexerWriteRequest, response *sieve.Response) error {
-	log.Println("NotifyObsGapBeforeIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 	currentEvent := strToMap(request.Object)
 	if !(request.ResourceType == s.ceRtype && isSameObjectServerSide(currentEvent, s.ceNamespace, s.ceName)) {
 		log.Fatalf("encounter unexpected object: %s %s", request.ResourceType, request.Object)
 	}
+	log.Println("NotifyObsGapBeforeIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
 	if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
@@ -116,9 +116,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 	s.mutex.RLock()
 	pausingReconcile := s.pausingReconcile
 	s.mutex.RUnlock()
-
 	log.Println("NotifyObsGapAfterIndexerWrite", pausingReconcile, "pausedReconcileCnt", s.pausedReconcileCnt)
-
 	if pausingReconcile {
 		if request.OperationType == "Deleted" {
 			log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
@@ -140,7 +138,6 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 				finishObsGapInjection()
 			}
 		}
-
 	}
 	*response = sieve.Response{Ok: true}
 	return nil

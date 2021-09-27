@@ -40,6 +40,9 @@ func triggerReconcile(object interface{}) bool {
 }
 
 func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int {
+	if err := loadSieveConfig(); err != nil {
+		return -1
+	}
 	if !checkStage(LEARN) {
 		return -1
 	}
@@ -74,10 +77,16 @@ func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int
 }
 
 func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(LEARN) {
 		return
 	}
 	if !triggerReconcile(object) {
+		return
+	}
+	if eventID == -1 {
 		return
 	}
 	// log.Printf("[sieve][NotifyLearnAfterIndexerWrite]\n")
@@ -100,6 +109,9 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 }
 
 func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(LEARN) {
 		return
 	}
@@ -124,6 +136,9 @@ func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}
 }
 
 func NotifyLearnAfterReconcile(controllerName string, controllerPtr interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(LEARN) {
 		return
 	}
@@ -148,6 +163,9 @@ func NotifyLearnAfterReconcile(controllerName string, controllerPtr interface{})
 }
 
 func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int {
+	if err := loadSieveConfig(); err != nil {
+		return -1
+	}
 	if !checkStage(LEARN) {
 		return -1
 	}
@@ -172,13 +190,20 @@ func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int
 }
 
 func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(LEARN) {
+		return
+	}
+	if sideEffectID == -1 {
 		return
 	}
 	// log.Printf("[sieve][NotifyLearnAfterSideEffects] %v\n", reflect.TypeOf(object))
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
+		return
 	}
 	client, err := newClient()
 	if err != nil {
@@ -207,12 +232,16 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 }
 
 func NotifyLearnAfterOperatorGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(LEARN) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
+		return
 	}
 	// log.Printf("[SIEVE] GET %s\n", string(jsonObject))
 	client, err := newClient()
@@ -242,12 +271,16 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 }
 
 func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr error) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(LEARN) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
+		return
 	}
 	// log.Printf("[SIEVE] LIST %s\n", string(jsonObject))
 	client, err := newClient()

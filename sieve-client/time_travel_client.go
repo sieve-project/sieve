@@ -10,6 +10,9 @@ import (
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if checkTimeTravelTiming("after") {
 		// log.Printf("[sieve] NotifyTimeTravelAfterProcessEvent")
 		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
@@ -17,6 +20,9 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 }
 
 func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if checkTimeTravelTiming("before") {
 		// log.Printf("[sieve] NotifyTimeTravelBeforeProcessEvent")
 		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
@@ -46,6 +52,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
 			printError(err, SIEVE_JSON_ERR)
+			return
 		}
 		client, err := newClient()
 		if err != nil {
@@ -102,6 +109,9 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 }
 
 func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
 		return
 	}
@@ -109,6 +119,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
+		return
 	}
 	client, err := newClient()
 	if err != nil {
