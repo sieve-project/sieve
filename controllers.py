@@ -151,7 +151,6 @@ test_suites = {
                 "interest_objects": [
                     {"rtype": "pod", "namespace": "default", "name": "simplenifi-1.*"}
                 ],
-                "effect_to_check": ["Create"],
             },
         ),
     },

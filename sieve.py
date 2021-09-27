@@ -291,7 +291,6 @@ def run_workload(
     else:
         fail("Test workload failed")
         bug_report = "Liveness assertion (in test) failed:\n" + bug_report
-        oracle.print_error_and_debugging_info(bug_report, test_config)
 
     pod_name = (
         kubernetes.client.CoreV1Api()
@@ -470,12 +469,19 @@ def run_test(
             data_dir,
             oracle_config,
         )
+    alarm = 0
+    bug_report = NO_ERROR_MESSAGE
     if oracle_alarm == -1 or oracle_alarm == -2:
         # injection is not completed
-        return oracle_alarm, oracle_bug_report + run_bug_report
+        alarm = oracle_alarm
+        bug_report = oracle_bug_report + run_bug_report
     else:
         # injection is completed
-        return run_alarm + oracle_alarm, run_bug_report + oracle_bug_report
+        alarm = run_alarm + oracle_alarm
+        bug_report = run_bug_report + oracle_bug_report
+    if alarm != 0:
+        oracle.print_error_and_debugging_info(alarm, bug_report, test_config)
+    return alarm, bug_report
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):

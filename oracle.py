@@ -208,27 +208,24 @@ def check_status(learning_status, testing_status):
     bug_report = NO_ERROR_MESSAGE
     for rtype in all_keys:
         if rtype not in learning_status:
-            bug_report += "[ERROR] %s not in learning status digest\n" % (rtype)
+            bug_report += "[ERROR][STATUS] %s not in learning status digest\n" % (rtype)
             alarm += 1
             continue
         elif rtype not in testing_status:
-            bug_report += "[ERROR] %s not in testing status digest\n" % (rtype)
+            bug_report += "[ERROR][STATUS] %s not in testing status digest\n" % (rtype)
             alarm += 1
             continue
         else:
             for attr in learning_status[rtype]:
                 if learning_status[rtype][attr] != testing_status[rtype][attr]:
                     alarm += 1
-                    bug_report += "[ERROR] %s %s inconsistency: %s seen after learning run, but %s seen after testing run\n" % (
+                    bug_report += "[ERROR][STATUS] %s %s inconsistency: %s seen after learning run, but %s seen after testing run\n" % (
                         rtype,
                         attr.upper(),
                         str(learning_status[rtype][attr]),
                         str(testing_status[rtype][attr]),
                     )
-    final_bug_report = (
-        "Liveness assertion failed:\n" + bug_report if bug_report != "" else ""
-    )
-    return alarm, final_bug_report
+    return alarm, bug_report
 
 
 def preprocess_operator_write(operator_write, interest_objects):
@@ -259,12 +256,32 @@ def preprocess_operator_write(operator_write, interest_objects):
 def check_operator_write(
     learning_operator_write,
     testing_operator_write,
-    interest_objects,
-    effect_to_check,
+    test_config,
+    oracle_config,
     selective=True,
 ):
     alarm = 0
     bug_report = NO_ERROR_MESSAGE
+
+    test_config_content = yaml.safe_load(open(test_config))
+    if test_config_content["mode"] == sieve_modes.OBS_GAP:
+        return alarm, bug_report
+
+    # TODO(wenqing): the interest_object thing should be improved
+    # for both time-travel and atom-vio, we should check as many resources as possible
+    interest_objects = []
+    if test_config_content["mode"] == sieve_modes.TIME_TRAVEL:
+        interest_objects.append(
+            {
+                "rtype": test_config_content["se-rtype"],
+                "namespace": test_config_content["se-namespace"],
+                "name": test_config_content["se-name"],
+            }
+        )
+    if "interest_objects" in oracle_config:
+        interest_objects.extend(oracle_config["interest_objects"])
+
+    # TODO(wenqing): instead of handling regex now, we should handle it during learn stage using `generateName`
     # Preporcess regex
     learning_operator_write = preprocess_operator_write(
         learning_operator_write, interest_objects
@@ -283,10 +300,13 @@ def check_operator_write(
             or namespace not in learning_operator_write[rtype]
             or name not in learning_operator_write[rtype][namespace]
         ):
-            bug_report += "[ERROR] %s/%s/%s not in learning side effect digest\n" % (
-                rtype,
-                namespace,
-                name,
+            bug_report += (
+                "[ERROR][WRITE] %s/%s/%s not in learning side effect digest\n"
+                % (
+                    rtype,
+                    namespace,
+                    name,
+                )
             )
             alarm += 1
             exist = False
@@ -295,10 +315,13 @@ def check_operator_write(
             or namespace not in testing_operator_write[rtype]
             or name not in testing_operator_write[rtype][namespace]
         ):
-            bug_report += "[ERROR] %s/%s/%s not in testing side effect digest\n" % (
-                rtype,
-                namespace,
-                name,
+            bug_report += (
+                "[ERROR][WRITE] %s/%s/%s not in testing side effect digest\n"
+                % (
+                    rtype,
+                    namespace,
+                    name,
+                )
             )
             alarm += 1
             exist = False
@@ -307,11 +330,11 @@ def check_operator_write(
             testing_entry = testing_operator_write[rtype][namespace][name]
             for attr in learning_entry:
                 if selective:
-                    if attr not in effect_to_check:
+                    if attr not in sieve_config.config["effect_to_check"]:
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
-                    bug_report += "[ERROR] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                    bug_report += "[ERROR][WRITE] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
                         rtype,
                         namespace,
                         name,
@@ -319,10 +342,7 @@ def check_operator_write(
                         str(learning_entry[attr]),
                         str(testing_entry[attr]),
                     )
-    final_bug_report = (
-        "Safety assertion failed:\n" + bug_report if bug_report != "" else ""
-    )
-    return alarm, final_bug_report
+    return alarm, bug_report
 
 
 def generate_time_travel_debugging_hint(test_config_content):
@@ -372,45 +392,46 @@ def generate_obs_gap_debugging_hint(test_config_content):
     return desc + "\n" + suggestion + "\n"
 
 
-def look_for_discrepancy_in_digest(
-    learning_operator_write,
-    learning_status,
-    testing_operator_write,
-    testing_status,
-    config,
-    oracle_config,
-):
-    test_config_content = yaml.safe_load(open(config))
-    alarm_status, bug_report_status = check_status(learning_status, testing_status)
-    alarm = alarm_status
-    bug_report = bug_report_status
-    # TODO: implement side effect checking for obs gap
-    if test_config_content["mode"] in [sieve_modes.TIME_TRAVEL, sieve_modes.ATOM_VIO]:
-        interest_objects = []
-        if test_config_content["mode"] == sieve_modes.TIME_TRAVEL:
-            interest_objects.append(
-                {
-                    "rtype": test_config_content["se-rtype"],
-                    "namespace": test_config_content["se-namespace"],
-                    "name": test_config_content["se-name"],
-                }
-            )
-        if "interest_objects" in oracle_config:
-            interest_objects.extend(oracle_config["interest_objects"])
+def generate_obs_gap_debugging_hint(test_config_content):
+    desc = "Sieve makes the controller miss the event %s: %s" % (
+        test_config_content["ce-rtype"]
+        + "/"
+        + test_config_content["ce-namespace"]
+        + "/"
+        + test_config_content["ce-name"],
+        test_config_content["ce-diff-current"],
+    )
+    suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
+        test_config_content["ce-rtype"]
+        + "/"
+        + test_config_content["ce-namespace"]
+        + "/"
+        + test_config_content["ce-name"],
+        test_config_content["ce-diff-current"],
+    )
+    return desc + "\n" + suggestion + "\n"
 
-        effect_to_check = sieve_config.config["effect_to_check"]
-        if "effect_to_check" in oracle_config:
-            effect_to_check.extend(oracle_config["effect_to_check"])
 
-        alarm_operator_write, bug_report_operator_write = check_operator_write(
-            learning_operator_write,
-            testing_operator_write,
-            interest_objects,
-            effect_to_check,
-        )
-        alarm += alarm_operator_write
-        bug_report += bug_report_operator_write
-    return alarm, bug_report
+def generate_atom_vio_debugging_hint(test_config_content):
+    desc = "Sieve makes the controller crash after issuing %s %s: %s" % (
+        test_config_content["se-etype"],
+        test_config_content["se-rtype"]
+        + "/"
+        + test_config_content["se-namespace"]
+        + "/"
+        + test_config_content["se-name"],
+        test_config_content["se-diff-current"],
+    )
+    suggestion = "Please check how controller reacts after issuing %s %s: %s, the controller might fail to recover from the dirty state" % (
+        test_config_content["se-etype"],
+        test_config_content["se-rtype"]
+        + "/"
+        + test_config_content["se-namespace"]
+        + "/"
+        + test_config_content["se-name"],
+        test_config_content["se-diff-current"],
+    )
+    return desc + "\n" + suggestion + "\n"
 
 
 def look_for_panic_in_operator_log(operator_log):
@@ -421,14 +442,9 @@ def look_for_panic_in_operator_log(operator_log):
         if "Observed a panic" in line:
             panic_in_file = line[line.find("Observed a panic") :]
             panic_in_file = panic_in_file.strip()
-            bug_report += "[ERROR] %s\n" % panic_in_file
+            bug_report += "[ERROR][OPERATOR-PANIC] %s\n" % panic_in_file
             alarm += 1
-    final_bug_report = (
-        "Safety assertion failed (operator crash):\n" + bug_report
-        if bug_report != ""
-        else ""
-    )
-    return alarm, final_bug_report
+    return alarm, bug_report
 
 
 def generate_debugging_hint(test_config_content):
@@ -438,23 +454,19 @@ def generate_debugging_hint(test_config_content):
     elif mode == sieve_modes.OBS_GAP:
         return generate_obs_gap_debugging_hint(test_config_content)
     elif mode == sieve_modes.ATOM_VIO:
-        return "TODO: generate debugging hint for atom-vio bugs"
+        return generate_atom_vio_debugging_hint(test_config_content)
     else:
         print("mode wrong", mode, test_config_content)
         return "WRONG MODE"
 
 
-def print_error_and_debugging_info(bug_report, test_config):
+def print_error_and_debugging_info(alarm, bug_report, test_config):
+    assert alarm != 0
     test_config_content = yaml.safe_load(open(test_config))
     hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
-    print(
-        bcolors.FAIL
-        + "[BUG FOUND]\n"
-        + bug_report
-        + bcolors.WARNING
-        + hint
-        + bcolors.ENDC
-    )
+    report_color = bcolors.FAIL if alarm > 0 else bcolors.WARNING
+    cprint("[ALARM] %d\n" % (alarm) + bug_report, report_color)
+    cprint(hint, bcolors.WARNING)
 
 
 def is_time_travel_started(server_log):
@@ -513,8 +525,6 @@ def injection_detection(test_config, server_log):
         elif not is_atom_vio_finished(server_log):
             bug_report = "[WARN] atom vio is not finished yet\n"
             alarm = -2
-    if alarm != 0:
-        cprint(bug_report, bcolors.WARNING)
     return alarm, bug_report
 
 
@@ -538,17 +548,20 @@ def check(
     if alarm != 0:
         return alarm, bug_report
 
-    if sieve_config.config["check_digest"]:
-        discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
+    if sieve_config.config["check_status"]:
+        status_alarm, status_bug_report = check_status(learned_status, testing_status)
+        alarm += status_alarm
+        bug_report += status_bug_report
+
+    if sieve_config.config["check_write"]:
+        write_alarm, write_bug_report = check_operator_write(
             learned_operator_write,
-            learned_status,
             testing_operator_write,
-            testing_status,
             test_config,
             oracle_config,
         )
-        alarm += discrepancy_alarm
-        bug_report += discrepancy_bug_report
+        alarm += write_alarm
+        bug_report += write_bug_report
 
     if sieve_config.config["check_operator_log"]:
         panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
@@ -561,9 +574,6 @@ def check(
         )
         alarm += resource_alarm
         bug_report += resource_bug_report
-
-    if alarm != 0:
-        print_error_and_debugging_info(bug_report, test_config)
     return alarm, bug_report
 
 
@@ -617,11 +627,7 @@ def look_for_resources_diff(learn, test):
 
     result = f.getvalue()
     f.close()
-    final_bug_report = (
-        "Liveness assertion failed (status diff):\n[ERROR]\n" + result
-        if alarm != 0
-        else ""
-    )
+    final_bug_report = "[ERROR][RESOURCE]\n" + result if alarm != 0 else ""
     return alarm, final_bug_report
 
 

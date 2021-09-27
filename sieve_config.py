@@ -9,7 +9,8 @@ config = {
     "effect_to_check": ["Delete"],
     "compress_trivial_reconcile": True,
     "workload_wait_timeout": 600,
-    "check_digest": True,
+    "check_status": True,
+    "check_write": True,
     "check_resource": True,
     "check_operator_log": True,
 }
