@@ -345,6 +345,73 @@ def check_operator_write(
     return alarm, bug_report
 
 
+def look_for_panic_in_operator_log(operator_log):
+    alarm = 0
+    bug_report = NO_ERROR_MESSAGE
+    file = open(operator_log)
+    for line in file.readlines():
+        if "Observed a panic" in line:
+            panic_in_file = line[line.find("Observed a panic") :]
+            panic_in_file = panic_in_file.strip()
+            bug_report += "[ERROR][OPERATOR-PANIC] %s\n" % panic_in_file
+            alarm += 1
+    return alarm, bug_report
+
+
+def look_for_resources_diff(learn, test):
+    f = io.StringIO()
+    alarm = 0
+
+    def nested_get(dic, keys):
+        for key in keys:
+            dic = dic[key]
+        return dic
+
+    tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
+    not_care_keys = set(BORING_EVENT_OBJECT_FIELDS)
+
+    for delta_type in tdiff:
+        for key in tdiff[delta_type]:
+            path = key.path(output_format="list")
+            if key.t1 != "SIEVE-IGNORE":
+                has_not_care = False
+                for kp in path:
+                    if kp in not_care_keys:
+                        has_not_care = True
+                        break
+                if has_not_care:
+                    continue
+                try:
+                    resource_type = path[0]
+                    if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
+                        source = learn
+                    else:
+                        source = test
+                    name = nested_get(source, path[:2] + ["metadata", "name"])
+                    namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
+                    if name == "sieve-testing-global-config":
+                        continue
+                    alarm += 1
+                    print(
+                        delta_type,
+                        resource_type,
+                        namespace,
+                        name,
+                        "/".join(map(str, path[2:])),
+                        key.t1,
+                        " => ",
+                        key.t2,
+                        file=f,
+                    )
+                except Exception as e:
+                    print(e, path, key)
+
+    result = f.getvalue()
+    f.close()
+    final_bug_report = "[ERROR][RESOURCE]\n" + result if alarm != 0 else ""
+    return alarm, final_bug_report
+
+
 def generate_time_travel_debugging_hint(test_config_content):
     desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
         test_config_content["timing"],
@@ -432,19 +499,6 @@ def generate_atom_vio_debugging_hint(test_config_content):
         test_config_content["se-diff-current"],
     )
     return desc + "\n" + suggestion + "\n"
-
-
-def look_for_panic_in_operator_log(operator_log):
-    alarm = 0
-    bug_report = NO_ERROR_MESSAGE
-    file = open(operator_log)
-    for line in file.readlines():
-        if "Observed a panic" in line:
-            panic_in_file = line[line.find("Observed a panic") :]
-            panic_in_file = panic_in_file.strip()
-            bug_report += "[ERROR][OPERATOR-PANIC] %s\n" % panic_in_file
-            alarm += 1
-    return alarm, bug_report
 
 
 def generate_debugging_hint(test_config_content):
@@ -575,61 +629,3 @@ def check(
         alarm += resource_alarm
         bug_report += resource_bug_report
     return alarm, bug_report
-
-
-def look_for_resources_diff(learn, test):
-    f = io.StringIO()
-    alarm = 0
-
-    def nested_get(dic, keys):
-        for key in keys:
-            dic = dic[key]
-        return dic
-
-    tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
-    not_care_keys = set(BORING_EVENT_OBJECT_FIELDS)
-
-    for delta_type in tdiff:
-        for key in tdiff[delta_type]:
-            path = key.path(output_format="list")
-            if key.t1 != "SIEVE-IGNORE":
-                has_not_care = False
-                for kp in path:
-                    if kp in not_care_keys:
-                        has_not_care = True
-                        break
-                if has_not_care:
-                    continue
-                try:
-                    resource_type = path[0]
-                    if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
-                        source = learn
-                    else:
-                        source = test
-                    name = nested_get(source, path[:2] + ["metadata", "name"])
-                    namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
-                    if name == "sieve-testing-global-config":
-                        continue
-                    alarm += 1
-                    print(
-                        delta_type,
-                        resource_type,
-                        namespace,
-                        name,
-                        "/".join(map(str, path[2:])),
-                        key.t1,
-                        " => ",
-                        key.t2,
-                        file=f,
-                    )
-                except Exception as e:
-                    print(e, path, key)
-
-    result = f.getvalue()
-    f.close()
-    final_bug_report = "[ERROR][RESOURCE]\n" + result if alarm != 0 else ""
-    return alarm, final_bug_report
-
-
-if __name__ == "__main__":
-    generate_resources()
