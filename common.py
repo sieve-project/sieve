@@ -25,6 +25,8 @@ NONEXIST = False
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
 BORING_EVENT_OBJECT_FIELDS = [
+    "kind",  # not always available
+    "apiVersion",  # not always available
     "uid",  # random
     "resourceVersion",  # random
     "generation",  # random
