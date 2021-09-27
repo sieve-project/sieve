@@ -22,7 +22,7 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 	if !(config["se-etype-previous"].(string) == "Get" && errorString == "NoError" && rType == config["se-rtype"].(string)) {
 		return
 	}
-	if !isSameObjectClientSide(object, namespacedName.Namespace, namespacedName.Name) {
+	if !isSameObjectClientSide(object, config["se-namespace"].(string), config["se-name"].(string)) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
