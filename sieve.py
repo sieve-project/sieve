@@ -433,6 +433,10 @@ def run_test(
     data_dir,
     phase,
 ) -> Tuple[int, str]:
+    run_alarm = 0
+    run_bug_report = NO_ERROR_MESSAGE
+    oracle_alarm = 0
+    oracle_bug_report = NO_ERROR_MESSAGE
     if phase == "all" or phase == "setup_only":
         setup_cluster(
             project,
@@ -446,7 +450,7 @@ def run_test(
             use_csi_driver,
         )
     if phase == "all" or phase == "workload_only" or phase == "workload_and_check":
-        alarm, bug_report = run_workload(
+        run_alarm, run_bug_report = run_workload(
             project,
             mode,
             test_workload,
@@ -456,10 +460,8 @@ def run_test(
             docker_tag,
             num_apiservers,
         )
-        if alarm != 0:
-            return alarm, bug_report
     if phase == "all" or phase == "check_only" or phase == "workload_and_check":
-        alarm, bug_report = check_result(
+        oracle_alarm, oracle_bug_report = check_result(
             project,
             mode,
             stage,
@@ -468,8 +470,12 @@ def run_test(
             data_dir,
             oracle_config,
         )
-        return alarm, bug_report
-    return 0, NO_ERROR_MESSAGE
+    if oracle_alarm == -1 or oracle_alarm == -2:
+        # injection is not completed
+        return oracle_alarm, oracle_bug_report + run_bug_report
+    else:
+        # injection is completed
+        return run_alarm + oracle_alarm, run_bug_report + oracle_bug_report
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
@@ -584,7 +590,9 @@ def run(
             }
 
             # Testing mode, write test result under sieve_test_result directory
-            result_filename = "sieve_test_results/{}-{}-{}.json".format(project, test, os.path.basename(test_config))
+            result_filename = "sieve_test_results/{}-{}-{}.json".format(
+                project, test, os.path.basename(test_config)
+            )
             if not os.path.exists(os.path.dirname(result_filename)):
                 try:
                     os.makedirs(os.path.dirname(result_filename))
@@ -592,7 +600,7 @@ def run(
                     if exception.errno != errno.EEXIST:
                         raise
 
-            with open(result_filename, 'w') as test_result_json:
+            with open(result_filename, "w") as test_result_json:
                 json.dump(
                     result_map,
                     test_result_json,
@@ -602,8 +610,15 @@ def run(
             # XXX: Temporarily copy log information to save it for later analysis
             test_log_save = os.path.join("log_save", project, test, stage)
             os.system("mkdir -p {}".format(test_log_save))
-            os.system('cp -r {} {}'.format(log_dir, os.path.join(
-                test_log_save, os.path.splitext(os.path.basename(test_config))[0])))
+            os.system(
+                "cp -r {} {}".format(
+                    log_dir,
+                    os.path.join(
+                        test_log_save,
+                        os.path.splitext(os.path.basename(test_config))[0],
+                    ),
+                )
+            )
 
             return alarm, bug_report
 

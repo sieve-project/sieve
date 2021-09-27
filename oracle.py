@@ -205,7 +205,7 @@ def generate_resources(log_dir="", canonicalize_resource=False):
 def check_status(learning_status, testing_status):
     alarm = 0
     all_keys = set(learning_status.keys()).union(testing_status.keys())
-    bug_report = ""
+    bug_report = NO_ERROR_MESSAGE
     for rtype in all_keys:
         if rtype not in learning_status:
             bug_report += "[ERROR] %s not in learning status digest\n" % (rtype)
@@ -264,7 +264,7 @@ def check_operator_write(
     selective=True,
 ):
     alarm = 0
-    bug_report = ""
+    bug_report = NO_ERROR_MESSAGE
     # Preporcess regex
     learning_operator_write = preprocess_operator_write(
         learning_operator_write, interest_objects
@@ -415,7 +415,7 @@ def look_for_discrepancy_in_digest(
 
 def look_for_panic_in_operator_log(operator_log):
     alarm = 0
-    bug_report = ""
+    bug_report = NO_ERROR_MESSAGE
     file = open(operator_log)
     for line in file.readlines():
         if "Observed a panic" in line:
@@ -457,6 +457,21 @@ def print_error_and_debugging_info(bug_report, test_config):
     )
 
 
+def is_time_travel_started(server_log):
+    file = open(server_log)
+    return "START-SIEVE-TIME-TRAVEL" in file.read()
+
+
+def is_obs_gap_started(server_log):
+    file = open(server_log)
+    return "START-SIEVE-OBSERVABILITY-GAPS" in file.read()
+
+
+def is_atom_vio_started(server_log):
+    file = open(server_log)
+    return "START-SIEVE-ATOMICITY-VIOLATION" in file.read()
+
+
 def is_time_travel_finished(server_log):
     file = open(server_log)
     return "FINISH-SIEVE-TIME-TRAVEL" in file.read()
@@ -472,6 +487,37 @@ def is_atom_vio_finished(server_log):
     return "FINISH-SIEVE-ATOMICITY-VIOLATION" in file.read()
 
 
+def injection_detection(test_config, server_log):
+    test_config_content = yaml.safe_load(open(test_config))
+    test_mode = test_config_content["mode"]
+    alarm = 0
+    bug_report = NO_ERROR_MESSAGE
+    if test_mode == sieve_modes.TIME_TRAVEL:
+        if not is_time_travel_started(server_log):
+            bug_report = "[WARN] time travel is not started yet\n"
+            alarm = -1
+        elif not is_time_travel_finished(server_log):
+            bug_report = "[WARN] time travel is not finished yet\n"
+            alarm = -2
+    elif test_mode == sieve_modes.OBS_GAP:
+        if not is_obs_gap_started(server_log):
+            bug_report = "[WARN] obs gap is not started yet\n"
+            alarm = -1
+        elif not is_obs_gap_finished(server_log):
+            bug_report = "[WARN] obs gap is not finished yet\n"
+            alarm = -2
+    elif test_mode == sieve_modes.ATOM_VIO:
+        if not is_atom_vio_started(server_log):
+            bug_report = "[WARN] atom vio is not started yet\n"
+            alarm = -1
+        elif not is_atom_vio_finished(server_log):
+            bug_report = "[WARN] atom vio is not finished yet\n"
+            alarm = -2
+    if alarm != 0:
+        cprint(bug_report, bcolors.WARNING)
+    return alarm, bug_report
+
+
 def check(
     learned_operator_write,
     learned_status,
@@ -484,23 +530,14 @@ def check(
     server_log,
     oracle_config,
 ):
-    test_config_content = yaml.safe_load(open(test_config))
 
-    test_mode = test_config_content["mode"]
-    if test_mode == sieve_modes.TIME_TRAVEL and not is_time_travel_finished(server_log):
-        bug_report = "[WARN] time travel is not finished yet"
-        cprint(bug_report, bcolors.WARNING)
-        return -1, bug_report
-    elif test_mode == sieve_modes.OBS_GAP and not is_obs_gap_finished(server_log):
-        bug_report = "[WARN] obs gap is not finished yet"
-        cprint(bug_report, bcolors.WARNING)
-        return -1, bug_report
-    elif test_mode == sieve_modes.ATOM_VIO and not is_atom_vio_finished(server_log):
-        bug_report = "[WARN] atom vio is not finished yet"
-        cprint(bug_report, bcolors.WARNING)
-        return -1, bug_report
     alarm = 0
-    bug_report = ""
+    bug_report = NO_ERROR_MESSAGE
+
+    alarm, bug_report = injection_detection(test_config, server_log)
+    if alarm != 0:
+        return alarm, bug_report
+
     if sieve_config.config["check_digest"]:
         discrepancy_alarm, discrepancy_bug_report = look_for_discrepancy_in_digest(
             learned_operator_write,
@@ -512,16 +549,19 @@ def check(
         )
         alarm += discrepancy_alarm
         bug_report += discrepancy_bug_report
+
     if sieve_config.config["check_operator_log"]:
         panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
         alarm += panic_alarm
         bug_report += panic_bug_report
+
     if sieve_config.config["check_resource"] and learned_resources != None:
         resource_alarm, resource_bug_report = look_for_resources_diff(
             learned_resources, testing_resources
         )
         alarm += resource_alarm
         bug_report += resource_bug_report
+
     if alarm != 0:
         print_error_and_debugging_info(bug_report, test_config)
     return alarm, bug_report
