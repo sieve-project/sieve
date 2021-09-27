@@ -24,6 +24,8 @@ var CONFORM_TYPES = map[string]struct{}{"pod": exists}
 
 // keys that to ignore when computing event diff
 var BORING_KEYS = map[string]struct{}{
+	"kind":                       exists, // not always available
+	"apiVersion":                 exists, // not always available
 	"uid":                        exists, // random
 	"resourceVersion":            exists, // random
 	"generation":                 exists, // random
