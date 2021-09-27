@@ -66,8 +66,8 @@ If reproduced, you will see:
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
-### [orange-opensource-casskop-357](https://github.com/Orange-OpenSource/casskop/issues/357)
-todo
+<!-- ### [orange-opensource-casskop-357](https://github.com/Orange-OpenSource/casskop/issues/357)
+todo -->
 <!-- ```
 python3 reprod.py -p casskop-operator -b obs-gap-2 -d SIEVE_IMAGE
 ```
@@ -111,6 +111,7 @@ python3 reprod.py -p cassandra-operator -b time-travel-2 -d SIEVE_IMAGE
 If reproduced, you will see:
 ```
 [ERROR] persistentvolumeclaim TERMINATING inconsistency: 0 seen after learning run, but 1 seen after testing run
+[ERROR] persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-1 DELETE inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `bd8077a478997f63862848d66d4912c59e4c46ff`.
 

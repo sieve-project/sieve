@@ -43,6 +43,9 @@ def compress_event_object_for_list(
     for i in range(len(slim_cur_object)):
         if slim_cur_object[i] != SIEVE_SKIP_MARKER:
             return False
+    for i in range(len(slim_prev_object)):
+        if slim_prev_object[i] != SIEVE_SKIP_MARKER:
+            return False
     return True
 
 
@@ -138,7 +141,7 @@ def canonicalize_event_object(event_object: Dict):
 
 
 def cancel_event_obj_for_list(cur_object: List, following_object: List):
-    if len(following_object) < len(cur_object):
+    if len(following_object) != len(cur_object):
         return True
     for i in range(len(cur_object)):
         if str(following_object[i]) != str(cur_object[i]):

@@ -3,17 +3,24 @@ package sieve
 import (
 	"encoding/json"
 	"log"
-	"reflect"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-
-	log.Printf("[sieve][NotifyObsGapBeforeIndexerWrite] operationType: %s\n", operationType)
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string) {
+		return
+	}
+	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
+		return
+	}
 	client, err := newClient()
 	if err != nil {
 		printError(err, SIEVE_CONN_ERR)
@@ -24,11 +31,11 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-
+	log.Printf("[sieve][NotifyObsGapBeforeIndexerWrite] type: %s object: %s\n", operationType, string(jsonObject))
 	request := &NotifyObsGapBeforeIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:  rType,
 	}
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapBeforeIndexerWrite", request, &response)
@@ -41,10 +48,19 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	log.Printf("[sieve][NotifyObsGapAfterIndexerWrite] operationType: %s\n", operationType)
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string) {
+		return
+	}
+	if !isSameObjectClientSide(object, config["ce-namespace"].(string), config["ce-name"].(string)) {
+		return
+	}
 	client, err := newClient()
 	if err != nil {
 		printError(err, SIEVE_CONN_ERR)
@@ -55,11 +71,11 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-
+	log.Printf("[sieve][NotifyObsGapAfterIndexerWrite] type: %s object: %s\n", operationType, string(jsonObject))
 	request := &NotifyObsGapAfterIndexerWriteRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:  rType,
 	}
 	var response Response
 	err = client.Call("ObsGapListener.NotifyObsGapAfterIndexerWrite", request, &response)
@@ -72,6 +88,9 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 }
 
 func NotifyObsGapBeforeReconcile(controllerName string) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
@@ -95,6 +114,9 @@ func NotifyObsGapBeforeReconcile(controllerName string) {
 }
 
 func NotifyObsGapAfterReconcile(controllerName string) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
@@ -118,13 +140,17 @@ func NotifyObsGapAfterReconcile(controllerName string) {
 }
 
 func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	// log.Printf("[sieve][NotifyTimeTravelSideEffects] %s %v\n", sideEffectType, object)
+	log.Printf("[sieve][NotifyObsGapAfterSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
+		return
 	}
 	client, err := newClient()
 	if err != nil {
@@ -139,7 +165,7 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
-		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:   regularizeType(object),
 		Error:          errorString,
 	}
 	var response Response

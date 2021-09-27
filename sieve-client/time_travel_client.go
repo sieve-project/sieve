@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"reflect"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	// "k8s.io/apimachinery/pkg/api/meta"
 )
 
 func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if checkTimeTravelTiming("after") {
 		// log.Printf("[sieve] NotifyTimeTravelAfterProcessEvent")
 		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
@@ -19,6 +20,9 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 }
 
 func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if checkTimeTravelTiming("before") {
 		// log.Printf("[sieve] NotifyTimeTravelBeforeProcessEvent")
 		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
@@ -42,12 +46,13 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	}
 	namespace := tokens[len(tokens)-2]
 	name := tokens[len(tokens)-1]
-	log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
+		log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 		log.Printf("[sieve][rt-ns-name][curcial-event] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
 			printError(err, SIEVE_JSON_ERR)
+			return
 		}
 		client, err := newClient()
 		if err != nil {
@@ -73,6 +78,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 		checkResponse(response, "NotifyTimeTravelCrucialEvent")
 		client.Close()
 	} else if name == config["se-name"].(string) && namespace == config["se-namespace"].(string) && resourceType == config["se-rtype"].(string) && eventType == config["se-etype"] {
+		log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 		log.Printf("[sieve][rt-ns-name][side-effect] %s %s %s", resourceType, namespace, name)
 		client, err := newClient()
 		if err != nil {
@@ -103,6 +109,9 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 }
 
 func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
 	if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
 		return
 	}
@@ -110,6 +119,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
+		return
 	}
 	client, err := newClient()
 	if err != nil {
@@ -124,7 +134,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
-		ResourceType:   regularizeType(reflect.TypeOf(object).String()),
+		ResourceType:   regularizeType(object),
 		Error:          errorString,
 	}
 	var response Response

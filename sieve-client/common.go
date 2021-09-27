@@ -5,10 +5,12 @@ import (
 	"log"
 	"net/rpc"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/api/meta"
 )
 
 const TIME_TRAVEL string = "time-travel"
@@ -28,80 +30,17 @@ var config map[string]interface{} = nil
 
 var taintMap sync.Map = sync.Map{}
 
-func checkMode(mode string) bool {
+func loadSieveConfig() error {
 	if config == nil {
-		config, _ = getConfig()
-	}
-	if config == nil {
-		return false
-	}
-	if modeInConfig, ok := config["mode"]; ok {
-		return modeInConfig.(string) == mode
-	} else {
-		log.Println("[sieve] no mode field in config")
-		return false
-	}
-}
-
-func checkStage(stage string) bool {
-	if config == nil {
-		config, _ = getConfig()
-	}
-	if config == nil {
-		return false
-	}
-	if stageInConfig, ok := config["stage"]; ok {
-		return stageInConfig.(string) == stage
-	} else {
-		log.Println("[sieve] no stage field in config")
-		return false
-	}
-}
-
-func checkTimeTravelTiming(timing string) bool {
-	if checkStage(TEST) && checkMode(TIME_TRAVEL) {
-		if timingInConfig, ok := config["timing"]; ok {
-			return timingInConfig.(string) == timing
+		var err error = nil
+		config, err = getConfig()
+		if err == nil {
+			log.Println(config)
 		} else {
-			return timing == "after"
+			return err
 		}
 	}
-	return false
-}
-
-func getCRDs() []string {
-	crds := []string{}
-	if cs, ok := config["crd-list"]; ok {
-		switch v := cs.(type) {
-		case []interface{}:
-			for _, c := range v {
-				crds = append(crds, c.(string))
-			}
-		case []string:
-			for _, c := range v {
-				crds = append(crds, c)
-			}
-		default:
-			log.Println("crd-list wrong type")
-		}
-	}
-	return crds
-}
-
-func newClient() (*rpc.Client, error) {
-	config, _ := getConfig()
-	hostPort := SIEVE_SERVER_ADDR
-	if config != nil {
-		if val, ok := config["server-endpoint"]; ok {
-			hostPort = val.(string)
-		}
-	}
-	client, err := rpc.Dial("tcp", hostPort)
-	if err != nil {
-		log.Printf("[sieve] error in setting up connection to %s due to %v\n", hostPort, err)
-		return nil, err
-	}
-	return client, nil
+	return nil
 }
 
 func getConfigFromEnv() map[string]interface{} {
@@ -149,6 +88,67 @@ func getConfig() (map[string]interface{}, error) {
 	return configFromYaml, nil
 }
 
+func checkMode(mode string) bool {
+	if modeInConfig, ok := config["mode"]; ok {
+		return modeInConfig.(string) == mode
+	} else {
+		log.Println("[sieve] no mode field in config")
+		return false
+	}
+}
+
+func checkStage(stage string) bool {
+	if stageInConfig, ok := config["stage"]; ok {
+		return stageInConfig.(string) == stage
+	} else {
+		log.Println("[sieve] no stage field in config")
+		return false
+	}
+}
+
+func checkTimeTravelTiming(timing string) bool {
+	if checkStage(TEST) && checkMode(TIME_TRAVEL) {
+		if timingInConfig, ok := config["timing"]; ok {
+			return timingInConfig.(string) == timing
+		} else {
+			return timing == "after"
+		}
+	}
+	return false
+}
+
+func getCRDs() []string {
+	crds := []string{}
+	if cs, ok := config["crd-list"]; ok {
+		switch v := cs.(type) {
+		case []interface{}:
+			for _, c := range v {
+				crds = append(crds, c.(string))
+			}
+		case []string:
+			for _, c := range v {
+				crds = append(crds, c)
+			}
+		default:
+			log.Println("crd-list wrong type")
+		}
+	}
+	return crds
+}
+
+func newClient() (*rpc.Client, error) {
+	hostPort := SIEVE_SERVER_ADDR
+	if val, ok := config["server-endpoint"]; ok {
+		hostPort = val.(string)
+	}
+	client, err := rpc.Dial("tcp", hostPort)
+	if err != nil {
+		log.Printf("[sieve] error in setting up connection to %s due to %v\n", hostPort, err)
+		return nil, err
+	}
+	return client, nil
+}
+
 func printError(err error, text string) {
 	log.Printf("[sieve][error] %s due to: %v \n", text, err)
 }
@@ -161,7 +161,8 @@ func checkResponse(response Response, reqName string) {
 	}
 }
 
-func regularizeType(rtype string) string {
+func regularizeType(object interface{}) string {
+	rtype := reflect.TypeOf(object).String()
 	tokens := strings.Split(rtype, ".")
 	return strings.ToLower(tokens[len(tokens)-1])
 }
@@ -174,4 +175,16 @@ func pluralToSingle(rtype string) string {
 	} else {
 		return rtype
 	}
+}
+
+func extractNameNamespaceFromObj(object interface{}) (string, string) {
+	if o, err := meta.Accessor(object); err == nil {
+		return o.GetName(), o.GetNamespace()
+	}
+	return "", ""
+}
+
+func isSameObjectClientSide(object interface{}, namespace string, name string) bool {
+	extractedName, extractedNamespace := extractNameNamespaceFromObj(object)
+	return extractedNamespace == namespace && extractedName == name
 }
