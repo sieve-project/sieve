@@ -26,6 +26,56 @@ from common import (
     sieve_stages,
 )
 
+def save_run_result(project, test, mode, stage, test_config, alarm, bug_report, starttime):
+    if stage is sieve_stages.TEST or mode is sieve_modes.VANILLA:
+        return
+
+    result_map = {
+        project: {
+            test: {
+                mode:{
+                    test_config: {
+                        "duration": time.time() - starttime,
+                        "alarm": alarm,
+                        "bug_report": bug_report,
+                        "test_config_content": open(test_config).read(),
+                    }
+                }
+            },
+        }
+    }
+
+    # Testing mode, write test result under sieve_test_result directory
+    result_filename = "sieve_test_results/{}-{}-{}.json".format(
+        project, test, os.path.basename(test_config)
+    )
+    if not os.path.exists(os.path.dirname(result_filename)):
+        try:
+            os.makedirs(os.path.dirname(result_filename))
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+    with open(result_filename, "w") as test_result_json:
+        json.dump(
+            result_map,
+            test_result_json,
+            indent=4,
+        )
+
+    # XXX: Temporarily copy log information to save it for later analysis
+    test_log_save = os.path.join("log_save", project, test, stage)
+    os.system("mkdir -p {}".format(test_log_save))
+    os.system(
+        "cp -r {} {}".format(
+            log_dir,
+            os.path.join(
+                test_log_save,
+                os.path.splitext(os.path.basename(test_config))[0],
+            ),
+        )
+    )
+
 
 def watch_crd(project, addrs):
     for addr in addrs:
@@ -543,7 +593,6 @@ def run(
                 phase,
             )
         else:
-            s = time.time()
             test_config = config
             print("Testing with config: %s" % test_config)
             test_config_to_use = os.path.join(log_dir, os.path.basename(test_config))
@@ -554,7 +603,7 @@ def run(
                 suite.num_apiservers = 1
                 suite.num_workers = 0
 
-            alarm, bug_report = run_test(
+            return run_test(
                 project,
                 mode,
                 stage,
@@ -570,54 +619,6 @@ def run(
                 data_dir,
                 phase,
             )
-
-            result_map = {
-                project: {
-                    test: {
-                        mode:{
-                            test_config: {
-                                "duration": time.time() - s,
-                                "alarm": alarm,
-                                "bug_report": bug_report,
-                                "test_config_content": open(test_config_to_use).read(),
-                            }
-                        }
-                    },
-                }
-            }
-
-            # Testing mode, write test result under sieve_test_result directory
-            result_filename = "sieve_test_results/{}-{}-{}.json".format(
-                project, test, os.path.basename(test_config)
-            )
-            if not os.path.exists(os.path.dirname(result_filename)):
-                try:
-                    os.makedirs(os.path.dirname(result_filename))
-                except OSError as exception:
-                    if exception.errno != errno.EEXIST:
-                        raise
-
-            with open(result_filename, "w") as test_result_json:
-                json.dump(
-                    result_map,
-                    test_result_json,
-                    indent=4,
-                )
-
-            # XXX: Temporarily copy log information to save it for later analysis
-            test_log_save = os.path.join("log_save", project, test, stage)
-            os.system("mkdir -p {}".format(test_log_save))
-            os.system(
-                "cp -r {} {}".format(
-                    log_dir,
-                    os.path.join(
-                        test_log_save,
-                        os.path.splitext(os.path.basename(test_config))[0],
-                    ),
-                )
-            )
-
-            return alarm, bug_report
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -871,7 +872,7 @@ if __name__ == "__main__":
                 options.phase,
             )
 
-        run(
+        alarm, report = run(
             controllers.test_suites,
             options.project,
             options.test,
@@ -883,4 +884,6 @@ if __name__ == "__main__":
             options.rate_limiter,
             options.phase,
         )
+
+        save_run_result(options.project, options.test, options.mode, options.stage, options.config, alarm, report, s)
     print("Total time: {} seconds".format(time.time() - s))
