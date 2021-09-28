@@ -93,7 +93,7 @@ def generate_jobs(ci_mode):
         ]
         job["steps"].extend(build_image)
 
-        if not (ci_mode == "test" and operator == "xtradb-operator"):
+        if not (ci_mode in ["test", "daily"] and operator == "xtradb-operator"):
             sieve_learn = [
                 {
                     "name": "Sieve Learn - %s %s" % (operator, workload),
