@@ -65,17 +65,17 @@ workloads = {
         .cmd("kubectl apply -f test-casskop-operator/test/nodes-0.yaml")
         .wait(50),
         # TODO(wenqing): Please fix this test case. As hinted in the operator log, we have to first set nodePerRack to 0 before resizing the dc
-        "scaledown": test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
-        .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml")
-        .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", common.RUNNING)
-        .wait_for_pod_status("cassandra-cluster-dc2-rack1-0", common.RUNNING)
-        .wait_for_pod_status("cassandra-cluster-dc3-rack1-0", common.RUNNING)
-        .cmd("kubectl apply -f test-casskop-operator/test/dc-2.yaml")
-        .wait_for_pod_status("cassandra-cluster-dc3-rack1-0", common.TERMINATED, 10)
-        .cmd("kubectl apply -f test-casskop-operator/test/dc-1.yaml")
-        .wait_for_pod_status("cassandra-cluster-dc2-rack1-0", common.TERMINATED, 60)
-        .wait(50),
+        # "scaledown": test_framework.new_built_in_workload()
+        # .cmd("kubectl apply -f test-casskop-operator/test/cassandra-configmap-v1.yaml")
+        # .cmd("kubectl apply -f test-casskop-operator/test/dc-3.yaml")
+        # .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", common.RUNNING)
+        # .wait_for_pod_status("cassandra-cluster-dc2-rack1-0", common.RUNNING)
+        # .wait_for_pod_status("cassandra-cluster-dc3-rack1-0", common.RUNNING)
+        # .cmd("kubectl apply -f test-casskop-operator/test/dc-2.yaml")
+        # .wait_for_pod_status("cassandra-cluster-dc3-rack1-0", common.TERMINATED, 10)
+        # .cmd("kubectl apply -f test-casskop-operator/test/dc-1.yaml")
+        # .wait_for_pod_status("cassandra-cluster-dc2-rack1-0", common.TERMINATED, 60)
+        # .wait(50),
     },
     "cass-operator": {
         "recreate": test_framework.new_built_in_workload()
@@ -132,14 +132,6 @@ workloads = {
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
         .wait(50),
-        # "resize-pvc": test_framework.new_built_in_workload()
-        # .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
-        # .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
-        # .cmd(
-        #     'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"persistence":{"storage":"15Gi"}}}\''
-        # )
-        # .wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi")
-        # .wait(50),
         # TODO: use wait_for
         "scaleup-scaledown": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")

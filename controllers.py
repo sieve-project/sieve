@@ -75,9 +75,6 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["rabbitmq-operator"]["recreate"],
         ),
-        # "resize-pvc": Suite(
-        #     workloads.workloads["rabbitmq-operator"]["resize-pvc"],
-        # ),
         "scaleup-scaledown": Suite(
             workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
         ),
@@ -115,9 +112,6 @@ test_suites = {
         "scaledown-to-zero": Suite(
             workloads.workloads["casskop-operator"]["scaledown-to-zero"],
         ),
-        # "scaledown": Suite(
-        #     workloads.workloads["casskop-operator"]["scaledown"],
-        # ),
     },
     "xtradb-operator": {
         "recreate": Suite(
