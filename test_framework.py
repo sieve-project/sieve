@@ -100,11 +100,11 @@ class TestCmd:
 
 class TestWait:
     def __init__(self, time_out):
-        self.time_out = time_out
+        self.hard_time_out = time_out
 
     def run(self, mode) -> Tuple[int, str]:
-        print("wait for %s seconds" % str(self.time_out))
-        time.sleep(self.time_out)
+        print("wait for %s seconds" % str(self.hard_time_out))
+        time.sleep(self.hard_time_out)
         return 0, common.NO_ERROR_MESSAGE
 
 
@@ -114,15 +114,15 @@ class TestWaitForStatus:
         resource_type,
         resource_name,
         status,
-        obs_gap_waiting_time,
-        time_out=sieve_config.config["workload_wait_timeout"],
+        soft_time_out,
+        hard_time_out,
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.status = status
         self.namespace = sieve_config.config["namespace"]
-        self.obs_gap_waiting_time = obs_gap_waiting_time
-        self.time_out = time_out
+        self.soft_time_out = soft_time_out
+        self.hard_time_out = hard_time_out
 
     def check_pod(self):
         try:
@@ -169,27 +169,31 @@ class TestWaitForStatus:
             "wait until %s %s becomes %s..."
             % (self.resource_type, self.resource_name, self.status)
         )
-        if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
-            time.sleep(self.obs_gap_waiting_time)
-            print("obs gap waiting time is reached")
-        else:
-            while True:
-                if time.time() - s > float(self.time_out):
-                    error_message = (
-                        "[ERROR] waiting timeout: %s does not become %s within %d seconds\n"
-                        % (self.resource_name, self.status, self.time_out)
-                    )
-                    print(error_message)
-                    return 1, error_message
-                if self.resource_type == common.POD:
-                    if self.check_pod():
-                        break
-                elif self.resource_type == common.PVC:
-                    if self.check_pvc():
-                        break
-                else:
-                    assert False, "type not supported yet"
-                time.sleep(5)
+        while True:
+            duration = time.time() - s
+            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+                error_message = (
+                    "soft timeout: %s does not become %s within %d seconds; we will continue"
+                    % (self.resource_name, self.status, self.soft_time_out)
+                )
+                print(error_message)
+                return 0, common.NO_ERROR_MESSAGE
+            if duration > self.hard_time_out:
+                error_message = (
+                    "hard timeout: %s does not become %s within %d seconds"
+                    % (self.resource_name, self.status, self.hard_time_out)
+                )
+                print(error_message)
+                return 1, error_message
+            if self.resource_type == common.POD:
+                if self.check_pod():
+                    break
+            elif self.resource_type == common.PVC:
+                if self.check_pvc():
+                    break
+            else:
+                assert False, "type not supported yet"
+            time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
         return 0, common.NO_ERROR_MESSAGE
 
@@ -200,15 +204,15 @@ class TestWaitForStorage:
         resource_type,
         resource_name,
         storage_size,
-        obs_gap_waiting_time,
-        time_out=sieve_config.config["workload_wait_timeout"],
+        soft_time_out,
+        hard_time_out,
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.storage_size = storage_size
         self.namespace = sieve_config.config["namespace"]
-        self.obs_gap_waiting_time = obs_gap_waiting_time
-        self.time_out = time_out
+        self.soft_time_out = soft_time_out
+        self.hard_time_out = hard_time_out
 
     def check_sts(self):
         sts = get_sts(self.resource_name)
@@ -228,24 +232,28 @@ class TestWaitForStorage:
             "wait until %s %s has storage size %s..."
             % (self.resource_type, self.resource_name, self.storage_size)
         )
-        if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
-            time.sleep(self.obs_gap_waiting_time)
-            print("obs gap waiting time is reached")
-        else:
-            while True:
-                if time.time() - s > float(self.time_out):
-                    error_message = (
-                        "[ERROR] waiting timeout: %s does not have storage size %s within %d seconds\n"
-                        % (self.resource_name, self.storage_size, self.time_out)
-                    )
-                    print(error_message)
-                    return 1, error_message
-                if self.resource_type == common.STS:
-                    if self.check_sts():
-                        break
-                else:
-                    assert False, "type not supported yet"
-                time.sleep(5)
+        while True:
+            duration = time.time() - s
+            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+                error_message = (
+                    "soft timeout: %s does not have storage size %s within %d seconds; we will continue"
+                    % (self.resource_name, self.storage_size, self.soft_time_out)
+                )
+                print(error_message)
+                return 0, common.NO_ERROR_MESSAGE
+            if duration > self.hard_time_out:
+                error_message = (
+                    "hard timeout: %s does not have storage size %s within %d seconds"
+                    % (self.resource_name, self.storage_size, self.hard_time_out)
+                )
+                print(error_message)
+                return 1, error_message
+            if self.resource_type == common.STS:
+                if self.check_sts():
+                    break
+            else:
+                assert False, "type not supported yet"
+            time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
         return 0, common.NO_ERROR_MESSAGE
 
@@ -256,8 +264,8 @@ class TestWaitForExistence:
         resource_type,
         resource_name,
         exist: bool,
-        obs_gap_waiting_time,
-        time_out=sieve_config.config["workload_wait_timeout"],
+        soft_time_out,
+        hard_time_out,
     ):
         """Constructor
 
@@ -270,8 +278,8 @@ class TestWaitForExistence:
         self.resource_name = resource_name
         self.exist = exist
         self.namespace = sieve_config.config["namespace"]
-        self.obs_gap_waiting_time = obs_gap_waiting_time
-        self.time_out = time_out
+        self.soft_time_out = soft_time_out
+        self.hard_time_out = hard_time_out
 
     def check_secret(self):
         """Return if a secret with the name self.resource_name meets the self.exist"""
@@ -316,27 +324,31 @@ class TestWaitForExistence:
                 "exist" if self.exist else "nonexist",
             )
         )
-        if mode == common.sieve_modes.OBS_GAP and self.obs_gap_waiting_time != -1:
-            time.sleep(self.obs_gap_waiting_time)
-            print("obs gap waiting time is reached")
-        else:
-            while True:
-                if time.time() - s > float(self.time_out):
-                    error_message = (
-                        "[ERROR] waiting timeout: %s does not become %s within %d seconds\n"
-                        % (self.resource_name, self.status, self.time_out)
-                    )
-                    print(error_message)
-                    return 1, error_message
-                if self.resource_type == common.SECRET:
-                    if self.check_secret():
-                        break
-                elif self.resource_type == common.SERVICE:
-                    if self.check_service():
-                        break
-                else:
-                    assert False, "type not supported yet"
-                time.sleep(5)
+        while True:
+            duration = time.time() - s
+            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+                error_message = (
+                    "soft timeout: %s does not become %s within %d seconds; we will continue"
+                    % (self.resource_name, self.status, self.soft_time_out)
+                )
+                print(error_message)
+                return 0, common.NO_ERROR_MESSAGE
+            if duration > self.hard_time_out:
+                error_message = (
+                    "hard timeout: %s does not become %s within %d seconds"
+                    % (self.resource_name, self.status, self.hard_time_out)
+                )
+                print(error_message)
+                return 1, error_message
+            if self.resource_type == common.SECRET:
+                if self.check_secret():
+                    break
+            elif self.resource_type == common.SERVICE:
+                if self.check_service():
+                    break
+            else:
+                assert False, "type not supported yet"
+            time.sleep(5)
         print("wait takes %f seconds" % (time.time() - s))
         return 0, common.NO_ERROR_MESSAGE
 
@@ -350,43 +362,67 @@ class BuiltInWorkLoad:
         self.work_list.append(test_cmd)
         return self
 
-    def wait_for_pod_status(self, pod_name, status, obs_gap_waiting_time=-1):
+    def wait_for_pod_status(
+        self,
+        pod_name,
+        status,
+        soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
+        hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+    ):
         test_wait = TestWaitForStatus(
-            common.POD, pod_name, status, obs_gap_waiting_time
+            common.POD, pod_name, status, soft_time_out, hard_time_out
         )
         self.work_list.append(test_wait)
         return self
 
-    def wait_for_pvc_status(self, pvc_name, status, obs_gap_waiting_time=-1):
+    def wait_for_pvc_status(
+        self,
+        pvc_name,
+        status,
+        soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
+        hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+    ):
         test_wait = TestWaitForStatus(
-            common.PVC, pvc_name, status, obs_gap_waiting_time
+            common.PVC, pvc_name, status, soft_time_out, hard_time_out
         )
         self.work_list.append(test_wait)
         return self
 
     def wait_for_secret_existence(
-        self, secret_name, exist: bool, obs_gap_waiting_time=-1
+        self,
+        secret_name,
+        exist: bool,
+        soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
+        hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
     ):
         test_wait = TestWaitForExistence(
-            common.SECRET, secret_name, exist, obs_gap_waiting_time
+            common.SECRET, secret_name, exist, soft_time_out, hard_time_out
         )
         self.work_list.append(test_wait)
         return self
 
     def wait_for_service_existence(
-        self, service_name, exist: bool, obs_gap_waiting_time=-1
+        self,
+        service_name,
+        exist: bool,
+        soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
+        hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
     ):
         test_wait = TestWaitForExistence(
-            common.SERVICE, service_name, exist, obs_gap_waiting_time
+            common.SERVICE, service_name, exist, soft_time_out, hard_time_out
         )
         self.work_list.append(test_wait)
         return self
 
     def wait_for_sts_storage_size(
-        self, sts_name, storage_size, obs_gap_waiting_time=-1
+        self,
+        sts_name,
+        storage_size,
+        soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
+        hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
     ):
         test_wait = TestWaitForStorage(
-            common.STS, sts_name, storage_size, obs_gap_waiting_time
+            common.STS, sts_name, storage_size, soft_time_out, hard_time_out
         )
         self.work_list.append(test_wait)
         return self
@@ -396,13 +432,14 @@ class BuiltInWorkLoad:
         self.work_list.append(test_wait)
         return self
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, mode, output_file) -> Tuple[int, str]:
+        f = open(output_file, "w")
         for work in self.work_list:
             return_code, error_message = work.run(mode)
             print(datetime.datetime.now())
             if return_code != 0:
-                return return_code, error_message
-        return 0, common.NO_ERROR_MESSAGE
+                f.write(error_message + "\n")
+        f.close()
 
 
 def new_built_in_workload():
@@ -425,4 +462,3 @@ class ExtendedWorkload:
         else:
             os.system(self.test_cmd)
         os.chdir(org_dir)
-        return 0, common.NO_ERROR_MESSAGE
