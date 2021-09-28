@@ -572,14 +572,18 @@ def run(
             )
 
             result_map = {
-                "operator": project,
-                "test": test,
-                "test_config": test_config_to_use,
-                "mode": mode,
-                "duration": time.time() - s,
-                "alarm": alarm,
-                "bug_report": bug_report,
-                "test_config_content": open(test_config_to_use).read(),
+                project: {
+                    test: {
+                        mode:{
+                            test_config: {
+                                "duration": time.time() - s,
+                                "alarm": alarm,
+                                "bug_report": bug_report,
+                                "test_config_content": open(test_config_to_use).read(),
+                            }
+                        }
+                    },
+                }
             }
 
             # Testing mode, write test result under sieve_test_result directory

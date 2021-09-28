@@ -23,7 +23,13 @@ parallel --workdir '/home/ubuntu/sieve' \
          --ssh 'ssh -i "~/.ssh/id_rsa" ' \
          --sshloginfile hosts \
          --onall \
-         'rm -rf ./sieve_test_results'
+         ::: 'rm -rf ./sieve_test_results'
+
+parallel --workdir '/home/ubuntu/sieve' \
+         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+         --sshloginfile hosts \
+         --onall \
+         ::: 'rm -rf ./log_save'
 
 # 5. Run all tests in parallel
 #
@@ -49,6 +55,13 @@ parallel --workdir '/home/ubuntu/sieve' \
 parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/sieve_test_results ../; else {}; fi' \
 	     < hosts
+
+parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/log_save ../; else {}; fi' \
+	     < hosts
+
+now=$(data+"%Y-%m-%d")
+mv ../log_save ./log_save_${now}
 
 # 7. combine test results in sieve_test_results and save it
 python3 combine_json.py
