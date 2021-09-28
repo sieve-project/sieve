@@ -25,6 +25,12 @@ parallel --workdir '/home/ubuntu/sieve' \
          --onall \
          'rm -rf ./sieve_test_results'
 
+parallel --workdir '/home/ubuntu/sieve' \
+         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+         --sshloginfile hosts \
+         --onall \
+         'rm -rf ./log_save'
+
 # 5. Run all tests in parallel
 #
 # workdir      - work directory on remote
@@ -48,6 +54,11 @@ parallel --workdir '/home/ubuntu/sieve' \
 # 6. scp results back
 parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/sieve_test_results ../; else {}; fi' \
+	     < hosts
+
+now=$(data+"%Y-%m-%d")
+parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/log_save ../; else {}; fi' \
 	     < hosts
 
 # 7. combine test results in sieve_test_results and save it
