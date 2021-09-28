@@ -32,6 +32,16 @@ If reproduced, you will see:
 ```
 The bug was found in commit `1546e0242107bf2f2c1256db50f47c79956dd1c6`.
 
+### [orange-opensource-casskop-370](https://github.com/Orange-OpenSource/casskop/issues/370)
+```
+python3 reprod.py -p casskop-operator -b atom-vio-1 -d SIEVE_IMAGE
+```
+If reproduced, you will see:
+```
+[ERROR] persistentvolumeclaim SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
+```
+The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
+
 ### Observability gaps
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
