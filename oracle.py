@@ -562,33 +562,33 @@ def is_atom_vio_finished(server_log):
     return "FINISH-SIEVE-ATOMICITY-VIOLATION" in file.read()
 
 
-def injection_detection(test_config, server_log):
+def injection_validation(test_config, server_log):
     test_config_content = yaml.safe_load(open(test_config))
     test_mode = test_config_content["mode"]
-    alarm = 0
-    bug_report = NO_ERROR_MESSAGE
+    validation_alarm = 0
+    validation_report = NO_ERROR_MESSAGE
     if test_mode == sieve_modes.TIME_TRAVEL:
         if not is_time_travel_started(server_log):
-            bug_report = "[WARN] time travel is not started yet\n"
-            alarm = -1
+            validation_report = "[WARN] time travel is not started yet\n"
+            validation_alarm = -1
         elif not is_time_travel_finished(server_log):
-            bug_report = "[WARN] time travel is not finished yet\n"
-            alarm = -2
+            validation_report = "[WARN] time travel is not finished yet\n"
+            validation_alarm = -2
     elif test_mode == sieve_modes.OBS_GAP:
         if not is_obs_gap_started(server_log):
-            bug_report = "[WARN] obs gap is not started yet\n"
-            alarm = -1
+            validation_report = "[WARN] obs gap is not started yet\n"
+            validation_alarm = -1
         elif not is_obs_gap_finished(server_log):
-            bug_report = "[WARN] obs gap is not finished yet\n"
-            alarm = -2
+            validation_report = "[WARN] obs gap is not finished yet\n"
+            validation_alarm = -2
     elif test_mode == sieve_modes.ATOM_VIO:
         if not is_atom_vio_started(server_log):
-            bug_report = "[WARN] atom vio is not started yet\n"
-            alarm = -1
+            validation_report = "[WARN] atom vio is not started yet\n"
+            validation_alarm = -1
         elif not is_atom_vio_finished(server_log):
-            bug_report = "[WARN] atom vio is not finished yet\n"
-            alarm = -2
-    return alarm, bug_report
+            validation_report = "[WARN] atom vio is not finished yet\n"
+            validation_alarm = -2
+    return validation_alarm, validation_report
 
 
 def check(
@@ -605,16 +605,13 @@ def check(
     workload_log,
 ):
 
-    alarm = 0
+    validation_alarm, validation_report = injection_validation(test_config, server_log)
+
+    bug_alarm = 0
     bug_report = NO_ERROR_MESSAGE
-
-    alarm, bug_report = injection_detection(test_config, server_log)
-    if alarm != 0:
-        return alarm, bug_report
-
     if sieve_config.config["check_status"]:
         status_alarm, status_bug_report = check_status(learned_status, testing_status)
-        alarm += status_alarm
+        bug_alarm += status_alarm
         bug_report += status_bug_report
 
     if sieve_config.config["check_write"]:
@@ -624,23 +621,27 @@ def check(
             test_config,
             oracle_config,
         )
-        alarm += write_alarm
+        bug_alarm += write_alarm
         bug_report += write_bug_report
 
     if sieve_config.config["check_operator_log"]:
         panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
-        alarm += panic_alarm
+        bug_alarm += panic_alarm
         bug_report += panic_bug_report
 
     if sieve_config.config["check_workload_log"]:
         workload_alarm, workload_bug_report = check_workload_log(workload_log)
-        alarm += workload_alarm
+        bug_alarm += workload_alarm
         bug_report += workload_bug_report
 
     if sieve_config.config["check_resource"] and learned_resources != None:
         resource_alarm, resource_bug_report = look_for_resources_diff(
             learned_resources, testing_resources
         )
-        alarm += resource_alarm
+        bug_alarm += resource_alarm
         bug_report += resource_bug_report
-    return alarm, bug_report
+
+    if validation_alarm < 0:
+        return validation_alarm, validation_report + bug_report
+    else:
+        return bug_alarm, bug_report
