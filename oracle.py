@@ -352,9 +352,18 @@ def look_for_panic_in_operator_log(operator_log):
     for line in file.readlines():
         if "Observed a panic" in line:
             panic_in_file = line[line.find("Observed a panic") :]
-            panic_in_file = panic_in_file.strip()
-            bug_report += "[ERROR][OPERATOR-PANIC] %s\n" % panic_in_file
+            bug_report += "[ERROR][OPERATOR-PANIC] %s" % panic_in_file
             alarm += 1
+    return alarm, bug_report
+
+
+def check_workload_log(workload_log):
+    alarm = 0
+    bug_report = NO_ERROR_MESSAGE
+    file = open(workload_log)
+    for line in file.readlines():
+        alarm += 1
+        bug_report += "[ERROR][WORKLOAD] %s" % line
     return alarm, bug_report
 
 
@@ -593,6 +602,7 @@ def check(
     operator_log,
     server_log,
     oracle_config,
+    workload_log,
 ):
 
     alarm = 0
@@ -621,6 +631,11 @@ def check(
         panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
         alarm += panic_alarm
         bug_report += panic_bug_report
+
+    if sieve_config.config["check_workload_log"]:
+        workload_alarm, workload_bug_report = check_workload_log(workload_log)
+        alarm += workload_alarm
+        bug_report += workload_bug_report
 
     if sieve_config.config["check_resource"] and learned_resources != None:
         resource_alarm, resource_bug_report = look_for_resources_diff(

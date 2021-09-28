@@ -275,7 +275,7 @@ def run_workload(
         .items[0]
         .metadata.name
     )
-    streamed_log_file = open("%s/streamed-operator.log" % (log_dir), "w+")
+    streamed_log_file = open(os.path.join(log_dir, "streamed-operator.log"), "w+")
     streaming = subprocess.Popen(
         "kubectl logs %s -f" % pod_name,
         stdout=streamed_log_file,
@@ -285,12 +285,7 @@ def run_workload(
     )
 
     cprint("Running test workload...", bcolors.OKGREEN)
-    alarm, bug_report = test_workload.run(mode)
-    if alarm == 0:
-        ok("Test workload finished")
-    else:
-        fail("Test workload failed")
-        bug_report = "Liveness assertion (in test) failed:\n" + bug_report
+    test_workload.run(mode, os.path.join(log_dir, "workload.log"))
 
     pod_name = (
         kubernetes.client.CoreV1Api()
@@ -324,8 +319,6 @@ def run_workload(
     streamed_log_file.close()
     if mode != sieve_modes.VANILLA:
         stop_sieve_server()
-
-    return alarm, bug_report
 
 
 def check_result(
@@ -384,6 +377,7 @@ def check_result(
             ) = oracle.generate_digest(log_dir)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             server_log = os.path.join(log_dir, "sieve-server.log")
+            workload_log = os.path.join(log_dir, "workload.log")
             alarm, bug_report = oracle.check(
                 learned_side_effect,
                 learned_status,
@@ -395,6 +389,7 @@ def check_result(
                 operator_log,
                 server_log,
                 oracle_config,
+                workload_log,
             )
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
             json.dump(
@@ -432,10 +427,6 @@ def run_test(
     data_dir,
     phase,
 ) -> Tuple[int, str]:
-    run_alarm = 0
-    run_bug_report = NO_ERROR_MESSAGE
-    oracle_alarm = 0
-    oracle_bug_report = NO_ERROR_MESSAGE
     if phase == "all" or phase == "setup_only":
         setup_cluster(
             project,
@@ -449,7 +440,7 @@ def run_test(
             use_csi_driver,
         )
     if phase == "all" or phase == "workload_only" or phase == "workload_and_check":
-        run_alarm, run_bug_report = run_workload(
+        run_workload(
             project,
             mode,
             test_workload,
@@ -460,7 +451,7 @@ def run_test(
             num_apiservers,
         )
     if phase == "all" or phase == "check_only" or phase == "workload_and_check":
-        oracle_alarm, oracle_bug_report = check_result(
+        alarm, bug_report = check_result(
             project,
             mode,
             stage,
@@ -469,19 +460,10 @@ def run_test(
             data_dir,
             oracle_config,
         )
-    alarm = 0
-    bug_report = NO_ERROR_MESSAGE
-    if oracle_alarm == -1 or oracle_alarm == -2:
-        # injection is not completed
-        alarm = oracle_alarm
-        bug_report = oracle_bug_report + run_bug_report
-    else:
-        # injection is completed
-        alarm = run_alarm + oracle_alarm
-        bug_report = run_bug_report + oracle_bug_report
-    if alarm != 0:
-        oracle.print_error_and_debugging_info(alarm, bug_report, test_config)
-    return alarm, bug_report
+        if alarm != 0:
+            oracle.print_error_and_debugging_info(alarm, bug_report, test_config)
+        return alarm, bug_report
+    return 0, NO_ERROR_MESSAGE
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
