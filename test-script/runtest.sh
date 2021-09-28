@@ -23,7 +23,7 @@ parallel --workdir '/home/ubuntu/sieve' \
          --ssh 'ssh -i "~/.ssh/id_rsa" ' \
          --sshloginfile hosts \
          --onall \
-         'rm -rf ./sieve_test_results'
+         ::: 'rm -rf ./sieve_test_results'
 
 parallel --workdir '/home/ubuntu/sieve' \
          --ssh 'ssh -i "~/.ssh/id_rsa" ' \
