@@ -574,8 +574,8 @@ def run(
             result_map = {
                 project: {
                     test: {
-                        test_config:{
-                            mode: {
+                        mode:{
+                            test_config: {
                                 "duration": time.time() - s,
                                 "alarm": alarm,
                                 "bug_report": bug_report,

@@ -29,7 +29,7 @@ parallel --workdir '/home/ubuntu/sieve' \
          --ssh 'ssh -i "~/.ssh/id_rsa" ' \
          --sshloginfile hosts \
          --onall \
-         'rm -rf ./log_save'
+         ::: 'rm -rf ./log_save'
 
 # 5. Run all tests in parallel
 #
