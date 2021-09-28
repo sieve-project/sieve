@@ -56,10 +56,12 @@ parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/sieve_test_results ../; else {}; fi' \
 	     < hosts
 
-now=$(data+"%Y-%m-%d")
 parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/log_save ../; else {}; fi' \
 	     < hosts
+
+now=$(data+"%Y-%m-%d")
+mv ../log_save ./log_save_${now}
 
 # 7. combine test results in sieve_test_results and save it
 python3 combine_json.py
