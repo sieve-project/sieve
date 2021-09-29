@@ -27,7 +27,7 @@ from common import (
 )
 
 def save_run_result(project, test, mode, stage, test_config, alarm, bug_report, starttime):
-    if stage is not sieve_stages.TEST or mode is sieve_modes.VANILLA:
+    if stage != sieve_stages.TEST or mode == sieve_modes.VANILLA:
         return
 
     result_map = {
