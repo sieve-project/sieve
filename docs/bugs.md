@@ -32,6 +32,8 @@ https://github.com/Orange-OpenSource/casskop/issues/342 confirmed (observability
 
 https://github.com/Orange-OpenSource/casskop/issues/357 pending (by-product)
 
+https://github.com/Orange-OpenSource/casskop/issues/370 pending (atomicity violation)
+
 ## [pravega/zookeeper-operator](https://github.com/pravega/zookeeper-operator)
 https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by us (time traveling)
 
