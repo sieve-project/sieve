@@ -3,29 +3,23 @@ package main
 import (
 	"log"
 	"sync"
-	"sync/atomic"
 
 	sieve "sieve.client"
 )
 
 func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 	server := &obsGapServer{
-		eventID:            -1,
-		pausingReconcile:   false,
-		diffCurEvent:       strToMap(config["ce-diff-current"].(string)),
-		diffPrevEvent:      strToMap(config["ce-diff-previous"].(string)),
-		ceName:             config["ce-name"].(string),
-		ceNamespace:        config["ce-namespace"].(string),
-		ceRtype:            config["ce-rtype"].(string),
-		pausedReconcileCnt: 0,
-		prevEvent:          nil,
-		curEvent:           nil,
+		eventID:          -1,
+		pausingReconcile: false,
+		diffCurEvent:     strToMap(config["ce-diff-current"].(string)),
+		diffPrevEvent:    strToMap(config["ce-diff-previous"].(string)),
+		ceName:           config["ce-name"].(string),
+		ceNamespace:      config["ce-namespace"].(string),
+		ceRtype:          config["ce-rtype"].(string),
+		prevEvent:        nil,
+		curEvent:         nil,
+		reconcilingMutex: &sync.RWMutex{},
 	}
-	server.mutex = &sync.RWMutex{}
-	// TODO: the reconcilingMutex might affect the performace of concurrent reconcile
-	// we can live with it for now as operators usually do not run reconcile concurrently
-	server.reconcilingMutex = &sync.RWMutex{}
-	server.cond = sync.NewCond(server.mutex)
 	listener := &ObsGapListener{
 		Server: server,
 	}
@@ -63,19 +57,16 @@ func (l *ObsGapListener) NotifyObsGapAfterSideEffects(request *sieve.NotifyObsGa
 }
 
 type obsGapServer struct {
-	eventID            int32
-	pausingReconcile   bool
-	diffCurEvent       map[string]interface{}
-	diffPrevEvent      map[string]interface{}
-	ceName             string
-	ceNamespace        string
-	ceRtype            string
-	mutex              *sync.RWMutex
-	reconcilingMutex   *sync.RWMutex
-	cond               *sync.Cond
-	pausedReconcileCnt int32
-	prevEvent          map[string]interface{}
-	curEvent           map[string]interface{}
+	eventID          int32
+	pausingReconcile bool
+	diffCurEvent     map[string]interface{}
+	diffPrevEvent    map[string]interface{}
+	ceName           string
+	ceNamespace      string
+	ceRtype          string
+	reconcilingMutex *sync.RWMutex
+	prevEvent        map[string]interface{}
+	curEvent         map[string]interface{}
 }
 
 func (s *obsGapServer) Start() {
@@ -97,10 +88,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGa
 		startObsGapInjection()
 		log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 		s.reconcilingMutex.Lock()
-		s.mutex.Lock()
 		s.pausingReconcile = true
-		s.mutex.Unlock()
-		s.reconcilingMutex.Unlock()
 		log.Println("[sieve] start to pause")
 	}
 	*response = sieve.Response{Message: request.OperationType, Ok: true}
@@ -113,30 +101,15 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 		log.Fatalf("encounter unexpected object: %s %s", request.ResourceType, request.Object)
 	}
 	// If we are inside pausing, then we check for target event which can cancel the crucial one
-	s.mutex.RLock()
-	pausingReconcile := s.pausingReconcile
-	s.mutex.RUnlock()
-	log.Println("NotifyObsGapAfterIndexerWrite", pausingReconcile, "pausedReconcileCnt", s.pausedReconcileCnt)
-	if pausingReconcile {
-		if request.OperationType == "Deleted" {
-			log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
-			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
-			s.mutex.Lock()
-			s.pausingReconcile = false
-			s.cond.Broadcast()
-			s.mutex.Unlock()
-			finishObsGapInjection()
-		} else {
+	log.Println("NotifyObsGapAfterIndexerWrite", s.pausingReconcile, "pausedReconcileCnt")
+	if s.pausingReconcile {
+		if request.OperationType == "Deleted" || conflictingEventAsMap(s.diffCurEvent, currentEvent) {
 			// TODO: we should also consider the corner case where s.diffCurEvent == {}
-			if conflictingEventAsMap(s.diffCurEvent, currentEvent) {
-				log.Printf("[sieve] we met the later cancel event %s, reconcile is resumed, paused cnt: %d\n", request.OperationType, s.pausedReconcileCnt)
-				log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
-				s.mutex.Lock()
-				s.pausingReconcile = false
-				s.cond.Broadcast()
-				s.mutex.Unlock()
-				finishObsGapInjection()
-			}
+			log.Printf("[sieve] we met the cancel event %s, reconcile is resumed\n", request.OperationType)
+			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)
+			s.pausingReconcile = false
+			s.reconcilingMutex.Unlock()
+			finishObsGapInjection()
 		}
 	}
 	*response = sieve.Response{Ok: true}
@@ -144,17 +117,9 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 }
 
 func (s *obsGapServer) NotifyObsGapBeforeInformerCacheRead(request *sieve.NotifyObsGapBeforeInformerCacheReadRequest, response *sieve.Response) error {
-	s.reconcilingMutex.Lock()
-	s.mutex.Lock()
 	log.Println("NotifyObsGapBeforeInformerCacheRead[0/1]", s.pausingReconcile)
-	if s.pausingReconcile {
-		atomic.AddInt32(&s.pausedReconcileCnt, 1)
-	}
-	for s.pausingReconcile {
-		s.cond.Wait()
-	}
+	s.reconcilingMutex.Lock()
 	log.Println("NotifyObsGapBeforeInformerCacheRead[1/1]", s.pausingReconcile)
-	s.mutex.Unlock()
 	*response = sieve.Response{Ok: true}
 	return nil
 }
