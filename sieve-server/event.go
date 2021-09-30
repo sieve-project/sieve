@@ -146,6 +146,7 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 			}
 		}
 	}
+	// TODO(xudong): handle the case if prevLen != curLen
 	keepDiffPrev := false
 	for i := 0; i < prevLen; i++ {
 		if val, ok := diffPrevEvent[i].(string); ok {
@@ -257,6 +258,7 @@ func canonicalizeEventAsList(event []interface{}) {
 }
 
 func canonicalizeEventAsMap(event map[string]interface{}) {
+	// TODO(xudong): delete the boring keys
 	for key, val := range event {
 		switch typedVal := val.(type) {
 		case map[string]interface{}:
