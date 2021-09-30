@@ -100,33 +100,3 @@ func instrumentInformerCacheRead(f *dst.File, etype, mode string) {
 		panic(fmt.Errorf("Cannot find function %s", etype))
 	}
 }
-
-// func instrumentControllerGoForObsGap(ifilepath, ofilepath string) {
-// 	f := parseSourceFile(ifilepath, "controller")
-// 	_, funcDecl := findFuncDecl(f, "reconcileHandler")
-// 	if funcDecl != nil {
-// 		index := 0
-// 		beforeReconcileInstrumentation := &dst.ExprStmt{
-// 			X: &dst.CallExpr{
-// 				Fun:  &dst.Ident{Name: "NotifyObsGapBeforeReconcile", Path: "sieve.client"},
-// 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
-// 			},
-// 		}
-// 		beforeReconcileInstrumentation.Decs.End.Append("//sieve")
-// 		insertStmt(&funcDecl.Body.List, index, beforeReconcileInstrumentation)
-
-// 		index += 1
-// 		afterReconcileInstrumentation := &dst.DeferStmt{
-// 			Call: &dst.CallExpr{
-// 				Fun:  &dst.Ident{Name: "NotifyObsGapAfterReconcile", Path: "sieve.client"},
-// 				Args: []dst.Expr{&dst.Ident{Name: "c.Name"}},
-// 			},
-// 		}
-// 		afterReconcileInstrumentation.Decs.End.Append("//sieve")
-// 		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
-// 	} else {
-// 		panic(fmt.Errorf("Cannot find function reconcileHandler"))
-// 	}
-
-// 	writeInstrumentedFile(ofilepath, "controller", f)
-// }
