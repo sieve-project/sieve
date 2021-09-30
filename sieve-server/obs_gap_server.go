@@ -101,7 +101,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 		log.Fatalf("encounter unexpected object: %s %s", request.ResourceType, request.Object)
 	}
 	// If we are inside pausing, then we check for target event which can cancel the crucial one
-	log.Println("NotifyObsGapAfterIndexerWrite", s.pausingReconcile, "pausedReconcileCnt")
+	log.Println("NotifyObsGapAfterIndexerWrite", s.pausingReconcile)
 	if s.pausingReconcile {
 		if request.OperationType == "Deleted" || conflictingEventAsMap(s.diffCurEvent, currentEvent) {
 			// TODO: we should also consider the corner case where s.diffCurEvent == {}
@@ -117,6 +117,15 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 }
 
 func (s *obsGapServer) NotifyObsGapBeforeInformerCacheRead(request *sieve.NotifyObsGapBeforeInformerCacheReadRequest, response *sieve.Response) error {
+	if request.OperationType == "Get" {
+		if !(request.ResourceType == s.ceRtype && request.Name == s.ceName && request.Namespace == s.ceNamespace) {
+			log.Fatalf("encounter unexpected object: %s %s %s", request.ResourceType, request.Namespace, request.Name)
+		}
+	} else {
+		if !(request.ResourceType == s.ceRtype+"list") {
+			log.Fatalf("encounter unexpected object: %s", request.ResourceType)
+		}
+	}
 	log.Println("NotifyObsGapBeforeInformerCacheRead[0/1]", s.pausingReconcile)
 	s.reconcilingMutex.Lock()
 	log.Println("NotifyObsGapBeforeInformerCacheRead[1/1]", s.pausingReconcile)
@@ -125,6 +134,15 @@ func (s *obsGapServer) NotifyObsGapBeforeInformerCacheRead(request *sieve.Notify
 }
 
 func (s *obsGapServer) NotifyObsGapAfterInformerCacheRead(request *sieve.NotifyObsGapAfterInformerCacheReadRequest, response *sieve.Response) error {
+	if request.OperationType == "Get" {
+		if !(request.ResourceType == s.ceRtype && request.Name == s.ceName && request.Namespace == s.ceNamespace) {
+			log.Fatalf("encounter unexpected object: %s %s %s", request.ResourceType, request.Namespace, request.Name)
+		}
+	} else {
+		if !(request.ResourceType == s.ceRtype+"list") {
+			log.Fatalf("encounter unexpected object: %s", request.ResourceType)
+		}
+	}
 	log.Println("NotifyObsGapAfterInformerCacheRead")
 	s.reconcilingMutex.Unlock()
 	*response = sieve.Response{Ok: true}

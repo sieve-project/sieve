@@ -53,9 +53,17 @@ type NotifyObsGapBeforeIndexerWriteRequest struct {
 }
 
 type NotifyObsGapBeforeInformerCacheReadRequest struct {
+	OperationType string
+	ResourceType  string
+	Name          string
+	Namespace     string
 }
 
 type NotifyObsGapAfterInformerCacheReadRequest struct {
+	OperationType string
+	ResourceType  string
+	Name          string
+	Namespace     string
 }
 
 type NotifyObsGapAfterIndexerWriteRequest struct {
