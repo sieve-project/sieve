@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
@@ -87,55 +88,137 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 	client.Close()
 }
 
-func NotifyObsGapBeforeReconcile(controllerName string) {
+func NotifyObsGapBeforeInformerCacheGet(readType string, namespacedName types.NamespacedName, object interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	log.Printf("[sieve][NotifyObsGapBeforeReconcile]\n")
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string) {
+		return
+	}
+	if namespacedName.Name != config["ce-name"].(string) || namespacedName.Namespace != config["ce-namespace"].(string) {
+		return
+	}
+	log.Printf("[sieve][NotifyObsGapBeforeInformerCacheGet] type: %s, ns: %s name: %s", rType, namespacedName.Namespace, namespacedName.Name)
 	client, err := newClient()
 	if err != nil {
 		printError(err, SIEVE_CONN_ERR)
 		return
 	}
-	request := &NotifyObsGapBeforeReconcileRequest{
-		ControllerName: controllerName,
+	request := &NotifyObsGapBeforeInformerCacheReadRequest{
+		OperationType: readType,
+		ResourceType:  rType,
+		Namespace:     namespacedName.Namespace,
+		Name:          namespacedName.Name,
 	}
 	var response Response
-	err = client.Call("ObsGapListener.NotifyObsGapBeforeReconcile", request, &response)
+	err = client.Call("ObsGapListener.NotifyObsGapBeforeInformerCacheRead", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
-	checkResponse(response, "NotifyObsGapBeforeReconcile")
+	checkResponse(response, "NotifyObsGapBeforeInformerCacheGet")
 	client.Close()
 }
 
-func NotifyObsGapAfterReconcile(controllerName string) {
+func NotifyObsGapAfterInformerCacheGet(readType string, namespacedName types.NamespacedName, object interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
 	if !checkStage(TEST) || !checkMode(OBS_GAP) {
 		return
 	}
-	log.Printf("[sieve][NotifyObsGapAfterReconcile]\n")
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string) {
+		return
+	}
+	if namespacedName.Name != config["ce-name"].(string) || namespacedName.Namespace != config["ce-namespace"].(string) {
+		return
+	}
+	log.Printf("[sieve][NotifyObsGapAfterInformerCacheGet] type: %s, ns: %s name: %s", rType, namespacedName.Namespace, namespacedName.Name)
 	client, err := newClient()
 	if err != nil {
 		printError(err, SIEVE_CONN_ERR)
 		return
 	}
-	request := &NotifyObsGapAfterReconcileRequest{
-		ControllerName: controllerName,
+	request := &NotifyObsGapAfterInformerCacheReadRequest{
+		OperationType: readType,
+		ResourceType:  rType,
+		Namespace:     namespacedName.Namespace,
+		Name:          namespacedName.Name,
 	}
 	var response Response
-	err = client.Call("ObsGapListener.NotifyObsGapAfterReconcile", request, &response)
+	err = client.Call("ObsGapListener.NotifyObsGapAfterInformerCacheRead", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
-	checkResponse(response, "NotifyObsGapAfterReconcile")
+	checkResponse(response, "NotifyObsGapAfterInformerCacheGet")
+	client.Close()
+}
+
+func NotifyObsGapBeforeInformerCacheList(readType string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
+	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+		return
+	}
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string)+"list" {
+		return
+	}
+	log.Printf("[sieve][NotifyObsGapBeforeInformerCacheList] type: %s", rType)
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	request := &NotifyObsGapBeforeInformerCacheReadRequest{
+		OperationType: readType,
+		ResourceType:  rType,
+	}
+	var response Response
+	err = client.Call("ObsGapListener.NotifyObsGapBeforeInformerCacheRead", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyObsGapBeforeInformerCacheList")
+	client.Close()
+}
+
+func NotifyObsGapAfterInformerCacheList(readType string, object interface{}) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
+	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+		return
+	}
+	rType := regularizeType(object)
+	if rType != config["ce-rtype"].(string)+"list" {
+		return
+	}
+	log.Printf("[sieve][NotifyObsGapAfterInformerCacheList] type: %s", rType)
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	request := &NotifyObsGapAfterInformerCacheReadRequest{
+		OperationType: readType,
+		ResourceType:  rType,
+	}
+	var response Response
+	err = client.Call("ObsGapListener.NotifyObsGapAfterInformerCacheRead", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyObsGapAfterInformerCacheList")
 	client.Close()
 }
 

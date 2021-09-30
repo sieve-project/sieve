@@ -52,12 +52,18 @@ type NotifyObsGapBeforeIndexerWriteRequest struct {
 	ResourceType  string
 }
 
-type NotifyObsGapBeforeReconcileRequest struct {
-	ControllerName string
+type NotifyObsGapBeforeInformerCacheReadRequest struct {
+	OperationType string
+	ResourceType  string
+	Name          string
+	Namespace     string
 }
 
-type NotifyObsGapAfterReconcileRequest struct {
-	ControllerName string
+type NotifyObsGapAfterInformerCacheReadRequest struct {
+	OperationType string
+	ResourceType  string
+	Name          string
+	Namespace     string
 }
 
 type NotifyObsGapAfterIndexerWriteRequest struct {
