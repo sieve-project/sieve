@@ -50,12 +50,12 @@ func (l *ObsGapListener) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsG
 	return l.Server.NotifyObsGapAfterIndexerWrite(request, response)
 }
 
-func (l *ObsGapListener) NotifyObsGapBeforeReconcile(request *sieve.NotifyObsGapBeforeReconcileRequest, response *sieve.Response) error {
-	return l.Server.NotifyObsGapBeforeReconcile(request, response)
+func (l *ObsGapListener) NotifyObsGapBeforeInformerCacheRead(request *sieve.NotifyObsGapBeforeInformerCacheReadRequest, response *sieve.Response) error {
+	return l.Server.NotifyObsGapBeforeInformerCacheRead(request, response)
 }
 
-func (l *ObsGapListener) NotifyObsGapAfterReconcile(request *sieve.NotifyObsGapAfterReconcileRequest, response *sieve.Response) error {
-	return l.Server.NotifyObsGapAfterReconcile(request, response)
+func (l *ObsGapListener) NotifyObsGapAfterInformerCacheRead(request *sieve.NotifyObsGapAfterInformerCacheReadRequest, response *sieve.Response) error {
+	return l.Server.NotifyObsGapAfterInformerCacheRead(request, response)
 }
 
 func (l *ObsGapListener) NotifyObsGapAfterSideEffects(request *sieve.NotifyObsGapAfterSideEffectsRequest, response *sieve.Response) error {
@@ -143,26 +143,24 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 	return nil
 }
 
-func (s *obsGapServer) NotifyObsGapBeforeReconcile(request *sieve.NotifyObsGapBeforeReconcileRequest, response *sieve.Response) error {
+func (s *obsGapServer) NotifyObsGapBeforeInformerCacheRead(request *sieve.NotifyObsGapBeforeInformerCacheReadRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
-	recID := request.ControllerName
 	s.mutex.Lock()
-	log.Println("NotifyObsGapBeforeReconcile[0/1]", recID, s.pausingReconcile)
+	log.Println("NotifyObsGapBeforeInformerCacheRead[0/1]", s.pausingReconcile)
 	if s.pausingReconcile {
 		atomic.AddInt32(&s.pausedReconcileCnt, 1)
 	}
 	for s.pausingReconcile {
 		s.cond.Wait()
 	}
-	log.Println("NotifyObsGapBeforeReconcile[1/1]", recID, s.pausingReconcile)
+	log.Println("NotifyObsGapBeforeInformerCacheRead[1/1]", s.pausingReconcile)
 	s.mutex.Unlock()
 	*response = sieve.Response{Ok: true}
 	return nil
 }
 
-func (s *obsGapServer) NotifyObsGapAfterReconcile(request *sieve.NotifyObsGapAfterReconcileRequest, response *sieve.Response) error {
-	recID := request.ControllerName
-	log.Println("NotifyObsGapAfterReconcile", recID)
+func (s *obsGapServer) NotifyObsGapAfterInformerCacheRead(request *sieve.NotifyObsGapAfterInformerCacheReadRequest, response *sieve.Response) error {
+	log.Println("NotifyObsGapAfterInformerCacheRead")
 	s.reconcilingMutex.Unlock()
 	*response = sieve.Response{Ok: true}
 	return nil
