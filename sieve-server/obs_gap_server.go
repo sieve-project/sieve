@@ -116,6 +116,9 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 	return nil
 }
 
+// Note that we are blocking the reconciler before reading the resource involved in the crucial event
+// If the reconciler has already read some other resource in one reconcile,
+// after removing the block there could be some inconsistency between the previously read data and the crucial event
 func (s *obsGapServer) NotifyObsGapBeforeInformerCacheRead(request *sieve.NotifyObsGapBeforeInformerCacheReadRequest, response *sieve.Response) error {
 	if request.OperationType == "Get" {
 		if !(request.ResourceType == s.ceRtype && request.Name == s.ceName && request.Namespace == s.ceNamespace) {
