@@ -111,6 +111,7 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 		writeObj := strToMap(request.Object)
 		if isSameObjectServerSide(writeObj, s.seNamespace, s.seName) {
 			s.curEvent = writeObj
+			trimKindApiversion(s.curEvent)
 			if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
 				log.Println("ready to crash!")
 				startAtomVioInjection()
