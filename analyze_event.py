@@ -1,143 +1,156 @@
 import copy
 import re
-from typing import Dict, List
+from typing import Dict, List, Tuple, Optional
 from common import *
 
 
-def compress_event_object_for_list(
-    prev_object, cur_object, slim_prev_object, slim_cur_object
-):
-    for i in range(min(len(cur_object), len(prev_object))):
-        if str(cur_object[i]) != str(prev_object[i]):
-            if isinstance(cur_object[i], dict):
-                if not isinstance(prev_object[i], dict):
-                    continue
-                if compress_event_object(
-                    prev_object[i],
-                    cur_object[i],
-                    slim_prev_object[i],
-                    slim_cur_object[i],
-                ):
-                    # SIEVE_SKIP means we can skip the value in list when later comparing to the events in testing run
-                    slim_cur_object[i] = SIEVE_SKIP_MARKER
-                    slim_prev_object[i] = SIEVE_SKIP_MARKER
-            elif isinstance(cur_object[i], list):
-                if not isinstance(prev_object[i], list):
-                    continue
-                if compress_event_object_for_list(
-                    prev_object[i],
-                    cur_object[i],
-                    slim_prev_object[i],
-                    slim_cur_object[i],
-                ):
-                    slim_cur_object[i] = SIEVE_SKIP_MARKER
-                    slim_prev_object[i] = SIEVE_SKIP_MARKER
+def diff_event_as_list(
+    prev_event: List, cur_event: List
+) -> Tuple[Optional[List], Optional[List]]:
+    prev_len = len(prev_event)
+    cur_len = len(cur_event)
+    min_len = min(prev_len, cur_len)
+    diff_prev_event = [SIEVE_SKIP_MARKER] * prev_len
+    diff_cur_event = [SIEVE_SKIP_MARKER] * cur_len
+    for i in range(min_len):
+        if isinstance(cur_event[i], dict):
+            if not isinstance(prev_event[i], dict):
+                diff_prev_event[i] = prev_event[i]
+                diff_cur_event[i] = cur_event[i]
             else:
-                continue
+                sub_diff_prev_event, sub_diff_cur_event = diff_event_as_map(
+                    prev_event[i], cur_event[i]
+                )
+                if sub_diff_prev_event is None or sub_diff_cur_event is None:
+                    continue
+                diff_prev_event[i] = sub_diff_prev_event
+                diff_cur_event[i] = sub_diff_cur_event
+        elif isinstance(cur_event[i], list):
+            if not isinstance(prev_event[i], list):
+                diff_prev_event[i] = prev_event[i]
+                diff_cur_event[i] = cur_event[i]
+            else:
+                sub_diff_prev_event, sub_diff_cur_event = diff_event_as_list(
+                    prev_event[i], cur_event[i]
+                )
+                if sub_diff_prev_event is None or sub_diff_cur_event is None:
+                    continue
+                diff_prev_event[i] = sub_diff_prev_event
+                diff_cur_event[i] = sub_diff_cur_event
         else:
-            slim_cur_object[i] = SIEVE_SKIP_MARKER
-            slim_prev_object[i] = SIEVE_SKIP_MARKER
+            if prev_event[i] != cur_event[i]:
+                diff_prev_event[i] = prev_event[i]
+                diff_cur_event[i] = cur_event[i]
+    if prev_len > min_len:
+        for i in range(min_len, prev_len):
+            diff_prev_event[i] = prev_event[i]
+    if cur_len > min_len:
+        for i in range(min_len, cur_len):
+            diff_cur_event[i] = cur_event[i]
+    if cur_len == prev_len:
+        keep = False
+        for i in range(cur_len):
+            if (
+                not diff_prev_event[i] == SIEVE_SKIP_MARKER
+                or not diff_cur_event[i] == SIEVE_SKIP_MARKER
+            ):
+                keep = True
+        if not keep:
+            return None, None
+    return diff_prev_event, diff_cur_event
 
-    if len(slim_cur_object) != len(slim_prev_object):
-        return False
-    for i in range(len(slim_cur_object)):
-        if slim_cur_object[i] != SIEVE_SKIP_MARKER:
-            return False
-    for i in range(len(slim_prev_object)):
-        if slim_prev_object[i] != SIEVE_SKIP_MARKER:
-            return False
-    return True
 
+def diff_event_as_map(
+    prev_event: Dict, cur_event: Dict
+) -> Tuple[Optional[Dict], Optional[Dict]]:
+    diff_prev_event = {}
+    diff_cur_event = {}
 
-def compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_object):
-    to_del = []
-    to_del_cur = []
-    to_del_prev = []
-    common_keys = set(cur_object.keys()).intersection(prev_object.keys())
+    common_keys = set(cur_event.keys()).intersection(prev_event.keys())
+    pdc_keys = set(prev_event.keys()).difference(cur_event.keys())
+    cdp_keys = set(cur_event.keys()).difference(prev_event.keys())
     for key in common_keys:
-        if key in BORING_EVENT_OBJECT_FIELDS:
-            to_del.append(key)
-        elif str(cur_object[key]) != str(prev_object[key]):
-            if isinstance(cur_object[key], dict):
-                if not isinstance(prev_object[key], dict):
-                    continue
-                if compress_event_object(
-                    prev_object[key],
-                    cur_object[key],
-                    slim_prev_object[key],
-                    slim_cur_object[key],
-                ):
-                    to_del.append(key)
-            elif isinstance(cur_object[key], list):
-                if not isinstance(prev_object[key], list):
-                    continue
-                if compress_event_object_for_list(
-                    prev_object[key],
-                    cur_object[key],
-                    slim_prev_object[key],
-                    slim_cur_object[key],
-                ):
-                    to_del.append(key)
+        if isinstance(cur_event[key], dict):
+            if not isinstance(prev_event[key], dict):
+                diff_prev_event[key] = prev_event[key]
+                diff_cur_event[key] = cur_event[key]
             else:
-                continue
+                sub_diff_prev_event, sub_diff_cur_event = diff_event_as_map(
+                    prev_event[key], cur_event[key]
+                )
+                if sub_diff_prev_event is None or sub_diff_cur_event is None:
+                    continue
+                diff_prev_event[key] = sub_diff_prev_event
+                diff_cur_event[key] = sub_diff_cur_event
+        elif isinstance(cur_event[key], list):
+            if not isinstance(prev_event[key], list):
+                diff_prev_event[key] = prev_event[key]
+                diff_cur_event[key] = cur_event[key]
+            else:
+                sub_diff_prev_event, sub_diff_cur_event = diff_event_as_list(
+                    prev_event[key], cur_event[key]
+                )
+                if sub_diff_prev_event is None or sub_diff_cur_event is None:
+                    continue
+                diff_prev_event[key] = sub_diff_prev_event
+                diff_cur_event[key] = sub_diff_cur_event
         else:
-            to_del.append(key)
-    sym_different_keys = set(cur_object.keys()).symmetric_difference(prev_object.keys())
-    for key in sym_different_keys:
+            if prev_event[key] != cur_event[key]:
+                diff_prev_event[key] = prev_event[key]
+                diff_cur_event[key] = cur_event[key]
+    for key in pdc_keys:
+        diff_prev_event[key] = prev_event[key]
+    for key in cdp_keys:
+        diff_cur_event[key] = cur_event[key]
+    if len(diff_cur_event) == 0 and len(diff_prev_event) == 0:
+        return None, None
+    return diff_prev_event, diff_cur_event
+
+
+def canonicalize_value(value: str):
+    if re.match(TIME_REG, value):
+        return SIEVE_CANONICALIZATION_MARKER
+    else:
+        return value
+
+
+def canonicalize_event_as_list(event: List):
+    for i in range(len(event)):
+        if isinstance(event[i], list):
+            canonicalize_event_as_list(event[i])
+        elif isinstance(event[i], dict):
+            canonicalize_event_as_map(event[i])
+        elif isinstance(event[i], str):
+            event[i] = canonicalize_value(event[i])
+    return event
+
+
+def canonicalize_event_as_map(event: Dict):
+    for key in event:
         if key in BORING_EVENT_OBJECT_FIELDS:
-            if key in cur_object.keys():
-                to_del_cur.append(key)
-            else:
-                to_del_prev.append(key)
-    for key in to_del:
-        del slim_cur_object[key]
-        del slim_prev_object[key]
-    for key in slim_cur_object:
-        if isinstance(slim_cur_object[key], dict):
-            if len(slim_cur_object[key]) == 0:
-                to_del_cur.append(key)
-    for key in slim_prev_object:
-        if isinstance(slim_prev_object[key], dict):
-            if len(slim_prev_object[key]) == 0:
-                to_del_prev.append(key)
-    for key in to_del_cur:
-        del slim_cur_object[key]
-    for key in to_del_prev:
-        del slim_prev_object[key]
-    if len(slim_cur_object) == 0 and len(slim_prev_object) == 0:
-        return True
-    return False
+            event[key] = SIEVE_CANONICALIZATION_MARKER
+            continue
+        if isinstance(event[key], dict):
+            canonicalize_event_as_map(event[key])
+        elif isinstance(event[key], list):
+            canonicalize_event_as_list(event[key])
+        elif isinstance(event[key], str):
+            event[key] = canonicalize_value(event[key])
+    return event
 
 
-def diff_events(prev_object: Dict, cur_object: Dict):
-    slim_prev_object = copy.deepcopy(prev_object)
-    slim_cur_object = copy.deepcopy(cur_object)
-    compress_event_object(prev_object, cur_object, slim_prev_object, slim_cur_object)
-    return slim_prev_object, slim_cur_object
-
-
-def canonicalize_event_object_for_list(event_list: List):
-    for i in range(len(event_list)):
-        if isinstance(event_list[i], list):
-            canonicalize_event_object_for_list(event_list[i])
-        elif isinstance(event_list[i], dict):
-            canonicalize_event_object(event_list[i])
-        elif isinstance(event_list[i], str):
-            if re.match(TIME_REG, str(event_list[i])):
-                event_list[i] = SIEVE_CANONICALIZATION_MARKER
-    return event_list
-
-
-def canonicalize_event_object(event_object: Dict):
-    for key in event_object:
-        if isinstance(event_object[key], dict):
-            canonicalize_event_object(event_object[key])
-        elif isinstance(event_object[key], list):
-            canonicalize_event_object_for_list(event_object[key])
-        elif isinstance(event_object[key], str):
-            if re.match(TIME_REG, str(event_object[key])):
-                event_object[key] = SIEVE_CANONICALIZATION_MARKER
-    return event_object
+def diff_event(
+    prev_event: Dict, cur_event: Dict, trim_ka=False
+) -> Tuple[Optional[Dict], Optional[Dict]]:
+    prev_event_copy = copy.deepcopy(prev_event)
+    cur_event_copy = copy.deepcopy(cur_event)
+    if trim_ka:
+        trim_kind_apiversion(prev_event_copy),
+        trim_kind_apiversion(cur_event_copy),
+    canonicalize_event_as_map(prev_event_copy)
+    canonicalize_event_as_map(cur_event_copy)
+    diff_prev_event, diff_cur_event = diff_event_as_map(prev_event_copy, cur_event_copy)
+    return diff_prev_event, diff_cur_event
 
 
 def cancel_event_obj_for_list(cur_object: List, following_object: List):
@@ -183,3 +196,8 @@ def cancel_event_object(cur_object: Dict, following_object: Dict):
                 if cur_object[key] != SIEVE_CANONICALIZATION_MARKER:
                     return True
     return False
+
+
+def trim_kind_apiversion(event: Dict):
+    event.pop("kind", None)
+    event.pop("apiVersion", None)

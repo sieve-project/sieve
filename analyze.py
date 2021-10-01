@@ -1,4 +1,4 @@
-from analyze_event import cancel_event_object, canonicalize_event_object, diff_events
+from analyze_event import cancel_event_object, diff_event
 from typing import List
 import copy
 import os
@@ -92,14 +92,8 @@ def parse_receiver_events(path):
                 continue
             prev_operator_hear = operator_hear_key_map[key][i - 1]
             cur_operator_hear = operator_hear_key_map[key][i]
-            canonicalized_prev_object = canonicalize_event_object(
-                copy.deepcopy(prev_operator_hear.obj_map)
-            )
-            canonicalized_cur_object = canonicalize_event_object(
-                copy.deepcopy(cur_operator_hear.obj_map)
-            )
-            slim_prev_object, slim_cur_object = diff_events(
-                canonicalized_prev_object, canonicalized_cur_object
+            slim_prev_object, slim_cur_object = diff_event(
+                prev_operator_hear.obj_map, cur_operator_hear.obj_map
             )
             cur_operator_hear.slim_prev_obj_map = slim_prev_object
             cur_operator_hear.slim_cur_obj_map = slim_cur_object
@@ -270,14 +264,8 @@ def parse_reconciler_events(path):
             assert operator_write.key in operator_read.key_set
             assert operator_read.end_timestamp < operator_write.start_timestamp
 
-            canonicalized_read_object = canonicalize_event_object(
-                copy.deepcopy(operator_read.key_to_obj[key])
-            )
-            canonicalized_write_object = canonicalize_event_object(
-                copy.deepcopy(operator_write.obj_map)
-            )
-            slim_prev_object, slim_cur_object = diff_events(
-                canonicalized_read_object, canonicalized_write_object
+            slim_prev_object, slim_cur_object = diff_event(
+                operator_read.key_to_obj[key], operator_write.obj_map, True
             )
             operator_write.slim_prev_obj_map = slim_prev_object
             operator_write.slim_cur_obj_map = slim_cur_object
