@@ -12,18 +12,20 @@ var seenTargetDiff = false
 const TIME_REG string = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 
 // mark a list item to skip
-const SIEVE_SKIP_MARKER string = "SIEVE-SKIP"
+const SIEVE_IDX_SKIP string = "SIEVE-SKIP"
 
 // mark a canonicalized value
-const SIEVE_CANONICALIZATION_MARKER string = "SIEVE-NON-NIL"
+const SIEVE_VALUE_MASK string = "SIEVE-NON-NIL"
+
+const SIEVE_CAN_MARKER string = "SIEVE-CAN"
 
 var exists = struct{}{}
 
 // resources that have different representation between API and controller side
-var CONFORM_TYPES = map[string]struct{}{"pod": exists}
+var TYPES_TO_CONFORM = map[string]struct{}{"pod": exists}
 
 // keys that to ignore when computing event diff
-var BORING_KEYS = map[string]struct{}{
+var KEYS_TO_MASK = map[string]struct{}{
 	"kind":                       exists, // not always available
 	"apiVersion":                 exists, // not always available
 	"uid":                        exists, // random
@@ -99,33 +101,37 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 	prevLen := len(prevEvent)
 	curLen := len(curEvent)
 	minLen := prevLen
+	keep := false
 	if minLen > curLen {
 		minLen = curLen
 	}
 	diffPrevEvent := make([]interface{}, prevLen)
 	diffCurEvent := make([]interface{}, curLen)
+	// We initialize both lists with SIEVE_IDX_SKIP
 	for i := 0; i < prevLen; i++ {
-		diffPrevEvent[i] = SIEVE_SKIP_MARKER
+		diffPrevEvent[i] = SIEVE_IDX_SKIP
 	}
 	for i := 0; i < curLen; i++ {
-		diffCurEvent[i] = SIEVE_SKIP_MARKER
+		diffCurEvent[i] = SIEVE_IDX_SKIP
 	}
 	for i := 0; i < minLen; i++ {
 		if interfaceToStr(prevEvent[i]) == interfaceToStr(curEvent[i]) {
+			// continue if the two items look the same
 			continue
 		} else {
+			// at least one item is different, we should not set the lists to nil
+			keep = true
 			if subCurEvent, ok := curEvent[i].(map[string]interface{}); ok {
 				if subPrevEvent, ok := prevEvent[i].(map[string]interface{}); !ok {
 					diffPrevEvent[i] = prevEvent[i]
 					diffCurEvent[i] = curEvent[i]
 				} else {
 					subDiffPrevEvent, subDiffCurEvent := diffEventAsMap(subPrevEvent, subCurEvent)
-					if len(subDiffPrevEvent) != 0 {
-						diffPrevEvent[i] = subDiffPrevEvent
+					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+						log.Fatalf("diff between %s and %s should not be nil\n", mapToStr(subPrevEvent), mapToStr(subCurEvent))
 					}
-					if len(subDiffCurEvent) != 0 {
-						diffCurEvent[i] = subDiffCurEvent
-					}
+					diffPrevEvent[i] = subDiffPrevEvent
+					diffCurEvent[i] = subDiffCurEvent
 				}
 			} else if subCurEvent, ok := curEvent[i].([]interface{}); ok {
 				if subPrevEvent, ok := prevEvent[i].([]interface{}); !ok {
@@ -133,12 +139,11 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 					diffCurEvent[i] = curEvent[i]
 				} else {
 					subDiffPrevEvent, subDiffCurEvent := diffEventAsList(subPrevEvent, subCurEvent)
-					if len(subDiffPrevEvent) != 0 {
-						diffPrevEvent[i] = subDiffPrevEvent
+					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+						log.Fatalf("diff between %s and %s should not be nil\n", listToStr(subPrevEvent), listToStr(subCurEvent))
 					}
-					if len(subDiffCurEvent) != 0 {
-						diffCurEvent[i] = subDiffCurEvent
-					}
+					diffPrevEvent[i] = subDiffPrevEvent
+					diffCurEvent[i] = subDiffCurEvent
 				}
 			} else {
 				diffPrevEvent[i] = prevEvent[i]
@@ -146,32 +151,22 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 			}
 		}
 	}
-	// TODO(xudong): handle the case if prevLen != curLen
-	keepDiffPrev := false
-	for i := 0; i < prevLen; i++ {
-		if val, ok := diffPrevEvent[i].(string); ok {
-			if val != SIEVE_SKIP_MARKER {
-				keepDiffPrev = true
-			}
-		} else {
-			keepDiffPrev = true
+	// when the two lists have different length, we simply copy the items with index > minLen
+	if prevLen > minLen {
+		keep = true
+		for i := minLen; i < prevLen; i++ {
+			diffPrevEvent[i] = prevEvent[i]
 		}
 	}
-	keepDiffCur := false
-	for i := 0; i < curLen; i++ {
-		if val, ok := diffCurEvent[i].(string); ok {
-			if val != SIEVE_SKIP_MARKER {
-				keepDiffCur = true
-			}
-		} else {
-			keepDiffCur = true
+	if curLen > minLen {
+		keep = true
+		for i := minLen; i < curLen; i++ {
+			diffCurEvent[i] = curEvent[i]
 		}
 	}
-	if !keepDiffPrev {
-		diffPrevEvent = nil
-	}
-	if !keepDiffCur {
-		diffCurEvent = nil
+	// We return nil only when they two are identical (full of SIEVE_IDX_SKIP)
+	if !keep {
+		return nil, nil
 	}
 	return diffPrevEvent, diffCurEvent
 }
@@ -179,24 +174,23 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]interface{}, map[string]interface{}) {
 	diffPrevEvent := make(map[string]interface{})
 	diffCurEvent := make(map[string]interface{})
+	keep := false
 	for _, key := range mapKeyIntersection(prevEvent, curEvent) {
-		if inSet(key, BORING_KEYS) {
-			continue
-		} else if interfaceToStr(prevEvent[key]) == interfaceToStr(curEvent[key]) {
+		if interfaceToStr(prevEvent[key]) == interfaceToStr(curEvent[key]) {
 			continue
 		} else {
+			keep = true
 			if subCurEvent, ok := curEvent[key].(map[string]interface{}); ok {
 				if subPrevEvent, ok := prevEvent[key].(map[string]interface{}); !ok {
 					diffPrevEvent[key] = prevEvent[key]
 					diffCurEvent[key] = curEvent[key]
 				} else {
 					subDiffPrevEvent, subDiffCurEvent := diffEventAsMap(subPrevEvent, subCurEvent)
-					if len(subDiffPrevEvent) != 0 {
-						diffPrevEvent[key] = subDiffPrevEvent
+					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+						log.Fatalf("diff between %s and %s should not be nil\n", mapToStr(subPrevEvent), mapToStr(subCurEvent))
 					}
-					if len(subDiffCurEvent) != 0 {
-						diffCurEvent[key] = subDiffCurEvent
-					}
+					diffPrevEvent[key] = subDiffPrevEvent
+					diffCurEvent[key] = subDiffCurEvent
 				}
 			} else if subCurEvent, ok := curEvent[key].([]interface{}); ok {
 				if subPrevEvent, ok := prevEvent[key].([]interface{}); !ok {
@@ -204,12 +198,11 @@ func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]inte
 					diffCurEvent[key] = curEvent[key]
 				} else {
 					subDiffPrevEvent, subDiffCurEvent := diffEventAsList(subPrevEvent, subCurEvent)
-					if len(subDiffPrevEvent) != 0 {
-						diffPrevEvent[key] = subDiffPrevEvent
+					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+						log.Fatalf("diff between %s and %s should not be nil\n", listToStr(subPrevEvent), listToStr(subCurEvent))
 					}
-					if len(subDiffCurEvent) != 0 {
-						diffCurEvent[key] = subDiffCurEvent
-					}
+					diffPrevEvent[key] = subDiffPrevEvent
+					diffCurEvent[key] = subDiffCurEvent
 				}
 			} else {
 				diffPrevEvent[key] = prevEvent[key]
@@ -218,16 +211,16 @@ func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]inte
 		}
 	}
 	for _, key := range mapKeyDiff(prevEvent, curEvent) {
-		if inSet(key, BORING_KEYS) {
-			continue
-		}
+		keep = true
 		diffPrevEvent[key] = prevEvent[key]
 	}
 	for _, key := range mapKeyDiff(curEvent, prevEvent) {
-		if inSet(key, BORING_KEYS) {
-			continue
-		}
+		keep = true
 		diffCurEvent[key] = curEvent[key]
+	}
+	if !keep {
+		// we return nil when the two maps are identical
+		return nil, nil
 	}
 	return diffPrevEvent, diffCurEvent
 }
@@ -238,7 +231,7 @@ func canonicalizeValue(value string) string {
 		log.Fatalf("fail to compile %s", TIME_REG)
 	}
 	if match {
-		return SIEVE_CANONICALIZATION_MARKER
+		return SIEVE_VALUE_MASK
 	} else {
 		return value
 	}
@@ -258,8 +251,11 @@ func canonicalizeEventAsList(event []interface{}) {
 }
 
 func canonicalizeEventAsMap(event map[string]interface{}) {
-	// TODO(xudong): delete the boring keys
 	for key, val := range event {
+		if inSet(key, KEYS_TO_MASK) {
+			event[key] = SIEVE_VALUE_MASK
+			continue
+		}
 		switch typedVal := val.(type) {
 		case map[string]interface{}:
 			canonicalizeEventAsMap(typedVal)
@@ -271,19 +267,22 @@ func canonicalizeEventAsMap(event map[string]interface{}) {
 	}
 }
 
+func canonicalizeEvent(event map[string]interface{}) {
+	if _, ok := event[SIEVE_CAN_MARKER]; ok {
+		return
+	} else {
+		canonicalizeEventAsMap(event)
+		event[SIEVE_CAN_MARKER] = ""
+	}
+}
+
 func diffEvent(prevEvent, curEvent map[string]interface{}) (map[string]interface{}, map[string]interface{}) {
-	// We first compute the diff between the prevEvent and the curEvent
+	canonicalizeEvent(prevEvent)
+	canonicalizeEvent(curEvent)
+	// After canonicalization some values are replaced by SIEVE_VALUE_MASK, we compute diff again
 	diffPrevEvent, diffCurEvent := diffEventAsMap(prevEvent, curEvent)
-	// Deepcopy the diff[Prev|Cur]Event as we need to modify them during canonicalization
-	copiedDiffPrevEvent := deepCopyMap(diffPrevEvent)
-	copiedDiffCurEvent := deepCopyMap(diffCurEvent)
-	// We canonicalize all the timing related fields
-	canonicalizeEventAsMap(copiedDiffPrevEvent)
-	canonicalizeEventAsMap(copiedDiffCurEvent)
-	// After canonicalization some values are replaced by SIEVE_CANONICALIZATION_MARKER, we compute diff again
-	diffPrevEventAfterCan, diffCurEventAfterCan := diffEventAsMap(copiedDiffPrevEvent, copiedDiffCurEvent)
 	// Note that we do not perform canonicalization at the beginning as it is more expensive to do so
-	return diffPrevEventAfterCan, diffCurEventAfterCan
+	return diffPrevEvent, diffCurEvent
 }
 
 func equivalentEvent(eventA, eventB map[string]interface{}) bool {
@@ -317,7 +316,7 @@ func partOfEventAsList(eventA, eventB []interface{}) bool {
 				return false
 			}
 		case string:
-			if typedValA != SIEVE_CANONICALIZATION_MARKER && typedValA != SIEVE_SKIP_MARKER {
+			if typedValA != SIEVE_VALUE_MASK && typedValA != SIEVE_IDX_SKIP {
 				return false
 			}
 		default:
@@ -356,7 +355,7 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 				return false
 			}
 		case string:
-			if typedValA != SIEVE_CANONICALIZATION_MARKER {
+			if typedValA != SIEVE_VALUE_MASK {
 				return false
 			}
 		default:
@@ -429,7 +428,7 @@ func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
 }
 
 func conformToAPIEvent(event map[string]interface{}, rType string) map[string]interface{} {
-	if !inSet(rType, CONFORM_TYPES) {
+	if !inSet(rType, TYPES_TO_CONFORM) {
 		return event
 	}
 
