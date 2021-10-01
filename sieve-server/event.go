@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -101,7 +102,6 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 	prevLen := len(prevEvent)
 	curLen := len(curEvent)
 	minLen := prevLen
-	keep := false
 	if minLen > curLen {
 		minLen = curLen
 	}
@@ -115,37 +115,32 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 		diffCurEvent[i] = SIEVE_IDX_SKIP
 	}
 	for i := 0; i < minLen; i++ {
-		if interfaceToStr(prevEvent[i]) == interfaceToStr(curEvent[i]) {
-			// continue if the two items look the same
-			continue
-		} else {
-			// at least one item is different, we should not set the lists to nil
-			keep = true
-			if subCurEvent, ok := curEvent[i].(map[string]interface{}); ok {
-				if subPrevEvent, ok := prevEvent[i].(map[string]interface{}); !ok {
-					diffPrevEvent[i] = prevEvent[i]
-					diffCurEvent[i] = curEvent[i]
-				} else {
-					subDiffPrevEvent, subDiffCurEvent := diffEventAsMap(subPrevEvent, subCurEvent)
-					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
-						log.Fatalf("diff between %s and %s should not be nil\n", mapToStr(subPrevEvent), mapToStr(subCurEvent))
-					}
-					diffPrevEvent[i] = subDiffPrevEvent
-					diffCurEvent[i] = subDiffCurEvent
-				}
-			} else if subCurEvent, ok := curEvent[i].([]interface{}); ok {
-				if subPrevEvent, ok := prevEvent[i].([]interface{}); !ok {
-					diffPrevEvent[i] = prevEvent[i]
-					diffCurEvent[i] = curEvent[i]
-				} else {
-					subDiffPrevEvent, subDiffCurEvent := diffEventAsList(subPrevEvent, subCurEvent)
-					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
-						log.Fatalf("diff between %s and %s should not be nil\n", listToStr(subPrevEvent), listToStr(subCurEvent))
-					}
-					diffPrevEvent[i] = subDiffPrevEvent
-					diffCurEvent[i] = subDiffCurEvent
-				}
+		if subCurEvent, ok := curEvent[i].(map[string]interface{}); ok {
+			if subPrevEvent, ok := prevEvent[i].(map[string]interface{}); !ok {
+				diffPrevEvent[i] = prevEvent[i]
+				diffCurEvent[i] = curEvent[i]
 			} else {
+				subDiffPrevEvent, subDiffCurEvent := diffEventAsMap(subPrevEvent, subCurEvent)
+				if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+					continue
+				}
+				diffPrevEvent[i] = subDiffPrevEvent
+				diffCurEvent[i] = subDiffCurEvent
+			}
+		} else if subCurEvent, ok := curEvent[i].([]interface{}); ok {
+			if subPrevEvent, ok := prevEvent[i].([]interface{}); !ok {
+				diffPrevEvent[i] = prevEvent[i]
+				diffCurEvent[i] = curEvent[i]
+			} else {
+				subDiffPrevEvent, subDiffCurEvent := diffEventAsList(subPrevEvent, subCurEvent)
+				if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+					continue
+				}
+				diffPrevEvent[i] = subDiffPrevEvent
+				diffCurEvent[i] = subDiffCurEvent
+			}
+		} else {
+			if prevEvent[i] != curEvent[i] {
 				diffPrevEvent[i] = prevEvent[i]
 				diffCurEvent[i] = curEvent[i]
 			}
@@ -153,20 +148,26 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 	}
 	// when the two lists have different length, we simply copy the items with index > minLen
 	if prevLen > minLen {
-		keep = true
 		for i := minLen; i < prevLen; i++ {
 			diffPrevEvent[i] = prevEvent[i]
 		}
 	}
 	if curLen > minLen {
-		keep = true
 		for i := minLen; i < curLen; i++ {
 			diffCurEvent[i] = curEvent[i]
 		}
 	}
-	// We return nil only when they two are identical (full of SIEVE_IDX_SKIP)
-	if !keep {
-		return nil, nil
+	if curLen == prevLen {
+		// return nil if the two lists are identical
+		keep := false
+		for i := 0; i < curLen; i++ {
+			if !reflect.DeepEqual(diffPrevEvent[i], SIEVE_IDX_SKIP) || !reflect.DeepEqual(diffCurEvent[i], SIEVE_IDX_SKIP) {
+				keep = true
+			}
+		}
+		if !keep {
+			return nil, nil
+		}
 	}
 	return diffPrevEvent, diffCurEvent
 }
@@ -174,52 +175,46 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]interface{}, map[string]interface{}) {
 	diffPrevEvent := make(map[string]interface{})
 	diffCurEvent := make(map[string]interface{})
-	keep := false
 	for _, key := range mapKeyIntersection(prevEvent, curEvent) {
-		if interfaceToStr(prevEvent[key]) == interfaceToStr(curEvent[key]) {
-			continue
-		} else {
-			keep = true
-			if subCurEvent, ok := curEvent[key].(map[string]interface{}); ok {
-				if subPrevEvent, ok := prevEvent[key].(map[string]interface{}); !ok {
-					diffPrevEvent[key] = prevEvent[key]
-					diffCurEvent[key] = curEvent[key]
-				} else {
-					subDiffPrevEvent, subDiffCurEvent := diffEventAsMap(subPrevEvent, subCurEvent)
-					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
-						log.Fatalf("diff between %s and %s should not be nil\n", mapToStr(subPrevEvent), mapToStr(subCurEvent))
-					}
-					diffPrevEvent[key] = subDiffPrevEvent
-					diffCurEvent[key] = subDiffCurEvent
-				}
-			} else if subCurEvent, ok := curEvent[key].([]interface{}); ok {
-				if subPrevEvent, ok := prevEvent[key].([]interface{}); !ok {
-					diffPrevEvent[key] = prevEvent[key]
-					diffCurEvent[key] = curEvent[key]
-				} else {
-					subDiffPrevEvent, subDiffCurEvent := diffEventAsList(subPrevEvent, subCurEvent)
-					if subDiffPrevEvent == nil || subDiffCurEvent == nil {
-						log.Fatalf("diff between %s and %s should not be nil\n", listToStr(subPrevEvent), listToStr(subCurEvent))
-					}
-					diffPrevEvent[key] = subDiffPrevEvent
-					diffCurEvent[key] = subDiffCurEvent
-				}
+		if subCurEvent, ok := curEvent[key].(map[string]interface{}); ok {
+			if subPrevEvent, ok := prevEvent[key].(map[string]interface{}); !ok {
+				diffPrevEvent[key] = prevEvent[key]
+				diffCurEvent[key] = curEvent[key]
 			} else {
+				subDiffPrevEvent, subDiffCurEvent := diffEventAsMap(subPrevEvent, subCurEvent)
+				if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+					continue
+				}
+				diffPrevEvent[key] = subDiffPrevEvent
+				diffCurEvent[key] = subDiffCurEvent
+			}
+		} else if subCurEvent, ok := curEvent[key].([]interface{}); ok {
+			if subPrevEvent, ok := prevEvent[key].([]interface{}); !ok {
+				diffPrevEvent[key] = prevEvent[key]
+				diffCurEvent[key] = curEvent[key]
+			} else {
+				subDiffPrevEvent, subDiffCurEvent := diffEventAsList(subPrevEvent, subCurEvent)
+				if subDiffPrevEvent == nil || subDiffCurEvent == nil {
+					continue
+				}
+				diffPrevEvent[key] = subDiffPrevEvent
+				diffCurEvent[key] = subDiffCurEvent
+			}
+		} else {
+			if prevEvent[key] != curEvent[key] {
 				diffPrevEvent[key] = prevEvent[key]
 				diffCurEvent[key] = curEvent[key]
 			}
 		}
 	}
 	for _, key := range mapKeyDiff(prevEvent, curEvent) {
-		keep = true
 		diffPrevEvent[key] = prevEvent[key]
 	}
 	for _, key := range mapKeyDiff(curEvent, prevEvent) {
-		keep = true
 		diffCurEvent[key] = curEvent[key]
 	}
-	if !keep {
-		// we return nil when the two maps are identical
+	if len(diffCurEvent) == 0 && len(diffPrevEvent) == 0 {
+		// return nil if the two map are identical
 		return nil, nil
 	}
 	return diffPrevEvent, diffCurEvent
@@ -286,7 +281,7 @@ func diffEvent(prevEvent, curEvent map[string]interface{}) (map[string]interface
 }
 
 func equivalentEvent(eventA, eventB map[string]interface{}) bool {
-	return mapToStr(eventA) == mapToStr(eventB)
+	return reflect.DeepEqual(eventA, eventB)
 }
 
 func partOfEventAsList(eventA, eventB []interface{}) bool {
