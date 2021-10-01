@@ -27,4 +27,4 @@ if __name__ == '__main__':
             merge(result, patch)
 
     with open('test-summary-{}-{}-{}-{}-{}.json'.format(t.tm_year, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min), 'w') as merged:
-        json.dump(result, merged, indent=4)
+        json.dump(result, merged, indent=4, sort_keys=True)
