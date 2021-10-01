@@ -27,8 +27,6 @@ var TYPES_TO_CONFORM = map[string]struct{}{"pod": exists}
 
 // keys that to ignore when computing event diff
 var KEYS_TO_MASK = map[string]struct{}{
-	"kind":                       exists, // not always available
-	"apiVersion":                 exists, // not always available
 	"uid":                        exists, // random
 	"resourceVersion":            exists, // random
 	"generation":                 exists, // random
@@ -290,9 +288,6 @@ func partOfEventAsList(eventA, eventB []interface{}) bool {
 	}
 	for i, valA := range eventA {
 		valB := eventB[i]
-		if interfaceToStr(valA) == interfaceToStr(valB) {
-			continue
-		}
 		switch typedValA := valA.(type) {
 		case map[string]interface{}:
 			if typedValB, ok := eventB[i].(map[string]interface{}); ok {
@@ -310,12 +305,10 @@ func partOfEventAsList(eventA, eventB []interface{}) bool {
 			} else {
 				return false
 			}
-		case string:
-			if typedValA != SIEVE_VALUE_MASK && typedValA != SIEVE_IDX_SKIP {
+		default:
+			if !reflect.DeepEqual(valA, valB) {
 				return false
 			}
-		default:
-			return false
 		}
 	}
 	return true
@@ -329,9 +322,6 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 	}
 	for key, valA := range eventA {
 		valB := eventB[key]
-		if interfaceToStr(valA) == interfaceToStr(valB) {
-			continue
-		}
 		switch typedValA := valA.(type) {
 		case map[string]interface{}:
 			if typedValB, ok := eventB[key].(map[string]interface{}); ok {
@@ -349,18 +339,18 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 			} else {
 				return false
 			}
-		case string:
-			if typedValA != SIEVE_VALUE_MASK {
+		default:
+			if !reflect.DeepEqual(valA, valB) {
 				return false
 			}
-		default:
-			return false
 		}
 	}
 	return true
 }
 
-func conflictingEventAsMap(eventA, eventB map[string]interface{}) bool {
+func conflictingEvent(eventA, eventB map[string]interface{}) bool {
+	// assume eventA is already canonicalized
+	canonicalizeEvent(eventB)
 	return !partOfEventAsMap(eventA, eventB)
 }
 
@@ -451,4 +441,10 @@ func conformToAPIEvent(event map[string]interface{}, rType string) map[string]in
 	}
 
 	return conformedEvent
+}
+
+// trim kind and apiVersion for atom-vio testing
+func trimKindApiversion(event map[string]interface{}) {
+	delete(event, "kind")
+	delete(event, "apiVersion")
 }

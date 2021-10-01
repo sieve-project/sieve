@@ -83,6 +83,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomV
 	}
 	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
 	s.prevEvent = readObj
+	trimKindApiversion(s.prevEvent)
 	*response = sieve.Response{Message: request.ResourceType, Ok: true}
 	return nil
 }
@@ -96,6 +97,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtom
 	for _, readObj := range readObjs {
 		if isSameObjectServerSide(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
 			s.prevEvent = readObj.(map[string]interface{})
+			trimKindApiversion(s.prevEvent)
 			break
 		}
 	}
