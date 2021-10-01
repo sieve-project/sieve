@@ -138,7 +138,7 @@ func diffEventAsList(prevEvent, curEvent []interface{}) ([]interface{}, []interf
 				diffCurEvent[i] = subDiffCurEvent
 			}
 		} else {
-			if prevEvent[i] != curEvent[i] {
+			if !reflect.DeepEqual(prevEvent[i], curEvent[i]) {
 				diffPrevEvent[i] = prevEvent[i]
 				diffCurEvent[i] = curEvent[i]
 			}
@@ -199,7 +199,7 @@ func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]inte
 				diffCurEvent[key] = subDiffCurEvent
 			}
 		} else {
-			if prevEvent[key] != curEvent[key] {
+			if !reflect.DeepEqual(prevEvent[key], curEvent[key]) {
 				diffPrevEvent[key] = prevEvent[key]
 				diffCurEvent[key] = curEvent[key]
 			}
