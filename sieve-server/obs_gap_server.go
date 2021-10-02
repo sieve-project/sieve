@@ -16,6 +16,7 @@ func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 		ceName:           config["ce-name"].(string),
 		ceNamespace:      config["ce-namespace"].(string),
 		ceRtype:          config["ce-rtype"].(string),
+		ceEtype:          config["ce-etype-current"].(string),
 		prevEvent:        nil,
 		curEvent:         nil,
 		reconcilingMutex: &sync.RWMutex{},
@@ -61,6 +62,7 @@ type obsGapServer struct {
 	pausingReconcile bool
 	diffCurEvent     map[string]interface{}
 	diffPrevEvent    map[string]interface{}
+	ceEtype          string
 	ceName           string
 	ceNamespace      string
 	ceRtype          string
@@ -71,6 +73,7 @@ type obsGapServer struct {
 
 func (s *obsGapServer) Start() {
 	log.Println("start obsGapServer...")
+	log.Printf("target event type: %s\n", s.ceEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
 	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
@@ -84,7 +87,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGa
 	log.Println("NotifyObsGapBeforeIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
-	if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
+	if findTargetDiff(request.OperationType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
 		startObsGapInjection()
 		log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 		s.reconcilingMutex.Lock()

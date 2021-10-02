@@ -17,10 +17,10 @@ func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 		seName:        config["se-name"].(string),
 		seNamespace:   config["se-namespace"].(string),
 		seRtype:       config["se-rtype"].(string),
-		seEtype:       config["se-etype"].(string),
-		diffCurEvent:  strToMap(config["se-diff-current"].(string)),
-		diffPrevEvent: strToMap(config["se-diff-previous"].(string)),
 		seEtypePrev:   config["se-etype-previous"].(string),
+		seEtype:       config["se-etype-current"].(string),
+		diffPrevEvent: strToMap(config["se-diff-previous"].(string)),
+		diffCurEvent:  strToMap(config["se-diff-current"].(string)),
 		prevEvent:     nil,
 		curEvent:      nil,
 	}
@@ -72,6 +72,7 @@ type atomVioServer struct {
 
 func (s *atomVioServer) Start() {
 	log.Println("start atomVioServer...")
+	log.Printf("target event type: %s\n", s.seEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
 	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
@@ -107,12 +108,12 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtom
 
 func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
 	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
-	if request.Error == "NoError" && request.ResourceType == s.seRtype && request.SideEffectType == s.seEtype {
+	if request.Error == "NoError" && request.ResourceType == s.seRtype {
 		writeObj := strToMap(request.Object)
 		if isSameObjectServerSide(writeObj, s.seNamespace, s.seName) {
 			s.curEvent = writeObj
 			trimKindApiversion(s.curEvent)
-			if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
+			if findTargetDiff(request.SideEffectType, s.seEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
 				log.Println("ready to crash!")
 				startAtomVioInjection()
 				restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)

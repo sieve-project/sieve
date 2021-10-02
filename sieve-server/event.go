@@ -20,6 +20,21 @@ const SIEVE_VALUE_MASK string = "SIEVE-NON-NIL"
 
 const SIEVE_CAN_MARKER string = "SIEVE-CAN"
 
+const (
+	API_ADDED     string = "Added"
+	API_UPDATED   string = "Updated"
+	API_DELETED   string = "Deleted"
+	API_REPLACED  string = "Replaced"
+	API_SYNC      string = "Sync"
+	HEAR_ADDED    string = "ADDED"
+	HEAR_MODIFIED string = "MODIFIED"
+	HEAR_DELETED  string = "DELETED"
+	WRITE_CREATE  string = "Create"
+	WRITE_UPDATE  string = "Update"
+	WRITE_DELETE  string = "Delete"
+	WRITE_PATCH   string = "Patch"
+)
+
 var exists = struct{}{}
 
 // resources that have different representation between API and controller side
@@ -357,14 +372,28 @@ func conflictingEvent(eventA, eventB map[string]interface{}) bool {
 	return !partOfEventAsMap(eventA, eventB)
 }
 
-func findTargetDiff(prevEvent, curEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
+func isCreationOrDeletion(eventType string) bool {
+	isAPICreationOrDeletion := eventType == API_ADDED || eventType == API_DELETED
+	isHearCreationOrDeletion := eventType == HEAR_ADDED || eventType == HEAR_DELETED
+	isWriteCreationOrDeletion := eventType == WRITE_CREATE || eventType == WRITE_DELETE
+	return isAPICreationOrDeletion || isHearCreationOrDeletion || isWriteCreationOrDeletion
+}
+
+func findTargetDiff(onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
 	if seenTargetDiff {
 		return false
 	}
-	if prevEvent == nil || curEvent == nil || targetDiffPrevEvent == nil || targetDiffCurEvent == nil {
+	log.Printf("online type: cur: %s\n", onlineCurEventType)
+	if onlineCurEventType != targetCurEventType {
 		return false
+	} else {
+		if isCreationOrDeletion(targetCurEventType) {
+			log.Println("Find the target diff")
+			seenTargetDiff = true
+			return true
+		}
 	}
-	onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(prevEvent, curEvent)
+	onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent)
 	log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
 	log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
 	if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
