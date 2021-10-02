@@ -153,49 +153,63 @@ def diff_event(
     return diff_prev_event, diff_cur_event
 
 
-def cancel_event_obj_for_list(cur_object: List, following_object: List):
-    if len(following_object) != len(cur_object):
-        return True
-    for i in range(len(cur_object)):
-        if str(following_object[i]) != str(cur_object[i]):
-            if isinstance(cur_object[i], dict):
-                if not isinstance(following_object[i], dict):
-                    return True
-                elif cancel_event_object(cur_object[i], following_object[i]):
-                    return True
-            elif isinstance(cur_object[i], list):
-                if not isinstance(following_object[i], list):
-                    return True
-                elif cancel_event_obj_for_list(cur_object[i], following_object[i]):
-                    return True
+def part_of_event_as_list(small_event: List, large_event: List) -> bool:
+    if len(small_event) != len(large_event):
+        return False
+    for i in range(len(small_event)):
+        small_val = small_event[i]
+        large_val = large_event[i]
+        if small_val == SIEVE_SKIP_MARKER:
+            continue
+        if isinstance(small_val, dict):
+            if isinstance(large_val, dict):
+                if not part_of_event_as_map(small_val, large_val):
+                    return False
             else:
-                if (
-                    cur_object[i] != SIEVE_CANONICALIZATION_MARKER
-                    and cur_object[i] != SIEVE_SKIP_MARKER
-                ):
-                    return True
-    return False
+                return False
+        elif isinstance(small_val, list):
+            if isinstance(large_val, list):
+                if not part_of_event_as_list(small_val, large_val):
+                    return False
+            else:
+                return False
+        else:
+            if small_val != large_val:
+                return False
+    return True
 
 
-def cancel_event_object(cur_object: Dict, following_object: Dict):
-    for key in cur_object:
-        if key not in following_object:
-            return True
-        elif str(following_object[key]) != str(cur_object[key]):
-            if isinstance(cur_object[key], dict):
-                if not isinstance(following_object[key], dict):
-                    return True
-                elif cancel_event_object(cur_object[key], following_object[key]):
-                    return True
-            elif isinstance(cur_object[key], list):
-                if not isinstance(following_object[key], list):
-                    return True
-                elif cancel_event_obj_for_list(cur_object[key], following_object[key]):
-                    return True
+def part_of_event_as_map(small_event: Dict, large_event: Dict) -> bool:
+    for key in small_event:
+        if key not in large_event:
+            return False
+    for key in small_event:
+        small_val = small_event[key]
+        large_val = large_event[key]
+        if isinstance(small_val, dict):
+            if isinstance(large_val, dict):
+                if not part_of_event_as_map(small_val, large_val):
+                    return False
             else:
-                if cur_object[key] != SIEVE_CANONICALIZATION_MARKER:
-                    return True
-    return False
+                return False
+        elif isinstance(small_val, list):
+            if isinstance(large_val, list):
+                if not part_of_event_as_list(small_val, large_val):
+                    return False
+            else:
+                return False
+        else:
+            if small_val != large_val:
+                return False
+    return True
+
+
+def conflicting_event(small_event: Optional[Dict], large_event: Dict) -> bool:
+    if small_event is None:
+        return False
+    large_event_copy = copy.deepcopy(large_event)
+    canonicalize_event_as_map(large_event_copy)
+    return not part_of_event_as_map(small_event, large_event_copy)
 
 
 def trim_kind_apiversion(event: Dict):

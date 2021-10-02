@@ -1,4 +1,4 @@
-from analyze_event import cancel_event_object, diff_event
+from analyze_event import conflicting_event, diff_event
 from typing import List
 import copy
 import os
@@ -110,7 +110,7 @@ def parse_receiver_events(path):
                 if (
                     cur_operator_hear.etype != OperatorHearTypes.DELETED
                     and following_operator_hear.etype != OperatorHearTypes.DELETED
-                    and cancel_event_object(
+                    and conflicting_event(
                         cur_operator_hear.slim_cur_obj_map,
                         following_operator_hear.obj_map,
                     )

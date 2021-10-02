@@ -190,6 +190,7 @@ class OperatorWrite:
         self.__key = generate_key(self.rtype, self.namespace, self.name)
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
+        self.__prev_etype = None
 
     @property
     def id(self):

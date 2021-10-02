@@ -9,6 +9,28 @@ import sieve_config
 from common import *
 
 
+def equivalent_etype(etype1: str, etype2: str) -> bool:
+    if etype1 == etype2:
+        return True
+    if etype1 in ["Updated", "Replaced"] and etype2 in ["Updated", "Replaced"]:
+        return True
+
+
+def detectable_event_diff(
+    diff_prev_obj: Optional[Dict],
+    diff_cur_obj: Optional[Dict],
+    prev_etype: str,
+    cur_etype: str,
+) -> bool:
+    # ignore the first event
+    if prev_etype is None:
+        return False
+    if diff_prev_obj == diff_cur_obj and equivalent_etype(prev_etype, cur_etype):
+        return False
+    else:
+        return True
+
+
 def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
     print("Running optional pass: delete-only-filtering...")
     candidate_edges = []
@@ -110,11 +132,12 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         assert isinstance(operator_hear, OperatorHear)
         assert isinstance(operator_write, OperatorWrite)
 
-        slim_prev_obj = operator_hear.slim_prev_obj_map
-        slim_cur_obj = operator_hear.slim_cur_obj_map
-        if slim_prev_obj is None and slim_cur_obj is None:
-            continue
-        if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
+        if not detectable_event_diff(
+            operator_hear.slim_prev_obj_map,
+            operator_hear.slim_cur_obj_map,
+            operator_hear.prev_etype,
+            operator_hear.etype,
+        ):
             continue
 
         timing = decide_time_travel_timing(edge.sink)
@@ -123,8 +146,12 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         time_travel_config["ce-name"] = operator_hear.name
         time_travel_config["ce-namespace"] = operator_hear.namespace
         time_travel_config["ce-rtype"] = operator_hear.rtype
-        time_travel_config["ce-diff-current"] = json.dumps(slim_cur_obj)
-        time_travel_config["ce-diff-previous"] = json.dumps(slim_prev_obj)
+        time_travel_config["ce-diff-current"] = json.dumps(
+            operator_hear.slim_cur_obj_map
+        )
+        time_travel_config["ce-diff-previous"] = json.dumps(
+            operator_hear.slim_prev_obj_map
+        )
         time_travel_config["ce-etype-current"] = operator_hear.etype
         time_travel_config["ce-etype-previous"] = operator_hear.prev_etype
         time_travel_config["se-name"] = operator_write.name
@@ -194,19 +221,20 @@ def obs_gap_analysis(
         operator_hear = vertex.content
         assert isinstance(operator_hear, OperatorHear)
 
-        slim_prev_obj = operator_hear.slim_prev_obj_map
-        slim_cur_obj = operator_hear.slim_cur_obj_map
-        if slim_prev_obj is None and slim_cur_obj is None:
-            continue
-        if len(slim_prev_obj) == 0 and len(slim_cur_obj) == 0:
+        if not detectable_event_diff(
+            operator_hear.slim_prev_obj_map,
+            operator_hear.slim_cur_obj_map,
+            operator_hear.prev_etype,
+            operator_hear.etype,
+        ):
             continue
 
         obs_gap_config = obs_gap_template(project)
         obs_gap_config["ce-name"] = operator_hear.name
         obs_gap_config["ce-namespace"] = operator_hear.namespace
         obs_gap_config["ce-rtype"] = operator_hear.rtype
-        obs_gap_config["ce-diff-current"] = json.dumps(slim_cur_obj)
-        obs_gap_config["ce-diff-previous"] = json.dumps(slim_prev_obj)
+        obs_gap_config["ce-diff-current"] = json.dumps(operator_hear.slim_cur_obj_map)
+        obs_gap_config["ce-diff-previous"] = json.dumps(operator_hear.slim_prev_obj_map)
         obs_gap_config["ce-etype-current"] = operator_hear.etype
         obs_gap_config["ce-etype-previous"] = operator_hear.prev_etype
 
@@ -252,14 +280,11 @@ def atom_vio_analysis(
         operator_write = vertex.content
         assert isinstance(operator_write, OperatorWrite)
 
-        slim_prev_obj = operator_write.slim_prev_obj_map
-        slim_cur_obj = operator_write.slim_cur_obj_map
-        if slim_prev_obj is None and slim_cur_obj is None:
-            continue
-        if (
-            len(slim_prev_obj) == 0
-            and len(slim_cur_obj) == 0
-            and operator_write.etype == OperatorWriteTypes.UPDATE
+        if not detectable_event_diff(
+            operator_write.slim_prev_obj_map,
+            operator_write.slim_cur_obj_map,
+            OperatorWriteTypes.UPDATE,
+            operator_write.etype,
         ):
             continue
 
@@ -268,8 +293,10 @@ def atom_vio_analysis(
         atom_vio_config["se-namespace"] = operator_write.namespace
         atom_vio_config["se-rtype"] = operator_write.rtype
         atom_vio_config["se-etype"] = operator_write.etype
-        atom_vio_config["se-diff-current"] = json.dumps(slim_cur_obj)
-        atom_vio_config["se-diff-previous"] = json.dumps(slim_prev_obj)
+        atom_vio_config["se-diff-current"] = json.dumps(operator_write.slim_cur_obj_map)
+        atom_vio_config["se-diff-previous"] = json.dumps(
+            operator_write.slim_prev_obj_map
+        )
         atom_vio_config["se-etype-previous"] = operator_write.prev_etype
 
         i += 1
