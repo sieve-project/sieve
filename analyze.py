@@ -107,22 +107,7 @@ def parse_receiver_events(path):
                 if i == 0:
                     cancelled_by.add(following_operator_hear.id)
                     continue
-                if (
-                    cur_operator_hear.etype != OperatorHearTypes.DELETED
-                    and following_operator_hear.etype != OperatorHearTypes.DELETED
-                    and conflicting_event(
-                        cur_operator_hear.slim_cur_obj_map,
-                        following_operator_hear.obj_map,
-                    )
-                    or (
-                        cur_operator_hear.etype != OperatorHearTypes.DELETED
-                        and following_operator_hear.etype == OperatorHearTypes.DELETED
-                    )
-                    or (
-                        cur_operator_hear.etype == OperatorHearTypes.DELETED
-                        and following_operator_hear.etype != OperatorHearTypes.DELETED
-                    )
-                ):
+                if conflicting_event(cur_operator_hear, following_operator_hear):
                     cancelled_by.add(following_operator_hear.id)
             cur_operator_hear.cancelled_by = cancelled_by
     return operator_hear_list
@@ -340,7 +325,7 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
                     == operator_write_vertex.content.obj_str
                     and operator_write_vertex.content.start_timestamp
                     < operator_hear_vertex.content.start_timestamp
-                    and consistent_type(
+                    and consistent_event_type(
                         operator_hear_vertex.content.etype,
                         operator_write_vertex.content.etype,
                     )

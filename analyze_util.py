@@ -30,19 +30,44 @@ INTER_RECONCILER_EDGE = "INTER-RECONCILER"
 INTRA_RECONCILER_EDGE = "INTRA-RECONCILER"
 
 
+class APIserverTypes:
+    ADDED = "ADDED"
+    MODIFIED = "MODIFIED"
+    DELETED = "DELETED"
+
+
 class OperatorHearTypes:
     ADDED = "Added"
     UPDATED = "Updated"
     DELETED = "Deleted"
+    REPLACED = "Replaced"  # Replaced is emitted when we encountered watch errors and had to do a relist
+    SYNC = "Sync"  # Sync is for synthetic events during a periodic resync
 
 
 class OperatorWriteTypes:
     CREATE = "Create"
     UPDATE = "Update"
     DELETE = "Delete"
+    DELETEALLOF = "DeleteAllOf"
+    PATCH = "Patch"
 
 
-def consistent_type(operator_hear_type: str, operator_write_type: str):
+# We do not include Sync and Replaced here
+operator_hear_types = [
+    OperatorHearTypes.ADDED,
+    OperatorHearTypes.UPDATED,
+    OperatorHearTypes.DELETED,
+]
+
+operator_write_types = [
+    OperatorWriteTypes.CREATE,
+    OperatorWriteTypes.UPDATE,
+    OperatorWriteTypes.DELETE,
+    OperatorWriteTypes.PATCH,
+]
+
+
+def consistent_event_type(operator_hear_type: str, operator_write_type: str):
     both_create = (
         operator_hear_type == OperatorHearTypes.ADDED
         and operator_write_type == OperatorWriteTypes.CREATE
@@ -56,6 +81,18 @@ def consistent_type(operator_hear_type: str, operator_write_type: str):
         and operator_write_type == OperatorWriteTypes.DELETE
     )
     return both_create or both_update or both_delete
+
+
+def conflicting_event_type(prev_operator_hear_type: str, cur_operator_hear_type: str):
+    other_then_delete = (
+        prev_operator_hear_type != OperatorHearTypes.DELETED
+        and cur_operator_hear_type == OperatorHearTypes.DELETED
+    )
+    delete_then_other = (
+        prev_operator_hear_type == OperatorHearTypes.DELETED
+        and cur_operator_hear_type != OperatorHearTypes.DELETED
+    )
+    return other_then_delete or delete_then_other
 
 
 def extract_namespace_name(obj: Dict):
@@ -174,6 +211,8 @@ class OperatorHear:
 class OperatorWrite:
     def __init__(self, id: str, etype: str, rtype: str, error: str, obj_str: str):
         self.__id = int(id)
+        # do not handle DELETEALLOF for now
+        assert etype != OperatorWriteTypes.DELETEALLOF
         self.__etype = etype
         self.__rtype = rtype
         self.__error = error

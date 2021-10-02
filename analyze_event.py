@@ -1,6 +1,7 @@
 import copy
 import re
 from typing import Dict, List, Tuple, Optional
+from analyze_util import *
 from common import *
 
 
@@ -204,12 +205,28 @@ def part_of_event_as_map(small_event: Dict, large_event: Dict) -> bool:
     return True
 
 
-def conflicting_event(small_event: Optional[Dict], large_event: Dict) -> bool:
+def conflicting_event_payload(small_event: Optional[Dict], large_event: Dict) -> bool:
     if small_event is None:
         return False
     large_event_copy = copy.deepcopy(large_event)
     canonicalize_event_as_map(large_event_copy)
     return not part_of_event_as_map(small_event, large_event_copy)
+
+
+def conflicting_event(
+    prev_operator_hear: OperatorHear, cur_operator_hear: OperatorHear
+) -> bool:
+    if conflicting_event_type(prev_operator_hear.etype, cur_operator_hear.etype):
+        return True
+    elif (
+        prev_operator_hear.etype != OperatorHearTypes.DELETED
+        and cur_operator_hear.etype != OperatorHearTypes.DELETED
+        and conflicting_event_payload(
+            prev_operator_hear.slim_cur_obj_map, cur_operator_hear.obj_map
+        )
+    ):
+        return True
+    return False
 
 
 def trim_kind_apiversion(event: Dict):
