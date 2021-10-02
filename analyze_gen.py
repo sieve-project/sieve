@@ -19,6 +19,20 @@ def convert_deltafifo_etype_to_API_etype(etype: str) -> str:
         return APIserverTypes.MODIFIED
 
 
+def event_diff_validation_check(prev_etype: str, cur_etype: str):
+    if prev_etype == cur_etype and (
+        prev_etype == OperatorHearTypes.ADDED or prev_etype == OperatorHearTypes.DELETED
+    ):
+        # this should never happen
+        assert False, "There should not be consecutive Deleted | Added"
+    if prev_etype == OperatorHearTypes.DELETED and cur_etype != OperatorHearTypes.ADDED:
+        # this should never happen
+        assert False, "Deleted must be followed with Added"
+    if prev_etype != OperatorHearTypes.DELETED and cur_etype == OperatorHearTypes.ADDED:
+        # this should never happen
+        assert False, "Added must be followed with Deleted"
+
+
 def detectable_event_diff(
     diff_prev_obj: Optional[Dict],
     diff_cur_obj: Optional[Dict],
@@ -30,6 +44,7 @@ def detectable_event_diff(
     if prev_etype is None:
         # ignore the first event
         return False
+    event_diff_validation_check(prev_etype, cur_etype)
     if cur_etype not in allowed_event_types:
         return False
     if diff_prev_obj == diff_cur_obj and cur_etype == update_event_type:
