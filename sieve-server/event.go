@@ -287,6 +287,9 @@ func partOfEventAsList(eventA, eventB []interface{}) bool {
 		return false
 	}
 	for i, valA := range eventA {
+		if reflect.DeepEqual(valA, SIEVE_IDX_SKIP) {
+			continue
+		}
 		valB := eventB[i]
 		switch typedValA := valA.(type) {
 		case map[string]interface{}:
