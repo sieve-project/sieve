@@ -490,7 +490,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
 
 def generate_atom_vio_debugging_hint(test_config_content):
     desc = "Sieve makes the controller crash after issuing %s %s: %s" % (
-        test_config_content["se-etype"],
+        test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
         + test_config_content["se-namespace"]
@@ -499,7 +499,7 @@ def generate_atom_vio_debugging_hint(test_config_content):
         test_config_content["se-diff-current"],
     )
     suggestion = "Please check how controller reacts after issuing %s %s: %s, the controller might fail to recover from the dirty state" % (
-        test_config_content["se-etype"],
+        test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
         + test_config_content["se-namespace"]
