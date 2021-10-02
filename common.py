@@ -38,7 +38,7 @@ BORING_EVENT_OBJECT_FIELDS = [
     "hostIP",  # IP assignment is random
     "nodeName",  # node assignment is random
     "imageID",  # image ID is randome
-    "ContainerID",  # container ID is random
+    "containerID",  # container ID is random
     "labels",  # label can contain random strings e.g., controller-revision-hash
 ]
 
