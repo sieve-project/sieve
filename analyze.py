@@ -19,31 +19,31 @@ def sanity_check_sieve_log(path):
         line = lines[i]
         if SIEVE_BEFORE_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
-            assert operator_write_id not in operator_write_status
+            assert operator_write_id not in operator_write_status, line
             operator_write_status[operator_write_id] = 1
         elif SIEVE_AFTER_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
-            assert operator_write_id in operator_write_status
+            assert operator_write_id in operator_write_status, line
             operator_write_status[operator_write_id] += 1
         elif SIEVE_BEFORE_HEAR_MARK in line:
             operator_hear_id = parse_operator_hear_id_only(line).id
-            assert operator_hear_id not in operator_hear_status
+            assert operator_hear_id not in operator_hear_status, line
             operator_hear_status[operator_hear_id] = 1
         elif SIEVE_AFTER_HEAR_MARK in line:
             operator_hear_id = parse_operator_hear_id_only(line).id
-            assert operator_hear_id in operator_hear_status
+            assert operator_hear_id in operator_hear_status, line
             operator_hear_status[operator_hear_id] += 1
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
             reconcile_id = parse_reconcile(line).controller_name
             if reconcile_id not in reconcile_status:
                 reconcile_status[reconcile_id] = 0
             reconcile_status[reconcile_id] += 1
-            assert reconcile_status[reconcile_id] == 1
+            assert reconcile_status[reconcile_id] == 1, line
         elif SIEVE_AFTER_RECONCILE_MARK in line:
             reconcile_id = parse_reconcile(line).controller_name
-            assert reconcile_id in reconcile_status
+            assert reconcile_id in reconcile_status, line
             reconcile_status[reconcile_id] -= 1
-            assert reconcile_status[reconcile_id] == 0
+            assert reconcile_status[reconcile_id] == 0, line
     for key in operator_write_status:
         assert operator_write_status[key] == 1 or operator_write_status[key] == 2
     for key in operator_hear_status:
