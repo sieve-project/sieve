@@ -28,9 +28,13 @@ def event_diff_validation_check(prev_etype: str, cur_etype: str):
     if prev_etype == OperatorHearTypes.DELETED and cur_etype != OperatorHearTypes.ADDED:
         # this should never happen
         assert False, "Deleted must be followed with Added"
-    if prev_etype != OperatorHearTypes.DELETED and cur_etype == OperatorHearTypes.ADDED:
+    if (
+        prev_etype is not None
+        and prev_etype != OperatorHearTypes.DELETED
+        and cur_etype == OperatorHearTypes.ADDED
+    ):
         # this should never happen
-        assert False, "Added must be followed with Deleted"
+        assert False, "Added must be the first or follow Deleted"
 
 
 def detectable_event_diff(
