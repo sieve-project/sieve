@@ -1,11 +1,10 @@
 project: yugabyte-operator
 stage: test
 mode: observability-gap
-operator-pod-label: yugabyte-operator
 ce-name: example-ybcluster
 ce-namespace: default
 ce-rtype: ybcluster
-ce-diff-current: '{"spec": {"replicationFactor": 4, "tserver": {"replicas": 4}}}'
-ce-diff-previous: '{"spec": {"replicationFactor": 3, "tserver": {"replicas": 3}}}'
-ce-etype-current: Updated
 ce-etype-previous: Updated
+ce-etype-current: Updated
+ce-diff-previous: '{"spec": {"replicationFactor": 3, "tserver": {"replicas": 3}}}'
+ce-diff-current: '{"spec": {"replicationFactor": 4, "tserver": {"replicas": 4}}}'

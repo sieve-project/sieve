@@ -1,11 +1,10 @@
 project: rabbitmq-operator
 stage: test
 mode: observability-gap
-operator-pod-label: rabbitmq-operator
 ce-name: rabbitmq-cluster
 ce-namespace: default
 ce-rtype: rabbitmqcluster
-ce-diff-current: '{"spec": {"replicas": 3}}'
-ce-diff-previous: '{"spec": {"replicas": 1}}'
-ce-etype-current: Updated
 ce-etype-previous: Updated
+ce-etype-current: Updated
+ce-diff-previous: '{"spec": {"replicas": 1}}'
+ce-diff-current: '{"spec": {"replicas": 3}}'

@@ -8,10 +8,11 @@ deployment-name: percona-server-mongodb-operator
 ce-name: mongodb-cluster
 ce-namespace: default
 ce-rtype: perconaservermongodb
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL"}}'
-ce-diff-previous: '{}'
-ce-etype-current: Updated
-ce-etype-previous: Updated
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"metadata": {}}'
+ce-diff-current: '{"metadata": {"deletionGracePeriodSeconds": "SIEVE-NON-NIL", "deletionTimestamp":
+  "SIEVE-NON-NIL"}}'
 se-name: mongod-data-mongodb-cluster-rs0-2
 se-namespace: default
 se-rtype: persistentvolumeclaim

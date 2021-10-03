@@ -14,6 +14,7 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		restarted:     false,
 		pauseCh:       make(chan int),
 		straggler:     config["straggler"].(string),
+		ceEtype:       config["ce-etype-current"].(string),
 		diffCurEvent:  conformToAPIEvent(strToMap(config["ce-diff-current"].(string)), config["ce-rtype"].(string)),
 		diffPrevEvent: conformToAPIEvent(strToMap(config["ce-diff-previous"].(string)), config["ce-rtype"].(string)),
 		podLabel:      config["operator-pod-label"].(string),
@@ -57,6 +58,7 @@ type timeTravelServer struct {
 	project       string
 	straggler     string
 	frontRunner   string
+	ceEtype       string
 	diffCurEvent  map[string]interface{}
 	diffPrevEvent map[string]interface{}
 	podLabel      string
@@ -71,6 +73,7 @@ type timeTravelServer struct {
 
 func (s *timeTravelServer) Start() {
 	log.Println("start timeTravelServer...")
+	log.Printf("target event type: %s\n", s.ceEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
 	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
@@ -85,7 +88,7 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	log.Printf("[sieve][current-event] %s\n", request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
-	if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, true) {
+	if findTargetDiff(request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, true) {
 		s.sleeped = true
 		startTimeTravelInjection()
 		log.Println("[sieve] should sleep here")

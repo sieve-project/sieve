@@ -8,10 +8,11 @@ deployment-name: cass-operator
 ce-name: cassandra-datacenter
 ce-namespace: default
 ce-rtype: cassandradatacenter
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL"}}'
-ce-diff-previous: '{}'
-ce-etype-current: Updated
-ce-etype-previous: Updated
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"metadata": {}}'
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL", "deletionGracePeriodSeconds":
+  "SIEVE-NON-NIL"}}'
 se-name: server-data-cluster1-cassandra-datacenter-default-sts-0
 se-namespace: default
 se-rtype: persistentvolumeclaim

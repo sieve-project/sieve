@@ -136,23 +136,20 @@ workloads = {
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
         .wait(50),
-        # TODO: use wait_for
         "scaleup-scaledown": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
         .cmd(
             'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"replicas":3}}\''
         )
-        .wait(10)
+        .wait_for_pod_status("rabbitmq-cluster-server-2", common.RUNNING)
         .cmd(
             'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"replicas":2}}\''
         )
-        .wait(10)
-        .wait(50),
+        .wait(70),
         "resize-pvc": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", common.RUNNING)
-        # 10Gi -> 15Gi
         .cmd(
             'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"persistence":{"storage":"15Gi"}}}\''
         )
@@ -168,7 +165,7 @@ workloads = {
         .wait_for_pvc_status("mongod-data-mongodb-cluster-rs0-2", common.TERMINATED)
         .cmd("kubectl apply -f test-mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
-        .wait(50),
+        .wait(70),
         "disable-enable-shard": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-mongodb-operator/test/cr-shard.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
@@ -213,18 +210,26 @@ workloads = {
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-enabled.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
         .wait_for_pod_status("xtradb-cluster-haproxy-0", common.RUNNING)
-        .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-disabled.yaml")
+        .cmd(
+            'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"haproxy":{"enabled":false}}}\''
+        )
         .wait_for_pod_status("xtradb-cluster-haproxy-0", common.TERMINATED)
-        .cmd("kubectl apply -f test-xtradb-operator/test/cr-haproxy-enabled.yaml")
+        .cmd(
+            'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"haproxy":{"enabled":true}}}\''
+        )
         .wait_for_pod_status("xtradb-cluster-haproxy-0", common.RUNNING)
         .wait(70),
         "disable-enable-proxysql": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
         .wait_for_pod_status("xtradb-cluster-proxysql-0", common.RUNNING)
-        .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-disabled.yaml")
+        .cmd(
+            'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"proxysql":{"enabled":false}}}\''
+        )
         .wait_for_pod_status("xtradb-cluster-proxysql-0", common.TERMINATED)
-        .cmd("kubectl apply -f test-xtradb-operator/test/cr-proxysql-enabled.yaml")
+        .cmd(
+            'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"proxysql":{"enabled":true}}}\''
+        )
         .wait_for_pod_status("xtradb-cluster-proxysql-0", common.RUNNING)
         .wait(70),
     },

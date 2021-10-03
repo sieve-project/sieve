@@ -8,10 +8,11 @@ deployment-name: percona-xtradb-cluster-operator
 ce-name: xtradb-cluster
 ce-namespace: default
 ce-rtype: perconaxtradbcluster
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL"}}'
-ce-diff-previous: '{}'
-ce-etype-current: Updated
-ce-etype-previous: Updated
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"metadata": {}}'
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL", "deletionGracePeriodSeconds":
+  "SIEVE-NON-NIL"}}'
 se-name: datadir-xtradb-cluster-pxc-2
 se-namespace: default
 se-rtype: persistentvolumeclaim

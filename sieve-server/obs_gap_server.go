@@ -16,6 +16,7 @@ func NewObsGapListener(config map[interface{}]interface{}) *ObsGapListener {
 		ceName:           config["ce-name"].(string),
 		ceNamespace:      config["ce-namespace"].(string),
 		ceRtype:          config["ce-rtype"].(string),
+		ceEtype:          config["ce-etype-current"].(string),
 		prevEvent:        nil,
 		curEvent:         nil,
 		reconcilingMutex: &sync.RWMutex{},
@@ -61,6 +62,7 @@ type obsGapServer struct {
 	pausingReconcile bool
 	diffCurEvent     map[string]interface{}
 	diffPrevEvent    map[string]interface{}
+	ceEtype          string
 	ceName           string
 	ceNamespace      string
 	ceRtype          string
@@ -71,6 +73,7 @@ type obsGapServer struct {
 
 func (s *obsGapServer) Start() {
 	log.Println("start obsGapServer...")
+	log.Printf("target event type: %s\n", s.ceEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
 	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
@@ -84,7 +87,7 @@ func (s *obsGapServer) NotifyObsGapBeforeIndexerWrite(request *sieve.NotifyObsGa
 	log.Println("NotifyObsGapBeforeIndexerWrite", request.OperationType, request.ResourceType, request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
-	if findTargetDiff(s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
+	if findTargetDiff(request.OperationType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
 		startObsGapInjection()
 		log.Println("[sieve] should stop any reconcile here until a later cancel event comes")
 		s.reconcilingMutex.Lock()
@@ -103,7 +106,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 	// If we are inside pausing, then we check for target event which can cancel the crucial one
 	log.Println("NotifyObsGapAfterIndexerWrite", s.pausingReconcile)
 	if s.pausingReconcile {
-		if request.OperationType == "Deleted" || conflictingEventAsMap(s.diffCurEvent, currentEvent) {
+		if request.OperationType == "Deleted" || conflictingEvent(s.diffCurEvent, currentEvent) {
 			// TODO: we should also consider the corner case where s.diffCurEvent == {}
 			log.Printf("[sieve] we met the cancel event %s, reconcile is resumed\n", request.OperationType)
 			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)

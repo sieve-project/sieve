@@ -16,8 +16,8 @@ RUNNING = "Running"
 TERMINATED = "Terminated"
 BOUND = "Bound"
 
-SIEVE_SKIP_MARKER = "SIEVE-SKIP"
-SIEVE_CANONICALIZATION_MARKER = "SIEVE-NON-NIL"
+SIEVE_IDX_SKIP = "SIEVE-SKIP"
+SIEVE_VALUE_MASK = "SIEVE-NON-NIL"
 
 EXIST = True
 NONEXIST = False
@@ -25,8 +25,6 @@ NONEXIST = False
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
 BORING_EVENT_OBJECT_FIELDS = [
-    "kind",  # not always available
-    "apiVersion",  # not always available
     "uid",  # random
     "resourceVersion",  # random
     "generation",  # random
@@ -40,7 +38,7 @@ BORING_EVENT_OBJECT_FIELDS = [
     "hostIP",  # IP assignment is random
     "nodeName",  # node assignment is random
     "imageID",  # image ID is randome
-    "ContainerID",  # container ID is random
+    "containerID",  # container ID is random
     "labels",  # label can contain random strings e.g., controller-revision-hash
 ]
 

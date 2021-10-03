@@ -1,4 +1,4 @@
-from analyze_event import cancel_event_object, canonicalize_event_object, diff_events
+from analyze_event import conflicting_event, diff_event
 from typing import List
 import copy
 import os
@@ -19,31 +19,31 @@ def sanity_check_sieve_log(path):
         line = lines[i]
         if SIEVE_BEFORE_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
-            assert operator_write_id not in operator_write_status
+            assert operator_write_id not in operator_write_status, line
             operator_write_status[operator_write_id] = 1
         elif SIEVE_AFTER_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
-            assert operator_write_id in operator_write_status
+            assert operator_write_id in operator_write_status, line
             operator_write_status[operator_write_id] += 1
         elif SIEVE_BEFORE_HEAR_MARK in line:
             operator_hear_id = parse_operator_hear_id_only(line).id
-            assert operator_hear_id not in operator_hear_status
+            assert operator_hear_id not in operator_hear_status, line
             operator_hear_status[operator_hear_id] = 1
         elif SIEVE_AFTER_HEAR_MARK in line:
             operator_hear_id = parse_operator_hear_id_only(line).id
-            assert operator_hear_id in operator_hear_status
+            assert operator_hear_id in operator_hear_status, line
             operator_hear_status[operator_hear_id] += 1
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
             reconcile_id = parse_reconcile(line).controller_name
             if reconcile_id not in reconcile_status:
                 reconcile_status[reconcile_id] = 0
             reconcile_status[reconcile_id] += 1
-            assert reconcile_status[reconcile_id] == 1
+            assert reconcile_status[reconcile_id] == 1, line
         elif SIEVE_AFTER_RECONCILE_MARK in line:
             reconcile_id = parse_reconcile(line).controller_name
-            assert reconcile_id in reconcile_status
+            assert reconcile_id in reconcile_status, line
             reconcile_status[reconcile_id] -= 1
-            assert reconcile_status[reconcile_id] == 0
+            assert reconcile_status[reconcile_id] == 0, line
     for key in operator_write_status:
         assert operator_write_status[key] == 1 or operator_write_status[key] == 2
     for key in operator_hear_status:
@@ -92,14 +92,8 @@ def parse_receiver_events(path):
                 continue
             prev_operator_hear = operator_hear_key_map[key][i - 1]
             cur_operator_hear = operator_hear_key_map[key][i]
-            canonicalized_prev_object = canonicalize_event_object(
-                copy.deepcopy(prev_operator_hear.obj_map)
-            )
-            canonicalized_cur_object = canonicalize_event_object(
-                copy.deepcopy(cur_operator_hear.obj_map)
-            )
-            slim_prev_object, slim_cur_object = diff_events(
-                canonicalized_prev_object, canonicalized_cur_object
+            slim_prev_object, slim_cur_object = diff_event(
+                prev_operator_hear.obj_map, cur_operator_hear.obj_map
             )
             cur_operator_hear.slim_prev_obj_map = slim_prev_object
             cur_operator_hear.slim_cur_obj_map = slim_cur_object
@@ -113,22 +107,7 @@ def parse_receiver_events(path):
                 if i == 0:
                     cancelled_by.add(following_operator_hear.id)
                     continue
-                if (
-                    cur_operator_hear.etype != OperatorHearTypes.DELETED
-                    and following_operator_hear.etype != OperatorHearTypes.DELETED
-                    and cancel_event_object(
-                        cur_operator_hear.slim_cur_obj_map,
-                        following_operator_hear.obj_map,
-                    )
-                    or (
-                        cur_operator_hear.etype != OperatorHearTypes.DELETED
-                        and following_operator_hear.etype == OperatorHearTypes.DELETED
-                    )
-                    or (
-                        cur_operator_hear.etype == OperatorHearTypes.DELETED
-                        and following_operator_hear.etype != OperatorHearTypes.DELETED
-                    )
-                ):
+                if conflicting_event(cur_operator_hear, following_operator_hear):
                     cancelled_by.add(following_operator_hear.id)
             cur_operator_hear.cancelled_by = cancelled_by
     return operator_hear_list
@@ -270,14 +249,8 @@ def parse_reconciler_events(path):
             assert operator_write.key in operator_read.key_set
             assert operator_read.end_timestamp < operator_write.start_timestamp
 
-            canonicalized_read_object = canonicalize_event_object(
-                copy.deepcopy(operator_read.key_to_obj[key])
-            )
-            canonicalized_write_object = canonicalize_event_object(
-                copy.deepcopy(operator_write.obj_map)
-            )
-            slim_prev_object, slim_cur_object = diff_events(
-                canonicalized_read_object, canonicalized_write_object
+            slim_prev_object, slim_cur_object = diff_event(
+                operator_read.key_to_obj[key], operator_write.obj_map, True
             )
             operator_write.slim_prev_obj_map = slim_prev_object
             operator_write.slim_cur_obj_map = slim_cur_object
@@ -352,7 +325,7 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
                     == operator_write_vertex.content.obj_str
                     and operator_write_vertex.content.start_timestamp
                     < operator_hear_vertex.content.start_timestamp
-                    and consistent_type(
+                    and consistent_event_type(
                         operator_hear_vertex.content.etype,
                         operator_write_vertex.content.etype,
                     )
