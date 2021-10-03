@@ -137,10 +137,8 @@ func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sieve.NotifyLearnAft
 func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBeforeReconcileRequest, response *sieve.Response) error {
 	recID := request.ControllerName + request.ControllerAddr
 	waitingCh := make(chan int32)
-	// use LoadOrStore here because the same controller may have mulitple workers concurrently running reconcile
-	// So the same recID may be stored before
-	obj, _ := s.reconcileChMap.LoadOrStore(recID, waitingCh)
-	waitingCh = obj.(chan int32)
+	// We assume there is only one worker for one reconciler
+	s.reconcileChMap.Store(recID, waitingCh)
 	s.notificationCh <- notificationWrapper{ntype: beforeReconcile, payload: recID}
 	<-waitingCh
 	*response = sieve.Response{Ok: true}
@@ -217,18 +215,14 @@ func (s *learnServer) coordinatingEvents() {
 			case beforeSideEffect:
 				sideEffectID := strings.Split(nw.payload, "\t")[0]
 				if obj, ok := s.sideEffectChMap.Load(sideEffectID); ok {
-					if s.ongoingReconcileCnt > 0 {
-						log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\n", nw.payload)
-					}
+					log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\n", nw.payload)
 					ch := obj.(chan int32)
 					ch <- 0
 				} else {
 					log.Fatal("invalid object in eventChMap")
 				}
 			case afterSideEffect:
-				if s.ongoingReconcileCnt > 0 {
-					log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\n", nw.payload)
-				}
+				log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\n", nw.payload)
 			case beforeEvent:
 				if !s.rateLimiterEnabled {
 					eventID := strings.Split(nw.payload, "\t")[0]
