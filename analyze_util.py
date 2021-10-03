@@ -53,13 +53,13 @@ class OperatorWriteTypes:
 
 
 # We do not include Sync and Replaced here
-operator_hear_types = [
+detectable_operator_hear_types = [
     OperatorHearTypes.ADDED,
     OperatorHearTypes.UPDATED,
     OperatorHearTypes.DELETED,
 ]
 
-operator_write_types = [
+detectable_operator_write_types = [
     OperatorWriteTypes.CREATE,
     OperatorWriteTypes.UPDATE,
     OperatorWriteTypes.DELETE,

@@ -34,23 +34,37 @@ def event_diff_validation_check(prev_etype: str, cur_etype: str):
 
 
 def detectable_event_diff(
+    mode: str,
     diff_prev_obj: Optional[Dict],
     diff_cur_obj: Optional[Dict],
     prev_etype: str,
     cur_etype: str,
-    allowed_event_types: List[str],
-    update_event_type: str,
 ) -> bool:
-    if prev_etype is None:
-        # ignore the first event
-        return False
-    event_diff_validation_check(prev_etype, cur_etype)
-    if cur_etype not in allowed_event_types:
-        return False
-    if diff_prev_obj == diff_cur_obj and cur_etype == update_event_type:
-        return False
+    if mode == sieve_modes.TIME_TRAVEL or mode == sieve_modes.OBS_GAP:
+        event_diff_validation_check(prev_etype, cur_etype)
+        # undetectable if the first event is not ADDED
+        if prev_etype is None and cur_etype != OperatorHearTypes.ADDED:
+            return False
+        # undetectable if not in detectable_operator_hear_types
+        if cur_etype not in detectable_operator_hear_types:
+            return False
+        # undetectable if nothing changed after update
+        elif diff_prev_obj == diff_cur_obj and cur_etype == OperatorHearTypes.UPDATED:
+            return False
+        else:
+            return True
     else:
-        return True
+        # undetectable if not in detectable_operator_write_types
+        if cur_etype not in detectable_operator_write_types:
+            return False
+        # undetectable if nothing changed after update or patch
+        elif diff_prev_obj == diff_cur_obj and (
+            cur_etype == OperatorWriteTypes.UPDATE
+            or cur_etype == OperatorWriteTypes.PATCH
+        ):
+            return False
+        else:
+            return True
 
 
 def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
@@ -155,12 +169,11 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         assert isinstance(operator_write, OperatorWrite)
 
         if not detectable_event_diff(
+            sieve_modes.TIME_TRAVEL,
             operator_hear.slim_prev_obj_map,
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
             operator_hear.etype,
-            operator_hear_types,
-            OperatorHearTypes.UPDATED,
         ):
             continue
 
@@ -249,12 +262,11 @@ def obs_gap_analysis(
         assert isinstance(operator_hear, OperatorHear)
 
         if not detectable_event_diff(
+            sieve_modes.OBS_GAP,
             operator_hear.slim_prev_obj_map,
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
             operator_hear.etype,
-            operator_hear_types,
-            OperatorHearTypes.UPDATED,
         ):
             continue
 
@@ -310,12 +322,11 @@ def atom_vio_analysis(
         assert isinstance(operator_write, OperatorWrite)
 
         if not detectable_event_diff(
+            sieve_modes.ATOM_VIO,
             operator_write.slim_prev_obj_map,
             operator_write.slim_cur_obj_map,
             operator_write.prev_etype,
             operator_write.etype,
-            operator_write_types,
-            OperatorWriteTypes.UPDATE,
         ):
             continue
 
