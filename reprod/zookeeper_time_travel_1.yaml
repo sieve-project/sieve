@@ -8,10 +8,11 @@ deployment-name: zookeeper-operator
 ce-name: zookeeper-cluster
 ce-namespace: default
 ce-rtype: zookeepercluster
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL"}}'
-ce-diff-previous: '{}'
-ce-etype-current: Updated
-ce-etype-previous: Updated
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"metadata": {}}'
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL", "deletionGracePeriodSeconds":
+  "SIEVE-NON-NIL"}}'
 se-name: data-zookeeper-cluster-0
 se-namespace: default
 se-rtype: persistentvolumeclaim

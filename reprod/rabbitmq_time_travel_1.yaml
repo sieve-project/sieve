@@ -8,10 +8,11 @@ deployment-name: rabbitmq-operator
 ce-name: rabbitmq-cluster
 ce-namespace: default
 ce-rtype: rabbitmqcluster
-ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL"}}'
-ce-diff-previous: '{}'
-ce-etype-current: Updated
-ce-etype-previous: Updated
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"metadata": {}}'
+ce-diff-current: '{"metadata": {"deletionTimestamp": "SIEVE-NON-NIL", "deletionGracePeriodSeconds":
+  "SIEVE-NON-NIL"}}'
 se-name: rabbitmq-cluster-server
 se-namespace: default
 se-rtype: statefulset
