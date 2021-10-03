@@ -11,8 +11,8 @@ def diff_event_as_list(
     prev_len = len(prev_event)
     cur_len = len(cur_event)
     min_len = min(prev_len, cur_len)
-    diff_prev_event = [SIEVE_SKIP_MARKER] * prev_len
-    diff_cur_event = [SIEVE_SKIP_MARKER] * cur_len
+    diff_prev_event = [SIEVE_IDX_SKIP] * prev_len
+    diff_cur_event = [SIEVE_IDX_SKIP] * cur_len
     for i in range(min_len):
         if isinstance(cur_event[i], dict):
             if not isinstance(prev_event[i], dict):
@@ -52,8 +52,8 @@ def diff_event_as_list(
         keep = False
         for i in range(cur_len):
             if (
-                not diff_prev_event[i] == SIEVE_SKIP_MARKER
-                or not diff_cur_event[i] == SIEVE_SKIP_MARKER
+                not diff_prev_event[i] == SIEVE_IDX_SKIP
+                or not diff_cur_event[i] == SIEVE_IDX_SKIP
             ):
                 keep = True
         if not keep:
@@ -110,7 +110,7 @@ def diff_event_as_map(
 
 def canonicalize_value(value: str):
     if re.match(TIME_REG, value):
-        return SIEVE_CANONICALIZATION_MARKER
+        return SIEVE_VALUE_MASK
     else:
         return value
 
@@ -129,7 +129,7 @@ def canonicalize_event_as_list(event: List):
 def canonicalize_event_as_map(event: Dict):
     for key in event:
         if key in BORING_EVENT_OBJECT_FIELDS:
-            event[key] = SIEVE_CANONICALIZATION_MARKER
+            event[key] = SIEVE_VALUE_MASK
             continue
         if isinstance(event[key], dict):
             canonicalize_event_as_map(event[key])
@@ -160,7 +160,7 @@ def part_of_event_as_list(small_event: List, large_event: List) -> bool:
     for i in range(len(small_event)):
         small_val = small_event[i]
         large_val = large_event[i]
-        if small_val == SIEVE_SKIP_MARKER:
+        if small_val == SIEVE_IDX_SKIP:
             continue
         if isinstance(small_val, dict):
             if isinstance(large_val, dict):

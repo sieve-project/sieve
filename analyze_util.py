@@ -15,7 +15,6 @@ CANCELLABLE_FLAG = True
 # flags for atom vio only
 READ_BEFORE_WRITE_FLAG = True
 
-FILTERED_ERROR_TYPE = ["NotFound", "Conflict"]
 ALLOWED_ERROR_TYPE = ["NoError"]
 
 SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-EVENT]"
