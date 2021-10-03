@@ -55,7 +55,7 @@ var KEYS_TO_MASK = map[string]struct{}{
 	"hostIP":                     exists, // IP assignment is random
 	"nodeName":                   exists, // node assignment is random
 	"imageID":                    exists, // image ID is randome
-	"ContainerID":                exists, // container ID is random
+	"containerID":                exists, // container ID is random
 	"labels":                     exists, // label can contain random strings e.g., controller-revision-hash
 }
 
