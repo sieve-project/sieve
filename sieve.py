@@ -413,36 +413,9 @@ def check_result(
                 open(os.path.join(log_dir, "config.yaml"), "w").write(
                     open(test_config).read()
                 )
-            learned_side_effect = json.load(
-                open(os.path.join(data_dir, "side-effect.json"))
-            )
-            learned_status = json.load(open(os.path.join(data_dir, "status.json")))
-            resources_path = os.path.join(data_dir, "resources.json")
-            learned_resources = (
-                json.load(open(resources_path))
-                if os.path.isfile(resources_path)
-                else None
-            )
-            (
-                testing_side_effect,
-                testing_status,
-                testing_resources,
-            ) = oracle.generate_test_oracle(log_dir)
-            operator_log = os.path.join(log_dir, "streamed-operator.log")
-            server_log = os.path.join(log_dir, "sieve-server.log")
-            workload_log = os.path.join(log_dir, "workload.log")
+            oracle.generate_test_oracle(log_dir)
             alarm, bug_report = oracle.check(
-                learned_side_effect,
-                learned_status,
-                learned_resources,
-                testing_side_effect,
-                testing_status,
-                testing_resources,
-                test_config,
-                operator_log,
-                server_log,
-                oracle_config,
-                workload_log,
+                test_config, oracle_config, log_dir, data_dir
             )
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
             return alarm, bug_report
