@@ -279,46 +279,25 @@ def check_operator_write(
     if test_config_content["mode"] == sieve_modes.OBS_GAP:
         return alarm, bug_report
 
-    # TODO(wenqing): the interest_object thing should be improved
-    # for both time-travel and atom-vio, we should check as many resources as possible
-    interest_objects = []
-    if test_config_content["mode"] == sieve_modes.TIME_TRAVEL:
-        interest_objects.append(
-            {
-                "rtype": test_config_content["se-rtype"],
-                "namespace": test_config_content["se-namespace"],
-                "name": test_config_content["se-name"],
-            }
-        )
-    if "interest_objects" in oracle_config:
-        interest_objects.extend(oracle_config["interest_objects"])
-
-    # TODO(wenqing): instead of handling regex now, we should handle it during learn stage using `generateName`
-    # Preporcess regex
-    learning_operator_write = preprocess_operator_write(
-        learning_operator_write, interest_objects
-    )
-    testing_operator_write = preprocess_operator_write(
-        testing_operator_write, interest_objects
-    )
-
-    for interest in interest_objects:
-        rtype = interest["rtype"]
-        namespace = interest["namespace"]
-        name = interest["name"]
+    resource_keys = set()
+    for rtype in learning_operator_write:
+        for namespace in learning_operator_write[rtype]:
+            for name in learning_operator_write[rtype][namespace]:
+                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
+    for rtype in testing_operator_write:
+        for namespace in testing_operator_write[rtype]:
+            for name in testing_operator_write[rtype][namespace]:
+                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
+    for key in resource_keys:
+        rtype, namespace, name = analyze_util.decode_key(key)
         exist = True
         if (
             rtype not in learning_operator_write
             or namespace not in learning_operator_write[rtype]
             or name not in learning_operator_write[rtype][namespace]
         ):
-            bug_report += (
-                "[ERROR][WRITE] %s/%s/%s not in learning side effect digest\n"
-                % (
-                    rtype,
-                    namespace,
-                    name,
-                )
+            bug_report += "[ERROR][WRITE] %s not in learning side effect digest\n" % (
+                key
             )
             alarm += 1
             exist = False
@@ -327,13 +306,8 @@ def check_operator_write(
             or namespace not in testing_operator_write[rtype]
             or name not in testing_operator_write[rtype][namespace]
         ):
-            bug_report += (
-                "[ERROR][WRITE] %s/%s/%s not in testing side effect digest\n"
-                % (
-                    rtype,
-                    namespace,
-                    name,
-                )
+            bug_report += "[ERROR][WRITE] %s not in testing side effect digest\n" % (
+                key
             )
             alarm += 1
             exist = False
@@ -346,10 +320,8 @@ def check_operator_write(
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
-                    bug_report += "[ERROR][WRITE] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-                        rtype,
-                        namespace,
-                        name,
+                    bug_report += "[ERROR][WRITE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                        key,
                         attr.upper(),
                         str(learning_entry[attr]),
                         str(testing_entry[attr]),
@@ -538,10 +510,11 @@ def generate_debugging_hint(test_config_content):
 def print_error_and_debugging_info(alarm, bug_report, test_config):
     assert alarm != 0
     test_config_content = yaml.safe_load(open(test_config))
-    hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
     report_color = bcolors.FAIL if alarm > 0 else bcolors.WARNING
     cprint("[ALARM] %d\n" % (alarm) + bug_report, report_color)
-    cprint(hint, bcolors.WARNING)
+    if sieve_config.config["generate_injection_desc"]:
+        hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
+        cprint(hint, bcolors.WARNING)
 
 
 def is_time_travel_started(server_log):
