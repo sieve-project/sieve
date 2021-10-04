@@ -15,11 +15,8 @@ import pathlib
 
 
 operator_write_empty_entry = {
-    "Create": 0,
-    "Update": 0,
-    "Delete": 0,
-    "Patch": 0,
-    "DeleteAllOf": 0,
+    analyze_util.OperatorWriteTypes.CREATE: 0,
+    analyze_util.OperatorWriteTypes.DELETE: 0,
 }
 
 
@@ -30,16 +27,12 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def generate_test_oracle(log_dir, canonicalize_resource=False):
-    operator_write, status, resources = generate_digest(log_dir, canonicalize_resource)
-    dump_json_file(log_dir, operator_write, "side-effect.json")
-    dump_json_file(log_dir, status, "status.json")
-    dump_json_file(log_dir, resources, "resources.json")
-
-
-def generate_digest(log_dir, canonicalize_resource=False):
     operator_write = generate_operator_write(log_dir)
+    dump_json_file(log_dir, operator_write, "side-effect.json")
     status = generate_status()
+    dump_json_file(log_dir, status, "status.json")
     resources = generate_resources(log_dir, canonicalize_resource)
+    dump_json_file(log_dir, resources, "resources.json")
     return operator_write, status, resources
 
 
@@ -52,13 +45,17 @@ def generate_operator_write(log_dir):
             continue
         operator_write = analyze_util.parse_operator_write(line)
         if analyze_util.ERROR_MSG_FILTER_FLAG:
-            # TODO: maybe make the ignored errors configurable
             if operator_write.error not in analyze_util.ALLOWED_ERROR_TYPE:
                 continue
         rtype = operator_write.rtype
         namespace = operator_write.namespace
         name = operator_write.name
         etype = operator_write.etype
+        if (
+            etype != analyze_util.OperatorWriteTypes.CREATE
+            and etype != analyze_util.OperatorWriteTypes.DELETE
+        ):
+            continue
         if rtype not in operator_write_map:
             operator_write_map[rtype] = {}
         if namespace not in operator_write_map[rtype]:

@@ -26,14 +26,17 @@ from common import (
     sieve_stages,
 )
 
-def save_run_result(project, test, mode, stage, test_config, alarm, bug_report, starttime):
+
+def save_run_result(
+    project, test, mode, stage, test_config, alarm, bug_report, starttime
+):
     if stage != sieve_stages.TEST or mode == sieve_modes.VANILLA:
         return
 
     result_map = {
         project: {
             test: {
-                mode:{
+                mode: {
                     test_config: {
                         "duration": time.time() - starttime,
                         "alarm": alarm,
@@ -424,7 +427,7 @@ def check_result(
                 testing_side_effect,
                 testing_status,
                 testing_resources,
-            ) = oracle.generate_digest(log_dir)
+            ) = oracle.generate_test_oracle(log_dir)
             operator_log = os.path.join(log_dir, "streamed-operator.log")
             server_log = os.path.join(log_dir, "sieve-server.log")
             workload_log = os.path.join(log_dir, "workload.log")
@@ -442,21 +445,6 @@ def check_result(
                 workload_log,
             )
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
-            json.dump(
-                testing_side_effect,
-                open(os.path.join(log_dir, "side-effect.json"), "w"),
-                indent=4,
-            )
-            json.dump(
-                testing_status,
-                open(os.path.join(log_dir, "status.json"), "w"),
-                indent=4,
-            )
-            json.dump(
-                testing_resources,
-                open(os.path.join(log_dir, "resources.json"), "w"),
-                indent=4,
-            )
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
 
@@ -885,5 +873,14 @@ if __name__ == "__main__":
             options.phase,
         )
 
-        save_run_result(options.project, options.test, options.mode, options.stage, options.config, alarm, report, s)
+        save_run_result(
+            options.project,
+            options.test,
+            options.mode,
+            options.stage,
+            options.config,
+            alarm,
+            report,
+            s,
+        )
     print("Total time: {} seconds".format(time.time() - s))
