@@ -8,6 +8,7 @@ import shutil
 import optparse
 import analyze_gen
 from common import sieve_modes, sieve_stages
+from controllers import *
 
 
 def sanity_check_sieve_log(path):
@@ -402,28 +403,7 @@ def analyze_trace(
             generate_test_config(analysis_mode, project, log_dir, causality_graph)
 
 
-if __name__ == "__main__":
-    usage = "usage: python3 analyze.py [options]"
-    parser = optparse.OptionParser(usage=usage)
-    parser.add_option(
-        "-p",
-        "--project",
-        dest="project",
-        help="specify PROJECT",
-        metavar="PROJECT",
-        default="cassandra-operator",
-    )
-    parser.add_option(
-        "-t",
-        "--test",
-        dest="test",
-        help="specify TEST to run",
-        metavar="TEST",
-        default="recreate",
-    )
-    (options, args) = parser.parse_args()
-    project = options.project
-    test = options.test
+def analyze(project, test):
     print("Analyzing controller trace for %s's test workload %s..." % (project, test))
     log_dir = os.path.join(
         "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE
@@ -436,3 +416,35 @@ if __name__ == "__main__":
         generate_oracle=True,
         generate_config=True,
     )
+
+
+if __name__ == "__main__":
+    usage = "usage: python3 analyze.py [options]"
+    parser = optparse.OptionParser(usage=usage)
+    parser.add_option(
+        "-p",
+        "--project",
+        dest="project",
+        help="specify PROJECT",
+        metavar="PROJECT",
+    )
+    parser.add_option(
+        "-t",
+        "--test",
+        dest="test",
+        help="specify TEST to run",
+        metavar="TEST",
+    )
+    (options, args) = parser.parse_args()
+    if options.project is None:
+        parser.error("parameter project required")
+    project = options.project
+    if project == "all":
+        for operator in test_suites:
+            for test in test_suites[operator]:
+                analyze(operator, test)
+    else:
+        if options.test is None:
+            parser.error("parameter test required")
+        test = options.test
+        analyze(project, test)

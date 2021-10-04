@@ -728,6 +728,9 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
+    if options.project is None:
+        parser.error("parameter project required")
+
     if options.stage is None:
         parser.error("parameter stage required")
 
