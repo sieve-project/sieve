@@ -389,12 +389,12 @@ def analyze_trace(
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
-    causality_graph = build_causality_graph(log_path)
 
     if generate_oracle:
         oracle.generate_test_oracle(log_dir, data_dir, canonicalize_resource)
 
     if generate_config and not canonicalize_resource:
+        causality_graph = build_causality_graph(log_path)
         for analysis_mode in [
             sieve_modes.TIME_TRAVEL,
             sieve_modes.OBS_GAP,
@@ -414,7 +414,7 @@ def analyze(project, test):
         log_dir,
         data_dir,
         generate_oracle=True,
-        generate_config=True,
+        generate_config=False,
     )
 
 

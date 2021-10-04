@@ -40,7 +40,8 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
 
 def generate_operator_write(log_dir):
     print("Checking safety assertions...")
-    operator_write_map = {}
+    operator_write_name_map = {}
+    operator_write_uid_set = set()
     log_path = os.path.join(log_dir, "sieve-server.log")
     for line in open(log_path).readlines():
         if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
@@ -53,21 +54,29 @@ def generate_operator_write(log_dir):
         namespace = operator_write.namespace
         name = operator_write.name
         etype = operator_write.etype
+        obj = operator_write.obj_map
+        uid = analyze_util.extract_uid(obj)
         if (
             etype != analyze_util.OperatorWriteTypes.CREATE
             and etype != analyze_util.OperatorWriteTypes.DELETE
         ):
             continue
-        if rtype not in operator_write_map:
-            operator_write_map[rtype] = {}
-        if namespace not in operator_write_map[rtype]:
-            operator_write_map[rtype][namespace] = {}
-        if name not in operator_write_map[rtype][namespace]:
-            operator_write_map[rtype][namespace][name] = copy.deepcopy(
+        if uid is not None:
+            uid_marker = "\t".join([rtype, namespace, name, etype, uid])
+            if uid_marker in operator_write_uid_set:
+                continue
+            else:
+                operator_write_uid_set.add(uid_marker)
+        if rtype not in operator_write_name_map:
+            operator_write_name_map[rtype] = {}
+        if namespace not in operator_write_name_map[rtype]:
+            operator_write_name_map[rtype][namespace] = {}
+        if name not in operator_write_name_map[rtype][namespace]:
+            operator_write_name_map[rtype][namespace][name] = copy.deepcopy(
                 operator_write_empty_entry
             )
-        operator_write_map[rtype][namespace][name][etype] += 1
-    return operator_write_map
+        operator_write_name_map[rtype][namespace][name][etype] += 1
+    return operator_write_name_map
 
 
 def generate_status():

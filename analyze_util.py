@@ -94,6 +94,12 @@ def conflicting_event_type(prev_operator_hear_type: str, cur_operator_hear_type:
     return other_then_delete or delete_then_other
 
 
+def extract_uid(obj: Dict):
+    assert "metadata" in obj, "missing metadata in: " + str(obj)
+    obj_uid = obj["metadata"]["uid"] if "uid" in obj["metadata"] else None
+    return obj_uid
+
+
 def extract_namespace_name(obj: Dict):
     assert "metadata" in obj, "missing metadata in: " + str(obj)
     # TODO(Wenqing): Sometimes metadata doesn't carry namespace field, may dig into that later
