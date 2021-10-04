@@ -389,6 +389,9 @@ def analyze_trace(
     sanity_check_sieve_log(log_path)
     causality_graph = build_causality_graph(log_path)
 
+    if generate_oracle:
+        oracle.generate_test_oracle(log_dir, canonicalize_resource)
+
     if generate_config and not canonicalize_resource:
         for analysis_mode in [
             sieve_modes.TIME_TRAVEL,
@@ -396,9 +399,6 @@ def analyze_trace(
             sieve_modes.ATOM_VIO,
         ]:
             generate_test_config(analysis_mode, project, log_dir, causality_graph)
-
-    if generate_oracle:
-        oracle.generate_test_oracle(log_dir, canonicalize_resource)
 
 
 if __name__ == "__main__":
@@ -428,6 +428,6 @@ if __name__ == "__main__":
     analyze_trace(
         project,
         dir,
-        generate_oracle=False,
+        generate_oracle=True,
         generate_config=True,
     )

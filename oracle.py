@@ -27,13 +27,15 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def generate_test_oracle(log_dir, canonicalize_resource=False):
-    operator_write = generate_operator_write(log_dir)
-    dump_json_file(log_dir, operator_write, "side-effect.json")
-    status = generate_status()
-    dump_json_file(log_dir, status, "status.json")
-    resources = generate_resources(log_dir, canonicalize_resource)
-    dump_json_file(log_dir, resources, "resources.json")
-    return operator_write, status, resources
+    if sieve_config.config["generate_write"]:
+        operator_write = generate_operator_write(log_dir)
+        dump_json_file(log_dir, operator_write, "side-effect.json")
+    if sieve_config.config["generate_status"]:
+        status = generate_status()
+        dump_json_file(log_dir, status, "status.json")
+    if sieve_config.config["generate_resource"]:
+        resources = generate_resources(log_dir, canonicalize_resource)
+        dump_json_file(log_dir, resources, "resources.json")
 
 
 def generate_operator_write(log_dir):
@@ -588,33 +590,26 @@ def injection_validation(test_config, server_log):
     return validation_alarm, validation_report
 
 
-def check(
-    learned_operator_write,
-    learned_status,
-    learned_resources,
-    testing_operator_write,
-    testing_status,
-    testing_resources,
-    test_config,
-    operator_log,
-    server_log,
-    oracle_config,
-    workload_log,
-):
-
+def check(test_config, oracle_config, log_dir, data_dir):
+    server_log = os.path.join(log_dir, "sieve-server.log")
     validation_alarm, validation_report = injection_validation(test_config, server_log)
-
     bug_alarm = 0
     bug_report = NO_ERROR_MESSAGE
     if sieve_config.config["check_status"]:
-        status_alarm, status_bug_report = check_status(learned_status, testing_status)
+        learn_status = json.load(open(os.path.join(data_dir, "status.json")))
+        test_status = json.load(open(os.path.join(log_dir, "status.json")))
+        status_alarm, status_bug_report = check_status(learn_status, test_status)
         bug_alarm += status_alarm
         bug_report += status_bug_report
 
     if sieve_config.config["check_write"]:
+        learn_operator_write = json.load(
+            open(os.path.join(data_dir, "side-effect.json"))
+        )
+        test_operator_write = json.load(open(os.path.join(log_dir, "side-effect.json")))
         write_alarm, write_bug_report = check_operator_write(
-            learned_operator_write,
-            testing_operator_write,
+            learn_operator_write,
+            test_operator_write,
             test_config,
             oracle_config,
         )
@@ -622,18 +617,22 @@ def check(
         bug_report += write_bug_report
 
     if sieve_config.config["check_operator_log"]:
+        operator_log = os.path.join(log_dir, "streamed-operator.log")
         panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
         bug_alarm += panic_alarm
         bug_report += panic_bug_report
 
     if sieve_config.config["check_workload_log"]:
+        workload_log = os.path.join(log_dir, "workload.log")
         workload_alarm, workload_bug_report = check_workload_log(workload_log)
         bug_alarm += workload_alarm
         bug_report += workload_bug_report
 
-    if sieve_config.config["check_resource"] and learned_resources != None:
+    if sieve_config.config["check_resource"]:
+        learn_resources = json.load(open(os.path.join(data_dir, "resources.json")))
+        test_resources = json.load(open(os.path.join(log_dir, "resources.json")))
         resource_alarm, resource_bug_report = look_for_resources_diff(
-            learned_resources, testing_resources
+            learn_resources, test_resources
         )
         bug_alarm += resource_alarm
         bug_report += resource_bug_report
