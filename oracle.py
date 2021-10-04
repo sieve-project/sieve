@@ -56,11 +56,15 @@ def generate_operator_write(log_dir):
         etype = operator_write.etype
         obj = operator_write.obj_map
         uid = analyze_util.extract_uid(obj)
+        generate_name = analyze_util.extract_generate_name(obj)
         if (
             etype != analyze_util.OperatorWriteTypes.CREATE
             and etype != analyze_util.OperatorWriteTypes.DELETE
         ):
             continue
+        if generate_name is not None:
+            if analyze_util.is_generated_random_name(name, generate_name):
+                name = generate_name + "-" + SIEVE_VALUE_MASK
         if uid is not None:
             uid_marker = "\t".join([rtype, namespace, name, etype, uid])
             if uid_marker in operator_write_uid_set:

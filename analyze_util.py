@@ -112,6 +112,18 @@ def extract_namespace_name(obj: Dict):
     return obj_namespace, obj_name
 
 
+def extract_generate_name(obj: Dict):
+    assert "metadata" in obj, "missing metadata in: " + str(obj)
+    obj_uid = (
+        obj["metadata"]["generateName"] if "generateName" in obj["metadata"] else None
+    )
+    return obj_uid
+
+
+def is_generated_random_name(name: str, generate_name: str):
+    return name.startswith(generate_name) and len(name) == len(generate_name) + 5
+
+
 def generate_key(resource_type: str, namespace: str, name: str):
     return "/".join([resource_type, namespace, name])
 
