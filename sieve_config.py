@@ -6,7 +6,7 @@ config = {
     "namespace": "default",
     "time_travel_front_runner": "kind-control-plane",
     "time_travel_straggler": "kind-control-plane3",
-    "effect_to_check": ["Delete"],
+    "effect_to_check": ["Delete", "Create"],
     "compress_trivial_reconcile": True,
     "workload_wait_soft_timeout": 100,
     "workload_wait_hard_timeout": 600,
@@ -18,6 +18,7 @@ config = {
     "check_resource": True,
     "check_operator_log": True,
     "check_workload_log": True,
+    "generate_injection_desc": True,
 }
 
 if os.path.isfile("sieve_config.json"):
