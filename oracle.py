@@ -26,16 +26,16 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(log_dir, canonicalize_resource=False):
+def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
     if sieve_config.config["generate_write"]:
-        operator_write = generate_operator_write(log_dir)
-        dump_json_file(log_dir, operator_write, "side-effect.json")
+        operator_write = generate_operator_write(src_dir)
+        dump_json_file(dest_dir, operator_write, "side-effect.json")
     if sieve_config.config["generate_status"]:
         status = generate_status()
-        dump_json_file(log_dir, status, "status.json")
+        dump_json_file(dest_dir, status, "status.json")
     if sieve_config.config["generate_resource"]:
-        resources = generate_resources(log_dir, canonicalize_resource)
-        dump_json_file(log_dir, resources, "resources.json")
+        resources = generate_resources(src_dir, canonicalize_resource)
+        dump_json_file(dest_dir, resources, "resources.json")
 
 
 def generate_operator_write(log_dir):

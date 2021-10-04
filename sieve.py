@@ -381,39 +381,16 @@ def check_result(
         analyze.analyze_trace(
             project,
             log_dir,
+            data_dir,
             canonicalize_resource=(mode == sieve_modes.LEARN_TWICE),
         )
-        cmd_early_exit("mkdir -p %s" % data_dir)
-        if mode == sieve_modes.LEARN_ONCE:
-            cmd_early_exit(
-                "cp %s %s"
-                % (
-                    os.path.join(log_dir, "status.json"),
-                    os.path.join(data_dir, "status.json"),
-                )
-            )
-            cmd_early_exit(
-                "cp %s %s"
-                % (
-                    os.path.join(log_dir, "side-effect.json"),
-                    os.path.join(data_dir, "side-effect.json"),
-                )
-            )
-        if mode == sieve_modes.LEARN_TWICE:
-            cmd_early_exit(
-                "cp %s %s"
-                % (
-                    os.path.join(log_dir, "resources.json"),
-                    os.path.join(data_dir, "resources.json"),
-                )
-            )
     else:
         if mode != sieve_modes.VANILLA:
             if os.path.exists(test_config):
                 open(os.path.join(log_dir, "config.yaml"), "w").write(
                     open(test_config).read()
                 )
-            oracle.generate_test_oracle(log_dir)
+            oracle.generate_test_oracle(log_dir, log_dir)
             alarm, bug_report = oracle.check(
                 test_config, oracle_config, log_dir, data_dir
             )
@@ -507,6 +484,7 @@ def run(
 ):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
+    cmd_early_exit("mkdir -p %s" % data_dir)
     print("Log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
         cmd_early_exit("rm -rf %s" % log_dir)

@@ -24,3 +24,7 @@ if os.path.isfile("sieve_config.json"):
     json_config = json.loads(open("sieve_config.json").read())
     for key in json_config:
         config[key] = json_config[key]
+    if not config["generate_status"]:
+        config["check_status"] = False
+    if not config["generate_resource"]:
+        config["check_resource"] = False

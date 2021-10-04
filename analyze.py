@@ -373,6 +373,7 @@ def generate_test_config(analysis_mode, project, log_dir, causality_graph):
 def analyze_trace(
     project,
     log_dir,
+    data_dir,
     generate_oracle=True,
     generate_config=True,
     canonicalize_resource=False,
@@ -390,7 +391,7 @@ def analyze_trace(
     causality_graph = build_causality_graph(log_path)
 
     if generate_oracle:
-        oracle.generate_test_oracle(log_dir, canonicalize_resource)
+        oracle.generate_test_oracle(log_dir, data_dir, canonicalize_resource)
 
     if generate_config and not canonicalize_resource:
         for analysis_mode in [
@@ -424,10 +425,14 @@ if __name__ == "__main__":
     project = options.project
     test = options.test
     print("Analyzing controller trace for %s's test workload %s..." % (project, test))
-    dir = os.path.join("log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE)
+    log_dir = os.path.join(
+        "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE
+    )
+    data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
     analyze_trace(
         project,
-        dir,
+        log_dir,
+        data_dir,
         generate_oracle=True,
         generate_config=True,
     )
