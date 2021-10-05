@@ -6,7 +6,7 @@ config = {
     "namespace": "default",
     "time_travel_front_runner": "kind-control-plane",
     "time_travel_straggler": "kind-control-plane3",
-    "effect_to_check": ["Delete", "Create"],
+    "effect_to_check": ["Delete"],
     "compress_trivial_reconcile": True,
     "workload_wait_soft_timeout": 100,
     "workload_wait_hard_timeout": 600,
