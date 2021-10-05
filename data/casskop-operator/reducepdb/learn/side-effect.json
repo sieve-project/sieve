@@ -1,4 +1,12 @@
 {
+    "configmap": {
+        "default": {
+            "casskop-lock": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
     "poddisruptionbudget": {
         "default": {
             "cassandra-cluster": {
@@ -14,6 +22,10 @@
                 "Delete": 0
             },
             "cassandra-cluster-exporter-jmx": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "cassandra-operator-metrics": {
                 "Create": 1,
                 "Delete": 0
             }

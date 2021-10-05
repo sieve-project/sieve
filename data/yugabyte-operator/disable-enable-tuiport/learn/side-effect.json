@@ -1,4 +1,12 @@
 {
+    "configmap": {
+        "default": {
+            "yugabyte-k8s-operator-lock": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
     "service": {
         "default": {
             "yb-master-ui": {
@@ -14,6 +22,10 @@
                 "Delete": 1
             },
             "yb-tservers": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "yugabyte-operator-metrics": {
                 "Create": 1,
                 "Delete": 0
             }

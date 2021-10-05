@@ -1,4 +1,12 @@
 {
+    "configmap": {
+        "default": {
+            "cass-operator-lock": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
     "persistentvolumeclaim": {
         "default": {
             "server-data-cluster1-cassandra-datacenter-default-sts-0": {
@@ -33,6 +41,10 @@
     },
     "service": {
         "default": {
+            "cass-operator-metrics": {
+                "Create": 1,
+                "Delete": 0
+            },
             "cluster1-cassandra-datacenter-all-pods-service": {
                 "Create": 2,
                 "Delete": 0

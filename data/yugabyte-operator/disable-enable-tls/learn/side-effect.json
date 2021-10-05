@@ -1,4 +1,12 @@
 {
+    "configmap": {
+        "default": {
+            "yugabyte-k8s-operator-lock": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
     "secret": {
         "default": {
             "yb-master-yugabyte-tls-cert": {
@@ -22,6 +30,10 @@
                 "Delete": 0
             },
             "yb-tservers": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "yugabyte-operator-metrics": {
                 "Create": 1,
                 "Delete": 0
             }
