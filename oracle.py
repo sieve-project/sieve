@@ -35,7 +35,8 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
         dump_json_file(dest_dir, status, "status.json")
     if sieve_config.config["generate_resource"]:
         resources = generate_resources(src_dir, canonicalize_resource)
-        dump_json_file(dest_dir, resources, "resources.json")
+        # we generate resources.json at src_dir (log dir)
+        dump_json_file(src_dir, resources, "resources.json")
 
 
 def generate_operator_write(log_dir):
