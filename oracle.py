@@ -519,67 +519,78 @@ def print_error_and_debugging_info(alarm, bug_report, test_config):
 
 
 def is_time_travel_started(server_log):
-    file = open(server_log)
-    return "START-SIEVE-TIME-TRAVEL" in file.read()
+    with open(server_log) as f:
+        return "START-SIEVE-TIME-TRAVEL" in f.read()
 
 
 def is_obs_gap_started(server_log):
-    file = open(server_log)
-    return "START-SIEVE-OBSERVABILITY-GAPS" in file.read()
+    with open(server_log) as f:
+        return "START-SIEVE-OBSERVABILITY-GAPS" in f.read()
 
 
 def is_atom_vio_started(server_log):
-    file = open(server_log)
-    return "START-SIEVE-ATOMICITY-VIOLATION" in file.read()
+    with open(server_log) as f:
+        return "START-SIEVE-ATOMICITY-VIOLATION" in f.read()
 
 
 def is_time_travel_finished(server_log):
-    file = open(server_log)
-    return "FINISH-SIEVE-TIME-TRAVEL" in file.read()
+    with open(server_log) as f:
+        return "FINISH-SIEVE-TIME-TRAVEL" in f.read()
 
 
 def is_obs_gap_finished(server_log):
-    file = open(server_log)
-    return "FINISH-SIEVE-OBSERVABILITY-GAPS" in file.read()
+    with open(server_log) as f:
+        return "FINISH-SIEVE-OBSERVABILITY-GAPS" in f.read()
 
 
 def is_atom_vio_finished(server_log):
-    file = open(server_log)
-    return "FINISH-SIEVE-ATOMICITY-VIOLATION" in file.read()
+    with open(server_log) as f:
+        return "FINISH-SIEVE-ATOMICITY-VIOLATION" in f.read()
 
 
-def injection_validation(test_config, server_log):
+def is_test_workload_finished(workload_log):
+    with open(workload_log) as f:
+        return "FINISH-SIEVE-TEST" in f.read()
+
+
+def injection_validation(test_config, server_log, workload_log):
     test_config_content = yaml.safe_load(open(test_config))
     test_mode = test_config_content["mode"]
     validation_alarm = 0
     validation_report = NO_ERROR_MESSAGE
     if test_mode == sieve_modes.TIME_TRAVEL:
         if not is_time_travel_started(server_log):
-            validation_report = "[WARN] time travel is not started yet\n"
+            validation_report += "[WARN] time travel is not started yet\n"
             validation_alarm = -1
         elif not is_time_travel_finished(server_log):
-            validation_report = "[WARN] time travel is not finished yet\n"
+            validation_report += "[WARN] time travel is not finished yet\n"
             validation_alarm = -2
     elif test_mode == sieve_modes.OBS_GAP:
         if not is_obs_gap_started(server_log):
-            validation_report = "[WARN] obs gap is not started yet\n"
+            validation_report += "[WARN] obs gap is not started yet\n"
             validation_alarm = -1
         elif not is_obs_gap_finished(server_log):
-            validation_report = "[WARN] obs gap is not finished yet\n"
+            validation_report += "[WARN] obs gap is not finished yet\n"
             validation_alarm = -2
     elif test_mode == sieve_modes.ATOM_VIO:
         if not is_atom_vio_started(server_log):
-            validation_report = "[WARN] atom vio is not started yet\n"
+            validation_report += "[WARN] atom vio is not started yet\n"
             validation_alarm = -1
         elif not is_atom_vio_finished(server_log):
-            validation_report = "[WARN] atom vio is not finished yet\n"
+            validation_report += "[WARN] atom vio is not finished yet\n"
             validation_alarm = -2
+    if not is_test_workload_finished(workload_log):
+        validation_report += "[WARN] test workload is not finished yet\n"
+        validation_alarm = -2
     return validation_alarm, validation_report
 
 
 def check(test_config, oracle_config, log_dir, data_dir):
     server_log = os.path.join(log_dir, "sieve-server.log")
-    validation_alarm, validation_report = injection_validation(test_config, server_log)
+    workload_log = os.path.join(log_dir, "workload.log")
+    validation_alarm, validation_report = injection_validation(
+        test_config, server_log, workload_log
+    )
     bug_alarm = 0
     bug_report = NO_ERROR_MESSAGE
     if sieve_config.config["check_status"]:

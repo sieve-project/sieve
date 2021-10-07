@@ -6,6 +6,7 @@ import time
 import traceback
 import sieve_config
 import datetime
+import subprocess
 
 
 def get_pod(resource_name):
@@ -93,9 +94,13 @@ class TestCmd:
 
     def run(self, mode) -> Tuple[int, str]:
         print(self.cmd)
-        # TODO: need to check the return code of the os.system
-        # TODO: set timeout for cmd
-        os.system(self.cmd)
+        # TODO: need to check the return code of the cmd
+        proc = subprocess.Popen(self.cmd, shell=True)
+        try:
+            proc.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            proc.terminate()
+            return -2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
         return 0, common.NO_ERROR_MESSAGE
 
 
@@ -433,14 +438,16 @@ class BuiltInWorkLoad:
         self.work_list.append(test_wait)
         return self
 
-    def run(self, mode, output_file) -> Tuple[int, str]:
-        f = open(output_file, "w")
-        for work in self.work_list:
-            return_code, error_message = work.run(mode)
-            print(datetime.datetime.now())
-            if return_code != 0:
-                f.write(error_message + "\n")
-        f.close()
+    def run(self, mode, output_file):
+        with open(output_file, "w") as f:
+            for work in self.work_list:
+                return_code, error_message = work.run(mode)
+                print(datetime.datetime.now())
+                if return_code != 0:
+                    f.write(error_message + "\n")
+                    if return_code == -2:
+                        return
+            f.write("FINISH-SIEVE-TEST\n")
 
 
 def new_built_in_workload():
@@ -454,7 +461,7 @@ class ExtendedWorkload:
         self.test_cmd = test_cmd
         self.check_mode = check_mode
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, mode):
         org_dir = os.getcwd()
         os.chdir(self.test_dir)
         # TODO: need to check the return code of the os.system
