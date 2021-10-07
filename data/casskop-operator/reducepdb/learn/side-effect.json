@@ -1,12 +1,9 @@
 {
-    "cassandracluster": {
+    "configmap": {
         "default": {
-            "cassandra-cluster": {
-                "Create": 0,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 31
+            "casskop-lock": {
+                "Create": 1,
+                "Delete": 0
             }
         }
     },
@@ -14,28 +11,23 @@
         "default": {
             "cassandra-cluster": {
                 "Create": 2,
-                "Delete": 1,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 1
             }
         }
     },
     "service": {
         "default": {
             "cassandra-cluster": {
-                "Create": 43,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Create": 1,
+                "Delete": 0
             },
             "cassandra-cluster-exporter-jmx": {
-                "Create": 43,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Create": 1,
+                "Delete": 0
+            },
+            "cassandra-operator-metrics": {
+                "Create": 1,
+                "Delete": 0
             }
         }
     },
@@ -43,10 +35,7 @@
         "default": {
             "cassandra-cluster-dc1-rack1": {
                 "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
             }
         }
     }

@@ -1,12 +1,9 @@
 {
-    "cassandradatacenter": {
+    "configmap": {
         "default": {
-            "cassandra-datacenter": {
-                "Create": 0,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 3
+            "cass-operator-lock": {
+                "Create": 1,
+                "Delete": 0
             }
         }
     },
@@ -14,21 +11,7 @@
         "default": {
             "server-data-cluster1-cassandra-datacenter-default-sts-0": {
                 "Create": 0,
-                "Delete": 1,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
-            }
-        }
-    },
-    "pod": {
-        "default": {
-            "cluster1-cassandra-datacenter-default-sts-0": {
-                "Create": 0,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 6,
-                "Update": 0
+                "Delete": 1
             }
         }
     },
@@ -36,60 +19,43 @@
         "default": {
             "cassandra-datacenter-pdb": {
                 "Create": 2,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
             }
         }
     },
     "secret": {
         "default": {
-            "cluster1-superuser": {
-                "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
-            },
             "cassandra-datacenter-ca-keystore": {
                 "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
             },
             "cassandra-datacenter-keystore": {
                 "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
+            },
+            "cluster1-superuser": {
+                "Create": 1,
+                "Delete": 0
             }
         }
     },
     "service": {
         "default": {
-            "cluster1-seed-service": {
-                "Create": 2,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+            "cass-operator-metrics": {
+                "Create": 1,
+                "Delete": 0
             },
             "cluster1-cassandra-datacenter-all-pods-service": {
                 "Create": 2,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
             },
             "cluster1-cassandra-datacenter-service": {
                 "Create": 2,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
+            },
+            "cluster1-seed-service": {
+                "Create": 2,
+                "Delete": 0
             }
         }
     },
@@ -97,10 +63,7 @@
         "default": {
             "cluster1-cassandra-datacenter-default-sts": {
                 "Create": 2,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 2,
-                "Update": 1
+                "Delete": 0
             }
         }
     }

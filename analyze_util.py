@@ -94,6 +94,12 @@ def conflicting_event_type(prev_operator_hear_type: str, cur_operator_hear_type:
     return other_then_delete or delete_then_other
 
 
+def extract_uid(obj: Dict):
+    assert "metadata" in obj, "missing metadata in: " + str(obj)
+    obj_uid = obj["metadata"]["uid"] if "uid" in obj["metadata"] else None
+    return obj_uid
+
+
 def extract_namespace_name(obj: Dict):
     assert "metadata" in obj, "missing metadata in: " + str(obj)
     # TODO(Wenqing): Sometimes metadata doesn't carry namespace field, may dig into that later
@@ -106,8 +112,26 @@ def extract_namespace_name(obj: Dict):
     return obj_namespace, obj_name
 
 
+def extract_generate_name(obj: Dict):
+    assert "metadata" in obj, "missing metadata in: " + str(obj)
+    obj_uid = (
+        obj["metadata"]["generateName"] if "generateName" in obj["metadata"] else None
+    )
+    return obj_uid
+
+
+def is_generated_random_name(name: str, generate_name: str):
+    return name.startswith(generate_name) and len(name) == len(generate_name) + 5
+
+
 def generate_key(resource_type: str, namespace: str, name: str):
     return "/".join([resource_type, namespace, name])
+
+
+def decode_key(resource_key: str):
+    tokens = resource_key.split("/")
+    assert len(tokens) == 3
+    return tokens[0], tokens[1], tokens[2]
 
 
 class OperatorHear:

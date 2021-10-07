@@ -15,11 +15,8 @@ import pathlib
 
 
 operator_write_empty_entry = {
-    "Create": 0,
-    "Update": 0,
-    "Delete": 0,
-    "Patch": 0,
-    "DeleteAllOf": 0,
+    analyze_util.OperatorWriteTypes.CREATE: 0,
+    analyze_util.OperatorWriteTypes.DELETE: 0,
 }
 
 
@@ -29,46 +26,62 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(log_dir, canonicalize_resource=False):
-    operator_write, status, resources = generate_digest(log_dir, canonicalize_resource)
-    dump_json_file(log_dir, operator_write, "side-effect.json")
-    dump_json_file(log_dir, status, "status.json")
-    dump_json_file(log_dir, resources, "resources.json")
-
-
-def generate_digest(log_dir, canonicalize_resource=False):
-    operator_write = generate_operator_write(log_dir)
-    status = generate_status()
-    resources = generate_resources(log_dir, canonicalize_resource)
-    return operator_write, status, resources
+def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
+    if sieve_config.config["generate_write"]:
+        operator_write = generate_operator_write(src_dir)
+        dump_json_file(dest_dir, operator_write, "side-effect.json")
+    if sieve_config.config["generate_status"]:
+        status = generate_status()
+        dump_json_file(dest_dir, status, "status.json")
+    if sieve_config.config["generate_resource"]:
+        resources = generate_resources(src_dir, canonicalize_resource)
+        # we generate resources.json at src_dir (log dir)
+        dump_json_file(src_dir, resources, "resources.json")
 
 
 def generate_operator_write(log_dir):
     print("Checking safety assertions...")
-    operator_write_map = {}
+    operator_write_name_map = {}
+    operator_write_uid_set = set()
     log_path = os.path.join(log_dir, "sieve-server.log")
     for line in open(log_path).readlines():
         if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
             continue
         operator_write = analyze_util.parse_operator_write(line)
         if analyze_util.ERROR_MSG_FILTER_FLAG:
-            # TODO: maybe make the ignored errors configurable
             if operator_write.error not in analyze_util.ALLOWED_ERROR_TYPE:
                 continue
         rtype = operator_write.rtype
         namespace = operator_write.namespace
         name = operator_write.name
         etype = operator_write.etype
-        if rtype not in operator_write_map:
-            operator_write_map[rtype] = {}
-        if namespace not in operator_write_map[rtype]:
-            operator_write_map[rtype][namespace] = {}
-        if name not in operator_write_map[rtype][namespace]:
-            operator_write_map[rtype][namespace][name] = copy.deepcopy(
+        obj = operator_write.obj_map
+        uid = analyze_util.extract_uid(obj)
+        generate_name = analyze_util.extract_generate_name(obj)
+        if (
+            etype != analyze_util.OperatorWriteTypes.CREATE
+            and etype != analyze_util.OperatorWriteTypes.DELETE
+        ):
+            continue
+        if generate_name is not None:
+            if analyze_util.is_generated_random_name(name, generate_name):
+                name = generate_name + "-" + SIEVE_VALUE_MASK
+        if uid is not None:
+            uid_marker = "\t".join([rtype, namespace, name, etype, uid])
+            if uid_marker in operator_write_uid_set:
+                continue
+            else:
+                operator_write_uid_set.add(uid_marker)
+        if rtype not in operator_write_name_map:
+            operator_write_name_map[rtype] = {}
+        if namespace not in operator_write_name_map[rtype]:
+            operator_write_name_map[rtype][namespace] = {}
+        if name not in operator_write_name_map[rtype][namespace]:
+            operator_write_name_map[rtype][namespace][name] = copy.deepcopy(
                 operator_write_empty_entry
             )
-        operator_write_map[rtype][namespace][name][etype] += 1
-    return operator_write_map
+        operator_write_name_map[rtype][namespace][name][etype] += 1
+    return operator_write_name_map
 
 
 def generate_status():
@@ -267,46 +280,25 @@ def check_operator_write(
     if test_config_content["mode"] == sieve_modes.OBS_GAP:
         return alarm, bug_report
 
-    # TODO(wenqing): the interest_object thing should be improved
-    # for both time-travel and atom-vio, we should check as many resources as possible
-    interest_objects = []
-    if test_config_content["mode"] == sieve_modes.TIME_TRAVEL:
-        interest_objects.append(
-            {
-                "rtype": test_config_content["se-rtype"],
-                "namespace": test_config_content["se-namespace"],
-                "name": test_config_content["se-name"],
-            }
-        )
-    if "interest_objects" in oracle_config:
-        interest_objects.extend(oracle_config["interest_objects"])
-
-    # TODO(wenqing): instead of handling regex now, we should handle it during learn stage using `generateName`
-    # Preporcess regex
-    learning_operator_write = preprocess_operator_write(
-        learning_operator_write, interest_objects
-    )
-    testing_operator_write = preprocess_operator_write(
-        testing_operator_write, interest_objects
-    )
-
-    for interest in interest_objects:
-        rtype = interest["rtype"]
-        namespace = interest["namespace"]
-        name = interest["name"]
+    resource_keys = set()
+    for rtype in learning_operator_write:
+        for namespace in learning_operator_write[rtype]:
+            for name in learning_operator_write[rtype][namespace]:
+                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
+    for rtype in testing_operator_write:
+        for namespace in testing_operator_write[rtype]:
+            for name in testing_operator_write[rtype][namespace]:
+                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
+    for key in resource_keys:
+        rtype, namespace, name = analyze_util.decode_key(key)
         exist = True
         if (
             rtype not in learning_operator_write
             or namespace not in learning_operator_write[rtype]
             or name not in learning_operator_write[rtype][namespace]
         ):
-            bug_report += (
-                "[ERROR][WRITE] %s/%s/%s not in learning side effect digest\n"
-                % (
-                    rtype,
-                    namespace,
-                    name,
-                )
+            bug_report += "[ERROR][WRITE] %s not in learning side effect digest\n" % (
+                key
             )
             alarm += 1
             exist = False
@@ -315,13 +307,8 @@ def check_operator_write(
             or namespace not in testing_operator_write[rtype]
             or name not in testing_operator_write[rtype][namespace]
         ):
-            bug_report += (
-                "[ERROR][WRITE] %s/%s/%s not in testing side effect digest\n"
-                % (
-                    rtype,
-                    namespace,
-                    name,
-                )
+            bug_report += "[ERROR][WRITE] %s not in testing side effect digest\n" % (
+                key
             )
             alarm += 1
             exist = False
@@ -334,10 +321,8 @@ def check_operator_write(
                         continue
                 if learning_entry[attr] != testing_entry[attr]:
                     alarm += 1
-                    bug_report += "[ERROR][WRITE] %s/%s/%s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-                        rtype,
-                        namespace,
-                        name,
+                    bug_report += "[ERROR][WRITE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                        key,
                         attr.upper(),
                         str(learning_entry[attr]),
                         str(testing_entry[attr]),
@@ -526,10 +511,11 @@ def generate_debugging_hint(test_config_content):
 def print_error_and_debugging_info(alarm, bug_report, test_config):
     assert alarm != 0
     test_config_content = yaml.safe_load(open(test_config))
-    hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
     report_color = bcolors.FAIL if alarm > 0 else bcolors.WARNING
     cprint("[ALARM] %d\n" % (alarm) + bug_report, report_color)
-    cprint(hint, bcolors.WARNING)
+    if sieve_config.config["generate_injection_desc"]:
+        hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
+        cprint(hint, bcolors.WARNING)
 
 
 def is_time_travel_started(server_log):
@@ -591,33 +577,26 @@ def injection_validation(test_config, server_log):
     return validation_alarm, validation_report
 
 
-def check(
-    learned_operator_write,
-    learned_status,
-    learned_resources,
-    testing_operator_write,
-    testing_status,
-    testing_resources,
-    test_config,
-    operator_log,
-    server_log,
-    oracle_config,
-    workload_log,
-):
-
+def check(test_config, oracle_config, log_dir, data_dir):
+    server_log = os.path.join(log_dir, "sieve-server.log")
     validation_alarm, validation_report = injection_validation(test_config, server_log)
-
     bug_alarm = 0
     bug_report = NO_ERROR_MESSAGE
     if sieve_config.config["check_status"]:
-        status_alarm, status_bug_report = check_status(learned_status, testing_status)
+        learn_status = json.load(open(os.path.join(data_dir, "status.json")))
+        test_status = json.load(open(os.path.join(log_dir, "status.json")))
+        status_alarm, status_bug_report = check_status(learn_status, test_status)
         bug_alarm += status_alarm
         bug_report += status_bug_report
 
     if sieve_config.config["check_write"]:
+        learn_operator_write = json.load(
+            open(os.path.join(data_dir, "side-effect.json"))
+        )
+        test_operator_write = json.load(open(os.path.join(log_dir, "side-effect.json")))
         write_alarm, write_bug_report = check_operator_write(
-            learned_operator_write,
-            testing_operator_write,
+            learn_operator_write,
+            test_operator_write,
             test_config,
             oracle_config,
         )
@@ -625,18 +604,22 @@ def check(
         bug_report += write_bug_report
 
     if sieve_config.config["check_operator_log"]:
+        operator_log = os.path.join(log_dir, "streamed-operator.log")
         panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
         bug_alarm += panic_alarm
         bug_report += panic_bug_report
 
     if sieve_config.config["check_workload_log"]:
+        workload_log = os.path.join(log_dir, "workload.log")
         workload_alarm, workload_bug_report = check_workload_log(workload_log)
         bug_alarm += workload_alarm
         bug_report += workload_bug_report
 
-    if sieve_config.config["check_resource"] and learned_resources != None:
+    if sieve_config.config["check_resource"]:
+        learn_resources = json.load(open(os.path.join(data_dir, "resources.json")))
+        test_resources = json.load(open(os.path.join(log_dir, "resources.json")))
         resource_alarm, resource_bug_report = look_for_resources_diff(
-            learned_resources, testing_resources
+            learn_resources, test_resources
         )
         bug_alarm += resource_alarm
         bug_report += resource_bug_report

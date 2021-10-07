@@ -141,11 +141,6 @@ test_suites = {
     "nifikop-operator": {
         "change-config": Suite(
             workloads.workloads["nifikop-operator"]["change-config"],
-            oracle_config={
-                "interest_objects": [
-                    {"rtype": "pod", "namespace": "default", "name": "simplenifi-1.*"}
-                ],
-            },
         ),
     },
 }

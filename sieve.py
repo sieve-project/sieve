@@ -26,14 +26,17 @@ from common import (
     sieve_stages,
 )
 
-def save_run_result(project, test, mode, stage, test_config, alarm, bug_report, starttime):
+
+def save_run_result(
+    project, test, mode, stage, test_config, alarm, bug_report, starttime
+):
     if stage != sieve_stages.TEST or mode == sieve_modes.VANILLA:
         return
 
     result_map = {
         project: {
             test: {
-                mode:{
+                mode: {
                     test_config: {
                         "duration": time.time() - starttime,
                         "alarm": alarm,
@@ -378,85 +381,20 @@ def check_result(
         analyze.analyze_trace(
             project,
             log_dir,
+            data_dir,
             canonicalize_resource=(mode == sieve_modes.LEARN_TWICE),
         )
-        cmd_early_exit("mkdir -p %s" % data_dir)
-        if mode == sieve_modes.LEARN_ONCE:
-            cmd_early_exit(
-                "cp %s %s"
-                % (
-                    os.path.join(log_dir, "status.json"),
-                    os.path.join(data_dir, "status.json"),
-                )
-            )
-            cmd_early_exit(
-                "cp %s %s"
-                % (
-                    os.path.join(log_dir, "side-effect.json"),
-                    os.path.join(data_dir, "side-effect.json"),
-                )
-            )
-        if mode == sieve_modes.LEARN_TWICE:
-            cmd_early_exit(
-                "cp %s %s"
-                % (
-                    os.path.join(log_dir, "resources.json"),
-                    os.path.join(data_dir, "resources.json"),
-                )
-            )
     else:
         if mode != sieve_modes.VANILLA:
             if os.path.exists(test_config):
                 open(os.path.join(log_dir, "config.yaml"), "w").write(
                     open(test_config).read()
                 )
-            learned_side_effect = json.load(
-                open(os.path.join(data_dir, "side-effect.json"))
-            )
-            learned_status = json.load(open(os.path.join(data_dir, "status.json")))
-            resources_path = os.path.join(data_dir, "resources.json")
-            learned_resources = (
-                json.load(open(resources_path))
-                if os.path.isfile(resources_path)
-                else None
-            )
-            (
-                testing_side_effect,
-                testing_status,
-                testing_resources,
-            ) = oracle.generate_digest(log_dir)
-            operator_log = os.path.join(log_dir, "streamed-operator.log")
-            server_log = os.path.join(log_dir, "sieve-server.log")
-            workload_log = os.path.join(log_dir, "workload.log")
+            oracle.generate_test_oracle(log_dir, log_dir)
             alarm, bug_report = oracle.check(
-                learned_side_effect,
-                learned_status,
-                learned_resources,
-                testing_side_effect,
-                testing_status,
-                testing_resources,
-                test_config,
-                operator_log,
-                server_log,
-                oracle_config,
-                workload_log,
+                test_config, oracle_config, log_dir, data_dir
             )
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
-            json.dump(
-                testing_side_effect,
-                open(os.path.join(log_dir, "side-effect.json"), "w"),
-                indent=4,
-            )
-            json.dump(
-                testing_status,
-                open(os.path.join(log_dir, "status.json"), "w"),
-                indent=4,
-            )
-            json.dump(
-                testing_resources,
-                open(os.path.join(log_dir, "resources.json"), "w"),
-                indent=4,
-            )
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
 
@@ -546,6 +484,7 @@ def run(
 ):
     suite = test_suites[project][test]
     data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
+    cmd_early_exit("mkdir -p %s" % data_dir)
     print("Log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
         cmd_early_exit("rm -rf %s" % log_dir)
@@ -789,6 +728,9 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
+    if options.project is None:
+        parser.error("parameter project required")
+
     if options.stage is None:
         parser.error("parameter stage required")
 
@@ -885,5 +827,14 @@ if __name__ == "__main__":
             options.phase,
         )
 
-        save_run_result(options.project, options.test, options.mode, options.stage, options.config, alarm, report, s)
+        save_run_result(
+            options.project,
+            options.test,
+            options.mode,
+            options.stage,
+            options.config,
+            alarm,
+            report,
+            s,
+        )
     print("Total time: {} seconds".format(time.time() - s))

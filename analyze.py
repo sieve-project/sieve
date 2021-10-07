@@ -8,6 +8,7 @@ import shutil
 import optparse
 import analyze_gen
 from common import sieve_modes, sieve_stages
+from controllers import *
 
 
 def sanity_check_sieve_log(path):
@@ -373,6 +374,7 @@ def generate_test_config(analysis_mode, project, log_dir, causality_graph):
 def analyze_trace(
     project,
     log_dir,
+    data_dir,
     generate_oracle=True,
     generate_config=True,
     canonicalize_resource=False,
@@ -387,9 +389,12 @@ def analyze_trace(
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
-    causality_graph = build_causality_graph(log_path)
+
+    if generate_oracle:
+        oracle.generate_test_oracle(log_dir, data_dir, canonicalize_resource)
 
     if generate_config and not canonicalize_resource:
+        causality_graph = build_causality_graph(log_path)
         for analysis_mode in [
             sieve_modes.TIME_TRAVEL,
             sieve_modes.OBS_GAP,
@@ -397,8 +402,20 @@ def analyze_trace(
         ]:
             generate_test_config(analysis_mode, project, log_dir, causality_graph)
 
-    if generate_oracle:
-        oracle.generate_test_oracle(log_dir, canonicalize_resource)
+
+def analyze(project, test):
+    print("Analyzing controller trace for %s's test workload %s..." % (project, test))
+    log_dir = os.path.join(
+        "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE
+    )
+    data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
+    analyze_trace(
+        project,
+        log_dir,
+        data_dir,
+        generate_oracle=True,
+        generate_config=False,
+    )
 
 
 if __name__ == "__main__":
@@ -410,7 +427,6 @@ if __name__ == "__main__":
         dest="project",
         help="specify PROJECT",
         metavar="PROJECT",
-        default="cassandra-operator",
     )
     parser.add_option(
         "-t",
@@ -418,16 +434,17 @@ if __name__ == "__main__":
         dest="test",
         help="specify TEST to run",
         metavar="TEST",
-        default="recreate",
     )
     (options, args) = parser.parse_args()
+    if options.project is None:
+        parser.error("parameter project required")
     project = options.project
-    test = options.test
-    print("Analyzing controller trace for %s's test workload %s..." % (project, test))
-    dir = os.path.join("log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE)
-    analyze_trace(
-        project,
-        dir,
-        generate_oracle=False,
-        generate_config=True,
-    )
+    if project == "all":
+        for operator in test_suites:
+            for test in test_suites[operator]:
+                analyze(operator, test)
+    else:
+        if options.test is None:
+            parser.error("parameter test required")
+        test = options.test
+        analyze(project, test)

@@ -1,12 +1,9 @@
 {
-    "cassandracluster": {
+    "configmap": {
         "default": {
-            "cassandra-cluster": {
-                "Create": 0,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 37
+            "casskop-lock": {
+                "Create": 1,
+                "Delete": 0
             }
         }
     },
@@ -14,21 +11,7 @@
         "default": {
             "data-cassandra-cluster-dc1-rack1-1": {
                 "Create": 0,
-                "Delete": 1,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
-            }
-        }
-    },
-    "pod": {
-        "default": {
-            "cassandra-cluster-dc1-rack1-1": {
-                "Create": 0,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 1
+                "Delete": 1
             }
         }
     },
@@ -36,10 +19,7 @@
         "default": {
             "cassandra-cluster": {
                 "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
             }
         }
     },
@@ -47,17 +27,15 @@
         "default": {
             "cassandra-cluster": {
                 "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
             },
             "cassandra-cluster-exporter-jmx": {
                 "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 0
+                "Delete": 0
+            },
+            "cassandra-operator-metrics": {
+                "Create": 1,
+                "Delete": 0
             }
         }
     },
@@ -65,10 +43,7 @@
         "default": {
             "cassandra-cluster-dc1-rack1": {
                 "Create": 1,
-                "Delete": 0,
-                "DeleteAllOf": 0,
-                "Patch": 0,
-                "Update": 1
+                "Delete": 0
             }
         }
     }
