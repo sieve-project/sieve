@@ -367,6 +367,7 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 }
 
 func conflictingEvent(eventA, eventB map[string]interface{}) bool {
+	// TODO: we should check type conflicting as well
 	// assume eventA is already canonicalized
 	canonicalizeEvent(eventB)
 	return !partOfEventAsMap(eventA, eventB)

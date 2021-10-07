@@ -94,6 +94,7 @@ class TestCmd:
     def run(self, mode) -> Tuple[int, str]:
         print(self.cmd)
         # TODO: need to check the return code of the os.system
+        # TODO: set timeout for cmd
         os.system(self.cmd)
         return 0, common.NO_ERROR_MESSAGE
 
