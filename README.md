@@ -29,15 +29,15 @@ We welcome any users who want to test their controllers using Sieve and we are m
 ### Testing approaches
 | Approach                        | Description                                                                                                                                                                                                                                                                                                                                     |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Atomicity-Violations (Atom-Vio) | Atom-Vio restarts the controller before it finishes all the cluster state update during one reconcile. After restart the controller will see a halfly updated cluster state (i.e., a dirty state). If the controller fails to recover from the dirty state, a bug has been detected.                                                            |
-| Observability-Gaps (Obs-Gap)    | Obs-Gap manipulates the interleaving between the informer goroutines and the reconciler goroutines in a controller to make the controller miss some paritcular events received from the apiserver. As controllers are supposed to be fully level-triggered, failing to achieve the desired final state after missing the event indicates a bug. |
+| Atomicity-Violations (Atom-Vio) | Atom-Vio restarts the controller before it finishes all the cluster state update during one reconcile. After restart the controller will see a partially updated cluster state (i.e., a dirty state). If the controller fails to recover from the dirty state, Sieve recognizes it as a bug.                                                            |
+| Observability-Gaps (Obs-Gap)    | Obs-Gap manipulates the interleaving between the informer goroutines and the reconciler goroutines in a controller to make the controller miss some particular events received from the apiserver. As controllers are supposed to be fully level-triggered, failing to achieve the desired final state after missing the event indicates a bug. |
 | Time-Traveling                  | Time-Traveling aims to find bugs in High-Availability clusters where multiple apiservers are running. It redirects a controller to a relatively stale apiserver. Sieve reports a bug if the controller misbehaves after reading stale cluster state.                                                                                            |
 
 ### Pre-requisites for use
 * Docker daemon must be running (please ensure you can run `docker` commands without sudo)
 * A docker repo that you have write access to
 * [python3](https://www.python.org/downloads/) installed
-* [go](https://golang.org/doc/install) (preferrably 1.13.9) installed and `$GOPATH` set
+* [go](https://golang.org/doc/install) (preferably 1.13.9) installed and `$GOPATH` set
 * [kind](https://kind.sigs.k8s.io/) installed and `$KUBECONFIG` set (Sieve runs tests in a kind cluster)
 * [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/) installed
 * python3 installed and dependency packages installed: run `pip3 install -r requirements.txt`
