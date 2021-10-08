@@ -1,5 +1,3 @@
-import time
-import sys
 import os
 import subprocess
 from common import fail, ok, warn
@@ -43,6 +41,16 @@ def check_go_env():
         )
 
     return
+
+
+def check_kubectl_env():
+    if os.system("kubectl --help > /dev/null 2>&1") != 0:
+        fail(
+            "kubectl not detected, please install it according to https://kubernetes.io/docs/tasks/tools/"
+        )
+        return
+    else:
+        ok("kubectl detected")
 
 
 def check_kind_env():
@@ -125,12 +133,30 @@ def check_python_env():
         )
 
     try:
+        import docker
+
+        ok("python module docker detected")
+    except Exception as err:
+        fail(
+            "python module docker not detected, try to install it by `pip3 install docker`"
+        )
+
+    try:
         import yaml
 
         ok("python module pyyaml detected")
     except Exception as err:
         fail(
-            "python module pysqlite3 not detected, try to install it by `pip3 install pyyaml`"
+            "python module pyyaml not detected, try to install it by `pip3 install pyyaml`"
+        )
+
+    try:
+        import deepdiff
+
+        ok("python module deepdiff detected")
+    except Exception as err:
+        fail(
+            "python module deepdiff not detected, try to install it by `pip3 install deepdiff`"
         )
 
 
@@ -140,6 +166,10 @@ if __name__ == "__main__":
     except Exception as e:
         warn("unable to check go env due to exception %s" % str(e))
     try:
+        check_kubectl_env()
+    except Exception as e:
+        warn("unable to check kubectl env due to exception %s" % str(e))
+    try:
         check_kind_env()
     except Exception as e:
         warn("unable to check kind env due to exception %s" % str(e))
@@ -147,7 +177,7 @@ if __name__ == "__main__":
         check_python_env()
     except Exception as e:
         warn("unable to check python env due to exception %s" % str(e))
-    try:
-        check_sqlite_env()
-    except Exception as e:
-        warn("unable to check sqlite env due to exception %s" % str(e))
+    # try:
+    #     check_sqlite_env()
+    # except Exception as e:
+    #     warn("unable to check sqlite env due to exception %s" % str(e))
