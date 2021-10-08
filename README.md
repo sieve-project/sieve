@@ -55,10 +55,10 @@ You can run `python3 check_env.py` to check whether your environment meets the r
 ### Getting started
 Users need to port the controller before testing it with Sieve. Basically, users need to provide the steps to build and deploy the controller and necessary configuration files (e.g., CRD yaml files). We list the detailed porting steps [here](docs/port.md). We are actively working on simplify the porting process.
 
-## Bugs found by Sieve
+### Bugs found by Sieve
 Sieve has found over 30 bugs in 9 different controllers, which are listed [here](docs/bugs.md). We also provide [steps](docs/reprod.md) to reproduce all the atomicity-violation/observability-gaps/time-travel bugs found by Sieve. We would appreciate a lot if you mention Sieve and inform us when you report bugs found by Sieve.
 
-## Learn more
+### Learn more
 You can learn more about Sieve from the following research paper:
 * [**Reasoning about modern datacenter infrastructures using partial histories**](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. To appear, In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
