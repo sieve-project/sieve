@@ -15,6 +15,18 @@ github_link = {
     "nifikop-operator": "https://github.com/Orange-OpenSource/nifikop.git",
 }
 
+sha = {
+    "cassandra-operator": "fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd",
+    "zookeeper-operator": "cda03d2f270bdfb51372192766123904f6d88278",
+    "rabbitmq-operator": "4f13b9a942ad34fece0171d2174aa0264b10e947",
+    "mongodb-operator": "c12b69e2c41efc67336a890039394250420f60bb",
+    "cass-operator": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
+    "casskop-operator": "f87c8e05c1a2896732fc5f3a174f1eb99e936907",
+    "xtradb-operator": "29092c9b145af6eaf5cbff534287483bec4167b6",
+    "yugabyte-operator": "966ef1978ed5d714119548b2c4343925fe49f882",
+    "nifikop-operator": "1546e0242107bf2f2c1256db50f47c79956dd1c6",
+}
+
 app_dir = {
     "cassandra-operator": "app/cassandra-operator",
     "zookeeper-operator": "app/zookeeper-operator",
@@ -27,6 +39,42 @@ app_dir = {
     "nifikop-operator": "app/nifikop-operator",
 }
 
+controller_runtime_version = {
+    "cassandra-operator": "v0.4.0",
+    "zookeeper-operator": "v0.5.2",
+    "rabbitmq-operator": "v0.8.3",
+    "mongodb-operator": "v0.5.2",
+    "cass-operator": "v0.5.2",
+    "casskop-operator": "v0.6.0",
+    "xtradb-operator": "v0.6.2",
+    "yugabyte-operator": "v0.5.2",
+    "nifikop-operator": "v0.7.2",
+}
+
+client_go_version = {
+    "cassandra-operator": "v0.0.0-20190918160344-1fbdaa4c8d90",
+    "zookeeper-operator": "v0.17.2",
+    "rabbitmq-operator": "v0.20.2",
+    "mongodb-operator": "v0.17.2",
+    "cass-operator": "v0.17.4",
+    "casskop-operator": "v0.18.2",
+    "xtradb-operator": "v0.18.6",
+    "yugabyte-operator": "v0.17.4",
+    "nifikop-operator": "v0.20.2",
+}
+
+docker_file = {
+    "cassandra-operator": "docker/cassandra-operator/Dockerfile",
+    "zookeeper-operator": "Dockerfile",
+    "rabbitmq-operator": "Dockerfile",
+    "mongodb-operator": "build/Dockerfile",
+    "cass-operator": "operator/docker/base/Dockerfile",
+    "casskop-operator": "build/Dockerfile",
+    "xtradb-operator": "build/Dockerfile",
+    "yugabyte-operator": "build/Dockerfile",
+    "nifikop-operator": "Dockerfile",
+}
+
 test_dir = {
     "cassandra-operator": "test-cassandra-operator",
     "zookeeper-operator": "test-zookeeper-operator",
@@ -37,18 +85,6 @@ test_dir = {
     "xtradb-operator": "test-xtradb-operator",
     "yugabyte-operator": "test-yugabyte-operator",
     "nifikop-operator": "test-nifikop-operator",
-}
-
-test_dir_test = {
-    "cassandra-operator": os.path.join(test_dir["cassandra-operator"], "test"),
-    "zookeeper-operator": os.path.join(test_dir["zookeeper-operator"], "test"),
-    "rabbitmq-operator": os.path.join(test_dir["rabbitmq-operator"], "test"),
-    "mongodb-operator": os.path.join(test_dir["mongodb-operator"], "test"),
-    "cass-operator": os.path.join(test_dir["cass-operator"], "test"),
-    "casskop-operator": os.path.join(test_dir["casskop-operator"], "test"),
-    "xtradb-operator": os.path.join(test_dir["xtradb-operator"], "test"),
-    "yugabyte-operator": os.path.join(test_dir["yugabyte-operator"], "test"),
-    "nifikop-operator": os.path.join(test_dir["nifikop-operator"], "test"),
 }
 
 test_suites = {
@@ -199,54 +235,6 @@ operator_pod_label = {
     "xtradb-operator": "xtradb-operator",
     "yugabyte-operator": "yugabyte-operator",
     "nifikop-operator": "nifikop-operator",
-}
-
-controller_runtime_version = {
-    "cassandra-operator": "v0.4.0",
-    "zookeeper-operator": "v0.5.2",
-    "rabbitmq-operator": "v0.8.3",
-    "mongodb-operator": "v0.5.2",
-    "cass-operator": "v0.5.2",
-    "casskop-operator": "v0.6.0",
-    "xtradb-operator": "v0.6.2",
-    "yugabyte-operator": "v0.5.2",
-    "nifikop-operator": "v0.7.2",
-}
-
-client_go_version = {
-    "cassandra-operator": "v0.0.0-20190918160344-1fbdaa4c8d90",
-    "zookeeper-operator": "v0.17.2",
-    "rabbitmq-operator": "v0.20.2",
-    "mongodb-operator": "v0.17.2",
-    "cass-operator": "v0.17.4",
-    "casskop-operator": "v0.18.2",
-    "xtradb-operator": "v0.18.6",
-    "yugabyte-operator": "v0.17.4",
-    "nifikop-operator": "v0.20.2",
-}
-
-sha = {
-    "cassandra-operator": "fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd",
-    "zookeeper-operator": "cda03d2f270bdfb51372192766123904f6d88278",
-    "rabbitmq-operator": "4f13b9a942ad34fece0171d2174aa0264b10e947",
-    "mongodb-operator": "c12b69e2c41efc67336a890039394250420f60bb",
-    "cass-operator": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
-    "casskop-operator": "f87c8e05c1a2896732fc5f3a174f1eb99e936907",
-    "xtradb-operator": "29092c9b145af6eaf5cbff534287483bec4167b6",
-    "yugabyte-operator": "966ef1978ed5d714119548b2c4343925fe49f882",
-    "nifikop-operator": "1546e0242107bf2f2c1256db50f47c79956dd1c6",
-}
-
-docker_file = {
-    "cassandra-operator": "docker/cassandra-operator/Dockerfile",
-    "zookeeper-operator": "Dockerfile",
-    "rabbitmq-operator": "Dockerfile",
-    "mongodb-operator": "build/Dockerfile",
-    "cass-operator": "operator/docker/base/Dockerfile",
-    "casskop-operator": "build/Dockerfile",
-    "xtradb-operator": "build/Dockerfile",
-    "yugabyte-operator": "build/Dockerfile",
-    "nifikop-operator": "Dockerfile",
 }
 
 

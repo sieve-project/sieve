@@ -1,17 +1,13 @@
 ## Bug Reproduction
 
-**Before reproducing the bugs, please ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work.**
+**Before reproducing the bugs**, please ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work, and set `docker_repo` in your `sieve_config.json` to `ghcr.io/sieve-project/action` (the default value).
 
-**Before reproducing the bugs, please first set**
-```
-export SIEVE_IMAGE="ghcr.io/sieve-project/action"
-```
 
 ### Atomicity violation
 
 ### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
 ```
-python3 reprod.py -p rabbitmq-operator -b atom-vio-1 -d SIEVE_IMAGE
+python3 reprod.py -p rabbitmq-operator -b atom-vio-1
 ```
 If reproduced, you will see:
 ```
@@ -23,7 +19,7 @@ The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [orange-opensource-nifikop-130](https://github.com/Orange-OpenSource/nifikop/issues/130)
 ```
-python3 reprod.py -p nifikop-operator -b atom-vio-1 -d SIEVE_IMAGE
+python3 reprod.py -p nifikop-operator -b atom-vio-1
 ```
 If reproduced, you will see:
 ```
@@ -34,7 +30,7 @@ The bug was found in commit `1546e0242107bf2f2c1256db50f47c79956dd1c6`.
 
 ### [orange-opensource-casskop-370](https://github.com/Orange-OpenSource/casskop/issues/370)
 ```
-python3 reprod.py -p casskop-operator -b atom-vio-1 -d SIEVE_IMAGE
+python3 reprod.py -p casskop-operator -b atom-vio-1
 ```
 If reproduced, you will see:
 ```
@@ -46,7 +42,7 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
-python3 reprod.py -p cassandra-operator -b obs-gap-1 -d SIEVE_IMAGE
+python3 reprod.py -p cassandra-operator -b obs-gap-1
 ```
 If reproduced, you will find
 ```
@@ -56,7 +52,7 @@ The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
 ### [rabbitmq-cluster-operator-758](https://github.com/rabbitmq/cluster-operator/issues/758)
 ```
-python3 reprod.py -p rabbitmq-operator -b obs-gap-1 -d SIEVE_IMAGE
+python3 reprod.py -p rabbitmq-operator -b obs-gap-1
 ```
 If reproduced, you will see:
 ```
@@ -67,7 +63,7 @@ The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [orange-opensource-casskop-342](https://github.com/Orange-OpenSource/casskop/issues/342)
 ```
-python3 reprod.py -p casskop-operator -b obs-gap-1 -d SIEVE_IMAGE
+python3 reprod.py -p casskop-operator -b obs-gap-1
 ```
 If reproduced, you will see:
 ```
@@ -79,7 +75,7 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 <!-- ### [orange-opensource-casskop-357](https://github.com/Orange-OpenSource/casskop/issues/357)
 todo -->
 <!-- ```
-python3 reprod.py -p casskop-operator -b obs-gap-2 -d SIEVE_IMAGE
+python3 reprod.py -p casskop-operator -b obs-gap-2
 ```
 If reproduced, you will see:
 ```
@@ -91,7 +87,7 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`. -->
 
 ### [yugabyte/yugabyte-operator-39](https://github.com/yugabyte/yugabyte-operator/issues/39)
 ```
-python3 reprod.py -p yugabyte-operator -b obs-gap-1 -d SIEVE_IMAGE
+python3 reprod.py -p yugabyte-operator -b obs-gap-1
 ```
 If reproduced, you will see:
 ```
@@ -104,7 +100,7 @@ This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882`.
 
 ### [instaclustr-cassandra-operator-402](https://github.com/instaclustr/cassandra-operator/issues/402)
 ```
-python3 reprod.py -p cassandra-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p cassandra-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
@@ -116,7 +112,7 @@ The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
 ### [instaclustr-cassandra-operator-407](https://github.com/instaclustr/cassandra-operator/issues/407)
 ```
-python3 reprod.py -p cassandra-operator -b time-travel-2 -d SIEVE_IMAGE
+python3 reprod.py -p cassandra-operator -b time-travel-2
 ```
 If reproduced, you will see:
 ```
@@ -127,7 +123,7 @@ The bug was found in commit `bd8077a478997f63862848d66d4912c59e4c46ff`.
 
 ### [pravega-zookeeper-operator-312](https://github.com/pravega/zookeeper-operator/issues/312)
 ```
-python3 reprod.py -p zookeeper-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p zookeeper-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
@@ -139,7 +135,7 @@ The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 
 ### [pravega-zookeeper-operator-314](https://github.com/pravega/zookeeper-operator/issues/314)
 ```
-python3 reprod.py -p zookeeper-operator -b time-travel-2 -d SIEVE_IMAGE
+python3 reprod.py -p zookeeper-operator -b time-travel-2
 ```
 If reproduced, you will see:
 ```
@@ -149,7 +145,7 @@ The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 
 ### [rabbitmq-cluster-operator-648](https://github.com/rabbitmq/cluster-operator/issues/648)
 ```
-python3 reprod.py -p rabbitmq-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p rabbitmq-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```                                    
@@ -159,7 +155,7 @@ The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [rabbitmq-cluster-operator-653](https://github.com/rabbitmq/cluster-operator/issues/653)
 ```
-python3 reprod.py -p rabbitmq-operator -b time-travel-2 -d SIEVE_IMAGE
+python3 reprod.py -p rabbitmq-operator -b time-travel-2
 ```
 If reproduced, you will see:
 ```
@@ -169,7 +165,7 @@ The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [K8SPSMDB-430](https://jira.percona.com/browse/K8SPSMDB-430)
 ```
-python3 reprod.py -p mongodb-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p mongodb-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
@@ -179,7 +175,7 @@ The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPSMDB-433](https://jira.percona.com/browse/K8SPSMDB-433)
 ```
-python3 reprod.py -p mongodb-operator -b time-travel-2 -d SIEVE_IMAGE
+python3 reprod.py -p mongodb-operator -b time-travel-2
 ```
 If reproduced, you will see:
 ```
@@ -189,7 +185,7 @@ The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPSMDB-438](https://jira.percona.com/browse/K8SPSMDB-438)
 ```
-python3 reprod.py -p mongodb-operator -b time-travel-3 -d SIEVE_IMAGE
+python3 reprod.py -p mongodb-operator -b time-travel-3
 ```
 If reproduced, you will see:
 ```
@@ -199,7 +195,7 @@ The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [K8SPXC-716](https://jira.percona.com/browse/K8SPXC-716)
 ```
-python3 reprod.py -p xtradb-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p xtradb-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
@@ -209,7 +205,7 @@ The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [K8SPXC-725](https://jira.percona.com/browse/K8SPXC-725)
 ```
-python3 reprod.py -p xtradb-operator -b time-travel-2 -d SIEVE_IMAGE
+python3 reprod.py -p xtradb-operator -b time-travel-2
 ```
 If reproduced, you will see:
 ```
@@ -219,7 +215,7 @@ The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [K8SPXC-763](https://jira.percona.com/browse/K8SPXC-763)
 ```
-python3 reprod.py -p xtradb-operator -b time-travel-3 -d SIEVE_IMAGE
+python3 reprod.py -p xtradb-operator -b time-travel-3
 ```
 If reproduced, you will see:
 ```
@@ -230,7 +226,7 @@ The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 <!-- ### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412) -->
 ### [k8ssandra-cass-operator (originally datastax-cass-operator-412)](https://github.com/k8ssandra/cass-operator/issues/118)
 ```
-python3 reprod.py -p cass-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p cass-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
@@ -241,7 +237,7 @@ The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
 
 ### [orange-opensource-casskop-316](https://github.com/Orange-OpenSource/casskop/issues/316)
 ```
-python3 reprod.py -p casskop-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p casskop-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
@@ -252,7 +248,7 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [orange-opensource-casskop-321](https://github.com/Orange-OpenSource/casskop/issues/321)
 ```
-python3 reprod.py -p casskop-operator -b time-travel-2 -d SIEVE_IMAGE
+python3 reprod.py -p casskop-operator -b time-travel-2
 ```
 If reproduced, you will see:
 ```
@@ -262,7 +258,7 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [yugabyte/yugabyte-operator-35](https://github.com/yugabyte/yugabyte-operator/issues/35)
 ```
-python3 reprod.py -p yugabyte-operator -b time-travel-1 -d SIEVE_IMAGE
+python3 reprod.py -p yugabyte-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
@@ -272,7 +268,7 @@ This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882`.
 
 ### [yugabyte/yugabyte-operator-36](https://github.com/yugabyte/yugabyte-operator/issues/36)
 ```
-python3 reprod.py -p yugabyte-operator -b time-travel-2 -d SIEVE_IMAGE
+python3 reprod.py -p yugabyte-operator -b time-travel-2
 ```
 If reproduced, you will see:
 ```
