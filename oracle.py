@@ -2,7 +2,6 @@ import copy
 import kubernetes
 import analyze_util
 import yaml
-import jsondiff as jd
 import json
 import os
 from common import *
