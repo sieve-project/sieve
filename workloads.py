@@ -181,7 +181,7 @@ workloads = {
         .wait(50),
         "disable-enable-arbiter": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-mongodb-operator/test/cr-arbiter.yaml")
-        .wait_for_pod_status("mongodb-cluster-rs0-3", common.RUNNING)
+        .wait_for_pod_status("mongodb-cluster-rs0-3", common.RUNNING, 150)
         .wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", common.RUNNING)
         .cmd(
             'kubectl patch PerconaServerMongoDB mongodb-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/replsets/0/arbiter/enabled", "value": false}]\''
@@ -280,10 +280,10 @@ workloads = {
     "nifikop-operator": {
         "change-config": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f test-nifikop-operator/test/nc.yaml")
-        .wait_for_pod_status("simplenifi-1-*", common.RUNNING)
+        .wait_for_pod_status("simplenifi-1-*", common.RUNNING, 220)
         .cmd("kubectl apply -f test-nifikop-operator/test/nc1.yaml")
         .wait(30)
-        .wait_for_pod_status("simplenifi-1-*", common.RUNNING)
+        .wait_for_pod_status("simplenifi-1-*", common.RUNNING, 120)
         .wait(60),
     },
 }
