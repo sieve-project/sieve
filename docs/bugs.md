@@ -1,7 +1,6 @@
 ## Bugs found:
 
-## [kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
-https://github.com/kubernetes/kubernetes/issues/94437 pending (by-product)
+We list all the bugs found by Sieve here.
 
 ## [instaclustr/cassandra-operator](https://github.com/instaclustr/cassandra-operator)
 https://github.com/instaclustr/cassandra-operator/issues/398 confirmed and fixed by us (observability gaps)
@@ -77,3 +76,6 @@ https://github.com/yugabyte/yugabyte-operator/issues/39 pending (observability g
 
 ## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
 https://github.com/Orange-OpenSource/nifikop/issues/130 confirmed (atomicity violation)
+
+## [kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
+https://github.com/kubernetes/kubernetes/issues/94437 pending (by-product)

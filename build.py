@@ -250,6 +250,54 @@ def setup_controller(
     build_controller(project, img_repo, img_tag)
 
 
+def setup_kubernetes_wrapper(mode, img_repo, img_tag):
+    if mode == "all":
+        for this_mode in [
+            sieve_stages.LEARN,
+            sieve_modes.ATOM_VIO,
+            sieve_modes.OBS_GAP,
+            sieve_modes.TIME_TRAVEL,
+        ]:
+            setup_kubernetes(this_mode, img_repo, img_tag)
+    else:
+        setup_kubernetes(mode, img_repo, img_tag)
+
+
+def setup_controller_wrapper(controller, mode, img_repo, img_tag, sha, build_only):
+    if mode == "all":
+        for this_mode in [
+            sieve_stages.LEARN,
+            sieve_modes.ATOM_VIO,
+            sieve_modes.OBS_GAP,
+            sieve_modes.TIME_TRAVEL,
+        ]:
+            setup_controller(
+                controller,
+                this_mode,
+                img_repo,
+                img_tag,
+                controllers.github_link[controller],
+                sha,
+                controllers.controller_runtime_version[controller],
+                controllers.client_go_version[controller],
+                controllers.docker_file[controller],
+                build_only,
+            )
+    else:
+        setup_controller(
+            controller,
+            mode,
+            img_repo,
+            img_tag,
+            controllers.github_link[controller],
+            sha,
+            controllers.controller_runtime_version[controller],
+            controllers.client_go_version[controller],
+            controllers.docker_file[controller],
+            build_only,
+        )
+
+
 if __name__ == "__main__":
     usage = "usage: python3 build.py [options]"
     parser = optparse.OptionParser(usage=usage)
@@ -308,6 +356,7 @@ if __name__ == "__main__":
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
         sieve_stages.LEARN,
+        sieve_modes.ALL,
     ]:
         parser.error("invalid build mode option: %s" % options.mode)
 
@@ -318,32 +367,24 @@ if __name__ == "__main__":
     )
     img_tag = options.mode
     if options.project == "kubernetes":
-        setup_kubernetes(options.mode, img_repo, img_tag)
+        setup_kubernetes_wrapper(options.mode, img_repo, img_tag)
     elif options.project == "all":
         for controller in controllers.github_link:
-            setup_controller(
+            setup_controller_wrapper(
                 controller,
                 options.mode,
                 img_repo,
                 img_tag,
-                controllers.github_link[controller],
                 controllers.sha[controller],
-                controllers.controller_runtime_version[controller],
-                controllers.client_go_version[controller],
-                controllers.docker_file[controller],
                 options.build_only,
             )
     else:
         sha = options.sha if options.sha != "none" else controllers.sha[options.project]
-        setup_controller(
+        setup_controller_wrapper(
             options.project,
             options.mode,
             img_repo,
             img_tag,
-            controllers.github_link[options.project],
             sha,
-            controllers.controller_runtime_version[options.project],
-            controllers.client_go_version[options.project],
-            controllers.docker_file[options.project],
             options.build_only,
         )

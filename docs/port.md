@@ -1,52 +1,89 @@
-## Port a new operator:
-In general, you will need to fill the entries in https://github.com/sieve-project/sieve/blob/main/controllers.py and prepare some Dockerfile, build scripts, deploy scripts and test scripts.
+## Port a new controller:
+To facilitate Sieve testing, you will need to fill some entries in [controllers.py](../controllers.py) and provide steps to build and deploy the controller.
+
+First of all, please create a `sieve_config.json` and specify the docker repo that you can push to:
+```
+{
+    "docker_repo": "YOUR_REPO"
+}
+```
+Sieve will push the controller and Kubernetes images to this repo.
+
+Please also create the following directory for your controller (just like [test-zookeeper-operator](../test-zookeeper-operator)):
+```
+test-your-operator
+  |- build
+  |- deploy
+  |- test
+```
+The necessary files for porting will be placed in the directory.
 
 ### Build
-The first thing is to be able to build the operator image.
+The first step is to make Sieve able to build the controller image.
 
-What you need to do is to slightly modify the Dockerfile to also copy the sieve library into the build image. See [zookeeper-operator](https://github.com/sieve-project/sieve/blob/4ccc3da5e6d528d52b375be067160bbc052d49b5/test-zookeeper-operator/build/Dockerfile#L17)
+You need to copy the `Dockerfile` (for building the controller image) to `test-your-operator/build`. You also need to ensure that the `Dockerfile` will copy the source files automatically added by Sieve. As an example, see the [`Dockerfile`](../test-zookeeper-operator/build/Dockerfile#L17) we prepared for the zookeeper-operator.
 
-Besides, you need to prepare a `build.sh` that builds an image and pushes it to your docker repo.
-As an example, here is the modified Dockerfile and `build.sh` for the [zookeeper-operator](https://github.com/sieve-project/sieve/tree/main/test-zookeeper-operator/build).
-Your Dockerfile will replace the original one, and the `build.sh` will be run in the operator directory to build the image. These are done by `build.py`, and you only need to specify related entries in `controllers.py`. Instrumentation will also be automatically done by `build.py` according to the mode you specify.
+Besides, you need to prepare a `build.sh` that builds the docker image and pushes to a remote docker repo in `test-your-operator/build`. The script should take two arguments: the first is the docker repo name and the second is the image tag.
+As an example, refer to the [`build.sh`](../test-zookeeper-operator/build/build.sh) we prepared for the zookeeper-operator.
+
+After that, please fill in the following entries in [controllers.py](../controllers.py)
+- `github_link`: github link to clone your controller
+- `sha`: the commit of the controller you want to test
+- `controller_runtime_version`: the version of the `controller_runtime` used by your controller
+- `client_go_version`: the version of the `client_go` used by your controller
+- `app_dir`: the location to clone the controller to
+- `test_dir`: the directory you just created
+- `docker_file`: the location of the `Dockerfile` in your controller repo
+
+Now run `python3 build.py -p your-operator -m learn`. This command will instrument the controller (specifically `controller_runtime` and `client_go`), replace the original `Dockerfile` with the one you modified, build the controller image using the `build.sh` and push the image to your docker repo. The image will be used later.
+
 
 ### Deploy
-The second step is to be able to deploy (or install) the (instrumented) operator in your kind cluster.
+The second step is to make Sieve able to deploy the controller in a kind cluster.
 
-Concretely, deploying the operator often requires to install the CRDs and related RBAC config. For example, `kubectl create -f deploy/crds` and `kubectl create -f deploy/default_ns/rbac.yaml` for the [zookeeper-operator](https://github.com/pravega/zookeeper-operator#manual-deployment).
+You need to copy the necessary files (for installing the controller deployment, CRDs and other resources) to `test-your-operator/deploy`.
 
-For a new controller, you need to modify the deployment config of the operator to do the following:
-1. Add a label: `sievetag: YOUR_OPERATOR_NAME`. So sieve can later find the pod. See [zookeeper-operator](https://github.com/sieve-project/sieve/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L10).
-2. Replace the operator image repo name with `${SIEVE-DR}`, and replace the tag with `${SIEVE-DT}`. So sieve can use the right image when running the tests. See [zookeeper-operator](https://github.com/sieve-project/sieve/blob/b4abe83426d5e2f4564563effe6ea380ae2831b8/test-zookeeper-operator/deploy/default_ns/operator.yaml#L21).
-3. Specify env variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT` and import configmap `sieve-testing-global-config` in the yaml file. See [zookeeper-operator](https://github.com/sieve-project/sieve-issue-only/blob/481de8a61b8362f96dbf0e46c8dfe150ae786fbd/test-zookeeper-operator/deploy/default_ns/operator.yaml#L39).
-4. Set `imagePullPolicy` for the operator container to be `IfNotPresent` (for CI run). See [zookeeper-operator](https://github.com/sieve-project/sieve-issue-only/blob/481de8a61b8362f96dbf0e46c8dfe150ae786fbd/test-zookeeper-operator/deploy/default_ns/operator.yaml#L27)
+You also need to modify the controller deployment a little bit so that Sieve can properly inject fault
+- Add a label: `sievetag: YOUR_OPERATOR_NAME`. So sieve can find the pod during testing. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L10).
+- Set the controller image repo name to `${SIEVE-DR}`, and set the image tag to `${SIEVE-DT}`. So sieve can switch to different images when testing different bug patterns. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L21).
+- Import configmap `sieve-testing-global-config` as Sieve needs to pass some some configurations to the instrumented controller. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L44).
+- Specify env variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`. This is used for testing time-traveling bugs. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L39).
+- Optional: Set `imagePullPolicy` to `IfNotPresent` (for CI run). See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L27)
 
-See https://github.com/sieve-project/sieve/blob/main/test-zookeeper-operator/deploy/default_ns/operator.yaml as a complete example.
-After figuring out how to deploy the operator, write them down in `controllers.py` as the [zookeeper-operator](https://github.com/sieve-project/sieve/blob/32c003016cb95e05487b9609115efa6325a36606/controllers.py#L155).
+After that, please define the function to deploy the controller in [controllers.py](../controllers.py) and fill the function in `deploy`. See the example `zookeeper_operator_deploy`.
+
+Please also specify the following entries in [controllers.py](../controllers.py)
+- `deployment_name`: the name of the controller deployment
+- `operator_pod_label`: the label of the controller pod you just specified. Sieve needs the information to find the pod during testing.
 
 ### Test
-The final step is to prepare the test workloads, and sieve learning mode will automatically generate the time-travel config for the workload. The workload is often simple -- create/delete/create some resources, scale down/up some resources, or disable/enable some features in the spec. We provide a framework to write test workload. See examples in https://github.com/sieve-project/sieve/blob/main/workloads.py.
+The last step is to prepare the test workloads and make Sieve able to run the test workload.
 
-Besides, you can also specify a command line to run the test workload in https://github.com/sieve-project/sieve/blob/main/controllers.py.
+You can provide a bash script to start the test workload, or implement the test workload using our `test_framework` API (see the examples in `workloads.py`). Besides, please also copy any test-related files into `test-your-operator/test`.
 
-After writing the workload, register it in `controllers.py` like the [zookeeper-operator](https://github.com/sieve-project/sieve/blob/4ccc3da5e6d528d52b375be067160bbc052d49b5/controllers.py#L71).
-After that, build the learning mode images
+After that, please fill in the entries in [controllers.py](../controllers.py)
+- `test_suites`: the test workloads provided by you. You can also specify the number of apiservers and workers your controller needs.
+- `CRDs`: the CRD managed by your controllers. Please ensure they are specified in lower-case. Sieve needs the information to learn the related events in learning stage.
+
+
+Now you are all set.
+To test your controllers, just build the image:
 ```
-python3 build.py -p kubernetes -m learn -d YOUR_DOCKER_REPO_NAME
-python3 build.py -p YOUR_OPERATOR_NAME -m learn -d YOUR_DOCKER_REPO_NAME
+python3 build.py -p k8s -m all
+python3 build.py -p your_operator -m all
 ```
-Run the learning mode
+First run Sieve learning stage
 ```
-python3 sieve.py -p YOUR_OPERATOR_NAME -m learn -t YOUR_TEST_NAME
+python3 sieve.py -p your_operator -t your_test_suite_name -s learn -m learn-twice
 ```
-You will get some config files generated by sieve in `log/YOUR_OPERATOR_NAME/YOUR_TEST_NAME/learn/generated-config`.
-To test them all, run
+Sieve will learn the promising fault injection points for atomicity-violations, observability-gaps and time-traveling testing, and encode them into yaml files stored in `log/your_operator/your_test_suite_name/learn/learn-once/{atomicity-violation, observability-gaps, time-travel}`.
+If you want to test all the atomicity-violation injection points, just run:
 ```
-python3 sieve.py -p YOUR_OPERATOR_NAME -t YOUR_TEST_NAME -b
+python3 sieve.py -p your_operator -t your_test_suite_name -s test -m atom-vio -b
 ```
-to test one of them (which you think is more promising)
+to test one of the injection point:
 ```
-python3 sieve.py -p YOUR_OPERATOR_NAME -t YOUR_TEST_NAME -c YOUR_FAVOURITE_CONFIG
+python3 sieve.py -p your_operator -t your_test_suite_name -s test -m atom-vio -c path_to_your_injection_file
 ```
-Usually, if you can see `[ERROR]` in stdout, it indicates a bug.
+Sieve will report any bugs it find at the end of the testing.
 
