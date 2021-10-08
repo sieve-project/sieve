@@ -444,7 +444,7 @@ class BuiltInWorkLoad:
                 return_code, error_message = work.run(mode)
                 print(datetime.datetime.now())
                 if return_code != 0:
-                    f.write(error_message + "\n")
+                    f.write("error: " + error_message + "\n")
                     if return_code == -2:
                         return
             f.write("FINISH-SIEVE-TEST\n")

@@ -346,8 +346,9 @@ def check_workload_log(workload_log):
     bug_report = NO_ERROR_MESSAGE
     file = open(workload_log)
     for line in file.readlines():
-        alarm += 1
-        bug_report += "[ERROR][WORKLOAD] %s" % line
+        if line.startswith("error:"):
+            alarm += 1
+            bug_report += "[ERROR][WORKLOAD] %s" % line
     return alarm, bug_report
 
 
