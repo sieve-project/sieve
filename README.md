@@ -61,4 +61,4 @@ Sieve has found over 30 bugs in 9 different controllers, which are listed [here]
 ### Learn more
 You can learn more about Sieve from the following research paper:
 * **Reasoning about modern datacenter infrastructures using partial histories** \[[paper](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf)\] \[[video](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB)\] <br>
-Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. To appear, In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
+Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
