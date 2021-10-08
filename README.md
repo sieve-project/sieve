@@ -59,6 +59,12 @@ Users need to port the controller before testing it with Sieve. Basically, users
 Sieve has found over 30 bugs in 9 different controllers, which are listed [here](docs/bugs.md). We also provide [steps](docs/reprod.md) to reproduce all the atomicity-violation/observability-gaps/time-travel bugs found by Sieve. We would appreciate a lot if you mention Sieve and inform us when you report bugs found by Sieve.
 
 ### Learn more
-You can learn more about Sieve from the following research paper:
-* **Reasoning about modern datacenter infrastructures using partial histories** \[[paper](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf)\] \[[video](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB)\] <br>
+You can learn more about Sieve from the following references:
+
+Talks:
+* KubeCon 2021 (to appear)
+* [HotOS 2021](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB) (10 minutes)
+
+Research papers:
+* [Reasoning about modern datacenter infrastructures using partial histories](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
