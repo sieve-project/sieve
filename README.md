@@ -26,7 +26,7 @@ The high-level architecture is shown as below.
   <img src="https://github.com/sieve-project/sieve/blob/readme/docs/sieve-arch.png"  width="70%"/>
 </p>
 
-Note that Sieve is still at the early stage as a prototype. The tool might not be user-friendly enough due to potential bugs and lack of documentation. We are working hard to address these issues and add new features. Hopefully we will release Sieve as a production-quality software in the near future.
+Note that Sieve is still at the **early stage as a prototype**. The tool might not be user-friendly enough due to potential bugs and lack of documentation. We are working hard to address these issues and add new features. Hopefully we will release Sieve as a production-quality software in the near future.
 
 We welcome any users who want to test their controllers using Sieve and we are more than happy to help you port and test your controllers.
 
@@ -50,7 +50,7 @@ We welcome any users who want to test their controllers using Sieve and we are m
 <!-- * [sqlite3](https://help.dreamhost.com/hc/en-us/articles/360028047592-Installing-a-custom-version-of-SQLite3) (>=3.32) installed -->
 <!-- Note: sqlite3 is not required if you want to only reproduce the bugs. -->
 
-You can simply run `python3 check_env.py` to check whether your environment meets the requirement.
+You can run `python3 check_env.py` to check whether your environment meets the requirement.
 
 ### Getting started
 Users need to port the controller before testing it with Sieve. Basically, users need to provide the steps to build and deploy the controller and necessary configuration files (e.g., CRD yaml files). We list the detailed porting steps [here](docs/port.md). We are actively working on simplify the porting process.
