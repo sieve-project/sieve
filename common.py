@@ -69,6 +69,7 @@ class sieve_modes:
     VANILLA = "vanilla"
     LEARN_ONCE = "learn-once"
     LEARN_TWICE = "learn-twice"
+    ALL = "all"
     NONE = "none"
 
 
