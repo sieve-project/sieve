@@ -23,7 +23,7 @@ To use Sieve, developers need to port their controllers and provide end-to-end t
 The high-level architecture is shown as below.
 
 <p align="center">
-  <img src="https://github.com/sieve-project/sieve/blob/readme/docs/sieve-arch.png"/>
+  <img src="https://github.com/sieve-project/sieve/blob/readme/docs/sieve-arch.png"  width="70%"/>
 </p>
 
 Note that Sieve is still at the early stage as a prototype. The tool might not be user-friendly enough due to potential bugs and lack of documentation. We are working hard to address these issues and add new features. Hopefully we will release Sieve as a production-quality software in the near future.
