@@ -1,5 +1,5 @@
 ## Port a new controller:
-To facilitate Sieve testing, you will need to fill some entries in [controllers.py](controllers.py) and provide steps to build and deploy the controller.
+To facilitate Sieve testing, you will need to fill some entries in [controllers.py](../controllers.py) and provide steps to build and deploy the controller.
 
 First of all, please create a `sieve_config.json` and specify the docker repo that you can push to:
 ```
@@ -9,24 +9,24 @@ First of all, please create a `sieve_config.json` and specify the docker repo th
 ```
 Sieve will push the controller and Kubernetes images to this repo.
 
-Please also create the following directory for your controller (just like [test-zookeeper-operator](test-zookeeper-operator)):
+Please also create the following directory for your controller (just like [test-zookeeper-operator](../test-zookeeper-operator)):
 ```
 test-your-operator
-  |_ build
-  |_ deploy
-  |_ test
+  |- build
+  |- deploy
+  |- test
 ```
 The necessary files for porting will be placed in the directory.
 
 ### Build
 The first step is to make Sieve able to build the controller image.
 
-You need to copy the `Dockerfile` (for building the controller image) to `test-your-operator/build`. You also need to ensure that the `Dockerfile` will copy the source files automatically added by Sieve. As an example, see the [`Dockerfile`](test-zookeeper-operator/build/Dockerfile#L17) we prepared for the zookeeper-operator.
+You need to copy the `Dockerfile` (for building the controller image) to `test-your-operator/build`. You also need to ensure that the `Dockerfile` will copy the source files automatically added by Sieve. As an example, see the [`Dockerfile`](../test-zookeeper-operator/build/Dockerfile#L17) we prepared for the zookeeper-operator.
 
 Besides, you need to prepare a `build.sh` that builds the docker image and pushes to a remote docker repo in `test-your-operator/build`. The script should take two arguments: the first is the docker repo name and the second is the image tag.
-As an example, refer to the [`build.sh`](test-zookeeper-operator/build/build.sh) we prepared for the zookeeper-operator.
+As an example, refer to the [`build.sh`](../test-zookeeper-operator/build/build.sh) we prepared for the zookeeper-operator.
 
-After that, please fill in the following entries in [controllers.py](controllers.py)
+After that, please fill in the following entries in [controllers.py](../controllers.py)
 - `github_link`: github link to clone your controller
 - `sha`: the commit of the controller you want to test
 - `controller_runtime_version`: the version of the `controller_runtime` used by your controller
@@ -44,15 +44,15 @@ The second step is to make Sieve able to deploy the controller in a kind cluster
 You need to copy the necessary files (for installing the controller deployment, CRDs and other resources) to `test-your-operator/deploy`.
 
 You also need to modify the controller deployment a little bit so that Sieve can properly inject fault
-- Add a label: `sievetag: YOUR_OPERATOR_NAME`. So sieve can find the pod during testing. See [this example](test-zookeeper-operator/deploy/default_ns/operator.yaml#L10).
-- Set the controller image repo name to `${SIEVE-DR}`, and set the image tag to `${SIEVE-DT}`. So sieve can switch to different images when testing different bug patterns. See [this example](test-zookeeper-operator/deploy/default_ns/operator.yaml#L21).
-- Import configmap `sieve-testing-global-config` as Sieve needs to pass some some configurations to the instrumented controller. See [this example](test-zookeeper-operator/deploy/default_ns/operator.yaml#L44).
-- Specify env variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`. This is used for testing time-traveling bugs. See [this example](test-zookeeper-operator/deploy/default_ns/operator.yaml#L39).
-- Optional: Set `imagePullPolicy` to `IfNotPresent` (for CI run). See [this example](test-zookeeper-operator/deploy/default_ns/operator.yaml#L27)
+- Add a label: `sievetag: YOUR_OPERATOR_NAME`. So sieve can find the pod during testing. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L10).
+- Set the controller image repo name to `${SIEVE-DR}`, and set the image tag to `${SIEVE-DT}`. So sieve can switch to different images when testing different bug patterns. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L21).
+- Import configmap `sieve-testing-global-config` as Sieve needs to pass some some configurations to the instrumented controller. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L44).
+- Specify env variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`. This is used for testing time-traveling bugs. See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L39).
+- Optional: Set `imagePullPolicy` to `IfNotPresent` (for CI run). See [this example](../test-zookeeper-operator/deploy/default_ns/operator.yaml#L27)
 
-After that, please define the function to deploy the controller in [controllers.py](controllers.py) and fill the function in `deploy`. See the example `zookeeper_operator_deploy`.
+After that, please define the function to deploy the controller in [controllers.py](../controllers.py) and fill the function in `deploy`. See the example `zookeeper_operator_deploy`.
 
-Please also specify the following entries in [controllers.py](controllers.py)
+Please also specify the following entries in [controllers.py](../controllers.py)
 - `deployment_name`: the name of the controller deployment
 - `operator_pod_label`: the label of the controller pod you just specified. Sieve needs the information to find the pod during testing.
 
@@ -61,7 +61,7 @@ The last step is to prepare the test workloads and make Sieve able to run the te
 
 You can provide a bash script to start the test workload, or implement the test workload using our `test_framework` API (see the examples in `workloads.py`). Besides, please also copy any test-related files into `test-your-operator/test`.
 
-After that, please fill in the entries in [controllers.py](controllers.py)
+After that, please fill in the entries in [controllers.py](../controllers.py)
 - `test_suites`: the test workloads provided by you. You can also specify the number of apiservers and workers your controller needs.
 - `CRDs`: the CRD managed by your controllers. Please ensure they are specified in lower-case. Sieve needs the information to learn the related events in learning stage.
 

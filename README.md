@@ -20,7 +20,11 @@ Sieve is a tool to help developers test their controllers by injecting various f
 
 To use Sieve, developers need to port their controllers and provide end-to-end test cases (see [Getting started](#getting-started) for more information). Sieve will automatically instrument the controller by intercepting the event handlers in `client-go` and `controller-runtime`. Sieve runs in two stages: in the learning stage, Sieve will learn the specific timing and place for promising fault injections by analyzing the event trace collected by the instrumentation; in the testing stage, Sieve will perform the fault injection accordingly to trigger potential bugs.
 
-The high-level architecture is shown as below
+The high-level architecture is shown as below.
+
+<p align="center">
+  <img src="https://github.com/sieve-project/sieve/blob/readme/docs/sieve-arch.png"/>
+</p>
 
 Note that Sieve is still at the early stage as a prototype. The tool might not be user-friendly enough due to potential bugs and lack of documentation. We are working hard to address these issues and add new features. Hopefully we will release Sieve as a production-quality software in the near future.
 
@@ -46,10 +50,7 @@ We welcome any users who want to test their controllers using Sieve and we are m
 <!-- * [sqlite3](https://help.dreamhost.com/hc/en-us/articles/360028047592-Installing-a-custom-version-of-SQLite3) (>=3.32) installed -->
 <!-- Note: sqlite3 is not required if you want to only reproduce the bugs. -->
 
-To check for those requirements, you can simply run the following script on the project's root directory,
-```shell
-python3 check_env.py
-```
+You can simply run `python3 check_env.py` to check whether your environment meets the requirement.
 
 ### Getting started
 Users need to port the controller before testing it with Sieve. Basically, users need to provide the steps to build and deploy the controller and necessary configuration files (e.g., CRD yaml files). We list the detailed porting steps [here](docs/port.md). We are actively working on simplify the porting process.
