@@ -9,16 +9,16 @@
 1. [Overview](#overview)
 2. [Testing approaches](#testing-approaches)
 3. [Pre-requisites for use](#pre-requisites-for-use)
-4. [Quick start](#quick-start)
+4. [Getting started](#getting-started)
 5. [Bugs found by Sieve](#bugs-found-by-sieve)
 6. [Learn more](#learn-more)
 
 ### Overview
-The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, the controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety violations, such as incorrectly deleting StatefulSets and PVCs. Controller-developers unfortunately lack automated testing tools to harden their code against these conditions.
+The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, the controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety violations.
 
 Sieve is a tool to help developers test their controllers by injecting various faults and detect dormant bugs during development. Sieve does not require the developers to modify the controller and can reliably reproduce the bugs it finds.
 
-To use Sieve, developers need to port their controllers (mainly provide configuration files) and provide end-to-end test cases (see [port.md](https://github.com/sieve-project/sieve/blob/main/docs/port.md) for more information). Sieve will automatically instrument the controller by intercepting the event handlers in `client-go` and `controller-runtime`. Sieve runs in two stages: in the learning stage, Sieve will learn the specific timing and place for promising fault injections by analyzing the event trace collected by the instrumentation; in the testing stage, Sieve will perform the fault injection accordingly to trigger potential bugs.
+To use Sieve, developers need to port their controllers and provide end-to-end test cases (see [Getting started](#getting-started) for more information). Sieve will automatically instrument the controller by intercepting the event handlers in `client-go` and `controller-runtime`. Sieve runs in two stages: in the learning stage, Sieve will learn the specific timing and place for promising fault injections by analyzing the event trace collected by the instrumentation; in the testing stage, Sieve will perform the fault injection accordingly to trigger potential bugs.
 
 The high-level architecture is shown as below
 
@@ -51,13 +51,13 @@ To check for those requirements, you can simply run the following script on the 
 python3 check_env.py
 ```
 
-### Start to port your controller
-Users need to port the controller before testing it with Sieve. Basically, users need to provide the steps to build and deploy the controller and necessary configuration files (e.g., CRD yaml files). We list the detailed porting steps here https://github.com/sieve-project/sieve/blob/main/docs/port.md. We are actively working on simplify the porting process.
+### Getting started
+Users need to port the controller before testing it with Sieve. Basically, users need to provide the steps to build and deploy the controller and necessary configuration files (e.g., CRD yaml files). We list the detailed porting steps [here](docs/port.md). We are actively working on simplify the porting process.
 
-## Bugs found by sieve:
-Sieve has found over 30 bugs in 9 different controllers, which are listed here https://github.com/sieve-project/sieve/blob/main/docs/bugs.md. We also provide steps to reproduce all the atomicity-violation/observability-gaps/time-travel bugs found by Sieve so far https://github.com/sieve-project/sieve/blob/main/docs/reprod.md. We would appreciate a lot if you mention Sieve and inform us when you report bugs found by Sieve.
+## Bugs found by Sieve
+Sieve has found over 30 bugs in 9 different controllers, which are listed [here](docs/bugs.md). We also provide [steps](docs/reprod.md) to reproduce all the atomicity-violation/observability-gaps/time-travel bugs found by Sieve. We would appreciate a lot if you mention Sieve and inform us when you report bugs found by Sieve.
 
 ## Learn more
 You can learn more about Sieve from the following research paper:
-* [**Reasoning about modern datacenter infrastructures using partial histories**](https://github.com/sieve-project/sieve/blob/main/docs/paper-hotos.pdf) <br>
+* [**Reasoning about modern datacenter infrastructures using partial histories**](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. To appear, In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
