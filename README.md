@@ -1,9 +1,9 @@
 # Sieve: Automated, Distributed Systems Testing for Kubernetes Controllers
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![Image Build](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml)
-[![Test](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml)
-[![Daily Integration](https://github.com/sieve-project/sieve/actions/workflows/sieve-daily.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-daily.yml)
+[![Kubernetes Image Build](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml)
+[![Sieve Test](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml)
+[![Sieve Daily Integration](https://github.com/sieve-project/sieve/actions/workflows/sieve-daily.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-daily.yml)
 
 ## Sieve
 1. [Overview](#overview)
