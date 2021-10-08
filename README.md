@@ -14,7 +14,7 @@
 6. [Learn more](#learn-more)
 
 ### Overview
-The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, the controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety violations.
+The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, the controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety and liveness violations.
 
 Sieve is a tool to help developers test their controllers by injecting various faults and detect dormant bugs during development. Sieve does not require the developers to modify the controller and can reliably reproduce the bugs it finds.
 
@@ -60,5 +60,5 @@ Sieve has found over 30 bugs in 9 different controllers, which are listed [here]
 
 ### Learn more
 You can learn more about Sieve from the following research paper:
-* [**Reasoning about modern datacenter infrastructures using partial histories**](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
+* **Reasoning about modern datacenter infrastructures using partial histories** \[[paper](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf)\] \[[video](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB)\] <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. To appear, In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
