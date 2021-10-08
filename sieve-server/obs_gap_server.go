@@ -106,7 +106,7 @@ func (s *obsGapServer) NotifyObsGapAfterIndexerWrite(request *sieve.NotifyObsGap
 	// If we are inside pausing, then we check for target event which can cancel the crucial one
 	log.Println("NotifyObsGapAfterIndexerWrite", s.pausingReconcile)
 	if s.pausingReconcile {
-		if request.OperationType == "Deleted" || conflictingEvent(s.diffCurEvent, currentEvent) {
+		if conflictingEvent(s.ceEtype, request.OperationType, s.diffCurEvent, currentEvent) {
 			// TODO: we should also consider the corner case where s.diffCurEvent == {}
 			log.Printf("[sieve] we met the cancel event %s, reconcile is resumed\n", request.OperationType)
 			log.Println("NotifyObsGapAfterIndexerWrite", request.OperationType, request.ResourceType, request.Object)

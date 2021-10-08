@@ -21,14 +21,14 @@ const SIEVE_VALUE_MASK string = "SIEVE-NON-NIL"
 const SIEVE_CAN_MARKER string = "SIEVE-CAN"
 
 const (
-	API_ADDED     string = "Added"
-	API_UPDATED   string = "Updated"
-	API_DELETED   string = "Deleted"
-	API_REPLACED  string = "Replaced"
-	API_SYNC      string = "Sync"
-	HEAR_ADDED    string = "ADDED"
-	HEAR_MODIFIED string = "MODIFIED"
-	HEAR_DELETED  string = "DELETED"
+	HEAR_ADDED    string = "Added"
+	HEAR_UPDATED  string = "Updated"
+	HEAR_DELETED  string = "Deleted"
+	HEAR_REPLACED string = "Replaced"
+	HEAR_SYNC     string = "Sync"
+	API_ADDED     string = "ADDED"
+	API_MODIFIED  string = "MODIFIED"
+	API_DELETED   string = "DELETED"
 	WRITE_CREATE  string = "Create"
 	WRITE_UPDATE  string = "Update"
 	WRITE_DELETE  string = "Delete"
@@ -366,11 +366,18 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 	return true
 }
 
-func conflictingEvent(eventA, eventB map[string]interface{}) bool {
-	// TODO: we should check type conflicting as well
-	// assume eventA is already canonicalized
-	canonicalizeEvent(eventB)
-	return !partOfEventAsMap(eventA, eventB)
+func conflictingEvent(eventAType, eventBType string, eventA, eventB map[string]interface{}) bool {
+	if eventAType == HEAR_DELETED {
+		return eventBType != HEAR_DELETED
+	} else {
+		if eventBType == HEAR_DELETED {
+			return true
+		} else {
+			// assume eventA is already canonicalized
+			canonicalizeEvent(eventB)
+			return !partOfEventAsMap(eventA, eventB)
+		}
+	}
 }
 
 func isCreationOrDeletion(eventType string) bool {
