@@ -18,6 +18,11 @@ operator_write_empty_entry = {
     analyze_util.OperatorWriteTypes.DELETE: 0,
 }
 
+api_event_empty_entry = {
+    analyze_util.APIEventTypes.ADDED: 0,
+    analyze_util.APIEventTypes.DELETED: 0,
+}
+
 
 def dump_json_file(dir, data, json_file_name):
     json.dump(
@@ -39,6 +44,24 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
         # we generate resoruces.json at dest_dir (data dir) if cononicalize_resource=True
         if canonicalize_resource:
             dump_json_file(dest_dir, resources, "resources.json")
+
+
+def generate_event_oracle(log_dir):
+    api_log_path = os.path.join(log_dir, "apiserver1.log")
+    api_event_map = {}
+    for line in open(api_log_path).readlines():
+        if analyze_util.SIEVE_API_EVENT_MARK not in line:
+            continue
+        api_event = analyze_util.parse_api_event(line)
+        if (
+            api_event.etype != analyze_util.APIEventTypes.ADDED
+            and api_event.etype != analyze_util.APIEventTypes.DELETED
+        ):
+            continue
+        if api_event.key not in api_event_map:
+            api_event_map[api_event.key] = api_event_empty_entry
+        api_event_map[api_event.key][api_event.etype] += 1
+    return api_event_map
 
 
 def generate_operator_write(log_dir):

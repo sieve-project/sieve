@@ -10,13 +10,13 @@ from common import *
 
 def convert_deltafifo_etype_to_API_etype(etype: str) -> str:
     if etype == OperatorHearTypes.ADDED:
-        return APIserverTypes.ADDED
+        return APIEventTypes.ADDED
     elif etype == OperatorHearTypes.UPDATED:
-        return APIserverTypes.MODIFIED
+        return APIEventTypes.MODIFIED
     elif etype == OperatorHearTypes.DELETED:
-        return APIserverTypes.DELETED
+        return APIEventTypes.DELETED
     else:
-        return APIserverTypes.MODIFIED
+        return APIEventTypes.MODIFIED
 
 
 def event_diff_validation_check(prev_etype: str, cur_etype: str):

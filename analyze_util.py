@@ -25,13 +25,15 @@ SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
 
+SIEVE_API_EVENT_MARK = "[SIEVE-API-EVENT]"
+
 INTER_RECONCILER_EDGE = "INTER-RECONCILER"
 INTRA_RECONCILER_EDGE = "INTRA-RECONCILER"
 
 EVENT_NONE_TYPE = "NONE_TYPE"
 
 
-class APIserverTypes:
+class APIEventTypes:
     ADDED = "ADDED"
     MODIFIED = "MODIFIED"
     DELETED = "DELETED"
@@ -134,6 +136,25 @@ def decode_key(resource_key: str):
     tokens = resource_key.split("/")
     assert len(tokens) == 3
     return tokens[0], tokens[1], tokens[2]
+
+
+class APIEvent:
+    def __init__(self, etype: str, key: str, obj_str: str):
+        self.__etype = etype
+        self.__key = key
+        self.__obj_str = obj_str
+
+    @property
+    def etype(self):
+        return self.__etype
+
+    @property
+    def key(self):
+        return self.__key
+
+    @property
+    def obj_str(self):
+        return self.__obj_str
 
 
 class OperatorHear:
@@ -565,6 +586,12 @@ def parse_reconcile(line: str) -> Union[ReconcileBegin, ReconcileEnd]:
     else:
         tokens = line[line.find(SIEVE_AFTER_RECONCILE_MARK) :].strip("\n").split("\t")
         return ReconcileEnd(tokens[1], tokens[2])
+
+
+def parse_api_event(line: str) -> APIEvent:
+    assert SIEVE_API_EVENT_MARK in line
+    tokens = line[line.find(SIEVE_API_EVENT_MARK) :].strip("\n").split("\t")
+    return APIEvent(tokens[1], tokens[2], tokens[3])
 
 
 class CausalityVertex:
