@@ -269,31 +269,6 @@ def check_status(learning_status, testing_status):
     return alarm, bug_report
 
 
-def preprocess_operator_write(operator_write, interest_objects):
-    result = {}
-    for interest in interest_objects:
-        rtype = interest["rtype"]
-        namespace = interest["namespace"]
-        name = interest["name"]
-        rule = re.compile(name, re.IGNORECASE)
-        if rtype in operator_write and namespace in operator_write[rtype]:
-            resource_map = operator_write[rtype][namespace]
-            se_map = copy.deepcopy(operator_write_empty_entry)
-            has_match = False
-            for rname in resource_map:
-                if rule.fullmatch(rname):
-                    has_match = True
-                    for setype in resource_map[rname]:
-                        se_map[setype] += resource_map[rname][setype]
-            if has_match:
-                if not rtype in result:
-                    result[rtype] = {}
-                if not namespace in result[rtype]:
-                    result[rtype][namespace] = {}
-                result[rtype][namespace][name] = se_map
-    return result
-
-
 def check_operator_write(
     learning_operator_write,
     testing_operator_write,
