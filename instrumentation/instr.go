@@ -12,6 +12,12 @@ func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 	instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
 }
 
+func instrumentKubernetesForLearn(k8s_filepath string) {
+	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
+	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
+	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "Learn", true, false)
+}
+
 func instrumentControllerForTimeTravel(controller_runtime_filepath string) {
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
@@ -69,6 +75,8 @@ func main() {
 	if project == "kubernetes" {
 		if mode == TIME_TRAVEL {
 			instrumentKubernetesForTimeTravel(args[3])
+		} else if mode == LEARN {
+			instrumentKubernetesForLearn(args[3])
 		}
 	} else {
 		if mode == TIME_TRAVEL {
