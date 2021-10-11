@@ -357,6 +357,8 @@ def check_workload_log(workload_log):
     return alarm, bug_report
 
 BORING_EVENT_OBJECT_FIELDS = ["managedFields", "annotations", "labels"]
+# all the path here is full path,
+# xxx/0/yyy has the same meaning as xxx/*/yyy
 BORING_EVENT_OBJECT_PATHS = [
                             "data",
                             "metadata/resourceVersion",
@@ -372,7 +374,11 @@ BORING_EVENT_OBJECT_PATHS = [
                             "status/containerStatuses/0/imageID",
                             "spec/nodeName",
                             "status/conditions/0/type",
-                            "status/conditions",]
+                            "status/conditions",
+                            "spec/initContainers/0/image",
+                            "status/initContainerStatuses/0/image",
+                            "status/initContainerStatuses/0/imageID",
+                            "spec/template/spec/initContainers/0/image"]
 BORING_IGNORE_MARK = "SIEVE-IGNORE"
 
 def equal_path(template, value):
@@ -383,7 +389,7 @@ def equal_path(template, value):
         return False
 
     for i in range(len(template)):
-        if template[i] == "0":
+        if template[i] in ["0", '*']:
             continue
         if template[i] != value[i]:
             return False
@@ -416,9 +422,11 @@ def look_for_resources_diff(learn, test):
             path = key.path(output_format="list")
 
             # Handle for resource size diff
-            if delta_type in ["dictionary_item_added", "dictionary_item_removed"] and len(path) == 2:
+            if len(path) == 2:
                 resource_type = path[0]
                 name = path[1]
+                if key.t1 == BORING_IGNORE_MARK:
+                    name = BORING_IGNORE_MARK
                 resource_map[resource_type]['add' if delta_type == 'dictionary_item_added' else 'remove'].append(name)
                 continue
 
@@ -477,20 +485,25 @@ def look_for_resources_diff(learn, test):
                         key.t2,
                         file=f,
                     )
+
     for resource_type in resource_map:
         resource = resource_map[resource_type]
         if BORING_IGNORE_MARK in resource['add'] + resource['remove']:
             # Then we only report number diff
             delta = len(resource['add']) - len(resource['remove'])
             if delta > 0:
+                alarm += 1
                 print("[ERROR][RESOURCE-ADD]", delta, "number of", resource_type, "is added during testing", file=f)
             elif delta < 0:
+                alarm += 1
                 print("[ERROR][RESOURCE-REMOVE]", delta, "number of", resource_type, "is removed during testing", file=f)
         else:
             # We report resource diff detail
             for name in resource['add']:
+                alarm += 1
                 print("[ERROR][RESOURCE-ADD]", "/".join([resource_type, name]), "is not seen during learning run, but seen during testing run", file=f)
             for name in resource['remove']:
+                alarm += 1
                 print("[ERROR][RESOURCE-REMOVE]", "/".join([resource_type, name]), "is seen during learning run, but not seen during testing run", file=f)
 
     result = f.getvalue()
