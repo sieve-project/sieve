@@ -70,8 +70,8 @@ def generate_jobs(ci_mode):
             "with": {"name": "sieve-%s-log" % (operator), "path": "log"},
         }
         remove_cluster = {
-            "if": "always()",
             "name": "Remove cluster",
+            "if": "always()",
             "run": 'kind delete cluster',
         }
 
@@ -100,7 +100,7 @@ def generate_jobs(ci_mode):
         ]
         job["steps"].extend(build_image)
 
-        if not (ci_mode in ["test", "daily"] and operator == "xtradb-operator"):
+        if not (ci_mode in ["test"] and operator == "xtradb-operator"):
             sieve_learn = [
                 {
                     "name": "Sieve Learn - %s %s" % (operator, workload),
