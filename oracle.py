@@ -31,8 +31,8 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
-    if sieve_config.config["generate_write"]:
-        operator_write = generate_operator_write(src_dir)
+    if sieve_config.config["generate_event_oracle"]:
+        operator_write = generate_event_oracle(src_dir)
         dump_json_file(dest_dir, operator_write, "side-effect.json")
     if sieve_config.config["generate_status"]:
         status = generate_status()
@@ -59,54 +59,54 @@ def generate_event_oracle(log_dir):
         ):
             continue
         if api_event.key not in api_event_map:
-            api_event_map[api_event.key] = api_event_empty_entry
+            api_event_map[api_event.key] = copy.deepcopy(api_event_empty_entry)
         api_event_map[api_event.key][api_event.etype] += 1
     return api_event_map
 
 
-def generate_operator_write(log_dir):
-    print("Checking safety assertions...")
-    operator_write_name_map = {}
-    operator_write_uid_set = set()
-    log_path = os.path.join(log_dir, "sieve-server.log")
-    for line in open(log_path).readlines():
-        if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
-            continue
-        operator_write = analyze_util.parse_operator_write(line)
-        if analyze_util.ERROR_MSG_FILTER_FLAG:
-            if operator_write.error not in analyze_util.ALLOWED_ERROR_TYPE:
-                continue
-        rtype = operator_write.rtype
-        namespace = operator_write.namespace
-        name = operator_write.name
-        etype = operator_write.etype
-        obj = operator_write.obj_map
-        uid = analyze_util.extract_uid(obj)
-        generate_name = analyze_util.extract_generate_name(obj)
-        if (
-            etype != analyze_util.OperatorWriteTypes.CREATE
-            and etype != analyze_util.OperatorWriteTypes.DELETE
-        ):
-            continue
-        if generate_name is not None:
-            if analyze_util.is_generated_random_name(name, generate_name):
-                name = generate_name + "-" + SIEVE_VALUE_MASK
-        if uid is not None:
-            uid_marker = "\t".join([rtype, namespace, name, etype, uid])
-            if uid_marker in operator_write_uid_set:
-                continue
-            else:
-                operator_write_uid_set.add(uid_marker)
-        if rtype not in operator_write_name_map:
-            operator_write_name_map[rtype] = {}
-        if namespace not in operator_write_name_map[rtype]:
-            operator_write_name_map[rtype][namespace] = {}
-        if name not in operator_write_name_map[rtype][namespace]:
-            operator_write_name_map[rtype][namespace][name] = copy.deepcopy(
-                operator_write_empty_entry
-            )
-        operator_write_name_map[rtype][namespace][name][etype] += 1
-    return operator_write_name_map
+# def generate_operator_write(log_dir):
+#     print("Checking safety assertions...")
+#     operator_write_name_map = {}
+#     operator_write_uid_set = set()
+#     log_path = os.path.join(log_dir, "sieve-server.log")
+#     for line in open(log_path).readlines():
+#         if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
+#             continue
+#         operator_write = analyze_util.parse_operator_write(line)
+#         if analyze_util.ERROR_MSG_FILTER_FLAG:
+#             if operator_write.error not in analyze_util.ALLOWED_ERROR_TYPE:
+#                 continue
+#         rtype = operator_write.rtype
+#         namespace = operator_write.namespace
+#         name = operator_write.name
+#         etype = operator_write.etype
+#         obj = operator_write.obj_map
+#         uid = analyze_util.extract_uid(obj)
+#         generate_name = analyze_util.extract_generate_name(obj)
+#         if (
+#             etype != analyze_util.OperatorWriteTypes.CREATE
+#             and etype != analyze_util.OperatorWriteTypes.DELETE
+#         ):
+#             continue
+#         if generate_name is not None:
+#             if analyze_util.is_generated_random_name(name, generate_name):
+#                 name = generate_name + "-" + SIEVE_VALUE_MASK
+#         if uid is not None:
+#             uid_marker = "\t".join([rtype, namespace, name, etype, uid])
+#             if uid_marker in operator_write_uid_set:
+#                 continue
+#             else:
+#                 operator_write_uid_set.add(uid_marker)
+#         if rtype not in operator_write_name_map:
+#             operator_write_name_map[rtype] = {}
+#         if namespace not in operator_write_name_map[rtype]:
+#             operator_write_name_map[rtype][namespace] = {}
+#         if name not in operator_write_name_map[rtype][namespace]:
+#             operator_write_name_map[rtype][namespace][name] = copy.deepcopy(
+#                 operator_write_empty_entry
+#             )
+#         operator_write_name_map[rtype][namespace][name][etype] += 1
+#     return operator_write_name_map
 
 
 def generate_status():
@@ -706,7 +706,7 @@ def check(test_config, oracle_config, log_dir, data_dir):
         bug_alarm += status_alarm
         bug_report += status_bug_report
 
-    if sieve_config.config["check_write"]:
+    if sieve_config.config["check_event_oracle"]:
         learn_operator_write = json.load(
             open(os.path.join(data_dir, "side-effect.json"))
         )
