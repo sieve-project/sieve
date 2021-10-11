@@ -36,6 +36,9 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
         resources = generate_resources(src_dir, canonicalize_resource)
         # we generate resources.json at src_dir (log dir)
         dump_json_file(src_dir, resources, "resources.json")
+        # we generate resoruces.json at dest_dir (data dir) if cononicalize_resource=True
+        if canonicalize_resource:
+            dump_json_file(dest_dir, resources, "resources.json")
 
 
 def generate_operator_write(log_dir):
@@ -158,13 +161,13 @@ def learn_twice_trim(base_resources, twice_resources):
     stored_learn = copy.deepcopy(base_resources)
     ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view="tree")
 
-    print(ddiff)
+    if "values_changed" in ddiff:
+        for key in ddiff["values_changed"]:
+            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
 
-    for key in ddiff["values_changed"]:
-        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
-
-    for key in ddiff["dictionary_item_added"]:
-        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+    if "dictionary_item_added" in ddiff:
+        for key in ddiff["dictionary_item_added"]:
+            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
 
     return stored_learn
 
@@ -375,10 +378,10 @@ BORING_IGNORE_MARK = "SIEVE-IGNORE"
 def equal_path(template, value):
     template = template.split("/")
     value = value.split("/")
-    
+
     if len(template) > len(value):
         return False
-    
+
     for i in range(len(template)):
         if template[i] == "0":
             continue
@@ -402,23 +405,23 @@ def look_for_resources_diff(learn, test):
         for key in keys:
             dic = dic[key]
         return dic
-        
+
     preprocess(learn, test)
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
     not_care_keys = set(BORING_EVENT_OBJECT_FIELDS)
     resource_map = {resource: {'add': [], 'remove': []} for resource in test}
-    
+
     for delta_type in tdiff:
         for key in tdiff[delta_type]:
             path = key.path(output_format="list")
-            
+
             # Handle for resource size diff
             if delta_type in ["dictionary_item_added", "dictionary_item_removed"] and len(path) == 2:
                 resource_type = path[0]
                 name = path[1]
                 resource_map[resource_type]['add' if delta_type == 'dictionary_item_added' else 'remove'].append(name)
                 continue
-            
+
             if key.t1 != BORING_IGNORE_MARK:
                 has_not_care = False
                 # Search for boring keys
@@ -460,7 +463,7 @@ def look_for_resources_diff(learn, test):
                     print("[ERROR][RESOURCE-KEY-REMOVE]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])), "seen as", key.t1, "during learning run, but not seen",
                             "during testing run", file=f)
                 elif delta_type == "values_changed":
-                    print("[ERROR][RESOURCE-KEY-DIFF]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])), 
+                    print("[ERROR][RESOURCE-KEY-DIFF]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])),
                           "is", key.t1, "during learning run, but", key.t2, "during testing run", file=f)
                 else:
                     print(
