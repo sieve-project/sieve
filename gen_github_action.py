@@ -12,7 +12,7 @@ def generate_jobs(ci_mode):
 
     for operator in reprod_map:
         job = {
-            "runs-on": "ubuntu-latest" if ci_mode == "test" else "ubuntu-latest",
+            "runs-on": "ubuntu-latest" if ci_mode == "test" else "self-hosted",
             "env": {
                 "GOPATH": "/home/runner/go",
                 "KUBECONFIG": "/home/runner/.kube/config",
@@ -58,6 +58,7 @@ def generate_jobs(ci_mode):
         }
         collect_resources = {
             "uses": "actions/upload-artifact@v2",
+            "if": "always()",
             "with": {
                 "name": "sieve-%s-data" % (operator),
                 "path": "data/%s" % (operator),
@@ -65,7 +66,13 @@ def generate_jobs(ci_mode):
         }
         collect_log = {
             "uses": "actions/upload-artifact@v2",
+            "if": "always()",
             "with": {"name": "sieve-%s-log" % (operator), "path": "log"},
+        }
+        remove_cluster = {
+            "if": "always()",
+            "name": "Remove cluster",
+            "run": 'kind delete cluster',
         }
 
         build_modes = [
@@ -114,6 +121,7 @@ def generate_jobs(ci_mode):
             job["steps"].append(collect_resources)
             job["steps"].extend(sieve_test)
             job["steps"].append(collect_log)
+            job["steps"].append(remove_cluster)
         jobs[operator] = job
     return jobs
 
