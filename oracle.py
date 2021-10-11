@@ -356,11 +356,14 @@ def check_workload_log(workload_log):
             bug_report += "[ERROR][WORKLOAD] %s" % line
     return alarm, bug_report
 
-BORING_EVENT_OBJECT_FIELDS = ["managedFields", "annotations", "labels"]
+
 # all the path here is full path,
 # xxx/0/yyy has the same meaning as xxx/*/yyy
 BORING_EVENT_OBJECT_PATHS = [
                             "data",
+                            "metadata/annotations",
+                            "metadata/managedFields",
+                            "metadata/labels",
                             "metadata/resourceVersion",
                             "metadata/generateName",
                             "metadata/ownerReferences",
@@ -374,11 +377,7 @@ BORING_EVENT_OBJECT_PATHS = [
                             "status/containerStatuses/0/imageID",
                             "spec/nodeName",
                             "status/conditions/0/type",
-                            "status/conditions",
-                            "spec/initContainers/0/image",
-                            "status/initContainerStatuses/0/image",
-                            "status/initContainerStatuses/0/imageID",
-                            "spec/template/spec/initContainers/0/image"]
+                            "status/conditions",]
 BORING_IGNORE_MARK = "SIEVE-IGNORE"
 
 def equal_path(template, value):
@@ -414,7 +413,6 @@ def look_for_resources_diff(learn, test):
 
     preprocess(learn, test)
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
-    not_care_keys = set(BORING_EVENT_OBJECT_FIELDS)
     resource_map = {resource: {'add': [], 'remove': []} for resource in test}
 
     for delta_type in tdiff:
@@ -432,11 +430,6 @@ def look_for_resources_diff(learn, test):
 
             if key.t1 != BORING_IGNORE_MARK:
                 has_not_care = False
-                # Search for boring keys
-                for kp in path:
-                    if kp in not_care_keys:
-                        has_not_care = True
-                        break
                 # Search for boring paths
                 if len(path) > 2:
                     for rule in BORING_EVENT_OBJECT_PATHS:
