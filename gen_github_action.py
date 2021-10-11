@@ -52,7 +52,7 @@ def generate_jobs(ci_mode):
                 },
                 {
                     "name": "Sieve CI config generate",
-                    "run": 'echo "{\\"workload_wait_hard_timeout\\": 600}" > sieve_config.json\ncat sieve_config.json',
+                    "run": 'echo "{\\"workload_wait_hard_timeout\\": 1000}" > sieve_config.json\ncat sieve_config.json',
                 },
             ],
         }
