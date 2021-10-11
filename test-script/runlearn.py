@@ -10,6 +10,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', dest='docker', help="Docker account", default='ghcr.io/sieve-project/action')
     parser.add_argument('-p', dest='operators', help="Operators to test", nargs='+')
     args = parser.parse_args()
+    os.chdir('..')
 
     if args.operators is None:
         print('No operator specified, running learning mode for all operators')
