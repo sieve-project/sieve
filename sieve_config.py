@@ -11,7 +11,7 @@ config = {
     "workload_wait_soft_timeout": 100,
     "workload_wait_hard_timeout": 600,
     "generate_status": True,
-    "generate_event_oracle": True,
+    "generate_events_oracle": True,
     "generate_resource": True,
     "check_status": True,
     "check_event_oracle": True,

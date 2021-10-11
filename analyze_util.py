@@ -117,10 +117,15 @@ def extract_namespace_name(obj: Dict):
 
 
 def extract_generate_name(obj: Dict):
-    assert "metadata" in obj, "missing metadata in: " + str(obj)
-    obj_uid = (
-        obj["metadata"]["generateName"] if "generateName" in obj["metadata"] else None
-    )
+    obj_uid = None
+    if "metadata" in obj:
+        obj_uid = (
+            obj["metadata"]["generateName"]
+            if "generateName" in obj["metadata"]
+            else None
+        )
+    else:
+        obj_uid = obj["generateName"] if "generateName" in obj else None
     return obj_uid
 
 
@@ -143,6 +148,7 @@ class APIEvent:
         self.__etype = etype
         self.__key = key
         self.__obj_str = obj_str
+        self.__obj_map = json.loads(obj_str)
 
     @property
     def etype(self):
@@ -155,6 +161,10 @@ class APIEvent:
     @property
     def obj_str(self):
         return self.__obj_str
+
+    @property
+    def obj_map(self):
+        return self.__obj_map
 
 
 class OperatorHear:
