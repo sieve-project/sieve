@@ -245,13 +245,7 @@ def check_status(learning_status, testing_status):
     return alarm, bug_report
 
 
-def check_operator_write(
-    learning_operator_write,
-    testing_operator_write,
-    test_config,
-    oracle_config,
-    selective=True,
-):
+def check_events_oracle(learning_events, testing_events, test_config):
     alarm = 0
     bug_report = NO_ERROR_MESSAGE
 
@@ -259,54 +253,88 @@ def check_operator_write(
     if test_config_content["mode"] == sieve_modes.OBS_GAP:
         return alarm, bug_report
 
-    resource_keys = set()
-    for rtype in learning_operator_write:
-        for namespace in learning_operator_write[rtype]:
-            for name in learning_operator_write[rtype][namespace]:
-                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
-    for rtype in testing_operator_write:
-        for namespace in testing_operator_write[rtype]:
-            for name in testing_operator_write[rtype][namespace]:
-                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
-    for key in resource_keys:
-        rtype, namespace, name = analyze_util.decode_key(key)
-        exist = True
-        if (
-            rtype not in learning_operator_write
-            or namespace not in learning_operator_write[rtype]
-            or name not in learning_operator_write[rtype][namespace]
-        ):
-            bug_report += "[ERROR][WRITE] %s not in learning side effect digest\n" % (
-                key
-            )
-            alarm += 1
-            exist = False
-        if (
-            rtype not in testing_operator_write
-            or namespace not in testing_operator_write[rtype]
-            or name not in testing_operator_write[rtype][namespace]
-        ):
-            bug_report += "[ERROR][WRITE] %s not in testing side effect digest\n" % (
-                key
-            )
-            alarm += 1
-            exist = False
-        if exist:
-            learning_entry = learning_operator_write[rtype][namespace][name]
-            testing_entry = testing_operator_write[rtype][namespace][name]
-            for attr in learning_entry:
-                if selective:
-                    if attr not in sieve_config.config["effect_to_check"]:
-                        continue
-                if learning_entry[attr] != testing_entry[attr]:
-                    alarm += 1
-                    bug_report += "[ERROR][WRITE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-                        key,
-                        attr.upper(),
-                        str(learning_entry[attr]),
-                        str(testing_entry[attr]),
-                    )
+    for key in testing_events:
+        if key not in learning_events:
+            # TODO: handle the case where the key does not exist in learning_events
+            continue
+        if learning_events[key] == "SIEVE-IGNORE":
+            continue
+        for etype in testing_events[key]:
+            if etype not in sieve_config.config["api_event_to_check"]:
+                continue
+            if testing_events[key][etype] != learning_events[key][etype]:
+                alarm += 1
+                bug_report += "[ERROR][EVENT] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                    key,
+                    etype,
+                    str(learning_events[key][etype]),
+                    str(testing_events[key][etype]),
+                )
     return alarm, bug_report
+
+
+# def check_operator_write(
+#     learning_operator_write,
+#     testing_operator_write,
+#     test_config,
+#     oracle_config,
+#     selective=True,
+# ):
+#     alarm = 0
+#     bug_report = NO_ERROR_MESSAGE
+
+#     test_config_content = yaml.safe_load(open(test_config))
+#     if test_config_content["mode"] == sieve_modes.OBS_GAP:
+#         return alarm, bug_report
+
+#     resource_keys = set()
+#     for rtype in learning_operator_write:
+#         for namespace in learning_operator_write[rtype]:
+#             for name in learning_operator_write[rtype][namespace]:
+#                 resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
+#     for rtype in testing_operator_write:
+#         for namespace in testing_operator_write[rtype]:
+#             for name in testing_operator_write[rtype][namespace]:
+#                 resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
+#     for key in resource_keys:
+#         rtype, namespace, name = analyze_util.decode_key(key)
+#         exist = True
+#         if (
+#             rtype not in learning_operator_write
+#             or namespace not in learning_operator_write[rtype]
+#             or name not in learning_operator_write[rtype][namespace]
+#         ):
+#             bug_report += "[ERROR][WRITE] %s not in learning side effect digest\n" % (
+#                 key
+#             )
+#             alarm += 1
+#             exist = False
+#         if (
+#             rtype not in testing_operator_write
+#             or namespace not in testing_operator_write[rtype]
+#             or name not in testing_operator_write[rtype][namespace]
+#         ):
+#             bug_report += "[ERROR][WRITE] %s not in testing side effect digest\n" % (
+#                 key
+#             )
+#             alarm += 1
+#             exist = False
+#         if exist:
+#             learning_entry = learning_operator_write[rtype][namespace][name]
+#             testing_entry = testing_operator_write[rtype][namespace][name]
+#             for attr in learning_entry:
+#                 if selective:
+#                     if attr not in sieve_config.config["effect_to_check"]:
+#                         continue
+#                 if learning_entry[attr] != testing_entry[attr]:
+#                     alarm += 1
+#                     bug_report += "[ERROR][WRITE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+#                         key,
+#                         attr.upper(),
+#                         str(learning_entry[attr]),
+#                         str(testing_entry[attr]),
+#                     )
+#     return alarm, bug_report
 
 
 def look_for_panic_in_operator_log(operator_log):
@@ -683,15 +711,12 @@ def check(test_config, oracle_config, log_dir, data_dir):
         bug_report += status_bug_report
 
     if sieve_config.config["check_event_oracle"]:
-        learn_operator_write = json.load(
-            open(os.path.join(data_dir, "side-effect.json"))
-        )
-        test_operator_write = json.load(open(os.path.join(log_dir, "side-effect.json")))
-        write_alarm, write_bug_report = check_operator_write(
-            learn_operator_write,
-            test_operator_write,
+        learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
+        test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
+        write_alarm, write_bug_report = check_events_oracle(
+            learn_events,
+            test_events,
             test_config,
-            oracle_config,
         )
         bug_alarm += write_alarm
         bug_report += write_bug_report
