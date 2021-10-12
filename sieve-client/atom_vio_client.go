@@ -2,6 +2,7 @@ package sieve
 
 import (
 	"encoding/json"
+	"log"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -128,4 +129,21 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		return
 	}
 	checkResponse(response, "NotifyAtomVioAfterSideEffects")
+}
+
+func NotifyAtomVioBeforeProcessEvent(eventType, key string, object interface{}) {
+	if eventType == "ADDED" || eventType == "DELETED" {
+		if err := loadSieveConfig(); err != nil {
+			return
+		}
+		if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+			return
+		}
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			printError(err, SIEVE_JSON_ERR)
+			return
+		}
+		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\n", eventType, key, string(jsonObject))
+	}
 }
