@@ -36,6 +36,9 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
         resources = generate_resources(src_dir, canonicalize_resource)
         # we generate resources.json at src_dir (log dir)
         dump_json_file(src_dir, resources, "resources.json")
+        # we generate resoruces.json at dest_dir (data dir) if cononicalize_resource=True
+        if canonicalize_resource:
+            dump_json_file(dest_dir, resources, "resources.json")
 
 
 def generate_operator_write(log_dir):
@@ -124,7 +127,7 @@ def get_resource_helper(func):
     k8s_namespace = sieve_config.config["namespace"]
     response = func(k8s_namespace, _preload_content=False, watch=False)
     data = json.loads(response.data)
-    return [resource for resource in data["items"]]
+    return {resource["metadata"]["name"] : resource for resource in data["items"] }
 
 
 def get_crd_list():
@@ -138,12 +141,12 @@ def get_crd_list():
 
 
 def get_crd(crd):
-    data = []
+    data = {}
     try:
         for item in json.loads(os.popen("kubectl get %s -o json" % (crd)).read())[
             "items"
         ]:
-            data.append(item)
+            data[item["metadata"]["name"]] = item
     except Exception as e:
         print("get_crd fail", e)
     return data
@@ -158,11 +161,13 @@ def learn_twice_trim(base_resources, twice_resources):
     stored_learn = copy.deepcopy(base_resources)
     ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view="tree")
 
-    for key in ddiff["values_changed"]:
-        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+    if "values_changed" in ddiff:
+        for key in ddiff["values_changed"]:
+            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
 
-    for key in ddiff["dictionary_item_added"]:
-        nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+    if "dictionary_item_added" in ddiff:
+        for key in ddiff["dictionary_item_added"]:
+            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
 
     return stored_learn
 
@@ -351,6 +356,52 @@ def check_workload_log(workload_log):
             bug_report += "[ERROR][WORKLOAD] %s" % line
     return alarm, bug_report
 
+BORING_EVENT_OBJECT_KEYS = ["image", "imageID"]
+# all the path here is full path,
+# xxx/0/yyy has the same meaning as xxx/*/yyy
+BORING_EVENT_OBJECT_PATHS = [
+                            "data",
+                            "metadata/annotations",
+                            "metadata/managedFields",
+                            "metadata/labels",
+                            "metadata/resourceVersion",
+                            "metadata/generateName",
+                            "metadata/ownerReferences",
+                            "spec/containers/0/image",
+                            "spec/template/spec/containers/0/image",
+                            "spec/template/spec/containers/0/env",
+                            "spec/containers/0/env",
+                            "status/conditions/0/message",
+                            "spec/containers/0/image",
+                            "status/containerStatuses/0/image",
+                            "status/containerStatuses/0/imageID",
+                            "spec/nodeName",
+                            "status/conditions/0/type",
+                            "status/conditions",
+                            "spec/initContainers/0/image",]
+BORING_IGNORE_MARK = "SIEVE-IGNORE"
+
+def equal_path(template, value):
+    template = template.split("/")
+    value = value.split("/")
+
+    if len(template) > len(value):
+        return False
+
+    for i in range(len(template)):
+        if template[i] in ["0", '*']:
+            continue
+        if template[i] != value[i]:
+            return False
+    return True
+
+def preprocess(learn, test):
+    for resource in list(learn):
+        if resource not in test:
+            learn.pop(resource, None)
+    for resource in list(test):
+        if resource not in learn:
+            test.pop(resource, None)
 
 def look_for_resources_diff(learn, test):
     f = io.StringIO()
@@ -361,31 +412,68 @@ def look_for_resources_diff(learn, test):
             dic = dic[key]
         return dic
 
+    preprocess(learn, test)
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
-    not_care_keys = set(BORING_EVENT_OBJECT_FIELDS)
+    resource_map = {resource: {'add': [], 'remove': []} for resource in test}
+    not_care_keys = set(BORING_EVENT_OBJECT_KEYS)
 
     for delta_type in tdiff:
         for key in tdiff[delta_type]:
             path = key.path(output_format="list")
-            if key.t1 != "SIEVE-IGNORE":
+
+            # Handle for resource size diff
+            if len(path) == 2:
+                resource_type = path[0]
+                name = path[1]
+                if key.t1 == BORING_IGNORE_MARK:
+                    name = BORING_IGNORE_MARK
+                resource_map[resource_type]['add' if delta_type == 'dictionary_item_added' else 'remove'].append(name)
+                continue
+
+            if key.t1 != BORING_IGNORE_MARK:
                 has_not_care = False
+                # Search for boring keys
                 for kp in path:
                     if kp in not_care_keys:
                         has_not_care = True
                         break
+                # Search for boring paths
+                if len(path) > 2:
+                    for rule in BORING_EVENT_OBJECT_PATHS:
+                        if equal_path(rule, '/'.join([str(x) for x in path[2:]])):
+                            has_not_care = True
+                            break
                 if has_not_care:
                     continue
-                try:
-                    resource_type = path[0]
-                    if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
-                        source = learn
-                    else:
-                        source = test
-                    name = nested_get(source, path[:2] + ["metadata", "name"])
-                    namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
-                    if name == "sieve-testing-global-config":
+                # Search for ip
+                if type(key.t1) is str:
+                    pat = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+                    isip = pat.match(key.t1)
+                    if isip:
                         continue
-                    alarm += 1
+
+                resource_type = path[0]
+                if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
+                    source = learn
+                else:
+                    source = test
+
+                name = nested_get(source, path[:2] + ["metadata", "name"])
+                namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
+
+                if name == "sieve-testing-global-config":
+                    continue
+                alarm += 1
+                if delta_type in ["dictionary_item_added", "iterable_item_added"]:
+                    print("[ERROR][RESOURCE-KEY-ADD]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])), "not seen during learning run, but seen as",
+                            key.t2, "during testing run", file=f)
+                elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
+                    print("[ERROR][RESOURCE-KEY-REMOVE]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])), "seen as", key.t1, "during learning run, but not seen",
+                            "during testing run", file=f)
+                elif delta_type == "values_changed":
+                    print("[ERROR][RESOURCE-KEY-DIFF]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])),
+                          "is", key.t1, "during learning run, but", key.t2, "during testing run", file=f)
+                else:
                     print(
                         delta_type,
                         resource_type,
@@ -397,14 +485,31 @@ def look_for_resources_diff(learn, test):
                         key.t2,
                         file=f,
                     )
-                except Exception as e:
-                    print(e, path, key)
+
+    for resource_type in resource_map:
+        resource = resource_map[resource_type]
+        if BORING_IGNORE_MARK in resource['add'] + resource['remove']:
+            # Then we only report number diff
+            delta = len(resource['add']) - len(resource['remove'])
+            if delta > 0:
+                alarm += 1
+                print("[ERROR][RESOURCE-ADD]", delta, "number of", resource_type, "is added during testing", file=f)
+            elif delta < 0:
+                alarm += 1
+                print("[ERROR][RESOURCE-REMOVE]", delta, "number of", resource_type, "is removed during testing", file=f)
+        else:
+            # We report resource diff detail
+            for name in resource['add']:
+                alarm += 1
+                print("[ERROR][RESOURCE-ADD]", "/".join([resource_type, name]), "is not seen during learning run, but seen during testing run", file=f)
+            for name in resource['remove']:
+                alarm += 1
+                print("[ERROR][RESOURCE-REMOVE]", "/".join([resource_type, name]), "is seen during learning run, but not seen during testing run", file=f)
 
     result = f.getvalue()
     f.close()
-    final_bug_report = "[ERROR][RESOURCE]\n" + result if alarm != 0 else ""
+    final_bug_report =  result if alarm != 0 else ""
     return alarm, final_bug_report
-
 
 def generate_time_travel_debugging_hint(test_config_content):
     desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
