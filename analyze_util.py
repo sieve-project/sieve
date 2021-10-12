@@ -1,6 +1,7 @@
 import json
-from typing import List, Dict, Optional, Union, Set
+from typing import List, Dict, Optional, Union, Set, Tuple
 import sieve_config
+from controllers import deployment_name
 
 HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -129,6 +130,25 @@ def extract_generate_name(obj: Dict):
     return obj_uid
 
 
+def operator_related_resource(
+    project: str, rtype: str, name: str, obj: Dict, taint_list: List[Tuple[str, str]]
+):
+    depl_name = deployment_name[project]
+    if rtype == "deployment" and name == depl_name:
+        return True
+    obj_metadata = obj
+    if "metadata" in obj:
+        obj_metadata = obj["metadata"]
+    if "ownerReferences" in obj_metadata:
+        for owner in obj_metadata["ownerReferences"]:
+            # if owner["kind"].lower() == "deployment" and owner["name"] == depl_name:
+            #     return True
+            for taint in taint_list:
+                if owner["kind"].lower() == taint[0] and owner["name"] == taint[1]:
+                    return True
+    return False
+
+
 def is_generated_random_name(name: str, generate_name: str):
     return name.startswith(generate_name) and len(name) == len(generate_name) + 5
 
@@ -147,6 +167,16 @@ class APIEvent:
     def __init__(self, etype: str, key: str, obj_str: str):
         self.__etype = etype
         self.__key = key
+        assert key.startswith("/")
+        tokens = key.split("/")
+        if tokens[1] == "endpoints":
+            self.__rtype = tokens[1]
+        elif tokens[1].endswith("s"):
+            self.__rtype = tokens[1][:-1]
+        else:
+            self.__rtype = tokens[1]
+        self.__namespace = tokens[-2]
+        self.__name = tokens[-1]
         self.__obj_str = obj_str
         self.__obj_map = json.loads(obj_str)
 
@@ -157,6 +187,18 @@ class APIEvent:
     @property
     def key(self):
         return self.__key
+
+    @property
+    def rtype(self):
+        return self.__rtype
+
+    @property
+    def namespace(self):
+        return self.__namespace
+
+    @property
+    def name(self):
+        return self.__name
 
     @property
     def obj_str(self):

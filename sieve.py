@@ -390,7 +390,7 @@ def check_result(
                 open(os.path.join(log_dir, "config.yaml"), "w").write(
                     open(test_config).read()
                 )
-            oracle.generate_test_oracle(log_dir, log_dir)
+            oracle.generate_test_oracle(project, log_dir, log_dir)
             alarm, bug_report = oracle.check(
                 test_config, oracle_config, log_dir, data_dir
             )

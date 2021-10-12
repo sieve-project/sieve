@@ -13,14 +13,15 @@ from deepdiff import DeepDiff
 import pathlib
 
 
-operator_write_empty_entry = {
-    analyze_util.OperatorWriteTypes.CREATE: 0,
-    analyze_util.OperatorWriteTypes.DELETE: 0,
-}
+# operator_write_empty_entry = {
+#     analyze_util.OperatorWriteTypes.CREATE: 0,
+#     analyze_util.OperatorWriteTypes.DELETE: 0,
+# }
 
 api_event_empty_entry = {
     analyze_util.APIEventTypes.ADDED: 0,
     analyze_util.APIEventTypes.DELETED: 0,
+    "operator_related": False,
 }
 
 
@@ -30,9 +31,9 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
+def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False):
     if sieve_config.config["generate_events_oracle"]:
-        events_oracle = generate_events_oracle(src_dir, canonicalize_resource)
+        events_oracle = generate_events_oracle(project, src_dir, canonicalize_resource)
         dump_json_file(src_dir, events_oracle, "side-effect.json")
         if canonicalize_resource:
             dump_json_file(dest_dir, events_oracle, "side-effect.json")
@@ -48,30 +49,34 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
             dump_json_file(dest_dir, resources, "resources.json")
 
 
-def generate_events_oracle(log_dir, canonicalize_resource):
+def generate_events_oracle(project, log_dir, canonicalize_resource):
     api_log_path = os.path.join(log_dir, "apiserver1.log")
     api_event_map = {}
+    taint_list = []
     for line in open(api_log_path).readlines():
         if analyze_util.SIEVE_API_EVENT_MARK not in line:
             continue
         api_event = analyze_util.parse_api_event(line)
-        etype = api_event.etype
         key = api_event.key
         if (
-            etype != analyze_util.APIEventTypes.ADDED
-            and etype != analyze_util.APIEventTypes.DELETED
+            api_event.etype != analyze_util.APIEventTypes.ADDED
+            and api_event.etype != analyze_util.APIEventTypes.DELETED
         ):
             continue
-        tokens = key.split("/")
-        if tokens[-2] != "default":
+        if api_event.namespace != "default":
             continue
         generate_name = analyze_util.extract_generate_name(api_event.obj_map)
         if generate_name is not None:
-            if analyze_util.is_generated_random_name(tokens[-1], generate_name):
+            if analyze_util.is_generated_random_name(api_event.name, generate_name):
                 key = key[:-5] + "*"
         if key not in api_event_map:
             api_event_map[key] = copy.deepcopy(api_event_empty_entry)
-        api_event_map[key][etype] += 1
+            if analyze_util.operator_related_resource(
+                project, api_event.rtype, api_event.name, api_event.obj_map, taint_list
+            ):
+                api_event_map[key]["operator_related"] = True
+                taint_list.append((api_event.rtype, api_event.name))
+        api_event_map[key][api_event.etype] += 1
 
     if canonicalize_resource:
         # Suppose we are current at learn/learn-twice/xxx
@@ -258,6 +263,8 @@ def check_events_oracle(learning_events, testing_events, test_config):
             # TODO: handle the case where the key does not exist in learning_events
             continue
         if learning_events[key] == "SIEVE-IGNORE":
+            continue
+        if learning_events[key]["operator_related"]:
             continue
         for etype in testing_events[key]:
             if etype not in sieve_config.config["api_event_to_check"]:
