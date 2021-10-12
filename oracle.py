@@ -32,8 +32,10 @@ def dump_json_file(dir, data, json_file_name):
 
 def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
     if sieve_config.config["generate_events_oracle"]:
-        events_oracle = generate_events_oracle(src_dir)
+        events_oracle = generate_events_oracle(src_dir, canonicalize_resource)
         dump_json_file(src_dir, events_oracle, "side-effect.json")
+        if canonicalize_resource:
+            dump_json_file(dest_dir, events_oracle, "side-effect.json")
     if sieve_config.config["generate_status"]:
         status = generate_status()
         dump_json_file(dest_dir, status, "status.json")
@@ -46,7 +48,7 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
             dump_json_file(dest_dir, resources, "resources.json")
 
 
-def generate_events_oracle(log_dir):
+def generate_events_oracle(log_dir, canonicalize_resource):
     api_log_path = os.path.join(log_dir, "apiserver1.log")
     api_event_map = {}
     for line in open(api_log_path).readlines():
@@ -66,10 +68,20 @@ def generate_events_oracle(log_dir):
         generate_name = analyze_util.extract_generate_name(api_event.obj_map)
         if generate_name is not None:
             if analyze_util.is_generated_random_name(tokens[-1], generate_name):
-                key = key[:-5] + SIEVE_VALUE_MASK
+                key = key[:-5] + "*"
         if key not in api_event_map:
             api_event_map[key] = copy.deepcopy(api_event_empty_entry)
         api_event_map[key][etype] += 1
+
+    if canonicalize_resource:
+        # Suppose we are current at learn/learn-twice/xxx
+        learn_dir = pathlib.Path(log_dir).parent
+        learn_once_dir = learn_dir / "learn-once"
+        prev_api_event_map = json.loads(
+            open(os.path.join(learn_once_dir, "side-effect.json")).read()
+        )
+        api_event_map = learn_twice_trim(prev_api_event_map, api_event_map)
+
     return api_event_map
 
 
