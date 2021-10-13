@@ -368,6 +368,7 @@ BORING_EVENT_OBJECT_PATHS = [
                             "metadata/generateName",
                             "metadata/ownerReferences",
                             "metadata/generation",
+                            "metadata/observedGeneration",
                             "spec/containers/0/image",
                             "spec/template/spec/containers/0/image",
                             "spec/template/spec/containers/0/env",
