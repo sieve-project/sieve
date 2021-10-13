@@ -367,6 +367,7 @@ BORING_EVENT_OBJECT_PATHS = [
                             "metadata/resourceVersion",
                             "metadata/generateName",
                             "metadata/ownerReferences",
+                            "metadata/generation",
                             "spec/containers/0/image",
                             "spec/template/spec/containers/0/image",
                             "spec/template/spec/containers/0/env",
@@ -496,7 +497,7 @@ def look_for_resources_diff(learn, test):
                 print("[ERROR][RESOURCE-ADD]", delta, "number of", resource_type, "is added during testing", file=f)
             elif delta < 0:
                 alarm += 1
-                print("[ERROR][RESOURCE-REMOVE]", delta, "number of", resource_type, "is removed during testing", file=f)
+                print("[ERROR][RESOURCE-REMOVE]", -delta, "number of", resource_type, "is removed during testing", file=f)
         else:
             # We report resource diff detail
             for name in resource['add']:
