@@ -201,6 +201,7 @@ class TestWaitForStatus:
             else:
                 assert False, "type not supported yet"
             time.sleep(5)
+        time.sleep(5)  # make it configurable
         print("wait takes %f seconds" % (time.time() - s))
         return 0, common.NO_ERROR_MESSAGE
 
@@ -262,6 +263,7 @@ class TestWaitForStorage:
             else:
                 assert False, "type not supported yet"
             time.sleep(5)
+        time.sleep(5)  # make it configurable
         print("wait takes %f seconds" % (time.time() - s))
         return 0, common.NO_ERROR_MESSAGE
 
@@ -358,6 +360,7 @@ class TestWaitForExistence:
             else:
                 assert False, "type not supported yet"
             time.sleep(5)
+        time.sleep(5)  # make it configurable
         print("wait takes %f seconds" % (time.time() - s))
         return 0, common.NO_ERROR_MESSAGE
 
