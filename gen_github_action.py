@@ -74,6 +74,11 @@ def generate_jobs(ci_mode):
             "if": "always()",
             "run": 'kind delete cluster',
         }
+        clean_images = {
+            "name": "Clean images",
+            "if": "always()",
+            "run": 'docker image prune -a -f && docker system df',
+        }
 
         build_modes = [
             "learn",
@@ -122,6 +127,8 @@ def generate_jobs(ci_mode):
             job["steps"].extend(sieve_test)
             job["steps"].append(collect_log)
             job["steps"].append(remove_cluster)
+            if ci_mode == "daily":
+                job["steps"].append(clean_images)
         jobs[operator] = job
     return jobs
 
