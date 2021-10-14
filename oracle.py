@@ -494,12 +494,12 @@ def look_for_resources_diff(learn, test):
         if BORING_IGNORE_MARK in resource['add'] + resource['remove']:
             # Then we only report number diff
             delta = len(resource['add']) - len(resource['remove'])
-            if delta > 0:
+            learn_set = set(learn[resource_type].keys())
+            test_set = set(test[resource_type].keys())
+            if delta != 0:
                 alarm += 1
-                print("[ERROR][RESOURCE-ADD]", delta, "number of", resource_type, "is added during testing", file=f)
-            elif delta < 0:
-                alarm += 1
-                print("[ERROR][RESOURCE-REMOVE]", -delta, "number of", resource_type, "is removed during testing", file=f)
+                print("[ERROR][RESOURCE-ADD]" if delta > 0 else "[ERROR][RESOURCE-REMOVE]",
+                len(learn_set), resource_type, "seen after learning run", sorted(learn_set), "but", len(test_set), resource_type, "seen after testing run", sorted(test_set), file=f)
         else:
             # We report resource diff detail
             for name in resource['add']:
