@@ -181,6 +181,7 @@ def generate_resources(log_dir="", canonicalize_resource=False):
         "deployment": apps_v1.list_namespaced_deployment,
         "serviceaccount": core_v1.list_namespaced_service_account,
         "configmap": core_v1.list_namespaced_config_map,
+        "secret": core_v1.list_namespaced_secret,
         "persistentvolumeclaim": core_v1.list_namespaced_persistent_volume_claim,
         "pod": core_v1.list_namespaced_pod,
         "service": core_v1.list_namespaced_service,
