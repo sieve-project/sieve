@@ -69,6 +69,11 @@ def generate_jobs(ci_mode):
             "if": "always()",
             "with": {"name": "sieve-%s-log" % (operator), "path": "log"},
         }
+        persistent_data = {
+            "uses": "JamesIves/github-pages-deploy-action@4.1.5",
+            "name": "Persistent data",
+            "with": {"branch": "persistent-data", "folder": "data/%s"%(operator), "target-folder": operator},
+        }
         remove_cluster = {
             "name": "Remove cluster",
             "if": "always()",
@@ -128,6 +133,7 @@ def generate_jobs(ci_mode):
             job["steps"].append(collect_log)
             job["steps"].append(remove_cluster)
             if ci_mode == "daily":
+                job["steps"].append(persistent_data)
                 job["steps"].append(clean_images)
         jobs[operator] = job
     return jobs
