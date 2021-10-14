@@ -29,6 +29,7 @@ reprod_map = {
         "time-travel-2": ["resize-pvc", "rabbitmq_time_travel_2.yaml"],
     },
     "mongodb-operator": {
+        "atom-vio-1": ["disable-enable-shard", "mongodb_atom_vio_1.yaml"],
         "time-travel-1": ["recreate", "mongodb_time_travel_1.yaml"],
         "time-travel-2": ["disable-enable-shard", "mongodb_time_travel_2.yaml"],
         "time-travel-3": ["disable-enable-arbiter", "mongodb_time_travel_3.yaml"],
@@ -50,15 +51,16 @@ reprod_map = {
 }
 
 
-def reproduce_bug(operator, bug):
+def reproduce_bug(operator, bug, phase):
     mode = bug[:-2]
     test = reprod_map[operator][bug][0]
     config = os.path.join("reprod", reprod_map[operator][bug][1])
-    sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s" % (
+    sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s --phase=%s" % (
         operator,
         mode,
         test,
         config,
+        phase,
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
     os.system(sieve_cmd)
@@ -84,6 +86,14 @@ if __name__ == "__main__":
     )
 
     parser.add_option(
+        "--phase",
+        dest="phase",
+        help="run the PHASE: setup_only, workload_only, check_only or all",
+        metavar="PHASE",
+        default="all",
+    )
+
+    parser.add_option(
         "-d",
         "--docker",
         dest="docker",
@@ -91,6 +101,7 @@ if __name__ == "__main__":
         metavar="DOCKER",
         default=sieve_config.config["docker_repo"],
     )
+    
 
     (options, args) = parser.parse_args()
 
@@ -103,6 +114,6 @@ if __name__ == "__main__":
     if options.project == "all":
         for operator in reprod_map:
             for bug in reprod_map[operator]:
-                reproduce_bug(operator, bug)
+                reproduce_bug(operator, bug, options.phase)
     else:
-        reproduce_bug(options.project, options.bug)
+        reproduce_bug(options.project, options.bug, options.phase)
