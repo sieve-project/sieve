@@ -50,7 +50,9 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
 
 def generate_events_oracle(project, log_dir, canonicalize_resource):
     api_log_path = os.path.join(log_dir, "apiserver1.log")
-    api_event_map = {"types": {}, "keys": {}}
+    api_event_map = {}
+    api_key_event_map = {}
+    api_type_event_map = {}
     taint_list = []
     for line in open(api_log_path).readlines():
         if analyze_util.SIEVE_API_EVENT_MARK not in line:
@@ -70,20 +72,23 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
                 key = key[:-5] + "*"
         assert "/default/" in key
         type_prefix = key[: key.find("/default/")]
-        if key not in api_event_map["keys"]:
-            api_event_map["keys"][key] = copy.deepcopy(api_event_empty_entry)
+        if key not in api_key_event_map:
+            api_key_event_map[key] = copy.deepcopy(api_event_empty_entry)
             if analyze_util.operator_related_resource(
                 project, api_event.rtype, api_event.name, api_event.obj_map, taint_list
             ):
-                api_event_map["keys"][key]["operator_related"] = True
+                api_key_event_map[key]["operator_related"] = True
                 taint_list.append((api_event.rtype, api_event.name))
             else:
-                api_event_map["keys"][key]["operator_related"] = False
-        api_event_map["keys"][key][api_event.etype] += 1
-        if type_prefix not in api_event_map["types"]:
-            api_event_map["types"][type_prefix] = copy.deepcopy(api_event_empty_entry)
-        if not api_event_map["keys"][key]["operator_related"]:
-            api_event_map["types"][type_prefix][api_event.etype] += 1
+                api_key_event_map[key]["operator_related"] = False
+        api_key_event_map[key][api_event.etype] += 1
+        if type_prefix not in api_type_event_map:
+            api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
+        if not api_key_event_map[key]["operator_related"]:
+            api_type_event_map[type_prefix][api_event.etype] += 1
+
+        api_event_map["keys"] = api_key_event_map
+        api_event_map["types"] = api_type_event_map
 
     if canonicalize_resource:
         # Suppose we are current at learn/learn-twice/xxx
@@ -93,12 +98,22 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
             open(os.path.join(learn_once_dir, "side-effect.json")).read()
         )
         api_event_map = learn_twice_trim(prev_api_event_map, api_event_map)
-        # masked_names = []
-        # for key in api_event_map["keys"]:
-        #     if api_event_map["keys"][key] == "SIEVE-IGNORE":
-        #         masked_names.append(key)
-        # for key in masked_names:
-        #     api_event_map["keys"].pop(key, None)
+
+        def remove_ignored_value(event_map):
+            ignored = set()
+            for key in event_map:
+                if event_map[key] == "SIEVE-IGNORE":
+                    ignored.add(key)
+                else:
+                    for etype in event_map[key]:
+                        if event_map[key][etype] == "SIEVE-IGNORE":
+                            ignored.add(key)
+                            break
+            for key in ignored:
+                event_map.pop(key, None)
+
+        remove_ignored_value(api_event_map["keys"])
+        remove_ignored_value(api_event_map["types"])
 
     return api_event_map
 
@@ -275,13 +290,13 @@ def check_events_oracle(learning_events, testing_events, test_config):
     testing_keys = set(testing_events["keys"].keys())
     learning_keys = set(learning_events["keys"].keys())
     for key in testing_keys.intersection(learning_keys):
-        if learning_events["keys"][key] == "SIEVE-IGNORE":
-            continue
+        assert learning_events["keys"][key] != "SIEVE-IGNORE"
         if learning_events["keys"][key]["operator_related"]:
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config.config["api_event_to_check"]:
                 continue
+            assert learning_events["keys"][key][etype] != "SIEVE-IGNORE"
             if (
                 testing_events["keys"][key][etype]
                 != learning_events["keys"][key][etype]
@@ -297,24 +312,24 @@ def check_events_oracle(learning_events, testing_events, test_config):
     # checking events inconsistency for each resource type
     testing_rtypes = set(testing_events["types"].keys())
     learning_rtypes = set(learning_events["types"].keys())
-    for rtype in testing_rtypes.difference(learning_rtypes):
-        bug_report += (
-            "[ERROR][EVENT][TYPE] %s not in learning events but in testing events\n"
-            % (rtype)
-        )
-        alarm += 1
-    for rtype in learning_rtypes.difference(testing_rtypes):
-        bug_report += (
-            "[ERROR][EVENT][TYPE] %s not in testing events but in learning events\n"
-            % (rtype)
-        )
-        alarm += 1
+    # for rtype in testing_rtypes.difference(learning_rtypes):
+    #     bug_report += (
+    #         "[ERROR][EVENT][TYPE] %s not in learning events but in testing events\n"
+    #         % (rtype)
+    #     )
+    #     alarm += 1
+    # for rtype in learning_rtypes.difference(testing_rtypes):
+    #     bug_report += (
+    #         "[ERROR][EVENT][TYPE] %s not in testing events but in learning events\n"
+    #         % (rtype)
+    #     )
+    #     alarm += 1
     for rtype in testing_rtypes.intersection(learning_rtypes):
-        if learning_events["types"][rtype] == "SIEVE-IGNORE":
-            continue
+        assert learning_events["types"][rtype] != "SIEVE-IGNORE"
         for etype in testing_events["types"][rtype]:
             if etype not in sieve_config.config["api_event_to_check"]:
                 continue
+            assert learning_events["types"][rtype][etype] != "SIEVE-IGNORE"
             if (
                 testing_events["types"][rtype][etype]
                 != learning_events["types"][rtype][etype]
