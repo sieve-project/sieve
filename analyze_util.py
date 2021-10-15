@@ -28,6 +28,8 @@ SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
 INTER_RECONCILER_EDGE = "INTER-RECONCILER"
 INTRA_RECONCILER_EDGE = "INTRA-RECONCILER"
 
+EVENT_NONE_TYPE = "NONE_TYPE"
+
 
 class APIserverTypes:
     ADDED = "ADDED"
@@ -147,7 +149,7 @@ class OperatorHear:
         self.__key = generate_key(self.rtype, self.namespace, self.name)
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
-        self.__prev_etype = None
+        self.__prev_etype = EVENT_NONE_TYPE
         self.__cancelled_by = set()
 
     @property
@@ -252,7 +254,7 @@ class OperatorWrite:
         self.__key = generate_key(self.rtype, self.namespace, self.name)
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
-        self.__prev_etype = None
+        self.__prev_etype = EVENT_NONE_TYPE
 
     @property
     def id(self):
