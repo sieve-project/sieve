@@ -29,7 +29,7 @@ def event_diff_validation_check(prev_etype: str, cur_etype: str):
         # this should never happen
         assert False, "Deleted must be followed with Added"
     if (
-        prev_etype is not None
+        prev_etype != EVENT_NONE_TYPE
         and prev_etype != OperatorHearTypes.DELETED
         and cur_etype == OperatorHearTypes.ADDED
     ):
@@ -47,7 +47,7 @@ def detectable_event_diff(
     if mode == sieve_modes.TIME_TRAVEL or mode == sieve_modes.OBS_GAP:
         event_diff_validation_check(prev_etype, cur_etype)
         # undetectable if the first event is not ADDED
-        if prev_etype is None and cur_etype != OperatorHearTypes.ADDED:
+        if prev_etype == EVENT_NONE_TYPE and cur_etype != OperatorHearTypes.ADDED:
             return False
         # undetectable if not in detectable_operator_hear_types
         if cur_etype not in detectable_operator_hear_types:
@@ -194,10 +194,10 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
             operator_hear.etype
         )
         time_travel_config["ce-diff-previous"] = json.dumps(
-            operator_hear.slim_prev_obj_map
+            operator_hear.slim_prev_obj_map, sort_keys=True
         )
         time_travel_config["ce-diff-current"] = json.dumps(
-            operator_hear.slim_cur_obj_map
+            operator_hear.slim_cur_obj_map, sort_keys=True
         )
         time_travel_config["se-name"] = operator_write.name
         time_travel_config["se-namespace"] = operator_write.namespace
@@ -280,8 +280,12 @@ def obs_gap_analysis(
         obs_gap_config["ce-rtype"] = operator_hear.rtype
         obs_gap_config["ce-etype-previous"] = operator_hear.prev_etype
         obs_gap_config["ce-etype-current"] = operator_hear.etype
-        obs_gap_config["ce-diff-previous"] = json.dumps(operator_hear.slim_prev_obj_map)
-        obs_gap_config["ce-diff-current"] = json.dumps(operator_hear.slim_cur_obj_map)
+        obs_gap_config["ce-diff-previous"] = json.dumps(
+            operator_hear.slim_prev_obj_map, sort_keys=True
+        )
+        obs_gap_config["ce-diff-current"] = json.dumps(
+            operator_hear.slim_cur_obj_map, sort_keys=True
+        )
 
         i += 1
         file_name = os.path.join(path, "obs-gap-config-%s.yaml" % (str(i)))
@@ -341,9 +345,11 @@ def atom_vio_analysis(
         atom_vio_config["se-etype-previous"] = operator_write.prev_etype
         atom_vio_config["se-etype-current"] = operator_write.etype
         atom_vio_config["se-diff-previous"] = json.dumps(
-            operator_write.slim_prev_obj_map
+            operator_write.slim_prev_obj_map, sort_keys=True
         )
-        atom_vio_config["se-diff-current"] = json.dumps(operator_write.slim_cur_obj_map)
+        atom_vio_config["se-diff-current"] = json.dumps(
+            operator_write.slim_cur_obj_map, sort_keys=True
+        )
 
         i += 1
         file_name = os.path.join(path, "atom-vio-config-%s.yaml" % (str(i)))
