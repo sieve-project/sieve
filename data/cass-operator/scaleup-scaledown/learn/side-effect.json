@@ -1,0 +1,70 @@
+{
+    "configmap": {
+        "default": {
+            "cass-operator-lock": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "persistentvolumeclaim": {
+        "default": {
+            "server-data-cluster1-cassandra-datacenter-default-sts-2": {
+                "Create": 0,
+                "Delete": 1
+            }
+        }
+    },
+    "poddisruptionbudget": {
+        "default": {
+            "cassandra-datacenter-pdb": {
+                "Create": 3,
+                "Delete": 2
+            }
+        }
+    },
+    "secret": {
+        "default": {
+            "cassandra-datacenter-ca-keystore": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "cassandra-datacenter-keystore": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "cluster1-superuser": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "cass-operator-metrics": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "cluster1-cassandra-datacenter-all-pods-service": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "cluster1-cassandra-datacenter-service": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "cluster1-seed-service": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "cluster1-cassandra-datacenter-default-sts": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    }
+}
