@@ -165,6 +165,12 @@ test_suites = {
             workloads.workloads["xtradb-operator"]["disable-enable-proxysql"],
             num_workers=4,
         ),
+        "create": Suite(
+            workloads.workloads["xtradb-operator"]["create"],
+        ),
+        "create-with-cert-manager": Suite(
+            workloads.workloads["xtradb-operator"]["create-with-cert-manager"],
+        ),
     },
     "yugabyte-operator": {
         "disable-enable-tls": Suite(
