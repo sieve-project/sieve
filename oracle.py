@@ -43,6 +43,18 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
             dump_json_file(dest_dir, resources, "resources.json")
 
 
+def api_events_to_ignore(key, value):
+    if value["operator_related"]:
+        return True
+    if "csi-" in key:
+        return True
+    if key.endswith("-metrics"):
+        return True
+    if key.startswith("/endpointslices"):
+        return True
+    return False
+
+
 def generate_events_oracle(project, log_dir, canonicalize_resource):
     api_log_path = os.path.join(log_dir, "apiserver1.log")
     api_event_map = {}
@@ -77,10 +89,9 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
             else:
                 api_key_event_map[key]["operator_related"] = False
         api_key_event_map[key][api_event.etype] += 1
-        if type_prefix not in api_type_event_map:
-            api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
-        # do not consider operator related and csi related pods for types submap
-        if (not api_key_event_map[key]["operator_related"]) and ("csi" not in key):
+        if not api_events_to_ignore(key, api_key_event_map[key]):
+            if type_prefix not in api_type_event_map:
+                api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
             api_type_event_map[type_prefix][api_event.etype] += 1
 
         api_event_map["keys"] = api_key_event_map
@@ -287,10 +298,7 @@ def check_events_oracle(learning_events, testing_events, test_config):
     learning_keys = set(learning_events["keys"].keys())
     for key in testing_keys.intersection(learning_keys):
         assert learning_events["keys"][key] != "SIEVE-IGNORE"
-        # TODO: make the ignore-list configurable
-        if key.startswith("/endpointslices"):
-            continue
-        if learning_events["keys"][key]["operator_related"]:
+        if api_events_to_ignore(key, learning_events["keys"][key]):
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config.config["api_event_to_check"]:
@@ -313,9 +321,6 @@ def check_events_oracle(learning_events, testing_events, test_config):
     learning_rtypes = set(learning_events["types"].keys())
     for rtype in testing_rtypes.intersection(learning_rtypes):
         assert learning_events["types"][rtype] != "SIEVE-IGNORE"
-        # TODO: make the ignore-list configurable
-        if key.startswith("/endpointslices"):
-            continue
         for etype in testing_events["types"][rtype]:
             if etype not in sieve_config.config["api_event_to_check"]:
                 continue
