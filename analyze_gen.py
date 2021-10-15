@@ -327,6 +327,7 @@ def atom_vio_analysis(
     i = 0
     for vertex in candidate_vertices:
         operator_write = vertex.content
+        # TODO: Handle the case where operator_write == EVENT_NONE_TYPE
         assert isinstance(operator_write, OperatorWrite)
 
         if not detectable_event_diff(
