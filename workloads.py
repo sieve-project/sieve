@@ -196,12 +196,12 @@ workloads = {
         .wait(50),
         "create-with-cert-manager": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml --validate=false")
-        .cmd("")
-        .cmd("kubectl apply -f test-mongodb-operator/test/cr.yaml")
-        .wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
-        .cmd("kubectl delete PerconaServerMongoDB mongodb-cluster")
-        
-        .wait(70),
+        .wait_for_pod_status("cert-manager-webhook-*", common.RUNNING, namespace="cert-manager")
+        .cmd("kubectl apply -f test-mongodb-operator/test/cr-1.yaml")
+        .wait_for_pod_status("mongodb-cluster-rs0-0", common.RUNNING)
+        .wait(30)
+        .wait_for_pod_status("percona-server-mongodb-operator-*", common.RUNNING)    
+        .wait(60),
     },
     "xtradb-operator": {
         "recreate": test_framework.new_built_in_workload()

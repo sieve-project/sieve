@@ -132,6 +132,9 @@ test_suites = {
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"],
             num_workers=5,
         ),
+        "create-with-cert-manager": Suite(
+            workloads.workloads["mongodb-operator"]["create-with-cert-manager"],
+        ),
     },
     "cass-operator": {
         "recreate": Suite(
