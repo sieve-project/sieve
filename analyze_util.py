@@ -134,7 +134,7 @@ def operator_related_resource(
     project: str, rtype: str, name: str, obj: Dict, taint_list: List[Tuple[str, str]]
 ):
     depl_name = deployment_name[project]
-    if rtype == "deployment" and name == depl_name:
+    if depl_name in name:
         return True
     obj_metadata = obj
     if "metadata" in obj:
