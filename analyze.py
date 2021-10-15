@@ -231,6 +231,12 @@ def parse_reconciler_events(path):
     for operator_write in operator_write_list:
         key = operator_write.key
         if key not in operator_read_key_map:
+            # We just treat read as {} and directly check for write
+            slim_prev_object, slim_cur_object = diff_event(
+                {}, operator_write.obj_map, True
+            )
+            operator_write.slim_prev_obj_map = slim_prev_object
+            operator_write.slim_cur_obj_map = slim_cur_object
             continue
         for i in range(len(operator_read_key_map[key])):
             if (

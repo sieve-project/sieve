@@ -9,11 +9,11 @@ import datetime
 import subprocess
 
 
-def get_pod(resource_name):
+def get_pod(resource_name, namespace):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pods = core_v1.list_namespaced_pod(
-        namespace=sieve_config.config["namespace"], watch=False
+        namespace=namespace, watch=False
     ).items
     target_pod = None
     for pod in pods:
@@ -28,11 +28,11 @@ def get_pod(resource_name):
     return target_pod
 
 
-def get_sts(resource_name):
+def get_sts(resource_name, namespace):
     kubernetes.config.load_kube_config()
     apps_v1 = kubernetes.client.AppsV1Api()
     statefulsets = apps_v1.list_namespaced_stateful_set(
-        namespace=sieve_config.config["namespace"], watch=False
+        namespace=namespace, watch=False
     ).items
     target_sts = None
     for sts in statefulsets:
@@ -41,11 +41,11 @@ def get_sts(resource_name):
     return target_sts
 
 
-def get_pvc(resource_name):
+def get_pvc(resource_name, namespace):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     pvcs = core_v1.list_namespaced_persistent_volume_claim(
-        namespace=sieve_config.config["namespace"], watch=False
+        namespace=namespace, watch=False
     ).items
     target_pvc = None
     for pvc in pvcs:
@@ -54,7 +54,7 @@ def get_pvc(resource_name):
     return target_pvc
 
 
-def get_secret(resource_name):
+def get_secret(resource_name, namespace):
     """Return Secret object with specified name
 
     Parameters:
@@ -63,7 +63,7 @@ def get_secret(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     secrets = core_v1.list_namespaced_secret(
-        namespace=sieve_config.config["namespace"], watch=False
+        namespace=namespace, watch=False
     ).items
     for secret in secrets:
         if secret.metadata.name == resource_name:
@@ -71,7 +71,7 @@ def get_secret(resource_name):
     return None
 
 
-def get_service(resource_name):
+def get_service(resource_name, namespace):
     """Return Secret object with specified name
 
     Parameters:
@@ -80,7 +80,7 @@ def get_service(resource_name):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     services = core_v1.list_namespaced_service(
-        namespace=sieve_config.config["namespace"], watch=False
+        namespace=namespace, watch=False
     ).items
     for service in services:
         if service.metadata.name == resource_name:
@@ -122,17 +122,18 @@ class TestWaitForStatus:
         status,
         soft_time_out,
         hard_time_out,
+        namespace,
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.status = status
-        self.namespace = sieve_config.config["namespace"]
+        self.namespace = namespace
         self.soft_time_out = soft_time_out
         self.hard_time_out = hard_time_out
 
     def check_pod(self):
         try:
-            pod = get_pod(self.resource_name)
+            pod = get_pod(self.resource_name, self.namespace)
         except Exception as err:
             print("error occurs during check pod", err)
             print(traceback.format_exc())
@@ -154,7 +155,7 @@ class TestWaitForStatus:
 
     def check_pvc(self):
         try:
-            pvc = get_pvc(self.resource_name)
+            pvc = get_pvc(self.resource_name, self.namespace)
         except Exception as err:
             print("error occurs during check pvc", err)
             print(traceback.format_exc())
@@ -212,16 +213,17 @@ class TestWaitForStorage:
         storage_size,
         soft_time_out,
         hard_time_out,
+        namespace,
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.storage_size = storage_size
-        self.namespace = sieve_config.config["namespace"]
+        self.namespace = namespace
         self.soft_time_out = soft_time_out
         self.hard_time_out = hard_time_out
 
     def check_sts(self):
-        sts = get_sts(self.resource_name)
+        sts = get_sts(self.resource_name, self.namespace)
         if sts is None:
             return False
         for volume_claim_template in sts.spec.volume_claim_templates:
@@ -272,6 +274,7 @@ class TestWaitForExistence:
         exist: bool,
         soft_time_out,
         hard_time_out,
+        namespace,
     ):
         """Constructor
 
@@ -283,14 +286,14 @@ class TestWaitForExistence:
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.exist = exist
-        self.namespace = sieve_config.config["namespace"]
+        self.namespace = namespace
         self.soft_time_out = soft_time_out
         self.hard_time_out = hard_time_out
 
     def check_secret(self):
         """Return if a secret with the name self.resource_name meets the self.exist"""
         try:
-            secret = get_secret(self.resource_name)
+            secret = get_secret(self.resource_name, self.namespace)
         except Exception as err:
             print("error occurs during check pvc", err)
             print(traceback.format_exc())
@@ -306,7 +309,7 @@ class TestWaitForExistence:
 
     def check_service(self):
         try:
-            service = get_service(self.resource_name)
+            service = get_service(self.resource_name, self.namespace)
         except Exception as err:
             print("error occurs during check pvc", err)
             print(traceback.format_exc())
@@ -374,9 +377,10 @@ class BuiltInWorkLoad:
         status,
         soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
         hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+        namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStatus(
-            common.POD, pod_name, status, soft_time_out, hard_time_out
+            common.POD, pod_name, status, soft_time_out, hard_time_out, namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -387,9 +391,10 @@ class BuiltInWorkLoad:
         status,
         soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
         hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+        namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStatus(
-            common.PVC, pvc_name, status, soft_time_out, hard_time_out
+            common.PVC, pvc_name, status, soft_time_out, hard_time_out, namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -400,9 +405,10 @@ class BuiltInWorkLoad:
         exist: bool,
         soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
         hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+        namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForExistence(
-            common.SECRET, secret_name, exist, soft_time_out, hard_time_out
+            common.SECRET, secret_name, exist, soft_time_out, hard_time_out, namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -413,9 +419,10 @@ class BuiltInWorkLoad:
         exist: bool,
         soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
         hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+        namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForExistence(
-            common.SERVICE, service_name, exist, soft_time_out, hard_time_out
+            common.SERVICE, service_name, exist, soft_time_out, hard_time_out, namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -426,9 +433,10 @@ class BuiltInWorkLoad:
         storage_size,
         soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
         hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+        namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStorage(
-            common.STS, sts_name, storage_size, soft_time_out, hard_time_out
+            common.STS, sts_name, storage_size, soft_time_out, hard_time_out, namespace,
         )
         self.work_list.append(test_wait)
         return self
