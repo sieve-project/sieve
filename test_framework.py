@@ -97,7 +97,7 @@ class TestCmd:
         # TODO: need to check the return code of the cmd
         proc = subprocess.Popen(self.cmd, shell=True)
         try:
-            proc.wait(timeout=20)
+            proc.wait(timeout=60)
         except subprocess.TimeoutExpired:
             proc.terminate()
             return -2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
@@ -455,6 +455,7 @@ class BuiltInWorkLoad:
                 return_code, error_message = work.run(mode)
                 print(datetime.datetime.now())
                 if return_code != 0:
+                    print("error: " + error_message)
                     f.write("error: " + error_message + "\n")
                     if return_code == -2:
                         return
