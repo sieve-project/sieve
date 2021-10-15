@@ -381,7 +381,8 @@ BORING_EVENT_OBJECT_PATHS = [
                             "spec/nodeName",
                             "status/conditions/0/type",
                             "status/conditions",
-                            "spec/initContainers/0/image",]
+                            "spec/initContainers/0/image",
+                            "spec/selector/pod-template-hash",]
 BORING_IGNORE_MARK = "SIEVE-IGNORE"
 
 def equal_path(template, value):
