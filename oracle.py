@@ -13,11 +13,6 @@ from deepdiff import DeepDiff
 import pathlib
 
 
-# operator_write_empty_entry = {
-#     analyze_util.OperatorWriteTypes.CREATE: 0,
-#     analyze_util.OperatorWriteTypes.DELETE: 0,
-# }
-
 api_event_empty_entry = {
     analyze_util.APIEventTypes.ADDED: 0,
     analyze_util.APIEventTypes.DELETED: 0,
@@ -316,18 +311,6 @@ def check_events_oracle(learning_events, testing_events, test_config):
     # checking events inconsistency for each resource type
     testing_rtypes = set(testing_events["types"].keys())
     learning_rtypes = set(learning_events["types"].keys())
-    # for rtype in testing_rtypes.difference(learning_rtypes):
-    #     bug_report += (
-    #         "[ERROR][EVENT][TYPE] %s not in learning events but in testing events\n"
-    #         % (rtype)
-    #     )
-    #     alarm += 1
-    # for rtype in learning_rtypes.difference(testing_rtypes):
-    #     bug_report += (
-    #         "[ERROR][EVENT][TYPE] %s not in testing events but in learning events\n"
-    #         % (rtype)
-    #     )
-    #     alarm += 1
     for rtype in testing_rtypes.intersection(learning_rtypes):
         assert learning_events["types"][rtype] != "SIEVE-IGNORE"
         # TODO: make the ignore-list configurable
@@ -350,70 +333,6 @@ def check_events_oracle(learning_events, testing_events, test_config):
                 )
 
     return alarm, bug_report
-
-
-# def check_operator_write(
-#     learning_operator_write,
-#     testing_operator_write,
-#     test_config,
-#     oracle_config,
-#     selective=True,
-# ):
-#     alarm = 0
-#     bug_report = NO_ERROR_MESSAGE
-
-#     test_config_content = yaml.safe_load(open(test_config))
-#     if test_config_content["mode"] == sieve_modes.OBS_GAP:
-#         return alarm, bug_report
-
-#     resource_keys = set()
-#     for rtype in learning_operator_write:
-#         for namespace in learning_operator_write[rtype]:
-#             for name in learning_operator_write[rtype][namespace]:
-#                 resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
-#     for rtype in testing_operator_write:
-#         for namespace in testing_operator_write[rtype]:
-#             for name in testing_operator_write[rtype][namespace]:
-#                 resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
-#     for key in resource_keys:
-#         rtype, namespace, name = analyze_util.decode_key(key)
-#         exist = True
-#         if (
-#             rtype not in learning_operator_write
-#             or namespace not in learning_operator_write[rtype]
-#             or name not in learning_operator_write[rtype][namespace]
-#         ):
-#             bug_report += "[ERROR][WRITE] %s not in learning side effect digest\n" % (
-#                 key
-#             )
-#             alarm += 1
-#             exist = False
-#         if (
-#             rtype not in testing_operator_write
-#             or namespace not in testing_operator_write[rtype]
-#             or name not in testing_operator_write[rtype][namespace]
-#         ):
-#             bug_report += "[ERROR][WRITE] %s not in testing side effect digest\n" % (
-#                 key
-#             )
-#             alarm += 1
-#             exist = False
-#         if exist:
-#             learning_entry = learning_operator_write[rtype][namespace][name]
-#             testing_entry = testing_operator_write[rtype][namespace][name]
-#             for attr in learning_entry:
-#                 if selective:
-#                     if attr not in sieve_config.config["effect_to_check"]:
-#                         continue
-#                 if learning_entry[attr] != testing_entry[attr]:
-#                     alarm += 1
-#                     bug_report += "[ERROR][WRITE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-#                         key,
-#                         attr.upper(),
-#                         str(learning_entry[attr]),
-#                         str(testing_entry[attr]),
-#                     )
-#     return alarm, bug_report
 
 
 def look_for_panic_in_operator_log(operator_log):
