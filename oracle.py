@@ -92,8 +92,8 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
                 api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
             api_type_event_map[type_prefix][api_event.etype] += 1
 
-        api_event_map["keys"] = api_key_event_map
-        api_event_map["types"] = api_type_event_map
+    api_event_map["keys"] = api_key_event_map
+    api_event_map["types"] = api_type_event_map
 
     if canonicalize_resource:
         # Suppose we are current at learn/learn-twice/xxx
