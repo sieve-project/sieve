@@ -46,8 +46,6 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
 def api_events_to_ignore(key, value):
     if value["operator_related"]:
         return True
-    if "csi-" in key:
-        return True
     if key.endswith("-metrics"):
         return True
     if key.startswith("/endpointslices"):
@@ -285,7 +283,7 @@ def check_status(learning_status, testing_status):
     return alarm, bug_report
 
 
-def check_events_oracle(learning_events, testing_events, test_config):
+def check_events_oracle(project, learning_events, testing_events, test_config):
     alarm = 0
     bug_report = NO_ERROR_MESSAGE
 
@@ -316,26 +314,27 @@ def check_events_oracle(learning_events, testing_events, test_config):
                     str(testing_events["keys"][key][etype]),
                 )
 
-    # checking events inconsistency for each resource type
-    testing_rtypes = set(testing_events["types"].keys())
-    learning_rtypes = set(learning_events["types"].keys())
-    for rtype in testing_rtypes.intersection(learning_rtypes):
-        assert learning_events["types"][rtype] != "SIEVE-IGNORE"
-        for etype in testing_events["types"][rtype]:
-            if etype not in sieve_config.config["api_event_to_check"]:
-                continue
-            assert learning_events["types"][rtype][etype] != "SIEVE-IGNORE"
-            if (
-                testing_events["types"][rtype][etype]
-                != learning_events["types"][rtype][etype]
-            ):
-                alarm += 1
-                bug_report += "[ERROR][EVENT][TYPE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-                    rtype,
-                    etype,
-                    str(learning_events["types"][rtype][etype]),
-                    str(testing_events["types"][rtype][etype]),
-                )
+    if sieve_config.config["check_type_events_oracle"]:
+        # checking events inconsistency for each resource type
+        testing_rtypes = set(testing_events["types"].keys())
+        learning_rtypes = set(learning_events["types"].keys())
+        for rtype in testing_rtypes.intersection(learning_rtypes):
+            assert learning_events["types"][rtype] != "SIEVE-IGNORE"
+            for etype in testing_events["types"][rtype]:
+                if etype not in sieve_config.config["api_event_to_check"]:
+                    continue
+                assert learning_events["types"][rtype][etype] != "SIEVE-IGNORE"
+                if (
+                    testing_events["types"][rtype][etype]
+                    != learning_events["types"][rtype][etype]
+                ):
+                    alarm += 1
+                    bug_report += "[ERROR][EVENT][TYPE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                        rtype,
+                        etype,
+                        str(learning_events["types"][rtype][etype]),
+                        str(testing_events["types"][rtype][etype]),
+                    )
 
     return alarm, bug_report
 
@@ -753,7 +752,7 @@ def injection_validation(test_config, server_log, workload_log):
     return validation_alarm, validation_report
 
 
-def check(test_config, oracle_config, log_dir, data_dir):
+def check(project, test_config, log_dir, data_dir):
     server_log = os.path.join(log_dir, "sieve-server.log")
     workload_log = os.path.join(log_dir, "workload.log")
     validation_alarm, validation_report = injection_validation(
@@ -768,10 +767,11 @@ def check(test_config, oracle_config, log_dir, data_dir):
         bug_alarm += status_alarm
         bug_report += status_bug_report
 
-    if sieve_config.config["check_event_oracle"]:
+    if sieve_config.config["check_events_oracle"]:
         learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
         test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
         write_alarm, write_bug_report = check_events_oracle(
+            project,
             learn_events,
             test_events,
             test_config,
