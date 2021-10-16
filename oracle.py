@@ -214,10 +214,11 @@ def generate_resources(log_dir="", canonicalize_resource=False):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
+    # TODO: should we also cover other types?
     resource_handler = {
         "deployment": apps_v1.list_namespaced_deployment,
-        "serviceaccount": core_v1.list_namespaced_service_account,
-        "configmap": core_v1.list_namespaced_config_map,
+        # "serviceaccount": core_v1.list_namespaced_service_account,
+        # "configmap": core_v1.list_namespaced_config_map,
         "secret": core_v1.list_namespaced_secret,
         "persistentvolumeclaim": core_v1.list_namespaced_persistent_volume_claim,
         "pod": core_v1.list_namespaced_pod,
@@ -226,22 +227,10 @@ def generate_resources(log_dir="", canonicalize_resource=False):
     }
     resources = {}
 
+    for resource in resource_handler.keys():
+        resources[resource] = get_resource_helper(resource_handler[resource])
+
     crd_list = get_crd_list()
-
-    resource_set = set(["statefulset", "pod", "persistentvolumeclaim", "deployment"])
-    if log_dir != "":
-        log_path = os.path.join(log_dir, "sieve-server.log")
-        for line in open(log_path).readlines():
-            if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
-                continue
-            operator_write = analyze_util.parse_operator_write(line)
-            resource_set.add(operator_write.rtype)
-
-    for resource in resource_set:
-        if resource in resource_handler:
-            # Normal resource
-            resources[resource] = get_resource_helper(resource_handler[resource])
-
     # Fetch for crd
     for crd in crd_list:
         resources[crd] = get_crd(crd)
