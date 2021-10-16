@@ -1,4 +1,16 @@
 {
+    "certificate": {
+        "default": {
+            "xtradb-cluster-ssl": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "xtradb-cluster-ssl-internal": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
     "configmap": {
         "default": {
             "auto-xtradb-cluster-pxc": {
@@ -6,6 +18,14 @@
                 "Delete": 0
             },
             "percona-xtradb-cluster-operator-lock": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "issuer": {
+        "default": {
+            "xtradb-cluster-pxc-ca": {
                 "Create": 1,
                 "Delete": 0
             }
@@ -26,14 +46,6 @@
                 "Delete": 0
             },
             "xtradb-cluster-secrets": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "xtradb-cluster-ssl": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "xtradb-cluster-ssl-internal": {
                 "Create": 1,
                 "Delete": 0
             }

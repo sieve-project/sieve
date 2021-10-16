@@ -36,7 +36,7 @@ reprod_map = {
         "time-travel-3": ["disable-enable-arbiter", "mongodb_time_travel_3.yaml"],
     },
     "xtradb-operator": {
-        "atom-vio-1": ["create", "xtradb_atom_vio_1.yaml"],
+        "atom-vio-1": ["disable-enable-proxysql", "xtradb_atom_vio_1.yaml"],
         "atom-vio-2": ["create-with-cert-manager", "xtradb_atom_vio_2.yaml"],
         "time-travel-1": ["recreate", "xtradb_time_travel_1.yaml"],
         "time-travel-2": ["disable-enable-haproxy", "xtradb_time_travel_2.yaml"],

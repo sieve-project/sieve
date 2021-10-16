@@ -82,7 +82,7 @@ def generate_jobs(ci_mode):
         clean_images = {
             "name": "Clean images",
             "if": "always()",
-            "run": 'docker image prune -a -f && docker system df',
+            "run": 'docker image prune -a -f && docker builder prune -a -f && docker system df',
         }
 
         build_modes = [
