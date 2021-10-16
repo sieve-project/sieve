@@ -267,3 +267,42 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 		panic(fmt.Errorf("Cannot find function %s", etype))
 	}
 }
+
+func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentBefore, instrumentAfter bool) {
+	f := parseSourceFile(ifilepath, "cacher")
+
+	funNameBefore := "Notify" + mode + "BeforeProcessEvent"
+	funNameAfter := "Notify" + mode + "AfterProcessEvent"
+
+	// TODO: do not hardcode the instrumentationIndex
+	instrumentationIndex := 5
+
+	_, funcDecl := findFuncDecl(f, "processEvent")
+	if funcDecl == nil {
+		panic("instrumentWatchCacheGo error")
+	}
+
+	if instrumentBefore {
+		instrumentationInProcessEventBeforeReconcile := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
+			},
+		}
+		instrumentationInProcessEventBeforeReconcile.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, instrumentationIndex, instrumentationInProcessEventBeforeReconcile)
+	}
+
+	if instrumentAfter {
+		instrumentationInProcessEventAfterReconcile := &dst.DeferStmt{
+			Call: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
+			},
+		}
+		instrumentationInProcessEventAfterReconcile.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, instrumentationIndex, instrumentationInProcessEventAfterReconcile)
+	}
+
+	writeInstrumentedFile(ofilepath, "cacher", f)
+}

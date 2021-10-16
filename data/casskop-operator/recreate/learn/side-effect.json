@@ -1,50 +1,193 @@
 {
-    "configmap": {
-        "default": {
-            "casskop-lock": {
-                "Create": 1,
-                "Delete": 0
-            }
+    "keys": {
+        "/configmaps/default/cassandra-configmap-v1": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/configmaps/default/casskop-lock": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/controllerrevisions/default/cassandra-cluster-dc1-rack1-7849d55569": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/db.orange.com/cassandraclusters/default/cassandra-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/deployments/default/casskop-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/cassandra-cluster-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/endpointslices/default/cassandra-cluster-exporter-jmx-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/endpointslices/default/cassandra-operator-metrics-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/persistentvolumeclaims/default/data-cassandra-cluster-dc1-rack1-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/poddisruptionbudgets/default/cassandra-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/cassandra-cluster-dc1-rack1-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/casskop-operator-7dd4d8d4d6-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/replicasets/default/casskop-operator-7dd4d8d4d6": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rolebindings/default/cassandra-cluster-node-cluster-node": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/rolebindings/default/cassandra-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/roles/default/cassandra-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/roles/default/cassandra-operator-cluster-node": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/sh.helm.release.v1.casskop-operator.v1": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/serviceaccounts/default/cassandra-cluster-node": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/serviceaccounts/default/cassandra-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/endpoints/default/cassandra-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/cassandra-cluster-exporter-jmx": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/cassandra-operator-metrics": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/specs/default/cassandra-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/cassandra-cluster-exporter-jmx": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/cassandra-operator-metrics": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/statefulsets/default/cassandra-cluster-dc1-rack1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
         }
     },
-    "persistentvolumeclaim": {
-        "default": {
-            "data-cassandra-cluster-dc1-rack1-0": {
-                "Create": 0,
-                "Delete": 1
-            }
-        }
-    },
-    "poddisruptionbudget": {
-        "default": {
-            "cassandra-cluster": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "service": {
-        "default": {
-            "cassandra-cluster": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "cassandra-cluster-exporter-jmx": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "cassandra-operator-metrics": {
-                "Create": 1,
-                "Delete": 0
-            }
-        }
-    },
-    "statefulset": {
-        "default": {
-            "cassandra-cluster-dc1-rack1": {
-                "Create": 2,
-                "Delete": 0
-            }
+    "types": {
+        "/configmaps": {
+            "ADDED": 1,
+            "DELETED": 0
+        },
+        "/controllerrevisions": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/db.orange.com/cassandraclusters": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/persistentvolumeclaims": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/poddisruptionbudgets": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/pods": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/rolebindings": {
+            "ADDED": 4,
+            "DELETED": 0
+        },
+        "/roles": {
+            "ADDED": 4,
+            "DELETED": 0
+        },
+        "/secrets": {
+            "ADDED": 2,
+            "DELETED": 0
+        },
+        "/serviceaccounts": {
+            "ADDED": 2,
+            "DELETED": 0
+        },
+        "/services/endpoints": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/services/specs": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/statefulsets": {
+            "ADDED": 2,
+            "DELETED": 1
         }
     }
 }

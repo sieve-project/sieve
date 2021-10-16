@@ -397,7 +397,7 @@ def analyze_trace(
     sanity_check_sieve_log(log_path)
 
     if generate_oracle:
-        oracle.generate_test_oracle(log_dir, data_dir, canonicalize_resource)
+        oracle.generate_test_oracle(project, log_dir, data_dir, canonicalize_resource)
 
     if generate_config and not canonicalize_resource:
         causality_graph = build_causality_graph(log_path)

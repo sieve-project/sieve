@@ -1,50 +1,204 @@
 {
-    "configmap": {
-        "default": {
-            "cassandra-test-cluster-dc1-operator-config": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "cassandra-test-cluster-dc1-rack-config-rack1": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "myoperator-lock": {
-                "Create": 1,
-                "Delete": 0
-            }
+    "keys": {
+        "/cassandraoperator.instaclustr.com/cassandradatacenters/default/cassandra-datacenter": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/configmaps/default/cassandra-operator-default-config": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/configmaps/default/cassandra-test-cluster-dc1-operator-config": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/configmaps/default/cassandra-test-cluster-dc1-rack-config-rack1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/configmaps/default/myoperator-lock": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/controllerrevisions/default/cassandra-test-cluster-dc1-rack1-7d8d8dbfc8": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/deployments/default/cassandra-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/cassandra-operator-metrics-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/cassandra-test-cluster-dc1-nodes-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/endpointslices/default/cassandra-test-cluster-dc1-seeds-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/data-volume-cassandra-test-cluster-dc1-rack1-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/cassandra-operator-7fc48fc48d-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/pods/default/cassandra-test-cluster-dc1-rack1-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/replicasets/default/cassandra-operator-7fc48fc48d": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rolebindings/default/cassandra": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/rolebindings/default/cassandra-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rolebindings/default/cassandra-performance": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/roles/default/cassandra": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/roles/default/cassandra-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/roles/default/cassandra-performance": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/serviceaccounts/default/cassandra": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/serviceaccounts/default/cassandra-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/serviceaccounts/default/cassandra-performance": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/endpoints/default/cassandra-operator-metrics": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/services/endpoints/default/cassandra-test-cluster-dc1-nodes": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/cassandra-test-cluster-dc1-seeds": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/cassandra-operator-metrics": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/services/specs/default/cassandra-test-cluster-dc1-nodes": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/cassandra-test-cluster-dc1-seeds": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/statefulsets/default/cassandra-test-cluster-dc1-rack1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
         }
     },
-    "persistentvolumeclaim": {
-        "default": {
-            "data-volume-cassandra-test-cluster-dc1-rack1-0": {
-                "Create": 0,
-                "Delete": 1
-            }
-        }
-    },
-    "service": {
-        "default": {
-            "cassandra-operator-metrics": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "cassandra-test-cluster-dc1-nodes": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "cassandra-test-cluster-dc1-seeds": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "statefulset": {
-        "default": {
-            "cassandra-test-cluster-dc1-rack1": {
-                "Create": 2,
-                "Delete": 0
-            }
+    "types": {
+        "/cassandraoperator.instaclustr.com/cassandradatacenters": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/configmaps": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/controllerrevisions": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/persistentvolumeclaims": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/pods": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/rolebindings": {
+            "ADDED": 4,
+            "DELETED": 0
+        },
+        "/roles": {
+            "ADDED": 4,
+            "DELETED": 0
+        },
+        "/secrets": {
+            "ADDED": 2,
+            "DELETED": 0
+        },
+        "/serviceaccounts": {
+            "ADDED": 2,
+            "DELETED": 0
+        },
+        "/services/endpoints": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/services/specs": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/statefulsets": {
+            "ADDED": 2,
+            "DELETED": 1
         }
     }
 }

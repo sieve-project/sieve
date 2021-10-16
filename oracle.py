@@ -13,9 +13,9 @@ from deepdiff import DeepDiff
 import pathlib
 
 
-operator_write_empty_entry = {
-    analyze_util.OperatorWriteTypes.CREATE: 0,
-    analyze_util.OperatorWriteTypes.DELETE: 0,
+api_event_empty_entry = {
+    analyze_util.APIEventTypes.ADDED: 0,
+    analyze_util.APIEventTypes.DELETED: 0,
 }
 
 
@@ -25,10 +25,12 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
-    if sieve_config.config["generate_write"]:
-        operator_write = generate_operator_write(src_dir)
-        dump_json_file(dest_dir, operator_write, "side-effect.json")
+def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False):
+    if sieve_config.config["generate_events_oracle"]:
+        events_oracle = generate_events_oracle(project, src_dir, canonicalize_resource)
+        dump_json_file(src_dir, events_oracle, "side-effect.json")
+        if canonicalize_resource:
+            dump_json_file(dest_dir, events_oracle, "side-effect.json")
     if sieve_config.config["generate_status"]:
         status = generate_status()
         dump_json_file(dest_dir, status, "status.json")
@@ -41,49 +43,84 @@ def generate_test_oracle(src_dir, dest_dir, canonicalize_resource=False):
             dump_json_file(dest_dir, resources, "resources.json")
 
 
-def generate_operator_write(log_dir):
-    print("Checking safety assertions...")
-    operator_write_name_map = {}
-    operator_write_uid_set = set()
-    log_path = os.path.join(log_dir, "sieve-server.log")
-    for line in open(log_path).readlines():
-        if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
+def is_unstable_api_event_key(key, value):
+    if value["operator_related"]:
+        return True
+    if key.endswith("-metrics"):
+        return True
+    if key.startswith("/endpointslices"):
+        return True
+    return False
+
+
+def generate_events_oracle(project, log_dir, canonicalize_resource):
+    api_log_path = os.path.join(log_dir, "apiserver1.log")
+    api_event_map = {}
+    api_key_event_map = {}
+    api_type_event_map = {}
+    taint_list = []
+    for line in open(api_log_path).readlines():
+        if analyze_util.SIEVE_API_EVENT_MARK not in line:
             continue
-        operator_write = analyze_util.parse_operator_write(line)
-        if analyze_util.ERROR_MSG_FILTER_FLAG:
-            if operator_write.error not in analyze_util.ALLOWED_ERROR_TYPE:
-                continue
-        rtype = operator_write.rtype
-        namespace = operator_write.namespace
-        name = operator_write.name
-        etype = operator_write.etype
-        obj = operator_write.obj_map
-        uid = analyze_util.extract_uid(obj)
-        generate_name = analyze_util.extract_generate_name(obj)
+        api_event = analyze_util.parse_api_event(line)
+        key = api_event.key
         if (
-            etype != analyze_util.OperatorWriteTypes.CREATE
-            and etype != analyze_util.OperatorWriteTypes.DELETE
+            api_event.etype != analyze_util.APIEventTypes.ADDED
+            and api_event.etype != analyze_util.APIEventTypes.DELETED
         ):
             continue
+        if api_event.namespace != "default":
+            continue
+        generate_name = analyze_util.extract_generate_name(api_event.obj_map)
         if generate_name is not None:
-            if analyze_util.is_generated_random_name(name, generate_name):
-                name = generate_name + "-" + SIEVE_VALUE_MASK
-        if uid is not None:
-            uid_marker = "\t".join([rtype, namespace, name, etype, uid])
-            if uid_marker in operator_write_uid_set:
-                continue
+            if analyze_util.is_generated_random_name(api_event.name, generate_name):
+                key = key[:-5] + "*"
+        assert "/default/" in key
+        type_prefix = key[: key.find("/default/")]
+        if key not in api_key_event_map:
+            api_key_event_map[key] = copy.deepcopy(api_event_empty_entry)
+            if analyze_util.operator_related_resource(
+                project, api_event.rtype, api_event.name, api_event.obj_map, taint_list
+            ):
+                api_key_event_map[key]["operator_related"] = True
+                taint_list.append((api_event.rtype, api_event.name))
             else:
-                operator_write_uid_set.add(uid_marker)
-        if rtype not in operator_write_name_map:
-            operator_write_name_map[rtype] = {}
-        if namespace not in operator_write_name_map[rtype]:
-            operator_write_name_map[rtype][namespace] = {}
-        if name not in operator_write_name_map[rtype][namespace]:
-            operator_write_name_map[rtype][namespace][name] = copy.deepcopy(
-                operator_write_empty_entry
-            )
-        operator_write_name_map[rtype][namespace][name][etype] += 1
-    return operator_write_name_map
+                api_key_event_map[key]["operator_related"] = False
+        api_key_event_map[key][api_event.etype] += 1
+        if not is_unstable_api_event_key(key, api_key_event_map[key]):
+            if type_prefix not in api_type_event_map:
+                api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
+            api_type_event_map[type_prefix][api_event.etype] += 1
+
+    api_event_map["keys"] = api_key_event_map
+    api_event_map["types"] = api_type_event_map
+
+    if canonicalize_resource:
+        # Suppose we are current at learn/learn-twice/xxx
+        learn_dir = pathlib.Path(log_dir).parent
+        learn_once_dir = learn_dir / "learn-once"
+        prev_api_event_map = json.loads(
+            open(os.path.join(learn_once_dir, "side-effect.json")).read()
+        )
+        api_event_map = learn_twice_trim(prev_api_event_map, api_event_map)
+
+        def remove_ignored_value(event_map):
+            ignored = set()
+            for key in event_map:
+                if event_map[key] == "SIEVE-IGNORE":
+                    ignored.add(key)
+                else:
+                    for etype in event_map[key]:
+                        if event_map[key][etype] == "SIEVE-IGNORE":
+                            ignored.add(key)
+                            break
+            for key in ignored:
+                event_map.pop(key, None)
+
+        remove_ignored_value(api_event_map["keys"])
+        remove_ignored_value(api_event_map["types"])
+
+    return api_event_map
 
 
 def generate_status():
@@ -127,7 +164,7 @@ def get_resource_helper(func):
     k8s_namespace = sieve_config.config["namespace"]
     response = func(k8s_namespace, _preload_content=False, watch=False)
     data = json.loads(response.data)
-    return {resource["metadata"]["name"] : resource for resource in data["items"] }
+    return {resource["metadata"]["name"]: resource for resource in data["items"]}
 
 
 def get_crd_list():
@@ -177,10 +214,11 @@ def generate_resources(log_dir="", canonicalize_resource=False):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
+    # TODO: should we also cover other types?
     resource_handler = {
         "deployment": apps_v1.list_namespaced_deployment,
-        "serviceaccount": core_v1.list_namespaced_service_account,
-        "configmap": core_v1.list_namespaced_config_map,
+        # "serviceaccount": core_v1.list_namespaced_service_account,
+        # "configmap": core_v1.list_namespaced_config_map,
         "secret": core_v1.list_namespaced_secret,
         "persistentvolumeclaim": core_v1.list_namespaced_persistent_volume_claim,
         "pod": core_v1.list_namespaced_pod,
@@ -189,22 +227,10 @@ def generate_resources(log_dir="", canonicalize_resource=False):
     }
     resources = {}
 
+    for resource in resource_handler.keys():
+        resources[resource] = get_resource_helper(resource_handler[resource])
+
     crd_list = get_crd_list()
-
-    resource_set = set(["statefulset", "pod", "persistentvolumeclaim", "deployment"])
-    if log_dir != "":
-        log_path = os.path.join(log_dir, "sieve-server.log")
-        for line in open(log_path).readlines():
-            if analyze_util.SIEVE_AFTER_WRITE_MARK not in line:
-                continue
-            operator_write = analyze_util.parse_operator_write(line)
-            resource_set.add(operator_write.rtype)
-
-    for resource in resource_set:
-        if resource in resource_handler:
-            # Normal resource
-            resources[resource] = get_resource_helper(resource_handler[resource])
-
     # Fetch for crd
     for crd in crd_list:
         resources[crd] = get_crd(crd)
@@ -246,38 +272,23 @@ def check_status(learning_status, testing_status):
     return alarm, bug_report
 
 
-def preprocess_operator_write(operator_write, interest_objects):
-    result = {}
-    for interest in interest_objects:
-        rtype = interest["rtype"]
-        namespace = interest["namespace"]
-        name = interest["name"]
-        rule = re.compile(name, re.IGNORECASE)
-        if rtype in operator_write and namespace in operator_write[rtype]:
-            resource_map = operator_write[rtype][namespace]
-            se_map = copy.deepcopy(operator_write_empty_entry)
-            has_match = False
-            for rname in resource_map:
-                if rule.fullmatch(rname):
-                    has_match = True
-                    for setype in resource_map[rname]:
-                        se_map[setype] += resource_map[rname][setype]
-            if has_match:
-                if not rtype in result:
-                    result[rtype] = {}
-                if not namespace in result[rtype]:
-                    result[rtype][namespace] = {}
-                result[rtype][namespace][name] = se_map
-    return result
+def check_events_oracle(learning_events, testing_events, test_config, skip_list):
+    def should_skip_api_event_key(api_event_key, skip):
+        tokens = api_event_key.split("/")
+        if tokens[1] == "endpoints":
+            rtype = tokens[1]
+        elif tokens[1].endswith("s"):
+            rtype = tokens[1][:-1]
+        else:
+            rtype = tokens[1]
+        name = tokens[-1]
+        for skip_rtype in skip:
+            if skip_rtype == rtype:
+                for skip_name in skip[skip_rtype]:
+                    if skip_name == name and len(skip[skip_rtype][name]) == 0:
+                        return True
+        return False
 
-
-def check_operator_write(
-    learning_operator_write,
-    testing_operator_write,
-    test_config,
-    oracle_config,
-    selective=True,
-):
     alarm = 0
     bug_report = NO_ERROR_MESSAGE
 
@@ -285,53 +296,53 @@ def check_operator_write(
     if test_config_content["mode"] == sieve_modes.OBS_GAP:
         return alarm, bug_report
 
-    resource_keys = set()
-    for rtype in learning_operator_write:
-        for namespace in learning_operator_write[rtype]:
-            for name in learning_operator_write[rtype][namespace]:
-                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
-    for rtype in testing_operator_write:
-        for namespace in testing_operator_write[rtype]:
-            for name in testing_operator_write[rtype][namespace]:
-                resource_keys.add(analyze_util.generate_key(rtype, namespace, name))
-    for key in resource_keys:
-        rtype, namespace, name = analyze_util.decode_key(key)
-        exist = True
-        if (
-            rtype not in learning_operator_write
-            or namespace not in learning_operator_write[rtype]
-            or name not in learning_operator_write[rtype][namespace]
-        ):
-            bug_report += "[ERROR][WRITE] %s not in learning side effect digest\n" % (
-                key
-            )
-            alarm += 1
-            exist = False
-        if (
-            rtype not in testing_operator_write
-            or namespace not in testing_operator_write[rtype]
-            or name not in testing_operator_write[rtype][namespace]
-        ):
-            bug_report += "[ERROR][WRITE] %s not in testing side effect digest\n" % (
-                key
-            )
-            alarm += 1
-            exist = False
-        if exist:
-            learning_entry = learning_operator_write[rtype][namespace][name]
-            testing_entry = testing_operator_write[rtype][namespace][name]
-            for attr in learning_entry:
-                if selective:
-                    if attr not in sieve_config.config["effect_to_check"]:
-                        continue
-                if learning_entry[attr] != testing_entry[attr]:
+    # checking events inconsistency for each key
+    testing_keys = set(testing_events["keys"].keys())
+    learning_keys = set(learning_events["keys"].keys())
+    for key in testing_keys.intersection(learning_keys):
+        assert learning_events["keys"][key] != "SIEVE-IGNORE"
+        if is_unstable_api_event_key(key, learning_events["keys"][key]):
+            continue
+        if should_skip_api_event_key(key, skip_list):
+            continue
+        for etype in testing_events["keys"][key]:
+            if etype not in sieve_config.config["api_event_to_check"]:
+                continue
+            assert learning_events["keys"][key][etype] != "SIEVE-IGNORE"
+            if (
+                testing_events["keys"][key][etype]
+                != learning_events["keys"][key][etype]
+            ):
+                alarm += 1
+                bug_report += "[ERROR][EVENT][KEY] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                    key,
+                    etype,
+                    str(learning_events["keys"][key][etype]),
+                    str(testing_events["keys"][key][etype]),
+                )
+
+    if sieve_config.config["check_type_events_oracle"]:
+        # checking events inconsistency for each resource type
+        testing_rtypes = set(testing_events["types"].keys())
+        learning_rtypes = set(learning_events["types"].keys())
+        for rtype in testing_rtypes.intersection(learning_rtypes):
+            assert learning_events["types"][rtype] != "SIEVE-IGNORE"
+            for etype in testing_events["types"][rtype]:
+                if etype not in sieve_config.config["api_event_to_check"]:
+                    continue
+                assert learning_events["types"][rtype][etype] != "SIEVE-IGNORE"
+                if (
+                    testing_events["types"][rtype][etype]
+                    != learning_events["types"][rtype][etype]
+                ):
                     alarm += 1
-                    bug_report += "[ERROR][WRITE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-                        key,
-                        attr.upper(),
-                        str(learning_entry[attr]),
-                        str(testing_entry[attr]),
+                    bug_report += "[ERROR][EVENT][TYPE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
+                        rtype,
+                        etype,
+                        str(learning_events["types"][rtype][etype]),
+                        str(testing_events["types"][rtype][etype]),
                     )
+
     return alarm, bug_report
 
 
@@ -357,32 +368,35 @@ def check_workload_log(workload_log):
             bug_report += "[ERROR][WORKLOAD] %s" % line
     return alarm, bug_report
 
+
 BORING_EVENT_OBJECT_KEYS = ["image", "imageID"]
 # all the path here is full path,
 # xxx/0/yyy has the same meaning as xxx/*/yyy
 BORING_EVENT_OBJECT_PATHS = [
-                            "data",
-                            "metadata/annotations",
-                            "metadata/managedFields",
-                            "metadata/labels",
-                            "metadata/resourceVersion",
-                            "metadata/generateName",
-                            "metadata/ownerReferences",
-                            "metadata/generation",
-                            "metadata/observedGeneration",
-                            "spec/containers/0/image",
-                            "spec/template/spec/containers/0/image",
-                            "spec/template/spec/containers/0/env",
-                            "spec/containers/0/env",
-                            "status/conditions/0/message",
-                            "spec/containers/0/image",
-                            "status/containerStatuses/0/image",
-                            "status/containerStatuses/0/imageID",
-                            "spec/nodeName",
-                            "status/conditions/0/type",
-                            "status/conditions",
-                            "spec/initContainers/0/image",]
+    "data",
+    "metadata/annotations",
+    "metadata/managedFields",
+    "metadata/labels",
+    "metadata/resourceVersion",
+    "metadata/generateName",
+    "metadata/ownerReferences",
+    "metadata/generation",
+    "metadata/observedGeneration",
+    "spec/containers/0/image",
+    "spec/template/spec/containers/0/image",
+    "spec/template/spec/containers/0/env",
+    "spec/containers/0/env",
+    "status/conditions/0/message",
+    "spec/containers/0/image",
+    "status/containerStatuses/0/image",
+    "status/containerStatuses/0/imageID",
+    "spec/nodeName",
+    "status/conditions/0/type",
+    "status/conditions",
+    "spec/initContainers/0/image",
+]
 BORING_IGNORE_MARK = "SIEVE-IGNORE"
+
 
 def equal_path(template, value):
     template = template.split("/")
@@ -392,11 +406,12 @@ def equal_path(template, value):
         return False
 
     for i in range(len(template)):
-        if template[i] in ["0", '*']:
+        if template[i] in ["0", "*"]:
             continue
         if template[i] != value[i]:
             return False
     return True
+
 
 def preprocess(learn, test):
     for resource in list(learn):
@@ -405,6 +420,7 @@ def preprocess(learn, test):
     for resource in list(test):
         if resource not in learn:
             test.pop(resource, None)
+
 
 def look_for_resources_diff(learn, test):
     f = io.StringIO()
@@ -417,7 +433,7 @@ def look_for_resources_diff(learn, test):
 
     preprocess(learn, test)
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
-    resource_map = {resource: {'add': [], 'remove': []} for resource in test}
+    resource_map = {resource: {"add": [], "remove": []} for resource in test}
     not_care_keys = set(BORING_EVENT_OBJECT_KEYS)
 
     for delta_type in tdiff:
@@ -430,7 +446,9 @@ def look_for_resources_diff(learn, test):
                 name = path[1]
                 if key.t1 == BORING_IGNORE_MARK:
                     name = BORING_IGNORE_MARK
-                resource_map[resource_type]['add' if delta_type == 'dictionary_item_added' else 'remove'].append(name)
+                resource_map[resource_type][
+                    "add" if delta_type == "dictionary_item_added" else "remove"
+                ].append(name)
                 continue
 
             if key.t1 != BORING_IGNORE_MARK:
@@ -443,7 +461,7 @@ def look_for_resources_diff(learn, test):
                 # Search for boring paths
                 if len(path) > 2:
                     for rule in BORING_EVENT_OBJECT_PATHS:
-                        if equal_path(rule, '/'.join([str(x) for x in path[2:]])):
+                        if equal_path(rule, "/".join([str(x) for x in path[2:]])):
                             has_not_care = True
                             break
                 if has_not_care:
@@ -468,14 +486,38 @@ def look_for_resources_diff(learn, test):
                     continue
                 alarm += 1
                 if delta_type in ["dictionary_item_added", "iterable_item_added"]:
-                    print("[ERROR][RESOURCE-KEY-ADD]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])), "not seen during learning run, but seen as",
-                            key.t2, "during testing run", file=f)
+                    print(
+                        "[ERROR][RESOURCE-KEY-ADD]",
+                        "/".join([resource_type, namespace, name]),
+                        "/".join(map(str, path[2:])),
+                        "not seen during learning run, but seen as",
+                        key.t2,
+                        "during testing run",
+                        file=f,
+                    )
                 elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
-                    print("[ERROR][RESOURCE-KEY-REMOVE]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])), "seen as", key.t1, "during learning run, but not seen",
-                            "during testing run", file=f)
+                    print(
+                        "[ERROR][RESOURCE-KEY-REMOVE]",
+                        "/".join([resource_type, namespace, name]),
+                        "/".join(map(str, path[2:])),
+                        "seen as",
+                        key.t1,
+                        "during learning run, but not seen",
+                        "during testing run",
+                        file=f,
+                    )
                 elif delta_type == "values_changed":
-                    print("[ERROR][RESOURCE-KEY-DIFF]", "/".join([resource_type, namespace, name]), "/".join(map(str, path[2:])),
-                          "is", key.t1, "during learning run, but", key.t2, "during testing run", file=f)
+                    print(
+                        "[ERROR][RESOURCE-KEY-DIFF]",
+                        "/".join([resource_type, namespace, name]),
+                        "/".join(map(str, path[2:])),
+                        "is",
+                        key.t1,
+                        "during learning run, but",
+                        key.t2,
+                        "during testing run",
+                        file=f,
+                    )
                 else:
                     print(
                         delta_type,
@@ -491,28 +533,52 @@ def look_for_resources_diff(learn, test):
 
     for resource_type in resource_map:
         resource = resource_map[resource_type]
-        if BORING_IGNORE_MARK in resource['add'] + resource['remove']:
+        if BORING_IGNORE_MARK in resource["add"] + resource["remove"]:
             # Then we only report number diff
-            delta = len(resource['add']) - len(resource['remove'])
+            delta = len(resource["add"]) - len(resource["remove"])
             learn_set = set(learn[resource_type].keys())
             test_set = set(test[resource_type].keys())
             if delta != 0:
                 alarm += 1
-                print("[ERROR][RESOURCE-ADD]" if delta > 0 else "[ERROR][RESOURCE-REMOVE]",
-                len(learn_set), resource_type, "seen after learning run", sorted(learn_set), "but", len(test_set), resource_type, "seen after testing run", sorted(test_set), file=f)
+                print(
+                    "[ERROR][RESOURCE-ADD]"
+                    if delta > 0
+                    else "[ERROR][RESOURCE-REMOVE]",
+                    len(learn_set),
+                    resource_type,
+                    "seen after learning run",
+                    sorted(learn_set),
+                    "but",
+                    len(test_set),
+                    resource_type,
+                    "seen after testing run",
+                    sorted(test_set),
+                    file=f,
+                )
         else:
             # We report resource diff detail
-            for name in resource['add']:
+            for name in resource["add"]:
                 alarm += 1
-                print("[ERROR][RESOURCE-ADD]", "/".join([resource_type, name]), "is not seen during learning run, but seen during testing run", file=f)
-            for name in resource['remove']:
+                print(
+                    "[ERROR][RESOURCE-ADD]",
+                    "/".join([resource_type, name]),
+                    "is not seen during learning run, but seen during testing run",
+                    file=f,
+                )
+            for name in resource["remove"]:
                 alarm += 1
-                print("[ERROR][RESOURCE-REMOVE]", "/".join([resource_type, name]), "is seen during learning run, but not seen during testing run", file=f)
+                print(
+                    "[ERROR][RESOURCE-REMOVE]",
+                    "/".join([resource_type, name]),
+                    "is seen during learning run, but not seen during testing run",
+                    file=f,
+                )
 
     result = f.getvalue()
     f.close()
-    final_bug_report =  result if alarm != 0 else ""
+    final_bug_report = result if alarm != 0 else ""
     return alarm, final_bug_report
+
 
 def generate_time_travel_debugging_hint(test_config_content):
     desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
@@ -693,7 +759,7 @@ def injection_validation(test_config, server_log, workload_log):
     return validation_alarm, validation_report
 
 
-def check(test_config, oracle_config, log_dir, data_dir):
+def check(test_config, log_dir, data_dir, skip_list):
     server_log = os.path.join(log_dir, "sieve-server.log")
     workload_log = os.path.join(log_dir, "workload.log")
     validation_alarm, validation_report = injection_validation(
@@ -708,16 +774,11 @@ def check(test_config, oracle_config, log_dir, data_dir):
         bug_alarm += status_alarm
         bug_report += status_bug_report
 
-    if sieve_config.config["check_write"]:
-        learn_operator_write = json.load(
-            open(os.path.join(data_dir, "side-effect.json"))
-        )
-        test_operator_write = json.load(open(os.path.join(log_dir, "side-effect.json")))
-        write_alarm, write_bug_report = check_operator_write(
-            learn_operator_write,
-            test_operator_write,
-            test_config,
-            oracle_config,
+    if sieve_config.config["check_events_oracle"]:
+        learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
+        test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
+        write_alarm, write_bug_report = check_events_oracle(
+            learn_events, test_events, test_config, skip_list
         )
         bug_alarm += write_alarm
         bug_report += write_bug_report

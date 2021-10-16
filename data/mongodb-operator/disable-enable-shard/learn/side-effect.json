@@ -1,90 +1,246 @@
 {
-    "configmap": {
-        "default": {
-            "percona-server-mongodb-operator-lock": {
-                "Create": 1,
-                "Delete": 0
-            }
+    "keys": {
+        "/configmaps/default/percona-server-mongodb-operator-lock": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/deployments/default/mongodb-cluster-mongos": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/deployments/default/percona-server-mongodb-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/mongodb-cluster-cfg-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/endpointslices/default/mongodb-cluster-mongos-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/endpointslices/default/mongodb-cluster-rs0-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/mongod-data-mongodb-cluster-cfg-0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/mongod-data-mongodb-cluster-cfg-1": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/mongod-data-mongodb-cluster-cfg-2": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/poddisruptionbudgets/default/mongodb-cluster-cfg-cfg": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/poddisruptionbudgets/default/mongodb-cluster-mongod-rs0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/poddisruptionbudgets/default/mongodb-cluster-mongos-": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/mongodb-cluster-cfg-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/mongodb-cluster-cfg-1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/mongodb-cluster-cfg-2": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/mongodb-cluster-rs0-0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/pods/default/mongodb-cluster-rs0-2": {
+            "ADDED": 3,
+            "DELETED": 2,
+            "operator_related": false
+        },
+        "/pods/default/percona-server-mongodb-operator-657f49dfc-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/psmdb.percona.com/perconaservermongodbs/default/mongodb-cluster": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/replicasets/default/percona-server-mongodb-operator-657f49dfc": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rolebindings/default/service-account-percona-server-mongodb-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/roles/default/percona-server-mongodb-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/secrets/default/internal-mongodb-cluster-users": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/mongodb-cluster-mongodb-encryption-key": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/mongodb-cluster-mongodb-keyfile": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/mongodb-cluster-secrets": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/mongodb-cluster-ssl": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/mongodb-cluster-ssl-internal": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/serviceaccounts/default/percona-server-mongodb-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/services/endpoints/default/mongodb-cluster-cfg": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/mongodb-cluster-mongos": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/mongodb-cluster-rs0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/specs/default/mongodb-cluster-cfg": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/mongodb-cluster-mongos": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/mongodb-cluster-rs0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/statefulsets/default/mongodb-cluster-cfg": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/statefulsets/default/mongodb-cluster-rs0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
         }
     },
-    "deployment": {
-        "default": {
-            "mongodb-cluster-mongos": {
-                "Create": 2,
-                "Delete": 1
-            }
-        }
-    },
-    "poddisruptionbudget": {
-        "default": {
-            "mongodb-cluster-cfg-cfg": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "mongodb-cluster-mongod-rs0": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "mongodb-cluster-mongos-": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "secret": {
-        "default": {
-            "internal-mongodb-cluster-users": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "mongodb-cluster-mongodb-encryption-key": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "mongodb-cluster-mongodb-keyfile": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "mongodb-cluster-secrets": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "mongodb-cluster-ssl": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "mongodb-cluster-ssl-internal": {
-                "Create": 1,
-                "Delete": 0
-            }
-        }
-    },
-    "service": {
-        "default": {
-            "mongodb-cluster-cfg": {
-                "Create": 2,
-                "Delete": 1
-            },
-            "mongodb-cluster-mongos": {
-                "Create": 2,
-                "Delete": 1
-            },
-            "mongodb-cluster-rs0": {
-                "Create": 1,
-                "Delete": 0
-            }
-        }
-    },
-    "statefulset": {
-        "default": {
-            "mongodb-cluster-cfg": {
-                "Create": 2,
-                "Delete": 1
-            },
-            "mongodb-cluster-rs0": {
-                "Create": 1,
-                "Delete": 0
-            }
+    "types": {
+        "/controllerrevisions": {
+            "ADDED": 4,
+            "DELETED": 1
+        },
+        "/deployments": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/persistentvolumeclaims": {
+            "ADDED": 6,
+            "DELETED": 0
+        },
+        "/poddisruptionbudgets": {
+            "ADDED": 5,
+            "DELETED": 2
+        },
+        "/psmdb.percona.com/perconaservermongodbs": {
+            "ADDED": 1,
+            "DELETED": 0
+        },
+        "/replicasets": {
+            "ADDED": 3,
+            "DELETED": 1
+        },
+        "/secrets": {
+            "ADDED": 6,
+            "DELETED": 0
+        },
+        "/services/endpoints": {
+            "ADDED": 5,
+            "DELETED": 2
+        },
+        "/services/specs": {
+            "ADDED": 5,
+            "DELETED": 2
+        },
+        "/statefulsets": {
+            "ADDED": 3,
+            "DELETED": 1
         }
     }
 }

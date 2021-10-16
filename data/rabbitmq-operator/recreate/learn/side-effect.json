@@ -1,70 +1,188 @@
 {
-    "configmap": {
-        "default": {
-            "rabbitmq-cluster-plugins-conf": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "rabbitmq-cluster-server-conf": {
-                "Create": 2,
-                "Delete": 0
-            }
+    "keys": {
+        "/configmaps/default/rabbitmq-cluster-operator-leader-election": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/configmaps/default/rabbitmq-cluster-plugins-conf": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/configmaps/default/rabbitmq-cluster-server-conf": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/controllerrevisions/default/rabbitmq-cluster-server-5f8b8665fb": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/deployments/default/rabbitmq-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/rabbitmq-cluster-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/endpointslices/default/rabbitmq-cluster-nodes-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/leases/default/rabbitmq-cluster-operator-leader-election": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/persistence-rabbitmq-cluster-server-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/rabbitmq-cluster-server-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/rabbitmq-operator-dd4594bbb-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rabbitmq.com/rabbitmqclusters/default/rabbitmq-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/replicasets/default/rabbitmq-operator-dd4594bbb": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rolebindings/default/rabbitmq-cluster-leader-election-rolebinding": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/rolebindings/default/rabbitmq-cluster-server": {
+            "ADDED": 4,
+            "DELETED": 2,
+            "operator_related": false
+        },
+        "/roles/default/rabbitmq-cluster-leader-election-role": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/roles/default/rabbitmq-cluster-peer-discovery": {
+            "ADDED": 4,
+            "DELETED": 2,
+            "operator_related": false
+        },
+        "/secrets/default/rabbitmq-cluster-default-user": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/secrets/default/rabbitmq-cluster-erlang-cookie": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/serviceaccounts/default/rabbitmq-cluster-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/serviceaccounts/default/rabbitmq-cluster-server": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/rabbitmq-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/rabbitmq-cluster-nodes": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/rabbitmq-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/rabbitmq-cluster-nodes": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/statefulsets/default/rabbitmq-cluster-server": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
         }
     },
-    "role": {
-        "default": {
-            "rabbitmq-cluster-peer-discovery": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "rolebinding": {
-        "default": {
-            "rabbitmq-cluster-server": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "secret": {
-        "default": {
-            "rabbitmq-cluster-default-user": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "rabbitmq-cluster-erlang-cookie": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "service": {
-        "default": {
-            "rabbitmq-cluster": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "rabbitmq-cluster-nodes": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "serviceaccount": {
-        "default": {
-            "rabbitmq-cluster-server": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "statefulset": {
-        "default": {
-            "rabbitmq-cluster-server": {
-                "Create": 2,
-                "Delete": 1
-            }
+    "types": {
+        "/configmaps": {
+            "ADDED": 5,
+            "DELETED": 2
+        },
+        "/controllerrevisions": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/leases": {
+            "ADDED": 2,
+            "DELETED": 0
+        },
+        "/persistentvolumeclaims": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/pods": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/rabbitmq.com/rabbitmqclusters": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/rolebindings": {
+            "ADDED": 6,
+            "DELETED": 2
+        },
+        "/roles": {
+            "ADDED": 6,
+            "DELETED": 2
+        },
+        "/secrets": {
+            "ADDED": 7,
+            "DELETED": 3
+        },
+        "/serviceaccounts": {
+            "ADDED": 3,
+            "DELETED": 1
+        },
+        "/services/endpoints": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/services/specs": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/statefulsets": {
+            "ADDED": 2,
+            "DELETED": 1
         }
     }
 }

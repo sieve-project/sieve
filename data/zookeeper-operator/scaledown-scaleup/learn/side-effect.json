@@ -1,54 +1,167 @@
 {
-    "configmap": {
-        "default": {
-            "zookeeper-cluster-configmap": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "zookeeper-operator-lock": {
-                "Create": 1,
-                "Delete": 0
-            }
+    "keys": {
+        "/configmaps/default/zookeeper-cluster-configmap": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/configmaps/default/zookeeper-operator-lock": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/controllerrevisions/default/zookeeper-cluster-7cf668f98b": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/deployments/default/zookeeper-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/zookeeper-cluster-admin-server-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/endpointslices/default/zookeeper-cluster-client-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/endpointslices/default/zookeeper-cluster-headless-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/data-zookeeper-cluster-0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/data-zookeeper-cluster-1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/poddisruptionbudgets/default/zookeeper-cluster": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/pods/default/zookeeper-cluster-0": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/pods/default/zookeeper-cluster-1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/zookeeper-operator-77bcdb956c-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/replicasets/default/zookeeper-operator-77bcdb956c": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rolebindings/default/zookeeper-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/roles/default/zookeeper-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/serviceaccounts/default/zookeeper-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/services/endpoints/default/zookeeper-cluster-admin-server": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/endpoints/default/zookeeper-cluster-client": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/endpoints/default/zookeeper-cluster-headless": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/specs/default/zookeeper-cluster-admin-server": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/specs/default/zookeeper-cluster-client": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/services/specs/default/zookeeper-cluster-headless": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/statefulsets/default/zookeeper-cluster": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/zookeeper.pravega.io/zookeeperclusters/default/zookeeper-cluster": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
         }
     },
-    "persistentvolumeclaim": {
-        "default": {
-            "data-zookeeper-cluster-1": {
-                "Create": 0,
-                "Delete": 6
-            }
-        }
-    },
-    "poddisruptionbudget": {
-        "default": {
-            "zookeeper-cluster": {
-                "Create": 1,
-                "Delete": 0
-            }
-        }
-    },
-    "service": {
-        "default": {
-            "zookeeper-cluster-admin-server": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "zookeeper-cluster-client": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "zookeeper-cluster-headless": {
-                "Create": 1,
-                "Delete": 0
-            }
-        }
-    },
-    "statefulset": {
-        "default": {
-            "zookeeper-cluster": {
-                "Create": 1,
-                "Delete": 0
-            }
+    "types": {
+        "/configmaps": {
+            "ADDED": 1,
+            "DELETED": 0
+        },
+        "/controllerrevisions": {
+            "ADDED": 1,
+            "DELETED": 0
+        },
+        "/persistentvolumeclaims": {
+            "ADDED": 3,
+            "DELETED": 1
+        },
+        "/poddisruptionbudgets": {
+            "ADDED": 1,
+            "DELETED": 0
+        },
+        "/pods": {
+            "ADDED": 3,
+            "DELETED": 1
+        },
+        "/services/endpoints": {
+            "ADDED": 3,
+            "DELETED": 0
+        },
+        "/services/specs": {
+            "ADDED": 3,
+            "DELETED": 0
+        },
+        "/statefulsets": {
+            "ADDED": 1,
+            "DELETED": 0
+        },
+        "/zookeeper.pravega.io/zookeeperclusters": {
+            "ADDED": 1,
+            "DELETED": 0
         }
     }
 }
