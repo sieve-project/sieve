@@ -43,7 +43,7 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
             dump_json_file(dest_dir, resources, "resources.json")
 
 
-def api_events_to_ignore(key, value):
+def is_unstable_api_event_key(key, value):
     if value["operator_related"]:
         return True
     if key.endswith("-metrics"):
@@ -87,7 +87,7 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
             else:
                 api_key_event_map[key]["operator_related"] = False
         api_key_event_map[key][api_event.etype] += 1
-        if not api_events_to_ignore(key, api_key_event_map[key]):
+        if not is_unstable_api_event_key(key, api_key_event_map[key]):
             if type_prefix not in api_type_event_map:
                 api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
             api_type_event_map[type_prefix][api_event.etype] += 1
@@ -283,7 +283,23 @@ def check_status(learning_status, testing_status):
     return alarm, bug_report
 
 
-def check_events_oracle(project, learning_events, testing_events, test_config):
+def check_events_oracle(learning_events, testing_events, test_config, skip_list):
+    def should_skip_api_event_key(api_event_key, skip):
+        tokens = api_event_key.split("/")
+        if tokens[1] == "endpoints":
+            rtype = tokens[1]
+        elif tokens[1].endswith("s"):
+            rtype = tokens[1][:-1]
+        else:
+            rtype = tokens[1]
+        name = tokens[-1]
+        for skip_rtype in skip:
+            if skip_rtype == rtype:
+                for skip_name in skip[skip_rtype]:
+                    if skip_name == name and len(skip[skip_rtype][name]) == 0:
+                        return True
+        return False
+
     alarm = 0
     bug_report = NO_ERROR_MESSAGE
 
@@ -296,7 +312,9 @@ def check_events_oracle(project, learning_events, testing_events, test_config):
     learning_keys = set(learning_events["keys"].keys())
     for key in testing_keys.intersection(learning_keys):
         assert learning_events["keys"][key] != "SIEVE-IGNORE"
-        if api_events_to_ignore(key, learning_events["keys"][key]):
+        if is_unstable_api_event_key(key, learning_events["keys"][key]):
+            continue
+        if should_skip_api_event_key(key, skip_list):
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config.config["api_event_to_check"]:
@@ -752,7 +770,7 @@ def injection_validation(test_config, server_log, workload_log):
     return validation_alarm, validation_report
 
 
-def check(project, test_config, log_dir, data_dir):
+def check(test_config, log_dir, data_dir, skip_list):
     server_log = os.path.join(log_dir, "sieve-server.log")
     workload_log = os.path.join(log_dir, "workload.log")
     validation_alarm, validation_report = injection_validation(
@@ -771,10 +789,7 @@ def check(project, test_config, log_dir, data_dir):
         learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
         test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
         write_alarm, write_bug_report = check_events_oracle(
-            project,
-            learn_events,
-            test_events,
-            test_config,
+            learn_events, test_events, test_config, skip_list
         )
         bug_alarm += write_alarm
         bug_report += write_bug_report

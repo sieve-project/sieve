@@ -391,7 +391,14 @@ def check_result(
                     open(test_config).read()
                 )
             oracle.generate_test_oracle(project, log_dir, log_dir)
-            alarm, bug_report = oracle.check(project, test_config, log_dir, data_dir)
+            alarm, bug_report = oracle.check(
+                test_config,
+                log_dir,
+                data_dir,
+                controllers.skip_list[project]
+                if project in controllers.skip_list
+                else {},
+            )
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE

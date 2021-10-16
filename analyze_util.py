@@ -157,12 +157,6 @@ def generate_key(resource_type: str, namespace: str, name: str):
     return "/".join([resource_type, namespace, name])
 
 
-def decode_key(resource_key: str):
-    tokens = resource_key.split("/")
-    assert len(tokens) == 3
-    return tokens[0], tokens[1], tokens[2]
-
-
 class APIEvent:
     def __init__(self, etype: str, key: str, obj_str: str):
         self.__etype = etype

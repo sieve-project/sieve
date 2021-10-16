@@ -235,6 +235,12 @@ operator_pod_label = {
     "nifikop-operator": "nifikop-operator",
 }
 
+skip_list = {
+    "yugabyte-operator": {
+        "pod": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}
+    }
+}
+
 
 def make_safe_filename(filename):
     return re.sub(r"[^\w\d-]", "_", filename)
