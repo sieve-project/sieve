@@ -202,15 +202,15 @@ workloads = {
         .wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", common.RUNNING)
         .wait_for_pod_status("mongodb-cluster-rs0-4", common.TERMINATED)
         .wait(70),
-        "create-with-cert-manager": test_framework.new_built_in_workload()
+        "run-cert-manager": test_framework.new_built_in_workload()
         .cmd(
             "kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml --validate=false"
         )
         .wait_for_pod_status(
             "cert-manager-webhook-*", common.RUNNING, namespace="cert-manager"
         )
-        .cmd("kubectl apply -f test-mongodb-operator/test/cr-1.yaml")
-        .wait_for_pod_status("mongodb-cluster-rs0-0", common.RUNNING)
+        .cmd("kubectl apply -f test-mongodb-operator/test/cr.yaml")
+        .wait_for_pod_status("mongodb-cluster-rs0-2", common.RUNNING)
         .wait(70),
     },
     "xtradb-operator": {
