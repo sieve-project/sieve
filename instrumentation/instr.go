@@ -9,7 +9,7 @@ import (
 func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-	instrumentWatchCacheGoForTimeTravel(watchCacheGoFile, watchCacheGoFile)
+	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "TimeTravel", true, true)
 }
 
 func instrumentKubernetesForLearn(k8s_filepath string) {
@@ -24,10 +24,10 @@ func instrumentKubernetesForAtomVio(k8s_filepath string) {
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "AtomVio", true, false)
 }
 
-func instrumentControllerForTimeTravel(controller_runtime_filepath string) {
-	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
-	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "TimeTravel", false)
+func instrumentKubernetesForObsGap(k8s_filepath string) {
+	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
+	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
+	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "ObsGap", true, false)
 }
 
 func instrumentControllerForObsGap(controller_runtime_filepath string, client_go_filepath string) {
@@ -39,10 +39,6 @@ func instrumentControllerForObsGap(controller_runtime_filepath string, client_go
 	informerCacheGoFile := path.Join(controller_runtime_filepath, "pkg", "cache", "informer_cache.go")
 	fmt.Printf("instrumenting %s\n", informerCacheGoFile)
 	instrumentInformerCacheGoForObsGap(informerCacheGoFile, informerCacheGoFile)
-
-	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
-	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "ObsGap", false)
 }
 
 func instrumentControllerForAtomVio(controller_runtime_filepath string, client_go_filepath string) {
@@ -85,11 +81,11 @@ func main() {
 			instrumentKubernetesForLearn(args[3])
 		} else if mode == ATOM_VIO {
 			instrumentKubernetesForAtomVio(args[3])
+		} else if mode == OBS_GAP {
+			instrumentKubernetesForObsGap(args[3])
 		}
 	} else {
-		if mode == TIME_TRAVEL {
-			instrumentControllerForTimeTravel(args[3])
-		} else if mode == LEARN {
+		if mode == LEARN {
 			instrumentControllerForLearn(args[3], args[4])
 		} else if mode == OBS_GAP {
 			instrumentControllerForObsGap(args[3], args[4])
