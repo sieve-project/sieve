@@ -451,8 +451,8 @@ jobs:
     - name: Sieve Learn - mongodb-operator disable-enable-arbiter
       run: python3 sieve.py -p mongodb-operator -t disable-enable-arbiter -s learn
         -m learn-twice -d $IMAGE_NAMESPACE
-    - name: Sieve Learn - mongodb-operator create-with-cert-manager
-      run: python3 sieve.py -p mongodb-operator -t create-with-cert-manager -s learn
+    - name: Sieve Learn - mongodb-operator run-cert-manager
+      run: python3 sieve.py -p mongodb-operator -t run-cert-manager -s learn
         -m learn-twice -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
