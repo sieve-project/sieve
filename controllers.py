@@ -89,9 +89,6 @@ test_dir = {
 
 test_suites = {
     "cassandra-operator": {
-        "scaledown": Suite(
-            workloads.workloads["cassandra-operator"]["scaledown"],
-        ),
         "recreate": Suite(
             workloads.workloads["cassandra-operator"]["recreate"],
         ),
