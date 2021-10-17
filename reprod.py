@@ -5,7 +5,7 @@ from common import cprint, bcolors
 
 reprod_map = {
     "cassandra-operator": {
-        "obs-gap-1": ["scaledown", "cassandra1_obs_gap_1.yaml"],
+        "obs-gap-1": ["scaledown-scaleup", "cassandra1_obs_gap_1.yaml"],
         "time-travel-1": ["recreate", "cassandra1_time_travel_1.yaml"],
         "time-travel-2": ["scaledown-scaleup", "cassandra1_time_travel_2.yaml"],
     },

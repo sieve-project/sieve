@@ -75,6 +75,8 @@ def download_controller(project, link, sha):
     os.chdir(controllers.app_dir[project])
     cmd_early_exit("git checkout %s >> /dev/null" % sha)
     cmd_early_exit("git checkout -b sieve >> /dev/null")
+    if project == "cassandra-operator":
+        cmd_early_exit("git cherry-pick bd8077a478997f63862848d66d4912c59e4c46ff")
     os.chdir(ORIGINAL_DIR)
 
 
