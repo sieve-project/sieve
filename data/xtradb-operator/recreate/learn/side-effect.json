@@ -1,82 +1,196 @@
 {
-    "configmap": {
-        "default": {
-            "auto-xtradb-cluster-pxc": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "percona-xtradb-cluster-operator-lock": {
-                "Create": 1,
-                "Delete": 0
-            }
+    "keys": {
+        "/configmaps/default/auto-xtradb-cluster-pxc": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/configmaps/default/percona-xtradb-cluster-operator-lock": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/deployments/default/percona-xtradb-cluster-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/percona-xtradb-cluster-operator-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/endpointslices/default/xtradb-cluster-pxc-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/endpointslices/default/xtradb-cluster-pxc-unready-*": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-2": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/poddisruptionbudgets/default/xtradb-cluster-pxc": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/percona-xtradb-cluster-operator-767ccf868-*": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/pods/default/xtradb-cluster-pxc-0": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/xtradb-cluster-pxc-1": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pods/default/xtradb-cluster-pxc-2": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/pxc.percona.com/perconaxtradbclusters/default/xtradb-cluster": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/replicasets/default/percona-xtradb-cluster-operator-767ccf868": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/rolebindings/default/service-account-percona-xtradb-cluster-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/roles/default/percona-xtradb-cluster-operator": {
+            "ADDED": 2,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/secrets/default/internal-xtradb-cluster": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/xtradb-cluster-secrets": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": false
+        },
+        "/secrets/default/xtradb-cluster-ssl": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/secrets/default/xtradb-cluster-ssl-internal": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/serviceaccounts/default/percona-xtradb-cluster-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/services/endpoints/default/percona-xtradb-cluster-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/services/endpoints/default/xtradb-cluster-pxc": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/endpoints/default/xtradb-cluster-pxc-unready": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/percona-xtradb-cluster-operator": {
+            "ADDED": 1,
+            "DELETED": 0,
+            "operator_related": true
+        },
+        "/services/specs/default/xtradb-cluster-pxc": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/services/specs/default/xtradb-cluster-pxc-unready": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
+        },
+        "/statefulsets/default/xtradb-cluster-pxc": {
+            "ADDED": 2,
+            "DELETED": 1,
+            "operator_related": false
         }
     },
-    "persistentvolumeclaim": {
-        "default": {
-            "datadir-xtradb-cluster-pxc-0": {
-                "Create": 0,
-                "Delete": 1
-            },
-            "datadir-xtradb-cluster-pxc-1": {
-                "Create": 0,
-                "Delete": 1
-            },
-            "datadir-xtradb-cluster-pxc-2": {
-                "Create": 0,
-                "Delete": 1
-            }
-        }
-    },
-    "poddisruptionbudget": {
-        "default": {
-            "xtradb-cluster-pxc": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "secret": {
-        "default": {
-            "internal-xtradb-cluster": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "xtradb-cluster-secrets": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "xtradb-cluster-ssl": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "xtradb-cluster-ssl-internal": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "service": {
-        "default": {
-            "percona-xtradb-cluster-operator": {
-                "Create": 1,
-                "Delete": 0
-            },
-            "xtradb-cluster-pxc": {
-                "Create": 2,
-                "Delete": 0
-            },
-            "xtradb-cluster-pxc-unready": {
-                "Create": 2,
-                "Delete": 0
-            }
-        }
-    },
-    "statefulset": {
-        "default": {
-            "xtradb-cluster-pxc": {
-                "Create": 2,
-                "Delete": 1
-            }
+    "types": {
+        "/configmaps": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/controllerrevisions": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/persistentvolumeclaims": {
+            "ADDED": 6,
+            "DELETED": 3
+        },
+        "/poddisruptionbudgets": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/pods": {
+            "ADDED": 6,
+            "DELETED": 3
+        },
+        "/pxc.percona.com/perconaxtradbclusters": {
+            "ADDED": 2,
+            "DELETED": 1
+        },
+        "/secrets": {
+            "ADDED": 6,
+            "DELETED": 2
+        },
+        "/services/endpoints": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/services/specs": {
+            "ADDED": 4,
+            "DELETED": 2
+        },
+        "/statefulsets": {
+            "ADDED": 2,
+            "DELETED": 1
         }
     }
 }

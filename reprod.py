@@ -5,7 +5,7 @@ from common import cprint, bcolors
 
 reprod_map = {
     "cassandra-operator": {
-        "obs-gap-1": ["scaledown", "cassandra1_obs_gap_1.yaml"],
+        "obs-gap-1": ["scaledown-scaleup", "cassandra1_obs_gap_1.yaml"],
         "time-travel-1": ["recreate", "cassandra1_time_travel_1.yaml"],
         "time-travel-2": ["scaledown-scaleup", "cassandra1_time_travel_2.yaml"],
     },
@@ -15,7 +15,6 @@ reprod_map = {
     "casskop-operator": {
         "atom-vio-1": ["scaledown-to-zero", "cassandra3_atom_vio_1.yaml"],
         "obs-gap-1": ["scaledown-to-zero", "cassandra3_obs_gap_1.yaml"],
-        # "obs-gap-2": ["scaledown", "cassandra3_obs_gap_2.yaml"],
         "time-travel-1": ["recreate", "cassandra3_time_travel_1.yaml"],
         "time-travel-2": ["reducepdb", "cassandra3_time_travel_2.yaml"],
     },
@@ -30,7 +29,7 @@ reprod_map = {
     },
     "mongodb-operator": {
         "atom-vio-1": ["disable-enable-shard", "mongodb_atom_vio_1.yaml"],
-        "atom-vio-2": ["create-with-cert-manager", "mongodb_atom_vio_2.yaml"],
+        "atom-vio-2": ["run-cert-manager", "mongodb_atom_vio_2.yaml"],
         "time-travel-1": ["recreate", "mongodb_time_travel_1.yaml"],
         "time-travel-2": ["disable-enable-shard", "mongodb_time_travel_2.yaml"],
         "time-travel-3": ["disable-enable-arbiter", "mongodb_time_travel_3.yaml"],
@@ -105,7 +104,6 @@ if __name__ == "__main__":
         metavar="DOCKER",
         default=sieve_config.config["docker_repo"],
     )
-    
 
     (options, args) = parser.parse_args()
 

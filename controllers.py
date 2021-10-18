@@ -76,22 +76,19 @@ docker_file = {
 }
 
 test_dir = {
-    "cassandra-operator": "test-cassandra-operator",
-    "zookeeper-operator": "test-zookeeper-operator",
-    "rabbitmq-operator": "test-rabbitmq-operator",
-    "mongodb-operator": "test-mongodb-operator",
-    "cass-operator": "test-cass-operator",
-    "casskop-operator": "test-casskop-operator",
-    "xtradb-operator": "test-xtradb-operator",
-    "yugabyte-operator": "test-yugabyte-operator",
-    "nifikop-operator": "test-nifikop-operator",
+    "cassandra-operator": "examples/cassandra-operator",
+    "zookeeper-operator": "examples/zookeeper-operator",
+    "rabbitmq-operator": "examples/rabbitmq-operator",
+    "mongodb-operator": "examples/mongodb-operator",
+    "cass-operator": "examples/cass-operator",
+    "casskop-operator": "examples/casskop-operator",
+    "xtradb-operator": "examples/xtradb-operator",
+    "yugabyte-operator": "examples/yugabyte-operator",
+    "nifikop-operator": "examples/nifikop-operator",
 }
 
 test_suites = {
     "cassandra-operator": {
-        "scaledown": Suite(
-            workloads.workloads["cassandra-operator"]["scaledown"],
-        ),
         "recreate": Suite(
             workloads.workloads["cassandra-operator"]["recreate"],
         ),
@@ -132,8 +129,9 @@ test_suites = {
             workloads.workloads["mongodb-operator"]["disable-enable-arbiter"],
             num_workers=5,
         ),
-        "create-with-cert-manager": Suite(
-            workloads.workloads["mongodb-operator"]["create-with-cert-manager"],
+        "run-cert-manager": Suite(
+            workloads.workloads["mongodb-operator"]["run-cert-manager"],
+            num_workers=3,
         ),
     },
     "cass-operator": {
@@ -239,6 +237,12 @@ operator_pod_label = {
     "nifikop-operator": "nifikop-operator",
 }
 
+skip_list = {
+    "yugabyte-operator": {
+        "pod": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}
+    }
+}
+
 
 def make_safe_filename(filename):
     return re.sub(r"[^\w\d-]", "_", filename)
@@ -259,65 +263,77 @@ def replace_docker_repo(path, dr, dt):
 
 
 def cassandra_operator_deploy(dr, dt):
-    new_path = replace_docker_repo("test-cassandra-operator/deploy/bundle.yaml", dr, dt)
-    os.system("kubectl apply -f test-cassandra-operator/deploy/crds.yaml")
+    new_path = replace_docker_repo(
+        "examples/cassandra-operator/deploy/bundle.yaml", dr, dt
+    )
+    os.system("kubectl apply -f examples/cassandra-operator/deploy/crds.yaml")
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def zookeeper_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-zookeeper-operator/deploy/default_ns/operator.yaml", dr, dt
+        "examples/zookeeper-operator/deploy/default_ns/operator.yaml", dr, dt
     )
-    os.system("kubectl create -f test-zookeeper-operator/deploy/crds")
-    os.system("kubectl create -f test-zookeeper-operator/deploy/default_ns/rbac.yaml")
+    os.system("kubectl create -f examples/zookeeper-operator/deploy/crds")
+    os.system(
+        "kubectl create -f examples/zookeeper-operator/deploy/default_ns/rbac.yaml"
+    )
     os.system("kubectl create -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def rabbitmq_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt
+        "examples/rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt
     )
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def mongodb_operator_deploy(dr, dt):
-    new_path = replace_docker_repo("test-mongodb-operator/deploy/bundle.yaml", dr, dt)
+    new_path = replace_docker_repo(
+        "examples/mongodb-operator/deploy/bundle.yaml", dr, dt
+    )
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def cass_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-cass-operator/deploy/controller-manifest.yaml", dr, dt
+        "examples/cass-operator/deploy/controller-manifest.yaml", dr, dt
     )
     os.system("kubectl apply -f %s" % new_path)
-    os.system("kubectl apply -f test-cass-operator/deploy/storageClass.yaml")
+    os.system("kubectl apply -f examples/cass-operator/deploy/storageClass.yaml")
     os.system("rm %s" % new_path)
 
 
 def casskop_operator_deploy(dr, dt):
     # Using helm
-    new_path = replace_docker_repo("test-casskop-operator/deploy/values.yaml", dr, dt)
-    os.system(
-        "helm install -f %s casskop-operator test-casskop-operator/deploy" % (new_path)
+    new_path = replace_docker_repo(
+        "examples/casskop-operator/deploy/values.yaml", dr, dt
     )
+    os.system(
+        "helm install -f %s casskop-operator examples/casskop-operator/deploy"
+        % (new_path)
+    )
+    os.system("rm %s" % new_path)
 
 
 def xtradb_operator_deploy(dr, dt):
-    new_path = replace_docker_repo("test-xtradb-operator/deploy/bundle.yaml", dr, dt)
+    new_path = replace_docker_repo(
+        "examples/xtradb-operator/deploy/bundle.yaml", dr, dt
+    )
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % new_path)
 
 
 def yugabyte_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
-        "test-yugabyte-operator/deploy/operator.yaml", dr, dt
+        "examples/yugabyte-operator/deploy/operator.yaml", dr, dt
     )
     os.system(
-        "kubectl create -f test-yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
+        "kubectl create -f examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
     )
     os.system("kubectl create -f %s" % new_path)
     os.system("rm %s" % new_path)
@@ -325,11 +341,14 @@ def yugabyte_operator_deploy(dr, dt):
 
 def nifikop_operator_deploy(dr, dt):
     # Using helm
-    new_path = replace_docker_repo("test-nifikop-operator/deploy/values.yaml", dr, dt)
-    os.system("kubectl apply -f test-nifikop-operator/deploy/role.yaml")
-    os.system("test-nifikop-operator/deploy/zk.sh")
+    new_path = replace_docker_repo(
+        "examples/nifikop-operator/deploy/values.yaml", dr, dt
+    )
+    os.system("kubectl apply -f examples/nifikop-operator/deploy/role.yaml")
+    os.system("examples/nifikop-operator/deploy/zk.sh")
     os.system(
-        "helm install -f %s nifikop-operator test-nifikop-operator/deploy" % (new_path)
+        "helm install -f %s nifikop-operator examples/nifikop-operator/deploy"
+        % (new_path)
     )
     os.system("rm %s" % (new_path))
 

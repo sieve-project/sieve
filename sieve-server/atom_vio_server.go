@@ -79,7 +79,7 @@ func (s *atomVioServer) Start() {
 
 func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
 	readObj := strToMap(request.Object)
-	if !(request.Error == "NoError" && request.ResourceType == s.seRtype && s.seEtypePrev == "Get" && isSameObjectServerSide(readObj, s.seNamespace, s.seName)) {
+	if !(request.ResourceType == s.seRtype && s.seEtypePrev == "Get" && isSameObjectServerSide(readObj, s.seNamespace, s.seName)) {
 		log.Fatalf("encounter unexpected Get: %s %s %s", request.ResourceType, request.Error, request.Object)
 	}
 	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
@@ -90,7 +90,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomV
 }
 
 func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtomVioAfterOperatorListRequest, response *sieve.Response) error {
-	if !(request.Error == "NoError" && request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List") {
+	if !(request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List") {
 		log.Fatalf("encounter unexpected List: %s %s %s", request.ResourceType, request.Error, request.ObjectList)
 	}
 	log.Printf("[SIEVE-AFTER-READ]\tList\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)
@@ -107,19 +107,18 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtom
 }
 
 func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
-	log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
-	if request.Error == "NoError" && request.ResourceType == s.seRtype {
-		writeObj := strToMap(request.Object)
-		if isSameObjectServerSide(writeObj, s.seNamespace, s.seName) {
-			s.curEvent = writeObj
-			trimKindApiversion(s.curEvent)
-			if findTargetDiff(request.SideEffectType, s.seEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
-				log.Println("ready to crash!")
-				startAtomVioInjection()
-				restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
-				finishAtomVioInjection()
-			}
-		}
+	writeObj := strToMap(request.Object)
+	if !(request.ResourceType == s.seRtype && isSameObjectServerSide(writeObj, s.seNamespace, s.seName) && request.Error == "NoError") {
+		log.Fatalf("encounter unexpected Write: %s %s %s %s", request.SideEffectType, request.ResourceType, request.Error, request.Object)
+	}
+	log.Printf("[SIEVE-AFTER-WRITE]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
+	s.curEvent = writeObj
+	trimKindApiversion(s.curEvent)
+	if findTargetDiff(request.SideEffectType, s.seEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
+		log.Println("ready to crash!")
+		startAtomVioInjection()
+		restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
+		finishAtomVioInjection()
 	}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil

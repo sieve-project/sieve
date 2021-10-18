@@ -2,6 +2,7 @@ package sieve
 
 import (
 	"encoding/json"
+	"log"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -14,12 +15,8 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
-	errorString := "NoError"
-	if k8sErr != nil {
-		errorString = string(errors.ReasonForError(k8sErr))
-	}
 	rType := regularizeType(object)
-	if !(config["se-etype-previous"].(string) == "Get" && errorString == "NoError" && rType == config["se-rtype"].(string)) {
+	if !(config["se-etype-previous"].(string) == "Get" && rType == config["se-rtype"].(string)) {
 		return
 	}
 	if !isSameObjectClientSide(object, config["se-namespace"].(string), config["se-name"].(string)) {
@@ -36,6 +33,10 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 		return
 	}
 	defer client.Close()
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
 	request := &NotifyAtomVioAfterOperatorGetRequest{
 		ResourceType: regularizeType(object),
 		Namespace:    namespacedName.Namespace,
@@ -59,12 +60,8 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
-	errorString := "NoError"
-	if k8sErr != nil {
-		errorString = string(errors.ReasonForError(k8sErr))
-	}
 	rType := regularizeType(object)
-	if !(config["se-etype-previous"].(string) == "List" && errorString == "NoError" && rType == config["se-rtype"].(string)+"list") {
+	if !(config["se-etype-previous"].(string) == "List" && rType == config["se-rtype"].(string)+"list") {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
@@ -78,6 +75,10 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 		return
 	}
 	defer client.Close()
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
 	request := &NotifyAtomVioAfterOperatorListRequest{
 		ResourceType: rType,
 		ObjectList:   string(jsonObject),
@@ -99,6 +100,17 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	rType := regularizeType(object)
+	if !(rType == config["se-rtype"].(string) && errorString == "NoError") {
+		return
+	}
+	if !isSameObjectClientSide(object, config["se-namespace"].(string), config["se-name"].(string)) {
+		return
+	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
@@ -110,15 +122,11 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		return
 	}
 	defer client.Close()
-	errorString := "NoError"
-	if k8sErr != nil {
-		errorString = string(errors.ReasonForError(k8sErr))
-	}
 	request := &NotifyAtomVioAfterSideEffectsRequest{
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
-		ResourceType:   regularizeType(object),
+		ResourceType:   rType,
 		Error:          errorString,
 	}
 	var response Response
@@ -128,4 +136,21 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		return
 	}
 	checkResponse(response, "NotifyAtomVioAfterSideEffects")
+}
+
+func NotifyAtomVioBeforeProcessEvent(eventType, key string, object interface{}) {
+	if eventType == "ADDED" || eventType == "DELETED" {
+		if err := loadSieveConfig(); err != nil {
+			return
+		}
+		if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+			return
+		}
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			printError(err, SIEVE_JSON_ERR)
+			return
+		}
+		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\n", eventType, key, string(jsonObject))
+	}
 }

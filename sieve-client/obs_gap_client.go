@@ -260,3 +260,20 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 	checkResponse(response, "NotifyObsGapAfterSideEffects")
 	client.Close()
 }
+
+func NotifyObsGapBeforeProcessEvent(eventType, key string, object interface{}) {
+	if eventType == "ADDED" || eventType == "DELETED" {
+		if err := loadSieveConfig(); err != nil {
+			return
+		}
+		if !checkStage(TEST) || !checkMode(OBS_GAP) {
+			return
+		}
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			printError(err, SIEVE_JSON_ERR)
+			return
+		}
+		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\n", eventType, key, string(jsonObject))
+	}
+}

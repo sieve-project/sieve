@@ -3,6 +3,7 @@ package sieve
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -305,4 +306,21 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 	}
 	checkResponse(response, "NotifyLearnAfterOperatorList")
 	client.Close()
+}
+
+func NotifyLearnBeforeProcessEvent(eventType, key string, object interface{}) {
+	if eventType == "ADDED" || eventType == "DELETED" {
+		if err := loadSieveConfig(); err != nil {
+			return
+		}
+		if !checkStage(LEARN) {
+			return
+		}
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			printError(err, SIEVE_JSON_ERR)
+			return
+		}
+		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\n", eventType, key, string(jsonObject))
+	}
 }
