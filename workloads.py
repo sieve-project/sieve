@@ -256,14 +256,12 @@ workloads = {
         )
         .wait_for_pod_status("xtradb-cluster-proxysql-0", common.RUNNING)
         .wait(70),
-        "create-with-cert-manager": test_framework.new_built_in_workload()
+        "run-cert-manager": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml --validate=false")
         .wait_for_pod_status("cert-manager-webhook-*", common.RUNNING, namespace="cert-manager")
         .cmd("kubectl apply -f test-xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
-        .wait(30)
-        .wait_for_pod_status("percona-xtradb-cluster-operator-*", common.RUNNING)
-        .wait(60),
+        .wait(70),
     },
     "yugabyte-operator": {
         "disable-enable-tls": test_framework.new_built_in_workload()
