@@ -150,7 +150,7 @@ config_test = {
 jobs_daily = generate_jobs("daily")
 config_daily = {
     "name": "Sieve Daily Integration",
-    "on": {"workflow_dispatch": None, "schedule": [{"cron": "0 4 * * *"}]},
+    "on": {"workflow_dispatch": None, "schedule": [{"cron": "0 6 * * *"}]},
     "env": {"IMAGE_NAMESPACE": "ghcr.io/sieve-project/action"},
     "jobs": jobs_daily,
 }
