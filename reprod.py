@@ -35,6 +35,8 @@ reprod_map = {
         "time-travel-3": ["disable-enable-arbiter", "mongodb_time_travel_3.yaml"],
     },
     "xtradb-operator": {
+        "atom-vio-1": ["disable-enable-proxysql", "xtradb_atom_vio_1.yaml"],
+        "atom-vio-2": ["create-with-cert-manager", "xtradb_atom_vio_2.yaml"],
         "time-travel-1": ["recreate", "xtradb_time_travel_1.yaml"],
         "time-travel-2": ["disable-enable-haproxy", "xtradb_time_travel_2.yaml"],
         "time-travel-3": ["disable-enable-proxysql", "xtradb_time_travel_3.yaml"],
@@ -51,15 +53,16 @@ reprod_map = {
 }
 
 
-def reproduce_bug(operator, bug, phase):
+def reproduce_bug(operator, bug, docker, phase):
     mode = bug[:-2]
     test = reprod_map[operator][bug][0]
     config = os.path.join("reprod", reprod_map[operator][bug][1])
-    sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s --phase=%s" % (
+    sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s -d %s --phase=%s" % (
         operator,
         mode,
         test,
         config,
+        docker,
         phase,
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
@@ -113,6 +116,6 @@ if __name__ == "__main__":
     if options.project == "all":
         for operator in reprod_map:
             for bug in reprod_map[operator]:
-                reproduce_bug(operator, bug, options.phase)
+                reproduce_bug(operator, bug, options.docker, options.phase)
     else:
-        reproduce_bug(options.project, options.bug, options.phase)
+        reproduce_bug(options.project, options.bug, options.docker, options.phase)

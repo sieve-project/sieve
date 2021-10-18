@@ -1,0 +1,78 @@
+{
+    "certificate": {
+        "default": {
+            "xtradb-cluster-ssl": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "xtradb-cluster-ssl-internal": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "configmap": {
+        "default": {
+            "auto-xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "percona-xtradb-cluster-operator-lock": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "issuer": {
+        "default": {
+            "xtradb-cluster-pxc-ca": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "poddisruptionbudget": {
+        "default": {
+            "xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "secret": {
+        "default": {
+            "internal-xtradb-cluster": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "xtradb-cluster-secrets": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "service": {
+        "default": {
+            "percona-xtradb-cluster-operator": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0
+            },
+            "xtradb-cluster-pxc-unready": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    },
+    "statefulset": {
+        "default": {
+            "xtradb-cluster-pxc": {
+                "Create": 1,
+                "Delete": 0
+            }
+        }
+    }
+}
