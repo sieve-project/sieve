@@ -71,9 +71,9 @@ func getConfig() (map[string]interface{}, error) {
 		// log.Printf("[sieve] configFromEnv:\n%v\n", configFromEnv)
 		return configFromEnv, nil
 	}
-	configPath := "sieve.yaml"
+	configPath := "/sieve.yaml"
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		configPath = "/sieve.yaml"
+		return nil, err
 	}
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
