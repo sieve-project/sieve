@@ -31,9 +31,6 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
         dump_json_file(src_dir, events_oracle, "side-effect.json")
         if canonicalize_resource:
             dump_json_file(dest_dir, events_oracle, "side-effect.json")
-    if sieve_config.config["generate_status"]:
-        status = generate_status()
-        dump_json_file(dest_dir, status, "status.json")
     if sieve_config.config["generate_resource"]:
         resources = generate_resources(src_dir, canonicalize_resource)
         # we generate resources.json at src_dir (log dir)
@@ -123,43 +120,6 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
     return api_event_map
 
 
-def generate_status():
-    print("Checking liveness assertions...")
-    status = {}
-    status_empty_entry = {"size": 0, "terminating": 0}
-    kubernetes.config.load_kube_config()
-    core_v1 = kubernetes.client.CoreV1Api()
-    apps_v1 = kubernetes.client.AppsV1Api()
-    k8s_namespace = sieve_config.config["namespace"]
-    resources = {}
-    for ktype in KTYPES:
-        resources[ktype] = []
-        if ktype not in status:
-            status[ktype] = copy.deepcopy(status_empty_entry)
-    for pod in core_v1.list_namespaced_pod(k8s_namespace, watch=False).items:
-        if pod.metadata.name in BORING_POD_LIST:
-            continue
-        resources[POD].append(pod)
-    for pvc in core_v1.list_namespaced_persistent_volume_claim(
-        k8s_namespace, watch=False
-    ).items:
-        resources[PVC].append(pvc)
-    for dp in apps_v1.list_namespaced_deployment(k8s_namespace, watch=False).items:
-        resources[DEPLOYMENT].append(dp)
-    for sts in apps_v1.list_namespaced_stateful_set(k8s_namespace, watch=False).items:
-        if sts.metadata.name in BORING_STS_LIST:
-            continue
-        resources[STS].append(sts)
-    for ktype in KTYPES:
-        status[ktype]["size"] = len(resources[ktype])
-        terminating = 0
-        for item in resources[ktype]:
-            if item.metadata.deletion_timestamp != None:
-                terminating += 1
-        status[ktype]["terminating"] = terminating
-    return status
-
-
 def get_resource_helper(func):
     k8s_namespace = sieve_config.config["namespace"]
     response = func(k8s_namespace, _preload_content=False, watch=False)
@@ -244,32 +204,6 @@ def generate_resources(log_dir="", canonicalize_resource=False):
         )
         resources = learn_twice_trim(base_resources, resources)
     return resources
-
-
-def check_status(learning_status, testing_status):
-    alarm = 0
-    all_keys = set(learning_status.keys()).union(testing_status.keys())
-    bug_report = NO_ERROR_MESSAGE
-    for rtype in all_keys:
-        if rtype not in learning_status:
-            bug_report += "[ERROR][STATUS] %s not in learning status digest\n" % (rtype)
-            alarm += 1
-            continue
-        elif rtype not in testing_status:
-            bug_report += "[ERROR][STATUS] %s not in testing status digest\n" % (rtype)
-            alarm += 1
-            continue
-        else:
-            for attr in learning_status[rtype]:
-                if learning_status[rtype][attr] != testing_status[rtype][attr]:
-                    alarm += 1
-                    bug_report += "[ERROR][STATUS] %s %s inconsistency: %s seen after learning run, but %s seen after testing run\n" % (
-                        rtype,
-                        attr.upper(),
-                        str(learning_status[rtype][attr]),
-                        str(testing_status[rtype][attr]),
-                    )
-    return alarm, bug_report
 
 
 def check_events_oracle(learning_events, testing_events, test_config, skip_list):
@@ -768,21 +702,6 @@ def check(test_config, log_dir, data_dir, skip_list):
     )
     bug_alarm = 0
     bug_report = NO_ERROR_MESSAGE
-    if sieve_config.config["check_status"]:
-        learn_status = json.load(open(os.path.join(data_dir, "status.json")))
-        test_status = json.load(open(os.path.join(log_dir, "status.json")))
-        status_alarm, status_bug_report = check_status(learn_status, test_status)
-        bug_alarm += status_alarm
-        bug_report += status_bug_report
-
-    if sieve_config.config["check_events_oracle"]:
-        learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
-        test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
-        write_alarm, write_bug_report = check_events_oracle(
-            learn_events, test_events, test_config, skip_list
-        )
-        bug_alarm += write_alarm
-        bug_report += write_bug_report
 
     if sieve_config.config["check_operator_log"]:
         operator_log = os.path.join(log_dir, "streamed-operator.log")
@@ -795,6 +714,15 @@ def check(test_config, log_dir, data_dir, skip_list):
         workload_alarm, workload_bug_report = check_workload_log(workload_log)
         bug_alarm += workload_alarm
         bug_report += workload_bug_report
+
+    if sieve_config.config["check_events_oracle"]:
+        learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
+        test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
+        write_alarm, write_bug_report = check_events_oracle(
+            learn_events, test_events, test_config, skip_list
+        )
+        bug_alarm += write_alarm
+        bug_report += write_bug_report
 
     if sieve_config.config["check_resource"]:
         learn_resources = json.load(open(os.path.join(data_dir, "resources.json")))
