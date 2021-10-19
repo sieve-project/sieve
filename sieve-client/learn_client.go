@@ -309,10 +309,12 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 }
 
 func NotifyLearnBeforeProcessEvent(eventType, key string, object interface{}) {
-	if eventType == "ADDED" || eventType == "DELETED" {
-		if err := loadSieveConfig(); err != nil {
-			return
-		}
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
+	tokens := strings.Split(key, "/")
+	namespace := tokens[len(tokens)-2]
+	if namespace == config["namespace"].(string) {
 		if !checkStage(LEARN) {
 			return
 		}

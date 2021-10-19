@@ -3,6 +3,7 @@ package sieve
 import (
 	"encoding/json"
 	"log"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -262,10 +263,12 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 }
 
 func NotifyObsGapBeforeProcessEvent(eventType, key string, object interface{}) {
-	if eventType == "ADDED" || eventType == "DELETED" {
-		if err := loadSieveConfig(); err != nil {
-			return
-		}
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
+	tokens := strings.Split(key, "/")
+	namespace := tokens[len(tokens)-2]
+	if namespace == config["se-namespace"].(string) {
 		if !checkStage(TEST) || !checkMode(OBS_GAP) {
 			return
 		}

@@ -23,7 +23,9 @@ func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if eventType == "ADDED" || eventType == "DELETED" {
+	tokens := strings.Split(key, "/")
+	namespace := tokens[len(tokens)-2]
+	if namespace == config["ce-namespace"].(string) {
 		if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
 			return
 		}
