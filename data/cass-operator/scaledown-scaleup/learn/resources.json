@@ -267,125 +267,6 @@
             }
         }
     },
-    "configmap": {
-        "cass-operator-lock": {
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"e7e7ee05-1bf7-4cbb-a14d-f290fb983bf2\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "operator",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "cass-operator-lock",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "v1",
-                        "kind": "Pod",
-                        "name": "SIEVE-IGNORE",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/cass-operator-lock",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "local-path-config": {
-            "data": {
-                "config.json": "{\n        \"nodePathMap\":[\n        {\n                \"node\":\"DEFAULT_PATH_FOR_NON_LISTED_NODES\",\n                \"paths\":[\"/opt/local-path-provisioner\"]\n        }\n        ]\n}"
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"config.json\":\"{\\n        \\\"nodePathMap\\\":[\\n        {\\n                \\\"node\\\":\\\"DEFAULT_PATH_FOR_NON_LISTED_NODES\\\",\\n                \\\"paths\\\":[\\\"/opt/local-path-provisioner\\\"]\\n        }\\n        ]\\n}\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"local-path-config\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:config.json": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "local-path-config",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/local-path-config",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "sieve-testing-global-config": {
-            "data": {
-                "SIEVE-CRD-LIST": "cassandradatacenter",
-                "SIEVE-MODE": "learn",
-                "SIEVE-RATE-LIMITER-ENABLED": "false",
-                "SIEVE-RATE-LIMITER-INTERVAL": "3",
-                "SIEVE-STAGE": "learn"
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"cassandradatacenter\",\"SIEVE-MODE\":\"learn\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:SIEVE-CRD-LIST": {},
-                                "f:SIEVE-MODE": {},
-                                "f:SIEVE-RATE-LIMITER-ENABLED": {},
-                                "f:SIEVE-RATE-LIMITER-INTERVAL": {},
-                                "f:SIEVE-STAGE": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "sieve-testing-global-config",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/sieve-testing-global-config",
-                "uid": "SIEVE-IGNORE"
-            }
-        }
-    },
     "deployment": {
         "cass-operator": {
             "metadata": {
@@ -1008,7 +889,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker3"
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -1218,7 +1099,7 @@
         }
     },
     "pod": {
-        "cass-operator-595d8d4bc7-dgsz8": "SIEVE-IGNORE",
+        "cass-operator-595d8d4bc7-7pr52": "SIEVE-IGNORE",
         "cluster1-cassandra-datacenter-default-sts-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -1251,7 +1132,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"55199db7-4f63-43b9-b930-820215aadf77\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"caf24dfc-3112-4da8-9606-eb8de52275e6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1613,7 +1494,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.3.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1925,7 +1806,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker3",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2102,7 +1983,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"55199db7-4f63-43b9-b930-820215aadf77\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"caf24dfc-3112-4da8-9606-eb8de52275e6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2464,7 +2345,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.7\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.6\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -2889,7 +2773,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.21.0.2",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -2911,20 +2795,20 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.2.6",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.2.6"
                     }
                 ],
                 "qosClass": "Burstable",
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "local-path-provisioner-579c65cb9b-4gcdl": "SIEVE-IGNORE"
+        "local-path-provisioner-579c65cb9b-7mvqg": "SIEVE-IGNORE"
     },
     "secret": {
-        "cass-operator-token-qfrd8": "SIEVE-IGNORE",
+        "cass-operator-token-wqv9x": "SIEVE-IGNORE",
         "cass-operator-webhook-config": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -3085,8 +2969,8 @@
             },
             "type": "Opaque"
         },
-        "default-token-vhhtp": "SIEVE-IGNORE",
-        "local-path-provisioner-service-account-token-zqtts": "SIEVE-IGNORE"
+        "default-token-7gwwd": "SIEVE-IGNORE",
+        "local-path-provisioner-service-account-token-g66hq": "SIEVE-IGNORE"
     },
     "service": {
         "cass-operator-metrics": {
@@ -3107,7 +2991,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"9a2ed646-7ea9-4249-8f34-1054645d166c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"7902a846-40c0-427b-8984-173c50ba63c8\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3286,7 +3170,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3c766458-3172-49fc-8d4b-de2aca8966f7\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0c2d849d-f8fa-4a12-a3c4-7153a2b11c67\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3409,7 +3293,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3c766458-3172-49fc-8d4b-de2aca8966f7\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0c2d849d-f8fa-4a12-a3c4-7153a2b11c67\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3554,7 +3438,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3c766458-3172-49fc-8d4b-de2aca8966f7\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0c2d849d-f8fa-4a12-a3c4-7153a2b11c67\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3646,7 +3530,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "153",
+                "resourceVersion": "154",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -3701,7 +3585,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3c766458-3172-49fc-8d4b-de2aca8966f7\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0c2d849d-f8fa-4a12-a3c4-7153a2b11c67\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {

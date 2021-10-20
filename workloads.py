@@ -116,7 +116,7 @@ workloads = {
         )
         .wait(50),
         "scaledown-scaleup": test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f test-cass-operator/test/cdc-2.yaml")
+        .cmd("kubectl apply -f examples/cass-operator/test/cdc-2.yaml")
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", common.RUNNING, 150
         )
