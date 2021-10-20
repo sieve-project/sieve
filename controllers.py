@@ -138,6 +138,10 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["cass-operator"]["recreate"],
         ),
+        "scaledown-scaleup": Suite(
+            workloads.workloads["cass-operator"]["scaledown-scaleup"],
+            num_workers=3
+        )
     },
     "casskop-operator": {
         "recreate": Suite(

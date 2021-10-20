@@ -115,6 +115,20 @@ workloads = {
             "cluster1-cassandra-datacenter-default-sts-0", common.RUNNING
         )
         .wait(50),
+        "scaledown-scaleup": test_framework.new_built_in_workload()
+        .cmd("kubectl apply -f examples/cass-operator/test/cdc-2.yaml")
+        .wait_for_pod_status(
+            "cluster1-cassandra-datacenter-default-sts-1", common.RUNNING, 150
+        )
+        .cmd("kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{\"spec\":{\"size\": 1}}\'")
+        .wait_for_pod_status(
+            "cluster1-cassandra-datacenter-default-sts-1", common.TERMINATED, 150
+        )
+        .cmd("kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{\"spec\":{\"size\": 2}}\'")
+        .wait_for_pod_status(
+            "cluster1-cassandra-datacenter-default-sts-1", common.RUNNING, 150
+        )
+        .wait(50),
     },
     "zookeeper-operator": {
         "recreate": test_framework.new_built_in_workload()
