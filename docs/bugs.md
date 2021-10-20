@@ -58,12 +58,20 @@ https://jira.percona.com/browse/K8SPSMDB-438 confirmed (time traveling)
 
 https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product)
 
+https://jira.percona.com/browse/K8SPSMDB-578 pending (atomicity violation)
+
+https://jira.percona.com/browse/K8SPSMDB-579 pending (atomicity violation)
+
 ## [percona/percona-xtradb-cluster-operator](https://github.com/percona/percona-xtradb-cluster-operator)
 https://jira.percona.com/browse/K8SPXC-716 confirmed and fixed by us (time traveling)
 
 https://jira.percona.com/browse/K8SPXC-725 confirmed (time traveling)
 
 https://jira.percona.com/browse/K8SPXC-763 confirmed (time traveling)
+
+https://jira.percona.com/browse/K8SPXC-896 pending (atomicity violation)
+
+https://jira.percona.com/browse/K8SPXC-897 pending (atomicity violation)
 
 ## [yugabyte/yugabyte-operator](https://github.com/yugabyte/yugabyte-operator)
 https://github.com/yugabyte/yugabyte-operator/issues/33 pending (by-product)
