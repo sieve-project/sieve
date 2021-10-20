@@ -252,7 +252,8 @@ def setup_controller(
     build_controller(project, img_repo, img_tag)
 
 
-def setup_kubernetes_wrapper(mode, img_repo, img_tag):
+def setup_kubernetes_wrapper(mode, img_repo):
+    img_tag = mode
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
@@ -260,12 +261,14 @@ def setup_kubernetes_wrapper(mode, img_repo, img_tag):
             sieve_modes.OBS_GAP,
             sieve_modes.TIME_TRAVEL,
         ]:
+            img_tag = this_mode
             setup_kubernetes(this_mode, img_repo, img_tag)
     else:
         setup_kubernetes(mode, img_repo, img_tag)
 
 
-def setup_controller_wrapper(controller, mode, img_repo, img_tag, sha, build_only):
+def setup_controller_wrapper(controller, mode, img_repo, sha, build_only):
+    img_tag = mode
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
@@ -273,6 +276,7 @@ def setup_controller_wrapper(controller, mode, img_repo, img_tag, sha, build_onl
             sieve_modes.OBS_GAP,
             sieve_modes.TIME_TRAVEL,
         ]:
+            img_tag = this_mode
             setup_controller(
                 controller,
                 this_mode,
@@ -307,9 +311,9 @@ if __name__ == "__main__":
         "-p",
         "--project",
         dest="project",
-        help="specify PROJECT to build: cassandra-operator or zookeeper-operator",
+        help="specify PROJECT to build",
         metavar="PROJECT",
-        default="cassandra-operator",
+        default=None,
     )
     parser.add_option(
         "-m",
@@ -317,7 +321,7 @@ if __name__ == "__main__":
         dest="mode",
         help="build MODE: learn, time-travel, obs-gap, atom-vio",
         metavar="MODE",
-        default="learn",
+        default=None,
     )
     parser.add_option(
         "-s",
@@ -325,7 +329,7 @@ if __name__ == "__main__":
         dest="sha",
         help="SHA of the project",
         metavar="SHA",
-        default="none",
+        default=None,
     )
     parser.add_option(
         "-d",
@@ -333,7 +337,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default="none",
+        default=None,
     )
     parser.add_option(
         "-b",
@@ -344,6 +348,12 @@ if __name__ == "__main__":
         default=False,
     )
     (options, args) = parser.parse_args()
+
+    if options.project is None:
+        parser.error("parameter project required")
+
+    if options.mode is None:
+        parser.error("parameter mode required")
 
     if options.mode == "obs-gap":
         options.mode = sieve_modes.OBS_GAP
@@ -364,29 +374,28 @@ if __name__ == "__main__":
 
     img_repo = (
         options.docker
-        if options.docker != "none"
+        if options.docker is not None
         else sieve_config.config["docker_repo"]
     )
-    img_tag = options.mode
     if options.project == "kubernetes":
-        setup_kubernetes_wrapper(options.mode, img_repo, img_tag)
+        setup_kubernetes_wrapper(options.mode, img_repo)
     elif options.project == "all":
         for controller in controllers.github_link:
             setup_controller_wrapper(
                 controller,
                 options.mode,
                 img_repo,
-                img_tag,
                 controllers.sha[controller],
                 options.build_only,
             )
     else:
-        sha = options.sha if options.sha != "none" else controllers.sha[options.project]
+        sha = (
+            options.sha if options.sha is not None else controllers.sha[options.project]
+        )
         setup_controller_wrapper(
             options.project,
             options.mode,
             img_repo,
-            img_tag,
             sha,
             options.build_only,
         )

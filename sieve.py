@@ -463,6 +463,7 @@ def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
     learn_config_map = {}
     learn_config_map["stage"] = sieve_stages.LEARN
     learn_config_map["mode"] = mode
+    learn_config_map["namespace"] = sieve_config.config["namespace"]
     learn_config_map["crd-list"] = controllers.CRDs[project]
     if rate_limiter_enabled:
         learn_config_map["rate-limiter-enabled"] = "true"
