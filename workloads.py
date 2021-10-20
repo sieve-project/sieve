@@ -206,7 +206,7 @@ workloads = {
             'kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p=\'{"spec":{"sharding":{"enabled":true}}}\''
         )
         .wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING)
-        .wait(70),
+        .wait(100),
         "disable-enable-arbiter": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr-arbiter.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-3", common.RUNNING, soft_time_out=150)
@@ -271,8 +271,12 @@ workloads = {
         .wait_for_pod_status("xtradb-cluster-proxysql-0", common.RUNNING)
         .wait(70),
         "run-cert-manager": test_framework.new_built_in_workload()
-        .cmd("kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml --validate=false")
-        .wait_for_pod_status("cert-manager-webhook-*", common.RUNNING, namespace="cert-manager")
+        .cmd(
+            "kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml --validate=false"
+        )
+        .wait_for_pod_status(
+            "cert-manager-webhook-*", common.RUNNING, namespace="cert-manager"
+        )
         .cmd("kubectl apply -f test-xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
         .wait(70),
