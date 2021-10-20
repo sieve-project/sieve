@@ -14,6 +14,7 @@ import yaml
 import subprocess
 import signal
 import errno
+import socket
 from datetime import datetime
 from common import (
     cprint,
@@ -42,6 +43,7 @@ def save_run_result(
                         "alarm": alarm,
                         "bug_report": bug_report,
                         "test_config_content": open(test_config).read(),
+                        "host": socket.gethostname(),
                     }
                 }
             },
