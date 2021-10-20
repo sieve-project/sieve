@@ -33,11 +33,14 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
             dump_json_file(dest_dir, events_oracle, "side-effect.json")
     if sieve_config.config["generate_resource"]:
         resources = generate_resources(src_dir, canonicalize_resource)
+        ignore_paths = generate_ignore_paths(resources)
         # we generate resources.json at src_dir (log dir)
         dump_json_file(src_dir, resources, "resources.json")
+        dump_json_file(src_dir, ignore_paths, "ignore-paths.json")
         # we generate resoruces.json at dest_dir (data dir) if cononicalize_resource=True
         if canonicalize_resource:
             dump_json_file(dest_dir, resources, "resources.json")
+            dump_json_file(dest_dir, ignore_paths, "ignore-paths.json")
 
 
 def is_unstable_api_event_key(key, value):
@@ -206,6 +209,45 @@ def generate_resources(log_dir="", canonicalize_resource=False):
     return resources
 
 
+def dump_ignore_paths(ignore, predefine, key, obj, path):
+    if path in predefine['path'] or key in predefine['key']:
+        ignore.add(path)
+        return
+    if type(obj) is str:
+        # Check for SIEVE-IGNORE
+        if obj == BORING_IGNORE_MARK:
+            ignore.add(path)
+            return
+        # Check for IP
+        pat = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+        isip = pat.match(obj)
+        if isip:
+            ignore.add(path)
+            return
+    if type(obj) is list:
+        for i in range(len(obj)):
+            val = obj[i]
+            newpath = os.path.join(path, "0")
+            dump_ignore_paths(ignore, predefine, i, val, newpath)
+    elif type(obj) is dict:
+        for key in obj:
+            val = obj[key]
+            newpath = os.path.join(path, key)
+            dump_ignore_paths(ignore, predefine, key, val, newpath)
+            
+def generate_ignore_paths(data):
+    result = {}
+    for rtype in data:
+        result[rtype] = {}
+        for name in data[rtype]:
+            predefine = {'path': set(BORING_EVENT_OBJECT_PATHS), 'key': set(BORING_EVENT_OBJECT_KEYS)}
+            ignore = set()
+            if data[rtype][name] != BORING_IGNORE_MARK:
+                dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
+                result[rtype][name] = list(ignore)
+    return result
+
+
 def check_events_oracle(learning_events, testing_events, test_config, skip_list):
     def should_skip_api_event_key(api_event_key, skip):
         tokens = api_event_key.split("/")
@@ -316,18 +358,12 @@ BORING_EVENT_OBJECT_PATHS = [
     "metadata/ownerReferences",
     "metadata/generation",
     "metadata/observedGeneration",
-    "spec/containers/0/image",
-    "spec/template/spec/containers/0/image",
     "spec/template/spec/containers/0/env",
     "spec/containers/0/env",
     "status/conditions/0/message",
-    "spec/containers/0/image",
-    "status/containerStatuses/0/image",
-    "status/containerStatuses/0/imageID",
     "spec/nodeName",
     "status/conditions/0/type",
     "status/conditions",
-    "spec/initContainers/0/image",
     "spec/selector/pod-template-hash",
 ]
 BORING_IGNORE_MARK = "SIEVE-IGNORE"
