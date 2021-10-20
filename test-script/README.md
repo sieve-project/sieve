@@ -35,6 +35,7 @@ This shell script will
     ```
 6. collect run results back to master node
 7. squash all the test results into one file and save it with a uniqle name under test-script directory
+8. Clean up kind clusters after massive testing
 
 ### Note
 - It assumes the sieve project home directory is under `/home/ubuntu`  

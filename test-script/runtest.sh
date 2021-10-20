@@ -65,3 +65,13 @@ mv ../log_save ./log_save_${now}
 
 # 7. combine test results in sieve_test_results and save it
 python3 combine_json.py
+
+# 8. Clean up kind clusters after massive testing
+parallel --workdir '/home/ubuntu/sieve' \
+         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+         --sshloginfile hosts \
+         --onall \
+         --env PATH \
+         --env KUBECONFIG \
+         --env GOPATH \
+         ::: 'kind delete cluster'
