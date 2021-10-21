@@ -334,7 +334,7 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
     vertex_pairs = []
     operator_hear_vertices = causality_graph.operator_hear_vertices
     operator_write_vertices = causality_graph.operator_write_vertices
-    operator_hear_key_map = causality_graph.operator_hear_key_to_operator_hear_vertices
+    operator_hear_key_map = causality_graph.operator_hear_key_to_vertices
     for operator_write_vertex in operator_write_vertices:
         if operator_write_vertex.content.key in operator_hear_key_map:
             for operator_hear_vertex in operator_hear_vertices:

@@ -85,7 +85,7 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
 
 def delete_then_recreate_filtering_pass(
     causality_edges: List[CausalityEdge],
-    operator_hear_key_to_operator_hear_vertices: Dict[str, List[CausalityVertex]],
+    operator_hear_key_to_vertices: Dict[str, List[CausalityVertex]],
 ):
     print("Running optional pass: delete-then-recreate-filtering...")
     # this should only be applied to time travel mode
@@ -95,8 +95,8 @@ def delete_then_recreate_filtering_pass(
         # time travel only cares about delete for now
         assert operator_write.etype == OperatorWriteTypes.DELETE
         keep_this_pair = False
-        if operator_write.key in operator_hear_key_to_operator_hear_vertices:
-            for operator_hear_vertex in operator_hear_key_to_operator_hear_vertices[
+        if operator_write.key in operator_hear_key_to_vertices:
+            for operator_hear_vertex in operator_hear_key_to_vertices[
                 operator_write.key
             ]:
                 operator_hear = operator_hear_vertex.content
@@ -172,7 +172,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         candidate_edges = delete_only_filtering_pass(causality_edges)
     if DELETE_THEN_RECREATE_FLAG:
         candidate_edges = delete_then_recreate_filtering_pass(
-            candidate_edges, causality_graph.operator_hear_key_to_operator_hear_vertices
+            candidate_edges, causality_graph.operator_hear_key_to_vertices
         )
 
     i = 0

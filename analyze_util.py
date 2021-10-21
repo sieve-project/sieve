@@ -696,8 +696,9 @@ class CausalityGraph:
         self.__operator_read_vertices = []
         self.__reconcile_begin_vertices = []
         self.__reconcile_end_vertices = []
-        self.__operator_hear_key_to_operator_hear_vertices = {}
-        self.__operator_hear_id_to_operator_hear_vertices = {}
+        self.__operator_write_key_to_vertices = {}
+        self.__operator_hear_key_to_vertices = {}
+        self.__operator_hear_id_to_vertices = {}
         self.__operator_hear_operator_write_edges = []
         self.__operator_write_operator_hear_edges = []
         self.__intra_reconciler_edges = []
@@ -723,16 +724,22 @@ class CausalityGraph:
         return self.__reconcile_end_vertices
 
     @property
-    def operator_hear_key_to_operator_hear_vertices(
+    def operator_write_key_to_vertices(
         self,
     ) -> Dict[str, List[CausalityVertex]]:
-        return self.__operator_hear_key_to_operator_hear_vertices
+        return self.__operator_write_key_to_vertices
 
     @property
-    def operator_hear_id_to_operator_hear_vertices(
+    def operator_hear_key_to_vertices(
+        self,
+    ) -> Dict[str, List[CausalityVertex]]:
+        return self.__operator_hear_key_to_vertices
+
+    @property
+    def operator_hear_id_to_vertices(
         self,
     ) -> Dict[int, List[CausalityVertex]]:
-        return self.__operator_hear_id_to_operator_hear_vertices
+        return self.__operator_hear_id_to_vertices
 
     @property
     def operator_hear_operator_write_edges(self) -> List[CausalityEdge]:
@@ -747,23 +754,21 @@ class CausalityGraph:
         return self.__intra_reconciler_edges
 
     def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
-        if operator_hear_id in self.operator_hear_id_to_operator_hear_vertices:
-            return self.operator_hear_id_to_operator_hear_vertices[operator_hear_id]
+        if operator_hear_id in self.operator_hear_id_to_vertices:
+            return self.operator_hear_id_to_vertices[operator_hear_id]
         else:
             return None
 
     def get_prev_operator_hear_with_key(
         self, key, cur_operator_hear_id
     ) -> Optional[CausalityVertex]:
-        for i in range(len(self.operator_hear_key_to_operator_hear_vertices[key])):
-            operator_hear_vertex = self.operator_hear_key_to_operator_hear_vertices[
-                key
-            ][i]
+        for i in range(len(self.operator_hear_key_to_vertices[key])):
+            operator_hear_vertex = self.operator_hear_key_to_vertices[key][i]
             if operator_hear_vertex.content.id == cur_operator_hear_id:
                 if i == 0:
                     return None
                 else:
-                    return self.operator_hear_key_to_operator_hear_vertices[key][i - 1]
+                    return self.operator_hear_key_to_vertices[key][i - 1]
 
     def sanity_check(self):
         # Be careful!!! The operator_hear_id and operator_write_id are only used to differentiate operator_hears/operator_writes
@@ -839,28 +844,20 @@ class CausalityGraph:
             self.operator_hear_vertices.append(operator_hear_vertex)
             if (
                 operator_hear_vertex.content.key
-                not in self.operator_hear_key_to_operator_hear_vertices
+                not in self.operator_hear_key_to_vertices
             ):
-                self.operator_hear_key_to_operator_hear_vertices[
+                self.operator_hear_key_to_vertices[
                     operator_hear_vertex.content.key
                 ] = []
-            self.operator_hear_key_to_operator_hear_vertices[
-                operator_hear_vertex.content.key
-            ].append(operator_hear_vertex)
-            assert (
-                operator_hear_vertex.content.id
-                not in self.operator_hear_id_to_operator_hear_vertices
+            self.operator_hear_key_to_vertices[operator_hear_vertex.content.key].append(
+                operator_hear_vertex
             )
-            self.operator_hear_id_to_operator_hear_vertices[
+            assert (
+                operator_hear_vertex.content.id not in self.operator_hear_id_to_vertices
+            )
+            self.operator_hear_id_to_vertices[
                 operator_hear_vertex.content.id
             ] = operator_hear_vertex
-
-    # def add_sorted_operator_writes(self, operator_write_list: List[OperatorWrite]):
-    #     for i in range(len(operator_write_list)):
-    #         operator_write = operator_write_list[i]
-    #         operator_write_vertex = CausalityVertex(self.__vertex_cnt, operator_write)
-    #         self.__vertex_cnt += 1
-    #         self.operator_write_vertices.append(operator_write_vertex)
 
     def add_sorted_reconciler_events(
         self,
@@ -874,6 +871,11 @@ class CausalityGraph:
             self.__vertex_cnt += 1
             if event_vertex.is_operator_write():
                 self.operator_write_vertices.append(event_vertex)
+                if event_vertex.content.key not in self.operator_write_key_to_vertices:
+                    self.operator_write_key_to_vertices[event_vertex.content.key] = []
+                self.operator_write_key_to_vertices[event_vertex.content.key].append(
+                    event_vertex
+                )
             elif event_vertex.is_operator_read():
                 self.operator_read_vertices.append(event_vertex)
             elif event_vertex.is_reconcile_begin():
