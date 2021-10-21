@@ -781,27 +781,38 @@ class CausalityGraph:
         )
         for i in range(len(self.operator_hear_vertices)):
             if i > 0:
-                # assert (
-                #     self.operator_hear_vertices[i].gid
-                #     == self.operator_hear_vertices[i - 1].gid + 1
-                # )
                 assert (
                     self.operator_hear_vertices[i].content.start_timestamp
                     > self.operator_hear_vertices[i - 1].content.start_timestamp
                 )
             assert self.operator_hear_vertices[i].is_operator_hear
+            assert self.operator_hear_vertices[i].content.start_timestamp != -1
+            assert self.operator_hear_vertices[i].content.end_timestamp != -1
+            assert (
+                self.operator_hear_vertices[i].content.start_timestamp
+                < self.operator_hear_vertices[i].content.end_timestamp
+            )
             for edge in self.operator_hear_vertices[i].out_inter_reconciler_edges:
                 assert self.operator_hear_vertices[i].gid == edge.source.gid
         for i in range(len(self.operator_write_vertices)):
             if i > 0:
-                # assert (
-                #     self.operator_write_vertices[i].gid
-                #     == self.operator_write_vertices[i - 1].gid + 1
-                # )
                 assert (
                     self.operator_write_vertices[i].content.start_timestamp
                     > self.operator_write_vertices[i - 1].content.start_timestamp
                 )
+            assert self.operator_write_vertices[i].content.range_end_timestamp != -1
+            assert (
+                self.operator_write_vertices[i].content.range_start_timestamp
+                < self.operator_write_vertices[i].content.range_end_timestamp
+            )
+            assert (
+                self.operator_write_vertices[i].content.start_timestamp
+                < self.operator_write_vertices[i].content.end_timestamp
+            )
+            assert (
+                self.operator_write_vertices[i].content.end_timestamp
+                == self.operator_write_vertices[i].content.range_end_timestamp
+            )
             assert self.operator_write_vertices[i].is_operator_write
             for edge in self.operator_write_vertices[i].out_inter_reconciler_edges:
                 assert self.operator_write_vertices[i].gid == edge.source.gid

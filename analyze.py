@@ -275,25 +275,6 @@ def base_pass(
     vertex_pairs = []
     for operator_write_vertex in operator_write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
-            assert operator_write_vertex.content.range_end_timestamp != -1
-            assert operator_hear_vertex.content.start_timestamp != -1
-            assert operator_hear_vertex.content.end_timestamp != -1
-            assert (
-                operator_write_vertex.content.range_start_timestamp
-                < operator_write_vertex.content.range_end_timestamp
-            )
-            assert (
-                operator_write_vertex.content.start_timestamp
-                < operator_write_vertex.content.end_timestamp
-            )
-            assert (
-                operator_write_vertex.content.end_timestamp
-                == operator_write_vertex.content.range_end_timestamp
-            )
-            assert (
-                operator_hear_vertex.content.start_timestamp
-                < operator_hear_vertex.content.end_timestamp
-            )
             # operator_hears can lead to that operator_write
             hear_within_reconcile_scope = (
                 operator_write_vertex.content.range_start_timestamp
