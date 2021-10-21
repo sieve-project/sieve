@@ -87,30 +87,30 @@ def parse_receiver_events(path):
             operator_hear_key_map[operator_hear.key].append(
                 operator_hear_id_map[operator_hear.id]
             )
-    for key in operator_hear_key_map:
-        for i in range(len(operator_hear_key_map[key])):
-            if i == 0:
-                continue
-            prev_operator_hear = operator_hear_key_map[key][i - 1]
-            cur_operator_hear = operator_hear_key_map[key][i]
-            slim_prev_object, slim_cur_object = diff_event(
-                prev_operator_hear.obj_map, cur_operator_hear.obj_map
-            )
-            cur_operator_hear.slim_prev_obj_map = slim_prev_object
-            cur_operator_hear.slim_cur_obj_map = slim_cur_object
-            cur_operator_hear.prev_etype = prev_operator_hear.etype
-    for key in operator_hear_key_map:
-        for i in range(len(operator_hear_key_map[key]) - 1):
-            cancelled_by = set()
-            cur_operator_hear = operator_hear_key_map[key][i]
-            for j in range(i + 1, len(operator_hear_key_map[key])):
-                following_operator_hear = operator_hear_key_map[key][j]
-                if i == 0:
-                    cancelled_by.add(following_operator_hear.id)
-                    continue
-                if conflicting_event(cur_operator_hear, following_operator_hear):
-                    cancelled_by.add(following_operator_hear.id)
-            cur_operator_hear.cancelled_by = cancelled_by
+    # for key in operator_hear_key_map:
+    #     for i in range(len(operator_hear_key_map[key])):
+    #         if i == 0:
+    #             continue
+    #         prev_operator_hear = operator_hear_key_map[key][i - 1]
+    #         cur_operator_hear = operator_hear_key_map[key][i]
+    #         slim_prev_object, slim_cur_object = diff_event(
+    #             prev_operator_hear.obj_map, cur_operator_hear.obj_map
+    #         )
+    #         cur_operator_hear.slim_prev_obj_map = slim_prev_object
+    #         cur_operator_hear.slim_cur_obj_map = slim_cur_object
+    #         cur_operator_hear.prev_etype = prev_operator_hear.etype
+    # for key in operator_hear_key_map:
+    #     for i in range(len(operator_hear_key_map[key]) - 1):
+    #         cancelled_by = set()
+    #         cur_operator_hear = operator_hear_key_map[key][i]
+    #         for j in range(i + 1, len(operator_hear_key_map[key])):
+    #             following_operator_hear = operator_hear_key_map[key][j]
+    #             if i == 0:
+    #                 cancelled_by.add(following_operator_hear.id)
+    #                 continue
+    #             if conflicting_event(cur_operator_hear, following_operator_hear):
+    #                 cancelled_by.add(following_operator_hear.id)
+    #         cur_operator_hear.cancelled_by = cancelled_by
     return operator_hear_list
 
 
@@ -228,41 +228,41 @@ def parse_reconciler_events(path):
             operator_write_id = parse_operator_write_id_only(line)
             if operator_write_id.id in operator_write_id_map:
                 operator_write_list.append(operator_write_id_map[operator_write_id.id])
-    for operator_write in operator_write_list:
-        key = operator_write.key
-        if key not in operator_read_key_map:
-            # We just treat read as {} and directly check for write
-            slim_prev_object, slim_cur_object = diff_event(
-                {}, operator_write.obj_map, True
-            )
-            operator_write.slim_prev_obj_map = slim_prev_object
-            operator_write.slim_cur_obj_map = slim_cur_object
-            continue
-        for i in range(len(operator_read_key_map[key])):
-            if (
-                i == 0
-                and operator_read_key_map[key][i].end_timestamp
-                > operator_write.start_timestamp
-            ):
-                break
-            if (
-                i != len(operator_read_key_map[key]) - 1
-                and operator_read_key_map[key][i + 1].end_timestamp
-                < operator_write.start_timestamp
-            ):
-                continue
+    # for operator_write in operator_write_list:
+    #     key = operator_write.key
+    #     if key not in operator_read_key_map:
+    #         # We just treat read as {} and directly check for write
+    #         slim_prev_object, slim_cur_object = diff_event(
+    #             {}, operator_write.obj_map, True
+    #         )
+    #         operator_write.slim_prev_obj_map = slim_prev_object
+    #         operator_write.slim_cur_obj_map = slim_cur_object
+    #         continue
+    #     for i in range(len(operator_read_key_map[key])):
+    #         if (
+    #             i == 0
+    #             and operator_read_key_map[key][i].end_timestamp
+    #             > operator_write.start_timestamp
+    #         ):
+    #             break
+    #         if (
+    #             i != len(operator_read_key_map[key]) - 1
+    #             and operator_read_key_map[key][i + 1].end_timestamp
+    #             < operator_write.start_timestamp
+    #         ):
+    #             continue
 
-            operator_read = operator_read_key_map[key][i]
-            assert operator_write.key in operator_read.key_set
-            assert operator_read.end_timestamp < operator_write.start_timestamp
+    #         operator_read = operator_read_key_map[key][i]
+    #         assert operator_write.key in operator_read.key_set
+    #         assert operator_read.end_timestamp < operator_write.start_timestamp
 
-            slim_prev_object, slim_cur_object = diff_event(
-                operator_read.key_to_obj[key], operator_write.obj_map, True
-            )
-            operator_write.slim_prev_obj_map = slim_prev_object
-            operator_write.slim_cur_obj_map = slim_cur_object
-            operator_write.prev_etype = operator_read.etype
-            break
+    #         slim_prev_object, slim_cur_object = diff_event(
+    #             operator_read.key_to_obj[key], operator_write.obj_map, True
+    #         )
+    #         operator_write.slim_prev_obj_map = slim_prev_object
+    #         operator_write.slim_cur_obj_map = slim_cur_object
+    #         operator_write.prev_etype = operator_read.etype
+    #         break
     reconciler_event_list = [event for ts, event in sorted(ts_to_event_map.items())]
     return reconciler_event_list
 
@@ -370,6 +370,7 @@ def build_causality_graph(log_path):
     for pair in write_hear_pairs:
         causality_graph.connect_write_to_hear(pair[0], pair[1])
 
+    causality_graph.finalize()
     causality_graph.sanity_check()
 
     return causality_graph

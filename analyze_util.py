@@ -954,8 +954,8 @@ class CausalityGraph:
         self.operator_write_operator_hear_edges.append(edge)
 
     def compute_event_diff(self):
-        for key in self.operator_write_key_to_vertices:
-            vertices = self.operator_write_key_to_vertices[key]
+        for key in self.operator_hear_key_to_vertices:
+            vertices = self.operator_hear_key_to_vertices[key]
             for i in range(len(vertices)):
                 if i == 0:
                     continue
@@ -979,22 +979,24 @@ class CausalityGraph:
                 operator_write.slim_cur_obj_map = slim_cur_object
                 continue
             for i in range(len(self.operator_read_key_to_vertices[key])):
+                operator_read = self.operator_read_key_to_vertices[key][i].content
                 # if the first read happens after write, break
                 if (
                     i == 0
-                    and self.operator_read_key_to_vertices[key][i].end_timestamp
-                    > operator_write.start_timestamp
+                    and operator_read.end_timestamp > operator_write.start_timestamp
                 ):
                     break
                 # if this is not the latest read before the write, continue
-                if (
-                    i != len(self.operator_read_key_to_vertices[key]) - 1
-                    and self.operator_read_key_to_vertices[key][i + 1].end_timestamp
-                    < operator_write.start_timestamp
-                ):
-                    continue
+                if i != len(self.operator_read_key_to_vertices[key]) - 1:
+                    next_operator_read = self.operator_read_key_to_vertices[key][
+                        i + 1
+                    ].content
+                    if (
+                        next_operator_read.end_timestamp
+                        < operator_write.start_timestamp
+                    ):
+                        continue
 
-                operator_read = self.operator_read_key_to_vertices[key][i]
                 assert operator_write.key in operator_read.key_set
                 assert operator_read.end_timestamp < operator_write.start_timestamp
 
@@ -1005,6 +1007,27 @@ class CausalityGraph:
                 operator_write.slim_cur_obj_map = slim_cur_object
                 operator_write.prev_etype = operator_read.etype
                 break
+
+    def compute_event_cancel(self):
+        for key in self.operator_hear_key_to_vertices:
+            for i in range(len(self.operator_hear_key_to_vertices[key]) - 1):
+                cancelled_by = set()
+                cur_operator_hear = self.operator_hear_key_to_vertices[key][i].content
+                for j in range(i + 1, len(self.operator_hear_key_to_vertices[key])):
+                    future_operator_hear = self.operator_hear_key_to_vertices[key][
+                        j
+                    ].content
+                    # TODO: why do we always add the future_operator_hear when i == 0?
+                    if i == 0:
+                        cancelled_by.add(future_operator_hear.id)
+                        continue
+                    if conflicting_event(cur_operator_hear, future_operator_hear):
+                        cancelled_by.add(future_operator_hear.id)
+                cur_operator_hear.cancelled_by = cancelled_by
+
+    def finalize(self):
+        self.compute_event_diff()
+        self.compute_event_cancel()
 
 
 def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex):
