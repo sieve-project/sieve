@@ -1,4 +1,4 @@
-from analyze_event import conflicting_event, diff_event
+from analyze_event import diff_event
 from typing import List
 import copy
 import os

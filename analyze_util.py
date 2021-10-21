@@ -2,6 +2,7 @@ import json
 from typing import List, Dict, Optional, Union, Set, Tuple
 import sieve_config
 from controllers import deployment_name
+import analyze_event
 
 HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -618,6 +619,22 @@ def parse_api_event(line: str) -> APIEvent:
     return APIEvent(tokens[1], tokens[2], tokens[3])
 
 
+def conflicting_event(
+    prev_operator_hear: OperatorHear, cur_operator_hear: OperatorHear
+) -> bool:
+    if conflicting_event_type(prev_operator_hear.etype, cur_operator_hear.etype):
+        return True
+    elif (
+        prev_operator_hear.etype != OperatorHearTypes.DELETED
+        and cur_operator_hear.etype != OperatorHearTypes.DELETED
+        and analyze_event.conflicting_event_payload(
+            prev_operator_hear.slim_cur_obj_map, cur_operator_hear.obj_map
+        )
+    ):
+        return True
+    return False
+
+
 class CausalityVertex:
     def __init__(
         self,
@@ -696,6 +713,7 @@ class CausalityGraph:
         self.__operator_read_vertices = []
         self.__reconcile_begin_vertices = []
         self.__reconcile_end_vertices = []
+        self.__operator_read_key_to_vertices = {}
         self.__operator_write_key_to_vertices = {}
         self.__operator_hear_key_to_vertices = {}
         self.__operator_hear_id_to_vertices = {}
@@ -722,6 +740,12 @@ class CausalityGraph:
     @property
     def reconcile_end_vertices(self) -> List[CausalityVertex]:
         return self.__reconcile_end_vertices
+
+    @property
+    def operator_read_key_to_vertices(
+        self,
+    ) -> Dict[str, List[CausalityVertex]]:
+        return self.__operator_read_key_to_vertices
 
     @property
     def operator_write_key_to_vertices(
@@ -871,13 +895,16 @@ class CausalityGraph:
             self.__vertex_cnt += 1
             if event_vertex.is_operator_write():
                 self.operator_write_vertices.append(event_vertex)
-                if event_vertex.content.key not in self.operator_write_key_to_vertices:
-                    self.operator_write_key_to_vertices[event_vertex.content.key] = []
-                self.operator_write_key_to_vertices[event_vertex.content.key].append(
-                    event_vertex
-                )
+                key = event_vertex.content.key
+                if key not in self.operator_write_key_to_vertices:
+                    self.operator_write_key_to_vertices[key] = []
+                self.operator_write_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_operator_read():
                 self.operator_read_vertices.append(event_vertex)
+                for key in event_vertex.content.key_set:
+                    if key not in self.operator_read_key_to_vertices:
+                        self.operator_read_key_to_vertices[key] = []
+                    self.operator_read_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_reconcile_begin():
                 self.reconcile_begin_vertices.append(event_vertex)
             elif event_vertex.is_reconcile_end():
@@ -925,6 +952,59 @@ class CausalityGraph:
         )
         operator_write_vertex.add_out_inter_reconciler_edge(edge)
         self.operator_write_operator_hear_edges.append(edge)
+
+    def compute_event_diff(self):
+        for key in self.operator_write_key_to_vertices:
+            vertices = self.operator_write_key_to_vertices[key]
+            for i in range(len(vertices)):
+                if i == 0:
+                    continue
+                prev_operator_hear = vertices[i - 1].content
+                cur_operator_hear = vertices[i].content
+                slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                    prev_operator_hear.obj_map, cur_operator_hear.obj_map
+                )
+                cur_operator_hear.slim_prev_obj_map = slim_prev_object
+                cur_operator_hear.slim_cur_obj_map = slim_cur_object
+                cur_operator_hear.prev_etype = prev_operator_hear.etype
+        for operator_write_vertex in self.operator_write_vertices:
+            operator_write = operator_write_vertex.content
+            key = operator_write.key
+            if key not in self.operator_read_key_to_vertices:
+                # We just treat read as {} and directly check for write
+                slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                    {}, operator_write.obj_map, True
+                )
+                operator_write.slim_prev_obj_map = slim_prev_object
+                operator_write.slim_cur_obj_map = slim_cur_object
+                continue
+            for i in range(len(self.operator_read_key_to_vertices[key])):
+                # if the first read happens after write, break
+                if (
+                    i == 0
+                    and self.operator_read_key_to_vertices[key][i].end_timestamp
+                    > operator_write.start_timestamp
+                ):
+                    break
+                # if this is not the latest read before the write, continue
+                if (
+                    i != len(self.operator_read_key_to_vertices[key]) - 1
+                    and self.operator_read_key_to_vertices[key][i + 1].end_timestamp
+                    < operator_write.start_timestamp
+                ):
+                    continue
+
+                operator_read = self.operator_read_key_to_vertices[key][i]
+                assert operator_write.key in operator_read.key_set
+                assert operator_read.end_timestamp < operator_write.start_timestamp
+
+                slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                    operator_read.key_to_obj[key], operator_write.obj_map, True
+                )
+                operator_write.slim_prev_obj_map = slim_prev_object
+                operator_write.slim_cur_obj_map = slim_cur_object
+                operator_write.prev_etype = operator_read.etype
+                break
 
 
 def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex):
