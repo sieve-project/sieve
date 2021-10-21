@@ -275,10 +275,35 @@ def base_pass(
     vertex_pairs = []
     for operator_write_vertex in operator_write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
+            assert operator_write_vertex.content.range_end_timestamp != -1
+            assert operator_hear_vertex.content.start_timestamp != -1
+            assert operator_hear_vertex.content.end_timestamp != -1
+            assert (
+                operator_write_vertex.content.range_start_timestamp
+                < operator_write_vertex.content.range_end_timestamp
+            )
+            assert (
+                operator_write_vertex.content.start_timestamp
+                < operator_write_vertex.content.end_timestamp
+            )
+            assert (
+                operator_write_vertex.content.end_timestamp
+                == operator_write_vertex.content.range_end_timestamp
+            )
+            assert (
+                operator_hear_vertex.content.start_timestamp
+                < operator_hear_vertex.content.end_timestamp
+            )
             # operator_hears can lead to that operator_write
-            if range_overlap(
-                operator_write_vertex.content, operator_hear_vertex.content
-            ):
+            hear_within_reconcile_scope = (
+                operator_write_vertex.content.range_start_timestamp
+                < operator_hear_vertex.content.end_timestamp
+            )
+            write_after_hear = (
+                operator_write_vertex.content.start_timestamp
+                > operator_hear_vertex.content.start_timestamp
+            )
+            if hear_within_reconcile_scope and write_after_hear:
                 vertex_pairs.append([operator_hear_vertex, operator_write_vertex])
     return vertex_pairs
 
@@ -289,9 +314,14 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     for pair in vertex_pairs:
         operator_hear_vertex = pair[0]
         operator_write_vertex = pair[1]
-        if interest_overlap(
-            operator_write_vertex.content, operator_hear_vertex.content
-        ):
+        key_match = (
+            operator_hear_vertex.content.key in operator_write_vertex.content.read_keys
+        )
+        type_match = (
+            operator_hear_vertex.content.rtype
+            in operator_write_vertex.content.read_types
+        )
+        if key_match or type_match:
             pruned_vertex_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs

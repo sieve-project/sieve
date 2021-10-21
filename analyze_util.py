@@ -433,28 +433,6 @@ class OperatorWrite:
         self.__range_end_timestamp = end_timestamp
 
 
-def range_overlap(operator_write: OperatorWrite, operator_hear: OperatorHear):
-    # This is the key method to generate the (operator_hear, operator_write) pairs
-    assert operator_write.range_end_timestamp != -1
-    assert operator_hear.start_timestamp != -1
-    assert operator_hear.end_timestamp != -1
-    assert operator_write.range_start_timestamp < operator_write.range_end_timestamp
-    assert operator_write.start_timestamp < operator_write.end_timestamp
-    assert operator_write.end_timestamp == operator_write.range_end_timestamp
-    assert operator_hear.start_timestamp < operator_hear.end_timestamp
-    return (
-        operator_write.range_start_timestamp < operator_hear.end_timestamp
-        and operator_write.start_timestamp > operator_hear.start_timestamp
-    )
-
-
-def interest_overlap(operator_write: OperatorWrite, operator_hear: OperatorHear):
-    return (
-        operator_hear.key in operator_write.read_keys
-        or operator_hear.rtype in operator_write.read_types
-    )
-
-
 class OperatorRead:
     def __init__(
         self,
