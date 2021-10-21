@@ -345,7 +345,7 @@ def check_workload_log(workload_log):
     return alarm, bug_report
 
 
-BORING_EVENT_OBJECT_KEYS = ["image", "imageID"]
+BORING_EVENT_OBJECT_KEYS = ["image", "imageID", "generation", "observedGeneration"]
 # all the path here is full path,
 # xxx/0/yyy has the same meaning as xxx/*/yyy
 BORING_EVENT_OBJECT_PATHS = [
@@ -356,8 +356,6 @@ BORING_EVENT_OBJECT_PATHS = [
     "metadata/resourceVersion",
     "metadata/generateName",
     "metadata/ownerReferences",
-    "metadata/generation",
-    "metadata/observedGeneration",
     "spec/template/spec/containers/0/env",
     "spec/containers/0/env",
     "status/conditions/0/message",
