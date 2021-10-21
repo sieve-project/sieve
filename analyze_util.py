@@ -219,6 +219,7 @@ class OperatorHear:
         self.__slim_cur_obj_map = None
         self.__prev_etype = EVENT_NONE_TYPE
         self.__cancelled_by = set()
+        self.__signature_counter = 1
 
     @property
     def id(self):
@@ -276,6 +277,10 @@ class OperatorHear:
     def cancelled_by(self):
         return self.__cancelled_by
 
+    @property
+    def signature_counter(self):
+        return self.__signature_counter
+
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
@@ -300,6 +305,10 @@ class OperatorHear:
     def cancelled_by(self, cancelled_by: Set):
         self.__cancelled_by = cancelled_by
 
+    @signature_counter.setter
+    def signature_counter(self, signature_counter: int):
+        self.__signature_counter = signature_counter
+
 
 class OperatorWrite:
     def __init__(self, id: str, etype: str, rtype: str, error: str, obj_str: str):
@@ -323,6 +332,7 @@ class OperatorWrite:
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
         self.__prev_etype = EVENT_NONE_TYPE
+        self.__signature_counter = 1
 
     @property
     def id(self):
@@ -400,6 +410,10 @@ class OperatorWrite:
     def prev_etype(self):
         return self.__prev_etype
 
+    @property
+    def signature_counter(self):
+        return self.__signature_counter
+
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
@@ -427,6 +441,10 @@ class OperatorWrite:
     @prev_etype.setter
     def prev_etype(self, prev_etype: str):
         self.__prev_etype = prev_etype
+
+    @signature_counter.setter
+    def signature_counter(self, signature_counter: int):
+        self.__signature_counter = signature_counter
 
     def set_range(self, start_timestamp: int, end_timestamp: int):
         assert start_timestamp < end_timestamp
@@ -633,6 +651,32 @@ def conflicting_event(
     ):
         return True
     return False
+
+
+def is_creation_or_deletion(etype: str):
+    is_hear_creation_or_deletion = (
+        etype == OperatorHearTypes.ADDED or etype == OperatorHearTypes.DELETED
+    )
+    is_write_creation_or_deletion = (
+        etype == OperatorWriteTypes.CREATE or etype == OperatorWriteTypes.DELETE
+    )
+    return is_hear_creation_or_deletion or is_write_creation_or_deletion
+
+
+def get_event_signature(event: Union[OperatorHear, OperatorWrite]):
+    assert isinstance(event, OperatorHear) or isinstance(event, OperatorWrite)
+    signature = (
+        event.etype
+        if is_creation_or_deletion(event.etype)
+        else "\t".join(
+            [
+                event.etype,
+                json.dumps(event.slim_prev_obj_map, sort_keys=True),
+                json.dumps(event.slim_cur_obj_map, sort_keys=True),
+            ]
+        )
+    )
+    return signature
 
 
 class CausalityVertex:
@@ -956,6 +1000,7 @@ class CausalityGraph:
     def compute_event_diff(self):
         for key in self.operator_hear_key_to_vertices:
             vertices = self.operator_hear_key_to_vertices[key]
+            event_signature_to_counter = {}
             for i in range(len(vertices)):
                 if i == 0:
                     continue
@@ -967,46 +1012,64 @@ class CausalityGraph:
                 cur_operator_hear.slim_prev_obj_map = slim_prev_object
                 cur_operator_hear.slim_cur_obj_map = slim_cur_object
                 cur_operator_hear.prev_etype = prev_operator_hear.etype
-        for operator_write_vertex in self.operator_write_vertices:
-            operator_write = operator_write_vertex.content
-            key = operator_write.key
-            if key not in self.operator_read_key_to_vertices:
-                # We just treat read as {} and directly check for write
-                slim_prev_object, slim_cur_object = analyze_event.diff_event(
-                    {}, operator_write.obj_map, True
-                )
-                operator_write.slim_prev_obj_map = slim_prev_object
-                operator_write.slim_cur_obj_map = slim_cur_object
-                continue
-            for i in range(len(self.operator_read_key_to_vertices[key])):
-                operator_read = self.operator_read_key_to_vertices[key][i].content
-                # if the first read happens after write, break
-                if (
-                    i == 0
-                    and operator_read.end_timestamp > operator_write.start_timestamp
-                ):
-                    break
-                # if this is not the latest read before the write, continue
-                if i != len(self.operator_read_key_to_vertices[key]) - 1:
-                    next_operator_read = self.operator_read_key_to_vertices[key][
-                        i + 1
-                    ].content
+                event_signature = get_event_signature(cur_operator_hear)
+                if event_signature not in event_signature_to_counter:
+                    event_signature_to_counter[event_signature] = 0
+                event_signature_to_counter[event_signature] += 1
+                cur_operator_hear.signature_counter = event_signature_to_counter[
+                    event_signature
+                ]
+
+        for key in self.operator_write_key_to_vertices:
+            vertices = self.operator_write_key_to_vertices[key]
+            event_signature_to_counter = {}
+            for operator_write_vertex in vertices:
+                operator_write = operator_write_vertex.content
+                key = operator_write.key
+                if key not in self.operator_read_key_to_vertices:
+                    # We just treat read as {} and directly check for write
+                    slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                        {}, operator_write.obj_map, True
+                    )
+                    operator_write.slim_prev_obj_map = slim_prev_object
+                    operator_write.slim_cur_obj_map = slim_cur_object
+                    continue
+                for i in range(len(self.operator_read_key_to_vertices[key])):
+                    operator_read = self.operator_read_key_to_vertices[key][i].content
+                    # if the first read happens after write, break
                     if (
-                        next_operator_read.end_timestamp
-                        < operator_write.start_timestamp
+                        i == 0
+                        and operator_read.end_timestamp > operator_write.start_timestamp
                     ):
-                        continue
+                        break
+                    # if this is not the latest read before the write, continue
+                    if i != len(self.operator_read_key_to_vertices[key]) - 1:
+                        next_operator_read = self.operator_read_key_to_vertices[key][
+                            i + 1
+                        ].content
+                        if (
+                            next_operator_read.end_timestamp
+                            < operator_write.start_timestamp
+                        ):
+                            continue
 
-                assert operator_write.key in operator_read.key_set
-                assert operator_read.end_timestamp < operator_write.start_timestamp
+                    assert operator_write.key in operator_read.key_set
+                    assert operator_read.end_timestamp < operator_write.start_timestamp
 
-                slim_prev_object, slim_cur_object = analyze_event.diff_event(
-                    operator_read.key_to_obj[key], operator_write.obj_map, True
-                )
-                operator_write.slim_prev_obj_map = slim_prev_object
-                operator_write.slim_cur_obj_map = slim_cur_object
-                operator_write.prev_etype = operator_read.etype
-                break
+                    slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                        operator_read.key_to_obj[key], operator_write.obj_map, True
+                    )
+                    operator_write.slim_prev_obj_map = slim_prev_object
+                    operator_write.slim_cur_obj_map = slim_cur_object
+                    operator_write.prev_etype = operator_read.etype
+                    event_signature = get_event_signature(operator_write)
+                    if event_signature not in event_signature_to_counter:
+                        event_signature_to_counter[event_signature] = 0
+                    event_signature_to_counter[event_signature] += 1
+                    operator_write.signature_counter = event_signature_to_counter[
+                        event_signature
+                    ]
+                    break
 
     def compute_event_cancel(self):
         for key in self.operator_hear_key_to_vertices:
