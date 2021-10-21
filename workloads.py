@@ -120,11 +120,15 @@ workloads = {
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", common.RUNNING, 150
         )
-        .cmd("kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{\"spec\":{\"size\": 1}}\'")
+        .cmd(
+            'kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{"spec":{"size": 1}}\''
+        )
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", common.TERMINATED, 150
         )
-        .cmd("kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{\"spec\":{\"size\": 2}}\'")
+        .cmd(
+            'kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{"spec":{"size": 2}}\''
+        )
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", common.RUNNING, 150
         )
@@ -206,7 +210,18 @@ workloads = {
             'kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p=\'{"spec":{"sharding":{"enabled":true}}}\''
         )
         .wait_for_pod_status("mongodb-cluster-cfg-2", common.RUNNING)
-        .wait(100),
+        .wait(30)
+        .wait_for_cr_condition(
+            "perconaservermongodb",
+            "mongodb-cluster",
+            [
+                ("status/state", "ready"),
+                ("status/mongos/ready", 1),
+                ("status/mongos/size", 1),
+                ("status/mongos/status", "ready"),
+            ],
+        )
+        .wait(30),
         "disable-enable-arbiter": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr-arbiter.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-3", common.RUNNING, soft_time_out=150)

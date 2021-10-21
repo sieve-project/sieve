@@ -7,14 +7,13 @@ import traceback
 import sieve_config
 import datetime
 import subprocess
+import json
 
 
 def get_pod(resource_name, namespace):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
-    pods = core_v1.list_namespaced_pod(
-        namespace=namespace, watch=False
-    ).items
+    pods = core_v1.list_namespaced_pod(namespace=namespace, watch=False).items
     target_pod = None
     for pod in pods:
         if pod.metadata.name == resource_name:
@@ -62,9 +61,7 @@ def get_secret(resource_name, namespace):
     """
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
-    secrets = core_v1.list_namespaced_secret(
-        namespace=namespace, watch=False
-    ).items
+    secrets = core_v1.list_namespaced_secret(namespace=namespace, watch=False).items
     for secret in secrets:
         if secret.metadata.name == resource_name:
             return secret
@@ -79,12 +76,24 @@ def get_service(resource_name, namespace):
     """
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
-    services = core_v1.list_namespaced_service(
-        namespace=namespace, watch=False
-    ).items
+    services = core_v1.list_namespaced_service(namespace=namespace, watch=False).items
     for service in services:
         if service.metadata.name == resource_name:
             return service
+    return None
+
+
+def get_custom_resource(custom_resource_type, resource_name, namespace):
+    try:
+        custom_resource = json.loads(
+            os.popen(
+                "kubectl get %s %s -o json -n %s"
+                % (custom_resource_type, resource_name, namespace)
+            ).read()
+        )
+        return custom_resource
+    except Exception as e:
+        print("get custom resource fail", e)
     return None
 
 
@@ -365,6 +374,76 @@ class TestWaitForExistence:
         return 0, common.NO_ERROR_MESSAGE
 
 
+class TestWaitForCRConditions:
+    def __init__(
+        self,
+        custom_resource_type,
+        resource_name,
+        conditions,
+        soft_time_out,
+        hard_time_out,
+        namespace,
+    ):
+        self.custom_resource_type = custom_resource_type
+        self.resource_name = resource_name
+        self.conditions = conditions
+        self.namespace = namespace
+        self.soft_time_out = soft_time_out
+        self.hard_time_out = hard_time_out
+
+    def check_cr_conditions(self, custom_resource):
+        for condition in self.conditions:
+            key_path = condition[0]
+            desired_value = condition[1]
+            key_path_tokens = key_path.split("/")
+            inner_resource = custom_resource
+            for token in key_path_tokens:
+                inner_resource = inner_resource[token]
+            # print(inner_resource, desired_value)
+            if not inner_resource == desired_value:
+                # print("false")
+                return False
+        return True
+
+    def run(self, mode) -> Tuple[int, str]:
+        s = time.time()
+        print(
+            "wait until %s %s %s..."
+            % (
+                self.custom_resource_type,
+                self.resource_name,
+                self.conditions,
+            )
+        )
+        while True:
+            duration = time.time() - s
+            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+                error_message = (
+                    "soft timeout: %s does not achieve %s within %d seconds; we will continue"
+                    % (self.resource_name, self.conditions, self.soft_time_out)
+                )
+                print(error_message)
+                return 0, common.NO_ERROR_MESSAGE
+            if duration > self.hard_time_out:
+                error_message = (
+                    "hard timeout: %s does not achieve %s within %d seconds"
+                    % (self.resource_name, self.conditions, self.hard_time_out)
+                )
+                print(error_message)
+                return 1, error_message
+            custom_resource = get_custom_resource(
+                self.custom_resource_type, self.resource_name, self.namespace
+            )
+            if custom_resource is None:
+                continue
+            if self.check_cr_conditions(custom_resource):
+                break
+            time.sleep(5)
+        time.sleep(5)  # make it configurable
+        print("wait takes %f seconds" % (time.time() - s))
+        return 0, common.NO_ERROR_MESSAGE
+
+
 class BuiltInWorkLoad:
     def __init__(self):
         self.work_list = []
@@ -383,7 +462,12 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStatus(
-            common.POD, pod_name, status, soft_time_out, hard_time_out, namespace,
+            common.POD,
+            pod_name,
+            status,
+            soft_time_out,
+            hard_time_out,
+            namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -397,7 +481,12 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStatus(
-            common.PVC, pvc_name, status, soft_time_out, hard_time_out, namespace,
+            common.PVC,
+            pvc_name,
+            status,
+            soft_time_out,
+            hard_time_out,
+            namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -411,7 +500,12 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForExistence(
-            common.SECRET, secret_name, exist, soft_time_out, hard_time_out, namespace,
+            common.SECRET,
+            secret_name,
+            exist,
+            soft_time_out,
+            hard_time_out,
+            namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -425,7 +519,12 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForExistence(
-            common.SERVICE, service_name, exist, soft_time_out, hard_time_out, namespace,
+            common.SERVICE,
+            service_name,
+            exist,
+            soft_time_out,
+            hard_time_out,
+            namespace,
         )
         self.work_list.append(test_wait)
         return self
@@ -439,7 +538,32 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStorage(
-            common.STS, sts_name, storage_size, soft_time_out, hard_time_out, namespace,
+            common.STS,
+            sts_name,
+            storage_size,
+            soft_time_out,
+            hard_time_out,
+            namespace,
+        )
+        self.work_list.append(test_wait)
+        return self
+
+    def wait_for_cr_condition(
+        self,
+        custom_resource_type,
+        resource_name,
+        conditions,
+        soft_time_out=sieve_config.config["workload_wait_soft_timeout"],
+        hard_time_out=sieve_config.config["workload_wait_hard_timeout"],
+        namespace=sieve_config.config["namespace"],
+    ):
+        test_wait = TestWaitForCRConditions(
+            custom_resource_type,
+            resource_name,
+            conditions,
+            soft_time_out,
+            hard_time_out,
+            namespace,
         )
         self.work_list.append(test_wait)
         return self
