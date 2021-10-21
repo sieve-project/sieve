@@ -229,6 +229,20 @@ def conflicting_event(
     return False
 
 
+def same_key(prev_event: Dict, cur_event: Dict) -> bool:
+    diff_keys = set(prev_event.keys()).symmetric_difference(set(cur_event.keys()))
+    if not len(diff_keys) == 0:
+        return False
+    common_keys = set(prev_event.keys()).intersection(set(cur_event.keys()))
+    for key in common_keys:
+        if isinstance(prev_event[key], dict):
+            if not isinstance(cur_event[key], dict):
+                return False
+            if not same_key(prev_event[key], cur_event[key]):
+                return False
+    return True
+
+
 def trim_kind_apiversion(event: Dict):
     event.pop("kind", None)
     event.pop("apiVersion", None)

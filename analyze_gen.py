@@ -1,4 +1,5 @@
 from analyze_util import *
+from analyze_event import *
 import json
 from typing import List
 import os
@@ -114,11 +115,20 @@ def delete_then_recreate_filtering_pass(
     return candidate_edges
 
 
-def decide_time_travel_timing(vertex: CausalityVertex):
-    assert vertex.is_operator_write()
-    assert vertex.content.etype == OperatorWriteTypes.DELETE
+def decide_time_travel_timing(
+    source_vertex: CausalityVertex, sink_vertex: CausalityVertex
+):
+    assert source_vertex.is_operator_hear()
+    assert sink_vertex.is_operator_write()
+    assert sink_vertex.content.etype == OperatorWriteTypes.DELETE
+    if source_vertex.content.slim_prev_obj_map is None:
+        return "after"
+    if not same_key(
+        source_vertex.content.slim_prev_obj_map, source_vertex.content.slim_cur_obj_map
+    ):
+        return "after"
     reconcile_cnt = 0
-    cur_vertex = vertex
+    cur_vertex = sink_vertex
     while True:
         if len(cur_vertex.out_intra_reconciler_edges) == 1:
             next_vertex = cur_vertex.out_intra_reconciler_edges[0].sink
@@ -129,7 +139,7 @@ def decide_time_travel_timing(vertex: CausalityVertex):
             elif next_vertex.is_operator_write():
                 if (
                     next_vertex.content.etype == OperatorWriteTypes.CREATE
-                    and next_vertex.content.key == vertex.content.key
+                    and next_vertex.content.key == sink_vertex.content.key
                 ):
                     if reconcile_cnt == 0:
                         print("decide timing: before")
@@ -138,7 +148,7 @@ def decide_time_travel_timing(vertex: CausalityVertex):
                         print("decide timing: both")
                         return "both"
             cur_vertex = next_vertex
-        elif len(vertex.out_intra_reconciler_edges) == 0:
+        elif len(sink_vertex.out_intra_reconciler_edges) == 0:
             return "after"
         else:
             assert False
@@ -181,7 +191,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         ):
             continue
 
-        timing = decide_time_travel_timing(edge.sink)
+        timing = decide_time_travel_timing(edge.source, edge.sink)
 
         time_travel_config = time_travel_template(project)
         time_travel_config["ce-name"] = operator_hear.name

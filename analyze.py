@@ -419,8 +419,8 @@ def analyze(project, test):
         project,
         log_dir,
         data_dir,
-        generate_oracle=True,
-        generate_config=False,
+        generate_oracle=False,
+        generate_config=True,
     )
 
 
