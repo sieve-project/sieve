@@ -218,16 +218,14 @@ def dump_ignore_paths(ignore, predefine, key, obj, path):
         if obj == BORING_IGNORE_MARK:
             ignore.add(path)
             return
-        # Check for IP
-        pat = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-        isip = pat.match(obj)
-        if isip:
+        # Check for ignore regex rule
+        if should_ignore_regex(obj):
             ignore.add(path)
             return
     if type(obj) is list:
         for i in range(len(obj)):
             val = obj[i]
-            newpath = os.path.join(path, "0")
+            newpath = os.path.join(path, "*")
             dump_ignore_paths(ignore, predefine, i, val, newpath)
     elif type(obj) is dict:
         for key in obj:
@@ -244,7 +242,7 @@ def generate_ignore_paths(data):
             ignore = set()
             if data[rtype][name] != BORING_IGNORE_MARK:
                 dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
-                result[rtype][name] = list(ignore)
+                result[rtype][name] = sorted(list(ignore))
     return result
 
 
@@ -345,28 +343,6 @@ def check_workload_log(workload_log):
     return alarm, bug_report
 
 
-BORING_EVENT_OBJECT_KEYS = ["image", "imageID", "generation", "observedGeneration"]
-# all the path here is full path,
-# xxx/0/yyy has the same meaning as xxx/*/yyy
-BORING_EVENT_OBJECT_PATHS = [
-    "data",
-    "metadata/annotations",
-    "metadata/managedFields",
-    "metadata/labels",
-    "metadata/resourceVersion",
-    "metadata/generateName",
-    "metadata/ownerReferences",
-    "spec/template/spec/containers/0/env",
-    "spec/containers/0/env",
-    "status/conditions/0/message",
-    "spec/nodeName",
-    "status/conditions/0/type",
-    "status/conditions",
-    "spec/selector/pod-template-hash",
-]
-BORING_IGNORE_MARK = "SIEVE-IGNORE"
-
-
 def equal_path(template, value):
     template = template.split("/")
     value = value.split("/")
@@ -390,6 +366,15 @@ def preprocess(learn, test):
         if resource not in learn:
             test.pop(resource, None)
 
+
+def should_ignore_regex(val):
+    # Search for ignore regex
+    if type(val) is str:
+        for reg in BORING_EVENT_OBJECT_REGS:
+            pat = re.compile(reg)
+            return pat.match(val)
+    return False
+            
 
 def look_for_resources_diff(learn, test):
     f = io.StringIO()
@@ -435,12 +420,9 @@ def look_for_resources_diff(learn, test):
                             break
                 if has_not_care:
                     continue
-                # Search for ip
-                if type(key.t1) is str:
-                    pat = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-                    isip = pat.match(key.t1)
-                    if isip:
-                        continue
+                # Search for ignore regex
+                if should_ignore_regex(key.t1):
+                    continue
 
                 resource_type = path[0]
                 if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:

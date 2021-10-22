@@ -24,6 +24,7 @@ NONEXIST = False
 
 KTYPES = [POD, PVC, DEPLOYMENT, STS]
 
+# TODO: we should remove this and use fields in ignore-paths.json instead
 BORING_EVENT_OBJECT_FIELDS = [
     "uid",  # random
     "resourceVersion",  # random
@@ -42,8 +43,29 @@ BORING_EVENT_OBJECT_FIELDS = [
     "labels",  # label can contain random strings e.g., controller-revision-hash
 ]
 
+BORING_EVENT_OBJECT_KEYS = ["image", "imageID", "generation", "observedGeneration"]
+# all the path here is full path,
+# xxx/0/yyy has the same meaning as xxx/*/yyy
+BORING_EVENT_OBJECT_PATHS = [
+    "data",
+    "metadata/annotations",
+    "metadata/managedFields",
+    "metadata/labels",
+    "metadata/resourceVersion",
+    "metadata/generateName",
+    "metadata/ownerReferences",
+    "spec/template/spec/containers/*/env",
+    "spec/containers/*/env",
+    "spec/nodeName",
+    "status/conditions",
+    "spec/selector/pod-template-hash",
+]
+BORING_IGNORE_MARK = "SIEVE-IGNORE"
+
 TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+
+BORING_EVENT_OBJECT_REGS = [TIME_REG, IP_REG]
 
 BORING_POD_LIST = ["csi-hostpathplugin-0", "snapshot-controller-0"]
 BORING_STS_LIST = ["csi-hostpathplugin", "snapshot-controller"]
