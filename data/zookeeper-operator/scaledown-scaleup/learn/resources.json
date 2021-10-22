@@ -1,145 +1,4 @@
 {
-    "configmap": {
-        "sieve-testing-global-config": {
-            "data": {
-                "SIEVE-CRD-LIST": "zookeepercluster",
-                "SIEVE-MODE": "learn",
-                "SIEVE-RATE-LIMITER-ENABLED": "false",
-                "SIEVE-RATE-LIMITER-INTERVAL": "3",
-                "SIEVE-STAGE": "learn"
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"zookeepercluster\",\"SIEVE-MODE\":\"learn\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:SIEVE-CRD-LIST": {},
-                                "f:SIEVE-MODE": {},
-                                "f:SIEVE-RATE-LIMITER-ENABLED": {},
-                                "f:SIEVE-RATE-LIMITER-INTERVAL": {},
-                                "f:SIEVE-STAGE": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "sieve-testing-global-config",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/sieve-testing-global-config",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "zookeeper-cluster-configmap": {
-            "data": {
-                "env.sh": "#!/usr/bin/env bash\n\nDOMAIN=zookeeper-cluster-headless.default.svc.cluster.local\nQUORUM_PORT=2888\nLEADER_PORT=3888\nCLIENT_HOST=zookeeper-cluster-client\nCLIENT_PORT=2181\nADMIN_SERVER_HOST=zookeeper-cluster-admin-server\nADMIN_SERVER_PORT=8080\nCLUSTER_NAME=zookeeper-cluster\nCLUSTER_SIZE=2\n",
-                "log4j-quiet.properties": "log4j.rootLogger=ERROR, CONSOLE\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\nlog4j.appender.CONSOLE.Threshold=ERROR\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n\n",
-                "log4j.properties": "zookeeper.root.logger=CONSOLE\nzookeeper.console.threshold=INFO\nlog4j.rootLogger=${zookeeper.root.logger}\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\nlog4j.appender.CONSOLE.Threshold=${zookeeper.console.threshold}\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n\n",
-                "zoo.cfg": "4lw.commands.whitelist=cons, envi, conf, crst, srvr, stat, mntr, ruok\ndataDir=/data\nstandaloneEnabled=false\nreconfigEnabled=true\nskipACL=yes\nmetricsProvider.className=org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider\nmetricsProvider.httpPort=7000\nmetricsProvider.exportJvmInfo=true\ninitLimit=10\nsyncLimit=2\ntickTime=2000\nglobalOutstandingLimit=1000\npreAllocSize=65536\nsnapCount=10000\ncommitLogCount=500\nsnapSizeLimitInKb=4194304\nmaxCnxns=0\nmaxClientCnxns=60\nminSessionTimeout=4000\nmaxSessionTimeout=40000\nautopurge.snapRetainCount=3\nautopurge.purgeInterval=1\nquorumListenOnAllIPs=false\nadmin.serverPort=8080\ndynamicConfigFile=/data/zoo.cfg.dynamic\n"
-            },
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "labels": {
-                    "app": "zookeeper-cluster",
-                    "release": "zookeeper-cluster"
-                },
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:env.sh": {},
-                                "f:log4j-quiet.properties": {},
-                                "f:log4j.properties": {},
-                                "f:zoo.cfg": {}
-                            },
-                            "f:metadata": {
-                                "f:labels": {
-                                    ".": {},
-                                    "f:app": {},
-                                    "f:release": {}
-                                },
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"7057082b-0da4-4cfa-81d0-dfa0b4cb86fd\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "zookeeper-operator",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "zookeeper-cluster-configmap",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "zookeeper.pravega.io/v1beta1",
-                        "blockOwnerDeletion": true,
-                        "controller": true,
-                        "kind": "ZookeeperCluster",
-                        "name": "zookeeper-cluster",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/zookeeper-cluster-configmap",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "zookeeper-operator-lock": {
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"c06a1b83-5e93-4ad8-b56a-4c294f13af56\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "zookeeper-operator",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "zookeeper-operator-lock",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "v1",
-                        "kind": "Pod",
-                        "name": "SIEVE-IGNORE",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/zookeeper-operator-lock",
-                "uid": "SIEVE-IGNORE"
-            }
-        }
-    },
     "deployment": {
         "zookeeper-operator": {
             "metadata": {
@@ -439,7 +298,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker"
+                    "volume.kubernetes.io/selected-node": "kind-worker2"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -541,7 +400,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker2"
+                    "volume.kubernetes.io/selected-node": "kind-worker"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -667,7 +526,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a9d4a8ff-bfdf-493c-b2a7-d47e94862be6\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"d4cdbf49-afb2-4b65-aff1-54548cc43a7a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1007,7 +866,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "zookeeper-cluster-0",
-                "nodeName": "kind-worker",
+                "nodeName": "kind-worker2",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1137,7 +996,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a9d4a8ff-bfdf-493c-b2a7-d47e94862be6\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"d4cdbf49-afb2-4b65-aff1-54548cc43a7a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1477,7 +1336,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "zookeeper-cluster-1",
-                "nodeName": "kind-worker2",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1567,7 +1426,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.3",
                 "phase": "Running",
                 "podIP": "SIEVE-IGNORE",
                 "podIPs": [
@@ -1579,7 +1438,11 @@
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "zookeeper-operator-5fc77867c7-7hmrn": "SIEVE-IGNORE"
+        "zookeeper-operator-5fc77867c7-ppd56": "SIEVE-IGNORE"
+    },
+    "secret": {
+        "default-token-2jtlj": "SIEVE-IGNORE",
+        "zookeeper-operator-token-z2wc9": "SIEVE-IGNORE"
     },
     "service": {
         "kubernetes": {
@@ -1667,7 +1530,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"7057082b-0da4-4cfa-81d0-dfa0b4cb86fd\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"f86af7c2-ab81-4c5a-88eb-1e5bbf227b3c\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1755,7 +1618,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"7057082b-0da4-4cfa-81d0-dfa0b4cb86fd\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"f86af7c2-ab81-4c5a-88eb-1e5bbf227b3c\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1840,7 +1703,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"7057082b-0da4-4cfa-81d0-dfa0b4cb86fd\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"f86af7c2-ab81-4c5a-88eb-1e5bbf227b3c\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1979,7 +1842,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"7057082b-0da4-4cfa-81d0-dfa0b4cb86fd\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"f86af7c2-ab81-4c5a-88eb-1e5bbf227b3c\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2537,8 +2400,8 @@
                 "internalClientEndpoint": "SIEVE-IGNORE",
                 "members": {
                     "ready": [
-                        "zookeeper-cluster-0",
-                        "zookeeper-cluster-1"
+                        "SIEVE-IGNORE",
+                        "SIEVE-IGNORE"
                     ]
                 },
                 "metaRootCreated": true,
