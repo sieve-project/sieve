@@ -209,6 +209,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         time_travel_config["ce-diff-current"] = json.dumps(
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
+        time_travel_config["ce-counter"] = str(operator_hear.signature_counter)
         time_travel_config["se-name"] = operator_write.name
         time_travel_config["se-namespace"] = operator_write.namespace
         time_travel_config["se-rtype"] = operator_write.rtype
@@ -296,6 +297,7 @@ def obs_gap_analysis(
         obs_gap_config["ce-diff-current"] = json.dumps(
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
+        obs_gap_config["ce-counter"] = str(operator_hear.signature_counter)
 
         i += 1
         file_name = os.path.join(path, "obs-gap-config-%s.yaml" % (str(i)))
@@ -361,6 +363,7 @@ def atom_vio_analysis(
         atom_vio_config["se-diff-current"] = json.dumps(
             operator_write.slim_cur_obj_map, sort_keys=True
         )
+        atom_vio_config["se-counter"] = str(operator_write.signature_counter)
 
         i += 1
         file_name = os.path.join(path, "atom-vio-config-%s.yaml" % (str(i)))
