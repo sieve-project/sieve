@@ -78,7 +78,7 @@
                 "cassandraNodeStatus": {
                     "cassandra-cluster-dc1-rack1-0": {
                         "hostId": "SIEVE-IGNORE",
-                        "nodeIp": "SIEVE-IGNORE"
+                        "nodeIp": "10.244.1.3"
                     }
                 },
                 "cassandraRackStatus": {
@@ -102,127 +102,6 @@
         }
     },
     "cassandrarestore": {},
-    "configmap": {
-        "cassandra-configmap-v1": {
-            "data": {
-                "post_run.sh": "echo \"Check Configured seeds by bootstrap\"\ngrep \"seeds:\" /etc/cassandra/cassandra.yaml",
-                "pre_run.sh": "echo \"  ** this is pre_run.sh script executed before run.sh **\"\n#Examples:\necho \"Change default Authenticator & Authorizer\"\nsed -ri 's/(authenticator:).*/\\1 PasswordAuthenticator/' /etc/cassandra/cassandra.yaml\nsed -ri 's/(authorizer:).*/\\1 CassandraAuthorizer/' /etc/cassandra/cassandra.yaml\n#test \"$(hostname)\" == 'cassandra-demo-dc1-rack2-0' && echo \"update param\" && sed -i 's/windows_timer_interval: 1/windows_timer_interval: 2/' /etc/cassandra/cassandra.yaml\n#test \"$(hostname)\" == 'cassandra-demo-dc1-rack3-0' && echo \"-Dcassandra.replace_address_first_boot=172.31.183.209\" > /etc/cassandra/jvm.options\n#test \"$(hostname)\" == 'cassandra-demo-dc2-rack1-0' && echo \"-Dcassandra.override_decommission=true\" > /etc/cassandra/jvm.options    \necho \"  ** end of pre_run.sh script, continue with run.sh **\""
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"post_run.sh\":\"echo \\\"Check Configured seeds by bootstrap\\\"\\ngrep \\\"seeds:\\\" /etc/cassandra/cassandra.yaml\",\"pre_run.sh\":\"echo \\\"  ** this is pre_run.sh script executed before run.sh **\\\"\\n#Examples:\\necho \\\"Change default Authenticator \\u0026 Authorizer\\\"\\nsed -ri 's/(authenticator:).*/\\\\1 PasswordAuthenticator/' /etc/cassandra/cassandra.yaml\\nsed -ri 's/(authorizer:).*/\\\\1 CassandraAuthorizer/' /etc/cassandra/cassandra.yaml\\n#test \\\"$(hostname)\\\" == 'cassandra-demo-dc1-rack2-0' \\u0026\\u0026 echo \\\"update param\\\" \\u0026\\u0026 sed -i 's/windows_timer_interval: 1/windows_timer_interval: 2/' /etc/cassandra/cassandra.yaml\\n#test \\\"$(hostname)\\\" == 'cassandra-demo-dc1-rack3-0' \\u0026\\u0026 echo \\\"-Dcassandra.replace_address_first_boot=172.31.183.209\\\" \\u003e /etc/cassandra/jvm.options\\n#test \\\"$(hostname)\\\" == 'cassandra-demo-dc2-rack1-0' \\u0026\\u0026 echo \\\"-Dcassandra.override_decommission=true\\\" \\u003e /etc/cassandra/jvm.options    \\necho \\\"  ** end of pre_run.sh script, continue with run.sh **\\\"\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"cassandra-configmap-v1\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:post_run.sh": {},
-                                "f:pre_run.sh": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "cassandra-configmap-v1",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/cassandra-configmap-v1",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "casskop-lock": {
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"521d7ac0-1421-4fee-8411-24d144190675\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "casskop",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "casskop-lock",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "v1",
-                        "kind": "Pod",
-                        "name": "SIEVE-IGNORE",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/casskop-lock",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "sieve-testing-global-config": {
-            "data": {
-                "SIEVE-CRD-LIST": "cassandracluster,cassandrarestore,cassandrabackup",
-                "SIEVE-MODE": "learn",
-                "SIEVE-RATE-LIMITER-ENABLED": "false",
-                "SIEVE-RATE-LIMITER-INTERVAL": "3",
-                "SIEVE-STAGE": "learn"
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"cassandracluster,cassandrarestore,cassandrabackup\",\"SIEVE-MODE\":\"learn\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:SIEVE-CRD-LIST": {},
-                                "f:SIEVE-MODE": {},
-                                "f:SIEVE-RATE-LIMITER-ENABLED": {},
-                                "f:SIEVE-RATE-LIMITER-INTERVAL": {},
-                                "f:SIEVE-STAGE": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "sieve-testing-global-config",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/sieve-testing-global-config",
-                "uid": "SIEVE-IGNORE"
-            }
-        }
-    },
     "deployment": {
         "casskop-operator": {
             "metadata": {
@@ -696,7 +575,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"756b88e5-b220-472e-b9e0-480b18ad00c1\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b024cd48-7ca0-4fd4-8c3a-73dae5910577\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1206,7 +1085,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.3\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1725,7 +1607,7 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "docker.io/library/cassandra:3.11",
-                        "imageID": "docker.io/library/cassandra@sha256:bf90f529d54dab3d833b4f98095711d802bde1ce876f2ece9f2b1e29ff17f1cb",
+                        "imageID": "docker.io/library/cassandra@sha256:78b6003e1427735c53a6a210f6c994350291bb8b41c6275ea346916f92a967cd",
                         "lastState": {},
                         "name": "cassandra",
                         "ready": true,
@@ -1738,12 +1620,12 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.4",
+                "hostIP": "SIEVE-IGNORE",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "docker.io/library/cassandra:3.11",
-                        "imageID": "docker.io/library/cassandra@sha256:bf90f529d54dab3d833b4f98095711d802bde1ce876f2ece9f2b1e29ff17f1cb",
+                        "imageID": "docker.io/library/cassandra@sha256:78b6003e1427735c53a6a210f6c994350291bb8b41c6275ea346916f92a967cd",
                         "lastState": {},
                         "name": "init-config",
                         "ready": true,
@@ -1778,17 +1660,69 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.1.3",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.1.3"
                     }
                 ],
                 "qosClass": "Guaranteed",
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "casskop-operator-546674cfdd-pzdlz": "SIEVE-IGNORE"
+        "casskop-operator-546674cfdd-8qmfb": "SIEVE-IGNORE"
+    },
+    "secret": {
+        "cassandra-cluster-node-token-vddcm": "SIEVE-IGNORE",
+        "cassandra-operator-token-5znpw": "SIEVE-IGNORE",
+        "default-token-4hhbk": "SIEVE-IGNORE",
+        "sh.helm.release.v1.casskop-operator.v1": {
+            "data": {
+                "release": "SIEVE-IGNORE"
+            },
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "modifiedAt": "SIEVE-IGNORE",
+                    "name": "casskop-operator",
+                    "owner": "helm",
+                    "status": "deployed",
+                    "version": "1"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:data": {
+                                ".": {},
+                                "f:release": {}
+                            },
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:modifiedAt": {},
+                                    "f:name": {},
+                                    "f:owner": {},
+                                    "f:status": {},
+                                    "f:version": {}
+                                }
+                            },
+                            "f:type": {}
+                        },
+                        "manager": "helm",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "sh.helm.release.v1.casskop-operator.v1",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/secrets/sh.helm.release.v1.casskop-operator.v1",
+                "uid": "SIEVE-IGNORE"
+            },
+            "type": "helm.sh/release.v1"
+        }
     },
     "service": {
         "cassandra-cluster": {
@@ -1813,7 +1747,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"4018bf68-da55-46a9-a781-97ad83aee024\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"97957ebf-4436-4d2b-a94a-269646f7b951\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1906,7 +1840,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"4018bf68-da55-46a9-a781-97ad83aee024\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"97957ebf-4436-4d2b-a94a-269646f7b951\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1991,7 +1925,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"35e502e6-9d3c-4630-abf0-cd1f36370cc3\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"738c6f29-112a-45a3-8102-21d830c7db94\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2155,7 +2089,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"4018bf68-da55-46a9-a781-97ad83aee024\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"97957ebf-4436-4d2b-a94a-269646f7b951\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
