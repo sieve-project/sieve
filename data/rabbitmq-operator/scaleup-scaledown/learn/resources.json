@@ -1,193 +1,4 @@
 {
-    "configmap": {
-        "rabbitmq-cluster-operator-leader-election": {
-            "metadata": {
-                "annotations": {
-                    "control-plane.alpha.kubernetes.io/leader": "SIEVE-IGNORE"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:control-plane.alpha.kubernetes.io/leader": {}
-                                }
-                            }
-                        },
-                        "manager": "manager",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "rabbitmq-cluster-operator-leader-election",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/rabbitmq-cluster-operator-leader-election",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "rabbitmq-cluster-plugins-conf": {
-            "data": {
-                "enabled_plugins": "[rabbitmq_peer_discovery_k8s,rabbitmq_prometheus,rabbitmq_management]."
-            },
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "labels": {
-                    "app.kubernetes.io/component": "rabbitmq",
-                    "app.kubernetes.io/name": "rabbitmq-cluster",
-                    "app.kubernetes.io/part-of": "rabbitmq"
-                },
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:enabled_plugins": {}
-                            },
-                            "f:metadata": {
-                                "f:labels": {
-                                    ".": {},
-                                    "f:app.kubernetes.io/component": {},
-                                    "f:app.kubernetes.io/name": {},
-                                    "f:app.kubernetes.io/part-of": {}
-                                },
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "manager",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "rabbitmq-cluster-plugins-conf",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "rabbitmq.com/v1beta1",
-                        "blockOwnerDeletion": true,
-                        "controller": true,
-                        "kind": "RabbitmqCluster",
-                        "name": "rabbitmq-cluster",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/rabbitmq-cluster-plugins-conf",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "rabbitmq-cluster-server-conf": {
-            "data": {
-                "operatorDefaults.conf": "cluster_formation.peer_discovery_backend             = rabbit_peer_discovery_k8s\ncluster_formation.k8s.host                           = kubernetes.default\ncluster_formation.k8s.address_type                   = hostname\ncluster_partition_handling                           = pause_minority\nqueue_master_locator                                 = min-masters\ndisk_free_limit.absolute                             = 2GB\ncluster_formation.randomized_startup_delay_range.min = 5\ncluster_formation.randomized_startup_delay_range.max = 30\ncluster_name                                         = rabbitmq-cluster\n",
-                "userDefinedConfiguration.conf": "total_memory_available_override_value = 1717986919\n"
-            },
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "labels": {
-                    "app.kubernetes.io/component": "rabbitmq",
-                    "app.kubernetes.io/name": "rabbitmq-cluster",
-                    "app.kubernetes.io/part-of": "rabbitmq"
-                },
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:operatorDefaults.conf": {},
-                                "f:userDefinedConfiguration.conf": {}
-                            },
-                            "f:metadata": {
-                                "f:labels": {
-                                    ".": {},
-                                    "f:app.kubernetes.io/component": {},
-                                    "f:app.kubernetes.io/name": {},
-                                    "f:app.kubernetes.io/part-of": {}
-                                },
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "manager",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "rabbitmq-cluster-server-conf",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "rabbitmq.com/v1beta1",
-                        "blockOwnerDeletion": true,
-                        "controller": true,
-                        "kind": "RabbitmqCluster",
-                        "name": "rabbitmq-cluster",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/rabbitmq-cluster-server-conf",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "sieve-testing-global-config": {
-            "data": {
-                "SIEVE-CRD-LIST": "rabbitmqcluster",
-                "SIEVE-MODE": "learn",
-                "SIEVE-RATE-LIMITER-ENABLED": "false",
-                "SIEVE-RATE-LIMITER-INTERVAL": "3",
-                "SIEVE-STAGE": "learn"
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"rabbitmqcluster\",\"SIEVE-MODE\":\"learn\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:SIEVE-CRD-LIST": {},
-                                "f:SIEVE-MODE": {},
-                                "f:SIEVE-RATE-LIMITER-ENABLED": {},
-                                "f:SIEVE-RATE-LIMITER-INTERVAL": {},
-                                "f:SIEVE-STAGE": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "sieve-testing-global-config",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/sieve-testing-global-config",
-                "uid": "SIEVE-IGNORE"
-            }
-        }
-    },
     "deployment": {
         "rabbitmq-operator": {
             "metadata": {
@@ -508,7 +319,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker2"
+                    "volume.kubernetes.io/selected-node": "kind-worker"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -553,7 +364,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -626,7 +437,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker"
+                    "volume.kubernetes.io/selected-node": "kind-worker2"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -671,7 +482,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -744,7 +555,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                    "volume.kubernetes.io/selected-node": "kind-worker"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -789,7 +600,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -895,7 +706,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"089ca27f-c507-4fbb-b6a8-558ba92ce587\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b5102ddc-769f-429a-8ace-fee82fb43d31\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1261,7 +1072,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.3\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1506,7 +1320,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker2",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1676,7 +1490,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.4",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -1698,10 +1512,10 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.2.3",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.2.3"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -1745,7 +1559,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"089ca27f-c507-4fbb-b6a8-558ba92ce587\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b5102ddc-769f-429a-8ace-fee82fb43d31\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2111,7 +1925,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.4\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.4\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -2356,7 +2173,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker",
+                "nodeName": "kind-worker2",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2526,7 +2343,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.2",
+                "hostIP": "SIEVE-IGNORE",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -2548,10 +2365,10 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.1.4",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.1.4"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -2595,7 +2412,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"089ca27f-c507-4fbb-b6a8-558ba92ce587\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b5102ddc-769f-429a-8ace-fee82fb43d31\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2961,7 +2778,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.5\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.5\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -3206,7 +3026,7 @@
                         ]
                     }
                 ],
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -3376,7 +3196,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.4",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -3398,17 +3218,17 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.2.5",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.2.5"
                     }
                 ],
                 "qosClass": "Burstable",
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "rabbitmq-operator-b7d5945b-dm2b9": "SIEVE-IGNORE"
+        "rabbitmq-operator-b7d5945b-vl85f": "SIEVE-IGNORE"
     },
     "rabbitmqcluster": {
         "rabbitmq-cluster": {
@@ -3499,7 +3319,7 @@
         }
     },
     "secret": {
-        "default-token-7kqhk": "SIEVE-IGNORE",
+        "default-token-qr2fg": "SIEVE-IGNORE",
         "rabbitmq-cluster-default-user": {
             "data": {
                 "default_user.conf": "SIEVE-IGNORE",
@@ -3537,7 +3357,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -3594,7 +3414,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -3622,8 +3442,8 @@
             },
             "type": "Opaque"
         },
-        "rabbitmq-cluster-operator-token-t7blf": "SIEVE-IGNORE",
-        "rabbitmq-cluster-server-token-t9h29": "SIEVE-IGNORE"
+        "rabbitmq-cluster-operator-token-kgjgg": "SIEVE-IGNORE",
+        "rabbitmq-cluster-server-token-qh24s": "SIEVE-IGNORE"
     },
     "service": {
         "kubernetes": {
@@ -3711,7 +3531,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3809,7 +3629,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3889,137 +3709,6 @@
             }
         }
     },
-    "serviceaccount": {
-        "default": {
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "name": "default",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/serviceaccounts/default",
-                "uid": "SIEVE-IGNORE"
-            },
-            "secrets": [
-                {
-                    "name": "SIEVE-IGNORE"
-                }
-            ]
-        },
-        "rabbitmq-cluster-operator": {
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"ServiceAccount\",\"metadata\":{\"annotations\":{},\"name\":\"rabbitmq-cluster-operator\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:secrets": {
-                                ".": {},
-                                "k:{\"name\":\"rabbitmq-cluster-operator-token-t7blf\"}": "SIEVE-IGNORE"
-                            }
-                        },
-                        "manager": "kube-controller-manager",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "rabbitmq-cluster-operator",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/serviceaccounts/rabbitmq-cluster-operator",
-                "uid": "SIEVE-IGNORE"
-            },
-            "secrets": [
-                {
-                    "name": "SIEVE-IGNORE"
-                }
-            ]
-        },
-        "rabbitmq-cluster-server": {
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "labels": {
-                    "app.kubernetes.io/component": "rabbitmq",
-                    "app.kubernetes.io/name": "rabbitmq-cluster",
-                    "app.kubernetes.io/part-of": "rabbitmq"
-                },
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:secrets": {
-                                ".": {},
-                                "k:{\"name\":\"rabbitmq-cluster-server-token-t9h29\"}": "SIEVE-IGNORE"
-                            }
-                        },
-                        "manager": "kube-controller-manager",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:labels": {
-                                    ".": {},
-                                    "f:app.kubernetes.io/component": {},
-                                    "f:app.kubernetes.io/name": {},
-                                    "f:app.kubernetes.io/part-of": {}
-                                },
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "manager",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "rabbitmq-cluster-server",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "rabbitmq.com/v1beta1",
-                        "blockOwnerDeletion": true,
-                        "controller": true,
-                        "kind": "RabbitmqCluster",
-                        "name": "rabbitmq-cluster",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/serviceaccounts/rabbitmq-cluster-server",
-                "uid": "SIEVE-IGNORE"
-            },
-            "secrets": [
-                {
-                    "name": "SIEVE-IGNORE"
-                }
-            ]
-        }
-    },
     "statefulset": {
         "rabbitmq-cluster-server": {
             "metadata": {
@@ -4044,7 +3733,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a0208adf-c0d7-40d8-b5a0-0aa9f13e8b86\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0f1416ea-cdab-4df2-97d7-d1072ffe05ae\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
