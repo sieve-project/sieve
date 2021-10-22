@@ -148,125 +148,6 @@
             }
         }
     },
-    "configmap": {
-        "cass-operator-lock": {
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"1e97b04f-b3d3-461d-aaa5-f79da21eef6b\"}": "SIEVE-IGNORE"
-                                }
-                            }
-                        },
-                        "manager": "operator",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "cass-operator-lock",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "v1",
-                        "kind": "Pod",
-                        "name": "SIEVE-IGNORE",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/cass-operator-lock",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "local-path-config": {
-            "data": {
-                "config.json": "{\n        \"nodePathMap\":[\n        {\n                \"node\":\"DEFAULT_PATH_FOR_NON_LISTED_NODES\",\n                \"paths\":[\"/opt/local-path-provisioner\"]\n        }\n        ]\n}"
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"config.json\":\"{\\n        \\\"nodePathMap\\\":[\\n        {\\n                \\\"node\\\":\\\"DEFAULT_PATH_FOR_NON_LISTED_NODES\\\",\\n                \\\"paths\\\":[\\\"/opt/local-path-provisioner\\\"]\\n        }\\n        ]\\n}\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"local-path-config\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:config.json": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "local-path-config",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/local-path-config",
-                "uid": "SIEVE-IGNORE"
-            }
-        },
-        "sieve-testing-global-config": {
-            "data": {
-                "SIEVE-CRD-LIST": "cassandradatacenter",
-                "SIEVE-MODE": "learn",
-                "SIEVE-RATE-LIMITER-ENABLED": "false",
-                "SIEVE-RATE-LIMITER-INTERVAL": "3",
-                "SIEVE-STAGE": "learn"
-            },
-            "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"cassandradatacenter\",\"SIEVE-MODE\":\"learn\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
-                },
-                "creationTimestamp": "SIEVE-IGNORE",
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:data": {
-                                ".": {},
-                                "f:SIEVE-CRD-LIST": {},
-                                "f:SIEVE-MODE": {},
-                                "f:SIEVE-RATE-LIMITER-ENABLED": {},
-                                "f:SIEVE-RATE-LIMITER-INTERVAL": {},
-                                "f:SIEVE-STAGE": {}
-                            },
-                            "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                                }
-                            }
-                        },
-                        "manager": "kubectl-client-side-apply",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "sieve-testing-global-config",
-                "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/configmaps/sieve-testing-global-config",
-                "uid": "SIEVE-IGNORE"
-            }
-        }
-    },
     "deployment": {
         "cass-operator": {
             "metadata": {
@@ -992,7 +873,7 @@
         }
     },
     "pod": {
-        "cass-operator-595d8d4bc7-tn55v": "SIEVE-IGNORE",
+        "cass-operator-595d8d4bc7-f4n8g": "SIEVE-IGNORE",
         "cluster1-cassandra-datacenter-default-sts-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -1025,7 +906,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"5de4ec20-4b45-4952-a52d-24f810bdda23\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b075d8ea-8d57-4862-8a1a-72ecdde517ed\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1387,7 +1268,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.6\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.4\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1812,7 +1693,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "172.18.0.4",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -1844,10 +1725,10 @@
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "local-path-provisioner-579c65cb9b-7mkck": "SIEVE-IGNORE"
+        "local-path-provisioner-579c65cb9b-865c7": "SIEVE-IGNORE"
     },
     "secret": {
-        "cass-operator-token-pxfqm": "SIEVE-IGNORE",
+        "cass-operator-token-lg7rs": "SIEVE-IGNORE",
         "cass-operator-webhook-config": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -2008,8 +1889,8 @@
             },
             "type": "Opaque"
         },
-        "default-token-fqnqt": "SIEVE-IGNORE",
-        "local-path-provisioner-service-account-token-wwq7l": "SIEVE-IGNORE"
+        "default-token-z6zxt": "SIEVE-IGNORE",
+        "local-path-provisioner-service-account-token-j254k": "SIEVE-IGNORE"
     },
     "service": {
         "cass-operator-metrics": {
@@ -2030,7 +1911,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"62375b99-6f92-4cb5-9de7-d1ab733563cd\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bca7b3c9-9d87-4acf-b0d3-d23f30612cf6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2209,7 +2090,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ad6b9eb3-380d-48ff-b1c5-72ee37bf1d49\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"53caa3a7-026b-455d-b8c9-7992b401345f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2332,7 +2213,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ad6b9eb3-380d-48ff-b1c5-72ee37bf1d49\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"53caa3a7-026b-455d-b8c9-7992b401345f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2477,7 +2358,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ad6b9eb3-380d-48ff-b1c5-72ee37bf1d49\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"53caa3a7-026b-455d-b8c9-7992b401345f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2624,7 +2505,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ad6b9eb3-380d-48ff-b1c5-72ee37bf1d49\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"53caa3a7-026b-455d-b8c9-7992b401345f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
