@@ -30,6 +30,7 @@ reprod_map = {
     "mongodb-operator": {
         "atom-vio-1": ["disable-enable-shard", "mongodb_atom_vio_1.yaml"],
         "atom-vio-2": ["run-cert-manager", "mongodb_atom_vio_2.yaml"],
+        "obs-gap-1": ["disable-enable-arbiter", "mongodb_obs_gap_1.yaml"],
         "time-travel-1": ["recreate", "mongodb_time_travel_1.yaml"],
         "time-travel-2": ["disable-enable-shard", "mongodb_time_travel_2.yaml"],
         "time-travel-3": ["disable-enable-arbiter", "mongodb_time_travel_3.yaml"],
