@@ -39,10 +39,6 @@ const (
 
 var exists = struct{}{}
 
-// resources that have different representation between API and controller side
-var TYPES_TO_CONFORM = map[string]struct{}{"pod": exists}
-
-// TODO: conform mask keys to api as well
 // keys that to ignore when computing event diff
 var KEYS_TO_MASK = map[string]struct{}{
 	"uid":                        exists, // random
@@ -455,14 +451,8 @@ func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
 	return capitalizedEvent
 }
 
-func conformToAPIEvent(event map[string]interface{}, rType string) map[string]interface{} {
-	if !inSet(rType, TYPES_TO_CONFORM) {
-		return event
-	}
-
-	log.Println("Need to conform")
-
-	// Sometimes the event object representation is different between the API side and the operator side
+func conformToAPIEvent(event map[string]interface{}) map[string]interface{} {
+	// The event object representation is different between the API side and the operator side if it is not CR
 	// There are mainly two difference:
 	// 1. `metadata` is missing at the API side but the inner fields still exist
 	// 2. field name starts with a capitalized word if not inside `metadata` at the API side

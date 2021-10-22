@@ -52,6 +52,14 @@ func strToInt(str string) int {
 	return i
 }
 
+func strToBool(str string) bool {
+	b, err := strconv.ParseBool(str)
+	if err != nil {
+		log.Fatalf("cannot conver to bool: %s\n", str)
+	}
+	return b
+}
+
 func deepCopyMap(src map[string]interface{}) map[string]interface{} {
 	dest := make(map[string]interface{})
 	if src == nil {

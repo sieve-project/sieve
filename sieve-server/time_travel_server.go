@@ -15,8 +15,9 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		pauseCh:       make(chan int),
 		straggler:     config["straggler"].(string),
 		ceEtype:       config["ce-etype-current"].(string),
-		diffCurEvent:  conformToAPIEvent(strToMap(config["ce-diff-current"].(string)), config["ce-rtype"].(string)),
-		diffPrevEvent: conformToAPIEvent(strToMap(config["ce-diff-previous"].(string)), config["ce-rtype"].(string)),
+		ceIsCR:        strToBool(config["ce-is-cr"].(string)),
+		diffCurEvent:  strToMap(config["ce-diff-current"].(string)),
+		diffPrevEvent: strToMap(config["ce-diff-previous"].(string)),
 		eventCounter:  strToInt(config["ce-counter"].(string)),
 		podLabel:      config["operator-pod-label"].(string),
 		frontRunner:   config["front-runner"].(string),
@@ -71,9 +72,18 @@ type timeTravelServer struct {
 	curEvent      map[string]interface{}
 	sleeped       bool
 	eventCounter  int
+	ceIsCR        bool
 }
 
 func (s *timeTravelServer) Start() {
+	if !s.ceIsCR {
+		log.Printf("conforming diffCurEvent %v...\n", s.diffCurEvent)
+		log.Printf("conforming diffPrevEvent %v...\n", s.diffPrevEvent)
+		s.diffCurEvent = conformToAPIEvent(s.diffCurEvent)
+		s.diffPrevEvent = conformToAPIEvent(s.diffPrevEvent)
+		log.Printf("conform diffCurEvent to %v\n", s.diffCurEvent)
+		log.Printf("conform diffPrevEvent to %v\n", s.diffPrevEvent)
+	}
 	log.Println("start timeTravelServer...")
 	log.Printf("target event type: %s\n", s.ceEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
