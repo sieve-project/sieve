@@ -9,8 +9,6 @@ import (
 	"sync"
 )
 
-// var seenTargetDiff = false
-
 var seenTargetCounter = 0
 var findTargetDiffMutex = &sync.Mutex{}
 
@@ -402,26 +400,24 @@ func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType str
 		return false
 	} else {
 		if isCreationOrDeletion(targetCurEventType) {
-			log.Println("Find the target diff")
 			seenTargetCounter += 1
-			return seenTargetCounter == eventCounter
+			log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
+		} else {
+			onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent)
+			log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
+			log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
+			if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
+				seenTargetCounter += 1
+				log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
+			} else if forgiving {
+				if partOfEventAsMap(targetDiffPrevEvent, onlineDiffPrevEvent) && partOfEventAsMap(targetDiffCurEvent, onlineDiffCurEvent) {
+					seenTargetCounter += 1
+					log.Printf("Find the target diff with counter: %d by being forgiving\n", seenTargetCounter)
+				}
+			}
 		}
 	}
-	onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent)
-	log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
-	log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
-	if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
-		log.Println("Find the target diff")
-		seenTargetCounter += 1
-		return seenTargetCounter == eventCounter
-	} else if forgiving {
-		if partOfEventAsMap(targetDiffPrevEvent, onlineDiffPrevEvent) && partOfEventAsMap(targetDiffCurEvent, onlineDiffCurEvent) {
-			log.Println("Find the target diff by being forgiving")
-			seenTargetCounter += 1
-			return seenTargetCounter == eventCounter
-		}
-	}
-	return false
+	return seenTargetCounter == eventCounter
 }
 
 func capitalizeKey(key string) string {
