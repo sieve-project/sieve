@@ -21,6 +21,7 @@ func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
 		seEtype:       config["se-etype-current"].(string),
 		diffPrevEvent: strToMap(config["se-diff-previous"].(string)),
 		diffCurEvent:  strToMap(config["se-diff-current"].(string)),
+		eventCounter:  strToInt(config["se-counter"].(string)),
 		prevEvent:     nil,
 		curEvent:      nil,
 	}
@@ -68,6 +69,7 @@ type atomVioServer struct {
 	seEtypePrev   string
 	prevEvent     map[string]interface{}
 	curEvent      map[string]interface{}
+	eventCounter  int
 }
 
 func (s *atomVioServer) Start() {
@@ -114,7 +116,7 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 	log.Printf("[SIEVE-AFTER-WRITE]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
 	s.curEvent = writeObj
 	trimKindApiversion(s.curEvent)
-	if findTargetDiff(request.SideEffectType, s.seEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
+	if findTargetDiff(s.eventCounter, request.SideEffectType, s.seEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
 		log.Println("ready to crash!")
 		startAtomVioInjection()
 		restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -41,6 +42,14 @@ func strToMap(str string) map[string]interface{} {
 		log.Fatalf("cannot unmarshal to map: %s\n", str)
 	}
 	return m
+}
+
+func strToInt(str string) int {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		log.Fatalf("cannot conver to int: %s\n", str)
+	}
+	return i
 }
 
 func deepCopyMap(src map[string]interface{}) map[string]interface{} {

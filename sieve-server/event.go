@@ -6,9 +6,11 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"sync"
 )
 
-var seenTargetDiff = false
+var seenTargetCounter = 0
+var findTargetDiffMutex = &sync.Mutex{}
 
 const TIME_REG string = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 
@@ -387,8 +389,10 @@ func isCreationOrDeletion(eventType string) bool {
 	return isAPICreationOrDeletion || isHearCreationOrDeletion || isWriteCreationOrDeletion
 }
 
-func findTargetDiff(onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
-	if seenTargetDiff {
+func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
+	findTargetDiffMutex.Lock()
+	defer findTargetDiffMutex.Unlock()
+	if seenTargetCounter >= eventCounter {
 		return false
 	}
 	log.Printf("online type: cur: %s\n", onlineCurEventType)
@@ -396,26 +400,24 @@ func findTargetDiff(onlineCurEventType, targetCurEventType string, onlinePrevEve
 		return false
 	} else {
 		if isCreationOrDeletion(targetCurEventType) {
-			log.Println("Find the target diff")
-			seenTargetDiff = true
-			return true
+			seenTargetCounter += 1
+			log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
+		} else {
+			onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent)
+			log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
+			log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
+			if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
+				seenTargetCounter += 1
+				log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
+			} else if forgiving {
+				if partOfEventAsMap(targetDiffPrevEvent, onlineDiffPrevEvent) && partOfEventAsMap(targetDiffCurEvent, onlineDiffCurEvent) {
+					seenTargetCounter += 1
+					log.Printf("Find the target diff with counter: %d by being forgiving\n", seenTargetCounter)
+				}
+			}
 		}
 	}
-	onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent)
-	log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
-	log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
-	if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
-		log.Println("Find the target diff")
-		seenTargetDiff = true
-		return true
-	} else if forgiving {
-		if partOfEventAsMap(targetDiffPrevEvent, onlineDiffPrevEvent) && partOfEventAsMap(targetDiffCurEvent, onlineDiffCurEvent) {
-			log.Println("Find the target diff by being forgiving")
-			seenTargetDiff = true
-			return true
-		}
-	}
-	return false
+	return seenTargetCounter == eventCounter
 }
 
 func capitalizeKey(key string) string {

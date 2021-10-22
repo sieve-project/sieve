@@ -2,6 +2,7 @@ import json
 from typing import List, Dict, Optional, Union, Set, Tuple
 import sieve_config
 from controllers import deployment_name
+import analyze_event
 
 HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -218,6 +219,7 @@ class OperatorHear:
         self.__slim_cur_obj_map = None
         self.__prev_etype = EVENT_NONE_TYPE
         self.__cancelled_by = set()
+        self.__signature_counter = 1
 
     @property
     def id(self):
@@ -275,6 +277,10 @@ class OperatorHear:
     def cancelled_by(self):
         return self.__cancelled_by
 
+    @property
+    def signature_counter(self):
+        return self.__signature_counter
+
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
@@ -299,6 +305,10 @@ class OperatorHear:
     def cancelled_by(self, cancelled_by: Set):
         self.__cancelled_by = cancelled_by
 
+    @signature_counter.setter
+    def signature_counter(self, signature_counter: int):
+        self.__signature_counter = signature_counter
+
 
 class OperatorWrite:
     def __init__(self, id: str, etype: str, rtype: str, error: str, obj_str: str):
@@ -322,6 +332,7 @@ class OperatorWrite:
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
         self.__prev_etype = EVENT_NONE_TYPE
+        self.__signature_counter = 1
 
     @property
     def id(self):
@@ -399,6 +410,10 @@ class OperatorWrite:
     def prev_etype(self):
         return self.__prev_etype
 
+    @property
+    def signature_counter(self):
+        return self.__signature_counter
+
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
         self.__start_timestamp = start_timestamp
@@ -427,32 +442,14 @@ class OperatorWrite:
     def prev_etype(self, prev_etype: str):
         self.__prev_etype = prev_etype
 
+    @signature_counter.setter
+    def signature_counter(self, signature_counter: int):
+        self.__signature_counter = signature_counter
+
     def set_range(self, start_timestamp: int, end_timestamp: int):
         assert start_timestamp < end_timestamp
         self.__range_start_timestamp = start_timestamp
         self.__range_end_timestamp = end_timestamp
-
-
-def range_overlap(operator_write: OperatorWrite, operator_hear: OperatorHear):
-    # This is the key method to generate the (operator_hear, operator_write) pairs
-    assert operator_write.range_end_timestamp != -1
-    assert operator_hear.start_timestamp != -1
-    assert operator_hear.end_timestamp != -1
-    assert operator_write.range_start_timestamp < operator_write.range_end_timestamp
-    assert operator_write.start_timestamp < operator_write.end_timestamp
-    assert operator_write.end_timestamp == operator_write.range_end_timestamp
-    assert operator_hear.start_timestamp < operator_hear.end_timestamp
-    return (
-        operator_write.range_start_timestamp < operator_hear.end_timestamp
-        and operator_write.start_timestamp > operator_hear.start_timestamp
-    )
-
-
-def interest_overlap(operator_write: OperatorWrite, operator_hear: OperatorHear):
-    return (
-        operator_hear.key in operator_write.read_keys
-        or operator_hear.rtype in operator_write.read_types
-    )
 
 
 class OperatorRead:
@@ -640,6 +637,48 @@ def parse_api_event(line: str) -> APIEvent:
     return APIEvent(tokens[1], tokens[2], tokens[3])
 
 
+def conflicting_event(
+    prev_operator_hear: OperatorHear, cur_operator_hear: OperatorHear
+) -> bool:
+    if conflicting_event_type(prev_operator_hear.etype, cur_operator_hear.etype):
+        return True
+    elif (
+        prev_operator_hear.etype != OperatorHearTypes.DELETED
+        and cur_operator_hear.etype != OperatorHearTypes.DELETED
+        and analyze_event.conflicting_event_payload(
+            prev_operator_hear.slim_cur_obj_map, cur_operator_hear.obj_map
+        )
+    ):
+        return True
+    return False
+
+
+def is_creation_or_deletion(etype: str):
+    is_hear_creation_or_deletion = (
+        etype == OperatorHearTypes.ADDED or etype == OperatorHearTypes.DELETED
+    )
+    is_write_creation_or_deletion = (
+        etype == OperatorWriteTypes.CREATE or etype == OperatorWriteTypes.DELETE
+    )
+    return is_hear_creation_or_deletion or is_write_creation_or_deletion
+
+
+def get_event_signature(event: Union[OperatorHear, OperatorWrite]):
+    assert isinstance(event, OperatorHear) or isinstance(event, OperatorWrite)
+    signature = (
+        event.etype
+        if is_creation_or_deletion(event.etype)
+        else "\t".join(
+            [
+                event.etype,
+                json.dumps(event.slim_prev_obj_map, sort_keys=True),
+                json.dumps(event.slim_cur_obj_map, sort_keys=True),
+            ]
+        )
+    )
+    return signature
+
+
 class CausalityVertex:
     def __init__(
         self,
@@ -718,8 +757,10 @@ class CausalityGraph:
         self.__operator_read_vertices = []
         self.__reconcile_begin_vertices = []
         self.__reconcile_end_vertices = []
-        self.__operator_hear_key_to_operator_hear_vertices = {}
-        self.__operator_hear_id_to_operator_hear_vertices = {}
+        self.__operator_read_key_to_vertices = {}
+        self.__operator_write_key_to_vertices = {}
+        self.__operator_hear_key_to_vertices = {}
+        self.__operator_hear_id_to_vertices = {}
         self.__operator_hear_operator_write_edges = []
         self.__operator_write_operator_hear_edges = []
         self.__intra_reconciler_edges = []
@@ -745,16 +786,28 @@ class CausalityGraph:
         return self.__reconcile_end_vertices
 
     @property
-    def operator_hear_key_to_operator_hear_vertices(
+    def operator_read_key_to_vertices(
         self,
     ) -> Dict[str, List[CausalityVertex]]:
-        return self.__operator_hear_key_to_operator_hear_vertices
+        return self.__operator_read_key_to_vertices
 
     @property
-    def operator_hear_id_to_operator_hear_vertices(
+    def operator_write_key_to_vertices(
+        self,
+    ) -> Dict[str, List[CausalityVertex]]:
+        return self.__operator_write_key_to_vertices
+
+    @property
+    def operator_hear_key_to_vertices(
+        self,
+    ) -> Dict[str, List[CausalityVertex]]:
+        return self.__operator_hear_key_to_vertices
+
+    @property
+    def operator_hear_id_to_vertices(
         self,
     ) -> Dict[int, List[CausalityVertex]]:
-        return self.__operator_hear_id_to_operator_hear_vertices
+        return self.__operator_hear_id_to_vertices
 
     @property
     def operator_hear_operator_write_edges(self) -> List[CausalityEdge]:
@@ -769,23 +822,21 @@ class CausalityGraph:
         return self.__intra_reconciler_edges
 
     def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
-        if operator_hear_id in self.operator_hear_id_to_operator_hear_vertices:
-            return self.operator_hear_id_to_operator_hear_vertices[operator_hear_id]
+        if operator_hear_id in self.operator_hear_id_to_vertices:
+            return self.operator_hear_id_to_vertices[operator_hear_id]
         else:
             return None
 
     def get_prev_operator_hear_with_key(
         self, key, cur_operator_hear_id
     ) -> Optional[CausalityVertex]:
-        for i in range(len(self.operator_hear_key_to_operator_hear_vertices[key])):
-            operator_hear_vertex = self.operator_hear_key_to_operator_hear_vertices[
-                key
-            ][i]
+        for i in range(len(self.operator_hear_key_to_vertices[key])):
+            operator_hear_vertex = self.operator_hear_key_to_vertices[key][i]
             if operator_hear_vertex.content.id == cur_operator_hear_id:
                 if i == 0:
                     return None
                 else:
-                    return self.operator_hear_key_to_operator_hear_vertices[key][i - 1]
+                    return self.operator_hear_key_to_vertices[key][i - 1]
 
     def sanity_check(self):
         # Be careful!!! The operator_hear_id and operator_write_id are only used to differentiate operator_hears/operator_writes
@@ -803,27 +854,38 @@ class CausalityGraph:
         )
         for i in range(len(self.operator_hear_vertices)):
             if i > 0:
-                # assert (
-                #     self.operator_hear_vertices[i].gid
-                #     == self.operator_hear_vertices[i - 1].gid + 1
-                # )
                 assert (
                     self.operator_hear_vertices[i].content.start_timestamp
                     > self.operator_hear_vertices[i - 1].content.start_timestamp
                 )
             assert self.operator_hear_vertices[i].is_operator_hear
+            assert self.operator_hear_vertices[i].content.start_timestamp != -1
+            assert self.operator_hear_vertices[i].content.end_timestamp != -1
+            assert (
+                self.operator_hear_vertices[i].content.start_timestamp
+                < self.operator_hear_vertices[i].content.end_timestamp
+            )
             for edge in self.operator_hear_vertices[i].out_inter_reconciler_edges:
                 assert self.operator_hear_vertices[i].gid == edge.source.gid
         for i in range(len(self.operator_write_vertices)):
             if i > 0:
-                # assert (
-                #     self.operator_write_vertices[i].gid
-                #     == self.operator_write_vertices[i - 1].gid + 1
-                # )
                 assert (
                     self.operator_write_vertices[i].content.start_timestamp
                     > self.operator_write_vertices[i - 1].content.start_timestamp
                 )
+            assert self.operator_write_vertices[i].content.range_end_timestamp != -1
+            assert (
+                self.operator_write_vertices[i].content.range_start_timestamp
+                < self.operator_write_vertices[i].content.range_end_timestamp
+            )
+            assert (
+                self.operator_write_vertices[i].content.start_timestamp
+                < self.operator_write_vertices[i].content.end_timestamp
+            )
+            assert (
+                self.operator_write_vertices[i].content.end_timestamp
+                == self.operator_write_vertices[i].content.range_end_timestamp
+            )
             assert self.operator_write_vertices[i].is_operator_write
             for edge in self.operator_write_vertices[i].out_inter_reconciler_edges:
                 assert self.operator_write_vertices[i].gid == edge.source.gid
@@ -850,28 +912,20 @@ class CausalityGraph:
             self.operator_hear_vertices.append(operator_hear_vertex)
             if (
                 operator_hear_vertex.content.key
-                not in self.operator_hear_key_to_operator_hear_vertices
+                not in self.operator_hear_key_to_vertices
             ):
-                self.operator_hear_key_to_operator_hear_vertices[
+                self.operator_hear_key_to_vertices[
                     operator_hear_vertex.content.key
                 ] = []
-            self.operator_hear_key_to_operator_hear_vertices[
-                operator_hear_vertex.content.key
-            ].append(operator_hear_vertex)
-            assert (
-                operator_hear_vertex.content.id
-                not in self.operator_hear_id_to_operator_hear_vertices
+            self.operator_hear_key_to_vertices[operator_hear_vertex.content.key].append(
+                operator_hear_vertex
             )
-            self.operator_hear_id_to_operator_hear_vertices[
+            assert (
+                operator_hear_vertex.content.id not in self.operator_hear_id_to_vertices
+            )
+            self.operator_hear_id_to_vertices[
                 operator_hear_vertex.content.id
             ] = operator_hear_vertex
-
-    # def add_sorted_operator_writes(self, operator_write_list: List[OperatorWrite]):
-    #     for i in range(len(operator_write_list)):
-    #         operator_write = operator_write_list[i]
-    #         operator_write_vertex = CausalityVertex(self.__vertex_cnt, operator_write)
-    #         self.__vertex_cnt += 1
-    #         self.operator_write_vertices.append(operator_write_vertex)
 
     def add_sorted_reconciler_events(
         self,
@@ -885,8 +939,16 @@ class CausalityGraph:
             self.__vertex_cnt += 1
             if event_vertex.is_operator_write():
                 self.operator_write_vertices.append(event_vertex)
+                key = event_vertex.content.key
+                if key not in self.operator_write_key_to_vertices:
+                    self.operator_write_key_to_vertices[key] = []
+                self.operator_write_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_operator_read():
                 self.operator_read_vertices.append(event_vertex)
+                for key in event_vertex.content.key_set:
+                    if key not in self.operator_read_key_to_vertices:
+                        self.operator_read_key_to_vertices[key] = []
+                    self.operator_read_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_reconcile_begin():
                 self.reconcile_begin_vertices.append(event_vertex)
             elif event_vertex.is_reconcile_end():
@@ -934,6 +996,101 @@ class CausalityGraph:
         )
         operator_write_vertex.add_out_inter_reconciler_edge(edge)
         self.operator_write_operator_hear_edges.append(edge)
+
+    def compute_event_diff(self):
+        for key in self.operator_hear_key_to_vertices:
+            vertices = self.operator_hear_key_to_vertices[key]
+            event_signature_to_counter = {}
+            for i in range(len(vertices)):
+                if i == 0:
+                    continue
+                prev_operator_hear = vertices[i - 1].content
+                cur_operator_hear = vertices[i].content
+                slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                    prev_operator_hear.obj_map, cur_operator_hear.obj_map
+                )
+                cur_operator_hear.slim_prev_obj_map = slim_prev_object
+                cur_operator_hear.slim_cur_obj_map = slim_cur_object
+                cur_operator_hear.prev_etype = prev_operator_hear.etype
+                event_signature = get_event_signature(cur_operator_hear)
+                if event_signature not in event_signature_to_counter:
+                    event_signature_to_counter[event_signature] = 0
+                event_signature_to_counter[event_signature] += 1
+                cur_operator_hear.signature_counter = event_signature_to_counter[
+                    event_signature
+                ]
+
+        for key in self.operator_write_key_to_vertices:
+            vertices = self.operator_write_key_to_vertices[key]
+            event_signature_to_counter = {}
+            for operator_write_vertex in vertices:
+                operator_write = operator_write_vertex.content
+                key = operator_write.key
+                if key not in self.operator_read_key_to_vertices:
+                    # We just treat read as {} and directly check for write
+                    slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                        {}, operator_write.obj_map, True
+                    )
+                    operator_write.slim_prev_obj_map = slim_prev_object
+                    operator_write.slim_cur_obj_map = slim_cur_object
+                    continue
+                for i in range(len(self.operator_read_key_to_vertices[key])):
+                    operator_read = self.operator_read_key_to_vertices[key][i].content
+                    # if the first read happens after write, break
+                    if (
+                        i == 0
+                        and operator_read.end_timestamp > operator_write.start_timestamp
+                    ):
+                        break
+                    # if this is not the latest read before the write, continue
+                    if i != len(self.operator_read_key_to_vertices[key]) - 1:
+                        next_operator_read = self.operator_read_key_to_vertices[key][
+                            i + 1
+                        ].content
+                        if (
+                            next_operator_read.end_timestamp
+                            < operator_write.start_timestamp
+                        ):
+                            continue
+
+                    assert operator_write.key in operator_read.key_set
+                    assert operator_read.end_timestamp < operator_write.start_timestamp
+
+                    slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                        operator_read.key_to_obj[key], operator_write.obj_map, True
+                    )
+                    operator_write.slim_prev_obj_map = slim_prev_object
+                    operator_write.slim_cur_obj_map = slim_cur_object
+                    operator_write.prev_etype = operator_read.etype
+                    event_signature = get_event_signature(operator_write)
+                    if event_signature not in event_signature_to_counter:
+                        event_signature_to_counter[event_signature] = 0
+                    event_signature_to_counter[event_signature] += 1
+                    operator_write.signature_counter = event_signature_to_counter[
+                        event_signature
+                    ]
+                    break
+
+    def compute_event_cancel(self):
+        for key in self.operator_hear_key_to_vertices:
+            for i in range(len(self.operator_hear_key_to_vertices[key]) - 1):
+                cancelled_by = set()
+                cur_operator_hear = self.operator_hear_key_to_vertices[key][i].content
+                for j in range(i + 1, len(self.operator_hear_key_to_vertices[key])):
+                    future_operator_hear = self.operator_hear_key_to_vertices[key][
+                        j
+                    ].content
+                    # TODO: why do we always add the future_operator_hear when i == 0?
+                    if i == 0:
+                        cancelled_by.add(future_operator_hear.id)
+                        continue
+                    if conflicting_event(cur_operator_hear, future_operator_hear):
+                        cancelled_by.add(future_operator_hear.id)
+                cur_operator_hear.cancelled_by = cancelled_by
+
+    def finalize(self):
+        self.compute_event_diff()
+        self.compute_event_cancel()
 
 
 def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex):

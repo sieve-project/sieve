@@ -1,4 +1,5 @@
 from analyze_util import *
+from analyze_event import *
 import json
 from typing import List
 import os
@@ -84,7 +85,7 @@ def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
 
 def delete_then_recreate_filtering_pass(
     causality_edges: List[CausalityEdge],
-    operator_hear_key_to_operator_hear_vertices: Dict[str, List[CausalityVertex]],
+    operator_hear_key_to_vertices: Dict[str, List[CausalityVertex]],
 ):
     print("Running optional pass: delete-then-recreate-filtering...")
     # this should only be applied to time travel mode
@@ -94,8 +95,8 @@ def delete_then_recreate_filtering_pass(
         # time travel only cares about delete for now
         assert operator_write.etype == OperatorWriteTypes.DELETE
         keep_this_pair = False
-        if operator_write.key in operator_hear_key_to_operator_hear_vertices:
-            for operator_hear_vertex in operator_hear_key_to_operator_hear_vertices[
+        if operator_write.key in operator_hear_key_to_vertices:
+            for operator_hear_vertex in operator_hear_key_to_vertices[
                 operator_write.key
             ]:
                 operator_hear = operator_hear_vertex.content
@@ -114,11 +115,20 @@ def delete_then_recreate_filtering_pass(
     return candidate_edges
 
 
-def decide_time_travel_timing(vertex: CausalityVertex):
-    assert vertex.is_operator_write()
-    assert vertex.content.etype == OperatorWriteTypes.DELETE
+def decide_time_travel_timing(
+    source_vertex: CausalityVertex, sink_vertex: CausalityVertex
+):
+    assert source_vertex.is_operator_hear()
+    assert sink_vertex.is_operator_write()
+    assert sink_vertex.content.etype == OperatorWriteTypes.DELETE
+    if source_vertex.content.slim_prev_obj_map is None:
+        return "after"
+    if not same_key(
+        source_vertex.content.slim_prev_obj_map, source_vertex.content.slim_cur_obj_map
+    ):
+        return "after"
     reconcile_cnt = 0
-    cur_vertex = vertex
+    cur_vertex = sink_vertex
     while True:
         if len(cur_vertex.out_intra_reconciler_edges) == 1:
             next_vertex = cur_vertex.out_intra_reconciler_edges[0].sink
@@ -129,7 +139,7 @@ def decide_time_travel_timing(vertex: CausalityVertex):
             elif next_vertex.is_operator_write():
                 if (
                     next_vertex.content.etype == OperatorWriteTypes.CREATE
-                    and next_vertex.content.key == vertex.content.key
+                    and next_vertex.content.key == sink_vertex.content.key
                 ):
                     if reconcile_cnt == 0:
                         print("decide timing: before")
@@ -138,7 +148,7 @@ def decide_time_travel_timing(vertex: CausalityVertex):
                         print("decide timing: both")
                         return "both"
             cur_vertex = next_vertex
-        elif len(vertex.out_intra_reconciler_edges) == 0:
+        elif len(sink_vertex.out_intra_reconciler_edges) == 0:
             return "after"
         else:
             assert False
@@ -162,7 +172,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         candidate_edges = delete_only_filtering_pass(causality_edges)
     if DELETE_THEN_RECREATE_FLAG:
         candidate_edges = delete_then_recreate_filtering_pass(
-            candidate_edges, causality_graph.operator_hear_key_to_operator_hear_vertices
+            candidate_edges, causality_graph.operator_hear_key_to_vertices
         )
 
     i = 0
@@ -181,7 +191,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         ):
             continue
 
-        timing = decide_time_travel_timing(edge.sink)
+        timing = decide_time_travel_timing(edge.source, edge.sink)
 
         time_travel_config = time_travel_template(project)
         time_travel_config["ce-name"] = operator_hear.name
@@ -199,6 +209,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         time_travel_config["ce-diff-current"] = json.dumps(
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
+        time_travel_config["ce-counter"] = str(operator_hear.signature_counter)
         time_travel_config["se-name"] = operator_write.name
         time_travel_config["se-namespace"] = operator_write.namespace
         time_travel_config["se-rtype"] = operator_write.rtype
@@ -286,6 +297,7 @@ def obs_gap_analysis(
         obs_gap_config["ce-diff-current"] = json.dumps(
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
+        obs_gap_config["ce-counter"] = str(operator_hear.signature_counter)
 
         i += 1
         file_name = os.path.join(path, "obs-gap-config-%s.yaml" % (str(i)))
@@ -351,6 +363,7 @@ def atom_vio_analysis(
         atom_vio_config["se-diff-current"] = json.dumps(
             operator_write.slim_cur_obj_map, sort_keys=True
         )
+        atom_vio_config["se-counter"] = str(operator_write.signature_counter)
 
         i += 1
         file_name = os.path.join(path, "atom-vio-config-%s.yaml" % (str(i)))

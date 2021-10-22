@@ -17,6 +17,7 @@ func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListen
 		ceEtype:       config["ce-etype-current"].(string),
 		diffCurEvent:  conformToAPIEvent(strToMap(config["ce-diff-current"].(string)), config["ce-rtype"].(string)),
 		diffPrevEvent: conformToAPIEvent(strToMap(config["ce-diff-previous"].(string)), config["ce-rtype"].(string)),
+		eventCounter:  strToInt(config["ce-counter"].(string)),
 		podLabel:      config["operator-pod-label"].(string),
 		frontRunner:   config["front-runner"].(string),
 		deployName:    config["deployment-name"].(string),
@@ -69,6 +70,7 @@ type timeTravelServer struct {
 	prevEvent     map[string]interface{}
 	curEvent      map[string]interface{}
 	sleeped       bool
+	eventCounter  int
 }
 
 func (s *timeTravelServer) Start() {
@@ -88,7 +90,7 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	log.Printf("[sieve][current-event] %s\n", request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
-	if findTargetDiff(request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, true) {
+	if findTargetDiff(s.eventCounter, request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, true) {
 		s.sleeped = true
 		startTimeTravelInjection()
 		log.Println("[sieve] should sleep here")

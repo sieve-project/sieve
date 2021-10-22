@@ -284,7 +284,7 @@ workloads = {
         .wait_for_pod_status(
             "cert-manager-webhook-*", common.RUNNING, namespace="cert-manager"
         )
-        .cmd("kubectl apply -f test-xtradb-operator/test/cr.yaml")
+        .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
         .wait(70),
     },

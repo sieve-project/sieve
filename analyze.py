@@ -1,4 +1,4 @@
-from analyze_event import conflicting_event, diff_event
+from analyze_event import diff_event
 from typing import List
 import copy
 import os
@@ -58,8 +58,6 @@ def sanity_check_sieve_log(path):
 def parse_receiver_events(path):
     # { operator_hear id -> operator_hear }
     operator_hear_id_map = {}
-    # { operator_hear key -> [operator_hears belonging to the key] }
-    operator_hear_key_map = {}
     # we need this map to later find the previous operator_hear for each crucial operator_hear
     operator_hear_list = []
     lines = open(path).readlines()
@@ -82,44 +80,12 @@ def parse_receiver_events(path):
         if SIEVE_BEFORE_HEAR_MARK in line:
             operator_hear = parse_operator_hear(line)
             operator_hear_list.append(operator_hear_id_map[operator_hear.id])
-            if operator_hear.key not in operator_hear_key_map:
-                operator_hear_key_map[operator_hear.key] = []
-            operator_hear_key_map[operator_hear.key].append(
-                operator_hear_id_map[operator_hear.id]
-            )
-    for key in operator_hear_key_map:
-        for i in range(len(operator_hear_key_map[key])):
-            if i == 0:
-                continue
-            prev_operator_hear = operator_hear_key_map[key][i - 1]
-            cur_operator_hear = operator_hear_key_map[key][i]
-            slim_prev_object, slim_cur_object = diff_event(
-                prev_operator_hear.obj_map, cur_operator_hear.obj_map
-            )
-            cur_operator_hear.slim_prev_obj_map = slim_prev_object
-            cur_operator_hear.slim_cur_obj_map = slim_cur_object
-            cur_operator_hear.prev_etype = prev_operator_hear.etype
-    for key in operator_hear_key_map:
-        for i in range(len(operator_hear_key_map[key]) - 1):
-            cancelled_by = set()
-            cur_operator_hear = operator_hear_key_map[key][i]
-            for j in range(i + 1, len(operator_hear_key_map[key])):
-                following_operator_hear = operator_hear_key_map[key][j]
-                if i == 0:
-                    cancelled_by.add(following_operator_hear.id)
-                    continue
-                if conflicting_event(cur_operator_hear, following_operator_hear):
-                    cancelled_by.add(following_operator_hear.id)
-            cur_operator_hear.cancelled_by = cancelled_by
     return operator_hear_list
 
 
 def parse_reconciler_events(path):
     operator_write_id_map = {}
-    operator_write_list = []
     operator_write_id_to_start_ts_map = {}
-    operator_read_list = []
-    operator_read_key_map = {}
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
     prev_reconcile_start_timestamp = {}
@@ -171,11 +137,6 @@ def parse_reconciler_events(path):
             operator_read = parse_operator_read(line)
             operator_read.end_timestamp = i
             ts_to_event_map[operator_read.end_timestamp] = operator_read
-            operator_read_list.append(operator_read)
-            for key in operator_read.key_set:
-                if key not in operator_read_key_map:
-                    operator_read_key_map[key] = []
-                operator_read_key_map[key].append(operator_read)
             if operator_read.etype == "Get":
                 read_keys_this_reconcile.update(operator_read.key_set)
             else:
@@ -222,47 +183,6 @@ def parse_reconciler_events(path):
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()
                 read_types_this_reconcile = set()
-    for i in range(len(lines)):
-        line = lines[i]
-        if SIEVE_BEFORE_WRITE_MARK in line:
-            operator_write_id = parse_operator_write_id_only(line)
-            if operator_write_id.id in operator_write_id_map:
-                operator_write_list.append(operator_write_id_map[operator_write_id.id])
-    for operator_write in operator_write_list:
-        key = operator_write.key
-        if key not in operator_read_key_map:
-            # We just treat read as {} and directly check for write
-            slim_prev_object, slim_cur_object = diff_event(
-                {}, operator_write.obj_map, True
-            )
-            operator_write.slim_prev_obj_map = slim_prev_object
-            operator_write.slim_cur_obj_map = slim_cur_object
-            continue
-        for i in range(len(operator_read_key_map[key])):
-            if (
-                i == 0
-                and operator_read_key_map[key][i].end_timestamp
-                > operator_write.start_timestamp
-            ):
-                break
-            if (
-                i != len(operator_read_key_map[key]) - 1
-                and operator_read_key_map[key][i + 1].end_timestamp
-                < operator_write.start_timestamp
-            ):
-                continue
-
-            operator_read = operator_read_key_map[key][i]
-            assert operator_write.key in operator_read.key_set
-            assert operator_read.end_timestamp < operator_write.start_timestamp
-
-            slim_prev_object, slim_cur_object = diff_event(
-                operator_read.key_to_obj[key], operator_write.obj_map, True
-            )
-            operator_write.slim_prev_obj_map = slim_prev_object
-            operator_write.slim_cur_obj_map = slim_cur_object
-            operator_write.prev_etype = operator_read.etype
-            break
     reconciler_event_list = [event for ts, event in sorted(ts_to_event_map.items())]
     return reconciler_event_list
 
@@ -276,9 +196,15 @@ def base_pass(
     for operator_write_vertex in operator_write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
             # operator_hears can lead to that operator_write
-            if range_overlap(
-                operator_write_vertex.content, operator_hear_vertex.content
-            ):
+            hear_within_reconcile_scope = (
+                operator_write_vertex.content.range_start_timestamp
+                < operator_hear_vertex.content.end_timestamp
+            )
+            write_after_hear = (
+                operator_write_vertex.content.start_timestamp
+                > operator_hear_vertex.content.start_timestamp
+            )
+            if hear_within_reconcile_scope and write_after_hear:
                 vertex_pairs.append([operator_hear_vertex, operator_write_vertex])
     return vertex_pairs
 
@@ -289,9 +215,14 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     for pair in vertex_pairs:
         operator_hear_vertex = pair[0]
         operator_write_vertex = pair[1]
-        if interest_overlap(
-            operator_write_vertex.content, operator_hear_vertex.content
-        ):
+        key_match = (
+            operator_hear_vertex.content.key in operator_write_vertex.content.read_keys
+        )
+        type_match = (
+            operator_hear_vertex.content.rtype
+            in operator_write_vertex.content.read_types
+        )
+        if key_match or type_match:
             pruned_vertex_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
@@ -323,7 +254,7 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
     vertex_pairs = []
     operator_hear_vertices = causality_graph.operator_hear_vertices
     operator_write_vertices = causality_graph.operator_write_vertices
-    operator_hear_key_map = causality_graph.operator_hear_key_to_operator_hear_vertices
+    operator_hear_key_map = causality_graph.operator_hear_key_to_vertices
     for operator_write_vertex in operator_write_vertices:
         if operator_write_vertex.content.key in operator_hear_key_map:
             for operator_hear_vertex in operator_hear_vertices:
@@ -359,6 +290,7 @@ def build_causality_graph(log_path):
     for pair in write_hear_pairs:
         causality_graph.connect_write_to_hear(pair[0], pair[1])
 
+    causality_graph.finalize()
     causality_graph.sanity_check()
 
     return causality_graph
@@ -419,8 +351,8 @@ def analyze(project, test):
         project,
         log_dir,
         data_dir,
-        generate_oracle=True,
-        generate_config=False,
+        generate_oracle=False,
+        generate_config=True,
     )
 
 
