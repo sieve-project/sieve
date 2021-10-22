@@ -210,6 +210,9 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
         time_travel_config["ce-counter"] = str(operator_hear.signature_counter)
+        time_travel_config["ce-is-cr"] = str(
+            operator_hear.rtype in controllers.CRDs[project]
+        )
         time_travel_config["se-name"] = operator_write.name
         time_travel_config["se-namespace"] = operator_write.namespace
         time_travel_config["se-rtype"] = operator_write.rtype
