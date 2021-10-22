@@ -120,11 +120,15 @@ workloads = {
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", common.RUNNING, 150
         )
-        .cmd("kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{\"spec\":{\"size\": 1}}\'")
+        .cmd(
+            'kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{"spec":{"size": 1}}\''
+        )
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", common.TERMINATED, 150
         )
-        .cmd("kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{\"spec\":{\"size\": 2}}\'")
+        .cmd(
+            'kubectl patch CassandraDatacenter cassandra-datacenter --type merge -p=\'{"spec":{"size": 2}}\''
+        )
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", common.RUNNING, 150
         )
@@ -277,7 +281,7 @@ workloads = {
         .wait_for_pod_status(
             "cert-manager-webhook-*", common.RUNNING, namespace="cert-manager"
         )
-        .cmd("kubectl apply -f test-xtradb-operator/test/cr.yaml")
+        .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
         .wait(70),
     },
