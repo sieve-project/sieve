@@ -6,9 +6,13 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"sync"
 )
 
-var seenTargetDiff = false
+// var seenTargetDiff = false
+
+var seenTargetCounter = 0
+var findTargetDiffMutex = &sync.Mutex{}
 
 const TIME_REG string = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 
@@ -387,8 +391,10 @@ func isCreationOrDeletion(eventType string) bool {
 	return isAPICreationOrDeletion || isHearCreationOrDeletion || isWriteCreationOrDeletion
 }
 
-func findTargetDiff(onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
-	if seenTargetDiff {
+func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
+	findTargetDiffMutex.Lock()
+	defer findTargetDiffMutex.Unlock()
+	if seenTargetCounter >= eventCounter {
 		return false
 	}
 	log.Printf("online type: cur: %s\n", onlineCurEventType)
@@ -397,8 +403,8 @@ func findTargetDiff(onlineCurEventType, targetCurEventType string, onlinePrevEve
 	} else {
 		if isCreationOrDeletion(targetCurEventType) {
 			log.Println("Find the target diff")
-			seenTargetDiff = true
-			return true
+			seenTargetCounter += 1
+			return seenTargetCounter == eventCounter
 		}
 	}
 	onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent)
@@ -406,13 +412,13 @@ func findTargetDiff(onlineCurEventType, targetCurEventType string, onlinePrevEve
 	log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
 	if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
 		log.Println("Find the target diff")
-		seenTargetDiff = true
-		return true
+		seenTargetCounter += 1
+		return seenTargetCounter == eventCounter
 	} else if forgiving {
 		if partOfEventAsMap(targetDiffPrevEvent, onlineDiffPrevEvent) && partOfEventAsMap(targetDiffCurEvent, onlineDiffCurEvent) {
 			log.Println("Find the target diff by being forgiving")
-			seenTargetDiff = true
-			return true
+			seenTargetCounter += 1
+			return seenTargetCounter == eventCounter
 		}
 	}
 	return false
