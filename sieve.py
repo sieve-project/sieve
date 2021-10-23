@@ -17,6 +17,7 @@ import errno
 import socket
 from datetime import datetime
 from common import (
+    TestContext,
     cprint,
     bcolors,
     fail,
@@ -29,7 +30,7 @@ from common import (
 
 
 def save_run_result(
-    project, test, mode, stage, test_config, alarm, bug_report, starttime
+    project, test, mode, stage, test_config, alarm, bug_report, start_time
 ):
     if stage != sieve_stages.TEST or mode == sieve_modes.VANILLA:
         return
@@ -39,7 +40,7 @@ def save_run_result(
             test: {
                 mode: {
                     test_config: {
-                        "duration": time.time() - starttime,
+                        "duration": time.time() - start_time,
                         "alarm": alarm,
                         "bug_report": bug_report,
                         "test_config_content": open(test_config).read(),
@@ -191,35 +192,29 @@ def setup_kind_cluster(kind_config, docker_repo, docker_tag):
 
 
 def setup_cluster(
-    project,
-    stage,
-    mode,
-    test_config,
-    docker_repo,
-    docker_tag,
-    num_apiservers,
-    num_workers,
-    use_csi_driver,
+    test_context: TestContext,
 ):
     cmd_early_exit("kind delete cluster")
     setup_kind_cluster(
-        generate_kind_config(num_apiservers, num_workers), docker_repo, docker_tag
+        generate_kind_config(test_context.num_apiservers, test_context.num_workers),
+        test_context.docker_repo,
+        test_context.docker_tag,
     )
     print("\n\n")
 
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
     # cmd_early_exit("kubectl config set-context --current --namespace=%s" %
     #           sieve_config["namespace"])
-    prepare_sieve_server(test_config)
+    prepare_sieve_server(test_context.test_config)
 
     # when testing time-travel, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
-    if mode == sieve_modes.TIME_TRAVEL:
-        redirect_workers(num_workers)
+    if test_context.mode == sieve_modes.TIME_TRAVEL:
+        redirect_workers(test_context.num_workers)
         redirect_kubectl()
 
-    configmap = generate_configmap(test_config)
+    configmap = generate_configmap(test_context.test_config)
     cmd_early_exit("kubectl apply -f %s" % configmap)
 
     kubernetes.config.load_kube_config()
@@ -228,7 +223,7 @@ def setup_cluster(
     # Then we wait apiservers to be ready
     print("Waiting for apiservers to be ready...")
     apiserver_list = []
-    for i in range(num_apiservers):
+    for i in range(test_context.num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + (
             "" if i == 0 else str(i + 1)
         )
@@ -246,11 +241,16 @@ def setup_cluster(
 
     for apiserver in apiserver_list:
         cmd_early_exit(
-            "kubectl cp %s %s:/sieve.yaml -n kube-system" % (test_config, apiserver)
+            "kubectl cp %s %s:/sieve.yaml -n kube-system"
+            % (test_context.test_config, apiserver)
         )
 
     # Preload operator image to kind nodes
-    image = "%s/%s:%s" % (docker_repo, project, docker_tag)
+    image = "%s/%s:%s" % (
+        test_context.docker_repo,
+        test_context.project,
+        test_context.docker_tag,
+    )
     kind_load_cmd = "kind load docker-image %s" % (image)
     print("Loading image %s to kind nodes..." % (image))
     if cmd_early_exit(kind_load_cmd, early_exit=False) != 0:
@@ -259,7 +259,7 @@ def setup_cluster(
         cmd_early_exit(kind_load_cmd)
 
     # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
-    if mode != sieve_modes.TIME_TRAVEL and use_csi_driver:
+    if test_context.mode != sieve_modes.TIME_TRAVEL and test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd csi-driver && ./install.sh")
 
@@ -301,22 +301,28 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
 
 
 def run_workload(
-    project,
-    mode,
-    test_workload,
-    test_config,
-    log_dir,
-    docker_repo,
-    docker_tag,
-    num_apiservers,
+    test_context: TestContext,
+    # project,
+    # mode,
+    # test_workload,
+    # test_config,
+    # log_dir,
+    # docker_repo,
+    # docker_tag,
+    # num_apiservers,
 ) -> Tuple[int, str]:
-    if mode != sieve_modes.VANILLA:
+    if test_context.mode != sieve_modes.VANILLA:
         cprint("Setting up Sieve server...", bcolors.OKGREEN)
         start_sieve_server()
         ok("Sieve server set up")
 
     cprint("Deploying operator...", bcolors.OKGREEN)
-    start_operator(project, docker_repo, docker_tag, num_apiservers)
+    start_operator(
+        test_context.project,
+        test_context.docker_repo,
+        test_context.docker_tag,
+        test_context.num_apiservers,
+    )
     ok("Operator deployed")
 
     kubernetes.config.load_kube_config()
@@ -325,7 +331,7 @@ def run_workload(
         .list_namespaced_pod(
             sieve_config.config["namespace"],
             watch=False,
-            label_selector="sievetag=" + project,
+            label_selector="sievetag=" + test_context.project,
         )
         .items[0]
         .metadata.name
@@ -340,20 +346,22 @@ def run_workload(
     )
 
     cprint("Running test workload...", bcolors.OKGREEN)
-    test_workload.run(mode, os.path.join(log_dir, "workload.log"))
+    test_context.test_workload.run(
+        test_context.mode, os.path.join(log_dir, "workload.log")
+    )
 
     pod_name = (
         kubernetes.client.CoreV1Api()
         .list_namespaced_pod(
             sieve_config.config["namespace"],
             watch=False,
-            label_selector="sievetag=" + project,
+            label_selector="sievetag=" + test_context.project,
         )
         .items[0]
         .metadata.name
     )
 
-    for i in range(num_apiservers):
+    for i in range(test_context.num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + (
             "" if i == 0 else str(i + 1)
         )
@@ -363,7 +371,7 @@ def run_workload(
             % (apiserver_name, log_dir, apiserver_log)
         )
 
-    if mode != sieve_modes.VANILLA:
+    if test_context.mode != sieve_modes.VANILLA:
         cmd_early_exit(
             "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log"
             % (log_dir)
@@ -372,33 +380,33 @@ def run_workload(
     cmd_early_exit("kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
-    if mode != sieve_modes.VANILLA:
+    if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
 
 def check_result(
-    project, mode, stage, test_config, log_dir, data_dir, oracle_config
+    test_context: TestContext,
 ) -> Tuple[int, str]:
-    if stage == sieve_stages.LEARN:
+    if test_context.stage == sieve_stages.LEARN:
         analyze.analyze_trace(
-            project,
-            log_dir,
-            data_dir,
-            canonicalize_resource=(mode == sieve_modes.LEARN_TWICE),
+            test_context.project,
+            test_context.log_dir,
+            test_context.data_dir,
+            canonicalize_resource=(test_context.mode == sieve_modes.LEARN_TWICE),
         )
     else:
-        if mode != sieve_modes.VANILLA:
-            if os.path.exists(test_config):
+        if test_context.mode != sieve_modes.VANILLA:
+            if os.path.exists(test_context.test_config):
                 open(os.path.join(log_dir, "config.yaml"), "w").write(
-                    open(test_config).read()
+                    open(test_context.test_config).read()
                 )
-            oracle.generate_test_oracle(project, log_dir, log_dir)
+            oracle.generate_test_oracle(test_context.project, log_dir, log_dir)
             alarm, bug_report = oracle.check(
-                test_config,
+                test_context.test_config,
                 log_dir,
-                data_dir,
-                controllers.skip_list[project]
-                if project in controllers.skip_list
+                test_context.data_dir,
+                controllers.skip_list[test_context.project]
+                if test_context.project in controllers.skip_list
                 else {},
             )
             open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
@@ -407,56 +415,26 @@ def check_result(
 
 
 def run_test(
-    project,
-    mode,
-    stage,
-    test_workload,
-    test_config,
-    log_dir,
-    docker_repo,
-    docker_tag,
-    num_apiservers,
-    num_workers,
-    use_csi_driver,
-    oracle_config,
-    data_dir,
-    phase,
+    test_context: TestContext,
 ) -> Tuple[int, str]:
-    if phase == "all" or phase == "setup_only":
-        setup_cluster(
-            project,
-            stage,
-            mode,
-            test_config,
-            docker_repo,
-            docker_tag,
-            num_apiservers,
-            num_workers,
-            use_csi_driver,
-        )
-    if phase == "all" or phase == "workload_only" or phase == "workload_and_check":
-        run_workload(
-            project,
-            mode,
-            test_workload,
-            test_config,
-            log_dir,
-            docker_repo,
-            docker_tag,
-            num_apiservers,
-        )
-    if phase == "all" or phase == "check_only" or phase == "workload_and_check":
-        alarm, bug_report = check_result(
-            project,
-            mode,
-            stage,
-            test_config,
-            log_dir,
-            data_dir,
-            oracle_config,
-        )
+    if test_context.phase == "all" or test_context.phase == "setup_only":
+        setup_cluster(test_context)
+    if (
+        test_context.phase == "all"
+        or test_context.phase == "workload_only"
+        or test_context.phase == "workload_and_check"
+    ):
+        run_workload(test_context)
+    if (
+        test_context.phase == "all"
+        or test_context.phase == "check_only"
+        or test_context.phase == "workload_and_check"
+    ):
+        alarm, bug_report = check_result(test_context)
         if alarm != 0:
-            oracle.print_error_and_debugging_info(alarm, bug_report, test_config)
+            oracle.print_error_and_debugging_info(
+                alarm, bug_report, test_context.test_config
+            )
         return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
 
@@ -504,41 +482,43 @@ def run(
         generate_learn_config(
             learn_config, project, sieve_stages.LEARN, rate_limiter_enabled
         )
-        return run_test(
+        test_context = TestContext(
             project,
-            mode,
             stage,
+            mode,
+            phase,
             suite.workload,
             learn_config,
             log_dir,
+            data_dir,
             docker,
             stage,
             suite.num_apiservers,
             suite.num_workers,
             suite.use_csi_driver,
             suite.oracle_config,
-            data_dir,
-            phase,
         )
+        return run_test(test_context)
     else:
         if mode == sieve_modes.VANILLA:
             blank_config = "config/none.yaml"
-            return run_test(
+            test_context = TestContext(
                 project,
-                mode,
                 stage,
+                mode,
+                phase,
                 suite.workload,
                 blank_config,
                 log_dir,
+                data_dir,
                 docker,
                 mode,
                 suite.num_apiservers,
                 suite.num_workers,
                 suite.use_csi_driver,
                 suite.oracle_config,
-                data_dir,
-                phase,
             )
+            return run_test(test_context)
         else:
             test_config = config
             print("Testing with config: %s" % test_config)
@@ -549,23 +529,23 @@ def run(
             elif suite.use_csi_driver:
                 suite.num_apiservers = 1
                 suite.num_workers = 0
-
-            return run_test(
+            test_context = TestContext(
                 project,
-                mode,
                 stage,
+                mode,
+                phase,
                 suite.workload,
                 test_config_to_use,
                 log_dir,
+                data_dir,
                 docker,
                 mode,
                 suite.num_apiservers,
                 suite.num_workers,
                 suite.use_csi_driver,
                 suite.oracle_config,
-                data_dir,
-                phase,
             )
+            return run_test(test_context)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -577,87 +557,34 @@ def run_batch(project, test, dir, mode, stage, docker):
     configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
     print("Configs to test:")
     print("\n".join(configs))
-    batch_test_result_tsv = open(
-        "sieve_%s_%s_%s.tsv" % (project, test, mode),
-        "w",
-    )
-    result_map = {}
     for config in configs:
-        s = time.time()
+        start_time = time.time()
         num = os.path.basename(config).split(".")[0]
         log_dir = os.path.join(dir, project, test, stage, mode + "-batch", num)
-        try:
-            if mode == sieve_modes.LEARN_TWICE:
-                # Run learn-once first
-                run(
-                    controllers.test_suites,
-                    project,
-                    test,
-                    os.path.join(
-                        dir,
-                        project,
-                        test,
-                        stage,
-                        sieve_modes.LEARN_ONCE + "-batch",
-                        num,
-                    ),
-                    sieve_modes.LEARN_ONCE,
-                    stage,
-                    config,
-                    docker,
-                )
-
-            alarm, bug_report = run(
-                controllers.test_suites,
-                project,
-                test,
-                log_dir,
-                mode,
-                stage,
-                config,
-                docker,
-            )
-            duration = time.time() - s
-            if alarm != 0:
-                cprint("Bug happens when running %s" % config, bcolors.FAIL)
-            result_map[config] = {
-                "duration": duration,
-                "alarm": alarm,
-                "bug_report": bug_report,
-            }
-            batch_test_result_tsv.write(
-                "%s\t%f\t%d\t%s\n"
-                % (config, duration, alarm, bug_report.replace("\n", "[EOL]"))
-            )
-            batch_test_result_tsv.flush()
-        except Exception as err:
-            duration = time.time() - s
-            print("Error occurs when running %s: %s" % (config, repr(err)))
-            result_map[config] = {
-                "duration": duration,
-                "alarm": -1,
-                "bug_report": repr(err),
-            }
-            batch_test_result_tsv.write(
-                "%s\t%f\t%d\t%s\n"
-                % (config, duration, -1, repr(err).replace("\n", "[EOL]"))
-            )
-            batch_test_result_tsv.flush()
-    batch_test_result_tsv.close()
-    batch_test_result_json = open(
-        "sieve_%s_%s_%s.json" % (project, test, mode),
-        "w",
-    )
-    json.dump(
-        result_map,
-        batch_test_result_json,
-        indent=4,
-    )
-    batch_test_result_json.close()
+        alarm, report = run(
+            controllers.test_suites,
+            project,
+            test,
+            log_dir,
+            mode,
+            stage,
+            config,
+            docker,
+        )
+        save_run_result(
+            options.project,
+            options.test,
+            options.mode,
+            options.stage,
+            options.config,
+            alarm,
+            report,
+            start_time,
+        )
 
 
 if __name__ == "__main__":
-    s = time.time()
+    start_time = time.time()
     usage = "usage: python3 sieve.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
@@ -843,6 +770,6 @@ if __name__ == "__main__":
             options.config,
             alarm,
             report,
-            s,
+            start_time,
         )
-    print("Total time: {} seconds".format(time.time() - s))
+    print("Total time: {} seconds".format(time.time() - start_time))
