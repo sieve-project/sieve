@@ -316,7 +316,7 @@ def run_workload(
         .metadata.name
     )
     streamed_log_file = open(
-        os.path.join(test_context.log_dir, "streamed-operator.log"), "w+"
+        os.path.join(test_context.result_dir, "streamed-operator.log"), "w+"
     )
     streaming = subprocess.Popen(
         "kubectl logs %s -f" % pod_name,
@@ -328,7 +328,7 @@ def run_workload(
 
     cprint("Running test workload...", bcolors.OKGREEN)
     test_context.test_workload.run(
-        test_context.mode, os.path.join(test_context.log_dir, "workload.log")
+        test_context.mode, os.path.join(test_context.result_dir, "workload.log")
     )
 
     pod_name = (
@@ -349,17 +349,17 @@ def run_workload(
         apiserver_log = "apiserver%s.log" % (str(i + 1))
         cmd_early_exit(
             "kubectl logs %s -n kube-system > %s/%s"
-            % (apiserver_name, test_context.log_dir, apiserver_log)
+            % (apiserver_name, test_context.result_dir, apiserver_log)
         )
 
     if test_context.mode != sieve_modes.VANILLA:
         cmd_early_exit(
             "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log"
-            % (test_context.log_dir)
+            % (test_context.result_dir)
         )
 
     cmd_early_exit(
-        "kubectl logs %s > %s/operator.log" % (pod_name, test_context.log_dir)
+        "kubectl logs %s > %s/operator.log" % (pod_name, test_context.result_dir)
     )
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
@@ -373,28 +373,25 @@ def check_result(
     if test_context.stage == sieve_stages.LEARN:
         analyze.analyze_trace(
             test_context.project,
-            test_context.log_dir,
+            test_context.result_dir,
             test_context.data_dir,
             canonicalize_resource=(test_context.mode == sieve_modes.LEARN_TWICE),
         )
     else:
         if test_context.mode != sieve_modes.VANILLA:
-            # if os.path.exists(test_context.test_config):
-            #     open(os.path.join(log_dir, "config.yaml"), "w").write(
-            #         open(test_context.test_config).read()
-            #     )
             oracle.generate_test_oracle(
-                test_context.project, test_context.log_dir, test_context.log_dir
+                test_context.project, test_context.result_dir, test_context.result_dir
             )
             alarm, bug_report = oracle.check(
-                test_context.test_config,
-                test_context.log_dir,
-                test_context.data_dir,
-                controllers.skip_list[test_context.project]
-                if test_context.project in controllers.skip_list
+                test_context,
+                controllers.event_mask[test_context.project]
+                if test_context.project in controllers.event_mask
+                else {},
+                controllers.state_mask[test_context.project]
+                if test_context.project in controllers.state_mask
                 else {},
             )
-            open(os.path.join(test_context.log_dir, "bug-report.txt"), "w").write(
+            open(os.path.join(test_context.result_dir, "bug-report.txt"), "w").write(
                 bug_report
             )
             return alarm, bug_report
@@ -464,15 +461,15 @@ def run(
     suite = controllers.test_suites[project][test]
     data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
     cmd_early_exit("mkdir -p %s" % data_dir)
-    log_dir = os.path.join(
+    result_dir = os.path.join(
         log_dir, project, test, stage, mode, os.path.basename(config)
     )
-    print("Log dir: %s" % log_dir)
+    print("Log dir: %s" % result_dir)
     if phase == "all" or phase == "setup_only":
-        cmd_early_exit("rm -rf %s" % log_dir)
-        cmd_early_exit("mkdir -p %s" % log_dir)
+        cmd_early_exit("rm -rf %s" % result_dir)
+        cmd_early_exit("mkdir -p %s" % result_dir)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
-    config_to_use = os.path.join(log_dir, os.path.basename(config))
+    config_to_use = os.path.join(result_dir, os.path.basename(config))
     if stage == sieve_stages.LEARN:
         print("Learning stage with config: %s" % config_to_use)
         generate_learn_config(
@@ -496,7 +493,7 @@ def run(
         phase,
         suite.workload,
         config_to_use,
-        log_dir,
+        result_dir,
         data_dir,
         docker_repo,
         docker_tag,

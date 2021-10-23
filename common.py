@@ -130,7 +130,7 @@ class TestContext:
         phase,
         test_workload,
         test_config,
-        log_dir,
+        result_dir,
         data_dir,
         docker_repo,
         docker_tag,
@@ -145,7 +145,7 @@ class TestContext:
         self.phase = phase
         self.test_workload = test_workload
         self.test_config = test_config
-        self.log_dir = log_dir
+        self.result_dir = result_dir
         self.data_dir = data_dir
         self.docker_repo = docker_repo
         self.docker_tag = docker_tag
