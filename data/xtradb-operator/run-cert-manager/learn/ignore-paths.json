@@ -1,50 +1,313 @@
 {
-    "certificate": {},
-    "certificaterequest": {},
+    "certificate": {
+        "xtradb-cluster-ssl": [
+            "status/conditions",
+            "status/notAfter",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/resourceVersion",
+            "metadata/generation"
+        ],
+        "xtradb-cluster-ssl-internal": [
+            "status/conditions",
+            "status/notAfter",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/resourceVersion",
+            "metadata/generation"
+        ]
+    },
+    "certificaterequest": {
+        "xtradb-cluster-ssl-1468655933": [
+            "status/conditions",
+            "spec/csr",
+            "status/certificate",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/resourceVersion",
+            "status/ca",
+            "metadata/generation",
+            "metadata/annotations"
+        ],
+        "xtradb-cluster-ssl-internal-4197621709": [
+            "status/conditions",
+            "spec/csr",
+            "status/certificate",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/resourceVersion",
+            "status/ca",
+            "metadata/generation",
+            "metadata/annotations"
+        ]
+    },
     "challenge": {},
     "clusterissuer": {},
     "deployment": {
         "percona-xtradb-cluster-operator": [
-            "metadata/creationTimestamp",
-            "metadata/resourceVersion",
             "spec/template/spec/containers/0/image",
             "status/conditions",
-            "status/observedGeneration",
-            "metadata/annotations",
-            "metadata/generation",
-            "metadata/uid",
             "metadata/managedFields",
-            "spec/template/spec/containers/0/env"
+            "spec/template/spec/containers/0/env",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/resourceVersion",
+            "status/observedGeneration",
+            "metadata/generation",
+            "metadata/annotations"
         ]
     },
-    "issuer": {},
+    "issuer": {
+        "xtradb-cluster-pxc-ca": [
+            "status/conditions",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/resourceVersion",
+            "metadata/generation"
+        ]
+    },
     "order": {},
     "perconaxtradbbackup": {},
-    "perconaxtradbcluster": {},
-    "perconaxtradbclusterbackup": {},
-    "perconaxtradbclusterrestore": {},
-    "persistentvolumeclaim": {},
-    "pod": {},
-    "secret": {},
-    "service": {
-        "kubernetes": [
+    "perconaxtradbcluster": {
+        "xtradb-cluster": [
+            "status/conditions",
+            "spec/pmm/image",
+            "status/pxc/image",
+            "spec/pxc/image",
+            "spec/logcollector/image",
+            "spec/haproxy/image",
+            "metadata/uid",
             "metadata/creationTimestamp",
             "metadata/resourceVersion",
-            "metadata/labels",
-            "metadata/uid",
-            "metadata/managedFields",
-            "spec/clusterIP"
-        ],
-        "percona-xtradb-cluster-operator": [
-            "metadata/creationTimestamp",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "spec/selector/pod-template-hash",
-            "metadata/labels",
-            "metadata/uid",
-            "metadata/managedFields",
-            "spec/clusterIP"
+            "status/observedGeneration",
+            "spec/proxysql/image",
+            "metadata/generation",
+            "metadata/annotations"
         ]
     },
-    "statefulset": {}
+    "perconaxtradbclusterbackup": {},
+    "perconaxtradbclusterrestore": {},
+    "persistentvolumeclaim": {
+        "datadir-xtradb-cluster-pxc-0": [
+            "metadata/managedFields",
+            "spec/volumeName",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/resourceVersion",
+            "metadata/annotations"
+        ],
+        "datadir-xtradb-cluster-pxc-1": [
+            "metadata/managedFields",
+            "spec/volumeName",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/resourceVersion",
+            "metadata/annotations"
+        ],
+        "datadir-xtradb-cluster-pxc-2": [
+            "metadata/managedFields",
+            "spec/volumeName",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/resourceVersion",
+            "metadata/annotations"
+        ]
+    },
+    "pod": {
+        "xtradb-cluster-pxc-0": [
+            "status/conditions",
+            "status/containerStatuses/0/state/running/startedAt",
+            "status/containerStatuses/0/imageID",
+            "status/initContainerStatuses/0/image",
+            "status/podIP",
+            "spec/nodeName",
+            "metadata/generateName",
+            "status/initContainerStatuses/0/state/terminated/startedAt",
+            "metadata/managedFields",
+            "status/containerStatuses/0/containerID",
+            "spec/volumes/0/secret/secretName",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "status/initContainerStatuses/0/containerID",
+            "metadata/ownerReferences",
+            "status/containerStatuses/0/image",
+            "spec/initContainers/0/volumeMounts/0/name",
+            "spec/containers/0/env",
+            "spec/volumes/0/name",
+            "status/hostIP",
+            "status/initContainerStatuses/0/imageID",
+            "spec/containers/0/volumeMounts/0/name",
+            "spec/containers/0/image",
+            "status/initContainerStatuses/0/state/terminated/finishedAt",
+            "status/initContainerStatuses/0/state/terminated/containerID",
+            "status/startTime",
+            "spec/initContainers/0/image",
+            "metadata/resourceVersion",
+            "status/podIPs/0/ip",
+            "metadata/annotations"
+        ],
+        "xtradb-cluster-pxc-1": [
+            "status/conditions",
+            "status/containerStatuses/0/state/running/startedAt",
+            "status/containerStatuses/0/imageID",
+            "status/initContainerStatuses/0/image",
+            "status/podIP",
+            "spec/nodeName",
+            "metadata/generateName",
+            "status/initContainerStatuses/0/state/terminated/startedAt",
+            "metadata/managedFields",
+            "status/containerStatuses/0/containerID",
+            "spec/volumes/0/secret/secretName",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "status/initContainerStatuses/0/containerID",
+            "metadata/ownerReferences",
+            "status/containerStatuses/0/image",
+            "spec/initContainers/0/volumeMounts/0/name",
+            "spec/containers/0/env",
+            "spec/volumes/0/name",
+            "status/hostIP",
+            "status/initContainerStatuses/0/imageID",
+            "spec/containers/0/volumeMounts/0/name",
+            "spec/containers/0/image",
+            "status/initContainerStatuses/0/state/terminated/finishedAt",
+            "status/initContainerStatuses/0/state/terminated/containerID",
+            "status/startTime",
+            "spec/initContainers/0/image",
+            "metadata/resourceVersion",
+            "status/podIPs/0/ip",
+            "metadata/annotations"
+        ],
+        "xtradb-cluster-pxc-2": [
+            "status/conditions",
+            "status/containerStatuses/0/state/running/startedAt",
+            "status/containerStatuses/0/imageID",
+            "status/initContainerStatuses/0/image",
+            "status/podIP",
+            "spec/nodeName",
+            "metadata/generateName",
+            "status/initContainerStatuses/0/state/terminated/startedAt",
+            "metadata/managedFields",
+            "status/containerStatuses/0/containerID",
+            "spec/volumes/0/secret/secretName",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "status/initContainerStatuses/0/containerID",
+            "metadata/ownerReferences",
+            "status/containerStatuses/0/image",
+            "spec/initContainers/0/volumeMounts/0/name",
+            "spec/containers/0/env",
+            "spec/volumes/0/name",
+            "status/hostIP",
+            "status/initContainerStatuses/0/imageID",
+            "spec/containers/0/volumeMounts/0/name",
+            "spec/containers/0/image",
+            "status/initContainerStatuses/0/state/terminated/finishedAt",
+            "status/initContainerStatuses/0/state/terminated/containerID",
+            "status/startTime",
+            "spec/initContainers/0/image",
+            "metadata/resourceVersion",
+            "status/podIPs/0/ip",
+            "metadata/annotations"
+        ]
+    },
+    "secret": {
+        "internal-xtradb-cluster": [
+            "metadata/managedFields",
+            "data",
+            "metadata/creationTimestamp",
+            "metadata/uid",
+            "metadata/resourceVersion",
+            "metadata/annotations"
+        ],
+        "xtradb-cluster-secrets": [
+            "metadata/managedFields",
+            "metadata/uid",
+            "data",
+            "metadata/creationTimestamp",
+            "metadata/resourceVersion"
+        ],
+        "xtradb-cluster-ssl": [
+            "metadata/managedFields",
+            "data",
+            "metadata/creationTimestamp",
+            "metadata/uid",
+            "metadata/resourceVersion",
+            "metadata/annotations"
+        ],
+        "xtradb-cluster-ssl-internal": [
+            "metadata/managedFields",
+            "data",
+            "metadata/creationTimestamp",
+            "metadata/uid",
+            "metadata/resourceVersion",
+            "metadata/annotations"
+        ]
+    },
+    "service": {
+        "kubernetes": [
+            "metadata/managedFields",
+            "spec/clusterIP",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/resourceVersion"
+        ],
+        "percona-xtradb-cluster-operator": [
+            "metadata/managedFields",
+            "spec/clusterIP",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "spec/selector/pod-template-hash",
+            "metadata/resourceVersion"
+        ],
+        "xtradb-cluster-pxc": [
+            "metadata/managedFields",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/resourceVersion"
+        ],
+        "xtradb-cluster-pxc-unready": [
+            "metadata/managedFields",
+            "metadata/ownerReferences",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/resourceVersion",
+            "metadata/annotations"
+        ]
+    },
+    "statefulset": {
+        "xtradb-cluster-pxc": [
+            "spec/template/spec/containers/0/image",
+            "status/currentRevision",
+            "metadata/managedFields",
+            "spec/template/metadata/annotations/percona.com/ssl-internal-hash",
+            "metadata/ownerReferences",
+            "spec/template/spec/containers/0/env",
+            "metadata/uid",
+            "metadata/creationTimestamp",
+            "status/updateRevision",
+            "metadata/resourceVersion",
+            "spec/template/spec/initContainers/0/image",
+            "status/observedGeneration",
+            "metadata/generation",
+            "spec/template/metadata/annotations/percona.com/ssl-hash"
+        ]
+    }
 }
