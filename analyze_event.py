@@ -116,7 +116,7 @@ def canonicalize_value(value: str):
 
 def canonicalize_event_as_list(event: List, parent_path: str, masked_paths: Set[str]):
     for i in range(len(event)):
-        current_path = parent_path + "/0"
+        current_path = os.path.join(parent_path, "0")
         if current_path in masked_paths:
             event[i] = SIEVE_VALUE_MASK
             continue
@@ -130,7 +130,7 @@ def canonicalize_event_as_list(event: List, parent_path: str, masked_paths: Set[
 
 def canonicalize_event_as_map(event: Dict, parent_path: str, masked_paths: Set[str]):
     for key in event:
-        current_path = parent_path + "/" + key if parent_path != "" else key
+        current_path = os.path.join(parent_path, key)
         if key in BORING_EVENT_OBJECT_FIELDS or current_path in masked_paths:
             event[key] = SIEVE_VALUE_MASK
             continue
