@@ -69,19 +69,6 @@ def save_run_result(
             indent=4,
         )
 
-    # XXX: Temporarily copy log information to save it for later analysis
-    test_log_save = os.path.join("log_save", project, test, stage)
-    os.system("mkdir -p {}".format(test_log_save))
-    os.system(
-        "cp -r {} {}".format(
-            log_dir,
-            os.path.join(
-                test_log_save,
-                os.path.splitext(os.path.basename(test_config))[0],
-            ),
-        )
-    )
-
 
 def watch_crd(project, addrs):
     for addr in addrs:
@@ -328,7 +315,9 @@ def run_workload(
         .items[0]
         .metadata.name
     )
-    streamed_log_file = open(os.path.join(log_dir, "streamed-operator.log"), "w+")
+    streamed_log_file = open(
+        os.path.join(test_context.log_dir, "streamed-operator.log"), "w+"
+    )
     streaming = subprocess.Popen(
         "kubectl logs %s -f" % pod_name,
         stdout=streamed_log_file,
@@ -339,7 +328,7 @@ def run_workload(
 
     cprint("Running test workload...", bcolors.OKGREEN)
     test_context.test_workload.run(
-        test_context.mode, os.path.join(log_dir, "workload.log")
+        test_context.mode, os.path.join(test_context.log_dir, "workload.log")
     )
 
     pod_name = (
@@ -360,16 +349,18 @@ def run_workload(
         apiserver_log = "apiserver%s.log" % (str(i + 1))
         cmd_early_exit(
             "kubectl logs %s -n kube-system > %s/%s"
-            % (apiserver_name, log_dir, apiserver_log)
+            % (apiserver_name, test_context.log_dir, apiserver_log)
         )
 
     if test_context.mode != sieve_modes.VANILLA:
         cmd_early_exit(
             "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log"
-            % (log_dir)
+            % (test_context.log_dir)
         )
 
-    cmd_early_exit("kubectl logs %s > %s/operator.log" % (pod_name, log_dir))
+    cmd_early_exit(
+        "kubectl logs %s > %s/operator.log" % (pod_name, test_context.log_dir)
+    )
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
     if test_context.mode != sieve_modes.VANILLA:
@@ -392,16 +383,20 @@ def check_result(
             #     open(os.path.join(log_dir, "config.yaml"), "w").write(
             #         open(test_context.test_config).read()
             #     )
-            oracle.generate_test_oracle(test_context.project, log_dir, log_dir)
+            oracle.generate_test_oracle(
+                test_context.project, test_context.log_dir, test_context.log_dir
+            )
             alarm, bug_report = oracle.check(
                 test_context.test_config,
-                log_dir,
+                test_context.log_dir,
                 test_context.data_dir,
                 controllers.skip_list[test_context.project]
                 if test_context.project in controllers.skip_list
                 else {},
             )
-            open(os.path.join(log_dir, "bug-report.txt"), "w").write(bug_report)
+            open(os.path.join(test_context.log_dir, "bug-report.txt"), "w").write(
+                bug_report
+            )
             return alarm, bug_report
     return 0, NO_ERROR_MESSAGE
 
@@ -448,6 +443,13 @@ def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
     yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
 
 
+def generate_vanilla_config(vanilla_config):
+    vanilla_config_map = {}
+    vanilla_config_map["stage"] = sieve_stages.TEST
+    vanilla_config_map["mode"] = sieve_modes.NONE
+    yaml.dump(vanilla_config_map, open(vanilla_config, "w"), sort_keys=False)
+
+
 def run(
     project,
     test,
@@ -462,30 +464,26 @@ def run(
     suite = controllers.test_suites[project][test]
     data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
     cmd_early_exit("mkdir -p %s" % data_dir)
+    log_dir = os.path.join(
+        log_dir, project, test, stage, mode, os.path.basename(config)
+    )
     print("Log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
         cmd_early_exit("rm -rf %s" % log_dir)
         cmd_early_exit("mkdir -p %s" % log_dir)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
-    log_dir = os.path.join(
-        options.log, options.project, options.test, options.stage, options.mode
-    )
-    config_to_use = None
+    config_to_use = os.path.join(log_dir, os.path.basename(config))
     if stage == sieve_stages.LEARN:
-        learn_config = os.path.join(log_dir, "learn.yaml")
-        print("Learning stage with config %s" % learn_config)
+        print("Learning stage with config: %s" % config_to_use)
         generate_learn_config(
-            learn_config, project, sieve_stages.LEARN, rate_limiter_enabled
+            config_to_use, project, sieve_stages.LEARN, rate_limiter_enabled
         )
-        config_to_use = learn_config
     else:
+        print("Testing stage with config: %s" % config_to_use)
         if mode == sieve_modes.VANILLA:
-            config_to_use = "config/none.yaml"
+            generate_vanilla_config()
         else:
-            test_config = config
-            print("Testing with config: %s" % test_config)
-            config_to_use = os.path.join(log_dir, os.path.basename(test_config))
-            cmd_early_exit("cp %s %s" % (test_config, config_to_use))
+            cmd_early_exit("cp %s %s" % (config, config_to_use))
             if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
                 suite.num_apiservers = 3
             elif suite.use_csi_driver:
@@ -521,12 +519,10 @@ def run_batch(project, test, dir, mode, stage, docker):
     print("\n".join(configs))
     for config in configs:
         start_time = time.time()
-        num = os.path.basename(config).split(".")[0]
-        log_dir = os.path.join(dir, project, test, stage + "_batch", mode, num)
         alarm, report = run(
             project,
             test,
-            log_dir,
+            dir,
             mode,
             stage,
             config,
@@ -554,7 +550,6 @@ if __name__ == "__main__":
         dest="project",
         help="specify PROJECT to test",
         metavar="PROJECT",
-        # default="cassandra-operator",
     )
     parser.add_option(
         "-t",
@@ -562,7 +557,6 @@ if __name__ == "__main__":
         dest="test",
         help="specify TEST to run",
         metavar="TEST",
-        # default="recreate",
     )
     parser.add_option(
         "-d",
@@ -581,7 +575,6 @@ if __name__ == "__main__":
         dest="mode",
         help="test MODE: vanilla, time-travel, obs-gap, atom-vio",
         metavar="MODE",
-        # default=sieve_modes.NONE,
     )
     parser.add_option(
         "-c",
@@ -589,7 +582,6 @@ if __name__ == "__main__":
         dest="config",
         help="test CONFIG",
         metavar="CONFIG",
-        # default="none",
     )
     parser.add_option(
         "-b",
@@ -611,7 +603,6 @@ if __name__ == "__main__":
         "--stage",
         dest="stage",
         help="STAGE: learn, test",
-        # default=sieve_stages.TEST,
     )
     parser.add_option(
         "-r",
@@ -627,42 +618,44 @@ if __name__ == "__main__":
     if options.project is None:
         parser.error("parameter project required")
 
-    if options.stage is None:
-        parser.error("parameter stage required")
-
     if options.test is None:
         parser.error("parameter test required")
 
-    if options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
+    if options.stage is None:
+        parser.error("parameter stage required")
+    elif options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
         parser.error("invalid stage option: %s" % options.stage)
-
-    if options.stage == sieve_stages.LEARN and options.mode is None:
-        options.mode = sieve_modes.LEARN_ONCE
-
-    if options.stage == sieve_stages.TEST and options.mode is None:
-        parser.error("parameter mode required in test stage")
-
-    if options.stage == sieve_stages.TEST and options.config is None:
-        parser.error("parameter config required in test stage")
 
     if options.mode == "obs-gap":
         options.mode = sieve_modes.OBS_GAP
     elif options.mode == "atom-vio":
         options.mode = sieve_modes.ATOM_VIO
 
-    if options.stage == sieve_stages.LEARN and options.mode not in [
-        sieve_modes.LEARN_ONCE,
-        sieve_modes.LEARN_TWICE,
-    ]:
-        parser.error("invalid learn mode option: %s" % options.mode)
+    if options.stage == sieve_stages.LEARN:
+        if options.mode is None:
+            options.mode = sieve_modes.LEARN_ONCE
+        elif options.mode not in [
+            sieve_modes.LEARN_ONCE,
+            sieve_modes.LEARN_TWICE,
+        ]:
+            parser.error("invalid learn mode option: %s" % options.mode)
+        options.config = "learn.yaml"
 
-    if options.stage == sieve_stages.TEST and options.mode not in [
-        sieve_modes.VANILLA,
-        sieve_modes.TIME_TRAVEL,
-        sieve_modes.OBS_GAP,
-        sieve_modes.ATOM_VIO,
-    ]:
-        parser.error("invalid test mode option: %s" % options.mode)
+    if options.stage == sieve_stages.TEST:
+        if options.mode is None:
+            parser.error("parameter mode required in test stage")
+        elif options.mode not in [
+            sieve_modes.VANILLA,
+            sieve_modes.TIME_TRAVEL,
+            sieve_modes.OBS_GAP,
+            sieve_modes.ATOM_VIO,
+        ]:
+            parser.error("invalid test mode option: %s" % options.mode)
+        if options.mode == sieve_modes.VANILLA:
+            options.config = "vanilla.yaml"
+        else:
+            if options.config is None:
+                parser.error("parameter config required in test stage")
 
     if options.phase not in [
         "all",
@@ -685,22 +678,12 @@ if __name__ == "__main__":
             options.docker,
         )
     else:
-        log_dir = os.path.join(
-            options.log, options.project, options.test, options.stage, options.mode
-        )
-
         if options.mode == sieve_modes.LEARN_TWICE:
             # Run learn-once first
             run(
                 options.project,
                 options.test,
-                os.path.join(
-                    options.log,
-                    options.project,
-                    options.test,
-                    options.stage,
-                    sieve_modes.LEARN_ONCE,
-                ),
+                options.log,
                 sieve_modes.LEARN_ONCE,
                 options.stage,
                 options.config,
@@ -712,7 +695,7 @@ if __name__ == "__main__":
         alarm, report = run(
             options.project,
             options.test,
-            log_dir,
+            options.log,
             options.mode,
             options.stage,
             options.config,
