@@ -158,20 +158,30 @@ def generate_key(resource_type: str, namespace: str, name: str):
     return "/".join([resource_type, namespace, name])
 
 
+def api_key_to_rtype_namespace_name(api_key):
+    tokens = api_key.split("/")
+    assert len(tokens) >= 4
+    namespace = tokens[-2]
+    name = tokens[-1]
+    if tokens[-4] == "services" and tokens[-3] == "endpoints":
+        rtype = "endpoints"
+    elif tokens[-4] == "services" and tokens[-3] == "specs":
+        rtype = "service"
+    elif tokens[-3].endswith("s"):
+        rtype = tokens[-3][:-1]
+    else:
+        rtype = tokens[-3]
+    return rtype, namespace, name
+
+
 class APIEvent:
     def __init__(self, etype: str, key: str, obj_str: str):
         self.__etype = etype
         self.__key = key
         assert key.startswith("/")
-        tokens = key.split("/")
-        if tokens[1] == "endpoints":
-            self.__rtype = tokens[1]
-        elif tokens[1].endswith("s"):
-            self.__rtype = tokens[1][:-1]
-        else:
-            self.__rtype = tokens[1]
-        self.__namespace = tokens[-2]
-        self.__name = tokens[-1]
+        self.__rtype, self.__namespace, self.__name = api_key_to_rtype_namespace_name(
+            key
+        )
         self.__obj_str = obj_str
         self.__obj_map = json.loads(obj_str)
 

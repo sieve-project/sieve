@@ -210,7 +210,7 @@ def generate_resources(log_dir="", canonicalize_resource=False):
 
 
 def dump_ignore_paths(ignore, predefine, key, obj, path):
-    if path in predefine['path'] or key in predefine['key']:
+    if path in predefine["path"] or key in predefine["key"]:
         ignore.add(path)
         return
     if type(obj) is str:
@@ -234,13 +234,17 @@ def dump_ignore_paths(ignore, predefine, key, obj, path):
             val = obj[key]
             newpath = os.path.join(path, key)
             dump_ignore_paths(ignore, predefine, key, val, newpath)
-            
+
+
 def generate_ignore_paths(data):
     result = {}
     for rtype in data:
         result[rtype] = {}
         for name in data[rtype]:
-            predefine = {'path': set(BORING_EVENT_OBJECT_PATHS), 'key': set(BORING_EVENT_OBJECT_KEYS)}
+            predefine = {
+                "path": set(BORING_EVENT_OBJECT_PATHS),
+                "key": set(BORING_EVENT_OBJECT_KEYS),
+            }
             ignore = set()
             if data[rtype][name] != BORING_IGNORE_MARK:
                 dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
@@ -248,21 +252,12 @@ def generate_ignore_paths(data):
     return result
 
 
-def check_events_oracle(learning_events, testing_events, test_config, skip_list):
-    def should_skip_api_event_key(api_event_key, skip):
-        tokens = api_event_key.split("/")
-        if tokens[1] == "endpoints":
-            rtype = tokens[1]
-        elif tokens[1].endswith("s"):
-            rtype = tokens[1][:-1]
-        else:
-            rtype = tokens[1]
-        name = tokens[-1]
-        for skip_rtype in skip:
-            if skip_rtype == rtype:
-                for skip_name in skip[skip_rtype]:
-                    if skip_name == name and len(skip[skip_rtype][name]) == 0:
-                        return True
+def check_events_oracle(learning_events, testing_events, test_config, event_mask):
+    def should_skip_api_event_key(api_event_key, masked):
+        rtype, _, name = analyze_util.api_key_to_rtype_namespace_name(api_event_key)
+        for masked_rtype in masked:
+            if masked_rtype == rtype and name in masked[rtype]:
+                return True
         return False
 
     alarm = 0
@@ -279,7 +274,7 @@ def check_events_oracle(learning_events, testing_events, test_config, skip_list)
         assert learning_events["keys"][key] != "SIEVE-IGNORE"
         if is_unstable_api_event_key(key, learning_events["keys"][key]):
             continue
-        if should_skip_api_event_key(key, skip_list):
+        if should_skip_api_event_key(key, event_mask):
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config.config["api_event_to_check"]:
@@ -728,7 +723,10 @@ def injection_validation(test_config, server_log, workload_log):
     return validation_alarm, validation_report
 
 
-def check(test_config, log_dir, data_dir, skip_list):
+def check(test_context: TestContext, event_mask, state_mask):
+    test_config = test_context.test_config
+    log_dir = test_context.result_dir
+    data_dir = test_context.data_dir
     server_log = os.path.join(log_dir, "sieve-server.log")
     workload_log = os.path.join(log_dir, "workload.log")
     validation_alarm, validation_report = injection_validation(
@@ -753,7 +751,7 @@ def check(test_config, log_dir, data_dir, skip_list):
         learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
         test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
         write_alarm, write_bug_report = check_events_oracle(
-            learn_events, test_events, test_config, skip_list
+            learn_events, test_events, test_config, event_mask
         )
         bug_alarm += write_alarm
         bug_report += write_bug_report
