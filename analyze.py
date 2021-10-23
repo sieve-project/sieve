@@ -273,11 +273,11 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
     return vertex_pairs
 
 
-def build_causality_graph(log_path):
+def build_causality_graph(log_path, all_masked_paths):
     operator_hear_list = parse_receiver_events(log_path)
     reconciler_event_list = parse_reconciler_events(log_path)
 
-    causality_graph = CausalityGraph()
+    causality_graph = CausalityGraph(all_masked_paths)
     causality_graph.add_sorted_operator_hears(operator_hear_list)
     causality_graph.add_sorted_reconciler_events(reconciler_event_list)
 
@@ -314,12 +314,14 @@ def analyze_trace(
 ):
     project = test_context.project
     log_dir = test_context.result_dir
+    data_dir = test_context.data_dir
 
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
 
-    causality_graph = build_causality_graph(log_path)
+    all_masked_paths = json.load(open(os.path.join(data_dir, "ignore-paths.json")))
+    causality_graph = build_causality_graph(log_path, all_masked_paths)
     for analysis_mode in [
         sieve_modes.TIME_TRAVEL,
         sieve_modes.OBS_GAP,
