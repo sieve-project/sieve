@@ -96,9 +96,9 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
     api_event_map["types"] = api_type_event_map
 
     if canonicalize_resource:
-        # Suppose we are current at learn/learn-twice/xxx
-        learn_dir = pathlib.Path(log_dir).parent
-        learn_once_dir = learn_dir / "learn-once"
+        # Suppose we are current at learn/learn-twice/learn.yaml/xxx
+        learn_dir = os.path.dirname(os.path.dirname(log_dir))
+        learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
         prev_api_event_map = json.loads(
             open(os.path.join(learn_once_dir, "side-effect.json")).read()
         )
@@ -199,9 +199,9 @@ def generate_resources(log_dir="", canonicalize_resource=False):
         resources[crd] = get_crd(crd)
 
     if canonicalize_resource:
-        # Suppose we are current at learn/learn-twice/xxx
-        learn_dir = pathlib.Path(log_dir).parent
-        learn_once_dir = learn_dir / "learn-once"
+        # Suppose we are current at learn/learn-twice/learn.yaml/xxx
+        learn_dir = os.path.dirname(os.path.dirname(log_dir))
+        learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
         base_resources = json.loads(
             open(os.path.join(learn_once_dir, "resources.json")).read()
         )

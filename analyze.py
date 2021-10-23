@@ -7,7 +7,7 @@ import oracle
 import shutil
 import optparse
 import analyze_gen
-from common import sieve_modes, sieve_stages
+from common import TestContext, sieve_modes, sieve_stages
 from controllers import *
 
 
@@ -310,35 +310,22 @@ def generate_test_config(analysis_mode, project, log_dir, causality_graph):
 
 
 def analyze_trace(
-    project,
-    log_dir,
-    data_dir,
-    generate_oracle=True,
-    generate_config=True,
-    canonicalize_resource=False,
+    test_context: TestContext,
 ):
-    print(
-        "generate-oracle feature is %s" % ("enabled" if generate_oracle else "disabled")
-    )
-    print(
-        "generate-config feature is %s" % ("enabled" if generate_config else "disabled")
-    )
+    project = test_context.project
+    log_dir = test_context.result_dir
 
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
 
-    if generate_oracle:
-        oracle.generate_test_oracle(project, log_dir, data_dir, canonicalize_resource)
-
-    if generate_config and not canonicalize_resource:
-        causality_graph = build_causality_graph(log_path)
-        for analysis_mode in [
-            sieve_modes.TIME_TRAVEL,
-            sieve_modes.OBS_GAP,
-            sieve_modes.ATOM_VIO,
-        ]:
-            generate_test_config(analysis_mode, project, log_dir, causality_graph)
+    causality_graph = build_causality_graph(log_path)
+    for analysis_mode in [
+        sieve_modes.TIME_TRAVEL,
+        sieve_modes.OBS_GAP,
+        sieve_modes.ATOM_VIO,
+    ]:
+        generate_test_config(analysis_mode, project, log_dir, causality_graph)
 
 
 def analyze(project, test):
@@ -346,13 +333,9 @@ def analyze(project, test):
     log_dir = os.path.join(
         "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE
     )
-    data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
     analyze_trace(
         project,
         log_dir,
-        data_dir,
-        generate_oracle=False,
-        generate_config=True,
     )
 
 

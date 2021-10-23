@@ -366,36 +366,36 @@ def run_workload(
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
+    oracle.generate_test_oracle(
+        test_context.project,
+        test_context.result_dir,
+        test_context.data_dir,
+        test_context.mode == sieve_modes.LEARN_TWICE,
+    )
+
 
 def check_result(
     test_context: TestContext,
 ) -> Tuple[int, str]:
     if test_context.stage == sieve_stages.LEARN:
-        analyze.analyze_trace(
-            test_context.project,
-            test_context.result_dir,
-            test_context.data_dir,
-            canonicalize_resource=(test_context.mode == sieve_modes.LEARN_TWICE),
-        )
+        analyze.analyze_trace(test_context)
+        return 0, NO_ERROR_MESSAGE
     else:
-        if test_context.mode != sieve_modes.VANILLA:
-            oracle.generate_test_oracle(
-                test_context.project, test_context.result_dir, test_context.result_dir
-            )
-            alarm, bug_report = oracle.check(
-                test_context,
-                controllers.event_mask[test_context.project]
-                if test_context.project in controllers.event_mask
-                else {},
-                controllers.state_mask[test_context.project]
-                if test_context.project in controllers.state_mask
-                else {},
-            )
-            open(os.path.join(test_context.result_dir, "bug-report.txt"), "w").write(
-                bug_report
-            )
-            return alarm, bug_report
-    return 0, NO_ERROR_MESSAGE
+        if test_context.mode == sieve_modes.VANILLA:
+            return 0, NO_ERROR_MESSAGE
+        alarm, bug_report = oracle.check(
+            test_context,
+            controllers.event_mask[test_context.project]
+            if test_context.project in controllers.event_mask
+            else {},
+            controllers.state_mask[test_context.project]
+            if test_context.project in controllers.state_mask
+            else {},
+        )
+        open(os.path.join(test_context.result_dir, "bug-report.txt"), "w").write(
+            bug_report
+        )
+        return alarm, bug_report
 
 
 def run_test(
