@@ -302,14 +302,6 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
 
 def run_workload(
     test_context: TestContext,
-    # project,
-    # mode,
-    # test_workload,
-    # test_config,
-    # log_dir,
-    # docker_repo,
-    # docker_tag,
-    # num_apiservers,
 ) -> Tuple[int, str]:
     if test_context.mode != sieve_modes.VANILLA:
         cprint("Setting up Sieve server...", bcolors.OKGREEN)
@@ -396,10 +388,10 @@ def check_result(
         )
     else:
         if test_context.mode != sieve_modes.VANILLA:
-            if os.path.exists(test_context.test_config):
-                open(os.path.join(log_dir, "config.yaml"), "w").write(
-                    open(test_context.test_config).read()
-                )
+            # if os.path.exists(test_context.test_config):
+            #     open(os.path.join(log_dir, "config.yaml"), "w").write(
+            #         open(test_context.test_config).read()
+            #     )
             oracle.generate_test_oracle(test_context.project, log_dir, log_dir)
             alarm, bug_report = oracle.check(
                 test_context.test_config,
@@ -457,95 +449,65 @@ def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
 
 
 def run(
-    test_suites,
     project,
     test,
     log_dir,
     mode,
     stage,
     config,
-    docker,
+    docker_repo,
     rate_limiter_enabled=False,
     phase="all",
 ):
-    suite = test_suites[project][test]
+    suite = controllers.test_suites[project][test]
     data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
     cmd_early_exit("mkdir -p %s" % data_dir)
     print("Log dir: %s" % log_dir)
     if phase == "all" or phase == "setup_only":
         cmd_early_exit("rm -rf %s" % log_dir)
         cmd_early_exit("mkdir -p %s" % log_dir)
-
+    docker_tag = stage if stage == sieve_stages.LEARN else mode
+    log_dir = os.path.join(
+        options.log, options.project, options.test, options.stage, options.mode
+    )
+    config_to_use = None
     if stage == sieve_stages.LEARN:
         learn_config = os.path.join(log_dir, "learn.yaml")
         print("Learning stage with config %s" % learn_config)
         generate_learn_config(
             learn_config, project, sieve_stages.LEARN, rate_limiter_enabled
         )
-        test_context = TestContext(
-            project,
-            stage,
-            mode,
-            phase,
-            suite.workload,
-            learn_config,
-            log_dir,
-            data_dir,
-            docker,
-            stage,
-            suite.num_apiservers,
-            suite.num_workers,
-            suite.use_csi_driver,
-            suite.oracle_config,
-        )
-        return run_test(test_context)
+        config_to_use = learn_config
     else:
         if mode == sieve_modes.VANILLA:
-            blank_config = "config/none.yaml"
-            test_context = TestContext(
-                project,
-                stage,
-                mode,
-                phase,
-                suite.workload,
-                blank_config,
-                log_dir,
-                data_dir,
-                docker,
-                mode,
-                suite.num_apiservers,
-                suite.num_workers,
-                suite.use_csi_driver,
-                suite.oracle_config,
-            )
-            return run_test(test_context)
+            config_to_use = "config/none.yaml"
         else:
             test_config = config
             print("Testing with config: %s" % test_config)
-            test_config_to_use = os.path.join(log_dir, os.path.basename(test_config))
-            cmd_early_exit("cp %s %s" % (test_config, test_config_to_use))
+            config_to_use = os.path.join(log_dir, os.path.basename(test_config))
+            cmd_early_exit("cp %s %s" % (test_config, config_to_use))
             if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
                 suite.num_apiservers = 3
             elif suite.use_csi_driver:
                 suite.num_apiservers = 1
                 suite.num_workers = 0
-            test_context = TestContext(
-                project,
-                stage,
-                mode,
-                phase,
-                suite.workload,
-                test_config_to_use,
-                log_dir,
-                data_dir,
-                docker,
-                mode,
-                suite.num_apiservers,
-                suite.num_workers,
-                suite.use_csi_driver,
-                suite.oracle_config,
-            )
-            return run_test(test_context)
+    test_context = TestContext(
+        project,
+        stage,
+        mode,
+        phase,
+        suite.workload,
+        config_to_use,
+        log_dir,
+        data_dir,
+        docker_repo,
+        docker_tag,
+        suite.num_apiservers,
+        suite.num_workers,
+        suite.use_csi_driver,
+        suite.oracle_config,
+    )
+    return run_test(test_context)
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -560,9 +522,8 @@ def run_batch(project, test, dir, mode, stage, docker):
     for config in configs:
         start_time = time.time()
         num = os.path.basename(config).split(".")[0]
-        log_dir = os.path.join(dir, project, test, stage, mode + "-batch", num)
+        log_dir = os.path.join(dir, project, test, stage + "_batch", mode, num)
         alarm, report = run(
-            controllers.test_suites,
             project,
             test,
             log_dir,
@@ -572,11 +533,11 @@ def run_batch(project, test, dir, mode, stage, docker):
             docker,
         )
         save_run_result(
-            options.project,
-            options.test,
-            options.mode,
-            options.stage,
-            options.config,
+            project,
+            test,
+            mode,
+            stage,
+            config,
             alarm,
             report,
             start_time,
@@ -731,7 +692,6 @@ if __name__ == "__main__":
         if options.mode == sieve_modes.LEARN_TWICE:
             # Run learn-once first
             run(
-                controllers.test_suites,
                 options.project,
                 options.test,
                 os.path.join(
@@ -750,7 +710,6 @@ if __name__ == "__main__":
             )
 
         alarm, report = run(
-            controllers.test_suites,
             options.project,
             options.test,
             log_dir,
