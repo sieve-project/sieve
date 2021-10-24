@@ -372,7 +372,8 @@ def should_ignore_regex(val):
     if type(val) is str:
         for reg in BORING_EVENT_OBJECT_REGS:
             pat = re.compile(reg)
-            return pat.match(val)
+            if pat.match(val):
+                return True
     return False
 
 def gen_boring_keys():
@@ -412,7 +413,7 @@ def look_for_resources_diff(learn, test):
                 ].append(name)
                 continue
 
-            if delta_type == "values_changed":
+            if delta_type in ["values_changed", "type_changes"]:
                 if key.t1 == BORING_IGNORE_MARK or should_ignore_regex(key.t1) or should_ignore_regex(key.t2):
                     continue
 
