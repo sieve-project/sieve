@@ -241,13 +241,22 @@ operator_pod_label = {
 }
 
 event_mask = {
-    "yugabyte-operator": {"pod": ["yb-master-0", "yb-master-1", "yb-master-2"]}
+    "mongodb-operator": {
+        "disable-enable-shard": {
+            "pod": [
+                "mongodb-cluster-rs0-0",
+                "mongodb-cluster-rs0-1",
+                "mongodb-cluster-rs0-2",
+            ]
+        }
+    },
+    "yugabyte-operator": {"*": {"pod": ["yb-master-0", "yb-master-1", "yb-master-2"]}},
 }
 
 state_mask = {
-    "yugabyte-operator": {
-        "pod": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}
-    },
+    # "yugabyte-operator": {
+    #     "pod": {"*": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}}
+    # },
 }
 
 

@@ -264,19 +264,29 @@ def generate_fatal(msg):
     return "[FATAL] " + msg
 
 
-def generic_event_checker(learning_events, testing_events, test_config, event_mask):
-    def should_skip_api_event_key(api_event_key, masked):
-        rtype, _, name = analyze_util.api_key_to_rtype_namespace_name(api_event_key)
-        for masked_rtype in masked:
-            if masked_rtype == rtype and name in masked[rtype]:
-                return True
-        return False
+def generic_event_checker(test_context: TestContext, event_mask):
+    learning_events = json.load(
+        open(os.path.join(test_context.data_dir, "side-effect.json"))
+    )
+    testing_events = json.load(
+        open(os.path.join(test_context.result_dir, "side-effect.json"))
+    )
+    test_mode = test_context.mode
+    test_name = test_context.test_name
 
     ret_val = 0
     messages = []
 
-    test_config_content = yaml.safe_load(open(test_config))
-    if test_config_content["mode"] == sieve_modes.OBS_GAP:
+    def should_skip_api_event_key(api_event_key, test_name, masked):
+        rtype, _, name = analyze_util.api_key_to_rtype_namespace_name(api_event_key)
+        for masked_test_name in masked:
+            if masked_test_name == "*" or masked_test_name == test_name:
+                for masked_rtype in masked:
+                    if masked_rtype == rtype and name in masked[rtype]:
+                        return True
+        return False
+
+    if test_mode == sieve_modes.OBS_GAP:
         return ret_val, messages
 
     # checking events inconsistency for each key
@@ -286,7 +296,7 @@ def generic_event_checker(learning_events, testing_events, test_config, event_ma
         assert learning_events["keys"][key] != "SIEVE-IGNORE"
         if is_unstable_api_event_key(key, learning_events["keys"][key]):
             continue
-        if should_skip_api_event_key(key, event_mask):
+        if should_skip_api_event_key(key, test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config.config["api_event_to_check"]:
@@ -339,7 +349,8 @@ def generic_event_checker(learning_events, testing_events, test_config, event_ma
     return ret_val, messages
 
 
-def operator_checker(operator_log):
+def operator_checker(test_context: TestContext):
+    operator_log = os.path.join(test_context.result_dir, "streamed-operator.log")
     ret_val = 0
     messages = []
     file = open(operator_log)
@@ -352,7 +363,8 @@ def operator_checker(operator_log):
     return ret_val, messages
 
 
-def test_workload_checker(workload_log):
+def test_workload_checker(test_context: TestContext):
+    workload_log = os.path.join(test_context.result_dir, "workload.log")
     ret_val = 0
     messages = []
     file = open(workload_log)
@@ -410,7 +422,10 @@ def preprocess(learn, test):
             test.pop(resource, None)
 
 
-def generic_state_checker(learn, test):
+def generic_state_checker(test_context: TestContext):
+    learn = json.load(open(os.path.join(test_context.data_dir, "resources.json")))
+    test = json.load(open(os.path.join(test_context.result_dir, "resources.json")))
+
     ret_val = 0
     messages = []
 
@@ -734,7 +749,10 @@ def is_test_workload_finished(workload_log):
         return "FINISH-SIEVE-TEST" in f.read()
 
 
-def injection_validation(test_config, server_log, workload_log):
+def injection_validation(test_context: TestContext):
+    test_config = test_context.test_config
+    server_log = os.path.join(test_context.result_dir, "sieve-server.log")
+    workload_log = os.path.join(test_context.result_dir, "workload.log")
     test_config_content = yaml.safe_load(open(test_config))
     test_mode = test_config_content["mode"]
     validation_ret_val = 0
@@ -768,48 +786,30 @@ def injection_validation(test_config, server_log, workload_log):
 
 
 def check(test_context: TestContext, event_mask, state_mask):
-    test_config = test_context.test_config
-    log_dir = test_context.result_dir
-    data_dir = test_context.data_dir
-    server_log = os.path.join(log_dir, "sieve-server.log")
-    workload_log = os.path.join(log_dir, "workload.log")
-
     ret_val = 0
     messages = []
 
-    validation_ret_val, validation_messages = injection_validation(
-        test_config, server_log, workload_log
-    )
+    validation_ret_val, validation_messages = injection_validation(test_context)
     if validation_ret_val < 0:
         messages.extend(validation_messages)
 
     if sieve_config.config["operator_checker_enabled"]:
-        operator_log = os.path.join(log_dir, "streamed-operator.log")
-        panic_ret_val, panic_messages = operator_checker(operator_log)
+        panic_ret_val, panic_messages = operator_checker(test_context)
         ret_val += panic_ret_val
         messages.extend(panic_messages)
 
     if sieve_config.config["test_workload_checker_enabled"]:
-        workload_log = os.path.join(log_dir, "workload.log")
-        workload_ret_val, workload_messages = test_workload_checker(workload_log)
+        workload_ret_val, workload_messages = test_workload_checker(test_context)
         ret_val += workload_ret_val
         messages.extend(workload_messages)
 
     if sieve_config.config["generic_event_checker_enabled"]:
-        learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
-        test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
-        write_ret_val, write_messages = generic_event_checker(
-            learn_events, test_events, test_config, event_mask
-        )
+        write_ret_val, write_messages = generic_event_checker(test_context, event_mask)
         ret_val += write_ret_val
         messages.extend(write_messages)
 
     if sieve_config.config["generic_state_checker_enabled"]:
-        learn_resources = json.load(open(os.path.join(data_dir, "resources.json")))
-        test_resources = json.load(open(os.path.join(log_dir, "resources.json")))
-        resource_ret_val, resource_messages = generic_state_checker(
-            learn_resources, test_resources
-        )
+        resource_ret_val, resource_messages = generic_state_checker(test_context)
         ret_val += resource_ret_val
         messages.extend(resource_messages)
 
