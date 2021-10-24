@@ -16,6 +16,7 @@ import signal
 import errno
 import socket
 from datetime import datetime
+import traceback
 from common import (
     TestContext,
     cprint,
@@ -30,7 +31,7 @@ from common import (
 
 
 def save_run_result(
-    project, test, mode, stage, test_config, alarm, bug_report, start_time
+    project, test, mode, stage, test_config, ret_val, messages, start_time
 ):
     if stage != sieve_stages.TEST or mode == sieve_modes.VANILLA:
         return
@@ -41,8 +42,8 @@ def save_run_result(
                 mode: {
                     test_config: {
                         "duration": time.time() - start_time,
-                        "alarm": alarm,
-                        "bug_report": bug_report,
+                        "ret_val": ret_val,
+                        "messages": messages,
                         "test_config_content": open(test_config).read(),
                         "host": socket.gethostname(),
                     }
@@ -383,7 +384,7 @@ def check_result(
     else:
         if test_context.mode == sieve_modes.VANILLA:
             return 0, NO_ERROR_MESSAGE
-        alarm, bug_report = oracle.check(
+        ret_val, messages = oracle.check(
             test_context,
             controllers.event_mask[test_context.project]
             if test_context.project in controllers.event_mask
@@ -393,34 +394,33 @@ def check_result(
             else {},
         )
         open(os.path.join(test_context.result_dir, "bug-report.txt"), "w").write(
-            bug_report
+            messages
         )
-        return alarm, bug_report
+        return ret_val, messages
 
 
 def run_test(
     test_context: TestContext,
 ) -> Tuple[int, str]:
-    if test_context.phase == "all" or test_context.phase == "setup_only":
-        setup_cluster(test_context)
-    if (
-        test_context.phase == "all"
-        or test_context.phase == "workload_only"
-        or test_context.phase == "workload_and_check"
-    ):
-        run_workload(test_context)
-    if (
-        test_context.phase == "all"
-        or test_context.phase == "check_only"
-        or test_context.phase == "workload_and_check"
-    ):
-        alarm, bug_report = check_result(test_context)
-        if alarm != 0:
-            oracle.print_error_and_debugging_info(
-                alarm, bug_report, test_context.test_config
-            )
-        return alarm, bug_report
-    return 0, NO_ERROR_MESSAGE
+    try:
+        if test_context.phase == "all" or test_context.phase == "setup_only":
+            setup_cluster(test_context)
+        if (
+            test_context.phase == "all"
+            or test_context.phase == "workload_only"
+            or test_context.phase == "workload_and_check"
+        ):
+            run_workload(test_context)
+        if (
+            test_context.phase == "all"
+            or test_context.phase == "check_only"
+            or test_context.phase == "workload_and_check"
+        ):
+            ret_val, messages = check_result(test_context)
+            return ret_val, messages
+        return 0, NO_ERROR_MESSAGE
+    except Exception:
+        return -4, oracle.generate_fatal(traceback.format_exc())
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
@@ -502,7 +502,9 @@ def run(
         suite.use_csi_driver,
         suite.oracle_config,
     )
-    return run_test(test_context)
+    ret_val, messages = run_test(test_context)
+    oracle.print_error_and_debugging_info(ret_val, messages, test_context.test_config)
+    return ret_val, messages
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -516,7 +518,7 @@ def run_batch(project, test, dir, mode, stage, docker):
     print("\n".join(configs))
     for config in configs:
         start_time = time.time()
-        alarm, report = run(
+        ret_val, report = run(
             project,
             test,
             dir,
@@ -531,7 +533,7 @@ def run_batch(project, test, dir, mode, stage, docker):
             mode,
             stage,
             config,
-            alarm,
+            ret_val,
             report,
             start_time,
         )
@@ -689,7 +691,7 @@ if __name__ == "__main__":
                 options.phase,
             )
 
-        alarm, report = run(
+        ret_val, report = run(
             options.project,
             options.test,
             options.log,
@@ -707,7 +709,7 @@ if __name__ == "__main__":
             options.mode,
             options.stage,
             options.config,
-            alarm,
+            ret_val,
             report,
             start_time,
         )
