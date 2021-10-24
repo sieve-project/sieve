@@ -488,6 +488,7 @@ def run(
                 suite.num_workers = 0
     test_context = TestContext(
         project,
+        test,
         stage,
         mode,
         phase,

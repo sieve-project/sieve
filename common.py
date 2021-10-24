@@ -125,6 +125,7 @@ class TestContext:
     def __init__(
         self,
         project,
+        test_name,
         stage,
         mode,
         phase,
@@ -140,6 +141,7 @@ class TestContext:
         oracle_config,
     ):
         self.project = project
+        self.test_name = test_name
         self.stage = stage
         self.mode = mode
         self.phase = phase
