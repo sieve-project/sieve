@@ -74,6 +74,10 @@ def reproduce_bug(operator, bug, docker, phase):
     if bug == "all":
         for b in reprod_map[operator]:
             reproduce_single_bug(operator, b, docker, phase)
+    elif bug == "atom-vio" or bug == "obs-gap" or bug == "time-travel":
+        for b in reprod_map[operator]:
+            if b.startswith(bug):
+                reproduce_single_bug(operator, b, docker, phase)
     else:
         reproduce_single_bug(operator, bug, docker, phase)
 
@@ -124,7 +128,6 @@ if __name__ == "__main__":
 
     if options.project == "all":
         for operator in reprod_map:
-            for bug in reprod_map[operator]:
-                reproduce_bug(operator, bug, options.docker, options.phase)
+            reproduce_bug(operator, options.bug, options.docker, options.phase)
     else:
         reproduce_bug(options.project, options.bug, options.docker, options.phase)
