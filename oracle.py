@@ -336,7 +336,7 @@ def generic_event_checker(learning_events, testing_events, test_config, event_ma
                         )
                     )
     messages.sort()
-    return ret_val, "\n".join(messages)
+    return ret_val, messages
 
 
 def operator_checker(operator_log):
@@ -349,7 +349,7 @@ def operator_checker(operator_log):
             messages.append(generate_alarm("[OPERATOR-PANIC]", panic_in_file.strip()))
             ret_val += 1
     messages.sort()
-    return ret_val, "\n".join(messages)
+    return ret_val, messages
 
 
 def test_workload_checker(workload_log):
@@ -361,7 +361,7 @@ def test_workload_checker(workload_log):
             ret_val += 1
             messages.append(generate_alarm("[WORKLOAD]", line.strip()))
     messages.sort()
-    return ret_val, "\n".join(messages)
+    return ret_val, messages
 
 
 BORING_EVENT_OBJECT_KEYS = ["image", "imageID", "generation", "observedGeneration"]
@@ -583,7 +583,7 @@ def generic_state_checker(learn, test):
                 )
 
     messages.sort()
-    return ret_val, "\n".join(messages)
+    return ret_val, messages
 
 
 def generate_time_travel_debugging_hint(test_config_content):
@@ -764,7 +764,7 @@ def injection_validation(test_config, server_log, workload_log):
         validation_messages.append(generate_warn("test workload is not started yet"))
         validation_ret_val = -3
     validation_messages.sort()
-    return validation_ret_val, "\n".join(validation_messages)
+    return validation_ret_val, validation_messages
 
 
 def check(test_context: TestContext, event_mask, state_mask):
@@ -773,23 +773,27 @@ def check(test_context: TestContext, event_mask, state_mask):
     data_dir = test_context.data_dir
     server_log = os.path.join(log_dir, "sieve-server.log")
     workload_log = os.path.join(log_dir, "workload.log")
+
+    ret_val = 0
+    messages = []
+
     validation_ret_val, validation_messages = injection_validation(
         test_config, server_log, workload_log
     )
-    ret_val = 0
-    messages = NO_ERROR_MESSAGE
+    if validation_ret_val < 0:
+        messages.extend(validation_messages)
 
     if sieve_config.config["operator_checker_enabled"]:
         operator_log = os.path.join(log_dir, "streamed-operator.log")
         panic_ret_val, panic_messages = operator_checker(operator_log)
         ret_val += panic_ret_val
-        messages += panic_messages
+        messages.extend(panic_messages)
 
     if sieve_config.config["test_workload_checker_enabled"]:
         workload_log = os.path.join(log_dir, "workload.log")
         workload_ret_val, workload_messages = test_workload_checker(workload_log)
         ret_val += workload_ret_val
-        messages += workload_messages
+        messages.extend(workload_messages)
 
     if sieve_config.config["generic_event_checker_enabled"]:
         learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
@@ -798,7 +802,7 @@ def check(test_context: TestContext, event_mask, state_mask):
             learn_events, test_events, test_config, event_mask
         )
         ret_val += write_ret_val
-        messages += write_messages
+        messages.extend(write_messages)
 
     if sieve_config.config["generic_state_checker_enabled"]:
         learn_resources = json.load(open(os.path.join(data_dir, "resources.json")))
@@ -807,9 +811,9 @@ def check(test_context: TestContext, event_mask, state_mask):
             learn_resources, test_resources
         )
         ret_val += resource_ret_val
-        messages += resource_messages
+        messages.extend(resource_messages)
 
     if validation_ret_val < 0:
-        return validation_ret_val, validation_messages + messages
-    else:
-        return ret_val, messages
+        ret_val = validation_ret_val
+
+    return ret_val, "\n".join(messages)
