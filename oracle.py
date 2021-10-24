@@ -281,9 +281,10 @@ def generic_event_checker(test_context: TestContext, event_mask):
         rtype, _, name = analyze_util.api_key_to_rtype_namespace_name(api_event_key)
         for masked_test_name in masked:
             if masked_test_name == "*" or masked_test_name == test_name:
-                for masked_rtype in masked:
-                    if masked_rtype == rtype and name in masked[rtype]:
-                        return True
+                for masked_rtype in masked[masked_test_name]:
+                    if masked_rtype == rtype:
+                        if name in masked[masked_test_name][masked_rtype]:
+                            return True
         return False
 
     if test_mode == sieve_modes.OBS_GAP:
