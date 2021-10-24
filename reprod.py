@@ -54,7 +54,7 @@ reprod_map = {
 }
 
 
-def reproduce_bug(operator, bug, docker, phase):
+def reproduce_single_bug(operator, bug, docker, phase):
     mode = bug[:-2]
     test = reprod_map[operator][bug][0]
     config = os.path.join("reprod", reprod_map[operator][bug][1])
@@ -68,6 +68,18 @@ def reproduce_bug(operator, bug, docker, phase):
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
     os.system(sieve_cmd)
+
+
+def reproduce_bug(operator, bug, docker, phase):
+    if bug == "all":
+        for b in reprod_map[operator]:
+            reproduce_single_bug(operator, b, docker, phase)
+    elif bug == "atom-vio" or bug == "obs-gap" or bug == "time-travel":
+        for b in reprod_map[operator]:
+            if b.startswith(bug):
+                reproduce_single_bug(operator, b, docker, phase)
+    else:
+        reproduce_single_bug(operator, bug, docker, phase)
 
 
 if __name__ == "__main__":
@@ -116,7 +128,6 @@ if __name__ == "__main__":
 
     if options.project == "all":
         for operator in reprod_map:
-            for bug in reprod_map[operator]:
-                reproduce_bug(operator, bug, options.docker, options.phase)
+            reproduce_bug(operator, options.bug, options.docker, options.phase)
     else:
         reproduce_bug(options.project, options.bug, options.docker, options.phase)

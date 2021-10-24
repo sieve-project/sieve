@@ -139,9 +139,8 @@ test_suites = {
             workloads.workloads["cass-operator"]["recreate"],
         ),
         "scaledown-scaleup": Suite(
-            workloads.workloads["cass-operator"]["scaledown-scaleup"],
-            num_workers=3
-        )
+            workloads.workloads["cass-operator"]["scaledown-scaleup"], num_workers=3
+        ),
     },
     "casskop-operator": {
         "recreate": Suite(
@@ -241,10 +240,23 @@ operator_pod_label = {
     "nifikop-operator": "nifikop-operator",
 }
 
-skip_list = {
-    "yugabyte-operator": {
-        "pod": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}
-    }
+event_mask = {
+    "mongodb-operator": {
+        "disable-enable-shard": {
+            "pod": [
+                "mongodb-cluster-rs0-0",
+                "mongodb-cluster-rs0-1",
+                "mongodb-cluster-rs0-2",
+            ]
+        }
+    },
+    "yugabyte-operator": {"*": {"pod": ["yb-master-0", "yb-master-1", "yb-master-2"]}},
+}
+
+state_mask = {
+    # "yugabyte-operator": {
+    #     "pod": {"*": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}}
+    # },
 }
 
 

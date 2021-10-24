@@ -26,12 +26,12 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False):
-    if sieve_config.config["generate_events_oracle"]:
+    if sieve_config.config["generic_event_generation_enabled"]:
         events_oracle = generate_events_oracle(project, src_dir, canonicalize_resource)
         dump_json_file(src_dir, events_oracle, "side-effect.json")
         if canonicalize_resource:
             dump_json_file(dest_dir, events_oracle, "side-effect.json")
-    if sieve_config.config["generate_resource"]:
+    if sieve_config.config["generic_state_generation_enabled"]:
         resources = generate_resources(src_dir, canonicalize_resource)
         ignore_paths = generate_ignore_paths(resources)
         # we generate resources.json at src_dir (log dir)
@@ -96,9 +96,9 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
     api_event_map["types"] = api_type_event_map
 
     if canonicalize_resource:
-        # Suppose we are current at learn/learn-twice/xxx
-        learn_dir = pathlib.Path(log_dir).parent
-        learn_once_dir = learn_dir / "learn-once"
+        # Suppose we are current at learn/learn-twice/learn.yaml/xxx
+        learn_dir = os.path.dirname(os.path.dirname(log_dir))
+        learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
         prev_api_event_map = json.loads(
             open(os.path.join(learn_once_dir, "side-effect.json")).read()
         )
@@ -143,7 +143,7 @@ def get_crd_list():
 def get_crd(crd):
     data = {}
     try:
-        for item in json.loads(os.popen("kubectl get %s -o json" % (crd)).read())[
+        for item in json.loads(os.popen("kubectl get {} -o json".format(crd)).read())[
             "items"
         ]:
             data[item["metadata"]["name"]] = item
@@ -199,9 +199,9 @@ def generate_resources(log_dir="", canonicalize_resource=False):
         resources[crd] = get_crd(crd)
 
     if canonicalize_resource:
-        # Suppose we are current at learn/learn-twice/xxx
-        learn_dir = pathlib.Path(log_dir).parent
-        learn_once_dir = learn_dir / "learn-once"
+        # Suppose we are current at learn/learn-twice/learn.yaml/xxx
+        learn_dir = os.path.dirname(os.path.dirname(log_dir))
+        learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
         base_resources = json.loads(
             open(os.path.join(learn_once_dir, "resources.json")).read()
         )
@@ -210,7 +210,7 @@ def generate_resources(log_dir="", canonicalize_resource=False):
 
 
 def dump_ignore_paths(ignore, predefine, key, obj, path):
-    if path in predefine['path'] or key in predefine['key']:
+    if path in predefine["path"] or key in predefine["key"]:
         ignore.add(path)
         return
     if type(obj) is str:
@@ -232,13 +232,17 @@ def dump_ignore_paths(ignore, predefine, key, obj, path):
             val = obj[key]
             newpath = os.path.join(path, key)
             dump_ignore_paths(ignore, predefine, key, val, newpath)
-            
+
+
 def generate_ignore_paths(data):
     result = {}
     for rtype in data:
         result[rtype] = {}
         for name in data[rtype]:
-            predefine = {'path': set(gen_boring_paths()), 'key': set(gen_boring_keys())}
+            predefine = {
+                "path": set(gen_boring_paths()),
+                "key": set(gen_boring_keys()),
+            }
             ignore = set()
             if data[rtype][name] != BORING_IGNORE_MARK:
                 dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
@@ -246,29 +250,43 @@ def generate_ignore_paths(data):
     return result
 
 
-def check_events_oracle(learning_events, testing_events, test_config, skip_list):
-    def should_skip_api_event_key(api_event_key, skip):
-        tokens = api_event_key.split("/")
-        if tokens[1] == "endpoints":
-            rtype = tokens[1]
-        elif tokens[1].endswith("s"):
-            rtype = tokens[1][:-1]
-        else:
-            rtype = tokens[1]
-        name = tokens[-1]
-        for skip_rtype in skip:
-            if skip_rtype == rtype:
-                for skip_name in skip[skip_rtype]:
-                    if skip_name == name and len(skip[skip_rtype][name]) == 0:
-                        return True
+def generate_alarm(sub_alarm, msg):
+    return "[ALARM]" + sub_alarm + " " + msg
+
+
+def generate_warn(msg):
+    return "[WARN] " + msg
+
+
+def generate_fatal(msg):
+    return "[FATAL] " + msg
+
+
+def generic_event_checker(test_context: TestContext, event_mask):
+    learning_events = json.load(
+        open(os.path.join(test_context.data_dir, "side-effect.json"))
+    )
+    testing_events = json.load(
+        open(os.path.join(test_context.result_dir, "side-effect.json"))
+    )
+    test_mode = test_context.mode
+    test_name = test_context.test_name
+
+    ret_val = 0
+    messages = []
+
+    def should_skip_api_event_key(api_event_key, test_name, masked):
+        rtype, _, name = analyze_util.api_key_to_rtype_namespace_name(api_event_key)
+        for masked_test_name in masked:
+            if masked_test_name == "*" or masked_test_name == test_name:
+                for masked_rtype in masked[masked_test_name]:
+                    if masked_rtype == rtype:
+                        if name in masked[masked_test_name][masked_rtype]:
+                            return True
         return False
 
-    alarm = 0
-    bug_report = NO_ERROR_MESSAGE
-
-    test_config_content = yaml.safe_load(open(test_config))
-    if test_config_content["mode"] == sieve_modes.OBS_GAP:
-        return alarm, bug_report
+    if test_mode == sieve_modes.OBS_GAP:
+        return ret_val, messages
 
     # checking events inconsistency for each key
     testing_keys = set(testing_events["keys"].keys())
@@ -277,7 +295,7 @@ def check_events_oracle(learning_events, testing_events, test_config, skip_list)
         assert learning_events["keys"][key] != "SIEVE-IGNORE"
         if is_unstable_api_event_key(key, learning_events["keys"][key]):
             continue
-        if should_skip_api_event_key(key, skip_list):
+        if should_skip_api_event_key(key, test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config.config["api_event_to_check"]:
@@ -287,15 +305,20 @@ def check_events_oracle(learning_events, testing_events, test_config, skip_list)
                 testing_events["keys"][key][etype]
                 != learning_events["keys"][key][etype]
             ):
-                alarm += 1
-                bug_report += "[ERROR][EVENT][KEY] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-                    key,
-                    etype,
-                    str(learning_events["keys"][key][etype]),
-                    str(testing_events["keys"][key][etype]),
+                ret_val += 1
+                messages.append(
+                    generate_alarm(
+                        "[EVENT][KEY]",
+                        "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
+                            key,
+                            etype,
+                            str(learning_events["keys"][key][etype]),
+                            str(testing_events["keys"][key][etype]),
+                        ),
+                    )
                 )
 
-    if sieve_config.config["check_type_events_oracle"]:
+    if sieve_config.config["generic_type_event_checker_enabled"]:
         # checking events inconsistency for each resource type
         testing_rtypes = set(testing_events["types"].keys())
         learning_rtypes = set(learning_events["types"].keys())
@@ -309,38 +332,47 @@ def check_events_oracle(learning_events, testing_events, test_config, skip_list)
                     testing_events["types"][rtype][etype]
                     != learning_events["types"][rtype][etype]
                 ):
-                    alarm += 1
-                    bug_report += "[ERROR][EVENT][TYPE] %s %s inconsistency: %s events seen during learning run, but %s seen during testing run\n" % (
-                        rtype,
-                        etype,
-                        str(learning_events["types"][rtype][etype]),
-                        str(testing_events["types"][rtype][etype]),
+                    ret_val += 1
+                    messages.append(
+                        generate_alarm(
+                            "[EVENT][TYPE]",
+                            "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
+                                rtype,
+                                etype,
+                                str(learning_events["types"][rtype][etype]),
+                                str(testing_events["types"][rtype][etype]),
+                            ),
+                        )
                     )
+    messages.sort()
+    return ret_val, messages
 
-    return alarm, bug_report
 
-
-def look_for_panic_in_operator_log(operator_log):
-    alarm = 0
-    bug_report = NO_ERROR_MESSAGE
+def operator_checker(test_context: TestContext):
+    operator_log = os.path.join(test_context.result_dir, "streamed-operator.log")
+    ret_val = 0
+    messages = []
     file = open(operator_log)
     for line in file.readlines():
         if "Observed a panic" in line:
             panic_in_file = line[line.find("Observed a panic") :]
-            bug_report += "[ERROR][OPERATOR-PANIC] %s" % panic_in_file
-            alarm += 1
-    return alarm, bug_report
+            messages.append(generate_alarm("[OPERATOR-PANIC]", panic_in_file.strip()))
+            ret_val += 1
+    messages.sort()
+    return ret_val, messages
 
 
-def check_workload_log(workload_log):
-    alarm = 0
-    bug_report = NO_ERROR_MESSAGE
+def test_workload_checker(test_context: TestContext):
+    workload_log = os.path.join(test_context.result_dir, "workload.log")
+    ret_val = 0
+    messages = []
     file = open(workload_log)
     for line in file.readlines():
         if line.startswith("error:"):
-            alarm += 1
-            bug_report += "[ERROR][WORKLOAD] %s" % line
-    return alarm, bug_report
+            ret_val += 1
+            messages.append(generate_alarm("[WORKLOAD]", line.strip()))
+    messages.sort()
+    return ret_val, messages
 
 
 def equal_path(template, value):
@@ -376,16 +408,21 @@ def should_ignore_regex(val):
                 return True
     return False
 
+
 def gen_boring_keys():
     return [path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")]
 
+
 def gen_boring_paths():
     return [path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")]
-            
 
-def look_for_resources_diff(learn, test):
-    f = io.StringIO()
-    alarm = 0
+      
+def generic_state_checker(test_context: TestContext):
+    learn = json.load(open(os.path.join(test_context.data_dir, "resources.json")))
+    test = json.load(open(os.path.join(test_context.result_dir, "resources.json")))
+
+    ret_val = 0
+    messages = []
 
     def nested_get(dic, keys):
         for key in keys:
@@ -443,51 +480,62 @@ def look_for_resources_diff(learn, test):
 
             if name == "sieve-testing-global-config":
                 continue
-            alarm += 1
+            ret_val += 1
             if delta_type in ["dictionary_item_added", "iterable_item_added"]:
-                print(
-                    "[ERROR][RESOURCE-KEY-ADD]",
-                    "/".join([resource_type, namespace, name]),
-                    "/".join(map(str, path[2:])),
-                    "not seen during learning run, but seen as",
-                    key.t2,
-                    "during testing run",
-                    file=f,
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-ADD]",
+                        "{} {} {} {} {}".format(
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "not seen during learning run, but seen as",
+                            key.t2,
+                            "during testing run",
+                        ),
+                    )
                 )
             elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
-                print(
-                    "[ERROR][RESOURCE-KEY-REMOVE]",
-                    "/".join([resource_type, namespace, name]),
-                    "/".join(map(str, path[2:])),
-                    "seen as",
-                    key.t1,
-                    "during learning run, but not seen",
-                    "during testing run",
-                    file=f,
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-REMOVE]",
+                        "{} {} {} {} {}".format(
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "seen as",
+                            key.t1,
+                            "during learning run, but not seen during testing run",
+                        ),
+                    )
                 )
             elif delta_type == "values_changed":
-                print(
-                    "[ERROR][RESOURCE-KEY-DIFF]",
-                    "/".join([resource_type, namespace, name]),
-                    "/".join(map(str, path[2:])),
-                    "is",
-                    key.t1,
-                    "during learning run, but",
-                    key.t2,
-                    "during testing run",
-                    file=f,
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-DIFF]",
+                        "{} {} {} {} {} {} {}".format(
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "is",
+                            key.t1,
+                            "during learning run, but",
+                            key.t2,
+                            "during testing run",
+                        ),
+                    )
                 )
             else:
-                print(
-                    delta_type,
-                    resource_type,
-                    namespace,
-                    name,
-                    "/".join(map(str, path[2:])),
-                    key.t1,
-                    " => ",
-                    key.t2,
-                    file=f,
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-UNKNOWN-CHANGE]",
+                        "{} {} {} {} {} {} {}".format(
+                            delta_type,
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "is",
+                            key.t1,
+                            " => ",
+                            key.t2,
+                        ),
+                    )
                 )
 
     for resource_type in resource_map:
@@ -498,49 +546,56 @@ def look_for_resources_diff(learn, test):
             learn_set = set(learn[resource_type].keys())
             test_set = set(test[resource_type].keys())
             if delta != 0:
-                alarm += 1
-                print(
-                    "[ERROR][RESOURCE-ADD]"
-                    if delta > 0
-                    else "[ERROR][RESOURCE-REMOVE]",
-                    len(learn_set),
-                    resource_type,
-                    "seen after learning run",
-                    sorted(learn_set),
-                    "but",
-                    len(test_set),
-                    resource_type,
-                    "seen after testing run",
-                    sorted(test_set),
-                    file=f,
+                ret_val += 1
+                messages.append(
+                    generate_alarm(
+                        "[ALARM][RESOURCE-ADD]"
+                        if delta > 0
+                        else "[ALARM][RESOURCE-REMOVE]",
+                        "{} {} {} {} {} {} {} {} {}".format(
+                            len(learn_set),
+                            resource_type,
+                            "seen after learning run",
+                            sorted(learn_set),
+                            "but",
+                            len(test_set),
+                            resource_type,
+                            "seen after testing run",
+                            sorted(test_set),
+                        ),
+                    )
                 )
         else:
             # We report resource diff detail
             for name in resource["add"]:
-                alarm += 1
-                print(
-                    "[ERROR][RESOURCE-ADD]",
-                    "/".join([resource_type, name]),
-                    "is not seen during learning run, but seen during testing run",
-                    file=f,
+                ret_val += 1
+                messages.append(
+                    generate_alarm(
+                        "[ALARM][RESOURCE-ADD]",
+                        "{} {}".format(
+                            "/".join([resource_type, name]),
+                            "is not seen during learning run, but seen during testing run",
+                        ),
+                    )
                 )
             for name in resource["remove"]:
-                alarm += 1
-                print(
-                    "[ERROR][RESOURCE-REMOVE]",
-                    "/".join([resource_type, name]),
-                    "is seen during learning run, but not seen during testing run",
-                    file=f,
+                ret_val += 1
+                messages.append(
+                    generate_alarm(
+                        "[ALARM][RESOURCE-REMOVE]",
+                        "{} {}".format(
+                            "/".join([resource_type, name]),
+                            "is seen during learning run, but not seen during testing run",
+                        ),
+                    )
                 )
 
-    result = f.getvalue()
-    f.close()
-    final_bug_report = result if alarm != 0 else ""
-    return alarm, final_bug_report
+    messages.sort()
+    return ret_val, messages
 
 
 def generate_time_travel_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
+    desc = "Sieve makes the controller time travel back to the history to see the status just {} {}: {}".format(
         test_config_content["timing"],
         test_config_content["ce-rtype"]
         + "/"
@@ -549,7 +604,7 @@ def generate_time_travel_debugging_hint(test_config_content):
         + test_config_content["ce-name"],
         test_config_content["ce-diff-current"],
     )
-    suggestion = "Please check how controller reacts when seeing %s: %s, the controller might issue %s to %s without proper checking" % (
+    suggestion = "Please check how controller reacts when seeing {}: {}, the controller might issue {} to {} without proper checking".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -567,7 +622,7 @@ def generate_time_travel_debugging_hint(test_config_content):
 
 
 def generate_obs_gap_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller miss the event %s: %s" % (
+    desc = "Sieve makes the controller miss the event {}: {}".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -575,7 +630,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
         + test_config_content["ce-name"],
         test_config_content["ce-diff-current"],
     )
-    suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
+    suggestion = "Please check how controller reacts when seeing {}: {}, the event can trigger a controller side effect, and it might be cancelled by following events".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -587,7 +642,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
 
 
 def generate_obs_gap_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller miss the event %s: %s" % (
+    desc = "Sieve makes the controller miss the event {}: {}".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -595,7 +650,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
         + test_config_content["ce-name"],
         test_config_content["ce-diff-current"],
     )
-    suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
+    suggestion = "Please check how controller reacts when seeing {}: {}, the event can trigger a controller side effect, and it might be cancelled by following events".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -607,7 +662,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
 
 
 def generate_atom_vio_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller crash after issuing %s %s: %s" % (
+    desc = "Sieve makes the controller crash after issuing {} {}: {}".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
@@ -616,7 +671,7 @@ def generate_atom_vio_debugging_hint(test_config_content):
         + test_config_content["se-name"],
         test_config_content["se-diff-current"],
     )
-    suggestion = "Please check how controller reacts after issuing %s %s: %s, the controller might fail to recover from the dirty state" % (
+    suggestion = "Please check how controller reacts after issuing {} {}: {}, the controller might fail to recover from the dirty state".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
@@ -641,12 +696,13 @@ def generate_debugging_hint(test_config_content):
         return "WRONG MODE"
 
 
-def print_error_and_debugging_info(alarm, bug_report, test_config):
-    assert alarm != 0
+def print_error_and_debugging_info(ret_val, messages, test_config):
+    if ret_val == 0:
+        return
     test_config_content = yaml.safe_load(open(test_config))
-    report_color = bcolors.FAIL if alarm > 0 else bcolors.WARNING
-    cprint("[ALARM] %d\n" % (alarm) + bug_report, report_color)
-    if sieve_config.config["generate_injection_desc"]:
+    report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
+    cprint("[RET VAL] {}\n".format(ret_val) + messages, report_color)
+    if sieve_config.config["injection_desc_generation_enabled"]:
         hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
         cprint(hint, bcolors.WARNING)
 
@@ -686,78 +742,71 @@ def is_test_workload_finished(workload_log):
         return "FINISH-SIEVE-TEST" in f.read()
 
 
-def injection_validation(test_config, server_log, workload_log):
+def injection_validation(test_context: TestContext):
+    test_config = test_context.test_config
+    server_log = os.path.join(test_context.result_dir, "sieve-server.log")
+    workload_log = os.path.join(test_context.result_dir, "workload.log")
     test_config_content = yaml.safe_load(open(test_config))
     test_mode = test_config_content["mode"]
-    validation_alarm = 0
-    validation_report = NO_ERROR_MESSAGE
+    validation_ret_val = 0
+    validation_messages = []
     if test_mode == sieve_modes.TIME_TRAVEL:
         if not is_time_travel_started(server_log):
-            validation_report += "[WARN] time travel is not started yet\n"
-            validation_alarm = -1
+            validation_messages.append(generate_warn("time travel is not started yet"))
+            validation_ret_val = -1
         elif not is_time_travel_finished(server_log):
-            validation_report += "[WARN] time travel is not finished yet\n"
-            validation_alarm = -2
+            validation_messages.append(generate_warn("time travel is not finished yet"))
+            validation_ret_val = -2
     elif test_mode == sieve_modes.OBS_GAP:
         if not is_obs_gap_started(server_log):
-            validation_report += "[WARN] obs gap is not started yet\n"
-            validation_alarm = -1
+            validation_messages.append(generate_warn("obs gap is not started yet"))
+            validation_ret_val = -1
         elif not is_obs_gap_finished(server_log):
-            validation_report += "[WARN] obs gap is not finished yet\n"
-            validation_alarm = -2
+            validation_messages.append(generate_warn("obs gap is not finished yet"))
+            validation_ret_val = -2
     elif test_mode == sieve_modes.ATOM_VIO:
         if not is_atom_vio_started(server_log):
-            validation_report += "[WARN] atom vio is not started yet\n"
-            validation_alarm = -1
+            validation_messages.append(generate_warn("atom vio is not started yet"))
+            validation_ret_val = -1
         elif not is_atom_vio_finished(server_log):
-            validation_report += "[WARN] atom vio is not finished yet\n"
-            validation_alarm = -2
+            validation_messages.append(generate_warn("atom vio is not finished yet"))
+            validation_ret_val = -2
     if not is_test_workload_finished(workload_log):
-        validation_report += "[WARN] test workload is not finished yet\n"
-        validation_alarm = -2
-    return validation_alarm, validation_report
+        validation_messages.append(generate_warn("test workload is not started yet"))
+        validation_ret_val = -3
+    validation_messages.sort()
+    return validation_ret_val, validation_messages
 
 
-def check(test_config, log_dir, data_dir, skip_list):
-    server_log = os.path.join(log_dir, "sieve-server.log")
-    workload_log = os.path.join(log_dir, "workload.log")
-    validation_alarm, validation_report = injection_validation(
-        test_config, server_log, workload_log
-    )
-    bug_alarm = 0
-    bug_report = NO_ERROR_MESSAGE
+def check(test_context: TestContext, event_mask, state_mask):
+    ret_val = 0
+    messages = []
 
-    if sieve_config.config["check_operator_log"]:
-        operator_log = os.path.join(log_dir, "streamed-operator.log")
-        panic_alarm, panic_bug_report = look_for_panic_in_operator_log(operator_log)
-        bug_alarm += panic_alarm
-        bug_report += panic_bug_report
+    validation_ret_val, validation_messages = injection_validation(test_context)
+    if validation_ret_val < 0:
+        messages.extend(validation_messages)
 
-    if sieve_config.config["check_workload_log"]:
-        workload_log = os.path.join(log_dir, "workload.log")
-        workload_alarm, workload_bug_report = check_workload_log(workload_log)
-        bug_alarm += workload_alarm
-        bug_report += workload_bug_report
+    if sieve_config.config["operator_checker_enabled"]:
+        panic_ret_val, panic_messages = operator_checker(test_context)
+        ret_val += panic_ret_val
+        messages.extend(panic_messages)
 
-    if sieve_config.config["check_events_oracle"]:
-        learn_events = json.load(open(os.path.join(data_dir, "side-effect.json")))
-        test_events = json.load(open(os.path.join(log_dir, "side-effect.json")))
-        write_alarm, write_bug_report = check_events_oracle(
-            learn_events, test_events, test_config, skip_list
-        )
-        bug_alarm += write_alarm
-        bug_report += write_bug_report
+    if sieve_config.config["test_workload_checker_enabled"]:
+        workload_ret_val, workload_messages = test_workload_checker(test_context)
+        ret_val += workload_ret_val
+        messages.extend(workload_messages)
 
-    if sieve_config.config["check_resource"]:
-        learn_resources = json.load(open(os.path.join(data_dir, "resources.json")))
-        test_resources = json.load(open(os.path.join(log_dir, "resources.json")))
-        resource_alarm, resource_bug_report = look_for_resources_diff(
-            learn_resources, test_resources
-        )
-        bug_alarm += resource_alarm
-        bug_report += resource_bug_report
+    if sieve_config.config["generic_event_checker_enabled"]:
+        write_ret_val, write_messages = generic_event_checker(test_context, event_mask)
+        ret_val += write_ret_val
+        messages.extend(write_messages)
 
-    if validation_alarm < 0:
-        return validation_alarm, validation_report + bug_report
-    else:
-        return bug_alarm, bug_report
+    if sieve_config.config["generic_state_checker_enabled"]:
+        resource_ret_val, resource_messages = generic_state_checker(test_context)
+        ret_val += resource_ret_val
+        messages.extend(resource_messages)
+
+    if validation_ret_val < 0:
+        ret_val = validation_ret_val
+
+    return ret_val, "\n".join(messages)
