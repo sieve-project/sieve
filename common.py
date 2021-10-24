@@ -43,10 +43,14 @@ BORING_EVENT_OBJECT_FIELDS = [
     "labels",  # label can contain random strings e.g., controller-revision-hash
 ]
 
-BORING_EVENT_OBJECT_KEYS = ["image", "imageID", "generation", "observedGeneration"]
-# all the path here is full path,
-# xxx/0/yyy has the same meaning as xxx/*/yyy
+# If paths started with `**/name`, it means we will ignore any key whose name is `name`
+# Otherwise, we will match base on he full path
+# `x/*/y` * means matching any array index
 BORING_EVENT_OBJECT_PATHS = [
+    "**/image",
+    "**/imageID",
+    "**/generation",
+    "**/observedGeneration",
     "data",
     "metadata/annotations",
     "metadata/managedFields",
@@ -54,9 +58,11 @@ BORING_EVENT_OBJECT_PATHS = [
     "metadata/resourceVersion",
     "metadata/generateName",
     "metadata/ownerReferences",
+    "metadata/deletionGracePeriodSeconds",
     "spec/template/spec/containers/*/env",
     "spec/containers/*/env",
     "spec/nodeName",
+    "spec/ports",
     "status/conditions",
     "spec/selector/pod-template-hash",
 ]
