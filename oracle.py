@@ -143,7 +143,7 @@ def get_crd_list():
 def get_crd(crd):
     data = {}
     try:
-        for item in json.loads(os.popen("kubectl get %s -o json" % (crd)).read())[
+        for item in json.loads(os.popen("kubectl get {} -o json".format(crd)).read())[
             "items"
         ]:
             data[item["metadata"]["name"]] = item
@@ -300,8 +300,7 @@ def generic_event_checker(learning_events, testing_events, test_config, event_ma
                 messages.append(
                     generate_alarm(
                         "[EVENT][KEY]",
-                        "%s %s inconsistency: %s events seen during learning run, but %s seen during testing run"
-                        % (
+                        "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
                             key,
                             etype,
                             str(learning_events["keys"][key][etype]),
@@ -328,8 +327,7 @@ def generic_event_checker(learning_events, testing_events, test_config, event_ma
                     messages.append(
                         generate_alarm(
                             "[EVENT][TYPE]",
-                            "%s %s inconsistency: %s events seen during learning run, but %s seen during testing run"
-                            % (
+                            "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
                                 rtype,
                                 etype,
                                 str(learning_events["types"][rtype][etype]),
@@ -413,8 +411,8 @@ def preprocess(learn, test):
 
 
 def generic_state_checker(learn, test):
-    f = io.StringIO()
     ret_val = 0
+    messages = []
 
     def nested_get(dic, keys):
         for key in keys:
@@ -476,49 +474,60 @@ def generic_state_checker(learn, test):
                     continue
                 ret_val += 1
                 if delta_type in ["dictionary_item_added", "iterable_item_added"]:
-                    print(
-                        "[ALARM][RESOURCE-KEY-ADD]",
-                        "/".join([resource_type, namespace, name]),
-                        "/".join(map(str, path[2:])),
-                        "not seen during learning run, but seen as",
-                        key.t2,
-                        "during testing run",
-                        file=f,
+                    messages.append(
+                        generate_alarm(
+                            "[RESOURCE-KEY-ADD]",
+                            "{} {} {} {} {}".format(
+                                "/".join([resource_type, namespace, name]),
+                                "/".join(map(str, path[2:])),
+                                "not seen during learning run, but seen as",
+                                key.t2,
+                                "during testing run",
+                            ),
+                        )
                     )
                 elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
-                    print(
-                        "[ALARM][RESOURCE-KEY-REMOVE]",
-                        "/".join([resource_type, namespace, name]),
-                        "/".join(map(str, path[2:])),
-                        "seen as",
-                        key.t1,
-                        "during learning run, but not seen",
-                        "during testing run",
-                        file=f,
+                    messages.append(
+                        generate_alarm(
+                            "[RESOURCE-KEY-REMOVE]",
+                            "{} {} {} {} {}".format(
+                                "/".join([resource_type, namespace, name]),
+                                "/".join(map(str, path[2:])),
+                                "seen as",
+                                key.t1,
+                                "during learning run, but not seen during testing run",
+                            ),
+                        )
                     )
                 elif delta_type == "values_changed":
-                    print(
-                        "[ALARM][RESOURCE-KEY-DIFF]",
-                        "/".join([resource_type, namespace, name]),
-                        "/".join(map(str, path[2:])),
-                        "is",
-                        key.t1,
-                        "during learning run, but",
-                        key.t2,
-                        "during testing run",
-                        file=f,
+                    messages.append(
+                        generate_alarm(
+                            "[RESOURCE-KEY-DIFF]",
+                            "{} {} {} {} {} {} {}".format(
+                                "/".join([resource_type, namespace, name]),
+                                "/".join(map(str, path[2:])),
+                                "is",
+                                key.t1,
+                                "during learning run, but",
+                                key.t2,
+                                "during testing run",
+                            ),
+                        )
                     )
                 else:
-                    print(
-                        delta_type,
-                        resource_type,
-                        namespace,
-                        name,
-                        "/".join(map(str, path[2:])),
-                        key.t1,
-                        " => ",
-                        key.t2,
-                        file=f,
+                    messages.append(
+                        generate_alarm(
+                            "[RESOURCE-KEY-UNKNOWN-CHANGE]",
+                            "{} {} {} {} {} {} {}".format(
+                                delta_type,
+                                "/".join([resource_type, namespace, name]),
+                                "/".join(map(str, path[2:])),
+                                "is",
+                                key.t1,
+                                " => ",
+                                key.t2,
+                            ),
+                        )
                     )
 
     for resource_type in resource_map:
@@ -530,48 +539,55 @@ def generic_state_checker(learn, test):
             test_set = set(test[resource_type].keys())
             if delta != 0:
                 ret_val += 1
-                print(
-                    "[ALARM][RESOURCE-ADD]"
-                    if delta > 0
-                    else "[ALARM][RESOURCE-REMOVE]",
-                    len(learn_set),
-                    resource_type,
-                    "seen after learning run",
-                    sorted(learn_set),
-                    "but",
-                    len(test_set),
-                    resource_type,
-                    "seen after testing run",
-                    sorted(test_set),
-                    file=f,
+                messages.append(
+                    generate_alarm(
+                        "[ALARM][RESOURCE-ADD]"
+                        if delta > 0
+                        else "[ALARM][RESOURCE-REMOVE]",
+                        "{} {} {} {} {} {} {} {} {}".format(
+                            len(learn_set),
+                            resource_type,
+                            "seen after learning run",
+                            sorted(learn_set),
+                            "but",
+                            len(test_set),
+                            resource_type,
+                            "seen after testing run",
+                            sorted(test_set),
+                        ),
+                    )
                 )
         else:
             # We report resource diff detail
             for name in resource["add"]:
                 ret_val += 1
-                print(
-                    "[ALARM][RESOURCE-ADD]",
-                    "/".join([resource_type, name]),
-                    "is not seen during learning run, but seen during testing run",
-                    file=f,
+                messages.append(
+                    generate_alarm(
+                        "[ALARM][RESOURCE-ADD]",
+                        "{} {}".format(
+                            "/".join([resource_type, name]),
+                            "is not seen during learning run, but seen during testing run",
+                        ),
+                    )
                 )
             for name in resource["remove"]:
                 ret_val += 1
-                print(
-                    "[ALARM][RESOURCE-REMOVE]",
-                    "/".join([resource_type, name]),
-                    "is seen during learning run, but not seen during testing run",
-                    file=f,
+                messages.append(
+                    generate_alarm(
+                        "[ALARM][RESOURCE-REMOVE]",
+                        "{} {}".format(
+                            "/".join([resource_type, name]),
+                            "is seen during learning run, but not seen during testing run",
+                        ),
+                    )
                 )
 
-    result = f.getvalue()
-    f.close()
-    final_messages = result if ret_val != 0 else ""
-    return ret_val, final_messages
+    messages.sort()
+    return ret_val, "\n".join(messages)
 
 
 def generate_time_travel_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller time travel back to the history to see the status just %s %s: %s" % (
+    desc = "Sieve makes the controller time travel back to the history to see the status just {} {}: {}".format(
         test_config_content["timing"],
         test_config_content["ce-rtype"]
         + "/"
@@ -580,7 +596,7 @@ def generate_time_travel_debugging_hint(test_config_content):
         + test_config_content["ce-name"],
         test_config_content["ce-diff-current"],
     )
-    suggestion = "Please check how controller reacts when seeing %s: %s, the controller might issue %s to %s without proper checking" % (
+    suggestion = "Please check how controller reacts when seeing {}: {}, the controller might issue {} to {} without proper checking".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -598,7 +614,7 @@ def generate_time_travel_debugging_hint(test_config_content):
 
 
 def generate_obs_gap_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller miss the event %s: %s" % (
+    desc = "Sieve makes the controller miss the event {}: {}".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -606,7 +622,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
         + test_config_content["ce-name"],
         test_config_content["ce-diff-current"],
     )
-    suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
+    suggestion = "Please check how controller reacts when seeing {}: {}, the event can trigger a controller side effect, and it might be cancelled by following events".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -618,7 +634,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
 
 
 def generate_obs_gap_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller miss the event %s: %s" % (
+    desc = "Sieve makes the controller miss the event {}: {}".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -626,7 +642,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
         + test_config_content["ce-name"],
         test_config_content["ce-diff-current"],
     )
-    suggestion = "Please check how controller reacts when seeing %s: %s, the event can trigger a controller side effect, and it might be cancelled by following events" % (
+    suggestion = "Please check how controller reacts when seeing {}: {}, the event can trigger a controller side effect, and it might be cancelled by following events".format(
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
@@ -638,7 +654,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
 
 
 def generate_atom_vio_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller crash after issuing %s %s: %s" % (
+    desc = "Sieve makes the controller crash after issuing {} {}: {}".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
@@ -647,7 +663,7 @@ def generate_atom_vio_debugging_hint(test_config_content):
         + test_config_content["se-name"],
         test_config_content["se-diff-current"],
     )
-    suggestion = "Please check how controller reacts after issuing %s %s: %s, the controller might fail to recover from the dirty state" % (
+    suggestion = "Please check how controller reacts after issuing {} {}: {}, the controller might fail to recover from the dirty state".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
@@ -677,7 +693,7 @@ def print_error_and_debugging_info(ret_val, messages, test_config):
         return
     test_config_content = yaml.safe_load(open(test_config))
     report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
-    cprint("[RET VAL] %d\n" % (ret_val) + messages, report_color)
+    cprint("[RET VAL] {}\n".format(ret_val) + messages, report_color)
     if sieve_config.config["injection_desc_generation_enabled"]:
         hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
         cprint(hint, bcolors.WARNING)
