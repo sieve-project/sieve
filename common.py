@@ -121,6 +121,42 @@ class Suite:
         #     self.num_workers = 0
 
 
+class TestContext:
+    def __init__(
+        self,
+        project,
+        test_name,
+        stage,
+        mode,
+        phase,
+        test_workload,
+        test_config,
+        result_dir,
+        data_dir,
+        docker_repo,
+        docker_tag,
+        num_apiservers,
+        num_workers,
+        use_csi_driver,
+        oracle_config,
+    ):
+        self.project = project
+        self.test_name = test_name
+        self.stage = stage
+        self.mode = mode
+        self.phase = phase
+        self.test_workload = test_workload
+        self.test_config = test_config
+        self.result_dir = result_dir
+        self.data_dir = data_dir
+        self.docker_repo = docker_repo
+        self.docker_tag = docker_tag
+        self.num_apiservers = num_apiservers
+        self.num_workers = num_workers
+        self.use_csi_driver = use_csi_driver
+        self.oracle_config = oracle_config
+
+
 def dump_to_yaml(file_content, file_name):
     yaml.dump(
         file_content,

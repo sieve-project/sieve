@@ -42,6 +42,7 @@ var exists = struct{}{}
 // resources that have different representation between API and controller side
 var TYPES_TO_CONFORM = map[string]struct{}{"pod": exists}
 
+// TODO: conform mask keys to api as well
 // keys that to ignore when computing event diff
 var KEYS_TO_MASK = map[string]struct{}{
 	"uid":                        exists, // random

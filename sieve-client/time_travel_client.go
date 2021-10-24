@@ -47,6 +47,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	if len(tokens) < 4 {
 		return
 	}
+	// TODO: implement a method to map from apiKey to rType, namespace and name
 	resourceType := pluralToSingle(tokens[len(tokens)-3])
 	// Ref: https://github.com/kubernetes/kubernetes/blob/master/pkg/kubeapiserver/default_storage_factory_builder.go#L40
 	prev := tokens[len(tokens)-4]

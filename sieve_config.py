@@ -10,19 +10,19 @@ config = {
     "compress_trivial_reconcile": True,
     "workload_wait_soft_timeout": 100,
     "workload_wait_hard_timeout": 600,
-    "generate_events_oracle": True,
-    "generate_resource": True,
-    "check_events_oracle": True,
-    "check_type_events_oracle": False,
-    "check_resource": True,
-    "check_operator_log": True,
-    "check_workload_log": True,
-    "generate_injection_desc": True,
+    "generic_event_generation_enabled": True,
+    "generic_state_generation_enabled": True,
+    "generic_event_checker_enabled": True,
+    "generic_type_event_checker_enabled": False,
+    "generic_state_checker_enabled": True,
+    "operator_checker_enabled": True,
+    "test_workload_checker_enabled": True,
+    "injection_desc_generation_enabled": True,
 }
 
 if os.path.isfile("sieve_config.json"):
     json_config = json.loads(open("sieve_config.json").read())
     for key in json_config:
         config[key] = json_config[key]
-    if not config["generate_resource"]:
-        config["check_resource"] = False
+    if not config["generic_state_generation_enabled"]:
+        config["generic_state_checker_enabled"] = False
