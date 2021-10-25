@@ -149,6 +149,9 @@ jobs:
     - name: Sieve Learn - cass-operator recreate
       run: python3 sieve.py -p cass-operator -t recreate -s learn -m learn-twice -d
         $IMAGE_NAMESPACE
+    - name: Sieve Learn - cass-operator scaledown-scaleup
+      run: python3 sieve.py -p cass-operator -t scaledown-scaleup -s learn -m learn-twice -d
+        $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
