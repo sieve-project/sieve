@@ -218,16 +218,14 @@ def dump_ignore_paths(ignore, predefine, key, obj, path):
         if obj == BORING_IGNORE_MARK:
             ignore.add(path)
             return
-        # Check for IP
-        pat = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-        isip = pat.match(obj)
-        if isip:
+        # Check for ignore regex rule
+        if should_ignore_regex(obj):
             ignore.add(path)
             return
     if type(obj) is list:
         for i in range(len(obj)):
             val = obj[i]
-            newpath = os.path.join(path, "0")
+            newpath = os.path.join(path, "*")
             dump_ignore_paths(ignore, predefine, i, val, newpath)
     elif type(obj) is dict:
         for key in obj:
@@ -242,13 +240,13 @@ def generate_ignore_paths(data):
         result[rtype] = {}
         for name in data[rtype]:
             predefine = {
-                "path": set(BORING_EVENT_OBJECT_PATHS),
-                "key": set(BORING_EVENT_OBJECT_KEYS),
+                "path": set(gen_boring_paths()),
+                "key": set(gen_boring_keys()),
             }
             ignore = set()
             if data[rtype][name] != BORING_IGNORE_MARK:
                 dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
-                result[rtype][name] = list(ignore)
+                result[rtype][name] = sorted(list(ignore))
     return result
 
 
@@ -377,28 +375,6 @@ def test_workload_checker(test_context: TestContext):
     return ret_val, messages
 
 
-BORING_EVENT_OBJECT_KEYS = ["image", "imageID", "generation", "observedGeneration"]
-# all the path here is full path,
-# xxx/0/yyy has the same meaning as xxx/*/yyy
-BORING_EVENT_OBJECT_PATHS = [
-    "data",
-    "metadata/annotations",
-    "metadata/managedFields",
-    "metadata/labels",
-    "metadata/resourceVersion",
-    "metadata/generateName",
-    "metadata/ownerReferences",
-    "spec/template/spec/containers/0/env",
-    "spec/containers/0/env",
-    "status/conditions/0/message",
-    "spec/nodeName",
-    "status/conditions/0/type",
-    "status/conditions",
-    "spec/selector/pod-template-hash",
-]
-BORING_IGNORE_MARK = "SIEVE-IGNORE"
-
-
 def equal_path(template, value):
     template = template.split("/")
     value = value.split("/")
@@ -423,6 +399,24 @@ def preprocess(learn, test):
             test.pop(resource, None)
 
 
+def should_ignore_regex(val):
+    # Search for ignore regex
+    if type(val) is str:
+        for reg in BORING_EVENT_OBJECT_REGS:
+            pat = re.compile(reg)
+            if pat.match(val):
+                return True
+    return False
+
+
+def gen_boring_keys():
+    return [path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")]
+
+
+def gen_boring_paths():
+    return [path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")]
+
+      
 def generic_state_checker(test_context: TestContext):
     learn = json.load(open(os.path.join(test_context.data_dir, "resources.json")))
     test = json.load(open(os.path.join(test_context.result_dir, "resources.json")))
@@ -438,7 +432,8 @@ def generic_state_checker(test_context: TestContext):
     preprocess(learn, test)
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
     resource_map = {resource: {"add": [], "remove": []} for resource in test}
-    not_care_keys = set(BORING_EVENT_OBJECT_KEYS)
+    boring_keys = set(gen_boring_keys())
+    boring_paths = set(gen_boring_paths())
 
     for delta_type in tdiff:
         for key in tdiff[delta_type]:
@@ -455,96 +450,93 @@ def generic_state_checker(test_context: TestContext):
                 ].append(name)
                 continue
 
-            if key.t1 != BORING_IGNORE_MARK:
-                has_not_care = False
-                # Search for boring keys
-                for kp in path:
-                    if kp in not_care_keys:
+            if delta_type in ["values_changed", "type_changes"]:
+                if key.t1 == BORING_IGNORE_MARK or should_ignore_regex(key.t1) or should_ignore_regex(key.t2):
+                    continue
+
+            has_not_care = False
+            # Search for boring keys
+            for kp in path:
+                if kp in boring_keys:
+                    has_not_care = True
+                    break
+            # Search for boring paths
+            if len(path) > 2:
+                for rule in boring_paths:
+                    if equal_path(rule, "/".join([str(x) for x in path[2:]])):
                         has_not_care = True
                         break
-                # Search for boring paths
-                if len(path) > 2:
-                    for rule in BORING_EVENT_OBJECT_PATHS:
-                        if equal_path(rule, "/".join([str(x) for x in path[2:]])):
-                            has_not_care = True
-                            break
-                if has_not_care:
-                    continue
-                # Search for ip
-                if type(key.t1) is str:
-                    pat = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-                    isip = pat.match(key.t1)
-                    if isip:
-                        continue
+            if has_not_care:
+                continue
 
-                resource_type = path[0]
-                if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
-                    source = learn
-                else:
-                    source = test
+            resource_type = path[0]
+            if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
+                source = learn
+            else:
+                source = test
 
-                name = nested_get(source, path[:2] + ["metadata", "name"])
-                namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
+            name = nested_get(source, path[:2] + ["metadata", "name"])
+            namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
 
-                if name == "sieve-testing-global-config":
-                    continue
-                ret_val += 1
-                if delta_type in ["dictionary_item_added", "iterable_item_added"]:
-                    messages.append(
-                        generate_alarm(
-                            "[RESOURCE-KEY-ADD]",
-                            "{} {} {} {} {}".format(
-                                "/".join([resource_type, namespace, name]),
-                                "/".join(map(str, path[2:])),
-                                "not seen during learning run, but seen as",
-                                key.t2,
-                                "during testing run",
-                            ),
-                        )
+            if name == "sieve-testing-global-config":
+                continue
+            ret_val += 1
+            if delta_type in ["dictionary_item_added", "iterable_item_added"]:
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-ADD]",
+                        "{} {} {} {} {}".format(
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "not seen during learning run, but seen as",
+                            key.t2,
+                            "during testing run",
+                        ),
                     )
-                elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
-                    messages.append(
-                        generate_alarm(
-                            "[RESOURCE-KEY-REMOVE]",
-                            "{} {} {} {} {}".format(
-                                "/".join([resource_type, namespace, name]),
-                                "/".join(map(str, path[2:])),
-                                "seen as",
-                                key.t1,
-                                "during learning run, but not seen during testing run",
-                            ),
-                        )
+                )
+            elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-REMOVE]",
+                        "{} {} {} {} {}".format(
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "seen as",
+                            key.t1,
+                            "during learning run, but not seen during testing run",
+                        ),
                     )
-                elif delta_type == "values_changed":
-                    messages.append(
-                        generate_alarm(
-                            "[RESOURCE-KEY-DIFF]",
-                            "{} {} {} {} {} {} {}".format(
-                                "/".join([resource_type, namespace, name]),
-                                "/".join(map(str, path[2:])),
-                                "is",
-                                key.t1,
-                                "during learning run, but",
-                                key.t2,
-                                "during testing run",
-                            ),
-                        )
+                )
+            elif delta_type == "values_changed":
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-DIFF]",
+                        "{} {} {} {} {} {} {}".format(
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "is",
+                            key.t1,
+                            "during learning run, but",
+                            key.t2,
+                            "during testing run",
+                        ),
                     )
-                else:
-                    messages.append(
-                        generate_alarm(
-                            "[RESOURCE-KEY-UNKNOWN-CHANGE]",
-                            "{} {} {} {} {} {} {}".format(
-                                delta_type,
-                                "/".join([resource_type, namespace, name]),
-                                "/".join(map(str, path[2:])),
-                                "is",
-                                key.t1,
-                                " => ",
-                                key.t2,
-                            ),
-                        )
+                )
+            else:
+                messages.append(
+                    generate_alarm(
+                        "[RESOURCE-KEY-UNKNOWN-CHANGE]",
+                        "{} {} {} {} {} {} {}".format(
+                            delta_type,
+                            "/".join([resource_type, namespace, name]),
+                            "/".join(map(str, path[2:])),
+                            "is",
+                            key.t1,
+                            " => ",
+                            key.t2,
+                        ),
                     )
+                )
 
     for resource_type in resource_map:
         resource = resource_map[resource_type]
