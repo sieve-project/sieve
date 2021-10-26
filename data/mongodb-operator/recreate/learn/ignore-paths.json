@@ -161,21 +161,24 @@
     },
     "secret": {
         "internal-mongodb-cluster-users": [
-            "data",
+            "data/MONGODB_BACKUP_PASSWORD",
+            "data/MONGODB_CLUSTER_ADMIN_PASSWORD",
+            "data/MONGODB_CLUSTER_MONITOR_PASSWORD",
+            "data/MONGODB_USER_ADMIN_PASSWORD",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/resourceVersion",
             "metadata/uid"
         ],
         "mongodb-cluster-mongodb-encryption-key": [
-            "data",
+            "data/encryption-key",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/resourceVersion",
             "metadata/uid"
         ],
         "mongodb-cluster-mongodb-keyfile": [
-            "data",
+            "data/mongodb-key",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/ownerReferences",
@@ -183,14 +186,19 @@
             "metadata/uid"
         ],
         "mongodb-cluster-secrets": [
-            "data",
+            "data/MONGODB_BACKUP_PASSWORD",
+            "data/MONGODB_CLUSTER_ADMIN_PASSWORD",
+            "data/MONGODB_CLUSTER_MONITOR_PASSWORD",
+            "data/MONGODB_USER_ADMIN_PASSWORD",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/resourceVersion",
             "metadata/uid"
         ],
         "mongodb-cluster-ssl": [
-            "data",
+            "data/ca.crt",
+            "data/tls.crt",
+            "data/tls.key",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/ownerReferences",
@@ -198,7 +206,9 @@
             "metadata/uid"
         ],
         "mongodb-cluster-ssl-internal": [
-            "data",
+            "data/ca.crt",
+            "data/tls.crt",
+            "data/tls.key",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/ownerReferences",

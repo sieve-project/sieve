@@ -88,7 +88,8 @@
     },
     "secret": {
         "cass-operator-webhook-config": [
-            "data",
+            "data/tls.crt",
+            "data/tls.key",
             "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/managedFields",
@@ -96,21 +97,22 @@
             "metadata/uid"
         ],
         "cassandra-datacenter-ca-keystore": [
-            "data",
+            "data/cert",
+            "data/key",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/resourceVersion",
             "metadata/uid"
         ],
         "cassandra-datacenter-keystore": [
-            "data",
+            "data/node-keystore.jks",
             "metadata/creationTimestamp",
             "metadata/managedFields",
             "metadata/resourceVersion",
             "metadata/uid"
         ],
         "cluster1-superuser": [
-            "data",
+            "data/password",
             "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/labels",
