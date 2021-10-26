@@ -31,7 +31,6 @@ BORING_EVENT_OBJECT_PATHS = [
     "**/imageID",
     "**/containerID",
     "**/uid",
-    "data",
     "metadata/annotations",
     "metadata/managedFields",
     "metadata/labels",
