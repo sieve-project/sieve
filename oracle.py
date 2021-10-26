@@ -5,12 +5,9 @@ import yaml
 import json
 import os
 from common import *
-import io
 import sieve_config
-import re
 import deepdiff
 from deepdiff import DeepDiff
-import pathlib
 
 
 api_event_empty_entry = {
@@ -383,7 +380,7 @@ def equal_path(template, value):
         return False
 
     for i in range(len(template)):
-        if template[i] in ["0", "*"]:
+        if template[i] == "*":
             continue
         if template[i] != value[i]:
             return False
@@ -399,24 +396,6 @@ def preprocess(learn, test):
             test.pop(resource, None)
 
 
-def should_ignore_regex(val):
-    # Search for ignore regex
-    if type(val) is str:
-        for reg in BORING_EVENT_OBJECT_REGS:
-            pat = re.compile(reg)
-            if pat.match(val):
-                return True
-    return False
-
-
-def gen_boring_keys():
-    return [path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")]
-
-
-def gen_boring_paths():
-    return [path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")]
-
-      
 def generic_state_checker(test_context: TestContext):
     learn = json.load(open(os.path.join(test_context.data_dir, "resources.json")))
     test = json.load(open(os.path.join(test_context.result_dir, "resources.json")))
@@ -451,7 +430,11 @@ def generic_state_checker(test_context: TestContext):
                 continue
 
             if delta_type in ["values_changed", "type_changes"]:
-                if key.t1 == BORING_IGNORE_MARK or should_ignore_regex(key.t1) or should_ignore_regex(key.t2):
+                if (
+                    key.t1 == BORING_IGNORE_MARK
+                    or should_ignore_regex(key.t1)
+                    or should_ignore_regex(key.t2)
+                ):
                     continue
 
             has_not_care = False

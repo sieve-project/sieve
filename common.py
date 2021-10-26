@@ -1,6 +1,7 @@
 import os
 import sys
 import yaml
+import re
 
 NO_ERROR_MESSAGE = ""
 
@@ -22,41 +23,21 @@ SIEVE_VALUE_MASK = "SIEVE-NON-NIL"
 EXIST = True
 NONEXIST = False
 
-KTYPES = [POD, PVC, DEPLOYMENT, STS]
-
-# TODO: we should remove this and use fields in ignore-paths.json instead
-BORING_EVENT_OBJECT_FIELDS = [
-    "uid",  # random
-    "resourceVersion",  # random
-    "generation",  # random
-    "annotations",  # verbose
-    "managedFields",  # verbose
-    "lastTransitionTime",  # timing
-    "deletionGracePeriodSeconds",  # timing
-    "time",  # timing
-    "podIP",  # IP assignment is random
-    "ip",  # IP assignment is random
-    "hostIP",  # IP assignment is random
-    "nodeName",  # node assignment is random
-    "imageID",  # image ID is randome
-    "containerID",  # container ID is random
-    "labels",  # label can contain random strings e.g., controller-revision-hash
-]
-
 # If paths started with `**/name`, it means we will ignore any key whose name is `name`
 # Otherwise, we will match base on he full path
 # `x/*/y` * means matching any array index
 BORING_EVENT_OBJECT_PATHS = [
     "**/image",
     "**/imageID",
-    "**/generation",
-    "**/observedGeneration",
+    "**/containerID",
+    "**/uid",
     "data",
     "metadata/annotations",
     "metadata/managedFields",
     "metadata/labels",
     "metadata/resourceVersion",
     "metadata/generateName",
+    "metadata/generation",
     "metadata/ownerReferences",
     "metadata/deletionGracePeriodSeconds",
     "spec/template/spec/containers/*/env",
@@ -64,8 +45,19 @@ BORING_EVENT_OBJECT_PATHS = [
     "spec/nodeName",
     "spec/ports",
     "status/conditions",
+    "status/observedGeneration",
     "spec/selector/pod-template-hash",
 ]
+
+
+def gen_boring_keys():
+    return [path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")]
+
+
+def gen_boring_paths():
+    return [path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")]
+
+
 BORING_IGNORE_MARK = "SIEVE-IGNORE"
 
 TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
@@ -73,8 +65,15 @@ IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01
 
 BORING_EVENT_OBJECT_REGS = [TIME_REG, IP_REG]
 
-BORING_POD_LIST = ["csi-hostpathplugin-0", "snapshot-controller-0"]
-BORING_STS_LIST = ["csi-hostpathplugin", "snapshot-controller"]
+
+def should_ignore_regex(val):
+    # Search for ignore regex
+    if type(val) is str:
+        for reg in BORING_EVENT_OBJECT_REGS:
+            pat = re.compile(reg)
+            if pat.match(val):
+                return True
+    return False
 
 
 def cmd_early_exit(cmd, early_exit=True):

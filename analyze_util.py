@@ -650,6 +650,7 @@ def parse_api_event(line: str) -> APIEvent:
 def conflicting_event(
     prev_operator_hear: OperatorHear,
     cur_operator_hear: OperatorHear,
+    masked_keys: Set[str],
     masked_paths: Set[str],
 ) -> bool:
     if conflicting_event_type(prev_operator_hear.etype, cur_operator_hear.etype):
@@ -658,7 +659,10 @@ def conflicting_event(
         prev_operator_hear.etype != OperatorHearTypes.DELETED
         and cur_operator_hear.etype != OperatorHearTypes.DELETED
         and analyze_event.conflicting_event_payload(
-            prev_operator_hear.slim_cur_obj_map, cur_operator_hear.obj_map, masked_paths
+            prev_operator_hear.slim_cur_obj_map,
+            cur_operator_hear.obj_map,
+            masked_keys,
+            masked_paths,
         )
     ):
         return True
@@ -689,13 +693,6 @@ def get_event_signature(event: Union[OperatorHear, OperatorWrite]):
         )
     )
     return signature
-
-
-def retrieve_masked_paths(all, rtype, name):
-    if rtype in all:
-        if name in all[rtype]:
-            return all[rtype][name]
-    return []
 
 
 class CausalityVertex:
@@ -769,8 +766,14 @@ class CausalityEdge:
 
 
 class CausalityGraph:
-    def __init__(self, all_masked_paths: List[str]):
-        self.__all_masked_paths = all_masked_paths
+    def __init__(self, learned_masked_paths: Dict, configured_masked: List):
+        self.__learned_masked_paths = learned_masked_paths
+        self.__configured_masked_paths = set(
+            [path for path in configured_masked if not path.startswith("**/")]
+        )
+        self.__configured_masked_keys = set(
+            [path[3:] for path in configured_masked if path.startswith("**/")]
+        )
         self.__vertex_cnt = 0
         self.__operator_hear_vertices = []
         self.__operator_write_vertices = []
@@ -786,8 +789,16 @@ class CausalityGraph:
         self.__intra_reconciler_edges = []
 
     @property
-    def all_masked_paths(self) -> List[str]:
-        return self.__all_masked_paths
+    def learned_masked_paths(self) -> Dict:
+        return self.__learned_masked_paths
+
+    @property
+    def configured_masked_paths(self) -> Set[str]:
+        return self.__configured_masked_paths
+
+    @property
+    def configured_masked_keys(self) -> Set[str]:
+        return self.__configured_masked_keys
 
     @property
     def operator_hear_vertices(self) -> List[CausalityVertex]:
@@ -844,6 +855,16 @@ class CausalityGraph:
     @property
     def intra_reconciler_edges(self) -> List[CausalityEdge]:
         return self.__intra_reconciler_edges
+
+    def retrieve_masked(self, rtype, name):
+        masked_keys = set()
+        masked_keys.update(self.configured_masked_keys)
+        masked_paths = set()
+        masked_paths.update(self.configured_masked_paths)
+        if rtype in self.learned_masked_paths:
+            if name in self.learned_masked_paths[rtype]:
+                masked_paths.update(set(self.learned_masked_paths[rtype][name]))
+        return (masked_keys, masked_paths)
 
     def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
         if operator_hear_id in self.operator_hear_id_to_vertices:
@@ -1033,15 +1054,15 @@ class CausalityGraph:
                     prev_operator_hear = vertices[i - 1].content
                     prev_hear_obj_map = prev_operator_hear.obj_map
                     prev_hear_etype = prev_operator_hear.etype
-                masked_paths = retrieve_masked_paths(
-                    self.all_masked_paths,
+                masked_keys, masked_paths = self.retrieve_masked(
                     cur_operator_hear.rtype,
                     cur_operator_hear.name,
                 )
                 slim_prev_object, slim_cur_object = analyze_event.diff_event(
                     prev_hear_obj_map,
                     cur_operator_hear.obj_map,
-                    set(masked_paths),
+                    masked_keys,
+                    masked_paths,
                 )
                 cur_operator_hear.slim_prev_obj_map = slim_prev_object
                 cur_operator_hear.slim_cur_obj_map = slim_cur_object
@@ -1092,13 +1113,14 @@ class CausalityGraph:
                         prev_read_obj_map = operator_read.key_to_obj[key]
                         prev_read_etype = operator_read.etype
                         break
-                masked_paths = retrieve_masked_paths(
-                    self.all_masked_paths, operator_write.rtype, operator_write.name
+                masked_keys, masked_paths = self.retrieve_masked(
+                    operator_write.rtype, operator_write.name
                 )
                 slim_prev_object, slim_cur_object = analyze_event.diff_event(
                     prev_read_obj_map,
                     operator_write.obj_map,
-                    set(masked_paths),
+                    masked_keys,
+                    masked_paths,
                     True,
                 )
                 operator_write.slim_prev_obj_map = slim_prev_object
@@ -1125,13 +1147,15 @@ class CausalityGraph:
                     if i == 0:
                         cancelled_by.add(future_operator_hear.id)
                         continue
-                    masked_paths = retrieve_masked_paths(
-                        self.all_masked_paths,
+                    masked_keys, masked_paths = self.retrieve_masked(
                         cur_operator_hear.rtype,
                         cur_operator_hear.name,
                     )
                     if conflicting_event(
-                        cur_operator_hear, future_operator_hear, set(masked_paths)
+                        cur_operator_hear,
+                        future_operator_hear,
+                        masked_keys,
+                        masked_paths,
                     ):
                         cancelled_by.add(future_operator_hear.id)
                 cur_operator_hear.cancelled_by = cancelled_by
