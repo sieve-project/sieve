@@ -9,7 +9,7 @@ import (
 
 // The listener is actually a wrapper around the server.
 func NewTimeTravelListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *TimeTravelListener {
-	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["se-rtype"].(string), config["se-name"].(string), learnedMask, configuredMask)
+	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["ce-rtype"].(string), config["ce-name"].(string), learnedMask, configuredMask)
 	server := &timeTravelServer{
 		project:        config["project"].(string),
 		restarted:      false,

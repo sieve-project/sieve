@@ -8,7 +8,7 @@ import (
 )
 
 func NewObsGapListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *ObsGapListener {
-	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["se-rtype"].(string), config["se-name"].(string), learnedMask, configuredMask)
+	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["ce-rtype"].(string), config["ce-name"].(string), learnedMask, configuredMask)
 	server := &obsGapServer{
 		eventID:          -1,
 		pausingReconcile: false,
