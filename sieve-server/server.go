@@ -15,6 +15,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("registering rpc server...")
 	config := getConfig()
+	learnedMask, configuredMask := getMask()
 
 	switch config["stage"] {
 	case sieve.LEARN:
@@ -25,13 +26,13 @@ func main() {
 		switch config["mode"] {
 		case sieve.TIME_TRAVEL:
 			log.Println(sieve.TIME_TRAVEL)
-			rpc.Register(NewTimeTravelListener(config))
+			rpc.Register(NewTimeTravelListener(config, learnedMask, configuredMask))
 		case sieve.OBS_GAP:
 			log.Println(sieve.OBS_GAP)
-			rpc.Register(NewObsGapListener(config))
+			rpc.Register(NewObsGapListener(config, learnedMask, configuredMask))
 		case sieve.ATOM_VIO:
 			log.Println(sieve.ATOM_VIO)
-			rpc.Register(NewAtomVioListener(config))
+			rpc.Register(NewAtomVioListener(config, learnedMask, configuredMask))
 
 		default:
 			log.Fatalf("Cannot recognize mode: %s\n", config["mode"])

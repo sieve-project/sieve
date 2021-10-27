@@ -8,24 +8,27 @@ import (
 )
 
 // The listener is actually a wrapper around the server.
-func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
+func NewTimeTravelListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *TimeTravelListener {
+	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["se-rtype"].(string), config["se-name"].(string), learnedMask, configuredMask)
 	server := &timeTravelServer{
-		project:       config["project"].(string),
-		restarted:     false,
-		pauseCh:       make(chan int),
-		straggler:     config["straggler"].(string),
-		ceEtype:       config["ce-etype-current"].(string),
-		ceIsCR:        strToBool(config["ce-is-cr"].(string)),
-		diffCurEvent:  strToMap(config["ce-diff-current"].(string)),
-		diffPrevEvent: strToMap(config["ce-diff-previous"].(string)),
-		eventCounter:  strToInt(config["ce-counter"].(string)),
-		podLabel:      config["operator-pod-label"].(string),
-		frontRunner:   config["front-runner"].(string),
-		deployName:    config["deployment-name"].(string),
-		namespace:     "default",
-		prevEvent:     nil,
-		curEvent:      nil,
-		sleeped:       false,
+		project:        config["project"].(string),
+		restarted:      false,
+		pauseCh:        make(chan int),
+		straggler:      config["straggler"].(string),
+		ceEtype:        config["ce-etype-current"].(string),
+		ceIsCR:         strToBool(config["ce-is-cr"].(string)),
+		diffCurEvent:   strToMap(config["ce-diff-current"].(string)),
+		diffPrevEvent:  strToMap(config["ce-diff-previous"].(string)),
+		eventCounter:   strToInt(config["ce-counter"].(string)),
+		podLabel:       config["operator-pod-label"].(string),
+		frontRunner:    config["front-runner"].(string),
+		deployName:     config["deployment-name"].(string),
+		namespace:      "default",
+		prevEvent:      nil,
+		curEvent:       nil,
+		sleeped:        false,
+		maskedKeysSet:  maskedKeysSet,
+		maskedPathsSet: maskedPathsSet,
 	}
 	listener := &TimeTravelListener{
 		Server: server,
@@ -57,22 +60,24 @@ func (l *TimeTravelListener) NotifyTimeTravelAfterSideEffects(request *sieve.Not
 }
 
 type timeTravelServer struct {
-	project       string
-	straggler     string
-	frontRunner   string
-	ceEtype       string
-	diffCurEvent  map[string]interface{}
-	diffPrevEvent map[string]interface{}
-	podLabel      string
-	restarted     bool
-	pauseCh       chan int
-	deployName    string
-	namespace     string
-	prevEvent     map[string]interface{}
-	curEvent      map[string]interface{}
-	sleeped       bool
-	eventCounter  int
-	ceIsCR        bool
+	project        string
+	straggler      string
+	frontRunner    string
+	ceEtype        string
+	diffCurEvent   map[string]interface{}
+	diffPrevEvent  map[string]interface{}
+	podLabel       string
+	restarted      bool
+	pauseCh        chan int
+	deployName     string
+	namespace      string
+	prevEvent      map[string]interface{}
+	curEvent       map[string]interface{}
+	sleeped        bool
+	eventCounter   int
+	ceIsCR         bool
+	maskedKeysSet  map[string]struct{}
+	maskedPathsSet map[string]struct{}
 }
 
 func (s *timeTravelServer) Start() {
@@ -100,7 +105,7 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	log.Printf("[sieve][current-event] %s\n", request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
-	if findTargetDiff(s.eventCounter, request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, true) {
+	if findTargetDiff(s.eventCounter, request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, s.maskedKeysSet, s.maskedPathsSet, true) {
 		s.sleeped = true
 		startTimeTravelInjection()
 		log.Println("[sieve] should sleep here")

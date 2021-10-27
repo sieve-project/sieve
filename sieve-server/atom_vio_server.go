@@ -6,24 +6,27 @@ import (
 	sieve "sieve.client"
 )
 
-func NewAtomVioListener(config map[interface{}]interface{}) *AtomVioListener {
+func NewAtomVioListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *AtomVioListener {
+	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["se-rtype"].(string), config["se-name"].(string), learnedMask, configuredMask)
 	server := &atomVioServer{
-		restarted:     false,
-		eventID:       -1,
-		frontRunner:   config["front-runner"].(string),
-		deployName:    config["deployment-name"].(string),
-		namespace:     "default",
-		podLabel:      config["operator-pod-label"].(string),
-		seName:        config["se-name"].(string),
-		seNamespace:   config["se-namespace"].(string),
-		seRtype:       config["se-rtype"].(string),
-		seEtypePrev:   config["se-etype-previous"].(string),
-		seEtype:       config["se-etype-current"].(string),
-		diffPrevEvent: strToMap(config["se-diff-previous"].(string)),
-		diffCurEvent:  strToMap(config["se-diff-current"].(string)),
-		eventCounter:  strToInt(config["se-counter"].(string)),
-		prevEvent:     nil,
-		curEvent:      nil,
+		restarted:      false,
+		eventID:        -1,
+		frontRunner:    config["front-runner"].(string),
+		deployName:     config["deployment-name"].(string),
+		namespace:      "default",
+		podLabel:       config["operator-pod-label"].(string),
+		seName:         config["se-name"].(string),
+		seNamespace:    config["se-namespace"].(string),
+		seRtype:        config["se-rtype"].(string),
+		seEtypePrev:    config["se-etype-previous"].(string),
+		seEtype:        config["se-etype-current"].(string),
+		diffPrevEvent:  strToMap(config["se-diff-previous"].(string)),
+		diffCurEvent:   strToMap(config["se-diff-current"].(string)),
+		eventCounter:   strToInt(config["se-counter"].(string)),
+		prevEvent:      nil,
+		curEvent:       nil,
+		maskedKeysSet:  maskedKeysSet,
+		maskedPathsSet: maskedPathsSet,
 	}
 	listener := &AtomVioListener{
 		Server: server,
@@ -54,22 +57,24 @@ func (l *AtomVioListener) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAto
 }
 
 type atomVioServer struct {
-	restarted     bool
-	frontRunner   string
-	deployName    string
-	namespace     string
-	podLabel      string
-	eventID       int32
-	seName        string
-	seNamespace   string
-	seRtype       string
-	seEtype       string
-	diffCurEvent  map[string]interface{}
-	diffPrevEvent map[string]interface{}
-	seEtypePrev   string
-	prevEvent     map[string]interface{}
-	curEvent      map[string]interface{}
-	eventCounter  int
+	restarted      bool
+	frontRunner    string
+	deployName     string
+	namespace      string
+	podLabel       string
+	eventID        int32
+	seName         string
+	seNamespace    string
+	seRtype        string
+	seEtype        string
+	diffCurEvent   map[string]interface{}
+	diffPrevEvent  map[string]interface{}
+	seEtypePrev    string
+	prevEvent      map[string]interface{}
+	curEvent       map[string]interface{}
+	eventCounter   int
+	maskedKeysSet  map[string]struct{}
+	maskedPathsSet map[string]struct{}
 }
 
 func (s *atomVioServer) Start() {
@@ -116,7 +121,7 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 	log.Printf("[SIEVE-AFTER-WRITE]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
 	s.curEvent = writeObj
 	trimKindApiversion(s.curEvent)
-	if findTargetDiff(s.eventCounter, request.SideEffectType, s.seEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, false) {
+	if findTargetDiff(s.eventCounter, request.SideEffectType, s.seEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, s.maskedKeysSet, s.maskedPathsSet, false) {
 		log.Println("ready to crash!")
 		startAtomVioInjection()
 		restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
