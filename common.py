@@ -43,9 +43,9 @@ BORING_EVENT_OBJECT_PATHS = [
     "spec/containers/*/env",
     "spec/nodeName",
     "spec/ports",
+    "spec/selector/pod-template-hash",
     "status/conditions",
     "status/observedGeneration",
-    "spec/selector/pod-template-hash",
 ]
 
 

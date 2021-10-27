@@ -40,6 +40,12 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
             dump_json_file(dest_dir, ignore_paths, "ignore-paths.json")
 
 
+# def generate_learned_masked_path(dest_dir):
+#     resources = json.load(open(os.path.join(dest_dir, "resources.json")))
+#     ignore_paths = generate_ignore_paths(resources)
+#     dump_json_file(dest_dir, ignore_paths, "ignore-paths.json")
+
+
 def is_unstable_api_event_key(key, value):
     if value["operator_related"]:
         return True
