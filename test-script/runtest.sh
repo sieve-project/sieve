@@ -57,16 +57,23 @@ parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     < hosts
 
 parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
-	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/log_save ../; else {}; fi' \
+	     'if [[ "{}" != ":" ]]; then scp -r {}:/home/ubuntu/sieve/log ../; else {}; fi' \
 	     < hosts
 
 now=$(date +"%Y-%m-%d")
-mv ../log_save ./log_save_${now}
+mv ../log ./log_save_${now}
 
 # 7. combine test results in sieve_test_results and save it
 python3 combine_json.py
 
-# 8. Clean up kind clusters after massive testing
+# 8. Clean up after massive testing
+parallel --workdir '/home/ubuntu/sieve' \
+         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+         --sshloginfile hosts \
+         --onall \
+         ::: 'rm -rf ./log'
+
+
 parallel --workdir '/home/ubuntu/sieve' \
          --ssh 'ssh -i "~/.ssh/id_rsa" ' \
          --sshloginfile hosts \
