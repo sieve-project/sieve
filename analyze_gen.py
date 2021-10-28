@@ -44,7 +44,10 @@ def detectable_event_diff(
     diff_cur_obj: Optional[Dict],
     prev_etype: str,
     cur_etype: str,
+    signature_counter: int,
 ) -> bool:
+    if signature_counter > 3:
+        return False
     if mode == sieve_modes.TIME_TRAVEL or mode == sieve_modes.OBS_GAP:
         event_diff_validation_check(prev_etype, cur_etype)
         # undetectable if the first event is not ADDED
@@ -188,6 +191,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
             operator_hear.etype,
+            operator_hear.signature_counter,
         ):
             continue
 
@@ -210,6 +214,9 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
         time_travel_config["ce-counter"] = str(operator_hear.signature_counter)
+        time_travel_config["ce-is-cr"] = str(
+            operator_hear.rtype in controllers.CRDs[project]
+        )
         time_travel_config["se-name"] = operator_write.name
         time_travel_config["se-namespace"] = operator_write.namespace
         time_travel_config["se-rtype"] = operator_write.rtype
@@ -241,12 +248,16 @@ def cancellable_filtering_pass(
     print("Running optional pass: cancellable-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
-        if len(vertex.content.cancelled_by) > 0:
-            for operator_hear_id in vertex.content.cancelled_by:
-                sink = causality_graph.get_operator_hear_with_id(operator_hear_id)
-                if not causality_vertices_connected(vertex, sink):
-                    candidate_vertices.append(vertex)
-                    break
+        if (
+            len(vertex.content.cancelled_by) > 0
+            and len(vertex.out_inter_reconciler_edges) > 0
+        ):
+            candidate_vertices.append(vertex)
+            # for operator_hear_id in vertex.content.cancelled_by:
+            #     sink = causality_graph.get_operator_hear_with_id(operator_hear_id)
+            #     if not causality_vertices_connected(vertex, sink):
+            #         candidate_vertices.append(vertex)
+            #         break
     print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
@@ -282,6 +293,7 @@ def obs_gap_analysis(
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
             operator_hear.etype,
+            operator_hear.signature_counter,
         ):
             continue
 
@@ -348,6 +360,7 @@ def atom_vio_analysis(
             operator_write.slim_cur_obj_map,
             operator_write.prev_etype,
             operator_write.etype,
+            operator_write.signature_counter,
         ):
             continue
 

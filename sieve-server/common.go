@@ -35,6 +35,46 @@ func getConfig() map[interface{}]interface{} {
 	return m
 }
 
+func getMask() (map[string]map[string][]string, map[string][]string) {
+	data, err := ioutil.ReadFile("learned-mask.json")
+	checkError(err)
+	learnedMask := make(map[string]map[string][]string)
+
+	err = yaml.Unmarshal([]byte(data), &learnedMask)
+	checkError(err)
+	log.Printf("learned mask:\n%v\n", learnedMask)
+
+	data, err = ioutil.ReadFile("configured-mask.json")
+	checkError(err)
+	configuredMask := make(map[string][]string)
+
+	err = yaml.Unmarshal([]byte(data), &configuredMask)
+	checkError(err)
+	log.Printf("configured mask:\n%v\n", configuredMask)
+
+	return learnedMask, configuredMask
+}
+
+func mergeAndRefineMask(resourceType, resourceName string, learnedMask map[string]map[string][]string, configuredMask map[string][]string) (map[string]struct{}, map[string]struct{}) {
+	maskedKeysSet := make(map[string]struct{})
+	maskedPathsSet := make(map[string]struct{})
+
+	learnedMaskedPathsList := learnedMask[resourceType][resourceName]
+	for _, val := range learnedMaskedPathsList {
+		maskedPathsSet[val] = exists
+	}
+
+	for _, val := range configuredMask["paths"] {
+		maskedPathsSet[val] = exists
+	}
+
+	for _, val := range configuredMask["keys"] {
+		maskedKeysSet[val] = exists
+	}
+
+	return maskedKeysSet, maskedPathsSet
+}
+
 func strToMap(str string) map[string]interface{} {
 	m := make(map[string]interface{})
 	err := json.Unmarshal([]byte(str), &m)
@@ -50,6 +90,14 @@ func strToInt(str string) int {
 		log.Fatalf("cannot conver to int: %s\n", str)
 	}
 	return i
+}
+
+func strToBool(str string) bool {
+	b, err := strconv.ParseBool(str)
+	if err != nil {
+		log.Fatalf("cannot conver to bool: %s\n", str)
+	}
+	return b
 }
 
 func deepCopyMap(src map[string]interface{}) map[string]interface{} {

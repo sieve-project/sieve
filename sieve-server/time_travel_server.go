@@ -8,23 +8,27 @@ import (
 )
 
 // The listener is actually a wrapper around the server.
-func NewTimeTravelListener(config map[interface{}]interface{}) *TimeTravelListener {
+func NewTimeTravelListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *TimeTravelListener {
+	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["ce-rtype"].(string), config["ce-name"].(string), learnedMask, configuredMask)
 	server := &timeTravelServer{
-		project:       config["project"].(string),
-		restarted:     false,
-		pauseCh:       make(chan int),
-		straggler:     config["straggler"].(string),
-		ceEtype:       config["ce-etype-current"].(string),
-		diffCurEvent:  conformToAPIEvent(strToMap(config["ce-diff-current"].(string)), config["ce-rtype"].(string)),
-		diffPrevEvent: conformToAPIEvent(strToMap(config["ce-diff-previous"].(string)), config["ce-rtype"].(string)),
-		eventCounter:  strToInt(config["ce-counter"].(string)),
-		podLabel:      config["operator-pod-label"].(string),
-		frontRunner:   config["front-runner"].(string),
-		deployName:    config["deployment-name"].(string),
-		namespace:     "default",
-		prevEvent:     nil,
-		curEvent:      nil,
-		sleeped:       false,
+		project:        config["project"].(string),
+		restarted:      false,
+		pauseCh:        make(chan int),
+		straggler:      config["straggler"].(string),
+		ceEtype:        config["ce-etype-current"].(string),
+		ceIsCR:         strToBool(config["ce-is-cr"].(string)),
+		diffCurEvent:   strToMap(config["ce-diff-current"].(string)),
+		diffPrevEvent:  strToMap(config["ce-diff-previous"].(string)),
+		eventCounter:   strToInt(config["ce-counter"].(string)),
+		podLabel:       config["operator-pod-label"].(string),
+		frontRunner:    config["front-runner"].(string),
+		deployName:     config["deployment-name"].(string),
+		namespace:      "default",
+		prevEvent:      nil,
+		curEvent:       nil,
+		sleeped:        false,
+		maskedKeysSet:  maskedKeysSet,
+		maskedPathsSet: maskedPathsSet,
 	}
 	listener := &TimeTravelListener{
 		Server: server,
@@ -56,24 +60,41 @@ func (l *TimeTravelListener) NotifyTimeTravelAfterSideEffects(request *sieve.Not
 }
 
 type timeTravelServer struct {
-	project       string
-	straggler     string
-	frontRunner   string
-	ceEtype       string
-	diffCurEvent  map[string]interface{}
-	diffPrevEvent map[string]interface{}
-	podLabel      string
-	restarted     bool
-	pauseCh       chan int
-	deployName    string
-	namespace     string
-	prevEvent     map[string]interface{}
-	curEvent      map[string]interface{}
-	sleeped       bool
-	eventCounter  int
+	project        string
+	straggler      string
+	frontRunner    string
+	ceEtype        string
+	diffCurEvent   map[string]interface{}
+	diffPrevEvent  map[string]interface{}
+	podLabel       string
+	restarted      bool
+	pauseCh        chan int
+	deployName     string
+	namespace      string
+	prevEvent      map[string]interface{}
+	curEvent       map[string]interface{}
+	sleeped        bool
+	eventCounter   int
+	ceIsCR         bool
+	maskedKeysSet  map[string]struct{}
+	maskedPathsSet map[string]struct{}
 }
 
 func (s *timeTravelServer) Start() {
+	if !s.ceIsCR {
+		log.Printf("conforming diffCurEvent %v...\n", s.diffCurEvent)
+		log.Printf("conforming diffPrevEvent %v...\n", s.diffPrevEvent)
+		s.diffCurEvent = conformToAPIEvent(s.diffCurEvent)
+		s.diffPrevEvent = conformToAPIEvent(s.diffPrevEvent)
+		log.Printf("conform diffCurEvent to %v\n", s.diffCurEvent)
+		log.Printf("conform diffPrevEvent to %v\n", s.diffPrevEvent)
+		log.Printf("conforming maskedKeysSet %v...\n", s.maskedKeysSet)
+		s.maskedKeysSet = conformToAPIKeys(s.maskedKeysSet)
+		log.Printf("conform maskedKeysSet to %v\n", s.maskedKeysSet)
+		log.Printf("conforming maskedPathsSet %v...\n", s.maskedPathsSet)
+		s.maskedPathsSet = conformToAPIPaths(s.maskedPathsSet)
+		log.Printf("conform maskedPathsSet to %v\n", s.maskedPathsSet)
+	}
 	log.Println("start timeTravelServer...")
 	log.Printf("target event type: %s\n", s.ceEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
@@ -90,7 +111,7 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	log.Printf("[sieve][current-event] %s\n", request.Object)
 	s.prevEvent = s.curEvent
 	s.curEvent = currentEvent
-	if findTargetDiff(s.eventCounter, request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, true) {
+	if findTargetDiff(s.eventCounter, request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, s.maskedKeysSet, s.maskedPathsSet, true) {
 		s.sleeped = true
 		startTimeTravelInjection()
 		log.Println("[sieve] should sleep here")

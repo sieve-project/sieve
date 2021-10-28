@@ -1,10 +1,39 @@
 {
-    "deployment": {
-        "rabbitmq-operator": [
+    "cassandradatacenter": {
+        "cassandra-datacenter": [
             "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/generation",
-            "metadata/labels",
+            "metadata/managedFields",
+            "metadata/resourceVersion",
+            "metadata/uid",
+            "status/conditions",
+            "status/lastServerNodeStarted",
+            "status/nodeStatuses/cluster1-cassandra-datacenter-default-sts-0/hostID",
+            "status/nodeStatuses/cluster1-cassandra-datacenter-default-sts-1/hostID",
+            "status/observedGeneration",
+            "status/quietPeriod",
+            "status/superUserUpserted",
+            "status/usersUpserted"
+        ]
+    },
+    "deployment": {
+        "cass-operator": [
+            "metadata/annotations",
+            "metadata/creationTimestamp",
+            "metadata/generation",
+            "metadata/managedFields",
+            "metadata/resourceVersion",
+            "metadata/uid",
+            "spec/template/spec/containers/*/env",
+            "spec/template/spec/containers/*/image",
+            "status/conditions",
+            "status/observedGeneration"
+        ],
+        "local-path-provisioner": [
+            "metadata/annotations",
+            "metadata/creationTimestamp",
+            "metadata/generation",
             "metadata/managedFields",
             "metadata/resourceVersion",
             "metadata/uid",
@@ -15,40 +44,27 @@
         ]
     },
     "persistentvolumeclaim": {
-        "persistence-rabbitmq-cluster-server-0": [
+        "server-data-cluster1-cassandra-datacenter-default-sts-0": [
             "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/labels",
             "metadata/managedFields",
-            "metadata/ownerReferences",
             "metadata/resourceVersion",
             "metadata/uid",
             "spec/volumeName"
         ],
-        "persistence-rabbitmq-cluster-server-1": [
+        "server-data-cluster1-cassandra-datacenter-default-sts-1": [
             "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/labels",
             "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/volumeName"
-        ],
-        "persistence-rabbitmq-cluster-server-2": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
             "metadata/resourceVersion",
             "metadata/uid",
             "spec/volumeName"
         ]
     },
     "pod": {
-        "rabbitmq-cluster-server-0": [
-            "metadata/annotations",
+        "cluster1-cassandra-datacenter-default-sts-0": [
             "metadata/creationTimestamp",
             "metadata/generateName",
             "metadata/labels",
@@ -80,8 +96,7 @@
             "status/podIPs/*/ip",
             "status/startTime"
         ],
-        "rabbitmq-cluster-server-1": [
-            "metadata/annotations",
+        "cluster1-cassandra-datacenter-default-sts-1": [
             "metadata/creationTimestamp",
             "metadata/generateName",
             "metadata/labels",
@@ -112,75 +127,93 @@
             "status/podIP",
             "status/podIPs/*/ip",
             "status/startTime"
-        ],
-        "rabbitmq-cluster-server-2": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/generateName",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/containers/*/env",
-            "spec/containers/*/image",
-            "spec/containers/*/volumeMounts/*/name",
-            "spec/initContainers/*/image",
-            "spec/initContainers/*/volumeMounts/*/name",
-            "spec/nodeName",
-            "spec/volumes/*/name",
-            "spec/volumes/*/secret/secretName",
-            "status/conditions",
-            "status/containerStatuses/*/containerID",
-            "status/containerStatuses/*/image",
-            "status/containerStatuses/*/imageID",
-            "status/containerStatuses/*/state/running/startedAt",
-            "status/hostIP",
-            "status/initContainerStatuses/*/containerID",
-            "status/initContainerStatuses/*/image",
-            "status/initContainerStatuses/*/imageID",
-            "status/initContainerStatuses/*/state/terminated/containerID",
-            "status/initContainerStatuses/*/state/terminated/finishedAt",
-            "status/initContainerStatuses/*/state/terminated/startedAt",
-            "status/podIP",
-            "status/podIPs/*/ip",
-            "status/startTime"
-        ]
-    },
-    "rabbitmqcluster": {
-        "rabbitmq-cluster": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/generation",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/image",
-            "status/conditions"
         ]
     },
     "secret": {
-        "rabbitmq-cluster-default-user": [
-            "data/default_user.conf",
-            "data/password",
-            "data/username",
+        "cass-operator-webhook-config": [
+            "data/tls.crt",
+            "data/tls.key",
+            "metadata/annotations",
             "metadata/creationTimestamp",
-            "metadata/labels",
             "metadata/managedFields",
-            "metadata/ownerReferences",
             "metadata/resourceVersion",
             "metadata/uid"
         ],
-        "rabbitmq-cluster-erlang-cookie": [
-            "data/.erlang.cookie",
+        "cassandra-datacenter-ca-keystore": [
+            "data/cert",
+            "data/key",
+            "metadata/creationTimestamp",
+            "metadata/managedFields",
+            "metadata/resourceVersion",
+            "metadata/uid"
+        ],
+        "cassandra-datacenter-keystore": [
+            "data/node-keystore.jks",
+            "metadata/creationTimestamp",
+            "metadata/managedFields",
+            "metadata/resourceVersion",
+            "metadata/uid"
+        ],
+        "cluster1-superuser": [
+            "data/password",
+            "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/labels",
             "metadata/managedFields",
-            "metadata/ownerReferences",
             "metadata/resourceVersion",
             "metadata/uid"
         ]
     },
     "service": {
+        "cass-operator-metrics": [
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/managedFields",
+            "metadata/ownerReferences",
+            "metadata/resourceVersion",
+            "metadata/uid",
+            "spec/clusterIP",
+            "spec/ports"
+        ],
+        "cassandradatacenter-webhook-service": [
+            "metadata/annotations",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/managedFields",
+            "metadata/resourceVersion",
+            "metadata/uid",
+            "spec/clusterIP",
+            "spec/ports"
+        ],
+        "cluster1-cassandra-datacenter-all-pods-service": [
+            "metadata/annotations",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/managedFields",
+            "metadata/ownerReferences",
+            "metadata/resourceVersion",
+            "metadata/uid",
+            "spec/ports"
+        ],
+        "cluster1-cassandra-datacenter-service": [
+            "metadata/annotations",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/managedFields",
+            "metadata/ownerReferences",
+            "metadata/resourceVersion",
+            "metadata/uid",
+            "spec/ports"
+        ],
+        "cluster1-seed-service": [
+            "metadata/annotations",
+            "metadata/creationTimestamp",
+            "metadata/labels",
+            "metadata/managedFields",
+            "metadata/ownerReferences",
+            "metadata/resourceVersion",
+            "metadata/uid"
+        ],
         "kubernetes": [
             "metadata/creationTimestamp",
             "metadata/labels",
@@ -189,29 +222,11 @@
             "metadata/uid",
             "spec/clusterIP",
             "spec/ports"
-        ],
-        "rabbitmq-cluster": [
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/clusterIP",
-            "spec/ports"
-        ],
-        "rabbitmq-cluster-nodes": [
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/ports"
         ]
     },
     "statefulset": {
-        "rabbitmq-cluster-server": [
+        "cluster1-cassandra-datacenter-default-sts": [
+            "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/generation",
             "metadata/labels",
@@ -222,7 +237,6 @@
             "spec/template/spec/containers/*/env",
             "spec/template/spec/containers/*/image",
             "spec/template/spec/initContainers/*/image",
-            "spec/volumeClaimTemplates/*/metadata/ownerReferences/*/uid",
             "status/observedGeneration"
         ]
     }

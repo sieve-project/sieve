@@ -648,7 +648,10 @@ def parse_api_event(line: str) -> APIEvent:
 
 
 def conflicting_event(
-    prev_operator_hear: OperatorHear, cur_operator_hear: OperatorHear
+    prev_operator_hear: OperatorHear,
+    cur_operator_hear: OperatorHear,
+    masked_keys: Set[str],
+    masked_paths: Set[str],
 ) -> bool:
     if conflicting_event_type(prev_operator_hear.etype, cur_operator_hear.etype):
         return True
@@ -656,7 +659,10 @@ def conflicting_event(
         prev_operator_hear.etype != OperatorHearTypes.DELETED
         and cur_operator_hear.etype != OperatorHearTypes.DELETED
         and analyze_event.conflicting_event_payload(
-            prev_operator_hear.slim_cur_obj_map, cur_operator_hear.obj_map
+            prev_operator_hear.slim_cur_obj_map,
+            cur_operator_hear.obj_map,
+            masked_keys,
+            masked_paths,
         )
     ):
         return True
@@ -760,7 +766,14 @@ class CausalityEdge:
 
 
 class CausalityGraph:
-    def __init__(self):
+    def __init__(self, learned_masked_paths: Dict, configured_masked: List):
+        self.__learned_masked_paths = learned_masked_paths
+        self.__configured_masked_paths = set(
+            [path for path in configured_masked if not path.startswith("**/")]
+        )
+        self.__configured_masked_keys = set(
+            [path[3:] for path in configured_masked if path.startswith("**/")]
+        )
         self.__vertex_cnt = 0
         self.__operator_hear_vertices = []
         self.__operator_write_vertices = []
@@ -774,6 +787,18 @@ class CausalityGraph:
         self.__operator_hear_operator_write_edges = []
         self.__operator_write_operator_hear_edges = []
         self.__intra_reconciler_edges = []
+
+    @property
+    def learned_masked_paths(self) -> Dict:
+        return self.__learned_masked_paths
+
+    @property
+    def configured_masked_paths(self) -> Set[str]:
+        return self.__configured_masked_paths
+
+    @property
+    def configured_masked_keys(self) -> Set[str]:
+        return self.__configured_masked_keys
 
     @property
     def operator_hear_vertices(self) -> List[CausalityVertex]:
@@ -830,6 +855,16 @@ class CausalityGraph:
     @property
     def intra_reconciler_edges(self) -> List[CausalityEdge]:
         return self.__intra_reconciler_edges
+
+    def retrieve_masked(self, rtype, name):
+        masked_keys = set()
+        masked_keys.update(self.configured_masked_keys)
+        masked_paths = set()
+        masked_paths.update(self.configured_masked_paths)
+        if rtype in self.learned_masked_paths:
+            if name in self.learned_masked_paths[rtype]:
+                masked_paths.update(set(self.learned_masked_paths[rtype][name]))
+        return (masked_keys, masked_paths)
 
     def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
         if operator_hear_id in self.operator_hear_id_to_vertices:
@@ -1011,17 +1046,27 @@ class CausalityGraph:
         for key in self.operator_hear_key_to_vertices:
             vertices = self.operator_hear_key_to_vertices[key]
             event_signature_to_counter = {}
+            prev_hear_obj_map = {}
+            prev_hear_etype = EVENT_NONE_TYPE
             for i in range(len(vertices)):
-                if i == 0:
-                    continue
-                prev_operator_hear = vertices[i - 1].content
                 cur_operator_hear = vertices[i].content
+                if not i == 0:
+                    prev_operator_hear = vertices[i - 1].content
+                    prev_hear_obj_map = prev_operator_hear.obj_map
+                    prev_hear_etype = prev_operator_hear.etype
+                masked_keys, masked_paths = self.retrieve_masked(
+                    cur_operator_hear.rtype,
+                    cur_operator_hear.name,
+                )
                 slim_prev_object, slim_cur_object = analyze_event.diff_event(
-                    prev_operator_hear.obj_map, cur_operator_hear.obj_map
+                    prev_hear_obj_map,
+                    cur_operator_hear.obj_map,
+                    masked_keys,
+                    masked_paths,
                 )
                 cur_operator_hear.slim_prev_obj_map = slim_prev_object
                 cur_operator_hear.slim_cur_obj_map = slim_cur_object
-                cur_operator_hear.prev_etype = prev_operator_hear.etype
+                cur_operator_hear.prev_etype = prev_hear_etype
                 event_signature = get_event_signature(cur_operator_hear)
                 if event_signature not in event_signature_to_counter:
                     event_signature_to_counter[event_signature] = 0
@@ -1034,52 +1079,60 @@ class CausalityGraph:
             vertices = self.operator_write_key_to_vertices[key]
             event_signature_to_counter = {}
             for operator_write_vertex in vertices:
+                prev_read_obj_map = {}
+                prev_read_etype = EVENT_NONE_TYPE
                 operator_write = operator_write_vertex.content
                 key = operator_write.key
-                if key not in self.operator_read_key_to_vertices:
-                    # We just treat read as {} and directly check for write
-                    slim_prev_object, slim_cur_object = analyze_event.diff_event(
-                        {}, operator_write.obj_map, True
-                    )
-                    operator_write.slim_prev_obj_map = slim_prev_object
-                    operator_write.slim_cur_obj_map = slim_cur_object
-                    continue
-                for i in range(len(self.operator_read_key_to_vertices[key])):
-                    operator_read = self.operator_read_key_to_vertices[key][i].content
-                    # if the first read happens after write, break
-                    if (
-                        i == 0
-                        and operator_read.end_timestamp > operator_write.start_timestamp
-                    ):
-                        break
-                    # if this is not the latest read before the write, continue
-                    if i != len(self.operator_read_key_to_vertices[key]) - 1:
-                        next_operator_read = self.operator_read_key_to_vertices[key][
-                            i + 1
+                if key in self.operator_read_key_to_vertices:
+                    for i in range(len(self.operator_read_key_to_vertices[key])):
+                        operator_read = self.operator_read_key_to_vertices[key][
+                            i
                         ].content
+                        # if the first read happens after write, break
                         if (
-                            next_operator_read.end_timestamp
-                            < operator_write.start_timestamp
+                            i == 0
+                            and operator_read.end_timestamp
+                            > operator_write.start_timestamp
                         ):
-                            continue
+                            break
+                        # if this is not the latest read before the write, continue
+                        if i != len(self.operator_read_key_to_vertices[key]) - 1:
+                            next_operator_read = self.operator_read_key_to_vertices[
+                                key
+                            ][i + 1].content
+                            if (
+                                next_operator_read.end_timestamp
+                                < operator_write.start_timestamp
+                            ):
+                                continue
 
-                    assert operator_write.key in operator_read.key_set
-                    assert operator_read.end_timestamp < operator_write.start_timestamp
-
-                    slim_prev_object, slim_cur_object = analyze_event.diff_event(
-                        operator_read.key_to_obj[key], operator_write.obj_map, True
-                    )
-                    operator_write.slim_prev_obj_map = slim_prev_object
-                    operator_write.slim_cur_obj_map = slim_cur_object
-                    operator_write.prev_etype = operator_read.etype
-                    event_signature = get_event_signature(operator_write)
-                    if event_signature not in event_signature_to_counter:
-                        event_signature_to_counter[event_signature] = 0
-                    event_signature_to_counter[event_signature] += 1
-                    operator_write.signature_counter = event_signature_to_counter[
-                        event_signature
-                    ]
-                    break
+                        assert operator_write.key in operator_read.key_set
+                        assert (
+                            operator_read.end_timestamp < operator_write.start_timestamp
+                        )
+                        prev_read_obj_map = operator_read.key_to_obj[key]
+                        prev_read_etype = operator_read.etype
+                        break
+                masked_keys, masked_paths = self.retrieve_masked(
+                    operator_write.rtype, operator_write.name
+                )
+                slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                    prev_read_obj_map,
+                    operator_write.obj_map,
+                    masked_keys,
+                    masked_paths,
+                    True,
+                )
+                operator_write.slim_prev_obj_map = slim_prev_object
+                operator_write.slim_cur_obj_map = slim_cur_object
+                operator_write.prev_etype = prev_read_etype
+                event_signature = get_event_signature(operator_write)
+                if event_signature not in event_signature_to_counter:
+                    event_signature_to_counter[event_signature] = 0
+                event_signature_to_counter[event_signature] += 1
+                operator_write.signature_counter = event_signature_to_counter[
+                    event_signature
+                ]
 
     def compute_event_cancel(self):
         for key in self.operator_hear_key_to_vertices:
@@ -1094,7 +1147,16 @@ class CausalityGraph:
                     if i == 0:
                         cancelled_by.add(future_operator_hear.id)
                         continue
-                    if conflicting_event(cur_operator_hear, future_operator_hear):
+                    masked_keys, masked_paths = self.retrieve_masked(
+                        cur_operator_hear.rtype,
+                        cur_operator_hear.name,
+                    )
+                    if conflicting_event(
+                        cur_operator_hear,
+                        future_operator_hear,
+                        masked_keys,
+                        masked_paths,
+                    ):
                         cancelled_by.add(future_operator_hear.id)
                 cur_operator_hear.cancelled_by = cancelled_by
 

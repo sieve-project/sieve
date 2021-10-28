@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
@@ -12,7 +13,10 @@ import (
 var seenTargetCounter = 0
 var findTargetDiffMutex = &sync.Mutex{}
 
-const TIME_REG string = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
+const TIME_REG string = `^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$`
+const IP_REG string = `^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`
+
+var MASK_REGS = []string{TIME_REG, IP_REG}
 
 // mark a list item to skip
 const SIEVE_IDX_SKIP string = "SIEVE-SKIP"
@@ -38,29 +42,6 @@ const (
 )
 
 var exists = struct{}{}
-
-// resources that have different representation between API and controller side
-var TYPES_TO_CONFORM = map[string]struct{}{"pod": exists}
-
-// TODO: conform mask keys to api as well
-// keys that to ignore when computing event diff
-var KEYS_TO_MASK = map[string]struct{}{
-	"uid":                        exists, // random
-	"resourceVersion":            exists, // random
-	"generation":                 exists, // random
-	"annotations":                exists, // verbose
-	"managedFields":              exists, // verbose
-	"lastTransitionTime":         exists, // timing
-	"deletionGracePeriodSeconds": exists, // timing
-	"time":                       exists, // timing
-	"podIP":                      exists, // IP assignment is random
-	"ip":                         exists, // IP assignment is random
-	"hostIP":                     exists, // IP assignment is random
-	"nodeName":                   exists, // node assignment is random
-	"imageID":                    exists, // image ID is randome
-	"containerID":                exists, // container ID is random
-	"labels":                     exists, // label can contain random strings e.g., controller-revision-hash
-}
 
 func inSet(key string, set map[string]struct{}) bool {
 	if _, ok := set[key]; ok {
@@ -236,60 +217,75 @@ func diffEventAsMap(prevEvent, curEvent map[string]interface{}) (map[string]inte
 	return diffPrevEvent, diffCurEvent
 }
 
-func canonicalizeValue(value string) string {
-	match, err := regexp.MatchString(TIME_REG, value)
-	if err != nil {
-		log.Fatalf("fail to compile %s", TIME_REG)
+func valueShouldBeMasked(value string) bool {
+	for _, regex := range MASK_REGS {
+		match, err := regexp.MatchString(regex, value)
+		if err != nil {
+			log.Fatalf("fail to compile %s", TIME_REG)
+		}
+		if match {
+			return true
+		}
 	}
-	if match {
+	return false
+}
+
+func canonicalizeValue(value string) string {
+	if valueShouldBeMasked(value) {
 		return SIEVE_VALUE_MASK
 	} else {
 		return value
 	}
 }
 
-func canonicalizeEventAsList(event []interface{}) {
+func canonicalizeEventAsList(event []interface{}, parentPath string, maskedKeysSet, maskedPathsSet map[string]struct{}) {
 	for i, val := range event {
+		currentPath := path.Join(parentPath, "*")
+		if inSet(currentPath, maskedPathsSet) {
+			event[i] = SIEVE_VALUE_MASK
+			continue
+		}
 		switch typedVal := val.(type) {
 		case map[string]interface{}:
-			canonicalizeEventAsMap(typedVal)
+			canonicalizeEventAsMap(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
 		case []interface{}:
-			canonicalizeEventAsList(typedVal)
+			canonicalizeEventAsList(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
 		case string:
 			event[i] = canonicalizeValue(typedVal)
 		}
 	}
 }
 
-func canonicalizeEventAsMap(event map[string]interface{}) {
+func canonicalizeEventAsMap(event map[string]interface{}, parentPath string, maskedKeysSet, maskedPathsSet map[string]struct{}) {
 	for key, val := range event {
-		if inSet(key, KEYS_TO_MASK) {
+		currentPath := path.Join(parentPath, key)
+		if inSet(key, maskedKeysSet) || inSet(currentPath, maskedPathsSet) {
 			event[key] = SIEVE_VALUE_MASK
 			continue
 		}
 		switch typedVal := val.(type) {
 		case map[string]interface{}:
-			canonicalizeEventAsMap(typedVal)
+			canonicalizeEventAsMap(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
 		case []interface{}:
-			canonicalizeEventAsList(typedVal)
+			canonicalizeEventAsList(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
 		case string:
 			event[key] = canonicalizeValue(typedVal)
 		}
 	}
 }
 
-func canonicalizeEvent(event map[string]interface{}) {
+func canonicalizeEvent(event map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}) {
 	if _, ok := event[SIEVE_CAN_MARKER]; ok {
 		return
 	} else {
-		canonicalizeEventAsMap(event)
+		canonicalizeEventAsMap(event, "", maskedKeysSet, maskedPathsSet)
 		event[SIEVE_CAN_MARKER] = ""
 	}
 }
 
-func diffEvent(prevEvent, curEvent map[string]interface{}) (map[string]interface{}, map[string]interface{}) {
-	canonicalizeEvent(prevEvent)
-	canonicalizeEvent(curEvent)
+func diffEvent(prevEvent, curEvent map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}) (map[string]interface{}, map[string]interface{}) {
+	canonicalizeEvent(prevEvent, maskedKeysSet, maskedPathsSet)
+	canonicalizeEvent(curEvent, maskedKeysSet, maskedPathsSet)
 	// After canonicalization some values are replaced by SIEVE_VALUE_MASK, we compute diff again
 	diffPrevEvent, diffCurEvent := diffEventAsMap(prevEvent, curEvent)
 	// Note that we do not perform canonicalization at the beginning as it is more expensive to do so
@@ -369,7 +365,7 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 	return true
 }
 
-func conflictingEvent(eventAType, eventBType string, eventA, eventB map[string]interface{}) bool {
+func conflictingEvent(eventAType, eventBType string, eventA, eventB map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}) bool {
 	if eventAType == HEAR_DELETED {
 		return eventBType != HEAR_DELETED
 	} else {
@@ -377,7 +373,7 @@ func conflictingEvent(eventAType, eventBType string, eventA, eventB map[string]i
 			return true
 		} else {
 			// assume eventA is already canonicalized
-			canonicalizeEvent(eventB)
+			canonicalizeEvent(eventB, maskedKeysSet, maskedPathsSet)
 			return !partOfEventAsMap(eventA, eventB)
 		}
 	}
@@ -390,7 +386,7 @@ func isCreationOrDeletion(eventType string) bool {
 	return isAPICreationOrDeletion || isHearCreationOrDeletion || isWriteCreationOrDeletion
 }
 
-func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, forgiving bool) bool {
+func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}, forgiving bool) bool {
 	findTargetDiffMutex.Lock()
 	defer findTargetDiffMutex.Unlock()
 	if seenTargetCounter >= eventCounter {
@@ -404,7 +400,7 @@ func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType str
 			seenTargetCounter += 1
 			log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
 		} else {
-			onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent)
+			onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent, maskedKeysSet, maskedPathsSet)
 			log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
 			log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
 			if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
@@ -455,14 +451,8 @@ func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
 	return capitalizedEvent
 }
 
-func conformToAPIEvent(event map[string]interface{}, rType string) map[string]interface{} {
-	if !inSet(rType, TYPES_TO_CONFORM) {
-		return event
-	}
-
-	log.Println("Need to conform")
-
-	// Sometimes the event object representation is different between the API side and the operator side
+func conformToAPIEvent(event map[string]interface{}) map[string]interface{} {
+	// The event object representation is different between the API side and the operator side if it is not CR
 	// There are mainly two difference:
 	// 1. `metadata` is missing at the API side but the inner fields still exist
 	// 2. field name starts with a capitalized word if not inside `metadata` at the API side
@@ -484,6 +474,31 @@ func conformToAPIEvent(event map[string]interface{}, rType string) map[string]in
 	}
 
 	return conformedEvent
+}
+
+func conformToAPIPaths(maskedPathsSet map[string]struct{}) map[string]struct{} {
+	conformedPathsSet := make(map[string]struct{})
+	for key := range maskedPathsSet {
+		if strings.HasPrefix(key, "metadata/") {
+			conformedPathsSet[strings.TrimPrefix(key, "metadata/")] = exists
+		} else {
+			tokens := strings.Split(key, "/")
+			for i := 0; i < len(tokens); i++ {
+				tokens[i] = strings.ToUpper(tokens[i][0:1]) + tokens[i][1:]
+			}
+			conformedPathsSet[strings.Join(tokens, "/")] = exists
+		}
+	}
+	return conformedPathsSet
+}
+
+func conformToAPIKeys(maskedKeysSet map[string]struct{}) map[string]struct{} {
+	conformedKeysSet := make(map[string]struct{})
+	for key := range maskedKeysSet {
+		conformedKeysSet[key] = exists
+		conformedKeysSet[strings.ToUpper(key[0:1])+key[1:]] = exists
+	}
+	return conformedKeysSet
 }
 
 // trim kind and apiVersion for atom-vio testing

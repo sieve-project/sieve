@@ -18,6 +18,7 @@ import socket
 from datetime import datetime
 import traceback
 from common import (
+    BORING_EVENT_OBJECT_PATHS,
     TestContext,
     cprint,
     bcolors,
@@ -149,8 +150,21 @@ def redirect_kubectl():
     fin.close()
 
 
-def prepare_sieve_server(test_config):
-    cmd_early_exit("cp %s sieve-server/server.yaml" % test_config)
+def prepare_sieve_server(test_context: TestContext):
+    configured_mask = "configured-mask.json"
+    configured_mask_map = {
+        "keys": [
+            path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")
+        ],
+        "paths": [
+            path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")
+        ],
+    }
+    json.dump(configured_mask_map, open(configured_mask, "w"))
+    learned_mask = os.path.join(test_context.data_dir, "ignore-paths.json")
+    cmd_early_exit("cp %s sieve-server/configured-mask.json" % configured_mask)
+    cmd_early_exit("cp %s sieve-server/learned-mask.json" % learned_mask)
+    cmd_early_exit("cp %s sieve-server/server.yaml" % test_context.test_config)
     org_dir = os.getcwd()
     os.chdir("sieve-server")
     cmd_early_exit("go mod tidy")
@@ -193,7 +207,7 @@ def setup_cluster(
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
     # cmd_early_exit("kubectl config set-context --current --namespace=%s" %
     #           sieve_config["namespace"])
-    prepare_sieve_server(test_context.test_config)
+    prepare_sieve_server(test_context)
 
     # when testing time-travel, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
