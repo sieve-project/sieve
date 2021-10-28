@@ -88,6 +88,12 @@ func (s *timeTravelServer) Start() {
 		s.diffPrevEvent = conformToAPIEvent(s.diffPrevEvent)
 		log.Printf("conform diffCurEvent to %v\n", s.diffCurEvent)
 		log.Printf("conform diffPrevEvent to %v\n", s.diffPrevEvent)
+		log.Printf("conforming maskedKeysSet %v...\n", s.maskedKeysSet)
+		s.maskedKeysSet = conformToAPIKeys(s.maskedKeysSet)
+		log.Printf("conform maskedKeysSet to %v\n", s.maskedKeysSet)
+		log.Printf("conforming maskedPathsSet %v...\n", s.maskedPathsSet)
+		s.maskedPathsSet = conformToAPIPaths(s.maskedPathsSet)
+		log.Printf("conform maskedPathsSet to %v\n", s.maskedPathsSet)
 	}
 	log.Println("start timeTravelServer...")
 	log.Printf("target event type: %s\n", s.ceEtype)

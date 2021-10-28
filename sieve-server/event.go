@@ -476,6 +476,31 @@ func conformToAPIEvent(event map[string]interface{}) map[string]interface{} {
 	return conformedEvent
 }
 
+func conformToAPIPaths(maskedPathsSet map[string]struct{}) map[string]struct{} {
+	conformedPathsSet := make(map[string]struct{})
+	for key := range maskedPathsSet {
+		if strings.HasPrefix(key, "metadata/") {
+			conformedPathsSet[strings.TrimPrefix(key, "metadata/")] = exists
+		} else {
+			tokens := strings.Split(key, "/")
+			for i := 0; i < len(tokens); i++ {
+				tokens[i] = strings.ToUpper(tokens[i][0:1]) + tokens[i][1:]
+			}
+			conformedPathsSet[strings.Join(tokens, "/")] = exists
+		}
+	}
+	return conformedPathsSet
+}
+
+func conformToAPIKeys(maskedKeysSet map[string]struct{}) map[string]struct{} {
+	conformedKeysSet := make(map[string]struct{})
+	for key := range maskedKeysSet {
+		conformedKeysSet[key] = exists
+		conformedKeysSet[strings.ToUpper(key[0:1])+key[1:]] = exists
+	}
+	return conformedKeysSet
+}
+
 // trim kind and apiVersion for atom-vio testing
 func trimKindApiversion(event map[string]interface{}) {
 	delete(event, "kind")
