@@ -492,7 +492,7 @@ def run(
     else:
         print("Testing stage with config: %s" % config_to_use)
         if mode == sieve_modes.VANILLA:
-            generate_vanilla_config()
+            generate_vanilla_config(config_to_use)
         else:
             cmd_early_exit("cp %s %s" % (config, config_to_use))
             if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
