@@ -109,7 +109,7 @@ class TestCmd:
             proc.wait(timeout=60)
         except subprocess.TimeoutExpired:
             proc.terminate()
-            return -2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
+            return 2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
         return 0, common.NO_ERROR_MESSAGE
 
 
@@ -581,7 +581,7 @@ class BuiltInWorkLoad:
                 if return_code != 0:
                     print("error: " + error_message)
                     f.write("error: " + error_message + "\n")
-                    if return_code == -2:
+                    if return_code == 2:
                         return
             f.write("FINISH-SIEVE-TEST\n")
 
