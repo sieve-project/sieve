@@ -62,6 +62,8 @@ https://jira.percona.com/browse/K8SPSMDB-578 pending (atomicity violation)
 
 https://jira.percona.com/browse/K8SPSMDB-579 pending (atomicity violation)
 
+https://jira.percona.com/browse/K8SPSMDB-585 pending (observability gaps)
+
 ## [percona/percona-xtradb-cluster-operator](https://github.com/percona/percona-xtradb-cluster-operator)
 https://jira.percona.com/browse/K8SPXC-716 confirmed and fixed by us (time traveling)
 
