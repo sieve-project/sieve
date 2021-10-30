@@ -9,7 +9,7 @@ import (
 
 func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache")
-	_, funcDecl := findFuncDecl(f, "HandleDeltas")
+	_, funcDecl := findFuncDecl(f, "HandleDeltas", 1)
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
@@ -44,7 +44,7 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 
 func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "controller")
-	_, funcDecl := findFuncDecl(f, "reconcileHandler")
+	_, funcDecl := findFuncDecl(f, "reconcileHandler", 1)
 	if funcDecl != nil {
 		index := 0
 		beforeReconcileInstrumentation := &dst.ExprStmt{

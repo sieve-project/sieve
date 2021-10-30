@@ -8,7 +8,7 @@ import (
 
 func instrumentSharedInformerGoForObsGap(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache")
-	_, funcDecl := findFuncDecl(f, "HandleDeltas")
+	_, funcDecl := findFuncDecl(f, "HandleDeltas", 1)
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
@@ -51,7 +51,7 @@ func instrumentInformerCacheGoForObsGap(ifilepath, ofilepath string) {
 func instrumentInformerCacheRead(f *dst.File, etype, mode string) {
 	funNameBefore := "Notify" + mode + "BeforeInformerCache" + etype
 	funNameAfter := "Notify" + mode + "AfterInformerCache" + etype
-	_, funcDecl := findFuncDecl(f, etype)
+	_, funcDecl := findFuncDecl(f, etype, 1)
 	if funcDecl != nil {
 		if _, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 			if etype == "Get" {
