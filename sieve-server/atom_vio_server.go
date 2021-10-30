@@ -23,8 +23,8 @@ func NewAtomVioListener(config map[interface{}]interface{}, learnedMask map[stri
 		diffPrevEvent:  strToMap(config["se-diff-previous"].(string)),
 		diffCurEvent:   strToMap(config["se-diff-current"].(string)),
 		eventCounter:   strToInt(config["se-counter"].(string)),
-		prevEvent:      nil,
-		curEvent:       nil,
+		prevEvent:      make(map[string]interface{}),
+		curEvent:       make(map[string]interface{}),
 		maskedKeysSet:  maskedKeysSet,
 		maskedPathsSet: maskedPathsSet,
 	}
