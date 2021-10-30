@@ -79,7 +79,10 @@ def cmd_early_exit(cmd, early_exit=True):
     return_code = os.WEXITSTATUS(os.system(cmd))
     if return_code != 0 and early_exit:
         fail(cmd)
-        sys.exit(1)
+        # sys.exit(1)
+        raise Exception(
+            "Failed to execute {} with return code {}".format(cmd, return_code)
+        )
     return return_code
 
 
