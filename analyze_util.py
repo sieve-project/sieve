@@ -55,6 +55,8 @@ class OperatorWriteTypes:
     DELETE = "Delete"
     DELETEALLOF = "DeleteAllOf"
     PATCH = "Patch"
+    STATUS_UPDATE = "StatusUpdate"
+    STATUS_PATCH = "StatusPatch"
 
 
 # We do not include Sync and Replaced here
@@ -69,6 +71,8 @@ detectable_operator_write_types = [
     OperatorWriteTypes.UPDATE,
     OperatorWriteTypes.DELETE,
     OperatorWriteTypes.PATCH,
+    OperatorWriteTypes.STATUS_UPDATE,
+    OperatorWriteTypes.STATUS_PATCH,
 ]
 
 
@@ -77,9 +81,11 @@ def consistent_event_type(operator_hear_type: str, operator_write_type: str):
         operator_hear_type == OperatorHearTypes.ADDED
         and operator_write_type == OperatorWriteTypes.CREATE
     )
-    both_update = (
-        operator_hear_type == OperatorHearTypes.UPDATED
-        and operator_write_type == OperatorWriteTypes.UPDATE
+    both_update = operator_hear_type == OperatorHearTypes.UPDATED and (
+        operator_write_type == OperatorWriteTypes.UPDATE
+        or operator_write_type == OperatorWriteTypes.PATCH
+        or operator_write_type == OperatorWriteTypes.STATUS_UPDATE
+        or operator_write_type == OperatorWriteTypes.STATUS_PATCH
     )
     both_delete = (
         operator_hear_type == OperatorHearTypes.DELETED

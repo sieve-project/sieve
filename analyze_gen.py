@@ -69,6 +69,20 @@ def detectable_event_diff(
         elif diff_prev_obj == diff_cur_obj and (
             cur_etype == OperatorWriteTypes.UPDATE
             or cur_etype == OperatorWriteTypes.PATCH
+            or cur_etype == OperatorWriteTypes.STATUS_UPDATE
+            or cur_etype == OperatorWriteTypes.STATUS_PATCH
+        ):
+            return False
+        # undetectable if status update/patch does not modify status
+        elif (
+            diff_prev_obj is not None
+            and "status" not in diff_prev_obj
+            and diff_cur_obj is not None
+            and "status" not in diff_cur_obj
+            and (
+                cur_etype == OperatorWriteTypes.STATUS_UPDATE
+                or cur_etype == OperatorWriteTypes.STATUS_PATCH
+            )
         ):
             return False
         else:

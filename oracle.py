@@ -761,7 +761,7 @@ def injection_validation(test_context: TestContext):
             validation_messages.append(generate_warn("atom vio is not finished yet"))
             validation_ret_val = -2
     if not is_test_workload_finished(workload_log):
-        validation_messages.append(generate_warn("test workload is not started yet"))
+        validation_messages.append(generate_warn("test workload is not finished yet"))
         validation_ret_val = -3
     validation_messages.sort()
     return validation_ret_val, validation_messages
