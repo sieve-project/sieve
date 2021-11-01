@@ -250,6 +250,7 @@ event_mask = {
             ]
         }
     },
+    "xtradb-operator": {"*": {"pod": ["xtradb-cluster-pxc-0"]}},
     "yugabyte-operator": {"*": {"pod": ["yb-master-0", "yb-master-1", "yb-master-2"]}},
 }
 

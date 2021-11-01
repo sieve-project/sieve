@@ -243,17 +243,17 @@ workloads = {
     "xtradb-operator": {
         "recreate": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
-        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
+        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING, 300)
         .cmd("kubectl delete perconaxtradbcluster xtradb-cluster")
         .wait_for_pod_status("xtradb-cluster-pxc-0", common.TERMINATED)
         .wait_for_pod_status("xtradb-cluster-pxc-1", common.TERMINATED)
         .wait_for_pod_status("xtradb-cluster-pxc-2", common.TERMINATED)
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
-        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
+        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING, 300)
         .wait(70),
         "disable-enable-haproxy": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr-haproxy-enabled.yaml")
-        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
+        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING, 300)
         .wait_for_pod_status("xtradb-cluster-haproxy-0", common.RUNNING)
         .cmd(
             'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"haproxy":{"enabled":false}}}\''
@@ -266,7 +266,7 @@ workloads = {
         .wait(70),
         "disable-enable-proxysql": test_framework.new_built_in_workload()
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr-proxysql-enabled.yaml")
-        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
+        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING, 300)
         .wait_for_pod_status("xtradb-cluster-proxysql-0", common.RUNNING)
         .cmd(
             'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"proxysql":{"enabled":false}}}\''
@@ -285,7 +285,7 @@ workloads = {
             "cert-manager-webhook-*", common.RUNNING, namespace="cert-manager"
         )
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
-        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING)
+        .wait_for_pod_status("xtradb-cluster-pxc-2", common.RUNNING, 250)
         .wait(70),
     },
     "yugabyte-operator": {
