@@ -1,9 +1,9 @@
-from common import sieve_modes, cmd_early_exit, sieve_stages
+from sieve_common.common import sieve_modes, cmd_early_exit, sieve_stages
 import os
 import controllers
 import optparse
 import fileinput
-import sieve_config
+from sieve_common.default_config import sieve_config
 
 ORIGINAL_DIR = os.getcwd()
 
@@ -26,7 +26,7 @@ def install_lib_for_kubernetes():
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
     cmd_early_exit(
-        "cp -r sieve-client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client"
+        "cp -r sieve_client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client"
     )
     cmd_early_exit(
         "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client"
@@ -34,7 +34,7 @@ def install_lib_for_kubernetes():
 
 
 def instrument_kubernetes(mode):
-    os.chdir("instrumentation")
+    os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
     cmd_early_exit(
         "./instrumentation kubernetes %s %s/fakegopath/src/k8s.io/kubernetes"
@@ -50,8 +50,10 @@ def build_kubernetes(img_repo, img_tag):
         % ORIGINAL_DIR
     )
     os.chdir(ORIGINAL_DIR)
+    os.chdir("build_k8s")
     cmd_early_exit("docker build --no-cache -t %s/node:%s ." % (img_repo, img_tag))
     cmd_early_exit("docker push %s/node:%s" % (img_repo, img_tag))
+    os.chdir(ORIGINAL_DIR)
 
 
 def setup_kubernetes(mode, img_repo, img_tag):
@@ -129,7 +131,7 @@ def install_lib_for_controller(
         % (controllers.app_dir[project], client_go_version)
     )
     cmd_early_exit(
-        "cp -r sieve-client %s/dep-sieve/src/sieve.client"
+        "cp -r sieve_client %s/dep-sieve/src/sieve.client"
         % controllers.app_dir[project]
     )
 
@@ -205,7 +207,7 @@ def install_lib_for_controller(
 
 
 def instrument_controller(project, mode, controller_runtime_version, client_go_version):
-    os.chdir("instrumentation")
+    os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
     cmd_early_exit(
         "./instrumentation %s %s %s/%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sieve/src/k8s.io/client-go@%s"
@@ -373,9 +375,7 @@ if __name__ == "__main__":
         parser.error("invalid build mode option: %s" % options.mode)
 
     img_repo = (
-        options.docker
-        if options.docker is not None
-        else sieve_config.config["docker_repo"]
+        options.docker if options.docker is not None else sieve_config["docker_repo"]
     )
     if options.project == "kubernetes":
         setup_kubernetes_wrapper(options.mode, img_repo)

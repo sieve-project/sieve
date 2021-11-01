@@ -1,6 +1,6 @@
 import os
 import subprocess
-from common import fail, ok, warn
+from sieve_common.common import fail, ok, warn
 
 
 def check_go_env():

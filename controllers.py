@@ -1,7 +1,7 @@
 import os
 import re
 import workloads
-from common import sieve_modes, Suite
+from sieve_common.common import sieve_modes, Suite
 
 github_link = {
     "cassandra-operator": "https://github.com/instaclustr/cassandra-operator.git",

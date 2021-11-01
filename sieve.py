@@ -3,26 +3,29 @@ import docker
 import optparse
 import os
 import kubernetes
-import sieve_config
+from sieve_common.default_config import sieve_config
 import time
 import json
 import glob
-import analyze
+from sieve_analyzer import analyze
 import controllers
-import oracle
+from sieve_oracle.oracle import (
+    generate_test_oracle,
+    print_error_and_debugging_info,
+    generate_fatal,
+    check,
+)
 import yaml
 import subprocess
 import signal
 import errno
 import socket
-from datetime import datetime
 import traceback
-from common import (
-    BORING_EVENT_OBJECT_PATHS,
+from sieve_common.common import (
+    CONFIGURED_MASK,
     TestContext,
     cprint,
     bcolors,
-    fail,
     ok,
     sieve_modes,
     cmd_early_exit,
@@ -120,7 +123,7 @@ def generate_kind_config(num_apiservers, num_workers):
 
 
 def redirect_workers(num_workers):
-    target_master = sieve_config.config["time_travel_front_runner"]
+    target_master = sieve_config["time_travel_front_runner"]
     for i in range(num_workers):
         worker = "kind-worker" + (str(i + 1) if i > 0 else "")
         cmd_early_exit(
@@ -153,29 +156,25 @@ def redirect_kubectl():
 def prepare_sieve_server(test_context: TestContext):
     configured_mask = "configured-mask.json"
     configured_mask_map = {
-        "keys": [
-            path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")
-        ],
-        "paths": [
-            path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")
-        ],
+        "keys": [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")],
+        "paths": [path for path in CONFIGURED_MASK if not path.startswith("**/")],
     }
-    json.dump(configured_mask_map, open(configured_mask, "w"))
-    learned_mask = os.path.join(test_context.data_dir, "ignore-paths.json")
-    cmd_early_exit("cp %s sieve-server/configured-mask.json" % configured_mask)
-    cmd_early_exit("cp %s sieve-server/learned-mask.json" % learned_mask)
-    cmd_early_exit("cp %s sieve-server/server.yaml" % test_context.test_config)
+    json.dump(configured_mask_map, open(configured_mask, "w"), indent=4, sort_keys=True)
+    learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
+    cmd_early_exit("mv %s sieve_server/configured-mask.json" % configured_mask)
+    cmd_early_exit("cp %s sieve_server/learned-mask.json" % learned_mask)
+    cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_config)
     org_dir = os.getcwd()
-    os.chdir("sieve-server")
+    os.chdir("sieve_server")
     cmd_early_exit("go mod tidy")
     cmd_early_exit("go build")
     os.chdir(org_dir)
-    cmd_early_exit("docker cp sieve-server kind-control-plane:/sieve-server")
+    cmd_early_exit("docker cp sieve_server kind-control-plane:/sieve_server")
 
 
 def start_sieve_server():
     cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'cd /sieve-server && ./sieve-server &> sieve-server.log &'"
+        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server &> sieve-server.log &'"
     )
 
 
@@ -263,7 +262,7 @@ def setup_cluster(
     # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
     if test_context.mode != sieve_modes.TIME_TRAVEL and test_context.use_csi_driver:
         print("Installing csi provisioner...")
-        cmd_early_exit("cd csi-driver && ./install.sh")
+        cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
 
 def start_operator(project, docker_repo, docker_tag, num_apiservers):
@@ -276,7 +275,7 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
     print("Wait for operator pod ready...")
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
-            sieve_config.config["namespace"],
+            sieve_config["namespace"],
             watch=False,
             label_selector="sievetag=" + project,
         ).items
@@ -323,7 +322,7 @@ def run_workload(
     pod_name = (
         kubernetes.client.CoreV1Api()
         .list_namespaced_pod(
-            sieve_config.config["namespace"],
+            sieve_config["namespace"],
             watch=False,
             label_selector="sievetag=" + test_context.project,
         )
@@ -349,7 +348,7 @@ def run_workload(
     pod_name = (
         kubernetes.client.CoreV1Api()
         .list_namespaced_pod(
-            sieve_config.config["namespace"],
+            sieve_config["namespace"],
             watch=False,
             label_selector="sievetag=" + test_context.project,
         )
@@ -369,7 +368,7 @@ def run_workload(
 
     if test_context.mode != sieve_modes.VANILLA:
         cmd_early_exit(
-            "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log"
+            "docker cp kind-control-plane:/sieve_server/sieve-server.log %s/sieve-server.log"
             % (test_context.result_dir)
         )
 
@@ -381,10 +380,10 @@ def run_workload(
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
-    oracle.generate_test_oracle(
+    generate_test_oracle(
         test_context.project,
         test_context.result_dir,
-        test_context.data_dir,
+        test_context.oracle_dir,
         test_context.mode == sieve_modes.LEARN_TWICE,
     )
 
@@ -398,7 +397,7 @@ def check_result(
     else:
         if test_context.mode == sieve_modes.VANILLA:
             return 0, NO_ERROR_MESSAGE
-        ret_val, messages = oracle.check(
+        ret_val, messages = check(
             test_context,
             controllers.event_mask[test_context.project]
             if test_context.project in controllers.event_mask
@@ -434,14 +433,14 @@ def run_test(
             return ret_val, messages
         return 0, NO_ERROR_MESSAGE
     except Exception:
-        return -4, oracle.generate_fatal(traceback.format_exc())
+        return -4, generate_fatal(traceback.format_exc())
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
     learn_config_map = {}
     learn_config_map["stage"] = sieve_stages.LEARN
     learn_config_map["mode"] = mode
-    learn_config_map["namespace"] = sieve_config.config["namespace"]
+    learn_config_map["namespace"] = sieve_config["namespace"]
     learn_config_map["crd-list"] = controllers.CRDs[project]
     if rate_limiter_enabled:
         learn_config_map["rate-limiter-enabled"] = "true"
@@ -473,15 +472,15 @@ def run(
     phase="all",
 ):
     suite = controllers.test_suites[project][test]
-    data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
-    cmd_early_exit("mkdir -p %s" % data_dir)
+    oracle_dir = os.path.join(controllers.test_dir[project], "oracle", test)
+    os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
         log_dir, project, test, stage, mode, os.path.basename(config)
     )
     print("Log dir: %s" % result_dir)
     if phase == "all" or phase == "setup_only":
         cmd_early_exit("rm -rf %s" % result_dir)
-        cmd_early_exit("mkdir -p %s" % result_dir)
+        os.makedirs(result_dir, exist_ok=True)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
     config_to_use = os.path.join(result_dir, os.path.basename(config))
     if stage == sieve_stages.LEARN:
@@ -509,7 +508,7 @@ def run(
         suite.workload,
         config_to_use,
         result_dir,
-        data_dir,
+        oracle_dir,
         docker_repo,
         docker_tag,
         suite.num_apiservers,
@@ -518,7 +517,7 @@ def run(
         suite.oracle_config,
     )
     ret_val, messages = run_test(test_context)
-    oracle.print_error_and_debugging_info(ret_val, messages, test_context.test_config)
+    print_error_and_debugging_info(ret_val, messages, test_context.test_config)
     return ret_val, messages
 
 
@@ -578,7 +577,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=sieve_config.config["docker_repo"],
+        default=sieve_config["docker_repo"],
     )
     parser.add_option(
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"
