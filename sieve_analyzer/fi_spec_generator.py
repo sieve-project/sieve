@@ -7,7 +7,12 @@ from sieve_common.default_config import sieve_config
 from sieve_common.event import *
 from sieve_common.common import *
 
-from sieve_analyzer.k8s_event import *
+from sieve_common.k8s_event import *
+from sieve_analyzer.causality_graph import (
+    CausalityGraph,
+    CausalityVertex,
+    CausalityEdge,
+)
 
 
 def convert_deltafifo_etype_to_API_etype(etype: str) -> str:

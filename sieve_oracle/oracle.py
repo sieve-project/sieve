@@ -1,6 +1,14 @@
 import copy
 import kubernetes
-from sieve_analyzer import k8s_event
+from sieve_common.k8s_event import (
+    APIEventTypes,
+    SIEVE_API_EVENT_MARK,
+    parse_api_event,
+    extract_generate_name,
+    is_generated_random_name,
+    operator_related_resource,
+    api_key_to_rtype_namespace_name,
+)
 import yaml
 import json
 import os
@@ -11,8 +19,8 @@ from deepdiff import DeepDiff
 
 
 api_event_empty_entry = {
-    k8s_event.APIEventTypes.ADDED: 0,
-    k8s_event.APIEventTypes.DELETED: 0,
+    APIEventTypes.ADDED: 0,
+    APIEventTypes.DELETED: 0,
 }
 
 
@@ -63,26 +71,26 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
     api_type_event_map = {}
     taint_list = []
     for line in open(api_log_path).readlines():
-        if k8s_event.SIEVE_API_EVENT_MARK not in line:
+        if SIEVE_API_EVENT_MARK not in line:
             continue
-        api_event = k8s_event.parse_api_event(line)
+        api_event = parse_api_event(line)
         key = api_event.key
         if (
-            api_event.etype != k8s_event.APIEventTypes.ADDED
-            and api_event.etype != k8s_event.APIEventTypes.DELETED
+            api_event.etype != APIEventTypes.ADDED
+            and api_event.etype != APIEventTypes.DELETED
         ):
             continue
         if api_event.namespace != "default":
             continue
-        generate_name = k8s_event.extract_generate_name(api_event.obj_map)
+        generate_name = extract_generate_name(api_event.obj_map)
         if generate_name is not None:
-            if k8s_event.is_generated_random_name(api_event.name, generate_name):
+            if is_generated_random_name(api_event.name, generate_name):
                 key = key[:-5] + "*"
         assert "/default/" in key
         type_prefix = key[: key.find("/default/")]
         if key not in api_key_event_map:
             api_key_event_map[key] = copy.deepcopy(api_event_empty_entry)
-            if k8s_event.operator_related_resource(
+            if operator_related_resource(
                 project, api_event.rtype, api_event.name, api_event.obj_map, taint_list
             ):
                 api_key_event_map[key]["operator_related"] = True
@@ -279,7 +287,7 @@ def generic_event_checker(test_context: TestContext, event_mask):
     messages = []
 
     def should_skip_api_event_key(api_event_key, test_name, masked):
-        rtype, _, name = k8s_event.api_key_to_rtype_namespace_name(api_event_key)
+        rtype, _, name = api_key_to_rtype_namespace_name(api_event_key)
         for masked_test_name in masked:
             if masked_test_name == "*" or masked_test_name == test_name:
                 for masked_rtype in masked[masked_test_name]:

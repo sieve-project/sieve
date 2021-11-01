@@ -17,7 +17,12 @@ from sieve_analyzer.fi_spec_generator import (
     obs_gap_analysis,
     time_travel_analysis,
 )
-from sieve_analyzer.k8s_event import *
+from sieve_common.k8s_event import *
+from sieve_analyzer.causality_graph import (
+    CausalityGraph,
+    CausalityVertex,
+    CausalityEdge,
+)
 
 
 def sanity_check_sieve_log(path):
