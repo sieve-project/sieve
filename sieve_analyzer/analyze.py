@@ -12,12 +12,12 @@ from sieve_common.common import (
 )
 from controllers import *
 
-from sieve_analyzer.analyze_gen import (
+from sieve_analyzer.fi_spec_generator import (
     atom_vio_analysis,
     obs_gap_analysis,
     time_travel_analysis,
 )
-from sieve_analyzer.analyze_util import *
+from sieve_analyzer.k8s_event import *
 
 
 def sanity_check_sieve_log(path):

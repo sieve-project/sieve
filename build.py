@@ -3,7 +3,7 @@ import os
 import controllers
 import optparse
 import fileinput
-from sieve_common.sieve_config import sieve_config
+from sieve_common.default_config import sieve_config
 
 ORIGINAL_DIR = os.getcwd()
 

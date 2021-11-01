@@ -16,7 +16,7 @@ from sieve_common.common import (
 )
 import time
 import traceback
-from sieve_common.sieve_config import sieve_config
+from sieve_common.default_config import sieve_config
 import datetime
 import subprocess
 import json

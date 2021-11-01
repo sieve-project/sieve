@@ -3,7 +3,7 @@ import docker
 import optparse
 import os
 import kubernetes
-from sieve_common.sieve_config import sieve_config
+from sieve_common.default_config import sieve_config
 import time
 import json
 import glob

@@ -3,11 +3,11 @@ import os
 from typing import List
 
 import controllers
-from sieve_common.sieve_config import sieve_config
-from sieve_common.analyze_event import *
+from sieve_common.default_config import sieve_config
+from sieve_common.event import *
 from sieve_common.common import *
 
-from sieve_analyzer.analyze_util import *
+from sieve_analyzer.k8s_event import *
 
 
 def convert_deltafifo_etype_to_API_etype(etype: str) -> str:

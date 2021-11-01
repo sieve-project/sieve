@@ -1,5 +1,5 @@
 import optparse
-from sieve_common.sieve_config import sieve_config
+from sieve_common.default_config import sieve_config
 import os
 from sieve_common.common import cprint, bcolors
 
