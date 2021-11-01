@@ -5,7 +5,7 @@ import shutil
 from typing import List
 
 from sieve_common.common import (
-    BORING_EVENT_OBJECT_PATHS,
+    CONFIGURED_MASK,
     TestContext,
     sieve_modes,
     sieve_stages,
@@ -289,7 +289,7 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
 
 def build_causality_graph(log_path, oracle_dir):
     learned_masked_paths = json.load(open(os.path.join(oracle_dir, "mask.json")))
-    configured_masked = BORING_EVENT_OBJECT_PATHS
+    configured_masked = CONFIGURED_MASK
 
     operator_hear_list = parse_receiver_events(log_path)
     reconciler_event_list = parse_reconciler_events(log_path)

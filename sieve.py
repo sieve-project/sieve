@@ -22,7 +22,7 @@ import errno
 import socket
 import traceback
 from sieve_common.common import (
-    BORING_EVENT_OBJECT_PATHS,
+    CONFIGURED_MASK,
     TestContext,
     cprint,
     bcolors,
@@ -156,12 +156,8 @@ def redirect_kubectl():
 def prepare_sieve_server(test_context: TestContext):
     configured_mask = "configured-mask.json"
     configured_mask_map = {
-        "keys": [
-            path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")
-        ],
-        "paths": [
-            path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")
-        ],
+        "keys": [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")],
+        "paths": [path for path in CONFIGURED_MASK if not path.startswith("**/")],
     }
     json.dump(configured_mask_map, open(configured_mask, "w"), indent=4, sort_keys=True)
     learned_mask = os.path.join(test_context.oracle_dir, "mask.json")

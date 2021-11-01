@@ -107,7 +107,7 @@ def diff_event_as_map(
 
 
 def canonicalize_value(value: str):
-    if should_ignore_regex(value):
+    if match_mask_regex(value):
         return SIEVE_VALUE_MASK
     else:
         return value

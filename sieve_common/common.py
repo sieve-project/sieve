@@ -18,6 +18,7 @@ BOUND = "Bound"
 
 SIEVE_IDX_SKIP = "SIEVE-SKIP"
 SIEVE_VALUE_MASK = "SIEVE-NON-NIL"
+SIEVE_LEARN_VALUE_MASK = "SIEVE-IGNORE"
 
 EXIST = True
 NONEXIST = False
@@ -25,7 +26,7 @@ NONEXIST = False
 # If paths started with `**/name`, it means we will ignore any key whose name is `name`
 # Otherwise, we will match base on he full path
 # `x/*/y` * means matching any array index
-BORING_EVENT_OBJECT_PATHS = [
+CONFIGURED_MASK = [
     "**/image",
     "**/imageID",
     "**/containerID",
@@ -48,26 +49,24 @@ BORING_EVENT_OBJECT_PATHS = [
 ]
 
 
-def gen_boring_keys():
-    return [path[3:] for path in BORING_EVENT_OBJECT_PATHS if path.startswith("**/")]
+def gen_mask_keys():
+    return [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")]
 
 
-def gen_boring_paths():
-    return [path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")]
+def gen_mask_paths():
+    return [path for path in CONFIGURED_MASK if not path.startswith("**/")]
 
-
-BORING_IGNORE_MARK = "SIEVE-IGNORE"
 
 TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"
 IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 
-BORING_EVENT_OBJECT_REGS = [TIME_REG, IP_REG]
+MASK_REGS = [TIME_REG, IP_REG]
 
 
-def should_ignore_regex(val):
+def match_mask_regex(val):
     # Search for ignore regex
     if type(val) is str:
-        for reg in BORING_EVENT_OBJECT_REGS:
+        for reg in MASK_REGS:
             pat = re.compile(reg)
             if pat.match(val):
                 return True

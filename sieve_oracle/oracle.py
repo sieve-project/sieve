@@ -226,11 +226,11 @@ def dump_ignore_paths(ignore, predefine, key, obj, path):
         return
     if type(obj) is str:
         # Check for SIEVE-IGNORE
-        if obj == BORING_IGNORE_MARK:
+        if obj == SIEVE_LEARN_VALUE_MASK:
             ignore.add(path)
             return
         # Check for ignore regex rule
-        if should_ignore_regex(obj):
+        if match_mask_regex(obj):
             ignore.add(path)
             return
     if type(obj) is list:
@@ -251,11 +251,11 @@ def generate_ignore_paths(data):
         result[rtype] = {}
         for name in data[rtype]:
             predefine = {
-                "path": set(gen_boring_paths()),
-                "key": set(gen_boring_keys()),
+                "path": set(gen_mask_paths()),
+                "key": set(gen_mask_keys()),
             }
             ignore = set()
-            if data[rtype][name] != BORING_IGNORE_MARK:
+            if data[rtype][name] != SIEVE_LEARN_VALUE_MASK:
                 dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
                 result[rtype][name] = sorted(list(ignore))
     return result
@@ -425,8 +425,8 @@ def generic_state_checker(test_context: TestContext):
     preprocess(learn, test)
     tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
     resource_map = {resource: {"add": [], "remove": []} for resource in test}
-    boring_keys = set(gen_boring_keys())
-    boring_paths = set(gen_boring_paths())
+    boring_keys = set(gen_mask_keys())
+    boring_paths = set(gen_mask_paths())
 
     for delta_type in tdiff:
         for key in tdiff[delta_type]:
@@ -436,8 +436,8 @@ def generic_state_checker(test_context: TestContext):
             if len(path) == 2:
                 resource_type = path[0]
                 name = path[1]
-                if key.t1 == BORING_IGNORE_MARK:
-                    name = BORING_IGNORE_MARK
+                if key.t1 == SIEVE_LEARN_VALUE_MASK:
+                    name = SIEVE_LEARN_VALUE_MASK
                 resource_map[resource_type][
                     "add" if delta_type == "dictionary_item_added" else "remove"
                 ].append(name)
@@ -445,9 +445,9 @@ def generic_state_checker(test_context: TestContext):
 
             if delta_type in ["values_changed", "type_changes"]:
                 if (
-                    key.t1 == BORING_IGNORE_MARK
-                    or should_ignore_regex(key.t1)
-                    or should_ignore_regex(key.t2)
+                    key.t1 == SIEVE_LEARN_VALUE_MASK
+                    or match_mask_regex(key.t1)
+                    or match_mask_regex(key.t2)
                 ):
                     continue
 
@@ -537,7 +537,7 @@ def generic_state_checker(test_context: TestContext):
 
     for resource_type in resource_map:
         resource = resource_map[resource_type]
-        if BORING_IGNORE_MARK in resource["add"] + resource["remove"]:
+        if SIEVE_LEARN_VALUE_MASK in resource["add"] + resource["remove"]:
             # Then we only report number diff
             delta = len(resource["add"]) - len(resource["remove"])
             learn_set = set(learn[resource_type].keys())
