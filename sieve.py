@@ -266,7 +266,7 @@ def setup_cluster(
     # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
     if test_context.mode != sieve_modes.TIME_TRAVEL and test_context.use_csi_driver:
         print("Installing csi provisioner...")
-        cmd_early_exit("cd csi-driver && ./install.sh")
+        cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
 
 def start_operator(project, docker_repo, docker_tag, num_apiservers):
