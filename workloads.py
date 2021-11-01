@@ -1,10 +1,10 @@
-import test_framework
+from sieve_test_driver.test_framework import new_built_in_workload
 from sieve_common.common import RUNNING, TERMINATED, NONEXIST, EXIST
 
 
 workloads = {
     "cassandra-operator": {
-        "recreate": test_framework.new_built_in_workload()
+        "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-1.yaml")
         .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", RUNNING)
         .cmd("kubectl delete CassandraDataCenter cassandra-datacenter")
@@ -14,7 +14,7 @@ workloads = {
         .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-1.yaml")
         .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", RUNNING)
         .wait(50),
-        "scaledown-scaleup": test_framework.new_built_in_workload()
+        "scaledown-scaleup": new_built_in_workload()
         .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-2.yaml")
         .wait_for_pod_status(
             "cassandra-test-cluster-dc1-rack1-1", RUNNING, soft_time_out=200
@@ -35,7 +35,7 @@ workloads = {
         )
         .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING)
         .wait(50),
-        # "scaledown": test_framework.new_built_in_workload()
+        # "scaledown": new_built_in_workload()
         # .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-2.yaml")
         # .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", RUNNING)
         # .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING)
@@ -46,7 +46,7 @@ workloads = {
         # .wait(50),
     },
     "casskop-operator": {
-        "recreate": test_framework.new_built_in_workload()
+        "recreate": new_built_in_workload()
         .cmd(
             "kubectl apply -f examples/casskop-operator/test/cassandra-configmap-v1.yaml"
         )
@@ -60,7 +60,7 @@ workloads = {
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
         .wait(50),
         # TODO: use wait_for
-        "reducepdb": test_framework.new_built_in_workload()
+        "reducepdb": new_built_in_workload()
         .cmd(
             "kubectl apply -f examples/casskop-operator/test/cassandra-configmap-v1.yaml"
         )
@@ -69,7 +69,7 @@ workloads = {
         .cmd("kubectl apply -f examples/casskop-operator/test/cc-1.yaml")
         .wait(60)
         .wait(50),
-        "scaledown-to-zero": test_framework.new_built_in_workload()
+        "scaledown-to-zero": new_built_in_workload()
         .cmd(
             "kubectl apply -f examples/casskop-operator/test/cassandra-configmap-v1.yaml"
         )
@@ -81,7 +81,7 @@ workloads = {
         .cmd("kubectl apply -f examples/casskop-operator/test/nodes-0.yaml")
         .wait(50),
         # TODO(wenqing): Please fix this test case. As hinted in the operator log, we have to first set nodePerRack to 0 before resizing the dc
-        # "scaledown": test_framework.new_built_in_workload()
+        # "scaledown": new_built_in_workload()
         # .cmd("kubectl apply -f examples/casskop-operator/test/cassandra-configmap-v1.yaml")
         # .cmd("kubectl apply -f examples/casskop-operator/test/dc-3.yaml")
         # .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
@@ -94,7 +94,7 @@ workloads = {
         # .wait(50),
     },
     "cass-operator": {
-        "recreate": test_framework.new_built_in_workload()
+        "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/cass-operator/test/cdc-1.yaml")
         .wait_for_pod_status("cluster1-cassandra-datacenter-default-sts-0", RUNNING)
         .cmd("kubectl delete CassandraDatacenter cassandra-datacenter")
@@ -111,7 +111,7 @@ workloads = {
         .cmd("kubectl apply -f examples/cass-operator/test/cdc-1.yaml")
         .wait_for_pod_status("cluster1-cassandra-datacenter-default-sts-0", RUNNING)
         .wait(50),
-        "scaledown-scaleup": test_framework.new_built_in_workload()
+        "scaledown-scaleup": new_built_in_workload()
         .cmd("kubectl apply -f examples/cass-operator/test/cdc-2.yaml")
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-1", RUNNING, 150
@@ -131,7 +131,7 @@ workloads = {
         .wait(50),
     },
     "zookeeper-operator": {
-        "recreate": test_framework.new_built_in_workload()
+        "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/zookeeper-operator/test/zkc-1.yaml")
         .wait_for_pod_status("zookeeper-cluster-0", RUNNING)
         .cmd("kubectl delete ZookeeperCluster zookeeper-cluster")
@@ -140,7 +140,7 @@ workloads = {
         .cmd("kubectl apply -f examples/zookeeper-operator/test/zkc-1.yaml")
         .wait_for_pod_status("zookeeper-cluster-0", RUNNING)
         .wait(50),
-        "scaledown-scaleup": test_framework.new_built_in_workload()
+        "scaledown-scaleup": new_built_in_workload()
         .cmd("kubectl apply -f examples/zookeeper-operator/test/zkc-2.yaml")
         .wait_for_pod_status("zookeeper-cluster-1", RUNNING)
         .wait(30)
@@ -156,7 +156,7 @@ workloads = {
         .wait(50),
     },
     "rabbitmq-operator": {
-        "recreate": test_framework.new_built_in_workload()
+        "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", RUNNING)
         .cmd("kubectl delete RabbitmqCluster rabbitmq-cluster")
@@ -164,7 +164,7 @@ workloads = {
         .cmd("kubectl apply -f examples/rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", RUNNING)
         .wait(50),
-        "scaleup-scaledown": test_framework.new_built_in_workload()
+        "scaleup-scaledown": new_built_in_workload()
         .cmd("kubectl apply -f examples/rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", RUNNING)
         .cmd(
@@ -175,7 +175,7 @@ workloads = {
             'kubectl patch RabbitmqCluster rabbitmq-cluster --type merge -p=\'{"spec":{"replicas":2}}\''
         )
         .wait(70),
-        "resize-pvc": test_framework.new_built_in_workload()
+        "resize-pvc": new_built_in_workload()
         .cmd("kubectl apply -f examples/rabbitmq-operator/test/rmqc-1.yaml")
         .wait_for_pod_status("rabbitmq-cluster-server-0", RUNNING)
         .cmd(
@@ -185,7 +185,7 @@ workloads = {
         .wait(80),
     },
     "mongodb-operator": {
-        "recreate": test_framework.new_built_in_workload()
+        "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
         .cmd("kubectl delete PerconaServerMongoDB mongodb-cluster")
@@ -194,7 +194,7 @@ workloads = {
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
         .wait(70),
-        "disable-enable-shard": test_framework.new_built_in_workload()
+        "disable-enable-shard": new_built_in_workload()
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr-shard.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
         .wait_for_pod_status("mongodb-cluster-cfg-2", RUNNING)
@@ -210,7 +210,7 @@ workloads = {
         .wait_for_pod_status("mongodb-cluster-cfg-2", RUNNING)
         .wait_for_pod_status("mongodb-cluster-mongos-*", RUNNING)
         .wait(70),
-        "disable-enable-arbiter": test_framework.new_built_in_workload()
+        "disable-enable-arbiter": new_built_in_workload()
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr-arbiter.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-3", RUNNING, soft_time_out=150)
         .wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", RUNNING)
@@ -225,7 +225,7 @@ workloads = {
         .wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", RUNNING)
         .wait_for_pod_status("mongodb-cluster-rs0-4", TERMINATED)
         .wait(70),
-        "run-cert-manager": test_framework.new_built_in_workload()
+        "run-cert-manager": new_built_in_workload()
         .cmd(
             "kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml --validate=false"
         )
@@ -237,7 +237,7 @@ workloads = {
         .wait(70),
     },
     "xtradb-operator": {
-        "recreate": test_framework.new_built_in_workload()
+        "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
         .cmd("kubectl delete perconaxtradbcluster xtradb-cluster")
@@ -247,7 +247,7 @@ workloads = {
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
         .wait(70),
-        "disable-enable-haproxy": test_framework.new_built_in_workload()
+        "disable-enable-haproxy": new_built_in_workload()
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr-haproxy-enabled.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
         .wait_for_pod_status("xtradb-cluster-haproxy-0", RUNNING)
@@ -260,7 +260,7 @@ workloads = {
         )
         .wait_for_pod_status("xtradb-cluster-haproxy-0", RUNNING)
         .wait(70),
-        "disable-enable-proxysql": test_framework.new_built_in_workload()
+        "disable-enable-proxysql": new_built_in_workload()
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr-proxysql-enabled.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
         .wait_for_pod_status("xtradb-cluster-proxysql-0", RUNNING)
@@ -273,7 +273,7 @@ workloads = {
         )
         .wait_for_pod_status("xtradb-cluster-proxysql-0", RUNNING)
         .wait(70),
-        "run-cert-manager": test_framework.new_built_in_workload()
+        "run-cert-manager": new_built_in_workload()
         .cmd(
             "kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml --validate=false"
         )
@@ -285,7 +285,7 @@ workloads = {
         .wait(70),
     },
     "yugabyte-operator": {
-        "disable-enable-tls": test_framework.new_built_in_workload()
+        "disable-enable-tls": new_built_in_workload()
         .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-tls-enabled.yaml")
         .wait_for_pod_status("yb-master-2", RUNNING)
         .wait_for_pod_status("yb-tserver-2", RUNNING)
@@ -300,7 +300,7 @@ workloads = {
         .wait_for_secret_existence("yb-master-yugabyte-tls-cert", EXIST)
         .wait_for_secret_existence("yb-tserver-yugabyte-tls-cert", EXIST)
         .wait(70),
-        "disable-enable-tuiport": test_framework.new_built_in_workload()
+        "disable-enable-tuiport": new_built_in_workload()
         .cmd(
             "kubectl apply -f examples/yugabyte-operator/test/yb-tserverUIPort-enabled.yaml"
         )
@@ -315,7 +315,7 @@ workloads = {
         )
         .wait_for_service_existence("yb-tserver-ui", EXIST)
         .wait(70),
-        "scaleup-scaledown-tserver": test_framework.new_built_in_workload()
+        "scaleup-scaledown-tserver": new_built_in_workload()
         .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-1.yaml")
         .wait_for_pod_status("yb-master-2", RUNNING)
         .wait_for_pod_status("yb-tserver-2", RUNNING)
@@ -329,7 +329,7 @@ workloads = {
         .wait(70),
     },
     "nifikop-operator": {
-        "change-config": test_framework.new_built_in_workload()
+        "change-config": new_built_in_workload()
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc.yaml")
         .wait_for_pod_status("simplenifi-1-*", RUNNING, soft_time_out=220)
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc1.yaml")
