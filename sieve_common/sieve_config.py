@@ -1,7 +1,7 @@
 import json
 import os
 
-config = {
+sieve_config = {
     "docker_repo": "ghcr.io/sieve-project/action",
     "namespace": "default",
     "time_travel_front_runner": "kind-control-plane",
@@ -23,6 +23,6 @@ config = {
 if os.path.isfile("sieve_config.json"):
     json_config = json.loads(open("sieve_config.json").read())
     for key in json_config:
-        config[key] = json_config[key]
-    if not config["generic_state_generation_enabled"]:
-        config["generic_state_checker_enabled"] = False
+        sieve_config[key] = json_config[key]
+    if not sieve_config["generic_state_generation_enabled"]:
+        sieve_config["generic_state_checker_enabled"] = False

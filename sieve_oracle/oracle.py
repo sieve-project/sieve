@@ -5,7 +5,7 @@ import yaml
 import json
 import os
 from sieve_common.common import *
-import sieve_config
+from sieve_common.sieve_config import sieve_config
 import deepdiff
 from deepdiff import DeepDiff
 
@@ -23,12 +23,12 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False):
-    if sieve_config.config["generic_event_generation_enabled"]:
+    if sieve_config["generic_event_generation_enabled"]:
         events_oracle = generate_events_oracle(project, src_dir, canonicalize_resource)
         dump_json_file(src_dir, events_oracle, "side-effect.json")
         if canonicalize_resource:
             dump_json_file(dest_dir, events_oracle, "side-effect.json")
-    if sieve_config.config["generic_state_generation_enabled"]:
+    if sieve_config["generic_state_generation_enabled"]:
         resources = generate_resources(src_dir, canonicalize_resource)
         ignore_paths = generate_ignore_paths(resources)
         # we generate resources.json at src_dir (log dir)
@@ -127,7 +127,7 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
 
 
 def get_resource_helper(func):
-    k8s_namespace = sieve_config.config["namespace"]
+    k8s_namespace = sieve_config["namespace"]
     response = func(k8s_namespace, _preload_content=False, watch=False)
     data = json.loads(response.data)
     return {resource["metadata"]["name"]: resource for resource in data["items"]}
@@ -301,7 +301,7 @@ def generic_event_checker(test_context: TestContext, event_mask):
         if should_skip_api_event_key(key, test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
-            if etype not in sieve_config.config["api_event_to_check"]:
+            if etype not in sieve_config["api_event_to_check"]:
                 continue
             assert learning_events["keys"][key][etype] != "SIEVE-IGNORE"
             if (
@@ -321,14 +321,14 @@ def generic_event_checker(test_context: TestContext, event_mask):
                     )
                 )
 
-    if sieve_config.config["generic_type_event_checker_enabled"]:
+    if sieve_config["generic_type_event_checker_enabled"]:
         # checking events inconsistency for each resource type
         testing_rtypes = set(testing_events["types"].keys())
         learning_rtypes = set(learning_events["types"].keys())
         for rtype in testing_rtypes.intersection(learning_rtypes):
             assert learning_events["types"][rtype] != "SIEVE-IGNORE"
             for etype in testing_events["types"][rtype]:
-                if etype not in sieve_config.config["api_event_to_check"]:
+                if etype not in sieve_config["api_event_to_check"]:
                     continue
                 assert learning_events["types"][rtype][etype] != "SIEVE-IGNORE"
                 if (
@@ -691,7 +691,7 @@ def print_error_and_debugging_info(ret_val, messages, test_config):
     test_config_content = yaml.safe_load(open(test_config))
     report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
     cprint("[RET VAL] {}\n".format(ret_val) + messages, report_color)
-    if sieve_config.config["injection_desc_generation_enabled"]:
+    if sieve_config["injection_desc_generation_enabled"]:
         hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
         cprint(hint, bcolors.WARNING)
 
@@ -775,22 +775,22 @@ def check(test_context: TestContext, event_mask, state_mask):
     if validation_ret_val < 0:
         messages.extend(validation_messages)
 
-    if sieve_config.config["operator_checker_enabled"]:
+    if sieve_config["operator_checker_enabled"]:
         panic_ret_val, panic_messages = operator_checker(test_context)
         ret_val += panic_ret_val
         messages.extend(panic_messages)
 
-    if sieve_config.config["test_workload_checker_enabled"]:
+    if sieve_config["test_workload_checker_enabled"]:
         workload_ret_val, workload_messages = test_workload_checker(test_context)
         ret_val += workload_ret_val
         messages.extend(workload_messages)
 
-    if sieve_config.config["generic_event_checker_enabled"]:
+    if sieve_config["generic_event_checker_enabled"]:
         write_ret_val, write_messages = generic_event_checker(test_context, event_mask)
         ret_val += write_ret_val
         messages.extend(write_messages)
 
-    if sieve_config.config["generic_state_checker_enabled"]:
+    if sieve_config["generic_state_checker_enabled"]:
         resource_ret_val, resource_messages = generic_state_checker(test_context)
         ret_val += resource_ret_val
         messages.extend(resource_messages)

@@ -1,5 +1,5 @@
 import optparse
-import sieve_config
+from sieve_common.sieve_config import sieve_config
 import os
 from sieve_common.common import cprint, bcolors
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=sieve_config.config["docker_repo"],
+        default=sieve_config["docker_repo"],
     )
 
     (options, args) = parser.parse_args()

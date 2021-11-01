@@ -1,9 +1,9 @@
-from common import sieve_modes, cmd_early_exit, sieve_stages
+from sieve_common.common import sieve_modes, cmd_early_exit, sieve_stages
 import os
 import controllers
 import optparse
 import fileinput
-import sieve_config
+from sieve_common.sieve_config import sieve_config
 
 ORIGINAL_DIR = os.getcwd()
 
@@ -373,9 +373,7 @@ if __name__ == "__main__":
         parser.error("invalid build mode option: %s" % options.mode)
 
     img_repo = (
-        options.docker
-        if options.docker is not None
-        else sieve_config.config["docker_repo"]
+        options.docker if options.docker is not None else sieve_config["docker_repo"]
     )
     if options.project == "kubernetes":
         setup_kubernetes_wrapper(options.mode, img_repo)

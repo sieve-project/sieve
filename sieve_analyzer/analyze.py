@@ -167,8 +167,8 @@ def parse_reconciler_events(path):
             if controller_name not in cur_reconcile_start_timestamp:
                 cur_reconcile_start_timestamp[controller_name] = -1
                 cur_reconcile_is_trivial[controller_name] = False
-            if (not sieve_config.config["compress_trivial_reconcile"]) or (
-                sieve_config.config["compress_trivial_reconcile"]
+            if (not sieve_config["compress_trivial_reconcile"]) or (
+                sieve_config["compress_trivial_reconcile"]
                 and not cur_reconcile_is_trivial[controller_name]
             ):
                 # When compress_trivial_reconcile is disabled, we directly set prev_reconcile_start_timestamp

@@ -3,7 +3,7 @@ import os
 from typing import List
 
 import controllers
-import sieve_config
+from sieve_common.sieve_config import sieve_config
 from sieve_common.analyze_event import *
 from sieve_common.common import *
 
@@ -177,8 +177,8 @@ def time_travel_template(project):
         "project": project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.TIME_TRAVEL,
-        "straggler": sieve_config.config["time_travel_straggler"],
-        "front-runner": sieve_config.config["time_travel_front_runner"],
+        "straggler": sieve_config["time_travel_straggler"],
+        "front-runner": sieve_config["time_travel_front_runner"],
         "operator-pod-label": controllers.operator_pod_label[project],
         "deployment-name": controllers.deployment_name[project],
     }
@@ -348,7 +348,7 @@ def atom_vio_template(project):
         "project": project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.ATOM_VIO,
-        "front-runner": sieve_config.config["time_travel_front_runner"],
+        "front-runner": sieve_config["time_travel_front_runner"],
         "operator-pod-label": controllers.operator_pod_label[project],
         "deployment-name": controllers.deployment_name[project],
     }

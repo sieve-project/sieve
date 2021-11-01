@@ -2,7 +2,7 @@ import json
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from sieve_common.analyze_event import diff_event, conflicting_event_payload
-import sieve_config
+from sieve_common.sieve_config import sieve_config
 from controllers import deployment_name
 
 HEAR_READ_FILTER_FLAG = True
@@ -120,7 +120,7 @@ def extract_namespace_name(obj: Dict):
     obj_namespace = (
         obj["metadata"]["namespace"]
         if "namespace" in obj["metadata"]
-        else sieve_config.config["namespace"]
+        else sieve_config["namespace"]
     )
     return obj_namespace, obj_name
 

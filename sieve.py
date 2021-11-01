@@ -3,13 +3,18 @@ import docker
 import optparse
 import os
 import kubernetes
-import sieve_config
+from sieve_common.sieve_config import sieve_config
 import time
 import json
 import glob
 from sieve_analyzer import analyze
 import controllers
-import oracle
+from sieve_oracle.oracle import (
+    generate_test_oracle,
+    print_error_and_debugging_info,
+    generate_fatal,
+    check,
+)
 import yaml
 import subprocess
 import signal
@@ -118,7 +123,7 @@ def generate_kind_config(num_apiservers, num_workers):
 
 
 def redirect_workers(num_workers):
-    target_master = sieve_config.config["time_travel_front_runner"]
+    target_master = sieve_config["time_travel_front_runner"]
     for i in range(num_workers):
         worker = "kind-worker" + (str(i + 1) if i > 0 else "")
         cmd_early_exit(
@@ -274,7 +279,7 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
     print("Wait for operator pod ready...")
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
-            sieve_config.config["namespace"],
+            sieve_config["namespace"],
             watch=False,
             label_selector="sievetag=" + project,
         ).items
@@ -321,7 +326,7 @@ def run_workload(
     pod_name = (
         kubernetes.client.CoreV1Api()
         .list_namespaced_pod(
-            sieve_config.config["namespace"],
+            sieve_config["namespace"],
             watch=False,
             label_selector="sievetag=" + test_context.project,
         )
@@ -347,7 +352,7 @@ def run_workload(
     pod_name = (
         kubernetes.client.CoreV1Api()
         .list_namespaced_pod(
-            sieve_config.config["namespace"],
+            sieve_config["namespace"],
             watch=False,
             label_selector="sievetag=" + test_context.project,
         )
@@ -379,7 +384,7 @@ def run_workload(
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
-    oracle.generate_test_oracle(
+    generate_test_oracle(
         test_context.project,
         test_context.result_dir,
         test_context.data_dir,
@@ -396,7 +401,7 @@ def check_result(
     else:
         if test_context.mode == sieve_modes.VANILLA:
             return 0, NO_ERROR_MESSAGE
-        ret_val, messages = oracle.check(
+        ret_val, messages = check(
             test_context,
             controllers.event_mask[test_context.project]
             if test_context.project in controllers.event_mask
@@ -432,14 +437,14 @@ def run_test(
             return ret_val, messages
         return 0, NO_ERROR_MESSAGE
     except Exception:
-        return -4, oracle.generate_fatal(traceback.format_exc())
+        return -4, generate_fatal(traceback.format_exc())
 
 
 def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
     learn_config_map = {}
     learn_config_map["stage"] = sieve_stages.LEARN
     learn_config_map["mode"] = mode
-    learn_config_map["namespace"] = sieve_config.config["namespace"]
+    learn_config_map["namespace"] = sieve_config["namespace"]
     learn_config_map["crd-list"] = controllers.CRDs[project]
     if rate_limiter_enabled:
         learn_config_map["rate-limiter-enabled"] = "true"
@@ -516,7 +521,7 @@ def run(
         suite.oracle_config,
     )
     ret_val, messages = run_test(test_context)
-    oracle.print_error_and_debugging_info(ret_val, messages, test_context.test_config)
+    print_error_and_debugging_info(ret_val, messages, test_context.test_config)
     return ret_val, messages
 
 
@@ -576,7 +581,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=sieve_config.config["docker_repo"],
+        default=sieve_config["docker_repo"],
     )
     parser.add_option(
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"
