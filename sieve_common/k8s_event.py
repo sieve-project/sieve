@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-from sieve_common.event import diff_event, conflicting_event_payload
+from sieve_common.event_delta import diff_event, conflicting_event_payload
 from sieve_common.default_config import sieve_config
 from controllers import deployment_name
 

@@ -9,7 +9,7 @@ from sieve_common.k8s_event import (
     get_event_signature,
     conflicting_event,
 )
-from sieve_common.event import diff_event
+from sieve_common.event_delta import diff_event
 
 INTER_RECONCILER_EDGE = "INTER-RECONCILER"
 INTRA_RECONCILER_EDGE = "INTRA-RECONCILER"

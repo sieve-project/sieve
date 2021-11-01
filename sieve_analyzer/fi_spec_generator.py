@@ -4,7 +4,7 @@ from typing import List
 
 import controllers
 from sieve_common.default_config import sieve_config
-from sieve_common.event import *
+from sieve_common.event_delta import *
 from sieve_common.common import *
 
 from sieve_common.k8s_event import *
