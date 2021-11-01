@@ -34,7 +34,7 @@ def install_lib_for_kubernetes():
 
 
 def instrument_kubernetes(mode):
-    os.chdir("instrumentation")
+    os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
     cmd_early_exit(
         "./instrumentation kubernetes %s %s/fakegopath/src/k8s.io/kubernetes"
@@ -207,7 +207,7 @@ def install_lib_for_controller(
 
 
 def instrument_controller(project, mode, controller_runtime_version, client_go_version):
-    os.chdir("instrumentation")
+    os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
     cmd_early_exit(
         "./instrumentation %s %s %s/%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sieve/src/k8s.io/client-go@%s"
