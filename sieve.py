@@ -163,9 +163,9 @@ def prepare_sieve_server(test_context: TestContext):
             path for path in BORING_EVENT_OBJECT_PATHS if not path.startswith("**/")
         ],
     }
-    json.dump(configured_mask_map, open(configured_mask, "w"))
+    json.dump(configured_mask_map, open(configured_mask, "w"), indent=4, sort_keys=True)
     learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
-    cmd_early_exit("cp %s sieve_server/configured-mask.json" % configured_mask)
+    cmd_early_exit("mv %s sieve_server/configured-mask.json" % configured_mask)
     cmd_early_exit("cp %s sieve_server/learned-mask.json" % learned_mask)
     cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_config)
     org_dir = os.getcwd()
