@@ -1,8 +1,9 @@
 import json
-from typing import List, Dict, Optional, Union, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
+
+import analyze_event
 import sieve_config
 from controllers import deployment_name
-import analyze_event
 
 HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True

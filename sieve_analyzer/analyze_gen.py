@@ -1,12 +1,13 @@
-from analyze_util import *
-from analyze_event import *
 import json
-from typing import List
 import os
+from typing import List
+
 import controllers
-import json
 import sieve_config
+from analyze_event import *
 from common import *
+
+from sieve_analyzer.analyze_util import *
 
 
 def convert_deltafifo_etype_to_API_etype(etype: str) -> str:

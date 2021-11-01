@@ -1,14 +1,18 @@
-from analyze_event import diff_event
-from typing import List
 import copy
-import os
-from analyze_util import *
-import oracle
-import shutil
 import optparse
-import analyze_gen
+import os
+import shutil
+from typing import List
+
 from common import BORING_EVENT_OBJECT_PATHS, TestContext, sieve_modes, sieve_stages
 from controllers import *
+
+from sieve_analyzer.analyze_gen import (
+    atom_vio_analysis,
+    obs_gap_analysis,
+    time_travel_analysis,
+)
+from sieve_analyzer.analyze_util import *
 
 
 def sanity_check_sieve_log(path):
@@ -305,11 +309,11 @@ def generate_test_config(analysis_mode, project, log_dir, causality_graph):
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
-        analyze_gen.time_travel_analysis(causality_graph, generated_config_dir, project)
+        time_travel_analysis(causality_graph, generated_config_dir, project)
     elif analysis_mode == sieve_modes.OBS_GAP:
-        analyze_gen.obs_gap_analysis(causality_graph, generated_config_dir, project)
+        obs_gap_analysis(causality_graph, generated_config_dir, project)
     elif analysis_mode == sieve_modes.ATOM_VIO:
-        analyze_gen.atom_vio_analysis(causality_graph, generated_config_dir, project)
+        atom_vio_analysis(causality_graph, generated_config_dir, project)
 
 
 def analyze_trace(
