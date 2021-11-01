@@ -164,7 +164,7 @@ def prepare_sieve_server(test_context: TestContext):
         ],
     }
     json.dump(configured_mask_map, open(configured_mask, "w"))
-    learned_mask = os.path.join(test_context.data_dir, "ignore-paths.json")
+    learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
     cmd_early_exit("cp %s sieve_server/configured-mask.json" % configured_mask)
     cmd_early_exit("cp %s sieve_server/learned-mask.json" % learned_mask)
     cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_config)
@@ -387,7 +387,7 @@ def run_workload(
     generate_test_oracle(
         test_context.project,
         test_context.result_dir,
-        test_context.data_dir,
+        test_context.oracle_dir,
         test_context.mode == sieve_modes.LEARN_TWICE,
     )
 
@@ -476,15 +476,15 @@ def run(
     phase="all",
 ):
     suite = controllers.test_suites[project][test]
-    data_dir = os.path.join("data", project, test, sieve_stages.LEARN)
-    cmd_early_exit("mkdir -p %s" % data_dir)
+    oracle_dir = os.path.join(controllers.test_dir[project], "oracle", test)
+    os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
         log_dir, project, test, stage, mode, os.path.basename(config)
     )
     print("Log dir: %s" % result_dir)
     if phase == "all" or phase == "setup_only":
         cmd_early_exit("rm -rf %s" % result_dir)
-        cmd_early_exit("mkdir -p %s" % result_dir)
+        os.makedirs(result_dir, exist_ok=True)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
     config_to_use = os.path.join(result_dir, os.path.basename(config))
     if stage == sieve_stages.LEARN:
@@ -512,7 +512,7 @@ def run(
         suite.workload,
         config_to_use,
         result_dir,
-        data_dir,
+        oracle_dir,
         docker_repo,
         docker_tag,
         suite.num_apiservers,

@@ -33,25 +33,25 @@ def dump_json_file(dir, data, json_file_name):
 def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False):
     if sieve_config["generic_event_generation_enabled"]:
         events_oracle = generate_events_oracle(project, src_dir, canonicalize_resource)
-        dump_json_file(src_dir, events_oracle, "side-effect.json")
+        dump_json_file(src_dir, events_oracle, "event.json")
         if canonicalize_resource:
-            dump_json_file(dest_dir, events_oracle, "side-effect.json")
+            dump_json_file(dest_dir, events_oracle, "event.json")
     if sieve_config["generic_state_generation_enabled"]:
         resources = generate_resources(src_dir, canonicalize_resource)
         ignore_paths = generate_ignore_paths(resources)
-        # we generate resources.json at src_dir (log dir)
-        dump_json_file(src_dir, resources, "resources.json")
-        dump_json_file(src_dir, ignore_paths, "ignore-paths.json")
-        # we generate resoruces.json at dest_dir (data dir) if cononicalize_resource=True
+        # we generate state.json at src_dir (log dir)
+        dump_json_file(src_dir, resources, "state.json")
+        dump_json_file(src_dir, ignore_paths, "mask.json")
+        # we generate state.json at dest_dir (data dir) if cononicalize_resource=True
         if canonicalize_resource:
-            dump_json_file(dest_dir, resources, "resources.json")
-            dump_json_file(dest_dir, ignore_paths, "ignore-paths.json")
+            dump_json_file(dest_dir, resources, "state.json")
+            dump_json_file(dest_dir, ignore_paths, "mask.json")
 
 
 # def generate_learned_masked_path(dest_dir):
-#     resources = json.load(open(os.path.join(dest_dir, "resources.json")))
+#     resources = json.load(open(os.path.join(dest_dir, "state.json")))
 #     ignore_paths = generate_ignore_paths(resources)
-#     dump_json_file(dest_dir, ignore_paths, "ignore-paths.json")
+#     dump_json_file(dest_dir, ignore_paths, "mask.json")
 
 
 def is_unstable_api_event_key(key, value):
@@ -111,7 +111,7 @@ def generate_events_oracle(project, log_dir, canonicalize_resource):
         learn_dir = os.path.dirname(os.path.dirname(log_dir))
         learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
         prev_api_event_map = json.loads(
-            open(os.path.join(learn_once_dir, "side-effect.json")).read()
+            open(os.path.join(learn_once_dir, "event.json")).read()
         )
         api_event_map = learn_twice_trim(prev_api_event_map, api_event_map)
 
@@ -214,7 +214,7 @@ def generate_resources(log_dir="", canonicalize_resource=False):
         learn_dir = os.path.dirname(os.path.dirname(log_dir))
         learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
         base_resources = json.loads(
-            open(os.path.join(learn_once_dir, "resources.json")).read()
+            open(os.path.join(learn_once_dir, "state.json")).read()
         )
         resources = learn_twice_trim(base_resources, resources)
     return resources
@@ -275,10 +275,10 @@ def generate_fatal(msg):
 
 def generic_event_checker(test_context: TestContext, event_mask):
     learning_events = json.load(
-        open(os.path.join(test_context.data_dir, "side-effect.json"))
+        open(os.path.join(test_context.oracle_dir, "event.json"))
     )
     testing_events = json.load(
-        open(os.path.join(test_context.result_dir, "side-effect.json"))
+        open(os.path.join(test_context.result_dir, "event.json"))
     )
     test_mode = test_context.mode
     test_name = test_context.test_name
@@ -411,8 +411,8 @@ def preprocess(learn, test):
 
 
 def generic_state_checker(test_context: TestContext):
-    learn = json.load(open(os.path.join(test_context.data_dir, "resources.json")))
-    test = json.load(open(os.path.join(test_context.result_dir, "resources.json")))
+    learn = json.load(open(os.path.join(test_context.oracle_dir, "state.json")))
+    test = json.load(open(os.path.join(test_context.result_dir, "state.json")))
 
     ret_val = 0
     messages = []

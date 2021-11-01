@@ -160,7 +160,7 @@ class TestContext:
         test_workload,
         test_config,
         result_dir,
-        data_dir,
+        oracle_dir,
         docker_repo,
         docker_tag,
         num_apiservers,
@@ -176,7 +176,7 @@ class TestContext:
         self.test_workload = test_workload
         self.test_config = test_config
         self.result_dir = result_dir
-        self.data_dir = data_dir
+        self.oracle_dir = oracle_dir
         self.docker_repo = docker_repo
         self.docker_tag = docker_tag
         self.num_apiservers = num_apiservers
