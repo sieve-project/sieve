@@ -1,10 +1,10 @@
 import copy
 import kubernetes
-import analyze_util
+from sieve_analyzer import analyze_util
 import yaml
 import json
 import os
-from common import *
+from sieve_common.common import *
 import sieve_config
 import deepdiff
 from deepdiff import DeepDiff

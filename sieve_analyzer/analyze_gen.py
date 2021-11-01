@@ -4,8 +4,8 @@ from typing import List
 
 import controllers
 import sieve_config
-from analyze_event import *
-from common import *
+from sieve_common.analyze_event import *
+from sieve_common.common import *
 
 from sieve_analyzer.analyze_util import *
 

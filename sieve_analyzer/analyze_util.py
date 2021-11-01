@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-import analyze_event
+from sieve_common.analyze_event import diff_event, conflicting_event_payload
 import sieve_config
 from controllers import deployment_name
 
@@ -665,7 +665,7 @@ def conflicting_event(
     elif (
         prev_operator_hear.etype != OperatorHearTypes.DELETED
         and cur_operator_hear.etype != OperatorHearTypes.DELETED
-        and analyze_event.conflicting_event_payload(
+        and conflicting_event_payload(
             prev_operator_hear.slim_cur_obj_map,
             cur_operator_hear.obj_map,
             masked_keys,
@@ -1065,7 +1065,7 @@ class CausalityGraph:
                     cur_operator_hear.rtype,
                     cur_operator_hear.name,
                 )
-                slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                slim_prev_object, slim_cur_object = diff_event(
                     prev_hear_obj_map,
                     cur_operator_hear.obj_map,
                     masked_keys,
@@ -1123,7 +1123,7 @@ class CausalityGraph:
                 masked_keys, masked_paths = self.retrieve_masked(
                     operator_write.rtype, operator_write.name
                 )
-                slim_prev_object, slim_cur_object = analyze_event.diff_event(
+                slim_prev_object, slim_cur_object = diff_event(
                     prev_read_obj_map,
                     operator_write.obj_map,
                     masked_keys,

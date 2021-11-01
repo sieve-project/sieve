@@ -1,7 +1,19 @@
 from typing import Tuple
 import kubernetes
 import os
-import common
+from sieve_common.common import (
+    POD,
+    PVC,
+    STS,
+    SECRET,
+    SERVICE,
+    sieve_modes,
+    NO_ERROR_MESSAGE,
+    TERMINATED,
+    RUNNING,
+    BOUND,
+    EXIST,
+)
 import time
 import traceback
 import sieve_config
@@ -110,7 +122,7 @@ class TestCmd:
         except subprocess.TimeoutExpired:
             proc.terminate()
             return 2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
-        return 0, common.NO_ERROR_MESSAGE
+        return 0, NO_ERROR_MESSAGE
 
 
 class TestWait:
@@ -120,7 +132,7 @@ class TestWait:
     def run(self, mode) -> Tuple[int, str]:
         print("wait for %s seconds" % str(self.hard_time_out))
         time.sleep(self.hard_time_out)
-        return 0, common.NO_ERROR_MESSAGE
+        return 0, NO_ERROR_MESSAGE
 
 
 class TestWaitForStatus:
@@ -147,10 +159,10 @@ class TestWaitForStatus:
             print("error occurs during check pod", err)
             print(traceback.format_exc())
             return False
-        if self.status == common.TERMINATED:
+        if self.status == TERMINATED:
             if pod is None:
                 return True
-        elif self.status == common.RUNNING:
+        elif self.status == RUNNING:
             if pod is not None and pod.status.phase == self.status:
                 all_ready = True
                 for container_status in pod.status.container_statuses:
@@ -169,10 +181,10 @@ class TestWaitForStatus:
             print("error occurs during check pvc", err)
             print(traceback.format_exc())
             return False
-        if self.status == common.TERMINATED:
+        if self.status == TERMINATED:
             if pvc is None:
                 return True
-        elif self.status == common.BOUND:
+        elif self.status == BOUND:
             if pvc is not None and pvc.status.phase == self.status:
                 return True
         else:
@@ -187,13 +199,13 @@ class TestWaitForStatus:
         )
         while True:
             duration = time.time() - s
-            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not become %s within %d seconds; we will continue"
                     % (self.resource_name, self.status, self.soft_time_out)
                 )
                 print(error_message)
-                return 0, common.NO_ERROR_MESSAGE
+                return 0, NO_ERROR_MESSAGE
             if duration > self.hard_time_out:
                 error_message = (
                     "hard timeout: %s does not become %s within %d seconds"
@@ -201,10 +213,10 @@ class TestWaitForStatus:
                 )
                 print(error_message)
                 return 1, error_message
-            if self.resource_type == common.POD:
+            if self.resource_type == POD:
                 if self.check_pod():
                     break
-            elif self.resource_type == common.PVC:
+            elif self.resource_type == PVC:
                 if self.check_pvc():
                     break
             else:
@@ -212,7 +224,7 @@ class TestWaitForStatus:
             time.sleep(5)
         time.sleep(5)  # make it configurable
         print("wait takes %f seconds" % (time.time() - s))
-        return 0, common.NO_ERROR_MESSAGE
+        return 0, NO_ERROR_MESSAGE
 
 
 class TestWaitForStorage:
@@ -252,13 +264,13 @@ class TestWaitForStorage:
         )
         while True:
             duration = time.time() - s
-            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not have storage size %s within %d seconds; we will continue"
                     % (self.resource_name, self.storage_size, self.soft_time_out)
                 )
                 print(error_message)
-                return 0, common.NO_ERROR_MESSAGE
+                return 0, NO_ERROR_MESSAGE
             if duration > self.hard_time_out:
                 error_message = (
                     "hard timeout: %s does not have storage size %s within %d seconds"
@@ -266,7 +278,7 @@ class TestWaitForStorage:
                 )
                 print(error_message)
                 return 1, error_message
-            if self.resource_type == common.STS:
+            if self.resource_type == STS:
                 if self.check_sts():
                     break
             else:
@@ -274,7 +286,7 @@ class TestWaitForStorage:
             time.sleep(5)
         time.sleep(5)  # make it configurable
         print("wait takes %f seconds" % (time.time() - s))
-        return 0, common.NO_ERROR_MESSAGE
+        return 0, NO_ERROR_MESSAGE
 
 
 class TestWaitForExistence:
@@ -310,7 +322,7 @@ class TestWaitForExistence:
             print(traceback.format_exc())
             return False
 
-        if self.exist == common.EXIST:
+        if self.exist == EXIST:
             if secret is not None:
                 return True
         else:
@@ -326,7 +338,7 @@ class TestWaitForExistence:
             print(traceback.format_exc())
             return False
 
-        if self.exist == common.EXIST:
+        if self.exist == EXIST:
             if service is not None:
                 return True
         else:
@@ -346,13 +358,13 @@ class TestWaitForExistence:
         )
         while True:
             duration = time.time() - s
-            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not become %s within %d seconds; we will continue"
                     % (self.resource_name, self.status, self.soft_time_out)
                 )
                 print(error_message)
-                return 0, common.NO_ERROR_MESSAGE
+                return 0, NO_ERROR_MESSAGE
             if duration > self.hard_time_out:
                 error_message = (
                     "hard timeout: %s does not become %s within %d seconds"
@@ -360,10 +372,10 @@ class TestWaitForExistence:
                 )
                 print(error_message)
                 return 1, error_message
-            if self.resource_type == common.SECRET:
+            if self.resource_type == SECRET:
                 if self.check_secret():
                     break
-            elif self.resource_type == common.SERVICE:
+            elif self.resource_type == SERVICE:
                 if self.check_service():
                     break
             else:
@@ -371,7 +383,7 @@ class TestWaitForExistence:
             time.sleep(5)
         time.sleep(5)  # make it configurable
         print("wait takes %f seconds" % (time.time() - s))
-        return 0, common.NO_ERROR_MESSAGE
+        return 0, NO_ERROR_MESSAGE
 
 
 class TestWaitForCRConditions:
@@ -417,13 +429,13 @@ class TestWaitForCRConditions:
         )
         while True:
             duration = time.time() - s
-            if mode == common.sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not achieve %s within %d seconds; we will continue"
                     % (self.resource_name, self.conditions, self.soft_time_out)
                 )
                 print(error_message)
-                return 0, common.NO_ERROR_MESSAGE
+                return 0, NO_ERROR_MESSAGE
             if duration > self.hard_time_out:
                 error_message = (
                     "hard timeout: %s does not achieve %s within %d seconds"
@@ -441,7 +453,7 @@ class TestWaitForCRConditions:
             time.sleep(5)
         time.sleep(5)  # make it configurable
         print("wait takes %f seconds" % (time.time() - s))
-        return 0, common.NO_ERROR_MESSAGE
+        return 0, NO_ERROR_MESSAGE
 
 
 class BuiltInWorkLoad:
@@ -462,7 +474,7 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStatus(
-            common.POD,
+            POD,
             pod_name,
             status,
             soft_time_out,
@@ -481,7 +493,7 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStatus(
-            common.PVC,
+            PVC,
             pvc_name,
             status,
             soft_time_out,
@@ -500,7 +512,7 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForExistence(
-            common.SECRET,
+            SECRET,
             secret_name,
             exist,
             soft_time_out,
@@ -519,7 +531,7 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForExistence(
-            common.SERVICE,
+            SERVICE,
             service_name,
             exist,
             soft_time_out,
@@ -538,7 +550,7 @@ class BuiltInWorkLoad:
         namespace=sieve_config.config["namespace"],
     ):
         test_wait = TestWaitForStorage(
-            common.STS,
+            STS,
             sts_name,
             storage_size,
             soft_time_out,

@@ -1,7 +1,7 @@
 import optparse
 import sieve_config
 import os
-from common import cprint, bcolors
+from sieve_common.common import cprint, bcolors
 
 reprod_map = {
     "cassandra-operator": {

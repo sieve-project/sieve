@@ -4,7 +4,12 @@ import os
 import shutil
 from typing import List
 
-from common import BORING_EVENT_OBJECT_PATHS, TestContext, sieve_modes, sieve_stages
+from sieve_common.common import (
+    BORING_EVENT_OBJECT_PATHS,
+    TestContext,
+    sieve_modes,
+    sieve_stages,
+)
 from controllers import *
 
 from sieve_analyzer.analyze_gen import (

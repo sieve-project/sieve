@@ -1,7 +1,6 @@
 import copy
-import re
 from typing import Dict, List, Tuple, Optional, Set
-from common import *
+from sieve_common.common import *
 
 
 def diff_event_as_list(

@@ -7,7 +7,7 @@ import sieve_config
 import time
 import json
 import glob
-import analyze
+from sieve_analyzer import analyze
 import controllers
 import oracle
 import yaml
@@ -15,14 +15,12 @@ import subprocess
 import signal
 import errno
 import socket
-from datetime import datetime
 import traceback
-from common import (
+from sieve_common.common import (
     BORING_EVENT_OBJECT_PATHS,
     TestContext,
     cprint,
     bcolors,
-    fail,
     ok,
     sieve_modes,
     cmd_early_exit,
