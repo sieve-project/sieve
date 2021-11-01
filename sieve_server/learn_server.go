@@ -215,20 +215,20 @@ func (s *learnServer) coordinatingEvents() {
 			case beforeSideEffect:
 				sideEffectID := strings.Split(nw.payload, "\t")[0]
 				if obj, ok := s.sideEffectChMap.Load(sideEffectID); ok {
-					log.Printf("[SIEVE-BEFORE-SIDE-EFFECT]\t%s\n", nw.payload)
+					log.Printf("[SIEVE-BEFORE-WRITE]\t%s\n", nw.payload)
 					ch := obj.(chan int32)
 					ch <- 0
 				} else {
 					log.Fatal("invalid object in eventChMap")
 				}
 			case afterSideEffect:
-				log.Printf("[SIEVE-AFTER-SIDE-EFFECT]\t%s\n", nw.payload)
+				log.Printf("[SIEVE-AFTER-WRITE]\t%s\n", nw.payload)
 			case beforeEvent:
 				if !s.rateLimiterEnabled {
 					eventID := strings.Split(nw.payload, "\t")[0]
 					if obj, ok := s.eventChMap.Load(eventID); ok {
 						// log.Printf("release event\n")
-						log.Printf("[SIEVE-BEFORE-EVENT]\t%s\n", nw.payload)
+						log.Printf("[SIEVE-BEFORE-HEAR]\t%s\n", nw.payload)
 						ch := obj.(chan int32)
 						ch <- 0
 					} else {
@@ -238,7 +238,7 @@ func (s *learnServer) coordinatingEvents() {
 					s.rateLimitedEventCh <- nw
 				}
 			case afterEvent:
-				log.Printf("[SIEVE-AFTER-EVENT]\t%s\n", nw.payload)
+				log.Printf("[SIEVE-AFTER-HEAR]\t%s\n", nw.payload)
 			case afterRead:
 				log.Printf("[SIEVE-AFTER-READ]\t%s\n", nw.payload)
 			default:
@@ -254,7 +254,7 @@ func (s *learnServer) pollRateLimitedEventCh() {
 		eventID := strings.Split(nw.payload, "\t")[0]
 		if obj, ok := s.eventChMap.Load(eventID); ok {
 			log.Printf("ratelimiter release event\n")
-			log.Printf("[SIEVE-BEFORE-EVENT]\t%s\n", nw.payload)
+			log.Printf("[SIEVE-BEFORE-HEAR]\t%s\n", nw.payload)
 			ch := obj.(chan int32)
 			ch <- 0
 		} else {
