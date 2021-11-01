@@ -17,4 +17,4 @@ require (
 	sieve.client v0.0.0
 )
 
-replace sieve.client => ../sieve-client
+replace sieve.client => ../sieve_client

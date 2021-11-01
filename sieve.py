@@ -165,20 +165,20 @@ def prepare_sieve_server(test_context: TestContext):
     }
     json.dump(configured_mask_map, open(configured_mask, "w"))
     learned_mask = os.path.join(test_context.data_dir, "ignore-paths.json")
-    cmd_early_exit("cp %s sieve-server/configured-mask.json" % configured_mask)
-    cmd_early_exit("cp %s sieve-server/learned-mask.json" % learned_mask)
-    cmd_early_exit("cp %s sieve-server/server.yaml" % test_context.test_config)
+    cmd_early_exit("cp %s sieve_server/configured-mask.json" % configured_mask)
+    cmd_early_exit("cp %s sieve_server/learned-mask.json" % learned_mask)
+    cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_config)
     org_dir = os.getcwd()
-    os.chdir("sieve-server")
+    os.chdir("sieve_server")
     cmd_early_exit("go mod tidy")
     cmd_early_exit("go build")
     os.chdir(org_dir)
-    cmd_early_exit("docker cp sieve-server kind-control-plane:/sieve-server")
+    cmd_early_exit("docker cp sieve_server kind-control-plane:/sieve_server")
 
 
 def start_sieve_server():
     cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'cd /sieve-server && ./sieve-server &> sieve-server.log &'"
+        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server &> sieve-server.log &'"
     )
 
 
@@ -372,7 +372,7 @@ def run_workload(
 
     if test_context.mode != sieve_modes.VANILLA:
         cmd_early_exit(
-            "docker cp kind-control-plane:/sieve-server/sieve-server.log %s/sieve-server.log"
+            "docker cp kind-control-plane:/sieve_server/sieve-server.log %s/sieve-server.log"
             % (test_context.result_dir)
         )
 

@@ -26,7 +26,7 @@ def install_lib_for_kubernetes():
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
     cmd_early_exit(
-        "cp -r sieve-client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client"
+        "cp -r sieve_client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client"
     )
     cmd_early_exit(
         "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client"
@@ -129,7 +129,7 @@ def install_lib_for_controller(
         % (controllers.app_dir[project], client_go_version)
     )
     cmd_early_exit(
-        "cp -r sieve-client %s/dep-sieve/src/sieve.client"
+        "cp -r sieve_client %s/dep-sieve/src/sieve.client"
         % controllers.app_dir[project]
     )
 
