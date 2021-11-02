@@ -1,0 +1,2340 @@
+{
+    "cassandrabackup": {},
+    "cassandracluster": {},
+    "cassandradatacenter": {
+        "cassandra-datacenter": {
+            "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
+            "cluster": "test-cluster",
+            "datacenter": "dc1",
+            "kind": "CassandraDataCenter",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"cassandraoperator.instaclustr.com/v1alpha1\",\"cluster\":\"test-cluster\",\"datacenter\":\"dc1\",\"kind\":\"CassandraDataCenter\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"cassandra\"},\"name\":\"cassandra-datacenter\",\"namespace\":\"default\"},\"spec\":{\"cassandraAuth\":{\"authenticator\":\"PasswordAuthenticator\",\"authorizer\":\"CassandraAuthorizer\",\"roleManager\":\"CassandraRoleManager\"},\"cassandraImage\":\"gcr.io/cassandra-operator/cassandra-3.11.9:latest\",\"dataVolumeClaimSpec\":{\"accessModes\":[\"ReadWriteOnce\"],\"resources\":{\"requests\":{\"storage\":\"2Gi\"}}},\"deletePVCs\":true,\"fsGroup\":999,\"imagePullPolicy\":\"Always\",\"imagePullSecrets\":[{\"name\":\"regcred\"}],\"nodes\":1,\"optimizeKernelParams\":true,\"prometheusSupport\":false,\"resources\":{\"limits\":{\"memory\":\"1Gi\"},\"requests\":{\"memory\":\"1Gi\"}},\"serviceAccountName\":\"cassandra-performance\",\"sidecarImage\":\"gcr.io/cassandra-operator/instaclustr-icarus:latest\",\"sidecarResources\":{\"limits\":{\"memory\":\"512Mi\"},\"requests\":{\"memory\":\"512Mi\"}}}}\n"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "finalizer.pvcs.cassandraoperator.instaclustr.com"
+                ],
+                "generation": 3,
+                "labels": {
+                    "app": "cassandra"
+                },
+                "name": "cassandra-datacenter",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/cassandraoperator.instaclustr.com/v1alpha1/namespaces/default/cassandradatacenters/cassandra-datacenter",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "cassandraAuth": {
+                    "authenticator": "PasswordAuthenticator",
+                    "authorizer": "CassandraAuthorizer",
+                    "roleManager": "CassandraRoleManager"
+                },
+                "cassandraImage": "gcr.io/cassandra-operator/cassandra-3.11.9:latest",
+                "dataVolumeClaimSpec": {
+                    "accessModes": [
+                        "ReadWriteOnce"
+                    ],
+                    "resources": {
+                        "requests": {
+                            "storage": "2Gi"
+                        }
+                    }
+                },
+                "deletePVCs": true,
+                "fsGroup": 999,
+                "imagePullPolicy": "Always",
+                "imagePullSecrets": [
+                    {
+                        "name": "regcred"
+                    }
+                ],
+                "nodes": 1,
+                "optimizeKernelParams": true,
+                "prometheusSupport": false,
+                "resources": {
+                    "limits": {
+                        "memory": "1Gi"
+                    },
+                    "requests": {
+                        "memory": "1Gi"
+                    }
+                },
+                "serviceAccountName": "cassandra-performance",
+                "sidecarImage": "gcr.io/cassandra-operator/instaclustr-icarus:latest",
+                "sidecarResources": {
+                    "limits": {
+                        "memory": "512Mi"
+                    },
+                    "requests": {
+                        "memory": "512Mi"
+                    }
+                }
+            }
+        }
+    },
+    "configmap": {
+        "cassandra-operator-default-config": {
+            "data": {
+                "cassandraImage": "gcr.io/cassandra-operator/cassandra-3.11.9:latest",
+                "disk": "1Gi",
+                "diskMedium": "",
+                "memory": "1Gi",
+                "nodes": "3",
+                "sidecarImage": "gcr.io/cassandra-operator/instaclustr-icarus:latest"
+            },
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"cassandraImage\":\"gcr.io/cassandra-operator/cassandra-3.11.9:latest\",\"disk\":\"1Gi\",\"diskMedium\":\"\",\"memory\":\"1Gi\",\"nodes\":\"3\",\"sidecarImage\":\"gcr.io/cassandra-operator/instaclustr-icarus:latest\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"cassandra-operator-default-config\",\"namespace\":\"default\"}}\n"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:data": {
+                                ".": {},
+                                "f:cassandraImage": {},
+                                "f:disk": {},
+                                "f:diskMedium": {},
+                                "f:memory": {},
+                                "f:nodes": {},
+                                "f:sidecarImage": {}
+                            },
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                }
+                            }
+                        },
+                        "manager": "kubectl-client-side-apply",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-operator-default-config",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/cassandra-operator-default-config",
+                "uid": "SIEVE-IGNORE"
+            }
+        },
+        "cassandra-test-cluster-dc1-operator-config": {
+            "data": {
+                "cassandra_yaml_d_001_operator_overrides_yaml": "cluster_name: test-cluster\nlisten_address: null\nrpc_address: 0.0.0.0\nseed_provider:\n- class_name: com.instaclustr.cassandra.k8s.SeedProvider\n  parameters:\n  - service: cassandra-test-cluster-dc1-seeds\nendpoint_snitch: org.apache.cassandra.locator.GossipingPropertyFileSnitch\ndisk_access_mode: mmap\nauthenticator: PasswordAuthenticator\nauthorizer: CassandraAuthorizer\nrole_manager: CassandraRoleManager\n",
+                "jvm_options_d_001_jvm_memory_gc_options": "-Xms536870912\n-Xmx536870912\n-Xmn4194304\n-XX:+UseParNewGC\n-XX:+UseConcMarkSweepGC\n-XX:+CMSParallelRemarkEnabled\n-XX:SurvivorRatio=8\n-XX:MaxTenuringThreshold=1\n-XX:CMSInitiatingOccupancyFraction=75\n-XX:+UseCMSInitiatingOccupancyOnly\n-XX:CMSWaitDuration=10000\n-XX:+CMSParallelInitialMarkEnabled\n-XX:+CMSEdenChunksRecordAlways\n-XX:+CMSClassUnloadingEnabled\n-XX:+HeapDumpOnOutOfMemoryError\n-XX:+CrashOnOutOfMemoryError\n"
+            },
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                    "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                    "cassandra-operator.instaclustr.com/datacenter": "dc1"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:data": {
+                                ".": {},
+                                "f:cassandra_yaml_d_001_operator_overrides_yaml": {},
+                                "f:jvm_options_d_001_jvm_memory_gc_options": {}
+                            },
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/managed-by": {},
+                                    "f:cassandra-operator.instaclustr.com/cluster": {},
+                                    "f:cassandra-operator.instaclustr.com/datacenter": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"36241918-450a-4548-91d3-8a0544a06e03\"}": "SIEVE-IGNORE"
+                                }
+                            }
+                        },
+                        "manager": "cassandra-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-test-cluster-dc1-operator-config",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "CassandraDataCenter",
+                        "name": "cassandra-datacenter",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/cassandra-test-cluster-dc1-operator-config",
+                "uid": "SIEVE-IGNORE"
+            }
+        },
+        "cassandra-test-cluster-dc1-rack-config-rack1": {
+            "data": {
+                "cassandra_rackdc_properties": "SIEVE-IGNORE"
+            },
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                    "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                    "cassandra-operator.instaclustr.com/datacenter": "dc1",
+                    "cassandra-operator.instaclustr.com/rack": "rack1"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:data": {
+                                ".": {},
+                                "f:cassandra_rackdc_properties": {}
+                            },
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/managed-by": {},
+                                    "f:cassandra-operator.instaclustr.com/cluster": {},
+                                    "f:cassandra-operator.instaclustr.com/datacenter": {},
+                                    "f:cassandra-operator.instaclustr.com/rack": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"36241918-450a-4548-91d3-8a0544a06e03\"}": "SIEVE-IGNORE"
+                                }
+                            }
+                        },
+                        "manager": "cassandra-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-test-cluster-dc1-rack-config-rack1",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "CassandraDataCenter",
+                        "name": "cassandra-datacenter",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/cassandra-test-cluster-dc1-rack-config-rack1",
+                "uid": "SIEVE-IGNORE"
+            }
+        },
+        "myoperator-lock": {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"81a5a9e2-43ee-4cf7-b2ff-a7728d6cc912\"}": "SIEVE-IGNORE"
+                                }
+                            }
+                        },
+                        "manager": "cassandra-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "myoperator-lock",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "Pod",
+                        "name": "SIEVE-IGNORE",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/myoperator-lock",
+                "uid": "SIEVE-IGNORE"
+            }
+        },
+        "sieve-testing-global-config": {
+            "data": {
+                "SIEVE-CRD-LIST": "cassandradatacenter,cassandracluster,cassandrabackup",
+                "SIEVE-MODE": "learn",
+                "SIEVE-RATE-LIMITER-ENABLED": "false",
+                "SIEVE-RATE-LIMITER-INTERVAL": "3",
+                "SIEVE-STAGE": "learn"
+            },
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"cassandradatacenter,cassandracluster,cassandrabackup\",\"SIEVE-MODE\":\"learn\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:data": {
+                                ".": {},
+                                "f:SIEVE-CRD-LIST": {},
+                                "f:SIEVE-MODE": {},
+                                "f:SIEVE-RATE-LIMITER-ENABLED": {},
+                                "f:SIEVE-RATE-LIMITER-INTERVAL": {},
+                                "f:SIEVE-STAGE": {}
+                            },
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                }
+                            }
+                        },
+                        "manager": "kubectl-client-side-apply",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "sieve-testing-global-config",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/configmaps/sieve-testing-global-config",
+                "uid": "SIEVE-IGNORE"
+            }
+        }
+    },
+    "deployment": {
+        "cassandra-operator": {
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/revision": "1",
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"cassandra-operator\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"name\":\"cassandra-operator\",\"sievetag\":\"cassandra-operator\"}},\"template\":{\"metadata\":{\"labels\":{\"name\":\"cassandra-operator\",\"sievetag\":\"cassandra-operator\"}},\"spec\":{\"containers\":[{\"command\":[\"./cassandra-operator\"],\"env\":[{\"name\":\"WATCH_NAMESPACE\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.namespace\"}}},{\"name\":\"POD_NAME\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.name\"}}},{\"name\":\"OPERATOR_NAME\",\"value\":\"cassandra-operator\"},{\"name\":\"KUBERNETES_SERVICE_HOST\",\"value\":\"kind-control-plane\"},{\"name\":\"KUBERNETES_SERVICE_PORT\",\"value\":\"6443\"}],\"envFrom\":[{\"configMapRef\":{\"name\":\"sieve-testing-global-config\"}}],\"image\":\"ghcr.io/sieve-project/action/cassandra-operator:learn\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"cassandra-operator\"}],\"serviceAccountName\":\"cassandra-operator\"}}}}\n"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "managedFields": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:progressDeadlineSeconds": {},
+                                "f:replicas": {},
+                                "f:revisionHistoryLimit": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:sievetag": {}
+                                    }
+                                },
+                                "f:strategy": {
+                                    "f:rollingUpdate": {
+                                        ".": {},
+                                        "f:maxSurge": {},
+                                        "f:maxUnavailable": {}
+                                    },
+                                    "f:type": {}
+                                },
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:sievetag": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:containers": {
+                                            "k:{\"name\":\"cassandra-operator\"}": {
+                                                ".": {},
+                                                "f:command": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"OPERATOR_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"POD_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    },
+                                                    "k:{\"name\":\"WATCH_NAMESPACE\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "f:envFrom": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:resources": {},
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {}
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {},
+                                        "f:serviceAccount": {},
+                                        "f:serviceAccountName": {},
+                                        "f:terminationGracePeriodSeconds": {}
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kubectl-client-side-apply",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:deployment.kubernetes.io/revision": {}
+                                }
+                            },
+                            "f:status": {
+                                "f:availableReplicas": {},
+                                "f:conditions": {
+                                    ".": {},
+                                    "k:{\"type\":\"Available\"}": {
+                                        ".": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:lastUpdateTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Progressing\"}": {
+                                        ".": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:lastUpdateTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {},
+                                "f:updatedReplicas": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-operator",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/apps/v1/namespaces/default/deployments/cassandra-operator",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "progressDeadlineSeconds": 600,
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "name": "cassandra-operator",
+                        "sievetag": "cassandra-operator"
+                    }
+                },
+                "strategy": {
+                    "rollingUpdate": {
+                        "maxSurge": "25%",
+                        "maxUnavailable": "25%"
+                    },
+                    "type": "RollingUpdate"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "cassandra-operator",
+                            "sievetag": "cassandra-operator"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "command": [
+                                    "./cassandra-operator"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "WATCH_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "POD_NAME",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "OPERATOR_NAME",
+                                        "value": "cassandra-operator"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_HOST",
+                                        "value": "kind-control-plane"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_PORT",
+                                        "value": "6443"
+                                    }
+                                ],
+                                "envFrom": [
+                                    {
+                                        "configMapRef": {
+                                            "name": "sieve-testing-global-config"
+                                        }
+                                    }
+                                ],
+                                "image": "ghcr.io/sieve-project/action/cassandra-operator:learn",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "cassandra-operator",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "serviceAccount": "cassandra-operator",
+                        "serviceAccountName": "cassandra-operator",
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "conditions": [
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "Deployment has minimum availability.",
+                        "reason": "MinimumReplicasAvailable",
+                        "status": "True",
+                        "type": "Available"
+                    },
+                    {
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "lastUpdateTime": "SIEVE-IGNORE",
+                        "message": "ReplicaSet \"cassandra-operator-55bf946bb6\" has successfully progressed.",
+                        "reason": "NewReplicaSetAvailable",
+                        "status": "True",
+                        "type": "Progressing"
+                    }
+                ],
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updatedReplicas": 1
+            }
+        }
+    },
+    "persistentvolumeclaim": {
+        "data-volume-cassandra-test-cluster-dc1-rack1-0": {
+            "metadata": {
+                "annotations": {
+                    "pv.kubernetes.io/bind-completed": "yes",
+                    "pv.kubernetes.io/bound-by-controller": "yes",
+                    "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                    "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                    "cassandra-operator.instaclustr.com/datacenter": "dc1",
+                    "cassandra-operator.instaclustr.com/rack": "rack1"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:volume.kubernetes.io/selected-node": {}
+                                }
+                            }
+                        },
+                        "manager": "kube-scheduler",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:pv.kubernetes.io/bind-completed": {},
+                                    "f:pv.kubernetes.io/bound-by-controller": {},
+                                    "f:volume.beta.kubernetes.io/storage-provisioner": {}
+                                },
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/managed-by": {},
+                                    "f:cassandra-operator.instaclustr.com/cluster": {},
+                                    "f:cassandra-operator.instaclustr.com/datacenter": {},
+                                    "f:cassandra-operator.instaclustr.com/rack": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:accessModes": {},
+                                "f:resources": {
+                                    "f:requests": {
+                                        ".": {},
+                                        "f:storage": {}
+                                    }
+                                },
+                                "f:volumeMode": {},
+                                "f:volumeName": {}
+                            },
+                            "f:status": {
+                                "f:accessModes": {},
+                                "f:capacity": {
+                                    ".": {},
+                                    "f:storage": {}
+                                },
+                                "f:phase": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "data-volume-cassandra-test-cluster-dc1-rack1-0",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/persistentvolumeclaims/data-volume-cassandra-test-cluster-dc1-rack1-0",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "2Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "2Gi"
+                },
+                "phase": "Bound"
+            }
+        }
+    },
+    "pod": {
+        "cassandra-operator-55bf946bb6-46klm": "SIEVE-IGNORE",
+        "cassandra-test-cluster-dc1-rack1-0": {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "cassandra-test-cluster-dc1-rack1-",
+                "labels": {
+                    "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                    "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                    "cassandra-operator.instaclustr.com/datacenter": "dc1",
+                    "cassandra-operator.instaclustr.com/rack": "rack1",
+                    "controller-revision-hash": "cassandra-test-cluster-dc1-rack1-7d8d8dbfc8",
+                    "statefulset.kubernetes.io/pod-name": "cassandra-test-cluster-dc1-rack1-0"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/managed-by": {},
+                                    "f:cassandra-operator.instaclustr.com/cluster": {},
+                                    "f:cassandra-operator.instaclustr.com/datacenter": {},
+                                    "f:cassandra-operator.instaclustr.com/rack": {},
+                                    "f:controller-revision-hash": {},
+                                    "f:statefulset.kubernetes.io/pod-name": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"9c7614e6-6015-4ab3-b9fe-e37a87b301e4\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:containers": {
+                                    "k:{\"name\":\"cassandra\"}": {
+                                        ".": {},
+                                        "f:args": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"MEMORY_LOCK\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":7000,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":7001,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":7199,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":9042,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:readinessProbe": {
+                                            ".": {},
+                                            "f:exec": {
+                                                ".": {},
+                                                "f:command": {}
+                                            },
+                                            "f:failureThreshold": {},
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:capabilities": {
+                                                ".": {},
+                                                "f:add": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/tmp/cassandra-rack-config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/tmp/operator-config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/var/lib/cassandra\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    },
+                                    "k:{\"name\":\"sidecar\"}": {
+                                        ".": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":4567,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/etc/pod-info\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/tmp/cassandra-rack-config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/var/lib/cassandra\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:hostname": {},
+                                "f:imagePullSecrets": {
+                                    ".": {},
+                                    "k:{\"name\":\"regcred\"}": {
+                                        ".": {},
+                                        "f:name": {}
+                                    }
+                                },
+                                "f:initContainers": {
+                                    ".": {},
+                                    "k:{\"name\":\"sysctl-limits\"}": {
+                                        ".": {},
+                                        "f:args": {},
+                                        "f:command": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:resources": {},
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:privileged": {}
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    }
+                                },
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {
+                                    ".": {},
+                                    "f:fsGroup": {}
+                                },
+                                "f:serviceAccount": {},
+                                "f:serviceAccountName": {},
+                                "f:subdomain": {},
+                                "f:terminationGracePeriodSeconds": {},
+                                "f:volumes": {
+                                    ".": {},
+                                    "k:{\"name\":\"data-volume\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:persistentVolumeClaim": {
+                                            ".": {},
+                                            "f:claimName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"operator-config-volume\"}": {
+                                        ".": {},
+                                        "f:configMap": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:items": {},
+                                            "f:name": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"operator-rack-config-volume-rack1\"}": {
+                                        ".": {},
+                                        "f:configMap": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:items": {},
+                                            "f:name": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"pod-info\"}": {
+                                        ".": {},
+                                        "f:downwardAPI": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:items": {}
+                                        },
+                                        "f:name": {}
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:initContainerStatuses": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.2.4\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-test-cluster-dc1-rack1-0",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "StatefulSet",
+                        "name": "cassandra-test-cluster-dc1-rack1",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/pods/cassandra-test-cluster-dc1-rack1-0",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "/tmp/operator-config",
+                            "/tmp/cassandra-rack-config"
+                        ],
+                        "env": [
+                            {
+                                "name": "MEMORY_LOCK",
+                                "value": "true"
+                            }
+                        ],
+                        "image": "gcr.io/cassandra-operator/cassandra-3.11.9:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "cassandra",
+                        "ports": [
+                            {
+                                "containerPort": 7000,
+                                "name": "internode",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 7001,
+                                "name": "internode-tls",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9042,
+                                "name": "cql",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 7199,
+                                "name": "jmx",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/usr/bin/cql-readiness-probe"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 60,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 5
+                        },
+                        "resources": {
+                            "limits": {
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "memory": "1Gi"
+                            }
+                        },
+                        "securityContext": {
+                            "capabilities": {
+                                "add": [
+                                    "IPC_LOCK",
+                                    "SYS_RESOURCE"
+                                ]
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/tmp/operator-config",
+                                "name": "operator-config-volume"
+                            },
+                            {
+                                "mountPath": "/tmp/cassandra-rack-config",
+                                "name": "operator-rack-config-volume-rack1"
+                            },
+                            {
+                                "mountPath": "/var/lib/cassandra",
+                                "name": "data-volume"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "SIEVE-IGNORE",
+                                "readOnly": true
+                            }
+                        ]
+                    },
+                    {
+                        "image": "gcr.io/cassandra-operator/instaclustr-icarus:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "sidecar",
+                        "ports": [
+                            {
+                                "containerPort": 4567,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "memory": "512Mi"
+                            },
+                            "requests": {
+                                "memory": "512Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/pod-info",
+                                "name": "pod-info"
+                            },
+                            {
+                                "mountPath": "/tmp/cassandra-rack-config",
+                                "name": "operator-rack-config-volume-rack1"
+                            },
+                            {
+                                "mountPath": "/var/lib/cassandra",
+                                "name": "data-volume"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "SIEVE-IGNORE",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "cassandra-test-cluster-dc1-rack1-0",
+                "imagePullSecrets": [
+                    {
+                        "name": "regcred"
+                    }
+                ],
+                "initContainers": [
+                    {
+                        "args": [
+                            "sysctl -w vm.max_map_count=1048575"
+                        ],
+                        "command": [
+                            "sh",
+                            "-xuec"
+                        ],
+                        "image": "busybox:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "sysctl-limits",
+                        "resources": {},
+                        "securityContext": {
+                            "privileged": true
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "SIEVE-IGNORE",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 999
+                },
+                "serviceAccount": "cassandra-performance",
+                "serviceAccountName": "cassandra-performance",
+                "subdomain": "cassandra-test-cluster-dc1-seeds",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "data-volume",
+                        "persistentVolumeClaim": {
+                            "claimName": "data-volume-cassandra-test-cluster-dc1-rack1-0"
+                        }
+                    },
+                    {
+                        "downwardAPI": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.labels"
+                                    },
+                                    "path": "labels"
+                                },
+                                {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.annotations"
+                                    },
+                                    "path": "annotations"
+                                },
+                                {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    },
+                                    "path": "namespace"
+                                },
+                                {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.name"
+                                    },
+                                    "path": "name"
+                                }
+                            ]
+                        },
+                        "name": "pod-info"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "cassandra_yaml_d_001_operator_overrides_yaml",
+                                    "path": "cassandra.yaml.d/001-operator-overrides.yaml"
+                                },
+                                {
+                                    "key": "jvm_options_d_001_jvm_memory_gc_options",
+                                    "path": "jvm.options.d/001-jvm-memory-gc.options"
+                                }
+                            ],
+                            "name": "cassandra-test-cluster-dc1-operator-config"
+                        },
+                        "name": "operator-config-volume"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "cassandra_rackdc_properties",
+                                    "path": "cassandra-rackdc.properties"
+                                }
+                            ],
+                            "name": "cassandra-test-cluster-dc1-rack-config-rack1"
+                        },
+                        "name": "operator-rack-config-volume-rack1"
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "gcr.io/cassandra-operator/cassandra-3.11.9:latest",
+                        "imageID": "gcr.io/cassandra-operator/cassandra-3.11.9@sha256:534d46f4583d0e6be5c73cf22280cf0ef509003d4e9fdfdb1f1f0de777fee570",
+                        "lastState": {},
+                        "name": "cassandra",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    },
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "gcr.io/cassandra-operator/instaclustr-icarus:latest",
+                        "imageID": "gcr.io/cassandra-operator/instaclustr-icarus@sha256:0fef56e7cc1b4b8c7899e62202f5b26444e20fe59ead70ec9a497e26ae2323c4",
+                        "lastState": {},
+                        "name": "sidecar",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "initContainerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "docker.io/library/busybox:latest",
+                        "imageID": "docker.io/library/busybox@sha256:f7ca5a32c10d51aeda3b4d01c61c6061f497893d7f6628b92f822f7117182a57",
+                        "lastState": {},
+                        "name": "sysctl-limits",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 0,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Completed",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.244.2.4",
+                "podIPs": [
+                    {
+                        "ip": "10.244.2.4"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "SIEVE-IGNORE"
+            }
+        }
+    },
+    "service": {
+        "cassandra-operator-metrics": {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "name": "cassandra-operator"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:name": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"c05ffb7c-d130-449c-aec5-ea91a2ba0069\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":8383,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    },
+                                    "k:{\"port\":8686,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:selector": {
+                                    ".": {},
+                                    "f:name": {}
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "cassandra-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-operator-metrics",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "cassandra-operator",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/cassandra-operator-metrics",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "SIEVE-IGNORE",
+                "ports": [
+                    {
+                        "name": "http-metrics",
+                        "port": 8383,
+                        "protocol": "TCP",
+                        "targetPort": 8383
+                    },
+                    {
+                        "name": "cr-metrics",
+                        "port": 8686,
+                        "protocol": "TCP",
+                        "targetPort": 8686
+                    }
+                ],
+                "selector": {
+                    "name": "cassandra-operator"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        "cassandra-test-cluster-dc1-nodes": {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"36241918-450a-4548-91d3-8a0544a06e03\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:clusterIP": {},
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":7199,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    },
+                                    "k:{\"port\":9042,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:selector": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/managed-by": {},
+                                    "f:cassandra-operator.instaclustr.com/cluster": {},
+                                    "f:cassandra-operator.instaclustr.com/datacenter": {}
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "cassandra-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-test-cluster-dc1-nodes",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "CassandraDataCenter",
+                        "name": "cassandra-datacenter",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/cassandra-test-cluster-dc1-nodes",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "None",
+                "ports": [
+                    {
+                        "name": "cql",
+                        "port": 9042,
+                        "protocol": "TCP",
+                        "targetPort": 9042
+                    },
+                    {
+                        "name": "jmx",
+                        "port": 7199,
+                        "protocol": "TCP",
+                        "targetPort": 7199
+                    }
+                ],
+                "selector": {
+                    "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                    "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                    "cassandra-operator.instaclustr.com/datacenter": "dc1"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        "cassandra-test-cluster-dc1-seeds": {
+            "metadata": {
+                "annotations": {
+                    "service.alpha.kubernetes.io/tolerate-unready-endpoints": "true"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:service.alpha.kubernetes.io/tolerate-unready-endpoints": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"36241918-450a-4548-91d3-8a0544a06e03\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:clusterIP": {},
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":7000,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:publishNotReadyAddresses": {},
+                                "f:selector": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/managed-by": {},
+                                    "f:cassandra-operator.instaclustr.com/cluster": {},
+                                    "f:cassandra-operator.instaclustr.com/datacenter": {}
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "cassandra-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-test-cluster-dc1-seeds",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "CassandraDataCenter",
+                        "name": "cassandra-datacenter",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/cassandra-test-cluster-dc1-seeds",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "None",
+                "ports": [
+                    {
+                        "name": "internode",
+                        "port": 7000,
+                        "protocol": "TCP",
+                        "targetPort": 7000
+                    }
+                ],
+                "publishNotReadyAddresses": true,
+                "selector": {
+                    "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                    "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                    "cassandra-operator.instaclustr.com/datacenter": "dc1"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        "kubernetes": {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "labels": {
+                    "component": "apiserver",
+                    "provider": "kubernetes"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:component": {},
+                                    "f:provider": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:clusterIP": {},
+                                "f:ports": {
+                                    ".": {},
+                                    "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:port": {},
+                                        "f:protocol": {},
+                                        "f:targetPort": {}
+                                    }
+                                },
+                                "f:sessionAffinity": {},
+                                "f:type": {}
+                            }
+                        },
+                        "manager": "kube-apiserver",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "kubernetes",
+                "namespace": "default",
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/services/kubernetes",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "clusterIP": "10.96.0.1",
+                "ports": [
+                    {
+                        "name": "https",
+                        "port": 443,
+                        "protocol": "TCP",
+                        "targetPort": 6443
+                    }
+                ],
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        }
+    },
+    "statefulset": {
+        "cassandra-test-cluster-dc1-rack1": {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 3,
+                "labels": {
+                    "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                    "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                    "cassandra-operator.instaclustr.com/datacenter": "dc1",
+                    "cassandra-operator.instaclustr.com/rack": "rack1"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/managed-by": {},
+                                    "f:cassandra-operator.instaclustr.com/cluster": {},
+                                    "f:cassandra-operator.instaclustr.com/datacenter": {},
+                                    "f:cassandra-operator.instaclustr.com/rack": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"36241918-450a-4548-91d3-8a0544a06e03\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:podManagementPolicy": {},
+                                "f:replicas": {},
+                                "f:revisionHistoryLimit": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:app.kubernetes.io/managed-by": {},
+                                        "f:cassandra-operator.instaclustr.com/cluster": {},
+                                        "f:cassandra-operator.instaclustr.com/datacenter": {},
+                                        "f:cassandra-operator.instaclustr.com/rack": {}
+                                    }
+                                },
+                                "f:serviceName": {},
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:app.kubernetes.io/managed-by": {},
+                                            "f:cassandra-operator.instaclustr.com/cluster": {},
+                                            "f:cassandra-operator.instaclustr.com/datacenter": {},
+                                            "f:cassandra-operator.instaclustr.com/rack": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:containers": {
+                                            "k:{\"name\":\"cassandra\"}": {
+                                                ".": {},
+                                                "f:args": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"MEMORY_LOCK\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    }
+                                                },
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:ports": {
+                                                    ".": {},
+                                                    "k:{\"containerPort\":7000,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    },
+                                                    "k:{\"containerPort\":7001,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    },
+                                                    "k:{\"containerPort\":7199,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    },
+                                                    "k:{\"containerPort\":9042,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    }
+                                                },
+                                                "f:readinessProbe": {
+                                                    ".": {},
+                                                    "f:exec": {
+                                                        ".": {},
+                                                        "f:command": {}
+                                                    },
+                                                    "f:failureThreshold": {},
+                                                    "f:initialDelaySeconds": {},
+                                                    "f:periodSeconds": {},
+                                                    "f:successThreshold": {},
+                                                    "f:timeoutSeconds": {}
+                                                },
+                                                "f:resources": {
+                                                    ".": {},
+                                                    "f:limits": {
+                                                        ".": {},
+                                                        "f:memory": {}
+                                                    },
+                                                    "f:requests": {
+                                                        ".": {},
+                                                        "f:memory": {}
+                                                    }
+                                                },
+                                                "f:securityContext": {
+                                                    ".": {},
+                                                    "f:capabilities": {
+                                                        ".": {},
+                                                        "f:add": {}
+                                                    }
+                                                },
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {},
+                                                "f:volumeMounts": {
+                                                    ".": {},
+                                                    "k:{\"mountPath\":\"/tmp/cassandra-rack-config\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    },
+                                                    "k:{\"mountPath\":\"/tmp/operator-config\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    },
+                                                    "k:{\"mountPath\":\"/var/lib/cassandra\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"sidecar\"}": {
+                                                ".": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:ports": {
+                                                    ".": {},
+                                                    "k:{\"containerPort\":4567,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    }
+                                                },
+                                                "f:resources": {
+                                                    ".": {},
+                                                    "f:limits": {
+                                                        ".": {},
+                                                        "f:memory": {}
+                                                    },
+                                                    "f:requests": {
+                                                        ".": {},
+                                                        "f:memory": {}
+                                                    }
+                                                },
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {},
+                                                "f:volumeMounts": {
+                                                    ".": {},
+                                                    "k:{\"mountPath\":\"/etc/pod-info\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    },
+                                                    "k:{\"mountPath\":\"/tmp/cassandra-rack-config\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    },
+                                                    "k:{\"mountPath\":\"/var/lib/cassandra\"}": {
+                                                        ".": {},
+                                                        "f:mountPath": {},
+                                                        "f:name": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:imagePullSecrets": {
+                                            ".": {},
+                                            "k:{\"name\":\"regcred\"}": {
+                                                ".": {},
+                                                "f:name": {}
+                                            }
+                                        },
+                                        "f:initContainers": {
+                                            ".": {},
+                                            "k:{\"name\":\"sysctl-limits\"}": {
+                                                ".": {},
+                                                "f:args": {},
+                                                "f:command": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:resources": {},
+                                                "f:securityContext": {
+                                                    ".": {},
+                                                    "f:privileged": {}
+                                                },
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {}
+                                            }
+                                        },
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:fsGroup": {}
+                                        },
+                                        "f:serviceAccount": {},
+                                        "f:serviceAccountName": {},
+                                        "f:terminationGracePeriodSeconds": {},
+                                        "f:volumes": {
+                                            ".": {},
+                                            "k:{\"name\":\"operator-config-volume\"}": {
+                                                ".": {},
+                                                "f:configMap": {
+                                                    ".": {},
+                                                    "f:defaultMode": {},
+                                                    "f:items": {},
+                                                    "f:name": {}
+                                                },
+                                                "f:name": {}
+                                            },
+                                            "k:{\"name\":\"operator-rack-config-volume-rack1\"}": {
+                                                ".": {},
+                                                "f:configMap": {
+                                                    ".": {},
+                                                    "f:defaultMode": {},
+                                                    "f:items": {},
+                                                    "f:name": {}
+                                                },
+                                                "f:name": {}
+                                            },
+                                            "k:{\"name\":\"pod-info\"}": {
+                                                ".": {},
+                                                "f:downwardAPI": {
+                                                    ".": {},
+                                                    "f:defaultMode": {},
+                                                    "f:items": {}
+                                                },
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:updateStrategy": {
+                                    "f:rollingUpdate": {
+                                        ".": {},
+                                        "f:partition": {}
+                                    },
+                                    "f:type": {}
+                                },
+                                "f:volumeClaimTemplates": {}
+                            }
+                        },
+                        "manager": "cassandra-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:collisionCount": {},
+                                "f:currentReplicas": {},
+                                "f:currentRevision": {},
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {},
+                                "f:updateRevision": {},
+                                "f:updatedReplicas": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-test-cluster-dc1-rack1",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "CassandraDataCenter",
+                        "name": "cassandra-datacenter",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/apps/v1/namespaces/default/statefulsets/cassandra-test-cluster-dc1-rack1",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "podManagementPolicy": "OrderedReady",
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                    "matchLabels": {
+                        "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                        "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                        "cassandra-operator.instaclustr.com/datacenter": "dc1",
+                        "cassandra-operator.instaclustr.com/rack": "rack1"
+                    }
+                },
+                "serviceName": "cassandra-test-cluster-dc1-seeds",
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app.kubernetes.io/managed-by": "com.instaclustr.cassandra-operator",
+                            "cassandra-operator.instaclustr.com/cluster": "test-cluster",
+                            "cassandra-operator.instaclustr.com/datacenter": "dc1",
+                            "cassandra-operator.instaclustr.com/rack": "rack1"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "args": [
+                                    "/tmp/operator-config",
+                                    "/tmp/cassandra-rack-config"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "MEMORY_LOCK",
+                                        "value": "true"
+                                    }
+                                ],
+                                "image": "gcr.io/cassandra-operator/cassandra-3.11.9:latest",
+                                "imagePullPolicy": "Always",
+                                "name": "cassandra",
+                                "ports": [
+                                    {
+                                        "containerPort": 7000,
+                                        "name": "internode",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 7001,
+                                        "name": "internode-tls",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 9042,
+                                        "name": "cql",
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 7199,
+                                        "name": "jmx",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/usr/bin/cql-readiness-probe"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 60,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 5
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "memory": "1Gi"
+                                    },
+                                    "requests": {
+                                        "memory": "1Gi"
+                                    }
+                                },
+                                "securityContext": {
+                                    "capabilities": {
+                                        "add": [
+                                            "IPC_LOCK",
+                                            "SYS_RESOURCE"
+                                        ]
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/tmp/operator-config",
+                                        "name": "operator-config-volume"
+                                    },
+                                    {
+                                        "mountPath": "/tmp/cassandra-rack-config",
+                                        "name": "operator-rack-config-volume-rack1"
+                                    },
+                                    {
+                                        "mountPath": "/var/lib/cassandra",
+                                        "name": "data-volume"
+                                    }
+                                ]
+                            },
+                            {
+                                "image": "gcr.io/cassandra-operator/instaclustr-icarus:latest",
+                                "imagePullPolicy": "Always",
+                                "name": "sidecar",
+                                "ports": [
+                                    {
+                                        "containerPort": 4567,
+                                        "name": "http",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {
+                                    "limits": {
+                                        "memory": "512Mi"
+                                    },
+                                    "requests": {
+                                        "memory": "512Mi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/etc/pod-info",
+                                        "name": "pod-info"
+                                    },
+                                    {
+                                        "mountPath": "/tmp/cassandra-rack-config",
+                                        "name": "operator-rack-config-volume-rack1"
+                                    },
+                                    {
+                                        "mountPath": "/var/lib/cassandra",
+                                        "name": "data-volume"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "imagePullSecrets": [
+                            {
+                                "name": "regcred"
+                            }
+                        ],
+                        "initContainers": [
+                            {
+                                "args": [
+                                    "sysctl -w vm.max_map_count=1048575"
+                                ],
+                                "command": [
+                                    "sh",
+                                    "-xuec"
+                                ],
+                                "image": "busybox:latest",
+                                "imagePullPolicy": "Always",
+                                "name": "sysctl-limits",
+                                "resources": {},
+                                "securityContext": {
+                                    "privileged": true
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {
+                            "fsGroup": 999
+                        },
+                        "serviceAccount": "cassandra-performance",
+                        "serviceAccountName": "cassandra-performance",
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "downwardAPI": {
+                                    "defaultMode": 420,
+                                    "items": [
+                                        {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.labels"
+                                            },
+                                            "path": "labels"
+                                        },
+                                        {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.annotations"
+                                            },
+                                            "path": "annotations"
+                                        },
+                                        {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            },
+                                            "path": "namespace"
+                                        },
+                                        {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.name"
+                                            },
+                                            "path": "name"
+                                        }
+                                    ]
+                                },
+                                "name": "pod-info"
+                            },
+                            {
+                                "configMap": {
+                                    "defaultMode": 420,
+                                    "items": [
+                                        {
+                                            "key": "cassandra_yaml_d_001_operator_overrides_yaml",
+                                            "path": "cassandra.yaml.d/001-operator-overrides.yaml"
+                                        },
+                                        {
+                                            "key": "jvm_options_d_001_jvm_memory_gc_options",
+                                            "path": "jvm.options.d/001-jvm-memory-gc.options"
+                                        }
+                                    ],
+                                    "name": "cassandra-test-cluster-dc1-operator-config"
+                                },
+                                "name": "operator-config-volume"
+                            },
+                            {
+                                "configMap": {
+                                    "defaultMode": 420,
+                                    "items": [
+                                        {
+                                            "key": "cassandra_rackdc_properties",
+                                            "path": "cassandra-rackdc.properties"
+                                        }
+                                    ],
+                                    "name": "cassandra-test-cluster-dc1-rack-config-rack1"
+                                },
+                                "name": "operator-rack-config-volume-rack1"
+                            }
+                        ]
+                    }
+                },
+                "updateStrategy": {
+                    "rollingUpdate": {
+                        "partition": 0
+                    },
+                    "type": "RollingUpdate"
+                },
+                "volumeClaimTemplates": [
+                    {
+                        "apiVersion": "v1",
+                        "kind": "PersistentVolumeClaim",
+                        "metadata": {
+                            "creationTimestamp": null,
+                            "name": "data-volume"
+                        },
+                        "spec": {
+                            "accessModes": [
+                                "ReadWriteOnce"
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "storage": "2Gi"
+                                }
+                            },
+                            "volumeMode": "Filesystem"
+                        },
+                        "status": {
+                            "phase": "Pending"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "collisionCount": 0,
+                "currentReplicas": 1,
+                "currentRevision": "cassandra-test-cluster-dc1-rack1-7d8d8dbfc8",
+                "observedGeneration": 3,
+                "readyReplicas": 1,
+                "replicas": 1,
+                "updateRevision": "cassandra-test-cluster-dc1-rack1-7d8d8dbfc8",
+                "updatedReplicas": 1
+            }
+        }
+    }
+}
