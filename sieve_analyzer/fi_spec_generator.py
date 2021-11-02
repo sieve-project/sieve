@@ -113,45 +113,36 @@ def time_travel_mandatory_pass(causality_edges: List[CausalityEdge]):
     return candidate_edges
 
 
-def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
+def delete_only_filtering_pass(
+    causality_edges: List[CausalityEdge],
+    operator_hear_key_to_vertices: Dict[str, List[CausalityVertex]],
+):
     print("Running optional pass: delete-only-filtering...")
     candidate_edges = []
     for edge in causality_edges:
         if edge.source.is_operator_hear() and edge.sink.is_operator_write():
             if edge.sink.content.etype == OperatorWriteTypes.DELETE:
-                candidate_edges.append(edge)
-    print("%d -> %d edges" % (len(causality_edges), len(candidate_edges)))
-    return candidate_edges
-
-
-def delete_then_recreate_filtering_pass(
-    causality_edges: List[CausalityEdge],
-    operator_hear_key_to_vertices: Dict[str, List[CausalityVertex]],
-):
-    print("Running optional pass: delete-then-recreate-filtering...")
-    # this should only be applied to time travel mode
-    candidate_edges = []
-    for edge in causality_edges:
-        operator_write = edge.sink.content
-        # time travel only cares about delete for now
-        assert operator_write.etype == OperatorWriteTypes.DELETE
-        keep_this_pair = False
-        if operator_write.key in operator_hear_key_to_vertices:
-            for operator_hear_vertex in operator_hear_key_to_vertices[
-                operator_write.key
-            ]:
-                operator_hear = operator_hear_vertex.content
-                if operator_hear.start_timestamp <= operator_write.end_timestamp:
-                    continue
-                if operator_hear.etype == OperatorHearTypes.ADDED:
+                operator_write = edge.sink.content
+                keep_this_pair = False
+                if operator_write.key in operator_hear_key_to_vertices:
+                    for operator_hear_vertex in operator_hear_key_to_vertices[
+                        operator_write.key
+                    ]:
+                        operator_hear = operator_hear_vertex.content
+                        if (
+                            operator_hear.start_timestamp
+                            <= operator_write.end_timestamp
+                        ):
+                            continue
+                        if operator_hear.etype == OperatorHearTypes.ADDED:
+                            keep_this_pair = True
+                else:
+                    # if the operator_write key never appears in the operator_hear_key_map
+                    # it means the operator does not watch on the resource
+                    # so we should be cautious and keep this edge
                     keep_this_pair = True
-        else:
-            # if the operator_write key never appears in the operator_hear_key_map
-            # it means the operator does not watch on the resource
-            # so we should be cautious and keep this edge
-            keep_this_pair = True
-        if keep_this_pair:
-            candidate_edges.append(edge)
+                if keep_this_pair:
+                    candidate_edges.append(edge)
     print("%d -> %d edges" % (len(causality_edges), len(candidate_edges)))
     return candidate_edges
 
@@ -210,10 +201,8 @@ def time_travel_template(project):
 def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: str):
     candidate_edges = causality_graph.operator_hear_operator_write_edges
     candidate_edges = time_travel_mandatory_pass(candidate_edges)
-    if DELETE_ONLY_FILTER_FLAG:
-        candidate_edges = delete_only_filtering_pass(candidate_edges)
-    if DELETE_THEN_RECREATE_FLAG:
-        candidate_edges = delete_then_recreate_filtering_pass(
+    if sieve_config["time_travel_spec_generation_delete_only_pass_enabled"]:
+        candidate_edges = delete_only_filtering_pass(
             candidate_edges, causality_graph.operator_hear_key_to_vertices
         )
 
@@ -322,7 +311,7 @@ def obs_gap_analysis(
 ):
     candidate_vertices = causality_graph.operator_hear_vertices
     candidate_vertices = obs_gap_mandatory_pass(candidate_vertices)
-    if CANCELLABLE_FLAG:
+    if sieve_config["obs_gap_spec_generation_conflicting_follower_enabled"]:
         candidate_vertices = cancellable_filtering_pass(candidate_vertices)
 
     i = 0
@@ -397,7 +386,8 @@ def atom_vio_analysis(
 ):
     candidate_vertices = causality_graph.operator_write_vertices
     candidate_vertices = atom_vio_mandatory_pass(candidate_vertices)
-    candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
+    if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
+        candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
 
     i = 0
     for vertex in candidate_vertices:
