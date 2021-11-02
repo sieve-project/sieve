@@ -2,9 +2,10 @@
 from reprod import reprod_map
 import yaml
 import os
-from common import sieve_modes
+from sieve_common.common import sieve_modes
 from datetime import datetime
 import copy
+import controllers
 
 
 def generate_jobs(ci_mode):
@@ -72,7 +73,7 @@ def generate_jobs(ci_mode):
         persistent_data = {
             "uses": "JamesIves/github-pages-deploy-action@4.1.5",
             "name": "Persistent data",
-            "with": {"branch": "persistent-data", "folder": "data/%s"%(operator), "target-folder": operator},
+            "with": {"branch": "persistent-data", "folder": "examples/%s/oracle"%(operator), "target-folder": "%s/oracle"%(operator)},
         }
         remove_cluster = {
             "name": "Remove cluster",
@@ -98,7 +99,9 @@ def generate_jobs(ci_mode):
             config_name = reprod_map[operator][bug][1]
             config = yaml.safe_load(open(os.path.join("reprod", config_name)).read())
             workload_set.add(workload)
-        #         print(operator, bug, workload, config['mode'])
+        
+        for workload in controllers.test_suites[operator]:
+            workload_set.add(workload)
 
         build_image = [
             {
