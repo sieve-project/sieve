@@ -8,42 +8,27 @@ workloads = {
         .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-1.yaml")
         .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", RUNNING)
         .cmd("kubectl delete CassandraDataCenter cassandra-datacenter")
-        .wait_for_pod_status(
-            "cassandra-test-cluster-dc1-rack1-0", TERMINATED, soft_time_out=10
-        )
+        .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", TERMINATED, 10)
         .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-1.yaml")
         .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", RUNNING)
         .wait(50),
         "scaledown-scaleup": new_built_in_workload()
         .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-2.yaml")
-        .wait_for_pod_status(
-            "cassandra-test-cluster-dc1-rack1-1", RUNNING, soft_time_out=200
-        )
+        .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING, 200)
         .cmd(
             'kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p=\'{"spec":{"nodes":1}}\''
         )
-        .wait_for_pod_status(
-            "cassandra-test-cluster-dc1-rack1-1", TERMINATED, soft_time_out=150
-        )
+        .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", TERMINATED, 150)
         .wait_for_pvc_status(
             "data-volume-cassandra-test-cluster-dc1-rack1-1",
             TERMINATED,
-            soft_time_out=10,
+            10,
         )
         .cmd(
             'kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p=\'{"spec":{"nodes":2}}\''
         )
         .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING)
         .wait(50),
-        # "scaledown": new_built_in_workload()
-        # .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-2.yaml")
-        # .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-0", RUNNING)
-        # .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING)
-        # .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-1.yaml")
-        # .wait_for_pod_status(
-        #     "cassandra-test-cluster-dc1-rack1-1", TERMINATED, soft_time_out=150
-        # )
-        # .wait(50),
     },
     "casskop-operator": {
         "recreate": new_built_in_workload()
@@ -101,7 +86,7 @@ workloads = {
         .wait_for_pod_status(
             "cluster1-cassandra-datacenter-default-sts-0",
             TERMINATED,
-            soft_time_out=150,
+            200,
         )
         .wait_for_pvc_status(
             "server-data-cluster1-cassandra-datacenter-default-sts-0",
@@ -110,6 +95,7 @@ workloads = {
         )
         .cmd("kubectl apply -f examples/cass-operator/test/cdc-1.yaml")
         .wait_for_pod_status("cluster1-cassandra-datacenter-default-sts-0", RUNNING)
+        .wait_for_pod_status("create-pvc-*", TERMINATED)
         .wait(50),
         "scaledown-scaleup": new_built_in_workload()
         .cmd("kubectl apply -f examples/cass-operator/test/cdc-2.yaml")
@@ -212,7 +198,7 @@ workloads = {
         .wait(70),
         "disable-enable-arbiter": new_built_in_workload()
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr-arbiter.yaml")
-        .wait_for_pod_status("mongodb-cluster-rs0-3", RUNNING, soft_time_out=150)
+        .wait_for_pod_status("mongodb-cluster-rs0-3", RUNNING, 150)
         .wait_for_pod_status("mongodb-cluster-rs0-arbiter-0", RUNNING)
         .cmd(
             'kubectl patch PerconaServerMongoDB mongodb-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/replsets/0/arbiter/enabled", "value": false}]\''
@@ -322,7 +308,7 @@ workloads = {
         .cmd(
             'kubectl patch YBCluster example-ybcluster --type merge -p=\'{"spec":{"tserver":{"replicas":4},"replicationFactor":4}}\''
         )
-        .wait_for_pod_status("yb-tserver-3", RUNNING, soft_time_out=20)
+        .wait_for_pod_status("yb-tserver-3", RUNNING, 20)
         .cmd(
             'kubectl patch YBCluster example-ybcluster --type merge -p=\'{"spec":{"tserver":{"replicas":3},"replicationFactor":4}}\''
         )
@@ -331,10 +317,10 @@ workloads = {
     "nifikop-operator": {
         "change-config": new_built_in_workload()
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc.yaml")
-        .wait_for_pod_status("simplenifi-1-*", RUNNING, soft_time_out=220)
+        .wait_for_pod_status("simplenifi-1-*", RUNNING, 220)
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc1.yaml")
         .wait(30)
-        .wait_for_pod_status("simplenifi-1-*", RUNNING, soft_time_out=120)
+        .wait_for_pod_status("simplenifi-1-*", RUNNING, 120)
         .wait(60),
     },
 }
