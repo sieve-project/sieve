@@ -16,11 +16,13 @@ https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed
 https://github.com/instaclustr/cassandra-operator/issues/410 pending (by-product)
 
 ## [datastax/cass-operator](https://github.com/datastax/cass-operator)
-https://github.com/k8ssandra/cass-operator/issues/118 confirmed (time traveling)
+https://k8ssandra.atlassian.net/browse/K8SSAND-559 confirmed (time traveling)
 <!-- previously https://github.com/datastax/cass-operator/issues/412 -->
 
-https://github.com/k8ssandra/cass-operator/issues/117 pending (by-product)
+https://k8ssandra.atlassian.net/browse/K8SSAND-558 pending (by-product)
 <!-- previously https://github.com/datastax/cass-operator/issues/417 -->
+
+https://k8ssandra.atlassian.net/browse/K8SSAND-1023 pending (atomicity violation)
 
 ## [Orange-OpenSource/casskop](https://github.com/Orange-OpenSource/casskop)
 https://github.com/Orange-OpenSource/casskop/issues/316 confirmed and fixed by us (time traveling)
@@ -31,7 +33,7 @@ https://github.com/Orange-OpenSource/casskop/issues/342 confirmed (observability
 
 https://github.com/Orange-OpenSource/casskop/issues/357 pending (by-product)
 
-https://github.com/Orange-OpenSource/casskop/issues/370 pending (atomicity violation)
+https://github.com/Orange-OpenSource/casskop/issues/370 confirmed (atomicity violation)
 
 ## [pravega/zookeeper-operator](https://github.com/pravega/zookeeper-operator)
 https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by us (time traveling)
@@ -58,9 +60,9 @@ https://jira.percona.com/browse/K8SPSMDB-438 confirmed (time traveling)
 
 https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product)
 
-https://jira.percona.com/browse/K8SPSMDB-578 pending (atomicity violation)
+https://jira.percona.com/browse/K8SPSMDB-578 confirmed (atomicity violation)
 
-https://jira.percona.com/browse/K8SPSMDB-579 pending (atomicity violation)
+https://jira.percona.com/browse/K8SPSMDB-579 confirmed (atomicity violation)
 
 https://jira.percona.com/browse/K8SPSMDB-585 pending (observability gaps)
 
