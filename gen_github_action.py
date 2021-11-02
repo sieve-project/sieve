@@ -72,8 +72,8 @@ def generate_jobs(ci_mode):
         }
         persistent_data = {
             "uses": "JamesIves/github-pages-deploy-action@4.1.5",
-            "name": "Persistent data",
-            "with": {"branch": "persistent-data", "folder": "examples/%s/oracle"%(operator), "target-folder": "%s/oracle"%(operator)},
+            "name": "Persistent oracle data",
+            "with": {"branch": "oracle-data", "folder": "examples/%s/oracle"%(operator), "target-folder": "%s/oracle"%(operator)},
         }
         remove_cluster = {
             "name": "Remove cluster",
@@ -120,7 +120,7 @@ def generate_jobs(ci_mode):
                     "run": "python3 sieve.py -p %s -t %s -s learn -m learn-twice -d $IMAGE_NAMESPACE"
                     % (operator, workload),
                 }
-                for workload in workload_set
+                for workload in sorted(workload_set)
             ]
             sieve_test = [
                 {
@@ -128,7 +128,7 @@ def generate_jobs(ci_mode):
                     "run": "python3 reprod.py -p %s -b %s -d $IMAGE_NAMESPACE"
                     % (operator, bug),
                 }
-                for bug in reprod_map[operator].keys()
+                for bug in sorted(reprod_map[operator].keys())
             ]
             job["steps"].extend(sieve_learn)
             job["steps"].append(collect_resources)
