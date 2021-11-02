@@ -95,6 +95,24 @@ def detectable_event_diff(
             return True
 
 
+def time_travel_mandatory_pass(causality_edges: List[CausalityEdge]):
+    print("Running time travel mandatory pass ...")
+    candidate_edges = []
+    for edge in causality_edges:
+        operator_hear = edge.source.content
+        if detectable_event_diff(
+            sieve_modes.TIME_TRAVEL,
+            operator_hear.slim_prev_obj_map,
+            operator_hear.slim_cur_obj_map,
+            operator_hear.prev_etype,
+            operator_hear.etype,
+            operator_hear.signature_counter,
+        ):
+            candidate_edges.append(edge)
+    print("%d -> %d edges" % (len(causality_edges), len(candidate_edges)))
+    return candidate_edges
+
+
 def delete_only_filtering_pass(causality_edges: List[CausalityEdge]):
     print("Running optional pass: delete-only-filtering...")
     candidate_edges = []
@@ -190,9 +208,10 @@ def time_travel_template(project):
 
 
 def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: str):
-    causality_edges = causality_graph.operator_hear_operator_write_edges
+    candidate_edges = causality_graph.operator_hear_operator_write_edges
+    candidate_edges = time_travel_mandatory_pass(candidate_edges)
     if DELETE_ONLY_FILTER_FLAG:
-        candidate_edges = delete_only_filtering_pass(causality_edges)
+        candidate_edges = delete_only_filtering_pass(candidate_edges)
     if DELETE_THEN_RECREATE_FLAG:
         candidate_edges = delete_then_recreate_filtering_pass(
             candidate_edges, causality_graph.operator_hear_key_to_vertices
@@ -204,16 +223,6 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
         operator_write = edge.sink.content
         assert isinstance(operator_hear, OperatorHear)
         assert isinstance(operator_write, OperatorWrite)
-
-        if not detectable_event_diff(
-            sieve_modes.TIME_TRAVEL,
-            operator_hear.slim_prev_obj_map,
-            operator_hear.slim_cur_obj_map,
-            operator_hear.prev_etype,
-            operator_hear.etype,
-            operator_hear.signature_counter,
-        ):
-            continue
 
         timing = decide_time_travel_timing(edge.source, edge.sink)
 
@@ -262,9 +271,25 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
     cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
-def cancellable_filtering_pass(
-    causality_vertices: List[CausalityVertex], causality_graph: CausalityGraph
-):
+def obs_gap_mandatory_pass(causality_vertices: List[CausalityVertex]):
+    print("Running obs gap mandatory pass ...")
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        operator_hear = vertex.content
+        if detectable_event_diff(
+            sieve_modes.OBS_GAP,
+            operator_hear.slim_prev_obj_map,
+            operator_hear.slim_cur_obj_map,
+            operator_hear.prev_etype,
+            operator_hear.etype,
+            operator_hear.signature_counter,
+        ):
+            candidate_vertices.append(vertex)
+    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    return candidate_vertices
+
+
+def cancellable_filtering_pass(causality_vertices: List[CausalityVertex]):
     print("Running optional pass: cancellable-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
@@ -295,27 +320,15 @@ def obs_gap_analysis(
     path: str,
     project: str,
 ):
-    operator_hear_vertices = causality_graph.operator_hear_vertices
-    candidate_vertices = operator_hear_vertices
+    candidate_vertices = causality_graph.operator_hear_vertices
+    candidate_vertices = obs_gap_mandatory_pass(candidate_vertices)
     if CANCELLABLE_FLAG:
-        candidate_vertices = cancellable_filtering_pass(
-            candidate_vertices, causality_graph
-        )
+        candidate_vertices = cancellable_filtering_pass(candidate_vertices)
 
     i = 0
     for vertex in candidate_vertices:
         operator_hear = vertex.content
         assert isinstance(operator_hear, OperatorHear)
-
-        if not detectable_event_diff(
-            sieve_modes.OBS_GAP,
-            operator_hear.slim_prev_obj_map,
-            operator_hear.slim_cur_obj_map,
-            operator_hear.prev_etype,
-            operator_hear.etype,
-            operator_hear.signature_counter,
-        ):
-            continue
 
         obs_gap_config = obs_gap_template(project)
         obs_gap_config["ce-name"] = operator_hear.name
@@ -336,6 +349,24 @@ def obs_gap_analysis(
         dump_to_yaml(obs_gap_config, file_name)
 
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
+
+
+def atom_vio_mandatory_pass(causality_vertices: List[CausalityVertex]):
+    print("Running atom vio mandatory pass ...")
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        operator_write = vertex.content
+        if detectable_event_diff(
+            sieve_modes.ATOM_VIO,
+            operator_write.slim_prev_obj_map,
+            operator_write.slim_cur_obj_map,
+            operator_write.prev_etype,
+            operator_write.etype,
+            operator_write.signature_counter,
+        ):
+            candidate_vertices.append(vertex)
+    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    return candidate_vertices
 
 
 def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
@@ -364,8 +395,8 @@ def atom_vio_analysis(
     path: str,
     project: str,
 ):
-    operator_write_vertices = causality_graph.operator_write_vertices
-    candidate_vertices = operator_write_vertices
+    candidate_vertices = causality_graph.operator_write_vertices
+    candidate_vertices = atom_vio_mandatory_pass(candidate_vertices)
     candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
 
     i = 0
@@ -373,16 +404,6 @@ def atom_vio_analysis(
         operator_write = vertex.content
         # TODO: Handle the case where operator_write == EVENT_NONE_TYPE
         assert isinstance(operator_write, OperatorWrite)
-
-        if not detectable_event_diff(
-            sieve_modes.ATOM_VIO,
-            operator_write.slim_prev_obj_map,
-            operator_write.slim_cur_obj_map,
-            operator_write.prev_etype,
-            operator_write.etype,
-            operator_write.signature_counter,
-        ):
-            continue
 
         atom_vio_config = atom_vio_template(project)
         atom_vio_config["se-name"] = operator_write.name
