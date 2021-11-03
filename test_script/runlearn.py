@@ -19,5 +19,6 @@ if __name__ == "__main__":
         operators = args.operators
 
     for operator in operators:
+        os.system('docker pull %s/%s:learn' % ('ghcr.io/sieve-project/action', operator))
         for testcase in workloads.workloads[operator]:
             os.system('python3 sieve.py -s learn -p {} -t {} -d {}'.format(operator, testcase, 'ghcr.io/sieve-project/action'))
