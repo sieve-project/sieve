@@ -46,6 +46,8 @@ CONFIGURED_MASK = [
     "spec/selector/pod-template-hash",
     "status/conditions",
     "status/observedGeneration",
+    "status/containerStatuses/*/lastState/terminated",
+    "status/containerStatuses/*/restartCount",
 ]
 
 

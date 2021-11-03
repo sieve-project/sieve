@@ -242,7 +242,7 @@ operator_pod_label = {
 
 event_mask = {
     "mongodb-operator": {
-        "disable-enable-shard": {
+        "*": {
             "pod": [
                 "mongodb-cluster-rs0-0",
                 "mongodb-cluster-rs0-1",
@@ -250,7 +250,15 @@ event_mask = {
             ]
         }
     },
-    "xtradb-operator": {"*": {"pod": ["xtradb-cluster-pxc-0"]}},
+    "xtradb-operator": {
+        "*": {
+            "pod": [
+                "xtradb-cluster-pxc-0",
+                "xtradb-cluster-pxc-1",
+                "xtradb-cluster-pxc-2",
+            ]
+        }
+    },
     "yugabyte-operator": {"*": {"pod": ["yb-master-0", "yb-master-1", "yb-master-2"]}},
 }
 
