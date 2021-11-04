@@ -2,7 +2,11 @@
 set -x
 
 # 1. Delete all old docker images
-docker system prune -a
+parallel --workdir '/home/ubuntu/sieve' \
+         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+         --sshloginfile hosts \
+         --onall \
+         ::: 'docker system prune -a'
 
 # 2. Generate test commands and docker pull commands
 python3 runlearn.py  # [-p projects]
