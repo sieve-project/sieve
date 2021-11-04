@@ -475,18 +475,6 @@
                     },
                     {
                         "lastTransitionTime": "SIEVE-IGNORE",
-                        "message": "SIEVE-IGNORE",
-                        "reason": "ErrorReconcile",
-                        "status": "True",
-                        "type": "Error"
-                    },
-                    {
-                        "lastTransitionTime": "SIEVE-IGNORE",
-                        "status": "True",
-                        "type": "Initializing"
-                    },
-                    {
-                        "lastTransitionTime": "SIEVE-IGNORE",
                         "status": "True",
                         "type": "Ready"
                     },
@@ -747,7 +735,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker"
+                    "volume.kubernetes.io/selected-node": "kind-worker3"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -959,7 +947,7 @@
         }
     },
     "pod": {
-        "percona-xtradb-cluster-operator-56c7bd8b98-q555p": "SIEVE-IGNORE",
+        "percona-xtradb-cluster-operator-56c7bd8b98-8bq9m": "SIEVE-IGNORE",
         "xtradb-cluster-proxysql-0": {
             "metadata": {
                 "annotations": {
@@ -1003,7 +991,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"f63e3ccb-9ef3-4667-aa61-1e1ec67404c2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"5cb740e2-5d7e-4ccf-9197-84c1c624f388\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1317,10 +1305,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.6\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
+                                    "k:{\"ip\":\"10.244.3.6\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1687,10 +1672,18 @@
                         "containerID": "SIEVE-IGNORE",
                         "image": "docker.io/percona/percona-xtradb-cluster-operator:1.7.0-proxysql",
                         "imageID": "docker.io/percona/percona-xtradb-cluster-operator@sha256:caaaa398c2093b4491f75848356d042ffd96d449ed9fc07a1a8202231ac0fa4d",
-                        "lastState": {},
+                        "lastState": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 1,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Error",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        },
                         "name": "pxc-monit",
                         "ready": true,
-                        "restartCount": 0,
+                        "restartCount": 1,
                         "started": true,
                         "state": {
                             "running": {
@@ -1701,10 +1694,10 @@
                 ],
                 "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
-                "podIP": "10.244.2.6",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.2.6"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -1754,7 +1747,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a48a8aad-1e18-4617-86d8-90ce4701caa1\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"f7b5e2d8-84ea-45c2-9791-e5b094b8ac0e\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2105,7 +2098,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.3.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.3\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -2484,7 +2477,7 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                        "imageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:9c82901470b46ebc9556a765bb36ab87c0674fde9ba45b46dbaa1aa254988718",
+                        "imageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:a915370d644bec20776070696b71e971a7fad212682824d72472ead285b1fbd5",
                         "lastState": {},
                         "name": "pxc-init",
                         "ready": true,
@@ -2554,7 +2547,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a48a8aad-1e18-4617-86d8-90ce4701caa1\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"f7b5e2d8-84ea-45c2-9791-e5b094b8ac0e\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2905,7 +2898,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.4.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -3279,12 +3272,12 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.5",
+                "hostIP": "SIEVE-IGNORE",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                        "imageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:9c82901470b46ebc9556a765bb36ab87c0674fde9ba45b46dbaa1aa254988718",
+                        "imageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:a915370d644bec20776070696b71e971a7fad212682824d72472ead285b1fbd5",
                         "lastState": {},
                         "name": "pxc-init",
                         "ready": true,
@@ -3354,7 +3347,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a48a8aad-1e18-4617-86d8-90ce4701caa1\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"f7b5e2d8-84ea-45c2-9791-e5b094b8ac0e\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3705,10 +3698,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.4\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
+                                    "k:{\"ip\":\"10.244.4.4\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -3942,7 +3932,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker",
+                "nodeName": "kind-worker3",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -4087,7 +4077,7 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                        "imageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:9c82901470b46ebc9556a765bb36ab87c0674fde9ba45b46dbaa1aa254988718",
+                        "imageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:a915370d644bec20776070696b71e971a7fad212682824d72472ead285b1fbd5",
                         "lastState": {},
                         "name": "pxc-init",
                         "ready": true,
@@ -4104,10 +4094,10 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "10.244.1.4",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.1.4"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -4116,7 +4106,7 @@
         }
     },
     "secret": {
-        "default-token-vv9b8": "SIEVE-IGNORE",
+        "default-token-rh5xn": "SIEVE-IGNORE",
         "internal-xtradb-cluster": {
             "data": {
                 "clustercheck": "SIEVE-IGNORE",
@@ -4168,7 +4158,7 @@
             },
             "type": "Opaque"
         },
-        "percona-xtradb-cluster-operator-token-zxb9n": "SIEVE-IGNORE",
+        "percona-xtradb-cluster-operator-token-wx645": "SIEVE-IGNORE",
         "xtradb-cluster-secrets": {
             "data": {
                 "clustercheck": "SIEVE-IGNORE",
@@ -4231,7 +4221,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4280,7 +4270,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4351,7 +4341,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "150",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -4390,7 +4380,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"2597d35d-e6a1-478d-89a3-a30925932c3d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"a604d20e-9515-4a9e-a24f-f8534270dc60\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4480,7 +4470,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4586,7 +4576,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4699,7 +4689,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4806,7 +4796,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4900,7 +4890,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -5559,7 +5549,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"910dfaf7-9233-4cf1-95d2-8fee53a28d91\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6912c86f-1d69-4e1b-8340-918d4251879b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
