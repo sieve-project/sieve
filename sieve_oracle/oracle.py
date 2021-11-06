@@ -26,12 +26,6 @@ api_event_empty_entry = {
 }
 
 
-def dump_json_file(dir, data, json_file_name):
-    json.dump(
-        data, open(os.path.join(dir, json_file_name), "w"), indent=4, sort_keys=True
-    )
-
-
 def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False):
     if sieve_config["generic_event_generation_enabled"]:
         events_oracle = generate_events_oracle(project, src_dir, canonicalize_resource)
@@ -48,12 +42,6 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
         if canonicalize_resource:
             dump_json_file(dest_dir, resources, "state.json")
             dump_json_file(dest_dir, ignore_paths, "mask.json")
-
-
-# def generate_learned_masked_path(dest_dir):
-#     resources = json.load(open(os.path.join(dest_dir, "state.json")))
-#     ignore_paths = generate_ignore_paths(resources)
-#     dump_json_file(dest_dir, ignore_paths, "mask.json")
 
 
 def generate_events_oracle(project, log_dir, canonicalize_resource):

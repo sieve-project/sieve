@@ -35,6 +35,21 @@ def should_skip_api_event_key(api_event_key, test_name, masked):
     return False
 
 
+def generate_history(test_context: TestContext):
+    api_log_path = os.path.join(test_context.result_dir, "apiserver1.log")
+    history = []
+    for line in open(api_log_path).readlines():
+        if SIEVE_API_EVENT_MARK not in line:
+            continue
+        api_event = parse_api_event(line)
+        api_event_dict = {}
+        api_event_dict["etype"] = api_event.etype
+        api_event_dict["key"] = api_event.key
+        api_event_dict["state"] = api_event.obj_str
+        history.append(api_event_dict)
+    dump_json_file(test_context.result_dir, history, "history.json")
+
+
 def get_learning_history_digest(test_context: TestContext):
     learning_history_digest = json.load(
         open(os.path.join(test_context.oracle_dir, "event.json"))
