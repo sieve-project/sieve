@@ -66,7 +66,7 @@ def safety_checker(test_context: TestContext):
     ret_val = 0
     messages = []
     if (
-        sieve_config["generic_event_checker_enabled"]
+        sieve_config["compare_history_digests_checker_enabled"]
         and test_context.mode != sieve_modes.OBS_GAP
     ):
         (
@@ -81,10 +81,10 @@ def safety_checker(test_context: TestContext):
 def liveness_checker(test_context: TestContext):
     ret_val = 0
     messages = []
-    if sieve_config["generic_state_checker_enabled"]:
-        compare_state_ret_val, compare_state_messages = compare_states(test_context)
-        ret_val += compare_state_ret_val
-        messages.extend(compare_state_messages)
+    if sieve_config["compare_states_checker_enabled"]:
+        compare_states_ret_val, compare_states_messages = compare_states(test_context)
+        ret_val += compare_states_ret_val
+        messages.extend(compare_states_messages)
     return ret_val, messages
 
 
@@ -96,12 +96,12 @@ def check(test_context: TestContext):
     if validation_ret_val < 0:
         messages.extend(validation_messages)
 
-    if sieve_config["operator_checker_enabled"]:
+    if sieve_config["operator_panic_checker_enabled"]:
         panic_ret_val, panic_messages = operator_checker(test_context)
         ret_val += panic_ret_val
         messages.extend(panic_messages)
 
-    if sieve_config["test_workload_checker_enabled"]:
+    if sieve_config["test_failure_checker_enabled"]:
         workload_ret_val, workload_messages = test_workload_checker(test_context)
         ret_val += workload_ret_val
         messages.extend(workload_messages)
