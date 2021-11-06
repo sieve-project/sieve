@@ -16,6 +16,8 @@ from sieve_common.common import *
 from sieve_common.default_config import sieve_config
 import deepdiff
 from deepdiff import DeepDiff
+from sieve_oracle.checker_common import *
+from sieve_oracle.safety_checker import *
 
 
 api_event_empty_entry = {
@@ -261,26 +263,9 @@ def generate_ignore_paths(data):
     return result
 
 
-def generate_alarm(sub_alarm, msg):
-    return "[ALARM]" + sub_alarm + " " + msg
-
-
-def generate_warn(msg):
-    return "[WARN] " + msg
-
-
-def generate_fatal(msg):
-    return "[FATAL] " + msg
-
-
 def generic_event_checker(test_context: TestContext, event_mask):
-    learning_events = json.load(
-        open(os.path.join(test_context.oracle_dir, "event.json"))
-    )
-    testing_events = json.load(
-        open(os.path.join(test_context.result_dir, "event.json"))
-    )
-    test_mode = test_context.mode
+    learning_events = get_learning_history_digest(test_context)
+    testing_events = get_testing_history_digest(test_context)
     test_name = test_context.test_name
 
     ret_val = 0
@@ -295,9 +280,6 @@ def generic_event_checker(test_context: TestContext, event_mask):
                         if name in masked[masked_test_name][masked_rtype]:
                             return True
         return False
-
-    if test_mode == sieve_modes.OBS_GAP:
-        return ret_val, messages
 
     # checking events inconsistency for each key
     testing_keys = set(testing_events["keys"].keys())
@@ -775,6 +757,19 @@ def injection_validation(test_context: TestContext):
     return validation_ret_val, validation_messages
 
 
+def safety_checker(test_context: TestContext, event_mask):
+    ret_val = 0
+    messages = []
+    if (
+        sieve_config["generic_event_checker_enabled"]
+        and test_context.mode != sieve_modes.OBS_GAP
+    ):
+        write_ret_val, write_messages = generic_event_checker(test_context, event_mask)
+        ret_val += write_ret_val
+        messages.extend(write_messages)
+    return ret_val, messages
+
+
 def check(test_context: TestContext, event_mask, state_mask):
     ret_val = 0
     messages = []
@@ -793,10 +788,10 @@ def check(test_context: TestContext, event_mask, state_mask):
         ret_val += workload_ret_val
         messages.extend(workload_messages)
 
-    if sieve_config["generic_event_checker_enabled"]:
-        write_ret_val, write_messages = generic_event_checker(test_context, event_mask)
-        ret_val += write_ret_val
-        messages.extend(write_messages)
+    # if sieve_config["generic_event_checker_enabled"]:
+    write_ret_val, write_messages = safety_checker(test_context, event_mask)
+    ret_val += write_ret_val
+    messages.extend(write_messages)
 
     if sieve_config["generic_state_checker_enabled"]:
         resource_ret_val, resource_messages = generic_state_checker(test_context)
