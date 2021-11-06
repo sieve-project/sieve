@@ -35,7 +35,7 @@ def get_crd(crd):
     return data
 
 
-def generate_state(log_dir="", canonicalize_resource=False):
+def generate_state(test_context: TestContext):
     # print("Generating cluster resources digest...")
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -51,63 +51,70 @@ def generate_state(log_dir="", canonicalize_resource=False):
         "service": core_v1.list_namespaced_service,
         "statefulset": apps_v1.list_namespaced_stateful_set,
     }
-    resources = {}
+    state = {}
 
     for resource in resource_handler.keys():
-        resources[resource] = get_resource_helper(resource_handler[resource])
+        state[resource] = get_resource_helper(resource_handler[resource])
 
     crd_list = get_crd_list()
     # Fetch for crd
     for crd in crd_list:
-        resources[crd] = get_crd(crd)
-
-    if canonicalize_resource:
-        # Suppose we are current at learn/learn-twice/learn.yaml/xxx
-        learn_dir = os.path.dirname(os.path.dirname(log_dir))
-        learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
-        base_resources = json.loads(
-            open(os.path.join(learn_once_dir, "state.json")).read()
-        )
-        resources = learn_twice_trim(base_resources, resources)
-    return resources
+        state[crd] = get_crd(crd)
+    return state
 
 
-def dump_ignore_paths(ignore, predefine, key, obj, path):
+def canonicalize_state(test_context: TestContext):
+    assert test_context.mode == sieve_modes.LEARN_TWICE
+    learn_twice_dir = test_context.result_dir
+    cur_state = json.loads(open(os.path.join(learn_twice_dir, "state.json")).read())
+    learn_once_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-once",
+        "learn.yaml",
+    )
+    prev_state = json.loads(open(os.path.join(learn_once_dir, "state.json")).read())
+    can_state = learn_twice_trim(prev_state, cur_state)
+    return can_state
+
+
+def generate_state_mask_helper(mask_list, predefine, key, obj, path):
     if path in predefine["path"] or key in predefine["key"]:
-        ignore.add(path)
+        mask_list.add(path)
         return
     if type(obj) is str:
         # Check for SIEVE-IGNORE
         if obj == SIEVE_LEARN_VALUE_MASK:
-            ignore.add(path)
+            mask_list.add(path)
             return
         # Check for ignore regex rule
         if match_mask_regex(obj):
-            ignore.add(path)
+            mask_list.add(path)
             return
     if type(obj) is list:
         for i in range(len(obj)):
             val = obj[i]
             newpath = os.path.join(path, "*")
-            dump_ignore_paths(ignore, predefine, i, val, newpath)
+            generate_state_mask_helper(mask_list, predefine, i, val, newpath)
     elif type(obj) is dict:
         for key in obj:
             val = obj[key]
             newpath = os.path.join(path, key)
-            dump_ignore_paths(ignore, predefine, key, val, newpath)
+            generate_state_mask_helper(mask_list, predefine, key, val, newpath)
 
 
-def generate_ignore_paths(data):
-    result = {}
+def generate_state_mask(data):
+    mask_map = {}
     for rtype in data:
-        result[rtype] = {}
+        mask_map[rtype] = {}
         for name in data[rtype]:
             predefine = {
                 "path": set(gen_mask_paths()),
                 "key": set(gen_mask_keys()),
             }
-            ignore = set()
+            mask_list = set()
             if data[rtype][name] != SIEVE_LEARN_VALUE_MASK:
-                dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
-                result[rtype][name] = sorted(list(ignore))
-    return result
+                generate_state_mask_helper(
+                    mask_list, predefine, "", data[rtype][name], ""
+                )
+                mask_map[rtype][name] = sorted(list(mask_list))
+    return mask_map

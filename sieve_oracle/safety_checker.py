@@ -122,11 +122,11 @@ def canonicalize_history_digest(test_context: TestContext):
     def remove_ignored_value(event_map):
         ignored = set()
         for key in event_map:
-            if event_map[key] == "SIEVE-IGNORE":
+            if event_map[key] == SIEVE_LEARN_VALUE_MASK:
                 ignored.add(key)
             else:
                 for etype in event_map[key]:
-                    if event_map[key][etype] == "SIEVE-IGNORE":
+                    if event_map[key][etype] == SIEVE_LEARN_VALUE_MASK:
                         ignored.add(key)
                         break
         for key in ignored:
@@ -211,7 +211,7 @@ def compare_history_digests(test_context: TestContext):
     testing_keys = set(testing_events["keys"].keys())
     learning_keys = set(learning_events["keys"].keys())
     for key in testing_keys.intersection(learning_keys):
-        assert learning_events["keys"][key] != "SIEVE-IGNORE"
+        assert learning_events["keys"][key] != SIEVE_LEARN_VALUE_MASK
         if is_unstable_api_event_key(key, learning_events["keys"][key]):
             continue
         if should_skip_api_event_key(key, test_name, event_mask):
@@ -219,7 +219,7 @@ def compare_history_digests(test_context: TestContext):
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config["api_event_to_check"]:
                 continue
-            assert learning_events["keys"][key][etype] != "SIEVE-IGNORE"
+            assert learning_events["keys"][key][etype] != SIEVE_LEARN_VALUE_MASK
             if (
                 testing_events["keys"][key][etype]
                 != learning_events["keys"][key][etype]

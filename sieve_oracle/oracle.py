@@ -8,32 +8,37 @@ import deepdiff
 from deepdiff import DeepDiff
 from sieve_oracle.checker_common import *
 from sieve_oracle.safety_checker import *
+from sieve_oracle.liveness_checker import *
 
 
-def persistent_history_and_state(
-    test_context: TestContext, canonicalize_resource=False
-):
+def persistent_history_and_state(test_context: TestContext):
     if sieve_config["generic_event_generation_enabled"]:
         history = generate_history(test_context)
         history_digest = generate_history_digest(test_context)
         dump_json_file(test_context.result_dir, history, "history.json")
         dump_json_file(test_context.result_dir, history_digest, "event.json")
     if sieve_config["generic_state_generation_enabled"]:
-        resources = generate_state(test_context.result_dir, canonicalize_resource)
-        ignore_paths = generate_ignore_paths(resources)
+        state = generate_state(test_context)
+        # ignore_paths = generate_state_mask(resources)
         # we generate state.json at src_dir (log dir)
-        dump_json_file(test_context.result_dir, resources, "state.json")
-        dump_json_file(test_context.result_dir, ignore_paths, "mask.json")
+        dump_json_file(test_context.result_dir, state, "state.json")
+        # dump_json_file(test_context.result_dir, ignore_paths, "mask.json")
         # we generate state.json at dest_dir (data dir) if cononicalize_resource=True
-        if canonicalize_resource:
-            dump_json_file(test_context.oracle_dir, resources, "state.json")
-            dump_json_file(test_context.oracle_dir, ignore_paths, "mask.json")
+        # if canonicalize_resource:
+        #     dump_json_file(test_context.oracle_dir, resources, "state.json")
+        #     dump_json_file(test_context.oracle_dir, ignore_paths, "mask.json")
 
 
 def canonicalize_history_and_state(test_context: TestContext):
     assert test_context.mode == sieve_modes.LEARN_TWICE
-    can_history_digest = canonicalize_history_digest(test_context)
-    dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")
+    if sieve_config["generic_event_generation_enabled"]:
+        can_history_digest = canonicalize_history_digest(test_context)
+        dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")
+    if sieve_config["generic_state_generation_enabled"]:
+        can_state = canonicalize_state(test_context)
+        dump_json_file(test_context.oracle_dir, can_state, "state.json")
+        state_mask = generate_state_mask(can_state)
+        dump_json_file(test_context.oracle_dir, state_mask, "mask.json")
 
 
 def operator_checker(test_context: TestContext):

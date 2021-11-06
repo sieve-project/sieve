@@ -14,11 +14,15 @@ def learn_twice_trim(base_resources, twice_resources):
 
     if "values_changed" in ddiff:
         for key in ddiff["values_changed"]:
-            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+            nested_set(
+                stored_learn, key.path(output_format="list"), SIEVE_LEARN_VALUE_MASK
+            )
 
     if "dictionary_item_added" in ddiff:
         for key in ddiff["dictionary_item_added"]:
-            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+            nested_set(
+                stored_learn, key.path(output_format="list"), SIEVE_LEARN_VALUE_MASK
+            )
 
     return stored_learn
 
