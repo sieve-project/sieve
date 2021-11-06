@@ -138,11 +138,35 @@ def canonicalize_history_digest(test_context: TestContext):
     return can_history_digest
 
 
-def get_learning_history_digest(test_context: TestContext):
-    learning_history_digest = json.load(
+def get_canonicalized_history_digest(test_context: TestContext):
+    can_history_digest = json.load(
         open(os.path.join(test_context.oracle_dir, "event.json"))
     )
-    return learning_history_digest
+    return can_history_digest
+
+
+def get_learning_once_history_digest(test_context: TestContext):
+    learn_once_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-once",
+        "learn.yaml",
+    )
+    learning_once_history_digest = json.load(
+        open(os.path.join(learn_once_dir, "event.json"))
+    )
+    return learning_once_history_digest
+
+
+def get_learning_twice_history_digest(test_context: TestContext):
+    learn_twice_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-twice",
+        "learn.yaml",
+    )
+    learning_twice_history_digest = json.load(
+        open(os.path.join(learn_twice_dir, "event.json"))
+    )
+    return learning_twice_history_digest
 
 
 def get_testing_history_digest(test_context: TestContext):
@@ -150,6 +174,37 @@ def get_testing_history_digest(test_context: TestContext):
         open(os.path.join(test_context.result_dir, "event.json"))
     )
     return testing_history_digest
+
+
+def get_testing_history_digest(test_context: TestContext):
+    testing_history_digest = json.load(
+        open(os.path.join(test_context.result_dir, "event.json"))
+    )
+    return testing_history_digest
+
+
+def get_learning_once_history(test_context: TestContext):
+    learn_once_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-once",
+        "learn.yaml",
+    )
+    learning_once_history = json.load(
+        open(os.path.join(learn_once_dir, "history.json"))
+    )
+    return learning_once_history
+
+
+def get_learning_twice_history(test_context: TestContext):
+    learn_twice_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-twice",
+        "learn.yaml",
+    )
+    learning_twice_history = json.load(
+        open(os.path.join(learn_twice_dir, "history.json"))
+    )
+    return learning_twice_history
 
 
 def get_testing_history(test_context: TestContext):
@@ -199,9 +254,8 @@ def check_single_history(history, resource_keys, checker_name, customized_checke
 
 
 def compare_history_digests(test_context: TestContext):
-    learning_events = get_learning_history_digest(test_context)
+    learning_events = get_canonicalized_history_digest(test_context)
     testing_events = get_testing_history_digest(test_context)
-    test_name = test_context.test_name
     event_mask = get_event_mask(test_context)
 
     ret_val = 0
@@ -214,7 +268,7 @@ def compare_history_digests(test_context: TestContext):
         assert learning_events["keys"][key] != SIEVE_LEARN_VALUE_MASK
         if is_unstable_api_event_key(key, learning_events["keys"][key]):
             continue
-        if should_skip_api_event_key(key, test_name, event_mask):
+        if should_skip_api_event_key(key, test_context.test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config["api_event_to_check"]:

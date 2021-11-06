@@ -35,7 +35,7 @@ def canonicalize_history_and_state(test_context: TestContext):
         dump_json_file(test_context.oracle_dir, state_mask, "mask.json")
 
 
-def operator_checker(test_context: TestContext):
+def operator_panic_checker(test_context: TestContext):
     operator_log = os.path.join(test_context.result_dir, "streamed-operator.log")
     ret_val = 0
     messages = []
@@ -49,7 +49,7 @@ def operator_checker(test_context: TestContext):
     return ret_val, messages
 
 
-def test_workload_checker(test_context: TestContext):
+def test_failure_checker(test_context: TestContext):
     workload_log = os.path.join(test_context.result_dir, "workload.log")
     ret_val = 0
     messages = []
@@ -59,6 +59,21 @@ def test_workload_checker(test_context: TestContext):
             ret_val += 1
             messages.append(generate_alarm("[WORKLOAD]", line.strip()))
     messages.sort()
+    return ret_val, messages
+
+
+def textbook_checker(test_context: TestContext):
+    ret_val = 0
+    messages = []
+    if sieve_config["operator_panic_checker_enabled"]:
+        panic_ret_val, panic_messages = operator_panic_checker(test_context)
+        ret_val += panic_ret_val
+        messages.extend(panic_messages)
+
+    if sieve_config["test_failure_checker_enabled"]:
+        workload_ret_val, workload_messages = test_failure_checker(test_context)
+        ret_val += workload_ret_val
+        messages.extend(workload_messages)
     return ret_val, messages
 
 
@@ -96,15 +111,9 @@ def check(test_context: TestContext):
     if validation_ret_val < 0:
         messages.extend(validation_messages)
 
-    if sieve_config["operator_panic_checker_enabled"]:
-        panic_ret_val, panic_messages = operator_checker(test_context)
-        ret_val += panic_ret_val
-        messages.extend(panic_messages)
-
-    if sieve_config["test_failure_checker_enabled"]:
-        workload_ret_val, workload_messages = test_workload_checker(test_context)
-        ret_val += workload_ret_val
-        messages.extend(workload_messages)
+    textbook_ret_val, textbook_messages = textbook_checker(test_context)
+    ret_val += textbook_ret_val
+    messages.extend(textbook_messages)
 
     safety_ret_val, safety_messages = safety_checker(test_context)
     ret_val += safety_ret_val
