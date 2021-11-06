@@ -1,7 +1,5 @@
-import yaml
 import os
 from sieve_common.common import *
-from sieve_common.default_config import sieve_config
 from sieve_oracle.checker_common import *
 from sieve_oracle.safety_checker import *
 from sieve_oracle.liveness_checker import *
@@ -64,17 +62,6 @@ def test_workload_checker(test_context: TestContext):
     return ret_val, messages
 
 
-def print_error_and_debugging_info(ret_val, messages, test_config):
-    if ret_val == 0:
-        return
-    test_config_content = yaml.safe_load(open(test_config))
-    report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
-    cprint("[RET VAL] {}\n".format(ret_val) + messages, report_color)
-    if sieve_config["injection_desc_generation_enabled"]:
-        hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
-        cprint(hint, bcolors.WARNING)
-
-
 def safety_checker(test_context: TestContext):
     ret_val = 0
     messages = []
@@ -82,9 +69,22 @@ def safety_checker(test_context: TestContext):
         sieve_config["generic_event_checker_enabled"]
         and test_context.mode != sieve_modes.OBS_GAP
     ):
-        write_ret_val, write_messages = compare_history_digests(test_context)
-        ret_val += write_ret_val
-        messages.extend(write_messages)
+        (
+            compare_history_digests_ret_val,
+            compare_history_digests_messages,
+        ) = compare_history_digests(test_context)
+        ret_val += compare_history_digests_ret_val
+        messages.extend(compare_history_digests_messages)
+    return ret_val, messages
+
+
+def liveness_checker(test_context: TestContext):
+    ret_val = 0
+    messages = []
+    if sieve_config["generic_state_checker_enabled"]:
+        compare_state_ret_val, compare_state_messages = compare_states(test_context)
+        ret_val += compare_state_ret_val
+        messages.extend(compare_state_messages)
     return ret_val, messages
 
 
@@ -106,15 +106,13 @@ def check(test_context: TestContext):
         ret_val += workload_ret_val
         messages.extend(workload_messages)
 
-    # if sieve_config["generic_event_checker_enabled"]:
-    write_ret_val, write_messages = safety_checker(test_context)
-    ret_val += write_ret_val
-    messages.extend(write_messages)
+    safety_ret_val, safety_messages = safety_checker(test_context)
+    ret_val += safety_ret_val
+    messages.extend(safety_messages)
 
-    if sieve_config["generic_state_checker_enabled"]:
-        resource_ret_val, resource_messages = generic_state_checker(test_context)
-        ret_val += resource_ret_val
-        messages.extend(resource_messages)
+    liveness_ret_val, liveness_messages = liveness_checker(test_context)
+    liveness_ret_val += safety_ret_val
+    messages.extend(liveness_messages)
 
     if validation_ret_val < 0:
         ret_val = validation_ret_val

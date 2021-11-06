@@ -11,9 +11,12 @@ from sieve_analyzer import analyze
 import controllers
 from sieve_oracle.oracle import (
     persistent_history_and_state,
-    print_error_and_debugging_info,
+    canonicalize_history_and_state,
     generate_fatal,
     check,
+)
+from sieve_oracle.checker_common import (
+    print_error_and_debugging_info,
 )
 import yaml
 import subprocess
@@ -382,10 +385,9 @@ def run_workload(
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
-    persistent_history_and_state(
-        test_context,
-        test_context.mode == sieve_modes.LEARN_TWICE,
-    )
+    persistent_history_and_state(test_context)
+    if test_context.mode == sieve_modes.LEARN_TWICE:
+        canonicalize_history_and_state(test_context)
 
 
 def check_result(

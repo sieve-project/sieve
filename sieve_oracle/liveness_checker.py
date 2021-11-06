@@ -145,7 +145,7 @@ def preprocess(learn, test):
             test.pop(resource, None)
 
 
-def generic_state_checker(test_context: TestContext):
+def compare_states(test_context: TestContext):
     learn = json.load(open(os.path.join(test_context.oracle_dir, "state.json")))
     test = json.load(open(os.path.join(test_context.result_dir, "state.json")))
 
