@@ -145,9 +145,39 @@ def preprocess(learn, test):
             test.pop(resource, None)
 
 
+def get_canonicalized_state(test_context: TestContext):
+    can_state = json.load(open(os.path.join(test_context.oracle_dir, "state.json")))
+    return can_state
+
+
+def get_learning_once_state(test_context: TestContext):
+    learn_once_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-once",
+        "learn.yaml",
+    )
+    learning_once_state = json.load(open(os.path.join(learn_once_dir, "state.json")))
+    return learning_once_state
+
+
+def get_learning_twice_state(test_context: TestContext):
+    learn_twice_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-twice",
+        "learn.yaml",
+    )
+    learning_twice_state = json.load(open(os.path.join(learn_twice_dir, "state.json")))
+    return learning_twice_state
+
+
+def get_testing_state(test_context: TestContext):
+    testing_state = json.load(open(os.path.join(test_context.result_dir, "state.json")))
+    return testing_state
+
+
 def compare_states(test_context: TestContext):
-    learn = json.load(open(os.path.join(test_context.oracle_dir, "state.json")))
-    test = json.load(open(os.path.join(test_context.result_dir, "state.json")))
+    learn = get_canonicalized_state(test_context)
+    test = get_testing_state(test_context)
 
     ret_val = 0
     messages = []
