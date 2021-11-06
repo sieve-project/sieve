@@ -196,6 +196,8 @@ def setup_cluster(
     test_context: TestContext,
 ):
     cmd_early_exit("kind delete cluster")
+    # sleep here in case if the machine is slow and deletion is not done before creating a new cluster
+    time.sleep(5)
     setup_kind_cluster(
         generate_kind_config(test_context.num_apiservers, test_context.num_workers),
         test_context.docker_repo,
