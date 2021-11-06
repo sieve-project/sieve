@@ -74,8 +74,8 @@ def canonicalize_state(test_context: TestContext):
         "learn.yaml",
     )
     prev_state = json.loads(open(os.path.join(learn_once_dir, "state.json")).read())
-    can_state = learn_twice_trim(prev_state, cur_state)
-    return can_state
+    canonicalized_state = learn_twice_trim(prev_state, cur_state)
+    return canonicalized_state
 
 
 def generate_state_mask_helper(mask_list, predefine, key, obj, path):
@@ -146,8 +146,10 @@ def preprocess(learn, test):
 
 
 def get_canonicalized_state(test_context: TestContext):
-    can_state = json.load(open(os.path.join(test_context.oracle_dir, "state.json")))
-    return can_state
+    canonicalized_state = json.load(
+        open(os.path.join(test_context.oracle_dir, "state.json"))
+    )
+    return canonicalized_state
 
 
 def get_learning_once_state(test_context: TestContext):
@@ -176,8 +178,8 @@ def get_testing_state(test_context: TestContext):
 
 
 def compare_states(test_context: TestContext):
-    learn = get_canonicalized_state(test_context)
-    test = get_testing_state(test_context)
+    canonicalized_state = get_canonicalized_state(test_context)
+    testing_state = get_testing_state(test_context)
 
     ret_val = 0
     messages = []
@@ -187,9 +189,11 @@ def compare_states(test_context: TestContext):
             dic = dic[key]
         return dic
 
-    preprocess(learn, test)
-    tdiff = DeepDiff(learn, test, ignore_order=False, view="tree")
-    resource_map = {resource: {"add": [], "remove": []} for resource in test}
+    preprocess(canonicalized_state, testing_state)
+    tdiff = DeepDiff(
+        canonicalized_state, testing_state, ignore_order=False, view="tree"
+    )
+    resource_map = {resource: {"add": [], "remove": []} for resource in testing_state}
     boring_keys = set(gen_mask_keys())
     boring_paths = set(gen_mask_paths())
 
@@ -233,9 +237,9 @@ def compare_states(test_context: TestContext):
 
             resource_type = path[0]
             if len(path) == 2 and type(key.t2) is deepdiff.helper.NotPresent:
-                source = learn
+                source = canonicalized_state
             else:
-                source = test
+                source = testing_state
 
             name = nested_get(source, path[:2] + ["metadata", "name"])
             namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
@@ -305,8 +309,8 @@ def compare_states(test_context: TestContext):
         if SIEVE_LEARN_VALUE_MASK in resource["add"] + resource["remove"]:
             # Then we only report number diff
             delta = len(resource["add"]) - len(resource["remove"])
-            learn_set = set(learn[resource_type].keys())
-            test_set = set(test[resource_type].keys())
+            learn_set = set(canonicalized_state[resource_type].keys())
+            test_set = set(testing_state[resource_type].keys())
             if delta != 0:
                 ret_val += 1
                 messages.append(

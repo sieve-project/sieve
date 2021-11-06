@@ -254,7 +254,7 @@ def check_single_history(history, resource_keys, checker_name, customized_checke
 
 
 def compare_history_digests(test_context: TestContext):
-    learning_events = get_canonicalized_history_digest(test_context)
+    canonicalized_events = get_canonicalized_history_digest(test_context)
     testing_events = get_testing_history_digest(test_context)
     event_mask = get_event_mask(test_context)
 
@@ -263,20 +263,20 @@ def compare_history_digests(test_context: TestContext):
 
     # checking events inconsistency for each key
     testing_keys = set(testing_events["keys"].keys())
-    learning_keys = set(learning_events["keys"].keys())
+    learning_keys = set(canonicalized_events["keys"].keys())
     for key in testing_keys.intersection(learning_keys):
-        assert learning_events["keys"][key] != SIEVE_LEARN_VALUE_MASK
-        if is_unstable_api_event_key(key, learning_events["keys"][key]):
+        assert canonicalized_events["keys"][key] != SIEVE_LEARN_VALUE_MASK
+        if is_unstable_api_event_key(key, canonicalized_events["keys"][key]):
             continue
         if should_skip_api_event_key(key, test_context.test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
             if etype not in sieve_config["api_event_to_check"]:
                 continue
-            assert learning_events["keys"][key][etype] != SIEVE_LEARN_VALUE_MASK
+            assert canonicalized_events["keys"][key][etype] != SIEVE_LEARN_VALUE_MASK
             if (
                 testing_events["keys"][key][etype]
-                != learning_events["keys"][key][etype]
+                != canonicalized_events["keys"][key][etype]
             ):
                 ret_val += 1
                 messages.append(
@@ -285,7 +285,7 @@ def compare_history_digests(test_context: TestContext):
                         "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
                             key,
                             etype,
-                            str(learning_events["keys"][key][etype]),
+                            str(canonicalized_events["keys"][key][etype]),
                             str(testing_events["keys"][key][etype]),
                         ),
                     )
