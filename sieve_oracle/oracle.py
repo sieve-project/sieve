@@ -56,16 +56,6 @@ def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False
 #     dump_json_file(dest_dir, ignore_paths, "mask.json")
 
 
-def is_unstable_api_event_key(key, value):
-    if value["operator_related"]:
-        return True
-    if key.endswith("-metrics"):
-        return True
-    if key.startswith("/endpointslices"):
-        return True
-    return False
-
-
 def generate_events_oracle(project, log_dir, canonicalize_resource):
     api_log_path = os.path.join(log_dir, "apiserver1.log")
     api_event_map = {}
@@ -261,84 +251,6 @@ def generate_ignore_paths(data):
                 dump_ignore_paths(ignore, predefine, "", data[rtype][name], "")
                 result[rtype][name] = sorted(list(ignore))
     return result
-
-
-def generic_event_checker(test_context: TestContext, event_mask):
-    learning_events = get_learning_history_digest(test_context)
-    testing_events = get_testing_history_digest(test_context)
-    test_name = test_context.test_name
-
-    ret_val = 0
-    messages = []
-
-    def should_skip_api_event_key(api_event_key, test_name, masked):
-        rtype, _, name = api_key_to_rtype_namespace_name(api_event_key)
-        for masked_test_name in masked:
-            if masked_test_name == "*" or masked_test_name == test_name:
-                for masked_rtype in masked[masked_test_name]:
-                    if masked_rtype == rtype:
-                        if name in masked[masked_test_name][masked_rtype]:
-                            return True
-        return False
-
-    # checking events inconsistency for each key
-    testing_keys = set(testing_events["keys"].keys())
-    learning_keys = set(learning_events["keys"].keys())
-    for key in testing_keys.intersection(learning_keys):
-        assert learning_events["keys"][key] != "SIEVE-IGNORE"
-        if is_unstable_api_event_key(key, learning_events["keys"][key]):
-            continue
-        if should_skip_api_event_key(key, test_name, event_mask):
-            continue
-        for etype in testing_events["keys"][key]:
-            if etype not in sieve_config["api_event_to_check"]:
-                continue
-            assert learning_events["keys"][key][etype] != "SIEVE-IGNORE"
-            if (
-                testing_events["keys"][key][etype]
-                != learning_events["keys"][key][etype]
-            ):
-                ret_val += 1
-                messages.append(
-                    generate_alarm(
-                        "[EVENT][KEY]",
-                        "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
-                            key,
-                            etype,
-                            str(learning_events["keys"][key][etype]),
-                            str(testing_events["keys"][key][etype]),
-                        ),
-                    )
-                )
-
-    if sieve_config["generic_type_event_checker_enabled"]:
-        # checking events inconsistency for each resource type
-        testing_rtypes = set(testing_events["types"].keys())
-        learning_rtypes = set(learning_events["types"].keys())
-        for rtype in testing_rtypes.intersection(learning_rtypes):
-            assert learning_events["types"][rtype] != "SIEVE-IGNORE"
-            for etype in testing_events["types"][rtype]:
-                if etype not in sieve_config["api_event_to_check"]:
-                    continue
-                assert learning_events["types"][rtype][etype] != "SIEVE-IGNORE"
-                if (
-                    testing_events["types"][rtype][etype]
-                    != learning_events["types"][rtype][etype]
-                ):
-                    ret_val += 1
-                    messages.append(
-                        generate_alarm(
-                            "[EVENT][TYPE]",
-                            "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
-                                rtype,
-                                etype,
-                                str(learning_events["types"][rtype][etype]),
-                                str(testing_events["types"][rtype][etype]),
-                            ),
-                        )
-                    )
-    messages.sort()
-    return ret_val, messages
 
 
 def operator_checker(test_context: TestContext):
@@ -757,20 +669,20 @@ def injection_validation(test_context: TestContext):
     return validation_ret_val, validation_messages
 
 
-def safety_checker(test_context: TestContext, event_mask):
+def safety_checker(test_context: TestContext):
     ret_val = 0
     messages = []
     if (
         sieve_config["generic_event_checker_enabled"]
         and test_context.mode != sieve_modes.OBS_GAP
     ):
-        write_ret_val, write_messages = generic_event_checker(test_context, event_mask)
+        write_ret_val, write_messages = compare_history_digests(test_context)
         ret_val += write_ret_val
         messages.extend(write_messages)
     return ret_val, messages
 
 
-def check(test_context: TestContext, event_mask, state_mask):
+def check(test_context: TestContext):
     ret_val = 0
     messages = []
 
@@ -789,7 +701,7 @@ def check(test_context: TestContext, event_mask, state_mask):
         messages.extend(workload_messages)
 
     # if sieve_config["generic_event_checker_enabled"]:
-    write_ret_val, write_messages = safety_checker(test_context, event_mask)
+    write_ret_val, write_messages = safety_checker(test_context)
     ret_val += write_ret_val
     messages.extend(write_messages)
 

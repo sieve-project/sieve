@@ -399,15 +399,7 @@ def check_result(
     else:
         if test_context.mode == sieve_modes.VANILLA:
             return 0, NO_ERROR_MESSAGE
-        ret_val, messages = check(
-            test_context,
-            controllers.event_mask[test_context.project]
-            if test_context.project in controllers.event_mask
-            else {},
-            controllers.state_mask[test_context.project]
-            if test_context.project in controllers.state_mask
-            else {},
-        )
+        ret_val, messages = check(test_context)
         open(os.path.join(test_context.result_dir, "bug-report.txt"), "w").write(
             messages
         )
