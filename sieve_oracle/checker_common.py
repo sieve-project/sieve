@@ -1,4 +1,26 @@
 from sieve_common.common import *
+import copy
+from deepdiff import DeepDiff
+
+
+def learn_twice_trim(base_resources, twice_resources):
+    def nested_set(dic, keys, value):
+        for key in keys[:-1]:
+            dic = dic[key]
+        dic[keys[-1]] = value
+
+    stored_learn = copy.deepcopy(base_resources)
+    ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view="tree")
+
+    if "values_changed" in ddiff:
+        for key in ddiff["values_changed"]:
+            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+
+    if "dictionary_item_added" in ddiff:
+        for key in ddiff["dictionary_item_added"]:
+            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
+
+    return stored_learn
 
 
 def generate_time_travel_debugging_hint(test_config_content):

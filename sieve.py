@@ -10,7 +10,7 @@ import glob
 from sieve_analyzer import analyze
 import controllers
 from sieve_oracle.oracle import (
-    generate_test_oracle,
+    persistent_history_and_state,
     print_error_and_debugging_info,
     generate_fatal,
     check,
@@ -382,10 +382,8 @@ def run_workload(
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
-    generate_test_oracle(
-        test_context.project,
-        test_context.result_dir,
-        test_context.oracle_dir,
+    persistent_history_and_state(
+        test_context,
         test_context.mode == sieve_modes.LEARN_TWICE,
     )
 

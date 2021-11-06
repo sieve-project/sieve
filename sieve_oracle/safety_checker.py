@@ -35,6 +35,12 @@ def should_skip_api_event_key(api_event_key, test_name, masked):
     return False
 
 
+api_event_empty_entry = {
+    APIEventTypes.ADDED: 0,
+    APIEventTypes.DELETED: 0,
+}
+
+
 def generate_history(test_context: TestContext):
     api_log_path = os.path.join(test_context.result_dir, "apiserver1.log")
     history = []
@@ -47,7 +53,89 @@ def generate_history(test_context: TestContext):
         api_event_dict["key"] = api_event.key
         api_event_dict["state"] = api_event.obj_str
         history.append(api_event_dict)
-    dump_json_file(test_context.result_dir, history, "history.json")
+    return history
+
+
+def generate_history_digest(test_context: TestContext):
+    project = test_context.project
+    log_dir = test_context.result_dir
+    api_log_path = os.path.join(log_dir, "apiserver1.log")
+    api_event_map = {}
+    api_key_event_map = {}
+    api_type_event_map = {}
+    taint_list = []
+    for line in open(api_log_path).readlines():
+        if SIEVE_API_EVENT_MARK not in line:
+            continue
+        api_event = parse_api_event(line)
+        key = api_event.key
+        if (
+            api_event.etype != APIEventTypes.ADDED
+            and api_event.etype != APIEventTypes.DELETED
+        ):
+            continue
+        if api_event.namespace != "default":
+            continue
+        generate_name = extract_generate_name(api_event.obj_map)
+        if generate_name is not None:
+            if is_generated_random_name(api_event.name, generate_name):
+                key = key[:-5] + "*"
+        assert "/default/" in key
+        type_prefix = key[: key.find("/default/")]
+        if key not in api_key_event_map:
+            api_key_event_map[key] = copy.deepcopy(api_event_empty_entry)
+            if operator_related_resource(
+                project, api_event.rtype, api_event.name, api_event.obj_map, taint_list
+            ):
+                api_key_event_map[key]["operator_related"] = True
+                taint_list.append((api_event.rtype, api_event.name))
+            else:
+                api_key_event_map[key]["operator_related"] = False
+        api_key_event_map[key][api_event.etype] += 1
+        if not is_unstable_api_event_key(key, api_key_event_map[key]):
+            if type_prefix not in api_type_event_map:
+                api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
+            api_type_event_map[type_prefix][api_event.etype] += 1
+
+    api_event_map["keys"] = api_key_event_map
+    api_event_map["types"] = api_type_event_map
+
+    return api_event_map
+
+
+def canonicalize_history_digest(test_context: TestContext):
+    assert test_context.mode == sieve_modes.LEARN_TWICE
+    learn_twice_dir = test_context.result_dir
+    cur_history_digest = json.loads(
+        open(os.path.join(learn_twice_dir, "event.json")).read()
+    )
+    learn_once_dir = os.path.join(
+        os.path.dirname(os.path.dirname(test_context.result_dir)),
+        "learn-once",
+        "learn.yaml",
+    )
+    prev_history_digest = json.loads(
+        open(os.path.join(learn_once_dir, "event.json")).read()
+    )
+    can_history_digest = learn_twice_trim(prev_history_digest, cur_history_digest)
+
+    def remove_ignored_value(event_map):
+        ignored = set()
+        for key in event_map:
+            if event_map[key] == "SIEVE-IGNORE":
+                ignored.add(key)
+            else:
+                for etype in event_map[key]:
+                    if event_map[key][etype] == "SIEVE-IGNORE":
+                        ignored.add(key)
+                        break
+        for key in ignored:
+            event_map.pop(key, None)
+
+    remove_ignored_value(can_history_digest["keys"])
+    remove_ignored_value(can_history_digest["types"])
+
+    return can_history_digest
 
 
 def get_learning_history_digest(test_context: TestContext):

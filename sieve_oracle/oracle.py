@@ -1,14 +1,4 @@
-import copy
 import kubernetes
-from sieve_common.k8s_event import (
-    APIEventTypes,
-    SIEVE_API_EVENT_MARK,
-    parse_api_event,
-    extract_generate_name,
-    is_generated_random_name,
-    operator_related_resource,
-    api_key_to_rtype_namespace_name,
-)
 import yaml
 import json
 import os
@@ -20,98 +10,30 @@ from sieve_oracle.checker_common import *
 from sieve_oracle.safety_checker import *
 
 
-api_event_empty_entry = {
-    APIEventTypes.ADDED: 0,
-    APIEventTypes.DELETED: 0,
-}
-
-
-def generate_test_oracle(project, src_dir, dest_dir, canonicalize_resource=False):
+def persistent_history_and_state(
+    test_context: TestContext, canonicalize_resource=False
+):
     if sieve_config["generic_event_generation_enabled"]:
-        events_oracle = generate_events_oracle(project, src_dir, canonicalize_resource)
-        dump_json_file(src_dir, events_oracle, "event.json")
-        if canonicalize_resource:
-            dump_json_file(dest_dir, events_oracle, "event.json")
+        history = generate_history(test_context)
+        history_digest = generate_history_digest(test_context)
+        dump_json_file(test_context.result_dir, history, "history.json")
+        dump_json_file(test_context.result_dir, history_digest, "event.json")
     if sieve_config["generic_state_generation_enabled"]:
-        resources = generate_resources(src_dir, canonicalize_resource)
+        resources = generate_resources(test_context.result_dir, canonicalize_resource)
         ignore_paths = generate_ignore_paths(resources)
         # we generate state.json at src_dir (log dir)
-        dump_json_file(src_dir, resources, "state.json")
-        dump_json_file(src_dir, ignore_paths, "mask.json")
+        dump_json_file(test_context.result_dir, resources, "state.json")
+        dump_json_file(test_context.result_dir, ignore_paths, "mask.json")
         # we generate state.json at dest_dir (data dir) if cononicalize_resource=True
         if canonicalize_resource:
-            dump_json_file(dest_dir, resources, "state.json")
-            dump_json_file(dest_dir, ignore_paths, "mask.json")
+            dump_json_file(test_context.oracle_dir, resources, "state.json")
+            dump_json_file(test_context.oracle_dir, ignore_paths, "mask.json")
 
 
-def generate_events_oracle(project, log_dir, canonicalize_resource):
-    api_log_path = os.path.join(log_dir, "apiserver1.log")
-    api_event_map = {}
-    api_key_event_map = {}
-    api_type_event_map = {}
-    taint_list = []
-    for line in open(api_log_path).readlines():
-        if SIEVE_API_EVENT_MARK not in line:
-            continue
-        api_event = parse_api_event(line)
-        key = api_event.key
-        if (
-            api_event.etype != APIEventTypes.ADDED
-            and api_event.etype != APIEventTypes.DELETED
-        ):
-            continue
-        if api_event.namespace != "default":
-            continue
-        generate_name = extract_generate_name(api_event.obj_map)
-        if generate_name is not None:
-            if is_generated_random_name(api_event.name, generate_name):
-                key = key[:-5] + "*"
-        assert "/default/" in key
-        type_prefix = key[: key.find("/default/")]
-        if key not in api_key_event_map:
-            api_key_event_map[key] = copy.deepcopy(api_event_empty_entry)
-            if operator_related_resource(
-                project, api_event.rtype, api_event.name, api_event.obj_map, taint_list
-            ):
-                api_key_event_map[key]["operator_related"] = True
-                taint_list.append((api_event.rtype, api_event.name))
-            else:
-                api_key_event_map[key]["operator_related"] = False
-        api_key_event_map[key][api_event.etype] += 1
-        if not is_unstable_api_event_key(key, api_key_event_map[key]):
-            if type_prefix not in api_type_event_map:
-                api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
-            api_type_event_map[type_prefix][api_event.etype] += 1
-
-    api_event_map["keys"] = api_key_event_map
-    api_event_map["types"] = api_type_event_map
-
-    if canonicalize_resource:
-        # Suppose we are current at learn/learn-twice/learn.yaml/xxx
-        learn_dir = os.path.dirname(os.path.dirname(log_dir))
-        learn_once_dir = os.path.join(learn_dir, "learn-once", "learn.yaml")
-        prev_api_event_map = json.loads(
-            open(os.path.join(learn_once_dir, "event.json")).read()
-        )
-        api_event_map = learn_twice_trim(prev_api_event_map, api_event_map)
-
-        def remove_ignored_value(event_map):
-            ignored = set()
-            for key in event_map:
-                if event_map[key] == "SIEVE-IGNORE":
-                    ignored.add(key)
-                else:
-                    for etype in event_map[key]:
-                        if event_map[key][etype] == "SIEVE-IGNORE":
-                            ignored.add(key)
-                            break
-            for key in ignored:
-                event_map.pop(key, None)
-
-        remove_ignored_value(api_event_map["keys"])
-        remove_ignored_value(api_event_map["types"])
-
-    return api_event_map
+def canonicalize_history_and_state(test_context: TestContext):
+    assert test_context.mode == sieve_modes.LEARN_TWICE
+    can_history_digest = canonicalize_history_digest(test_context)
+    dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")
 
 
 def get_resource_helper(func):
@@ -141,26 +63,6 @@ def get_crd(crd):
     except Exception as e:
         print("get_crd fail", e)
     return data
-
-
-def learn_twice_trim(base_resources, twice_resources):
-    def nested_set(dic, keys, value):
-        for key in keys[:-1]:
-            dic = dic[key]
-        dic[keys[-1]] = value
-
-    stored_learn = copy.deepcopy(base_resources)
-    ddiff = DeepDiff(twice_resources, base_resources, ignore_order=False, view="tree")
-
-    if "values_changed" in ddiff:
-        for key in ddiff["values_changed"]:
-            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
-
-    if "dictionary_item_added" in ddiff:
-        for key in ddiff["dictionary_item_added"]:
-            nested_set(stored_learn, key.path(output_format="list"), "SIEVE-IGNORE")
-
-    return stored_learn
 
 
 def generate_resources(log_dir="", canonicalize_resource=False):
