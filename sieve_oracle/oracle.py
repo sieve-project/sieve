@@ -120,7 +120,7 @@ def check(test_context: TestContext):
     messages.extend(safety_messages)
 
     liveness_ret_val, liveness_messages = liveness_checker(test_context)
-    liveness_ret_val += safety_ret_val
+    ret_val += liveness_ret_val
     messages.extend(liveness_messages)
 
     if validation_ret_val < 0:
