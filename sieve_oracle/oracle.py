@@ -13,14 +13,7 @@ def persistent_history_and_state(test_context: TestContext):
         dump_json_file(test_context.result_dir, history_digest, "event.json")
     if sieve_config["liveness_checker_enabled"]:
         state = generate_state(test_context)
-        # ignore_paths = generate_state_mask(resources)
-        # we generate state.json at src_dir (log dir)
         dump_json_file(test_context.result_dir, state, "state.json")
-        # dump_json_file(test_context.result_dir, ignore_paths, "mask.json")
-        # we generate state.json at dest_dir (data dir) if cononicalize_resource=True
-        # if canonicalize_resource:
-        #     dump_json_file(test_context.oracle_dir, resources, "state.json")
-        #     dump_json_file(test_context.oracle_dir, ignore_paths, "mask.json")
 
 
 def canonicalize_history_and_state(test_context: TestContext):
@@ -80,16 +73,14 @@ def textbook_checker(test_context: TestContext):
 def safety_checker(test_context: TestContext):
     ret_val = 0
     messages = []
-    if (
-        sieve_config["compare_history_digests_checker_enabled"]
-        and test_context.mode != sieve_modes.OBS_GAP
-    ):
-        (
-            compare_history_digests_ret_val,
-            compare_history_digests_messages,
-        ) = compare_history_digests(test_context)
-        ret_val += compare_history_digests_ret_val
-        messages.extend(compare_history_digests_messages)
+    if sieve_config["compare_history_digests_checker_enabled"]:
+        if not test_context.mode == sieve_modes.OBS_GAP:
+            (
+                compare_history_digests_ret_val,
+                compare_history_digests_messages,
+            ) = compare_history_digests(test_context)
+            ret_val += compare_history_digests_ret_val
+            messages.extend(compare_history_digests_messages)
     return ret_val, messages
 
 
@@ -97,9 +88,14 @@ def liveness_checker(test_context: TestContext):
     ret_val = 0
     messages = []
     if sieve_config["compare_states_checker_enabled"]:
-        compare_states_ret_val, compare_states_messages = compare_states(test_context)
-        ret_val += compare_states_ret_val
-        messages.extend(compare_states_messages)
+        if not (
+            test_context.mode == sieve_modes.TIME_TRAVEL and test_context.use_csi_driver
+        ):
+            compare_states_ret_val, compare_states_messages = compare_states(
+                test_context
+            )
+            ret_val += compare_states_ret_val
+            messages.extend(compare_states_messages)
     return ret_val, messages
 
 
