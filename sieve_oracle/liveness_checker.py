@@ -180,6 +180,29 @@ def get_testing_state(test_context: TestContext):
     return testing_state
 
 
+def check_single_state(state, resource_keys, checker_name, customized_checker):
+    ret_val = 0
+    messages = []
+    final_state = {}
+    for resource_key in resource_keys:
+        tokens = resource_key.split("/")
+        rtype = tokens[0]
+        ns = tokens[1]
+        name = tokens[2]
+        final_state[resource_key] = state[rtype][name]
+    if not customized_checker(final_state):
+        ret_val += 1
+        messages.append(
+            generate_alarm(
+                "[CUSTOMIZED-LIVENESS]",
+                "liveness violation: checker {} failed on {}".format(
+                    checker_name, final_state
+                ),
+            )
+        )
+    return ret_val, messages
+
+
 def compare_states(test_context: TestContext):
     canonicalized_state = get_canonicalized_state(test_context)
     testing_state = get_testing_state(test_context)

@@ -9,6 +9,7 @@ from sieve_common.k8s_event import (
     is_generated_random_name,
     operator_related_resource,
     api_key_to_rtype_namespace_name,
+    generate_key,
 )
 from sieve_common.default_config import sieve_config
 import controllers
@@ -229,7 +230,9 @@ def check_single_history(history, resource_keys, checker_name, customized_checke
     for key in resource_keys:
         current_state[key] = None
     for event in history:
-        if event["key"] in resource_keys:
+        rtype, ns, name = api_key_to_rtype_namespace_name(event["key"])
+        resource_key = generate_key(rtype, ns, name)
+        if resource_key in resource_keys:
             if event["etype"] == "DELETED":
                 current_state[event["key"]] = None
             else:
