@@ -457,8 +457,9 @@ class TestWaitForCRConditions:
 
 
 class BuiltInWorkLoad:
-    def __init__(self):
+    def __init__(self, final_grace_period):
         self.work_list = []
+        self.final_grace_period = final_grace_period
 
     def cmd(self, cmd):
         test_cmd = TestCmd(cmd)
@@ -595,11 +596,16 @@ class BuiltInWorkLoad:
                     f.write("error: " + error_message + "\n")
                     if return_code == 2:
                         return
+            print(
+                "wait for final grace period %s seconds"
+                % (str(self.final_grace_period))
+            )
+            time.sleep(self.final_grace_period)
             f.write("FINISH-SIEVE-TEST\n")
 
 
-def new_built_in_workload():
-    workload = BuiltInWorkLoad()
+def new_built_in_workload(final_grace_period=50):
+    workload = BuiltInWorkLoad(final_grace_period)
     return workload
 
 
