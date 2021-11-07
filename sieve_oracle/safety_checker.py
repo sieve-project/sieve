@@ -271,7 +271,7 @@ def compare_history_digests(test_context: TestContext):
         if should_skip_api_event_key(key, test_context.test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
-            if etype not in sieve_config["api_event_to_check"]:
+            if etype not in sieve_config["k8s_event_check_list"]:
                 continue
             assert canonicalized_events["keys"][key][etype] != SIEVE_LEARN_VALUE_MASK
             if (

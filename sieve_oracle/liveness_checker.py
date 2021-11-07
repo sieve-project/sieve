@@ -42,7 +42,7 @@ def generate_state(test_context: TestContext):
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
     # TODO: should we also cover other types?
-    resource_handler = {
+    k8s_resource_handler = {
         "deployment": apps_v1.list_namespaced_deployment,
         # "serviceaccount": core_v1.list_namespaced_service_account,
         # "configmap": core_v1.list_namespaced_config_map,
@@ -52,16 +52,19 @@ def generate_state(test_context: TestContext):
         "service": core_v1.list_namespaced_service,
         "statefulset": apps_v1.list_namespaced_stateful_set,
     }
+
     state = {}
-
-    for resource in resource_handler.keys():
-        state[resource] = get_resource_helper(resource_handler[resource])
-
-    crd_list = get_crd_list()
-    # Fetch for crd
-    for crd in crd_list:
+    for rtype in sieve_config["k8s_type_check_list"]:
+        state[rtype] = get_resource_helper(k8s_resource_handler[rtype])
+    for crd in get_crd_list():
         state[crd] = get_crd(crd)
     return state
+
+
+def resource_state_masked(name):
+    if name == "sieve-testing-global-config":
+        return True
+    return False
 
 
 def canonicalize_state(test_context: TestContext):
@@ -244,8 +247,9 @@ def compare_states(test_context: TestContext):
             name = nested_get(source, path[:2] + ["metadata", "name"])
             namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
 
-            if name == "sieve-testing-global-config":
+            if resource_state_masked(name):
                 continue
+
             ret_val += 1
             if delta_type in ["dictionary_item_added", "iterable_item_added"]:
                 messages.append(

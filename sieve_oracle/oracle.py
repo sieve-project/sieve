@@ -6,12 +6,12 @@ from sieve_oracle.liveness_checker import *
 
 
 def persistent_history_and_state(test_context: TestContext):
-    if sieve_config["generic_event_generation_enabled"]:
+    if sieve_config["safety_checker_enabled"]:
         history = generate_history(test_context)
         history_digest = generate_history_digest(test_context)
         dump_json_file(test_context.result_dir, history, "history.json")
         dump_json_file(test_context.result_dir, history_digest, "event.json")
-    if sieve_config["generic_state_generation_enabled"]:
+    if sieve_config["liveness_checker_enabled"]:
         state = generate_state(test_context)
         # ignore_paths = generate_state_mask(resources)
         # we generate state.json at src_dir (log dir)
@@ -25,10 +25,10 @@ def persistent_history_and_state(test_context: TestContext):
 
 def canonicalize_history_and_state(test_context: TestContext):
     assert test_context.mode == sieve_modes.LEARN_TWICE
-    if sieve_config["generic_event_generation_enabled"]:
+    if sieve_config["safety_checker_enabled"]:
         can_history_digest = canonicalize_history_digest(test_context)
         dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")
-    if sieve_config["generic_state_generation_enabled"]:
+    if sieve_config["liveness_checker_enabled"]:
         can_state = canonicalize_state(test_context)
         dump_json_file(test_context.oracle_dir, can_state, "state.json")
         state_mask = generate_state_mask(can_state)
