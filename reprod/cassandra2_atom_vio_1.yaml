@@ -1,0 +1,17 @@
+project: cass-operator
+stage: test
+mode: atomicity-violation
+front-runner: kind-control-plane
+operator-pod-label: cass-operator
+deployment-name: cass-operator
+se-name: cassandra-datacenter-ca-keystore
+se-namespace: default
+se-rtype: secret
+se-etype-previous: Get
+se-etype-current: Create
+se-diff-previous: '{"metadata": {}}'
+se-diff-current: '{"data": {"cert": "SIEVE-NON-NIL", "key": "SIEVE-NON-NIL"}, "metadata":
+  {"managedFields": "SIEVE-NON-NIL", "resourceVersion": "SIEVE-NON-NIL", "selfLink":
+  "/api/v1/namespaces/default/secrets/cassandra-datacenter-ca-keystore", "uid": "SIEVE-NON-NIL"},
+  "type": "Opaque"}'
+se-counter: '1'

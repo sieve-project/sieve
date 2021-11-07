@@ -10,6 +10,7 @@ reprod_map = {
         "time-travel-2": ["scaledown-scaleup", "cassandra1_time_travel_2.yaml"],
     },
     "cass-operator": {
+        "atom-vio-1": ["recreate", "cassandra2_atom_vio_1.yaml"],
         "time-travel-1": ["recreate", "cassandra2_time_travel_1.yaml"],
     },
     "casskop-operator": {
