@@ -175,8 +175,8 @@ workloads = {
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
         .cmd("kubectl delete PerconaServerMongoDB mongodb-cluster")
-        .wait_for_pod_status("mongodb-cluster-rs0-2", TERMINATED)
-        .wait_for_pvc_status("mongod-data-mongodb-cluster-rs0-2", TERMINATED)
+        .wait_for_pod_status("mongodb-cluster-rs0-*", TERMINATED)
+        .wait_for_pvc_status("mongod-data-mongodb-cluster-rs0-*", TERMINATED)
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
         .wait(70),
@@ -227,9 +227,8 @@ workloads = {
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
         .cmd("kubectl delete perconaxtradbcluster xtradb-cluster")
-        .wait_for_pod_status("xtradb-cluster-pxc-0", TERMINATED)
-        .wait_for_pod_status("xtradb-cluster-pxc-1", TERMINATED)
-        .wait_for_pod_status("xtradb-cluster-pxc-2", TERMINATED)
+        .wait_for_pod_status("xtradb-cluster-pxc-*", TERMINATED)
+        .wait_for_pvc_status("datadir-xtradb-cluster-pxc-*", TERMINATED)
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
         .wait(70),

@@ -62,6 +62,12 @@ def get_pvc(resource_name, namespace):
     for pvc in pvcs:
         if pvc.metadata.name == resource_name:
             target_pvc = pvc
+            break
+        elif resource_name.endswith("*"):
+            resource_name_prefix = resource_name[:-1]
+            if pvc.metadata.name.startswith(resource_name_prefix):
+                target_pvc = pvc
+                break
     return target_pvc
 
 
