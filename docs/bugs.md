@@ -13,7 +13,7 @@ https://github.com/instaclustr/cassandra-operator/issues/402 confirmed and fixed
 
 https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed by us (time traveling)
 
-https://github.com/instaclustr/cassandra-operator/issues/410 pending (by-product, AS)
+https://github.com/instaclustr/cassandra-operator/issues/410 pending (by-product, application-specific)
 
 ## [datastax/cass-operator](https://github.com/datastax/cass-operator)
 https://k8ssandra.atlassian.net/browse/K8SSAND-559 confirmed (time traveling)
@@ -31,7 +31,7 @@ https://github.com/Orange-OpenSource/casskop/issues/321 confirmed (time travelin
 
 https://github.com/Orange-OpenSource/casskop/issues/342 confirmed (observability gaps)
 
-<!-- https://github.com/Orange-OpenSource/casskop/issues/357 pending (by-product) -->
+<!-- https://github.com/Orange-OpenSource/casskop/issues/357 pending (by-product, more like a bad practice) -->
 
 https://github.com/Orange-OpenSource/casskop/issues/370 confirmed (atomicity violation)
 
@@ -40,7 +40,7 @@ https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by 
 
 https://github.com/pravega/zookeeper-operator/issues/314 confirmed and fixed by us (time traveling)
 
-https://github.com/pravega/zookeeper-operator/issues/410 pending (by-product, SS)
+https://github.com/pravega/zookeeper-operator/issues/410 pending (by-product, stale-state)
 
 ## [rabbitmq/cluster-operator](https://github.com/rabbitmq/cluster-operator)
 https://github.com/rabbitmq/cluster-operator/issues/648 confirmed and fixed by us (time traveling)
@@ -60,7 +60,7 @@ https://jira.percona.com/browse/K8SPSMDB-434 confirmed and fixed by us (by-produ
 
 https://jira.percona.com/browse/K8SPSMDB-438 confirmed (time traveling)
 
-<!-- https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product) -->
+<!-- https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product, more like a bad practice) -->
 
 https://jira.percona.com/browse/K8SPSMDB-578 confirmed (atomicity violation)
 
@@ -68,9 +68,9 @@ https://jira.percona.com/browse/K8SPSMDB-579 confirmed (atomicity violation)
 
 https://jira.percona.com/browse/K8SPSMDB-585 pending (observability gaps)
 
-https://jira.percona.com/browse/K8SPSMDB-590 confirmed (by-product, SS)
+https://jira.percona.com/browse/K8SPSMDB-590 confirmed (by-product, stale-state)
 
-https://jira.percona.com/browse/K8SPSMDB-591 pending (by-product, AS)
+https://jira.percona.com/browse/K8SPSMDB-591 pending (by-product, application-specific)
 
 ## [percona/percona-xtradb-cluster-operator](https://github.com/percona/percona-xtradb-cluster-operator)
 https://jira.percona.com/browse/K8SPXC-716 confirmed and fixed by us (time traveling)
@@ -92,7 +92,7 @@ https://github.com/yugabyte/yugabyte-operator/issues/36 pending (time traveling)
 
 https://github.com/yugabyte/yugabyte-operator/issues/39 pending (observability gaps)
 
-https://github.com/yugabyte/yugabyte-operator/issues/43 pending (by-product, AS)
+https://github.com/yugabyte/yugabyte-operator/issues/43 pending (by-product, application-specific)
 
 ## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
 https://github.com/Orange-OpenSource/nifikop/issues/130 confirmed (atomicity violation)
