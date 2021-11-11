@@ -270,6 +270,17 @@ workloads = {
         .wait(70),
     },
     "yugabyte-operator": {
+        "recreate": new_built_in_workload()
+        .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-1.yaml")
+        .wait_for_pod_status("yb-master-2", RUNNING)
+        .wait_for_pod_status("yb-tserver-2", RUNNING)
+        .cmd("kubectl delete YBCluster example-ybcluster")
+        .wait_for_pod_status("yb-master-0", TERMINATED)
+        .wait_for_pod_status("yb-tserver-0", TERMINATED)
+        .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-1.yaml")
+        .wait_for_pod_status("yb-master-2", RUNNING)
+        .wait_for_pod_status("yb-tserver-2", RUNNING)
+        .wait(70),
         "disable-enable-tls": new_built_in_workload()
         .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-tls-enabled.yaml")
         .wait_for_pod_status("yb-master-2", RUNNING)
