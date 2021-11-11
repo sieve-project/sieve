@@ -15,7 +15,6 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("registering rpc server...")
 	config := getConfig()
-	learnedMask, configuredMask := getMask()
 
 	switch config["stage"] {
 	case sieve.LEARN:
@@ -23,6 +22,7 @@ func main() {
 		rpc.Register(NewLearnListener(config))
 
 	case sieve.TEST:
+		learnedMask, configuredMask := getMask()
 		switch config["mode"] {
 		case sieve.TIME_TRAVEL:
 			log.Println(sieve.TIME_TRAVEL)
