@@ -5,7 +5,7 @@ We list all the bugs found by Sieve here.
 ## [instaclustr/cassandra-operator](https://github.com/instaclustr/cassandra-operator)
 https://github.com/instaclustr/cassandra-operator/issues/398 confirmed and fixed by us (observability gaps)
 
-https://github.com/instaclustr/cassandra-operator/issues/400 confirmed and fixed by us (by-product, data structure)
+https://github.com/instaclustr/cassandra-operator/issues/400 confirmed and fixed by us (by-product, data structure misuse)
 
 https://github.com/instaclustr/cassandra-operator/issues/402 confirmed and fixed by us (time traveling)
 
@@ -40,7 +40,7 @@ https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by 
 
 https://github.com/pravega/zookeeper-operator/issues/314 confirmed and fixed by us (time traveling)
 
-https://github.com/pravega/zookeeper-operator/issues/410 pending (by-product, stale-state)
+https://github.com/pravega/zookeeper-operator/issues/410 confirmed (by-product, stale-state)
 
 ## [rabbitmq/cluster-operator](https://github.com/rabbitmq/cluster-operator)
 https://github.com/rabbitmq/cluster-operator/issues/648 confirmed and fixed by us (time traveling)
@@ -84,7 +84,7 @@ https://jira.percona.com/browse/K8SPXC-896 pending (atomicity violation)
 https://jira.percona.com/browse/K8SPXC-897 pending (atomicity violation)
 
 ## [yugabyte/yugabyte-operator](https://github.com/yugabyte/yugabyte-operator)
-https://github.com/yugabyte/yugabyte-operator/issues/33 pending (by-product)
+https://github.com/yugabyte/yugabyte-operator/issues/33 pending (by-product, crd mistake)
 
 https://github.com/yugabyte/yugabyte-operator/issues/35 pending (time traveling)
 
