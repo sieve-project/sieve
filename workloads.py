@@ -62,6 +62,7 @@ workloads = {
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", RUNNING)
         .cmd("kubectl apply -f examples/casskop-operator/test/nodes-1.yaml")
+        .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", TERMINATED)
         .cmd("kubectl apply -f examples/casskop-operator/test/nodes-0.yaml")
         .wait(50),
