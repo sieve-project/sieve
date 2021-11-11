@@ -7,6 +7,7 @@ from typing import List
 from sieve_common.common import (
     CONFIGURED_MASK,
     TestContext,
+    fail,
     sieve_modes,
     sieve_stages,
 )
@@ -337,6 +338,9 @@ def analyze_trace(
     print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
 
+    if not os.path.exists(os.path.join(oracle_dir, "mask.json")):
+        fail("cannot find mask.json")
+        return
     causality_graph = build_causality_graph(log_path, oracle_dir)
     for analysis_mode in [
         sieve_modes.TIME_TRAVEL,
@@ -344,46 +348,3 @@ def analyze_trace(
         sieve_modes.ATOM_VIO,
     ]:
         generate_test_config(analysis_mode, project, log_dir, causality_graph)
-
-
-def analyze(project, test):
-    print("Analyzing controller trace for %s's test workload %s..." % (project, test))
-    log_dir = os.path.join(
-        "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE
-    )
-    analyze_trace(
-        project,
-        log_dir,
-    )
-
-
-if __name__ == "__main__":
-    usage = "usage: python3 analyze.py [options]"
-    parser = optparse.OptionParser(usage=usage)
-    parser.add_option(
-        "-p",
-        "--project",
-        dest="project",
-        help="specify PROJECT",
-        metavar="PROJECT",
-    )
-    parser.add_option(
-        "-t",
-        "--test",
-        dest="test",
-        help="specify TEST to run",
-        metavar="TEST",
-    )
-    (options, args) = parser.parse_args()
-    if options.project is None:
-        parser.error("parameter project required")
-    project = options.project
-    if project == "all":
-        for operator in test_suites:
-            for test in test_suites[operator]:
-                analyze(operator, test)
-    else:
-        if options.test is None:
-            parser.error("parameter test required")
-        test = options.test
-        analyze(project, test)
