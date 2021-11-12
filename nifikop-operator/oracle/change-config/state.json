@@ -406,10 +406,7 @@
                     "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"nifi.orange.com/v1alpha1\",\"kind\":\"NifiCluster\",\"metadata\":{\"annotations\":{},\"name\":\"simplenifi\",\"namespace\":\"default\"},\"spec\":{\"clusterImage\":\"apache/nifi:1.12.1\",\"externalServices\":[{\"name\":\"clusterip\",\"serviceAnnotations\":{\"toto\":\"tata\"},\"spec\":{\"portConfigs\":[{\"internalListenerName\":\"http\",\"port\":8080}],\"type\":\"ClusterIP\"}},{\"name\":\"loadbalancer\",\"serviceAnnotations\":{\"toto\":\"tata\"},\"spec\":{\"portConfigs\":[{\"internalListenerName\":\"http\",\"port\":8080}],\"type\":\"LoadBalancer\"}},{\"name\":\"nodepart\",\"serviceAnnotations\":{\"toto\":\"tata\"},\"spec\":{\"portConfigs\":[{\"internalListenerName\":\"http\",\"port\":8080}],\"type\":\"NodePort\"}}],\"listenersConfig\":{\"internalListeners\":[{\"containerPort\":8080,\"name\":\"http\",\"type\":\"http\"},{\"containerPort\":6007,\"name\":\"cluster\",\"type\":\"cluster\"},{\"containerPort\":10000,\"name\":\"s2s\",\"type\":\"s2s\"},{\"containerPort\":9090,\"name\":\"prometheus\",\"type\":\"prometheus\"}]},\"nifiClusterTaskSpec\":{\"retryDurationMinutes\":10},\"nodeConfigGroups\":{\"default_group\":{\"isNode\":true,\"resourcesRequirements\":{\"limits\":{\"cpu\":\"0.5\",\"memory\":\"2Gi\"},\"requests\":{\"cpu\":\"0.5\",\"memory\":\"2Gi\"}},\"serviceAccountName\":\"default\",\"storageConfigs\":[{\"mountPath\":\"/opt/nifi/nifi-current/logs\",\"name\":\"logs\",\"pvcSpec\":{\"accessModes\":[\"ReadWriteOnce\"],\"resources\":{\"requests\":{\"storage\":\"10Gi\"}},\"storageClassName\":\"standard\"}}]}},\"nodes\":[{\"id\":1,\"nodeConfigGroup\":\"default_group\",\"readOnlyConfig\":{\"nifiProperties\":{\"overrideConfigs\":\"nifi.ui.banner.text=NiFiKop by Sieve - Node 1\\n\"}}}],\"oneNifiNodePerNode\":false,\"propagateLabels\":true,\"service\":{\"headlessEnabled\":true},\"zkAddress\":\"zookeeper:2181\",\"zkPath\":\"/simplenifi\"}}\n"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
-                "finalizers": [
-                    "nificlusters.nifi.orange.com/finalizer"
-                ],
-                "generation": 3,
+                "generation": "SIEVE-IGNORE",
                 "name": "simplenifi",
                 "namespace": "default",
                 "resourceVersion": "SIEVE-IGNORE",
@@ -418,7 +415,6 @@
             },
             "spec": {
                 "clusterImage": "apache/nifi:1.12.1",
-                "disruptionBudget": {},
                 "externalServices": [
                     {
                         "name": "clusterip",
@@ -466,7 +462,6 @@
                         }
                     }
                 ],
-                "ldapConfiguration": {},
                 "listenersConfig": {
                     "internalListeners": [
                         {
@@ -499,11 +494,11 @@
                         "isNode": true,
                         "resourcesRequirements": {
                             "limits": {
-                                "cpu": "500m",
+                                "cpu": "SIEVE-IGNORE",
                                 "memory": "2Gi"
                             },
                             "requests": {
-                                "cpu": "500m",
+                                "cpu": "SIEVE-IGNORE",
                                 "memory": "2Gi"
                             }
                         },
@@ -532,26 +527,14 @@
                         "id": 1,
                         "nodeConfigGroup": "default_group",
                         "readOnlyConfig": {
-                            "bootstrapNotificationServicesConfig": {},
-                            "bootstrapProperties": {},
-                            "logbackConfig": {},
                             "nifiProperties": {
                                 "overrideConfigs": "nifi.ui.banner.text=NiFiKop by Sieve - Node 1\n"
-                            },
-                            "zookeeperProperties": {}
+                            }
                         }
                     }
                 ],
                 "oneNifiNodePerNode": false,
-                "pod": {},
                 "propagateLabels": true,
-                "readOnlyConfig": {
-                    "bootstrapNotificationServicesConfig": {},
-                    "bootstrapProperties": {},
-                    "logbackConfig": {},
-                    "nifiProperties": {},
-                    "zookeeperProperties": {}
-                },
                 "service": {
                     "headlessEnabled": true
                 },
@@ -563,7 +546,9 @@
                     "1": {
                         "configurationState": "ConfigInSync",
                         "gracefulActionState": {
-                            "actionState": "GracefulUpscaleSucceeded",
+                            "TaskStarted": "SIEVE-IGNORE",
+                            "actionState": "SIEVE-IGNORE",
+                            "actionStep": "SIEVE-IGNORE",
                             "errorMessage": ""
                         },
                         "initClusterNode": true
@@ -571,14 +556,13 @@
                 },
                 "prometheusReportingTask": {
                     "id": "SIEVE-IGNORE",
-                    "version": 2
+                    "version": "SIEVE-IGNORE"
                 },
                 "rollingUpgradeStatus": {
                     "errorCount": 0,
                     "lastSuccess": "SIEVE-IGNORE"
                 },
-                "rootProcessGroupId": "SIEVE-IGNORE",
-                "state": "ClusterReconciling"
+                "state": "SIEVE-IGNORE"
             }
         }
     },
@@ -693,11 +677,11 @@
                 "phase": "Bound"
             }
         },
-        "simplenifi-1-storagec9snm": "SIEVE-IGNORE"
+        "simplenifi-1-storagel6dvq": "SIEVE-IGNORE"
     },
     "pod": {
-        "nifikop-operator-5d9557d9dd-vclrl": "SIEVE-IGNORE",
-        "simplenifi-1-nodencrxp": "SIEVE-IGNORE",
+        "nifikop-operator-5d9557d9dd-spk2b": "SIEVE-IGNORE",
+        "simplenifi-1-nodectfkf": "SIEVE-IGNORE",
         "zookeeper-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -730,7 +714,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"f2e8f2d2-d3bf-4134-bb67-8c3e69a5cd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"a47ec049-5a9e-4b8d-b333-ebfe4ce78db0\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -995,7 +979,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.4\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1301,12 +1288,12 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "172.18.0.2",
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.1.4",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.1.4"
                     }
                 ],
                 "qosClass": "Guaranteed",
@@ -1315,7 +1302,7 @@
         }
     },
     "secret": {
-        "default-token-4fsxw": "SIEVE-IGNORE",
+        "default-token-8jfkg": "SIEVE-IGNORE",
         "sh.helm.release.v1.nifikop-operator.v1": {
             "data": {
                 "release": "SIEVE-IGNORE"
@@ -1458,7 +1445,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"09e81786-92f1-4860-a058-64e59491c019\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"81934756-6dbe-4a5c-982a-a9bf3f87b7df\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -1517,7 +1504,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"09e81786-92f1-4860-a058-64e59491c019\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"81934756-6dbe-4a5c-982a-a9bf3f87b7df\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1636,7 +1623,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "151",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -1686,7 +1673,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"09e81786-92f1-4860-a058-64e59491c019\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"81934756-6dbe-4a5c-982a-a9bf3f87b7df\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1795,7 +1782,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"09e81786-92f1-4860-a058-64e59491c019\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"81934756-6dbe-4a5c-982a-a9bf3f87b7df\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1902,7 +1889,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"09e81786-92f1-4860-a058-64e59491c019\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"81934756-6dbe-4a5c-982a-a9bf3f87b7df\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
