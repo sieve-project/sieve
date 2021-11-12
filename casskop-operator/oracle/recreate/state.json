@@ -78,7 +78,7 @@
                 "cassandraNodeStatus": {
                     "cassandra-cluster-dc1-rack1-0": {
                         "hostId": "SIEVE-IGNORE",
-                        "nodeIp": "SIEVE-IGNORE"
+                        "nodeIp": "10.244.2.7"
                     }
                 },
                 "cassandraRackStatus": {
@@ -435,7 +435,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                    "volume.kubernetes.io/selected-node": "kind-worker2"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -575,7 +575,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"2cb71021-c88f-4d91-b670-c4fd49efe80f\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"d7f2f8b2-f8ad-47c1-b8b5-9caa3d06246c\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1085,7 +1085,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.7\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.7\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1492,7 +1495,7 @@
                         ]
                     }
                 ],
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker2",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1617,7 +1620,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.3",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -1657,22 +1660,22 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.2.7",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.2.7"
                     }
                 ],
                 "qosClass": "Guaranteed",
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "casskop-operator-546674cfdd-n6lgw": "SIEVE-IGNORE"
+        "casskop-operator-546674cfdd-km9t5": "SIEVE-IGNORE"
     },
     "secret": {
-        "cassandra-cluster-node-token-z9h86": "SIEVE-IGNORE",
-        "cassandra-operator-token-wdvjd": "SIEVE-IGNORE",
-        "default-token-dvhb8": "SIEVE-IGNORE",
+        "cassandra-cluster-node-token-rdvmn": "SIEVE-IGNORE",
+        "cassandra-operator-token-79fh8": "SIEVE-IGNORE",
+        "default-token-b42hv": "SIEVE-IGNORE",
         "sh.helm.release.v1.casskop-operator.v1": {
             "data": {
                 "release": "SIEVE-IGNORE"
@@ -1744,7 +1747,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"05afa8d5-7903-487a-b319-9a0f76e5069c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"fbe386af-c5d3-44aa-9411-91da324f5707\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1837,7 +1840,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"05afa8d5-7903-487a-b319-9a0f76e5069c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"fbe386af-c5d3-44aa-9411-91da324f5707\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1922,7 +1925,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"275f3c8f-48ad-411a-bd00-e3492a42f7e3\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"85c2f598-0da1-465a-99fc-4deebc0bfc19\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2086,7 +2089,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"05afa8d5-7903-487a-b319-9a0f76e5069c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"fbe386af-c5d3-44aa-9411-91da324f5707\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
