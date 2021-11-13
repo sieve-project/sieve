@@ -67,15 +67,6 @@
             "metadata/resourceVersion",
             "metadata/uid",
             "spec/volumeName"
-        ],
-        "datadir0-yb-tserver-3": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/volumeName"
         ]
     },
     "pod": {
@@ -122,11 +113,8 @@
             "status/containerStatuses/*/containerID",
             "status/containerStatuses/*/image",
             "status/containerStatuses/*/imageID",
-            "status/containerStatuses/*/lastState/terminated",
             "status/containerStatuses/*/restartCount",
-            "status/containerStatuses/*/state/terminated/containerID",
-            "status/containerStatuses/*/state/terminated/finishedAt",
-            "status/containerStatuses/*/state/terminated/startedAt",
+            "status/containerStatuses/*/state/running/startedAt",
             "status/hostIP",
             "status/podIP",
             "status/podIPs/*/ip",
@@ -150,7 +138,6 @@
             "status/containerStatuses/*/containerID",
             "status/containerStatuses/*/image",
             "status/containerStatuses/*/imageID",
-            "status/containerStatuses/*/lastState/terminated",
             "status/containerStatuses/*/restartCount",
             "status/containerStatuses/*/state/running/startedAt",
             "status/hostIP",
@@ -209,31 +196,6 @@
             "status/startTime"
         ],
         "yb-tserver-2": [
-            "metadata/creationTimestamp",
-            "metadata/generateName",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/containers/*/env",
-            "spec/containers/*/image",
-            "spec/containers/*/volumeMounts/*/name",
-            "spec/nodeName",
-            "spec/volumes/*/name",
-            "spec/volumes/*/secret/secretName",
-            "status/conditions",
-            "status/containerStatuses/*/containerID",
-            "status/containerStatuses/*/image",
-            "status/containerStatuses/*/imageID",
-            "status/containerStatuses/*/restartCount",
-            "status/containerStatuses/*/state/running/startedAt",
-            "status/hostIP",
-            "status/podIP",
-            "status/podIPs/*/ip",
-            "status/startTime"
-        ],
-        "yb-tserver-3": [
             "metadata/creationTimestamp",
             "metadata/generateName",
             "metadata/labels",
@@ -320,8 +282,6 @@
             "metadata/uid",
             "spec/template/spec/containers/*/env",
             "spec/template/spec/containers/*/image",
-            "status/currentReplicas",
-            "status/currentRevision",
             "status/observedGeneration"
         ],
         "yb-tserver": [
@@ -342,6 +302,7 @@
             "metadata/annotations",
             "metadata/creationTimestamp",
             "metadata/generation",
+            "metadata/managedFields",
             "metadata/resourceVersion",
             "metadata/uid",
             "status/conditions"
