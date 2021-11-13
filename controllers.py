@@ -172,6 +172,9 @@ test_suites = {
         ),
     },
     "yugabyte-operator": {
+        "recreate": Suite(
+            workloads.workloads["yugabyte-operator"]["recreate"],
+        ),
         "disable-enable-tls": Suite(
             workloads.workloads["yugabyte-operator"]["disable-enable-tls"],
         ),
