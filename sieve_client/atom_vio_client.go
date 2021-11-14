@@ -16,6 +16,10 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
 		return
 	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		return
+	}
 	rType := regularizeType(object)
 	if !(config["se-etype-previous"].(string) == "Get" && rType == config["se-rtype"].(string)) {
 		return
@@ -39,11 +43,12 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyAtomVioAfterOperatorGetRequest{
-		ResourceType: regularizeType(object),
-		Namespace:    namespacedName.Namespace,
-		Name:         namespacedName.Name,
-		Object:       string(jsonObject),
-		Error:        errorString,
+		ResourceType:   regularizeType(object),
+		Namespace:      namespacedName.Namespace,
+		Name:           namespacedName.Name,
+		Object:         string(jsonObject),
+		ReconcilerType: reconcilerType,
+		Error:          errorString,
 	}
 	var response Response
 	err = client.Call("AtomVioListener.NotifyAtomVioAfterOperatorGet", request, &response)
@@ -59,6 +64,10 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 		return
 	}
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
 		return
 	}
 	rType := regularizeType(object)
@@ -81,9 +90,10 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyAtomVioAfterOperatorListRequest{
-		ResourceType: rType,
-		ObjectList:   string(jsonObject),
-		Error:        errorString,
+		ResourceType:   rType,
+		ObjectList:     string(jsonObject),
+		ReconcilerType: reconcilerType,
+		Error:          errorString,
 	}
 	var response Response
 	err = client.Call("AtomVioListener.NotifyAtomVioAfterOperatorList", request, &response)
@@ -99,6 +109,10 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		return
 	}
 	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
 		return
 	}
 	errorString := "NoError"
@@ -128,6 +142,7 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   rType,
+		ReconcilerType: reconcilerType,
 		Error:          errorString,
 	}
 	var response Response
