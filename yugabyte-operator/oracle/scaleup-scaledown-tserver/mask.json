@@ -87,6 +87,7 @@
             "metadata/ownerReferences",
             "metadata/resourceVersion",
             "metadata/uid",
+            "spec/containers/*/command/*",
             "spec/containers/*/env",
             "spec/containers/*/image",
             "spec/containers/*/volumeMounts/*/name",
@@ -124,9 +125,7 @@
             "status/containerStatuses/*/imageID",
             "status/containerStatuses/*/lastState/terminated",
             "status/containerStatuses/*/restartCount",
-            "status/containerStatuses/*/state/terminated/containerID",
-            "status/containerStatuses/*/state/terminated/finishedAt",
-            "status/containerStatuses/*/state/terminated/startedAt",
+            "status/containerStatuses/*/state/terminated",
             "status/hostIP",
             "status/podIP",
             "status/podIPs/*/ip",
@@ -322,7 +321,8 @@
             "spec/template/spec/containers/*/image",
             "status/currentReplicas",
             "status/currentRevision",
-            "status/observedGeneration"
+            "status/observedGeneration",
+            "status/updatedReplicas"
         ],
         "yb-tserver": [
             "metadata/creationTimestamp",
