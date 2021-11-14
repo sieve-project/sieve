@@ -9,7 +9,7 @@ https://github.com/instaclustr/cassandra-operator/issues/400 confirmed and fixed
 
 https://github.com/instaclustr/cassandra-operator/issues/402 confirmed and fixed by us (time traveling)
 
-<!-- https://github.com/instaclustr/cassandra-operator/issues/404 confirmed and fixed by us (by-product) -->
+<!-- https://github.com/instaclustr/cassandra-operator/issues/404 confirmed and fixed by us (by-product, duplicated) -->
 
 https://github.com/instaclustr/cassandra-operator/issues/407 confirmed and fixed by us (time traveling)
 
@@ -19,7 +19,7 @@ https://github.com/instaclustr/cassandra-operator/issues/410 pending (by-product
 https://k8ssandra.atlassian.net/browse/K8SSAND-559 confirmed (time traveling)
 <!-- previously https://github.com/datastax/cass-operator/issues/412 -->
 
-<!-- https://k8ssandra.atlassian.net/browse/K8SSAND-558 pending (by-product) -->
+<!-- https://k8ssandra.atlassian.net/browse/K8SSAND-558 pending (by-product, bad practice) -->
 <!-- previously https://github.com/datastax/cass-operator/issues/417 -->
 
 https://k8ssandra.atlassian.net/browse/K8SSAND-1023 confirmed (atomicity violation)
@@ -31,7 +31,7 @@ https://github.com/Orange-OpenSource/casskop/issues/321 confirmed (time travelin
 
 https://github.com/Orange-OpenSource/casskop/issues/342 confirmed (observability gaps)
 
-<!-- https://github.com/Orange-OpenSource/casskop/issues/357 pending (by-product, more like a bad practice) -->
+<!-- https://github.com/Orange-OpenSource/casskop/issues/357 pending (by-product, duplicated) -->
 
 https://github.com/Orange-OpenSource/casskop/issues/370 confirmed (atomicity violation)
 
@@ -60,7 +60,7 @@ https://jira.percona.com/browse/K8SPSMDB-434 confirmed and fixed by us (by-produ
 
 https://jira.percona.com/browse/K8SPSMDB-438 confirmed (time traveling)
 
-<!-- https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product, more like a bad practice) -->
+<!-- https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product, bad practice) -->
 
 https://jira.percona.com/browse/K8SPSMDB-578 confirmed (atomicity violation)
 
@@ -79,9 +79,9 @@ https://jira.percona.com/browse/K8SPXC-725 confirmed (time traveling)
 
 https://jira.percona.com/browse/K8SPXC-763 confirmed (time traveling)
 
-https://jira.percona.com/browse/K8SPXC-896 pending (atomicity violation)
+https://jira.percona.com/browse/K8SPXC-896 confirmed (atomicity violation)
 
-https://jira.percona.com/browse/K8SPXC-897 pending (atomicity violation)
+https://jira.percona.com/browse/K8SPXC-897 confirmed (atomicity violation)
 
 ## [yugabyte/yugabyte-operator](https://github.com/yugabyte/yugabyte-operator)
 https://github.com/yugabyte/yugabyte-operator/issues/33 pending (by-product, crd mistake)
