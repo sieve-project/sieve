@@ -96,7 +96,7 @@ def detectable_event_diff(
 
 
 def time_travel_mandatory_pass(causality_edges: List[CausalityEdge]):
-    print("Running time travel mandatory pass ...")
+    print("Running time travel mandatory pass...")
     candidate_edges = []
     for edge in causality_edges:
         operator_hear = edge.source.content
@@ -261,7 +261,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
 
 
 def obs_gap_mandatory_pass(causality_vertices: List[CausalityVertex]):
-    print("Running obs gap mandatory pass ...")
+    print("Running obs gap mandatory pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_hear = vertex.content
@@ -278,14 +278,21 @@ def obs_gap_mandatory_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
+def important_only_filtering_pass(causality_vertices: List[CausalityVertex]):
+    print("Running optional pass: important-only-filtering...")
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        if len(vertex.out_inter_reconciler_edges) > 0:
+            candidate_vertices.append(vertex)
+    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    return candidate_vertices
+
+
 def cancellable_filtering_pass(causality_vertices: List[CausalityVertex]):
     print("Running optional pass: cancellable-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
-        if (
-            len(vertex.content.cancelled_by) > 0
-            and len(vertex.out_inter_reconciler_edges) > 0
-        ):
+        if len(vertex.content.cancelled_by) > 0:
             candidate_vertices.append(vertex)
             # for operator_hear_id in vertex.content.cancelled_by:
             #     sink = causality_graph.get_operator_hear_with_id(operator_hear_id)
@@ -311,6 +318,7 @@ def obs_gap_analysis(
 ):
     candidate_vertices = causality_graph.operator_hear_vertices
     candidate_vertices = obs_gap_mandatory_pass(candidate_vertices)
+    candidate_vertices = important_only_filtering_pass(candidate_vertices)
     if sieve_config["obs_gap_spec_generation_conflicting_follower_enabled"]:
         candidate_vertices = cancellable_filtering_pass(candidate_vertices)
 
@@ -341,7 +349,7 @@ def obs_gap_analysis(
 
 
 def atom_vio_mandatory_pass(causality_vertices: List[CausalityVertex]):
-    print("Running atom vio mandatory pass ...")
+    print("Running atom vio mandatory pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_write = vertex.content
