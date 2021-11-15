@@ -6,6 +6,7 @@ import (
 	"net/rpc"
 	"os"
 	"reflect"
+	"runtime/debug"
 	"strings"
 	"sync"
 
@@ -187,4 +188,25 @@ func extractNameNamespaceFromObj(object interface{}) (string, string) {
 func isSameObjectClientSide(object interface{}, namespace string, name string) bool {
 	extractedName, extractedNamespace := extractNameNamespaceFromObj(object)
 	return extractedNamespace == namespace && extractedName == name
+}
+
+func getReconcilerFromStackTrace() string {
+	// reflect.TypeOf(c.Do).String(): *controllers.NifiClusterTaskReconciler
+	stacktrace := string(debug.Stack())
+	stacks := strings.Split(stacktrace, "\n")
+	var stacksPruned []string
+	for _, stack := range stacks {
+		if !strings.HasPrefix(stack, "\t") {
+			stacksPruned = append(stacksPruned, stack)
+		}
+	}
+	reconcilerType := ""
+	for i, stack := range stacksPruned {
+		if strings.HasPrefix(stack, "sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler") {
+			reconcilerLayer := stacksPruned[i-1]
+			reconcilerType = reconcilerLayer[:strings.Index(reconcilerLayer, ".Reconcile(")]
+			break
+		}
+	}
+	return reconcilerType
 }
