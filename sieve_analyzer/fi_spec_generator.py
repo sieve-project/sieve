@@ -123,7 +123,7 @@ def get_time_travel_baseline(causality_graph: CausalityGraph):
         for operator_hear_vertex in operator_hear_vertices:
             operator_write = operator_write_vertex.content
             operator_hear = operator_hear_vertex.content
-            if sieve_config["time_travel_spec_generation_delete_only_pass_enabled"]:
+            if sieve_config["time_travel_spec_generation_delete_only"]:
                 if not operator_write.etype == OperatorWriteTypes.DELETE:
                     continue
             write_after_hear = (
@@ -310,7 +310,7 @@ def obs_gap_mandatory_pass(causality_vertices: List[CausalityVertex]):
             operator_hear.signature_counter,
         ):
             candidate_vertices.append(vertex)
-    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -320,17 +320,17 @@ def causality_hear_filtering_pass(causality_vertices: List[CausalityVertex]):
     for vertex in causality_vertices:
         if len(vertex.out_inter_reconciler_edges) > 0:
             candidate_vertices.append(vertex)
-    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def cancellable_filtering_pass(causality_vertices: List[CausalityVertex]):
-    print("Running optional pass: cancellable-filtering...")
+def overwrite_filtering_pass(causality_vertices: List[CausalityVertex]):
+    print("Running optional pass: overwrite-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
         if len(vertex.content.cancelled_by) > 0:
             candidate_vertices.append(vertex)
-    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -351,8 +351,8 @@ def obs_gap_analysis(
     candidate_vertices = obs_gap_mandatory_pass(candidate_vertices)
     if sieve_config["obs_gap_spec_generation_causality_pass_enabled"]:
         candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
-    if sieve_config["obs_gap_spec_generation_conflicting_follower_enabled"]:
-        candidate_vertices = cancellable_filtering_pass(candidate_vertices)
+    if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
+        candidate_vertices = overwrite_filtering_pass(candidate_vertices)
 
     i = 0
     for vertex in candidate_vertices:
@@ -394,7 +394,7 @@ def atom_vio_mandatory_pass(causality_vertices: List[CausalityVertex]):
             operator_write.signature_counter,
         ):
             candidate_vertices.append(vertex)
-    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -404,7 +404,7 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     for vertex in causality_vertices:
         if vertex.content.error in ALLOWED_ERROR_TYPE:
             candidate_vertices.append(vertex)
-    print("%d -> %d vertices" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
