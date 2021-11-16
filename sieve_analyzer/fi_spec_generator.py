@@ -95,10 +95,10 @@ def detectable_event_diff(
             return True
 
 
-def time_travel_mandatory_pass(
+def time_travel_detectable_pass(
     causality_pairs: List[Tuple[CausalityVertex, CausalityVertex]]
 ):
-    print("Running time travel mandatory pass...")
+    print("Running time travel detectable pass...")
     candidate_pairs = []
     for pair in causality_pairs:
         operator_hear = pair[0].content
@@ -232,14 +232,16 @@ def time_travel_template(project):
 
 def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: str):
     candidate_pairs = get_time_travel_baseline(causality_graph)
-    candidate_pairs = time_travel_mandatory_pass(candidate_pairs)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
     if sieve_config["time_travel_spec_generation_causality_pass_enabled"]:
         candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
     if sieve_config["time_travel_spec_generation_reversed_pass_enabled"]:
         candidate_pairs = reversed_effect_filtering_pass(
             candidate_pairs, causality_graph
         )
-
+    if not sieve_config["persist_specs_enabled"]:
+        return
     i = 0
     for pair in candidate_pairs:
         source = pair[0]
@@ -296,8 +298,8 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
     cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
-def obs_gap_mandatory_pass(causality_vertices: List[CausalityVertex]):
-    print("Running obs gap mandatory pass...")
+def obs_gap_detectable_pass(causality_vertices: List[CausalityVertex]):
+    print("Running obs gap detectable pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_hear = vertex.content
@@ -348,11 +350,14 @@ def obs_gap_analysis(
     project: str,
 ):
     candidate_vertices = causality_graph.operator_hear_vertices
-    candidate_vertices = obs_gap_mandatory_pass(candidate_vertices)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
     if sieve_config["obs_gap_spec_generation_causality_pass_enabled"]:
         candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
     if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
         candidate_vertices = overwrite_filtering_pass(candidate_vertices)
+    if not sieve_config["persist_specs_enabled"]:
+        return
 
     i = 0
     for vertex in candidate_vertices:
@@ -380,8 +385,8 @@ def obs_gap_analysis(
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
 
 
-def atom_vio_mandatory_pass(causality_vertices: List[CausalityVertex]):
-    print("Running atom vio mandatory pass...")
+def atom_vio_detectable_pass(causality_vertices: List[CausalityVertex]):
+    print("Running atom vio detectable pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_write = vertex.content
@@ -425,10 +430,12 @@ def atom_vio_analysis(
     project: str,
 ):
     candidate_vertices = causality_graph.operator_write_vertices
-    candidate_vertices = atom_vio_mandatory_pass(candidate_vertices)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
     if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
         candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
-
+    if not sieve_config["persist_specs_enabled"]:
+        return
     i = 0
     for vertex in candidate_vertices:
         operator_write = vertex.content

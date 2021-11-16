@@ -18,12 +18,14 @@ sieve_config = {
     "operator_checker_enabled": True,
     "test_workload_checker_enabled": True,
     "injection_desc_generation_enabled": True,
+    "spec_generation_detectable_pass_enabled": True,
     "time_travel_spec_generation_delete_only": True,
     "time_travel_spec_generation_causality_pass_enabled": True,
     "time_travel_spec_generation_reversed_pass_enabled": True,
     "obs_gap_spec_generation_causality_pass_enabled": True,
     "obs_gap_spec_generation_overwrite_pass_enabled": True,
     "atom_vio_spec_generation_error_free_pass_enabled": True,
+    "persist_specs_enabled": True,
 }
 
 if os.path.isfile("sieve_config.json"):
