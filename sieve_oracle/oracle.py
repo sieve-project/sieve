@@ -793,7 +793,7 @@ def check(test_context: TestContext, event_mask, state_mask):
         ret_val += workload_ret_val
         messages.extend(workload_messages)
 
-    if sieve_config["generic_event_checker_enabled"]:
+    if sieve_config["generic_object_event_checker_enabled"]:
         write_ret_val, write_messages = generic_event_checker(test_context, event_mask)
         ret_val += write_ret_val
         messages.extend(write_messages)
