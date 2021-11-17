@@ -189,6 +189,9 @@ test_suites = {
         "change-config": Suite(
             workloads.workloads["nifikop-operator"]["change-config"],
         ),
+        "recreate": Suite(
+            workloads.workloads["nifikop-operator"]["recreate"],
+        ),
     },
 }
 
