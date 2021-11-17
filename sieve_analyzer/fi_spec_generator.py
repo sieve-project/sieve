@@ -230,18 +230,29 @@ def time_travel_template(project):
     }
 
 
-def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: str):
+def time_travel_analysis(
+    causality_graph: CausalityGraph, path: str, test_context: TestContext
+):
+    project = test_context.project
     candidate_pairs = get_time_travel_baseline(causality_graph)
+    baseline_spec_number = len(candidate_pairs)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
         candidate_pairs = time_travel_detectable_pass(candidate_pairs)
-    if sieve_config["time_travel_spec_generation_causality_pass_enabled"]:
+    if (
+        sieve_config["time_travel_spec_generation_causality_pass_enabled"]
+        and sieve_config["spec_generation_causal_info_pass_enabled"]
+    ):
         candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
-    if sieve_config["time_travel_spec_generation_reversed_pass_enabled"]:
+    if (
+        sieve_config["time_travel_spec_generation_reversed_pass_enabled"]
+        and sieve_config["spec_generation_type_specific_pass_enabled"]
+    ):
         candidate_pairs = reversed_effect_filtering_pass(
             candidate_pairs, causality_graph
         )
+    final_spec_number = len(candidate_pairs)
     if not sieve_config["persist_specs_enabled"]:
-        return
+        return baseline_spec_number, final_spec_number
     i = 0
     for pair in candidate_pairs:
         source = pair[0]
@@ -296,6 +307,7 @@ def time_travel_analysis(causality_graph: CausalityGraph, path: str, project: st
             dump_to_yaml(time_travel_config, file_name)
 
     cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
+    return baseline_spec_number, final_spec_number
 
 
 def obs_gap_detectable_pass(causality_vertices: List[CausalityVertex]):
@@ -345,19 +357,26 @@ def obs_gap_template(project):
 
 
 def obs_gap_analysis(
-    causality_graph: CausalityGraph,
-    path: str,
-    project: str,
+    causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
+    project = test_context.project
     candidate_vertices = causality_graph.operator_hear_vertices
+    baseline_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
         candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
-    if sieve_config["obs_gap_spec_generation_causality_pass_enabled"]:
+    if (
+        sieve_config["obs_gap_spec_generation_causality_pass_enabled"]
+        and sieve_config["spec_generation_causal_info_pass_enabled"]
+    ):
         candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
-    if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
+    if (
+        sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]
+        and sieve_config["spec_generation_type_specific_pass_enabled"]
+    ):
         candidate_vertices = overwrite_filtering_pass(candidate_vertices)
+    final_spec_number = len(candidate_vertices)
     if not sieve_config["persist_specs_enabled"]:
-        return
+        return baseline_spec_number, final_spec_number
 
     i = 0
     for vertex in candidate_vertices:
@@ -383,6 +402,7 @@ def obs_gap_analysis(
         dump_to_yaml(obs_gap_config, file_name)
 
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
+    return baseline_spec_number, final_spec_number
 
 
 def atom_vio_detectable_pass(causality_vertices: List[CausalityVertex]):
@@ -425,17 +445,21 @@ def atom_vio_template(project):
 
 
 def atom_vio_analysis(
-    causality_graph: CausalityGraph,
-    path: str,
-    project: str,
+    causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
+    project = test_context.project
     candidate_vertices = causality_graph.operator_write_vertices
+    baseline_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
         candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
-    if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
+    if (
+        sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]
+        and sieve_config["spec_generation_type_specific_pass_enabled"]
+    ):
         candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
+    final_spec_number = len(candidate_vertices)
     if not sieve_config["persist_specs_enabled"]:
-        return
+        return baseline_spec_number, final_spec_number
     i = 0
     for vertex in candidate_vertices:
         operator_write = vertex.content
@@ -461,3 +485,4 @@ def atom_vio_analysis(
         dump_to_yaml(atom_vio_config, file_name)
 
     cprint("Generated %d atom-vio config(s) in %s" % (i, path), bcolors.OKGREEN)
+    return baseline_spec_number, final_spec_number

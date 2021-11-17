@@ -19,6 +19,8 @@ sieve_config = {
     "test_workload_checker_enabled": True,
     "injection_desc_generation_enabled": True,
     "spec_generation_detectable_pass_enabled": True,
+    "spec_generation_causal_info_pass_enabled": True,
+    "spec_generation_type_specific_pass_enabled": True,
     "time_travel_spec_generation_delete_only": True,
     "time_travel_spec_generation_causality_pass_enabled": True,
     "time_travel_spec_generation_reversed_pass_enabled": True,
