@@ -416,10 +416,13 @@ class TestWaitForCRConditions:
             key_path_tokens = key_path.split("/")
             inner_resource = custom_resource
             for token in key_path_tokens:
+                if not token in inner_resource:
+                    return False
                 inner_resource = inner_resource[token]
             # print(inner_resource, desired_value)
             if not inner_resource == desired_value:
                 # print("false")
+                # print(inner_resource, desired_value)
                 return False
         return True
 
