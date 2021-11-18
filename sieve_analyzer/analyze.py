@@ -355,14 +355,14 @@ def analyze_trace(
     ]:
         (
             baseline_spec_number,
-            after_sp_spec_number,
-            after_cp_spec_number,
+            after_p1_spec_number,
+            after_p2_spec_number,
             final_spec_number,
         ) = generate_test_config(analysis_mode, causality_graph, test_context)
         sieve_learn_result[analysis_mode] = {
             "baseline": baseline_spec_number,
-            "after_sp": after_sp_spec_number,
-            "after_cp": after_cp_spec_number,
+            "after_p1": after_p1_spec_number,
+            "after_p2": after_p2_spec_number,
             "final": final_spec_number,
         }
 

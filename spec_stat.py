@@ -1,4 +1,3 @@
-import glob
 import os
 import controllers
 import json
@@ -14,12 +13,12 @@ def collect_spec():
         ds_base_cnt = 0
         ms_base_cnt = 0
         ss_base_cnt = 0
-        ds_after_sp_cnt = 0
-        ms_after_sp_cnt = 0
-        ss_after_sp_cnt = 0
-        ds_after_cp_cnt = 0
-        ms_after_cp_cnt = 0
-        ss_after_cp_cnt = 0
+        ds_after_p1_cnt = 0
+        ms_after_p1_cnt = 0
+        ss_after_p1_cnt = 0
+        ds_after_p2_cnt = 0
+        ms_after_p2_cnt = 0
+        ss_after_p2_cnt = 0
         ds_cnt = 0
         ms_cnt = 0
         ss_cnt = 0
@@ -27,31 +26,31 @@ def collect_spec():
             result_filename = "sieve_learn_results/{}-{}.json".format(operator, test)
             result_map = json.load(open(result_filename))
             ds_base_cnt += result_map["atomicity-violation"]["baseline"]
-            ds_after_sp_cnt += result_map["atomicity-violation"]["after_sp"]
-            ds_after_cp_cnt += result_map["atomicity-violation"]["after_cp"]
+            ds_after_p1_cnt += result_map["atomicity-violation"]["after_p1"]
+            ds_after_p2_cnt += result_map["atomicity-violation"]["after_p2"]
             ds_cnt += result_map["atomicity-violation"]["final"]
             ms_base_cnt += result_map["observability-gap"]["baseline"]
-            ms_after_sp_cnt += result_map["observability-gap"]["after_sp"]
-            ms_after_cp_cnt += result_map["observability-gap"]["after_cp"]
+            ms_after_p1_cnt += result_map["observability-gap"]["after_p1"]
+            ms_after_p2_cnt += result_map["observability-gap"]["after_p2"]
             ms_cnt += result_map["observability-gap"]["final"]
             ss_base_cnt += result_map["time-travel"]["baseline"]
-            ss_after_sp_cnt += result_map["time-travel"]["after_sp"]
-            ss_after_cp_cnt += result_map["time-travel"]["after_cp"]
+            ss_after_p1_cnt += result_map["time-travel"]["after_p1"]
+            ss_after_p2_cnt += result_map["time-travel"]["after_p2"]
             ss_cnt += result_map["time-travel"]["final"]
 
         sub_result_map[operator]["baseline-ds"] = ds_base_cnt
-        sub_result_map[operator]["after-sp-ds"] = ds_after_sp_cnt
-        sub_result_map[operator]["after-cp-ds"] = ds_after_cp_cnt
+        sub_result_map[operator]["after-p1-ds"] = ds_after_p1_cnt
+        sub_result_map[operator]["after-p2-ds"] = ds_after_p2_cnt
         sub_result_map[operator]["ds"] = ds_cnt
 
         sub_result_map[operator]["baseline-ss"] = ss_base_cnt
-        sub_result_map[operator]["after-sp-ss"] = ss_after_sp_cnt
-        sub_result_map[operator]["after-cp-ss"] = ss_after_cp_cnt
+        sub_result_map[operator]["after-p1-ss"] = ss_after_p1_cnt
+        sub_result_map[operator]["after-p2-ss"] = ss_after_p2_cnt
         sub_result_map[operator]["ss"] = ss_cnt
 
         sub_result_map[operator]["baseline-ms"] = ms_base_cnt
-        sub_result_map[operator]["after-sp-ms"] = ms_after_sp_cnt
-        sub_result_map[operator]["after-cp-ms"] = ms_after_cp_cnt
+        sub_result_map[operator]["after-p1-ms"] = ms_after_p1_cnt
+        sub_result_map[operator]["after-p2-ms"] = ms_after_p2_cnt
         sub_result_map[operator]["ms"] = ms_cnt
     return sub_result_map
 
@@ -88,7 +87,7 @@ def learn_all():
 
 
 if __name__ == "__main__":
-    table = "controller\tbaseline-ds\tafter-sp-ds\tafter-cp-ds\tds\tbaseline-ss\tafter-sp-ss\tafter-cp-ss\tss\tbaseline-ms\tafter-sp-ms\tafter-cp-ms\tms\tbaseline-total\tafter-sp-total\tafter-cp-total\ttotal\n"
+    table = "controller\tbaseline-ds\tafter-p1-ds\tafter-p2-ds\tds\tbaseline-ss\tafter-p1-ss\tafter-p2-ss\tss\tbaseline-ms\tafter-p1-ms\tafter-p2-ms\tms\tbaseline-total\tafter-p1-total\tafter-p2-total\ttotal\n"
     learn_all()
     sub_map = collect_spec()
     for operator in controllers.test_suites:
@@ -96,12 +95,12 @@ if __name__ == "__main__":
         baseline_ds = sub_map[operator]["baseline-ds"]
         baseline_ss = sub_map[operator]["baseline-ss"]
         baseline_ms = sub_map[operator]["baseline-ms"]
-        after_sp_ds = sub_map[operator]["after-sp-ds"]
-        after_sp_ss = sub_map[operator]["after-sp-ss"]
-        after_sp_ms = sub_map[operator]["after-sp-ms"]
-        after_cp_ds = sub_map[operator]["after-cp-ds"]
-        after_cp_ss = sub_map[operator]["after-cp-ss"]
-        after_cp_ms = sub_map[operator]["after-cp-ms"]
+        after_p1_ds = sub_map[operator]["after-p1-ds"]
+        after_p1_ss = sub_map[operator]["after-p1-ss"]
+        after_p1_ms = sub_map[operator]["after-p1-ms"]
+        after_p2_ds = sub_map[operator]["after-p2-ds"]
+        after_p2_ss = sub_map[operator]["after-p2-ss"]
+        after_p2_ms = sub_map[operator]["after-p2-ms"]
         ds = sub_map[operator]["ds"]
         ss = sub_map[operator]["ss"]
         ms = sub_map[operator]["ms"]
@@ -109,20 +108,20 @@ if __name__ == "__main__":
         table += "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
             operator,
             baseline_ds,
-            after_sp_ds,
-            after_cp_ds,
+            after_p1_ds,
+            after_p2_ds,
             ds,
             baseline_ss,
-            after_sp_ss,
-            after_cp_ss,
+            after_p1_ss,
+            after_p2_ss,
             ss,
             baseline_ms,
-            after_sp_ms,
-            after_cp_ms,
+            after_p1_ms,
+            after_p2_ms,
             ms,
             baseline_ds + baseline_ss + baseline_ms,
-            after_sp_ds + after_sp_ss + after_sp_ms,
-            after_cp_ds + after_cp_ss + after_cp_ms,
+            after_p1_ds + after_p1_ss + after_p1_ms,
+            after_p2_ds + after_p2_ss + after_p2_ms,
             ds + ss + ms,
         )
     print(table)
