@@ -222,6 +222,18 @@ workloads = {
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
         .wait(70),
+        "scaleup-scaledown": new_built_in_workload()
+        .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
+        .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
+        .cmd(
+            'kubectl patch PerconaServerMongoDB mongodb-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/replsets/0/size", "value": 5}]\''
+        )
+        .wait_for_pod_status("mongodb-cluster-rs0-4", RUNNING)
+        .cmd(
+            'kubectl patch PerconaServerMongoDB mongodb-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/replsets/0/size", "value": 3}]\''
+        )
+        .wait_for_pod_status("mongodb-cluster-rs0-3", TERMINATED)
+        .wait(70),
     },
     "xtradb-operator": {
         "recreate": new_built_in_workload()

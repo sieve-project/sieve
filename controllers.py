@@ -133,6 +133,10 @@ test_suites = {
             workloads.workloads["mongodb-operator"]["run-cert-manager"],
             num_workers=3,
         ),
+        "scaleup-scaledown": Suite(
+            workloads.workloads["mongodb-operator"]["scaleup-scaledown"],
+            num_workers=5,
+        )
     },
     "cass-operator": {
         "recreate": Suite(
