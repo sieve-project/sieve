@@ -276,6 +276,9 @@ state_mask = {
     # "yugabyte-operator": {
     #     "pod": {"*": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}}
     # },
+    "nifikop-operator": {
+        "nificluster/default/simplenifi": set(["status/state", "status/prometheusReportingTask/version"])
+    },
 }
 
 

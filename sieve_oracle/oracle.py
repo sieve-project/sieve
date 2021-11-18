@@ -410,7 +410,7 @@ def preprocess(learn, test):
             test.pop(resource, None)
 
 
-def generic_state_checker(test_context: TestContext):
+def generic_state_checker(test_context: TestContext, state_mask):
     learn = json.load(open(os.path.join(test_context.oracle_dir, "state.json")))
     test = json.load(open(os.path.join(test_context.result_dir, "state.json")))
 
@@ -477,14 +477,21 @@ def generic_state_checker(test_context: TestContext):
 
             if name == "sieve-testing-global-config":
                 continue
+
+            resource_key = "/".join([resource_type, namespace, name])
+            field_key = "/".join(map(str, path[2:]))
+
+            if resource_key in state_mask and field_key in state_mask[resource_key]:
+                continue
+            
             ret_val += 1
             if delta_type in ["dictionary_item_added", "iterable_item_added"]:
                 messages.append(
                     generate_alarm(
                         "[RESOURCE-KEY-ADD]",
                         "{} {} {} {} {}".format(
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "not seen during learning run, but seen as",
                             key.t2,
                             "during testing run",
@@ -496,8 +503,8 @@ def generic_state_checker(test_context: TestContext):
                     generate_alarm(
                         "[RESOURCE-KEY-REMOVE]",
                         "{} {} {} {} {}".format(
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "seen as",
                             key.t1,
                             "during learning run, but not seen during testing run",
@@ -509,8 +516,8 @@ def generic_state_checker(test_context: TestContext):
                     generate_alarm(
                         "[RESOURCE-KEY-DIFF]",
                         "{} {} {} {} {} {} {}".format(
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "is",
                             key.t1,
                             "during learning run, but",
@@ -525,8 +532,8 @@ def generic_state_checker(test_context: TestContext):
                         "[RESOURCE-KEY-UNKNOWN-CHANGE]",
                         "{} {} {} {} {} {} {}".format(
                             delta_type,
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "is",
                             key.t1,
                             " => ",
@@ -799,7 +806,7 @@ def check(test_context: TestContext, event_mask, state_mask):
         messages.extend(write_messages)
 
     if sieve_config["generic_state_checker_enabled"]:
-        resource_ret_val, resource_messages = generic_state_checker(test_context)
+        resource_ret_val, resource_messages = generic_state_checker(test_context, state_mask)
         ret_val += resource_ret_val
         messages.extend(resource_messages)
 
