@@ -129,8 +129,9 @@ def get_time_travel_baseline(causality_graph: CausalityGraph):
             write_after_hear = (
                 operator_write.start_timestamp > operator_hear.start_timestamp
             )
+            allowed_error = operator_write.error in ALLOWED_ERROR_TYPE
 
-            if write_after_hear:
+            if write_after_hear and allowed_error:
                 pair = (operator_hear_vertex, operator_write_vertex)
                 candidate_pairs.append(pair)
     return candidate_pairs
@@ -252,13 +253,6 @@ def time_travel_analysis(
                 candidate_pairs, causality_graph
             )
     final_spec_number = len(candidate_pairs)
-    if not sieve_config["persist_specs_enabled"]:
-        return (
-            baseline_spec_number,
-            after_p1_spec_number,
-            after_p2_spec_number,
-            final_spec_number,
-        )
     i = 0
     for pair in candidate_pairs:
         source = pair[0]
@@ -300,17 +294,24 @@ def time_travel_analysis(
             time_travel_config["timing"] = timing
             i += 1
             file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
-            dump_to_yaml(time_travel_config, file_name)
+            if sieve_config["persist_specs_enabled"]:
+                dump_to_yaml(time_travel_config, file_name)
         else:
             time_travel_config["timing"] = "after"
             i += 1
             file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
-            dump_to_yaml(time_travel_config, file_name)
+            if sieve_config["persist_specs_enabled"]:
+                dump_to_yaml(time_travel_config, file_name)
 
             time_travel_config["timing"] = "before"
             i += 1
             file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
-            dump_to_yaml(time_travel_config, file_name)
+            if sieve_config["persist_specs_enabled"]:
+                dump_to_yaml(time_travel_config, file_name)
+            baseline_spec_number += 1
+            after_p1_spec_number += 1
+            after_p2_spec_number += 1
+            final_spec_number += 1
 
     cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
@@ -387,14 +388,6 @@ def obs_gap_analysis(
         if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
             candidate_vertices = overwrite_filtering_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
-    if not sieve_config["persist_specs_enabled"]:
-        return (
-            baseline_spec_number,
-            after_p1_spec_number,
-            after_p2_spec_number,
-            final_spec_number,
-        )
-
     i = 0
     for vertex in candidate_vertices:
         operator_hear = vertex.content
@@ -416,7 +409,8 @@ def obs_gap_analysis(
 
         i += 1
         file_name = os.path.join(path, "obs-gap-config-%s.yaml" % (str(i)))
-        dump_to_yaml(obs_gap_config, file_name)
+        if sieve_config["persist_specs_enabled"]:
+            dump_to_yaml(obs_gap_config, file_name)
 
     cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
@@ -484,13 +478,6 @@ def atom_vio_analysis(
         if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
             candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
-    if not sieve_config["persist_specs_enabled"]:
-        return (
-            baseline_spec_number,
-            after_p1_spec_number,
-            after_p2_spec_number,
-            final_spec_number,
-        )
     i = 0
     for vertex in candidate_vertices:
         operator_write = vertex.content
@@ -513,7 +500,8 @@ def atom_vio_analysis(
 
         i += 1
         file_name = os.path.join(path, "atom-vio-config-%s.yaml" % (str(i)))
-        dump_to_yaml(atom_vio_config, file_name)
+        if sieve_config["persist_specs_enabled"]:
+            dump_to_yaml(atom_vio_config, file_name)
 
     cprint("Generated %d atom-vio config(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
