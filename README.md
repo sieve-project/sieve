@@ -62,7 +62,7 @@ Sieve has found over 30 bugs in 9 different controllers, which are listed [here]
 You can learn more about Sieve from the following references:
 
 Talks:
-* KubeCon 2021 (to appear)
+* [KubeCon 2021](https://www.youtube.com/watch?v=6JnhjgOaZVk) (27 minutes)
 * [HotOS 2021](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB) (10 minutes)
 
 Research papers:
