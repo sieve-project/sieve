@@ -314,23 +314,25 @@ def build_causality_graph(log_path, oracle_dir):
     return causality_graph
 
 
-def generate_test_config(analysis_mode, project, log_dir, causality_graph):
+def generate_test_config(
+    analysis_mode, causality_graph: CausalityGraph, test_context: TestContext
+):
+    log_dir = test_context.result_dir
     generated_config_dir = os.path.join(log_dir, analysis_mode)
     if os.path.isdir(generated_config_dir):
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
-        time_travel_analysis(causality_graph, generated_config_dir, project)
+        return time_travel_analysis(causality_graph, generated_config_dir, test_context)
     elif analysis_mode == sieve_modes.OBS_GAP:
-        obs_gap_analysis(causality_graph, generated_config_dir, project)
+        return obs_gap_analysis(causality_graph, generated_config_dir, test_context)
     elif analysis_mode == sieve_modes.ATOM_VIO:
-        atom_vio_analysis(causality_graph, generated_config_dir, project)
+        return atom_vio_analysis(causality_graph, generated_config_dir, test_context)
 
 
 def analyze_trace(
     test_context: TestContext,
 ):
-    project = test_context.project
     log_dir = test_context.result_dir
     oracle_dir = test_context.oracle_dir
 
@@ -342,9 +344,35 @@ def analyze_trace(
         fail("cannot find mask.json")
         return
     causality_graph = build_causality_graph(log_path, oracle_dir)
+    sieve_learn_result = {
+        "project": test_context.project,
+        "test": test_context.test_name,
+    }
     for analysis_mode in [
         sieve_modes.TIME_TRAVEL,
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
     ]:
-        generate_test_config(analysis_mode, project, log_dir, causality_graph)
+        (
+            baseline_spec_number,
+            after_p1_spec_number,
+            after_p2_spec_number,
+            final_spec_number,
+        ) = generate_test_config(analysis_mode, causality_graph, test_context)
+        sieve_learn_result[analysis_mode] = {
+            "baseline": baseline_spec_number,
+            "after_p1": after_p1_spec_number,
+            "after_p2": after_p2_spec_number,
+            "final": final_spec_number,
+        }
+
+    result_filename = "sieve_learn_results/{}-{}.json".format(
+        test_context.project, test_context.test_name
+    )
+    os.makedirs("sieve_learn_results", exist_ok=True)
+    with open(result_filename, "w") as test_result_json:
+        json.dump(
+            sieve_learn_result,
+            test_result_json,
+            indent=4,
+        )
