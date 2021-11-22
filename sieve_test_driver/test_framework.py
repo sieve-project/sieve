@@ -125,6 +125,11 @@ class TestCmd:
         proc = subprocess.Popen(self.cmd, shell=True)
         try:
             proc.wait(timeout=60)
+            # if proc.returncode != 0:
+            #     return 2, "cmd '%s' return non-zero code %d " % (
+            #         self.cmd,
+            #         proc.returncode,
+            #     )
         except subprocess.TimeoutExpired:
             proc.terminate()
             return 2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
@@ -367,14 +372,22 @@ class TestWaitForExistence:
             if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not become %s within %d seconds; we will continue"
-                    % (self.resource_name, self.status, self.soft_time_out)
+                    % (
+                        self.resource_name,
+                        "exist" if self.exist else "non-exist",
+                        self.soft_time_out,
+                    )
                 )
                 print(error_message)
                 return 0, NO_ERROR_MESSAGE
             if duration > self.hard_time_out:
                 error_message = (
                     "hard timeout: %s does not become %s within %d seconds"
-                    % (self.resource_name, self.status, self.hard_time_out)
+                    % (
+                        self.resource_name,
+                        "exist" if self.exist else "non-exist",
+                        self.hard_time_out,
+                    )
                 )
                 print(error_message)
                 return 1, error_message
