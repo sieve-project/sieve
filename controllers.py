@@ -174,6 +174,10 @@ test_suites = {
             workloads.workloads["xtradb-operator"]["run-cert-manager"],
             num_workers=4,
         ),
+        "scaledown-scaleup": Suite(
+            workloads.workloads["xtradb-operator"]["scaledown-scaleup"],
+            num_workers=4,
+        ),
     },
     "yugabyte-operator": {
         "recreate": Suite(

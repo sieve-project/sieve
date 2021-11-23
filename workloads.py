@@ -281,6 +281,14 @@ workloads = {
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 250)
         .wait(70),
+        "scaleup-scaledown": new_built_in_workload()
+        .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
+        .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
+        .cmd("kubectl apply -f examples/xtradb-operator/test/cr-4.yaml")
+        .wait_for_pod_status("xtradb-cluster-pxc-3", RUNNING)
+        .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
+        .wait_for_pod_status("xtradb-cluster-pxc-3", TERMINATED, 300)
+        .wait(70),
     },
     "yugabyte-operator": {
         "recreate": new_built_in_workload()
@@ -341,35 +349,62 @@ workloads = {
         "change-config": new_built_in_workload()
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
         .wait_for_pod_status("simplenifi-1-*", RUNNING, 220)
-        .wait_for_cr_condition("nificluster", "simplenifi", [["metadata/finalizers", ['nificlusters.nifi.orange.com/finalizer']]]) # then wait for finializer to be present
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc-config.yaml")
-        .wait_for_cr_condition("nificluster", "simplenifi", [["metadata/finalizers", ['nificlusters.nifi.orange.com/finalizer']]]) # then wait for finializer to be present
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
         .wait(30)
         .wait_for_pod_status("simplenifi-1-*", RUNNING, 120)
-        .wait_for_cr_condition("nificluster", "simplenifi", [["metadata/finalizers", ['nificlusters.nifi.orange.com/finalizer']]]) # then wait for finializer to be present
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
         .wait(60),
         "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
         .wait_for_pod_status("simplenifi-1-*", RUNNING)
-        .wait_for_cr_condition("nificluster", "simplenifi", [["metadata/finalizers", ['nificlusters.nifi.orange.com/finalizer']]]) # then wait for finializer to be present
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
         .cmd("kubectl delete nificluster simplenifi")
         .wait_for_pod_status("simplenifi-1-*", TERMINATED)
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
         .wait_for_pod_status("simplenifi-1-*", RUNNING)
-        .wait_for_cr_condition("nificluster", "simplenifi", [["metadata/finalizers", ['nificlusters.nifi.orange.com/finalizer']]]) # then wait for finializer to be present
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
         .wait(60),
         "scaledown-scaleup": new_built_in_workload()
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc-2.yaml")
         .wait_for_pod_status("simplenifi-1-*", RUNNING)
         .wait_for_pod_status("simplenifi-2-*", RUNNING)
         # then wait for finializer to be present
-        .wait_for_cr_condition("nificluster", "simplenifi", [["metadata/finalizers", ['nificlusters.nifi.orange.com/finalizer']]])
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
         .wait_for_pod_status("simplenifi-2-*", TERMINATED)
         .cmd("kubectl apply -f examples/nifikop-operator/test/nc-2.yaml")
         .wait_for_pod_status("simplenifi-2-*", RUNNING)
         # then wait for finializer to be present
-        .wait_for_cr_condition("nificluster", "simplenifi", [["metadata/finalizers", ['nificlusters.nifi.orange.com/finalizer']]])
-        .wait(60),
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        ).wait(60),
     },
 }

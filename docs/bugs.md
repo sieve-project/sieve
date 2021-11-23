@@ -19,7 +19,7 @@ https://github.com/instaclustr/cassandra-operator/issues/410 pending (by-product
 https://k8ssandra.atlassian.net/browse/K8SSAND-559 confirmed (time traveling)
 <!-- previously https://github.com/datastax/cass-operator/issues/412 -->
 
-<!-- https://k8ssandra.atlassian.net/browse/K8SSAND-558 pending (by-product, bad practice) -->
+<!-- https://k8ssandra.atlassian.net/browse/K8SSAND-558 pending (by-product, performance overhead) -->
 <!-- previously https://github.com/datastax/cass-operator/issues/417 -->
 
 https://k8ssandra.atlassian.net/browse/K8SSAND-1023 confirmed (atomicity violation)
@@ -60,7 +60,7 @@ https://jira.percona.com/browse/K8SPSMDB-434 confirmed and fixed by us (by-produ
 
 https://jira.percona.com/browse/K8SPSMDB-438 confirmed (time traveling)
 
-<!-- https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product, bad practice) -->
+<!-- https://jira.percona.com/browse/K8SPSMDB-439 confirmed (by-product, performance overhead) -->
 
 https://jira.percona.com/browse/K8SPSMDB-578 confirmed (atomicity violation)
 
