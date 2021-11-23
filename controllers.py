@@ -196,6 +196,9 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["nifikop-operator"]["recreate"],
         ),
+        "scaledown-scaleup": Suite(
+            workloads.workloads["nifikop-operator"]["scaledown-scaleup"],
+        ),
     },
 }
 
