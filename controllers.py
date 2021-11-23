@@ -136,7 +136,7 @@ test_suites = {
         "scaleup-scaledown": Suite(
             workloads.workloads["mongodb-operator"]["scaleup-scaledown"],
             num_workers=5,
-        )
+        ),
     },
     "cass-operator": {
         "recreate": Suite(
@@ -174,8 +174,8 @@ test_suites = {
             workloads.workloads["xtradb-operator"]["run-cert-manager"],
             num_workers=4,
         ),
-        "scaledown-scaleup": Suite(
-            workloads.workloads["xtradb-operator"]["scaledown-scaleup"],
+        "scaleup-scaledown": Suite(
+            workloads.workloads["xtradb-operator"]["scaleup-scaledown"],
             num_workers=4,
         ),
     },
@@ -284,7 +284,9 @@ state_mask = {
     #     "pod": {"*": {"yb-master-0": {}, "yb-master-1": {}, "yb-master-2": {}}}
     # },
     "nifikop-operator": {
-        "nificluster/default/simplenifi": set(["status/state", "status/prometheusReportingTask/version"])
+        "nificluster/default/simplenifi": set(
+            ["status/state", "status/prometheusReportingTask/version"]
+        )
     },
 }
 
