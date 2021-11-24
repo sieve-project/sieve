@@ -398,9 +398,13 @@ workloads = {
             "simplenifi",
             [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
         )
-        .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
+        .cmd(
+            'kubectl patch nificluster simplenifi --type=\'json\' -p=\'[{"op": "remove", "path": "/spec/nodes/1"}]\''
+        )
         .wait_for_pod_status("simplenifi-2-*", TERMINATED)
-        .cmd("kubectl apply -f examples/nifikop-operator/test/nc-2.yaml")
+        .cmd(
+            'kubectl patch nificluster simplenifi --type=\'json\' -p=\'[{"op": "add", "path": "/spec/nodes/1", "value": {"id": 2, "nodeConfigGroup": "default_group"}}]\''
+        )
         .wait_for_pod_status("simplenifi-2-*", RUNNING)
         # then wait for finializer to be present
         .wait_for_cr_condition(
