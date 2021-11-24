@@ -88,6 +88,14 @@ test_dir = {
 }
 
 test_suites = {
+    "cass-operator": {
+        "recreate": Suite(
+            workloads.workloads["cass-operator"]["recreate"],
+        ),
+        "scaledown-scaleup": Suite(
+            workloads.workloads["cass-operator"]["scaledown-scaleup"], num_workers=3
+        ),
+    },
     "cassandra-operator": {
         "recreate": Suite(
             workloads.workloads["cassandra-operator"]["recreate"],
@@ -96,30 +104,25 @@ test_suites = {
             workloads.workloads["cassandra-operator"]["scaledown-scaleup"],
         ),
     },
-    "zookeeper-operator": {
+    "casskop-operator": {
         "recreate": Suite(
-            workloads.workloads["zookeeper-operator"]["recreate"],
+            workloads.workloads["casskop-operator"]["recreate"],
         ),
-        "scaledown-scaleup": Suite(
-            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"],
+        "scaledown-to-zero": Suite(
+            workloads.workloads["casskop-operator"]["scaledown-to-zero"],
         ),
-    },
-    "rabbitmq-operator": {
-        "recreate": Suite(
-            workloads.workloads["rabbitmq-operator"]["recreate"],
-        ),
-        "scaleup-scaledown": Suite(
-            workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
-        ),
-        "resize-pvc": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
-            use_csi_driver=True,
+        "reducepdb": Suite(
+            workloads.workloads["casskop-operator"]["reducepdb"],
         ),
     },
     "mongodb-operator": {
         "recreate": Suite(
             workloads.workloads["mongodb-operator"]["recreate"],
             num_workers=3,
+        ),
+        "scaleup-scaledown": Suite(
+            workloads.workloads["mongodb-operator"]["scaleup-scaledown"],
+            num_workers=5,
         ),
         "disable-enable-shard": Suite(
             workloads.workloads["mongodb-operator"]["disable-enable-shard"],
@@ -133,28 +136,28 @@ test_suites = {
             workloads.workloads["mongodb-operator"]["run-cert-manager"],
             num_workers=3,
         ),
-        "scaleup-scaledown": Suite(
-            workloads.workloads["mongodb-operator"]["scaleup-scaledown"],
-            num_workers=5,
-        ),
     },
-    "cass-operator": {
+    "nifikop-operator": {
         "recreate": Suite(
-            workloads.workloads["cass-operator"]["recreate"],
+            workloads.workloads["nifikop-operator"]["recreate"],
         ),
         "scaledown-scaleup": Suite(
-            workloads.workloads["cass-operator"]["scaledown-scaleup"], num_workers=3
+            workloads.workloads["nifikop-operator"]["scaledown-scaleup"],
+        ),
+        "change-config": Suite(
+            workloads.workloads["nifikop-operator"]["change-config"],
         ),
     },
-    "casskop-operator": {
+    "rabbitmq-operator": {
         "recreate": Suite(
-            workloads.workloads["casskop-operator"]["recreate"],
+            workloads.workloads["rabbitmq-operator"]["recreate"],
         ),
-        "reducepdb": Suite(
-            workloads.workloads["casskop-operator"]["reducepdb"],
+        "scaleup-scaledown": Suite(
+            workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
         ),
-        "scaledown-to-zero": Suite(
-            workloads.workloads["casskop-operator"]["scaledown-to-zero"],
+        "resize-pvc": Suite(
+            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
+            use_csi_driver=True,
         ),
     },
     "xtradb-operator": {
@@ -183,25 +186,22 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["yugabyte-operator"]["recreate"],
         ),
+        "scaleup-scaledown-tserver": Suite(
+            workloads.workloads["yugabyte-operator"]["scaleup-scaledown-tserver"],
+        ),
         "disable-enable-tls": Suite(
             workloads.workloads["yugabyte-operator"]["disable-enable-tls"],
         ),
         "disable-enable-tuiport": Suite(
             workloads.workloads["yugabyte-operator"]["disable-enable-tuiport"],
         ),
-        "scaleup-scaledown-tserver": Suite(
-            workloads.workloads["yugabyte-operator"]["scaleup-scaledown-tserver"],
-        ),
     },
-    "nifikop-operator": {
-        "change-config": Suite(
-            workloads.workloads["nifikop-operator"]["change-config"],
-        ),
+    "zookeeper-operator": {
         "recreate": Suite(
-            workloads.workloads["nifikop-operator"]["recreate"],
+            workloads.workloads["zookeeper-operator"]["recreate"],
         ),
         "scaledown-scaleup": Suite(
-            workloads.workloads["nifikop-operator"]["scaledown-scaleup"],
+            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"],
         ),
     },
 }
