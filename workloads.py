@@ -284,10 +284,12 @@ workloads = {
         "scaleup-scaledown": new_built_in_workload()
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
-        .cmd("kubectl apply -f examples/xtradb-operator/test/cr-4.yaml")
+        .cmd('kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"pxc":{"size":5}}}\'')
         .wait_for_pod_status("xtradb-cluster-pxc-3", RUNNING)
-        .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
+        .wait_for_pod_status("xtradb-cluster-pxc-4", RUNNING)
+        .cmd('kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"pxc":{"size":3}}}\'')
         .wait_for_pod_status("xtradb-cluster-pxc-3", TERMINATED, 300)
+        .wait_for_pod_status("xtradb-cluster-pxc-4", TERMINATED, 300)
         .wait(70),
     },
     "yugabyte-operator": {

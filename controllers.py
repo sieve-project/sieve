@@ -176,7 +176,7 @@ test_suites = {
         ),
         "scaleup-scaledown": Suite(
             workloads.workloads["xtradb-operator"]["scaleup-scaledown"],
-            num_workers=4,
+            num_workers=5,
         ),
     },
     "yugabyte-operator": {
