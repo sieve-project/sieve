@@ -783,7 +783,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker"
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -886,7 +886,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker2"
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -1011,7 +1011,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ab6e14b2-bb80-468a-8e66-abb92f9b9597\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e7308ee9-f24b-4fab-8f2a-1ae488cad419\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1392,7 +1392,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ab6e14b2-bb80-468a-8e66-abb92f9b9597\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e7308ee9-f24b-4fab-8f2a-1ae488cad419\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1749,7 +1749,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
                 "podIP": "SIEVE-IGNORE",
                 "podIPs": [
@@ -1787,7 +1787,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ab6e14b2-bb80-468a-8e66-abb92f9b9597\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e7308ee9-f24b-4fab-8f2a-1ae488cad419\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1924,7 +1924,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.10\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.9\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -2174,7 +2174,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"6f914da7-ea49-4571-8d6a-480c10805789\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"24864f33-18c2-4ee4-b427-a3c4114c879a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2550,7 +2550,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
                 "podIP": "SIEVE-IGNORE",
                 "podIPs": [
@@ -2588,7 +2588,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"6f914da7-ea49-4571-8d6a-480c10805789\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"24864f33-18c2-4ee4-b427-a3c4114c879a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2743,7 +2743,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.8\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.7\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -3002,421 +3002,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"6f914da7-ea49-4571-8d6a-480c10805789\"}": "SIEVE-IGNORE"
-                                }
-                            },
-                            "f:spec": {
-                                "f:affinity": {
-                                    ".": {},
-                                    "f:podAntiAffinity": {
-                                        ".": {},
-                                        "f:preferredDuringSchedulingIgnoredDuringExecution": {}
-                                    }
-                                },
-                                "f:containers": {
-                                    "k:{\"name\":\"yb-tserver\"}": {
-                                        ".": {},
-                                        "f:command": {},
-                                        "f:env": {
-                                            ".": {},
-                                            "k:{\"name\":\"GET_HOSTS_FROM\"}": {
-                                                ".": {},
-                                                "f:name": {},
-                                                "f:value": {}
-                                            },
-                                            "k:{\"name\":\"POD_IP\"}": {
-                                                ".": {},
-                                                "f:name": {},
-                                                "f:valueFrom": {
-                                                    ".": {},
-                                                    "f:fieldRef": {
-                                                        ".": {},
-                                                        "f:apiVersion": {},
-                                                        "f:fieldPath": {}
-                                                    }
-                                                }
-                                            },
-                                            "k:{\"name\":\"POD_NAME\"}": {
-                                                ".": {},
-                                                "f:name": {},
-                                                "f:valueFrom": {
-                                                    ".": {},
-                                                    "f:fieldRef": {
-                                                        ".": {},
-                                                        "f:apiVersion": {},
-                                                        "f:fieldPath": {}
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        "f:image": {},
-                                        "f:imagePullPolicy": {},
-                                        "f:name": {},
-                                        "f:ports": {
-                                            ".": {},
-                                            "k:{\"containerPort\":5433,\"protocol\":\"TCP\"}": {
-                                                ".": {},
-                                                "f:containerPort": {},
-                                                "f:name": {},
-                                                "f:protocol": {}
-                                            },
-                                            "k:{\"containerPort\":6379,\"protocol\":\"TCP\"}": {
-                                                ".": {},
-                                                "f:containerPort": {},
-                                                "f:name": {},
-                                                "f:protocol": {}
-                                            },
-                                            "k:{\"containerPort\":9000,\"protocol\":\"TCP\"}": {
-                                                ".": {},
-                                                "f:containerPort": {},
-                                                "f:name": {},
-                                                "f:protocol": {}
-                                            },
-                                            "k:{\"containerPort\":9042,\"protocol\":\"TCP\"}": {
-                                                ".": {},
-                                                "f:containerPort": {},
-                                                "f:name": {},
-                                                "f:protocol": {}
-                                            },
-                                            "k:{\"containerPort\":9100,\"protocol\":\"TCP\"}": {
-                                                ".": {},
-                                                "f:containerPort": {},
-                                                "f:name": {},
-                                                "f:protocol": {}
-                                            }
-                                        },
-                                        "f:resources": {},
-                                        "f:terminationMessagePath": {},
-                                        "f:terminationMessagePolicy": {},
-                                        "f:volumeMounts": {
-                                            ".": {},
-                                            "k:{\"mountPath\":\"/mnt/data0\"}": {
-                                                ".": {},
-                                                "f:mountPath": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    }
-                                },
-                                "f:dnsPolicy": {},
-                                "f:enableServiceLinks": {},
-                                "f:hostname": {},
-                                "f:restartPolicy": {},
-                                "f:schedulerName": {},
-                                "f:securityContext": {},
-                                "f:subdomain": {},
-                                "f:terminationGracePeriodSeconds": {},
-                                "f:volumes": {
-                                    ".": {},
-                                    "k:{\"name\":\"datadir0\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:persistentVolumeClaim": {
-                                            ".": {},
-                                            "f:claimName": {}
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "manager": "kube-controller-manager",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:status": {
-                                "f:conditions": {
-                                    "k:{\"type\":\"ContainersReady\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    },
-                                    "k:{\"type\":\"Initialized\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    },
-                                    "k:{\"type\":\"Ready\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    }
-                                },
-                                "f:containerStatuses": {},
-                                "f:hostIP": {},
-                                "f:phase": {},
-                                "f:podIP": {},
-                                "f:podIPs": {
-                                    ".": {},
-                                    "k:{\"ip\":\"10.244.1.9\"}": "SIEVE-IGNORE"
-                                },
-                                "f:startTime": {}
-                            }
-                        },
-                        "manager": "kubelet",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    }
-                ],
-                "name": "yb-tserver-2",
-                "namespace": "default",
-                "ownerReferences": [
-                    {
-                        "apiVersion": "apps/v1",
-                        "blockOwnerDeletion": true,
-                        "controller": true,
-                        "kind": "StatefulSet",
-                        "name": "yb-tserver",
-                        "uid": "SIEVE-IGNORE"
-                    }
-                ],
-                "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/api/v1/namespaces/default/pods/yb-tserver-2",
-                "uid": "SIEVE-IGNORE"
-            },
-            "spec": {
-                "affinity": {
-                    "podAntiAffinity": {
-                        "preferredDuringSchedulingIgnoredDuringExecution": [
-                            {
-                                "podAffinityTerm": {
-                                    "labelSelector": {
-                                        "matchExpressions": [
-                                            {
-                                                "key": "app",
-                                                "operator": "In",
-                                                "values": [
-                                                    "yb-tserver"
-                                                ]
-                                            }
-                                        ]
-                                    },
-                                    "topologyKey": "kubernetes.io/hostname"
-                                },
-                                "weight": 100
-                            }
-                        ]
-                    }
-                },
-                "containers": [
-                    {
-                        "command": [
-                            "/home/yugabyte/bin/yb-tserver",
-                            "--fs_data_dirs=/mnt/data0",
-                            "--rpc_bind_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
-                            "--server_broadcast_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
-                            "--start_pgsql_proxy",
-                            "--pgsql_proxy_bind_address=$(POD_IP):5433",
-                            "--tserver_master_addrs=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
-                            "--metric_node_name=$(POD_NAME)",
-                            "--dump_certificate_entries",
-                            "--stderrthreshold=0",
-                            "--logtostderr"
-                        ],
-                        "env": [
-                            {
-                                "name": "GET_HOSTS_FROM",
-                                "value": "dns"
-                            },
-                            {
-                                "name": "POD_IP",
-                                "valueFrom": {
-                                    "fieldRef": {
-                                        "apiVersion": "v1",
-                                        "fieldPath": "status.podIP"
-                                    }
-                                }
-                            },
-                            {
-                                "name": "POD_NAME",
-                                "valueFrom": {
-                                    "fieldRef": {
-                                        "apiVersion": "v1",
-                                        "fieldPath": "metadata.name"
-                                    }
-                                }
-                            }
-                        ],
-                        "image": "yugabytedb/yugabyte:2.7.0.0-b17",
-                        "imagePullPolicy": "Always",
-                        "name": "yb-tserver",
-                        "ports": [
-                            {
-                                "containerPort": 9000,
-                                "name": "tserver-ui",
-                                "protocol": "TCP"
-                            },
-                            {
-                                "containerPort": 9100,
-                                "name": "tserver-rpc",
-                                "protocol": "TCP"
-                            },
-                            {
-                                "containerPort": 9042,
-                                "name": "ycql",
-                                "protocol": "TCP"
-                            },
-                            {
-                                "containerPort": 6379,
-                                "name": "yedis",
-                                "protocol": "TCP"
-                            },
-                            {
-                                "containerPort": 5433,
-                                "name": "ysql",
-                                "protocol": "TCP"
-                            }
-                        ],
-                        "resources": {},
-                        "terminationMessagePath": "/dev/termination-log",
-                        "terminationMessagePolicy": "File",
-                        "volumeMounts": [
-                            {
-                                "mountPath": "/mnt/data0",
-                                "name": "datadir0"
-                            },
-                            {
-                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-                                "name": "SIEVE-IGNORE",
-                                "readOnly": true
-                            }
-                        ]
-                    }
-                ],
-                "dnsPolicy": "ClusterFirst",
-                "enableServiceLinks": true,
-                "hostname": "yb-tserver-2",
-                "nodeName": "kind-worker",
-                "priority": 0,
-                "restartPolicy": "Always",
-                "schedulerName": "default-scheduler",
-                "securityContext": {},
-                "serviceAccount": "default",
-                "serviceAccountName": "default",
-                "subdomain": "yb-tservers",
-                "terminationGracePeriodSeconds": 30,
-                "tolerations": [
-                    {
-                        "effect": "NoExecute",
-                        "key": "node.kubernetes.io/not-ready",
-                        "operator": "Exists",
-                        "tolerationSeconds": 300
-                    },
-                    {
-                        "effect": "NoExecute",
-                        "key": "node.kubernetes.io/unreachable",
-                        "operator": "Exists",
-                        "tolerationSeconds": 300
-                    }
-                ],
-                "volumes": [
-                    {
-                        "name": "datadir0",
-                        "persistentVolumeClaim": {
-                            "claimName": "datadir0-yb-tserver-2"
-                        }
-                    },
-                    {
-                        "name": "SIEVE-IGNORE",
-                        "secret": {
-                            "defaultMode": 420,
-                            "secretName": "SIEVE-IGNORE"
-                        }
-                    }
-                ]
-            },
-            "status": {
-                "conditions": [
-                    {
-                        "lastProbeTime": null,
-                        "lastTransitionTime": "SIEVE-IGNORE",
-                        "status": "True",
-                        "type": "Initialized"
-                    },
-                    {
-                        "lastProbeTime": null,
-                        "lastTransitionTime": "SIEVE-IGNORE",
-                        "status": "True",
-                        "type": "Ready"
-                    },
-                    {
-                        "lastProbeTime": null,
-                        "lastTransitionTime": "SIEVE-IGNORE",
-                        "status": "True",
-                        "type": "ContainersReady"
-                    },
-                    {
-                        "lastProbeTime": null,
-                        "lastTransitionTime": "SIEVE-IGNORE",
-                        "status": "True",
-                        "type": "PodScheduled"
-                    }
-                ],
-                "containerStatuses": [
-                    {
-                        "containerID": "SIEVE-IGNORE",
-                        "image": "docker.io/yugabytedb/yugabyte:2.7.0.0-b17",
-                        "imageID": "docker.io/yugabytedb/yugabyte@sha256:7adb6fbae00a306ed7cf4d843c5fe84d086cb86dcae1334ff2d54456034cc9ae",
-                        "lastState": {},
-                        "name": "yb-tserver",
-                        "ready": true,
-                        "restartCount": 0,
-                        "started": true,
-                        "state": {
-                            "running": {
-                                "startedAt": "SIEVE-IGNORE"
-                            }
-                        }
-                    }
-                ],
-                "hostIP": "SIEVE-IGNORE",
-                "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
-                "podIPs": [
-                    {
-                        "ip": "SIEVE-IGNORE"
-                    }
-                ],
-                "qosClass": "BestEffort",
-                "startTime": "SIEVE-IGNORE"
-            }
-        },
-        "yb-tserver-3": {
-            "metadata": {
-                "creationTimestamp": "SIEVE-IGNORE",
-                "generateName": "yb-tserver-",
-                "labels": {
-                    "app": "yb-tserver",
-                    "controller-revision-hash": "yb-tserver-79ff67796c",
-                    "statefulset.kubernetes.io/pod-name": "yb-tserver-3",
-                    "yugabyte.com/ybcluster-name": "example-ybcluster"
-                },
-                "managedFields": [
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": {
-                                "f:generateName": {},
-                                "f:labels": {
-                                    ".": {},
-                                    "f:app": {},
-                                    "f:controller-revision-hash": {},
-                                    "f:statefulset.kubernetes.io/pod-name": {},
-                                    "f:yugabyte.com/ybcluster-name": {}
-                                },
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"6f914da7-ea49-4571-8d6a-480c10805789\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"24864f33-18c2-4ee4-b427-a3c4114c879a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3581,6 +3167,420 @@
                         "time": "SIEVE-IGNORE"
                     }
                 ],
+                "name": "yb-tserver-2",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "StatefulSet",
+                        "name": "yb-tserver",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/pods/yb-tserver-2",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchExpressions": [
+                                            {
+                                                "key": "app",
+                                                "operator": "In",
+                                                "values": [
+                                                    "yb-tserver"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "/home/yugabyte/bin/yb-tserver",
+                            "--fs_data_dirs=/mnt/data0",
+                            "--rpc_bind_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--server_broadcast_addresses=$(POD_NAME).yb-tservers.default.svc.cluster.local:9100",
+                            "--start_pgsql_proxy",
+                            "--pgsql_proxy_bind_address=$(POD_IP):5433",
+                            "--tserver_master_addrs=yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100",
+                            "--metric_node_name=$(POD_NAME)",
+                            "--dump_certificate_entries",
+                            "--stderrthreshold=0",
+                            "--logtostderr"
+                        ],
+                        "env": [
+                            {
+                                "name": "GET_HOSTS_FROM",
+                                "value": "dns"
+                            },
+                            {
+                                "name": "POD_IP",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "status.podIP"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.name"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "yugabytedb/yugabyte:2.7.0.0-b17",
+                        "imagePullPolicy": "Always",
+                        "name": "yb-tserver",
+                        "ports": [
+                            {
+                                "containerPort": 9000,
+                                "name": "tserver-ui",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9100,
+                                "name": "tserver-rpc",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9042,
+                                "name": "ycql",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 6379,
+                                "name": "yedis",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 5433,
+                                "name": "ysql",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/mnt/data0",
+                                "name": "datadir0"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "SIEVE-IGNORE",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "yb-tserver-2",
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "yb-tservers",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "datadir0",
+                        "persistentVolumeClaim": {
+                            "claimName": "datadir0-yb-tserver-2"
+                        }
+                    },
+                    {
+                        "name": "SIEVE-IGNORE",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "SIEVE-IGNORE"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "docker.io/yugabytedb/yugabyte:2.7.0.0-b17",
+                        "imageID": "docker.io/yugabytedb/yugabyte@sha256:7adb6fbae00a306ed7cf4d843c5fe84d086cb86dcae1334ff2d54456034cc9ae",
+                        "lastState": {},
+                        "name": "yb-tserver",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "SIEVE-IGNORE",
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": [
+                    {
+                        "ip": "SIEVE-IGNORE"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        "yb-tserver-3": {
+            "metadata": {
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "yb-tserver-",
+                "labels": {
+                    "app": "yb-tserver",
+                    "controller-revision-hash": "yb-tserver-79ff67796c",
+                    "statefulset.kubernetes.io/pod-name": "yb-tserver-3",
+                    "yugabyte.com/ybcluster-name": "example-ybcluster"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:controller-revision-hash": {},
+                                    "f:statefulset.kubernetes.io/pod-name": {},
+                                    "f:yugabyte.com/ybcluster-name": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"24864f33-18c2-4ee4-b427-a3c4114c879a\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:affinity": {
+                                    ".": {},
+                                    "f:podAntiAffinity": {
+                                        ".": {},
+                                        "f:preferredDuringSchedulingIgnoredDuringExecution": {}
+                                    }
+                                },
+                                "f:containers": {
+                                    "k:{\"name\":\"yb-tserver\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"GET_HOSTS_FROM\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"POD_IP\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"POD_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":5433,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":6379,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":9000,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":9042,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":9100,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:resources": {},
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/mnt/data0\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:hostname": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {},
+                                "f:subdomain": {},
+                                "f:terminationGracePeriodSeconds": {},
+                                "f:volumes": {
+                                    ".": {},
+                                    "k:{\"name\":\"datadir0\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:persistentVolumeClaim": {
+                                            ".": {},
+                                            "f:claimName": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.1.10\"}": "SIEVE-IGNORE"
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
                 "name": "yb-tserver-3",
                 "namespace": "default",
                 "ownerReferences": [
@@ -3709,7 +3709,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "yb-tserver-3",
-                "nodeName": "kind-worker2",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -3804,11 +3804,11 @@
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "yugabyte-operator-86f6465d9b-sfgb6": "SIEVE-IGNORE"
+        "yugabyte-operator-86f6465d9b-cq8c4": "SIEVE-IGNORE"
     },
     "secret": {
-        "default-token-9jfrh": "SIEVE-IGNORE",
-        "yugabyte-operator-token-6h5sr": "SIEVE-IGNORE"
+        "default-token-9j5qc": "SIEVE-IGNORE",
+        "yugabyte-operator-token-h6hl7": "SIEVE-IGNORE"
     },
     "service": {
         "kubernetes": {
@@ -3892,7 +3892,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"5b76649f-9065-4c08-9dbf-230965316b92\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"78fbe58d-e63e-45b0-b8db-2db1d2311144\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3973,7 +3973,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"5b76649f-9065-4c08-9dbf-230965316b92\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"78fbe58d-e63e-45b0-b8db-2db1d2311144\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4068,7 +4068,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"5b76649f-9065-4c08-9dbf-230965316b92\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"78fbe58d-e63e-45b0-b8db-2db1d2311144\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4189,7 +4189,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"6862c757-99a7-4a3f-8c6d-35da774bc684\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"80cc974e-a88b-48de-8b9a-d7fb1fe479f2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4286,7 +4286,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"5b76649f-9065-4c08-9dbf-230965316b92\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"78fbe58d-e63e-45b0-b8db-2db1d2311144\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4613,7 +4613,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"5b76649f-9065-4c08-9dbf-230965316b92\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"78fbe58d-e63e-45b0-b8db-2db1d2311144\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
