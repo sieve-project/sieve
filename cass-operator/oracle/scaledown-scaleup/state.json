@@ -773,7 +773,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker"
+                    "volume.kubernetes.io/selected-node": "kind-worker3"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -880,7 +880,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                    "volume.kubernetes.io/selected-node": "kind-worker2"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -983,7 +983,7 @@
         }
     },
     "pod": {
-        "cass-operator-595d8d4bc7-spncc": "SIEVE-IGNORE",
+        "cass-operator-595d8d4bc7-cqnjb": "SIEVE-IGNORE",
         "cluster1-cassandra-datacenter-default-sts-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -1016,7 +1016,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"885964cd-a9bd-4456-b321-09e75a58df42\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"acd17681-14be-4ce5-b61d-5fb7c113a17f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1378,7 +1378,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.3\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1415,7 +1418,7 @@
                         "uid": "SIEVE-IGNORE"
                     }
                 ],
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "1224",
                 "selfLink": "/api/v1/namespaces/default/pods/cluster1-cassandra-datacenter-default-sts-0",
                 "uid": "SIEVE-IGNORE"
             },
@@ -1690,7 +1693,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker",
+                "nodeName": "kind-worker3",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1825,10 +1828,10 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.2.3",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.2.3"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -1867,7 +1870,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"885964cd-a9bd-4456-b321-09e75a58df42\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"acd17681-14be-4ce5-b61d-5fb7c113a17f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2541,7 +2544,7 @@
                         ]
                     }
                 ],
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker2",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2654,7 +2657,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.2",
+                "hostIP": "SIEVE-IGNORE",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -2686,10 +2689,10 @@
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "local-path-provisioner-579c65cb9b-9qvtp": "SIEVE-IGNORE"
+        "local-path-provisioner-579c65cb9b-69r44": "SIEVE-IGNORE"
     },
     "secret": {
-        "cass-operator-token-8ddb9": "SIEVE-IGNORE",
+        "cass-operator-token-2n2dl": "SIEVE-IGNORE",
         "cass-operator-webhook-config": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -2850,8 +2853,8 @@
             },
             "type": "Opaque"
         },
-        "default-token-jxcx8": "SIEVE-IGNORE",
-        "local-path-provisioner-service-account-token-mlntz": "SIEVE-IGNORE"
+        "default-token-fx7z9": "SIEVE-IGNORE",
+        "local-path-provisioner-service-account-token-fwvlb": "SIEVE-IGNORE"
     },
     "service": {
         "cass-operator-metrics": {
@@ -2872,7 +2875,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"19ed1d0a-f0d3-474f-879e-e3b1e371bd63\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"94d11b4a-c78e-4526-87f7-83f296f6cb02\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3051,7 +3054,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2953288-057d-487c-8cbb-a0b3be4ccd20\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6c22907d-1a3f-44cc-b757-d67a893dc6ba\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3174,7 +3177,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2953288-057d-487c-8cbb-a0b3be4ccd20\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6c22907d-1a3f-44cc-b757-d67a893dc6ba\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3319,7 +3322,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2953288-057d-487c-8cbb-a0b3be4ccd20\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6c22907d-1a3f-44cc-b757-d67a893dc6ba\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3411,7 +3414,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "151",
+                "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -3466,7 +3469,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2953288-057d-487c-8cbb-a0b3be4ccd20\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6c22907d-1a3f-44cc-b757-d67a893dc6ba\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
