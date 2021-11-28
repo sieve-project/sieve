@@ -371,7 +371,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker2"
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -680,7 +680,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker2"
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -1011,7 +1011,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ba5a8cfa-c567-4ef2-9fb4-c4c468629f0a\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"851536e3-946e-44b6-9d44-e98679c3f4de\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1148,7 +1148,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.11\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.11\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1356,12 +1359,12 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "172.18.0.4",
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.2.11",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.2.11"
                     }
                 ],
                 "qosClass": "BestEffort",
@@ -1394,7 +1397,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ba5a8cfa-c567-4ef2-9fb4-c4c468629f0a\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"851536e3-946e-44b6-9d44-e98679c3f4de\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1531,7 +1534,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.9\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.9\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1654,7 +1660,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "yb-master-1",
-                "nodeName": "kind-worker2",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1745,10 +1751,10 @@
                 ],
                 "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.1.9",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.1.9"
                     }
                 ],
                 "qosClass": "BestEffort",
@@ -1781,7 +1787,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ba5a8cfa-c567-4ef2-9fb4-c4c468629f0a\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"851536e3-946e-44b6-9d44-e98679c3f4de\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1922,7 +1928,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.9\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.10\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -2138,12 +2147,12 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "172.18.0.4",
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.2.10",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.2.10"
                     }
                 ],
                 "qosClass": "BestEffort",
@@ -2176,7 +2185,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"da93eb84-39c2-4e1c-a13d-e7e045216b4b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"be9bbed5-e058-4008-b5b3-5e78daae8007\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2331,7 +2340,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.6\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.5\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -2552,7 +2561,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
                 "podIP": "SIEVE-IGNORE",
                 "podIPs": [
@@ -2590,7 +2599,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"da93eb84-39c2-4e1c-a13d-e7e045216b4b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"be9bbed5-e058-4008-b5b3-5e78daae8007\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2883,7 +2892,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "yb-tserver-1",
-                "nodeName": "kind-worker2",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2966,7 +2975,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.4",
                 "phase": "Running",
                 "podIP": "SIEVE-IGNORE",
                 "podIPs": [
@@ -3004,7 +3013,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"da93eb84-39c2-4e1c-a13d-e7e045216b4b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"be9bbed5-e058-4008-b5b3-5e78daae8007\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3159,7 +3168,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.7\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.9\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -3418,7 +3427,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"da93eb84-39c2-4e1c-a13d-e7e045216b4b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"be9bbed5-e058-4008-b5b3-5e78daae8007\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3573,7 +3582,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.10\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.8\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -3806,11 +3815,11 @@
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "yugabyte-operator-86f6465d9b-8qqt7": "SIEVE-IGNORE"
+        "yugabyte-operator-86f6465d9b-gnvlq": "SIEVE-IGNORE"
     },
     "secret": {
-        "default-token-p82tz": "SIEVE-IGNORE",
-        "yugabyte-operator-token-v9v6c": "SIEVE-IGNORE"
+        "default-token-sb9ft": "SIEVE-IGNORE",
+        "yugabyte-operator-token-j4x5n": "SIEVE-IGNORE"
     },
     "service": {
         "kubernetes": {
@@ -3894,7 +3903,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d780cf0b-97b4-4944-ad15-809d29f42412\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"45dfbc8d-665e-4628-a85b-41d92ab788ee\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3975,7 +3984,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d780cf0b-97b4-4944-ad15-809d29f42412\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"45dfbc8d-665e-4628-a85b-41d92ab788ee\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4070,7 +4079,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d780cf0b-97b4-4944-ad15-809d29f42412\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"45dfbc8d-665e-4628-a85b-41d92ab788ee\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4191,7 +4200,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"fbf1f32c-269b-444c-9348-949da287b68d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"095d0d69-1119-4745-ae25-73629760885e\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4288,7 +4297,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d780cf0b-97b4-4944-ad15-809d29f42412\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"45dfbc8d-665e-4628-a85b-41d92ab788ee\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4615,7 +4624,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d780cf0b-97b4-4944-ad15-809d29f42412\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"45dfbc8d-665e-4628-a85b-41d92ab788ee\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
