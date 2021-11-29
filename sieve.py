@@ -37,7 +37,7 @@ from sieve_common.common import (
 def save_run_result(
     project, test, mode, stage, test_config, ret_val, messages, start_time
 ):
-    if stage != sieve_stages.TEST or mode == sieve_modes.VANILLA:
+    if stage != sieve_stages.TEST:
         return
 
     result_map = {
@@ -48,7 +48,7 @@ def save_run_result(
                         "duration": time.time() - start_time,
                         "ret_val": ret_val,
                         "messages": messages,
-                        "test_config_content": open(test_config).read(),
+                        "test_config_content": open(test_config).read() if mode != "vanilla" else None,
                         "host": socket.gethostname(),
                     }
                 }
