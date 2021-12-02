@@ -73,17 +73,21 @@ def generate_jobs(ci_mode):
         persistent_data = {
             "uses": "JamesIves/github-pages-deploy-action@4.1.5",
             "name": "Persistent oracle data",
-            "with": {"branch": "oracle-data", "folder": "examples/%s/oracle"%(operator), "target-folder": "%s/oracle"%(operator)},
+            "with": {
+                "branch": "oracle-data",
+                "folder": "examples/%s/oracle" % (operator),
+                "target-folder": "%s/oracle" % (operator),
+            },
         }
         remove_cluster = {
             "name": "Remove cluster",
             "if": "always()",
-            "run": 'kind delete cluster',
+            "run": "kind delete cluster",
         }
         clean_images = {
             "name": "Clean images",
             "if": "always()",
-            "run": 'docker image prune -a -f && docker builder prune -a -f && docker system df',
+            "run": "docker image prune -a -f && docker builder prune -a -f && docker system df",
         }
 
         build_modes = [
@@ -91,6 +95,7 @@ def generate_jobs(ci_mode):
             sieve_modes.TIME_TRAVEL,
             sieve_modes.OBS_GAP,
             sieve_modes.ATOM_VIO,
+            sieve_modes.VANILLA,
         ]
         workload_set = set()
 
@@ -99,7 +104,7 @@ def generate_jobs(ci_mode):
             config_name = reprod_map[operator][bug][1]
             config = yaml.safe_load(open(os.path.join("reprod", config_name)).read())
             workload_set.add(workload)
-        
+
         for workload in controllers.test_suites[operator]:
             workload_set.add(workload)
 

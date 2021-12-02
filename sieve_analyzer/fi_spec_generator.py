@@ -244,14 +244,14 @@ def time_travel_analysis(
         if sieve_config["time_travel_spec_generation_causality_pass_enabled"]:
             candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
         after_p1_spec_number = len(candidate_pairs)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
-        after_p2_spec_number = len(candidate_pairs)
     if sieve_config["spec_generation_type_specific_pass_enabled"]:
         if sieve_config["time_travel_spec_generation_reversed_pass_enabled"]:
             candidate_pairs = reversed_effect_filtering_pass(
                 candidate_pairs, causality_graph
             )
+        after_p2_spec_number = len(candidate_pairs)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
     final_spec_number = len(candidate_pairs)
     i = 0
     for pair in candidate_pairs:
@@ -350,6 +350,21 @@ def causality_hear_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
+def impact_filtering_pass(causality_vertices: List[CausalityVertex]):
+    print("Running optional pass: impact-filtering...")
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        at_least_one_successful_write = False
+        for out_inter_edge in vertex.out_inter_reconciler_edges:
+            resulted_write = out_inter_edge.sink.content
+            if resulted_write.error in ALLOWED_ERROR_TYPE:
+                at_least_one_successful_write = True
+        if at_least_one_successful_write:
+            candidate_vertices.append(vertex)
+    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
+    return candidate_vertices
+
+
 def overwrite_filtering_pass(causality_vertices: List[CausalityVertex]):
     print("Running optional pass: overwrite-filtering...")
     candidate_vertices = []
@@ -381,12 +396,13 @@ def obs_gap_analysis(
         if sieve_config["obs_gap_spec_generation_causality_pass_enabled"]:
             candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
         after_p1_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
-        after_p2_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_type_specific_pass_enabled"]:
         if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
+            candidate_vertices = impact_filtering_pass(candidate_vertices)
             candidate_vertices = overwrite_filtering_pass(candidate_vertices)
+        after_p2_spec_number = len(candidate_vertices)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
@@ -471,12 +487,12 @@ def atom_vio_analysis(
     final_spec_number = -1
     if sieve_config["spec_generation_causal_info_pass_enabled"]:
         after_p1_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
-        after_p2_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_type_specific_pass_enabled"]:
         if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
             candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
+        after_p2_spec_number = len(candidate_vertices)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
