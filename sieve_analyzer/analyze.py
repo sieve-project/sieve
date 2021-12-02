@@ -258,8 +258,8 @@ def generate_hear_write_pairs(causality_graph: CausalityGraph):
     operator_hear_vertices = causality_graph.operator_hear_vertices
     operator_write_vertices = causality_graph.operator_write_vertices
     vertex_pairs = base_pass(operator_hear_vertices, operator_write_vertices)
-    if ERROR_MSG_FILTER_FLAG:
-        vertex_pairs = error_msg_filtering_pass(vertex_pairs)
+    # if ERROR_MSG_FILTER_FLAG:
+    #     vertex_pairs = error_msg_filtering_pass(vertex_pairs)
     if HEAR_READ_FILTER_FLAG:
         vertex_pairs = hear_read_overlap_filtering_pass(vertex_pairs)
     return vertex_pairs

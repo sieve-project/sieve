@@ -350,6 +350,21 @@ def causality_hear_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
+def impact_filtering_pass(causality_vertices: List[CausalityVertex]):
+    print("Running optional pass: impact-filtering...")
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        at_least_one_successful_write = False
+        for out_inter_edge in vertex.out_inter_reconciler_edges:
+            resulted_write = out_inter_edge.sink.content
+            if resulted_write.error in ALLOWED_ERROR_TYPE:
+                at_least_one_successful_write = True
+        if at_least_one_successful_write:
+            candidate_vertices.append(vertex)
+    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
+    return candidate_vertices
+
+
 def overwrite_filtering_pass(causality_vertices: List[CausalityVertex]):
     print("Running optional pass: overwrite-filtering...")
     candidate_vertices = []
@@ -383,6 +398,7 @@ def obs_gap_analysis(
         after_p1_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_type_specific_pass_enabled"]:
         if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
+            candidate_vertices = impact_filtering_pass(candidate_vertices)
             candidate_vertices = overwrite_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
