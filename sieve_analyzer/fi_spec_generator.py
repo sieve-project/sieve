@@ -236,6 +236,8 @@ def time_travel_analysis(
 ):
     project = test_context.project
     candidate_pairs = get_time_travel_baseline(causality_graph)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
     baseline_spec_number = len(candidate_pairs)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
@@ -250,8 +252,6 @@ def time_travel_analysis(
                 candidate_pairs, causality_graph
             )
         after_p2_spec_number = len(candidate_pairs)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
     final_spec_number = len(candidate_pairs)
     i = 0
     for pair in candidate_pairs:
@@ -388,6 +388,8 @@ def obs_gap_analysis(
 ):
     project = test_context.project
     candidate_vertices = causality_graph.operator_hear_vertices
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
@@ -401,8 +403,6 @@ def obs_gap_analysis(
             candidate_vertices = impact_filtering_pass(candidate_vertices)
             candidate_vertices = overwrite_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
@@ -481,6 +481,8 @@ def atom_vio_analysis(
 ):
     project = test_context.project
     candidate_vertices = causality_graph.operator_write_vertices
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
@@ -491,8 +493,6 @@ def atom_vio_analysis(
         if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
             candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
