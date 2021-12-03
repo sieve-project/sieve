@@ -126,7 +126,7 @@ class TestCmd:
         try:
             proc.wait(timeout=60)
             if proc.returncode != 0:
-                return 2, "cmd '%s' return non-zero code %d " % (
+                return 1, "cmd '%s' return non-zero code %d " % (
                     self.cmd,
                     proc.returncode,
                 )
