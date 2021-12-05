@@ -129,9 +129,10 @@ def get_time_travel_baseline(causality_graph: CausalityGraph):
             write_after_hear = (
                 operator_write.start_timestamp > operator_hear.start_timestamp
             )
-            allowed_error = operator_write.error in ALLOWED_ERROR_TYPE
+            # allowed_error = operator_write.error in ALLOWED_ERROR_TYPE
 
-            if write_after_hear and allowed_error:
+            # if write_after_hear and allowed_error:
+            if write_after_hear:
                 pair = (operator_hear_vertex, operator_write_vertex)
                 candidate_pairs.append(pair)
     return candidate_pairs
@@ -161,6 +162,8 @@ def reversed_effect_filtering_pass(
     for pair in causality_pairs:
         operator_write = pair[1].content
         assert operator_write.etype == OperatorWriteTypes.DELETE
+        if operator_write.error not in ALLOWED_ERROR_TYPE:
+            continue
         reversed_effect = False
         if operator_write.key in hear_key_to_vertices:
             for operator_hear_vertex in hear_key_to_vertices[operator_write.key]:
@@ -236,8 +239,6 @@ def time_travel_analysis(
 ):
     project = test_context.project
     candidate_pairs = get_time_travel_baseline(causality_graph)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
     baseline_spec_number = len(candidate_pairs)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
@@ -252,6 +253,8 @@ def time_travel_analysis(
                 candidate_pairs, causality_graph
             )
         after_p2_spec_number = len(candidate_pairs)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
     final_spec_number = len(candidate_pairs)
     i = 0
     for pair in candidate_pairs:
@@ -388,8 +391,7 @@ def obs_gap_analysis(
 ):
     project = test_context.project
     candidate_vertices = causality_graph.operator_hear_vertices
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
+    candidate_vertices = overwrite_filtering_pass(candidate_vertices)
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
@@ -398,11 +400,13 @@ def obs_gap_analysis(
         if sieve_config["obs_gap_spec_generation_causality_pass_enabled"]:
             candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
         after_p1_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_type_specific_pass_enabled"]:
-        if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
-            candidate_vertices = impact_filtering_pass(candidate_vertices)
-            candidate_vertices = overwrite_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
+    # if sieve_config["spec_generation_type_specific_pass_enabled"]:
+    #     if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
+    #         candidate_vertices = impact_filtering_pass(candidate_vertices)
+    #     after_p2_spec_number = len(candidate_vertices)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
@@ -460,7 +464,19 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     candidate_vertices = []
     for vertex in causality_vertices:
         if vertex.content.error in ALLOWED_ERROR_TYPE:
-            candidate_vertices.append(vertex)
+            if is_creation_or_deletion(vertex.content.etype):
+                candidate_vertices.append(vertex)
+            else:
+                unmasked_prev_object, unmasked_cur_object = diff_event(
+                    vertex.content.prev_obj_map,
+                    vertex.content.obj_map,
+                    None,
+                    None,
+                    True,
+                    False,
+                )
+                if unmasked_cur_object != unmasked_prev_object:
+                    candidate_vertices.append(vertex)
     print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
@@ -481,18 +497,17 @@ def atom_vio_analysis(
 ):
     project = test_context.project
     candidate_vertices = causality_graph.operator_write_vertices
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
-    if sieve_config["spec_generation_causal_info_pass_enabled"]:
-        after_p1_spec_number = len(candidate_vertices)
+    after_p1_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_type_specific_pass_enabled"]:
         if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
             candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
+    if sieve_config["spec_generation_detectable_pass_enabled"]:
+        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:

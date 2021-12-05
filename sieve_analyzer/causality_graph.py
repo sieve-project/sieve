@@ -443,6 +443,7 @@ class CausalityGraph:
                     masked_paths,
                     True,
                 )
+                operator_write.prev_obj_map = prev_read_obj_map
                 operator_write.slim_prev_obj_map = slim_prev_object
                 operator_write.slim_cur_obj_map = slim_cur_object
                 operator_write.prev_etype = prev_read_etype

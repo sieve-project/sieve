@@ -161,14 +161,16 @@ def diff_event(
     masked_keys: Set[str],
     masked_paths: Set[str],
     trim_ka=False,
+    can=True,
 ) -> Tuple[Optional[Dict], Optional[Dict]]:
     prev_event_copy = copy.deepcopy(prev_event)
     cur_event_copy = copy.deepcopy(cur_event)
     if trim_ka:
-        trim_kind_apiversion(prev_event_copy),
-        trim_kind_apiversion(cur_event_copy),
-    canonicalize_event(prev_event_copy, masked_keys, masked_paths)
-    canonicalize_event(cur_event_copy, masked_keys, masked_paths)
+        trim_kind_apiversion(prev_event_copy)
+        trim_kind_apiversion(cur_event_copy)
+    if can:
+        canonicalize_event(prev_event_copy, masked_keys, masked_paths)
+        canonicalize_event(cur_event_copy, masked_keys, masked_paths)
     diff_prev_event, diff_cur_event = diff_event_as_map(prev_event_copy, cur_event_copy)
     return diff_prev_event, diff_cur_event
 
