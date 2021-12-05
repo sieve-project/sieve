@@ -475,7 +475,27 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
                     True,
                     False,
                 )
-                if unmasked_cur_object != unmasked_prev_object:
+                cur_etype = vertex.content.etype
+                empty_write = False
+                if unmasked_prev_object == unmasked_cur_object and (
+                    cur_etype == OperatorWriteTypes.UPDATE
+                    or cur_etype == OperatorWriteTypes.PATCH
+                    or cur_etype == OperatorWriteTypes.STATUS_UPDATE
+                    or cur_etype == OperatorWriteTypes.STATUS_PATCH
+                ):
+                    empty_write = True
+                elif (
+                    unmasked_prev_object is not None
+                    and "status" not in unmasked_prev_object
+                    and unmasked_cur_object is not None
+                    and "status" not in unmasked_cur_object
+                    and (
+                        cur_etype == OperatorWriteTypes.STATUS_UPDATE
+                        or cur_etype == OperatorWriteTypes.STATUS_PATCH
+                    )
+                ):
+                    empty_write = True
+                if not empty_write:
                     candidate_vertices.append(vertex)
     print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
