@@ -71,11 +71,11 @@ def learn_all():
     for project in controllers.test_suites:
         for test_suite in controllers.test_suites[project]:
             docker_repo_name = sieve_config["docker_repo"]
-            overwrite_config_json(
-                {
-                    "persist_specs_enabled": False,
-                }
-            )
+            # overwrite_config_json(
+            #     {
+            #         "persist_specs_enabled": True,
+            #     }
+            # )
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check_only" % (
                 project,
                 test_suite,
