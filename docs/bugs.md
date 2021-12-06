@@ -83,6 +83,8 @@ https://jira.percona.com/browse/K8SPXC-896 confirmed (atomicity violation)
 
 https://jira.percona.com/browse/K8SPXC-897 confirmed (atomicity violation)
 
+https://jira.percona.com/browse/K8SPXC-918 confirmed (observability gaps)
+
 ## [yugabyte/yugabyte-operator](https://github.com/yugabyte/yugabyte-operator)
 https://github.com/yugabyte/yugabyte-operator/issues/33 pending (by-product, crd mistake)
 
