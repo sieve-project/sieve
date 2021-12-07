@@ -20,14 +20,122 @@
                         "fieldsV1": {
                             "f:metadata": {
                                 "f:annotations": {
-                                    ".": "SIEVE-IGNORE",
-                                    "f:kubectl.kubernetes.io/last-applied-configuration": "SIEVE-IGNORE"
+                                    ".": {},
+                                    "f:kubectl.kubernetes.io/last-applied-configuration": {}
                                 },
-                                "f:labels": "SIEVE-IGNORE"
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/component": {},
+                                    "f:app.kubernetes.io/name": {},
+                                    "f:app.kubernetes.io/part-of": {}
+                                }
                             },
-                            "f:spec": "SIEVE-IGNORE"
+                            "f:spec": {
+                                "f:progressDeadlineSeconds": {},
+                                "f:replicas": {},
+                                "f:revisionHistoryLimit": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:app.kubernetes.io/name": {},
+                                        "f:sievetag": {}
+                                    }
+                                },
+                                "f:strategy": {
+                                    "f:rollingUpdate": {
+                                        ".": {},
+                                        "f:maxSurge": {},
+                                        "f:maxUnavailable": {}
+                                    },
+                                    "f:type": {}
+                                },
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:app.kubernetes.io/component": {},
+                                            "f:app.kubernetes.io/name": {},
+                                            "f:app.kubernetes.io/part-of": {},
+                                            "f:sievetag": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:containers": {
+                                            "k:{\"name\":\"operator\"}": {
+                                                ".": {},
+                                                "f:command": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"OPERATOR_NAMESPACE\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "f:envFrom": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:ports": {
+                                                    ".": {},
+                                                    "k:{\"containerPort\":9782,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    }
+                                                },
+                                                "f:resources": {
+                                                    ".": {},
+                                                    "f:limits": {
+                                                        ".": {},
+                                                        "f:cpu": {},
+                                                        "f:memory": {}
+                                                    },
+                                                    "f:requests": {
+                                                        ".": {},
+                                                        "f:cpu": {},
+                                                        "f:memory": {}
+                                                    }
+                                                },
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {}
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:fsGroup": {},
+                                            "f:runAsGroup": {},
+                                            "f:runAsUser": {}
+                                        },
+                                        "f:serviceAccount": {},
+                                        "f:serviceAccountName": {},
+                                        "f:terminationGracePeriodSeconds": {}
+                                    }
+                                }
+                            }
                         },
-                        "manager": "SIEVE-IGNORE",
+                        "manager": "kubectl-client-side-apply",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -37,12 +145,39 @@
                         "fieldsV1": {
                             "f:metadata": {
                                 "f:annotations": {
-                                    "f:deployment.kubernetes.io/revision": "SIEVE-IGNORE"
+                                    "f:deployment.kubernetes.io/revision": {}
                                 }
                             },
-                            "f:status": "SIEVE-IGNORE"
+                            "f:status": {
+                                "f:availableReplicas": {},
+                                "f:conditions": {
+                                    ".": {},
+                                    "k:{\"type\":\"Available\"}": {
+                                        ".": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:lastUpdateTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Progressing\"}": {
+                                        ".": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:lastUpdateTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {},
+                                "f:updatedReplicas": {}
+                            }
                         },
-                        "manager": "SIEVE-IGNORE",
+                        "manager": "kube-controller-manager",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     }
@@ -214,7 +349,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3f29bc3a-08c0-4b75-9fa3-6c1b04a63844\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ae82519e-1bf6-437b-a12a-a97bfb4c693a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -337,7 +472,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"eba6071d-2af9-4b79-914e-e4501884014a\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"9dcf0bee-8def-498d-83bd-d17debdf4a67\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -716,7 +851,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.2\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.2\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -738,7 +873,7 @@
                         "uid": "SIEVE-IGNORE"
                     }
                 ],
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "865",
                 "selfLink": "/api/v1/namespaces/default/pods/csi-hostpathplugin-0",
                 "uid": "SIEVE-IGNORE"
             },
@@ -1032,7 +1167,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "csi-hostpathplugin-0",
-                "nodeName": "kind-worker",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1256,7 +1391,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.2",
+                "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
                 "podIP": "SIEVE-IGNORE",
                 "podIPs": [
@@ -1342,7 +1477,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.3\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1372,7 +1507,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"8f626141-f194-4c30-bc74-baadd2b6fdae\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"cb46e44f-5307-44e1-9cb1-2724e83b7467\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1939,7 +2074,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2109,7 +2244,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.2",
+                "hostIP": "SIEVE-IGNORE",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -2141,7 +2276,7 @@
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "rabbitmq-operator-b7d5945b-z9dfn": "SIEVE-IGNORE",
+        "rabbitmq-operator-b7d5945b-sktgc": "SIEVE-IGNORE",
         "snapshot-controller-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -2166,7 +2301,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"e754148d-de52-4674-8ca0-d2001bfa7485\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"411a6a83-185a-4fe5-8035-f82708c2e9a9\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2255,7 +2390,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.2\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.2\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -2306,7 +2441,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "snapshot-controller-0",
-                "nodeName": "kind-worker2",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2485,13 +2620,13 @@
         }
     },
     "secret": {
-        "csi-attacher-token-pwsfk": "SIEVE-IGNORE",
-        "csi-external-health-monitor-controller-token-kbvwz": "SIEVE-IGNORE",
-        "csi-hostpathplugin-sa-token-4p6wd": "SIEVE-IGNORE",
-        "csi-provisioner-token-2nzjq": "SIEVE-IGNORE",
-        "csi-resizer-token-2x845": "SIEVE-IGNORE",
-        "csi-snapshotter-token-q5vtf": "SIEVE-IGNORE",
-        "default-token-nfn76": "SIEVE-IGNORE",
+        "csi-attacher-token-58p6m": "SIEVE-IGNORE",
+        "csi-external-health-monitor-controller-token-s62cm": "SIEVE-IGNORE",
+        "csi-hostpathplugin-sa-token-8rdbk": "SIEVE-IGNORE",
+        "csi-provisioner-token-fwt88": "SIEVE-IGNORE",
+        "csi-resizer-token-vf75q": "SIEVE-IGNORE",
+        "csi-snapshotter-token-xf4gj": "SIEVE-IGNORE",
+        "default-token-26g5v": "SIEVE-IGNORE",
         "rabbitmq-cluster-default-user": {
             "data": {
                 "default_user.conf": "SIEVE-IGNORE",
@@ -2529,7 +2664,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3f29bc3a-08c0-4b75-9fa3-6c1b04a63844\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ae82519e-1bf6-437b-a12a-a97bfb4c693a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2586,7 +2721,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3f29bc3a-08c0-4b75-9fa3-6c1b04a63844\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ae82519e-1bf6-437b-a12a-a97bfb4c693a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2614,9 +2749,9 @@
             },
             "type": "Opaque"
         },
-        "rabbitmq-cluster-operator-token-4bgfv": "SIEVE-IGNORE",
-        "rabbitmq-cluster-server-token-tj6v7": "SIEVE-IGNORE",
-        "snapshot-controller-token-4jthp": "SIEVE-IGNORE"
+        "rabbitmq-cluster-operator-token-6v6jb": "SIEVE-IGNORE",
+        "rabbitmq-cluster-server-token-cnxqq": "SIEVE-IGNORE",
+        "snapshot-controller-token-g6xs7": "SIEVE-IGNORE"
     },
     "service": {
         "kubernetes": {
@@ -2661,7 +2796,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "150",
+                "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -2704,7 +2839,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3f29bc3a-08c0-4b75-9fa3-6c1b04a63844\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ae82519e-1bf6-437b-a12a-a97bfb4c693a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2802,7 +2937,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3f29bc3a-08c0-4b75-9fa3-6c1b04a63844\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ae82519e-1bf6-437b-a12a-a97bfb4c693a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2850,7 +2985,7 @@
                         "uid": "SIEVE-IGNORE"
                     }
                 ],
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "1095",
                 "selfLink": "/api/v1/namespaces/default/services/rabbitmq-cluster-nodes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -3308,7 +3443,7 @@
                 ],
                 "name": "csi-hostpathplugin",
                 "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "866",
                 "selfLink": "/apis/apps/v1/namespaces/default/statefulsets/csi-hostpathplugin",
                 "uid": "SIEVE-IGNORE"
             },
@@ -3695,7 +3830,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3f29bc3a-08c0-4b75-9fa3-6c1b04a63844\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ae82519e-1bf6-437b-a12a-a97bfb4c693a\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
