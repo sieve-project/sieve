@@ -48,7 +48,9 @@ def save_run_result(
                         "duration": time.time() - start_time,
                         "ret_val": ret_val,
                         "messages": messages,
-                        "test_config_content": open(test_config).read() if mode != "vanilla" else None,
+                        "test_config_content": open(test_config).read()
+                        if mode != "vanilla"
+                        else None,
                         "host": socket.gethostname(),
                     }
                 }
@@ -421,10 +423,15 @@ def run_test(
     test_context: TestContext,
 ) -> Tuple[int, str]:
     try:
-        if test_context.phase == "all" or test_context.phase == "setup_only":
+        if (
+            test_context.phase == "all"
+            or test_context.phase == "setup_only"
+            or test_context.phase == "setup_and_workload"
+        ):
             setup_cluster(test_context)
         if (
             test_context.phase == "all"
+            or test_context.phase == "setup_and_workload"
             or test_context.phase == "workload_only"
             or test_context.phase == "workload_and_check"
         ):
@@ -483,7 +490,7 @@ def run(
         log_dir, project, test, stage, mode, os.path.basename(config)
     )
     print("Log dir: %s" % result_dir)
-    if phase == "all" or phase == "setup_only":
+    if phase == "all" or phase == "setup_only" or phase == "setup_and_workload":
         cmd_early_exit("rm -rf %s" % result_dir)
         os.makedirs(result_dir, exist_ok=True)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
@@ -680,6 +687,7 @@ if __name__ == "__main__":
         "setup_only",
         "workload_only",
         "check_only",
+        "setup_and_workload",
         "workload_and_check",
     ]:
         parser.error("invalid phase option: %s" % options.phase)
