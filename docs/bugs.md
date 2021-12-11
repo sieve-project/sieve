@@ -22,7 +22,7 @@ https://k8ssandra.atlassian.net/browse/K8SSAND-559 confirmed (time traveling)
 <!-- https://k8ssandra.atlassian.net/browse/K8SSAND-558 pending (by-product, performance overhead) -->
 <!-- previously https://github.com/datastax/cass-operator/issues/417 -->
 
-https://k8ssandra.atlassian.net/browse/K8SSAND-1023 confirmed (atomicity violation)
+https://k8ssandra.atlassian.net/browse/K8SSAND-1023 confirmed and fixed by us (atomicity violation)
 
 ## [Orange-OpenSource/casskop](https://github.com/Orange-OpenSource/casskop)
 https://github.com/Orange-OpenSource/casskop/issues/316 confirmed and fixed by us (time traveling)
@@ -49,7 +49,7 @@ https://github.com/rabbitmq/cluster-operator/issues/653 confirmed and fixed by d
 
 https://github.com/rabbitmq/cluster-operator/issues/758 confirmed (observability gaps)
 
-https://github.com/rabbitmq/cluster-operator/issues/782 confirmed (atomicity violation)
+https://github.com/rabbitmq/cluster-operator/issues/782 confirmed and fixed by devs (atomicity violation)
 
 ## [percona/percona-server-mongodb-operator](https://github.com/percona/percona-server-mongodb-operator)
 https://jira.percona.com/browse/K8SPSMDB-430 confirmed and fixed by us (time traveling)
