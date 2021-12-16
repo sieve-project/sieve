@@ -349,7 +349,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1e40e9ab-9625-4a8b-9548-7901f2090e8b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e1b476a3-e93d-4c53-b6a2-2883129e97d2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -472,7 +472,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3f78ea40-4279-40e2-9afb-556773e5b228\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ad95b7f9-eb99-45cf-8851-440c62e7f4b3\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1170,7 +1170,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "csi-hostpathplugin-0",
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker2",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1394,7 +1394,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.4",
                 "phase": "Running",
                 "podIP": "10.244.2.2",
                 "podIPs": [
@@ -1513,7 +1513,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"2605f042-f7e4-4b1a-b1eb-ec82200bc189\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"dfe86aa6-84c0-4862-953a-2dd7f7397d41\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2080,7 +2080,7 @@
                         ]
                     }
                 ],
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker2",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2250,7 +2250,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.4",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -2282,7 +2282,7 @@
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "rabbitmq-operator-b7d5945b-dzjjl": "SIEVE-IGNORE",
+        "rabbitmq-operator-b7d5945b-7m2r5": "SIEVE-IGNORE",
         "snapshot-controller-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -2307,7 +2307,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"ee99815f-c9da-417e-946c-430c2a16c53d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"aca0781f-51dd-4027-9ac5-e77b9d88b6af\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2345,60 +2345,21 @@
                         "fieldsV1": {
                             "f:status": {
                                 "f:conditions": {
-                                    ".": "SIEVE-IGNORE",
-                                    "k:{\"type\":\"PodScheduled\"}": "SIEVE-IGNORE"
-                                }
+                                    "k:{\"type\":\"ContainersReady\"}": "SIEVE-IGNORE",
+                                    "k:{\"type\":\"Initialized\"}": "SIEVE-IGNORE",
+                                    "k:{\"type\":\"Ready\"}": "SIEVE-IGNORE"
+                                },
+                                "f:containerStatuses": "SIEVE-IGNORE",
+                                "f:hostIP": "SIEVE-IGNORE",
+                                "f:phase": "SIEVE-IGNORE",
+                                "f:podIP": "SIEVE-IGNORE",
+                                "f:podIPs": "SIEVE-IGNORE",
+                                "f:startTime": "SIEVE-IGNORE"
                             }
                         },
                         "manager": "SIEVE-IGNORE",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:status": {
-                                "f:conditions": {
-                                    "k:{\"type\":\"ContainersReady\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    },
-                                    "k:{\"type\":\"Initialized\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    },
-                                    "k:{\"type\":\"Ready\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    }
-                                },
-                                "f:containerStatuses": {},
-                                "f:hostIP": {},
-                                "f:phase": {},
-                                "f:podIP": {},
-                                "f:podIPs": {
-                                    ".": {},
-                                    "k:{\"ip\":\"10.244.1.2\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
-                                },
-                                "f:startTime": {}
-                            }
-                        },
-                        "manager": "kubelet",
-                        "operation": "Update",
-                        "time": "2021-12-15T16:24:26Z"
                     }
                 ],
                 "name": "snapshot-controller-0",
@@ -2442,7 +2403,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "snapshot-controller-0",
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2621,13 +2582,13 @@
         }
     },
     "secret": {
-        "csi-attacher-token-rm96p": "SIEVE-IGNORE",
-        "csi-external-health-monitor-controller-token-gghvs": "SIEVE-IGNORE",
-        "csi-hostpathplugin-sa-token-g8zdk": "SIEVE-IGNORE",
-        "csi-provisioner-token-jfd5z": "SIEVE-IGNORE",
-        "csi-resizer-token-jhc27": "SIEVE-IGNORE",
-        "csi-snapshotter-token-rfs9k": "SIEVE-IGNORE",
-        "default-token-7v69m": "SIEVE-IGNORE",
+        "csi-attacher-token-nkckj": "SIEVE-IGNORE",
+        "csi-external-health-monitor-controller-token-q9vll": "SIEVE-IGNORE",
+        "csi-hostpathplugin-sa-token-flvg6": "SIEVE-IGNORE",
+        "csi-provisioner-token-qdvnf": "SIEVE-IGNORE",
+        "csi-resizer-token-wgblm": "SIEVE-IGNORE",
+        "csi-snapshotter-token-dbrrt": "SIEVE-IGNORE",
+        "default-token-z6h8j": "SIEVE-IGNORE",
         "rabbitmq-cluster-default-user": {
             "data": {
                 "default_user.conf": "SIEVE-IGNORE",
@@ -2665,7 +2626,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1e40e9ab-9625-4a8b-9548-7901f2090e8b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e1b476a3-e93d-4c53-b6a2-2883129e97d2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2722,7 +2683,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1e40e9ab-9625-4a8b-9548-7901f2090e8b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e1b476a3-e93d-4c53-b6a2-2883129e97d2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2750,9 +2711,9 @@
             },
             "type": "Opaque"
         },
-        "rabbitmq-cluster-operator-token-dklxj": "SIEVE-IGNORE",
-        "rabbitmq-cluster-server-token-dvvcm": "SIEVE-IGNORE",
-        "snapshot-controller-token-4nm28": "SIEVE-IGNORE"
+        "rabbitmq-cluster-operator-token-v8dlk": "SIEVE-IGNORE",
+        "rabbitmq-cluster-server-token-ft7kh": "SIEVE-IGNORE",
+        "snapshot-controller-token-nswdp": "SIEVE-IGNORE"
     },
     "service": {
         "kubernetes": {
@@ -2840,7 +2801,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1e40e9ab-9625-4a8b-9548-7901f2090e8b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e1b476a3-e93d-4c53-b6a2-2883129e97d2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2894,16 +2855,16 @@
                 "clusterIP": "SIEVE-IGNORE",
                 "ports": [
                     {
-                        "name": "amqp",
-                        "port": 5672,
+                        "name": "SIEVE-IGNORE",
+                        "port": "SIEVE-IGNORE",
                         "protocol": "TCP",
-                        "targetPort": 5672
+                        "targetPort": "SIEVE-IGNORE"
                     },
                     {
-                        "name": "management",
-                        "port": 15672,
+                        "name": "SIEVE-IGNORE",
+                        "port": "SIEVE-IGNORE",
                         "protocol": "TCP",
-                        "targetPort": 15672
+                        "targetPort": "SIEVE-IGNORE"
                     }
                 ],
                 "selector": {
@@ -2938,7 +2899,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1e40e9ab-9625-4a8b-9548-7901f2090e8b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e1b476a3-e93d-4c53-b6a2-2883129e97d2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3831,7 +3792,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1e40e9ab-9625-4a8b-9548-7901f2090e8b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"e1b476a3-e93d-4c53-b6a2-2883129e97d2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
