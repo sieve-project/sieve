@@ -770,7 +770,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                    "volume.kubernetes.io/selected-node": "kind-worker"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -873,7 +873,7 @@
         }
     },
     "pod": {
-        "cass-operator-595d8d4bc7-dljs8": "SIEVE-IGNORE",
+        "cass-operator-595d8d4bc7-8n8b5": "SIEVE-IGNORE",
         "cluster1-cassandra-datacenter-default-sts-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -906,7 +906,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"5057339f-f304-4992-b8ad-0d9f3e0be11b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"ed992afe-8faf-4158-8278-f940e5383e89\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1268,7 +1268,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.7\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.1.6\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -1580,7 +1583,7 @@
                         ]
                     }
                 ],
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1693,7 +1696,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.3",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -1715,20 +1718,20 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.1.6",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.1.6"
                     }
                 ],
                 "qosClass": "Burstable",
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "local-path-provisioner-579c65cb9b-wxgj5": "SIEVE-IGNORE"
+        "local-path-provisioner-579c65cb9b-p54nh": "SIEVE-IGNORE"
     },
     "secret": {
-        "cass-operator-token-rqpsh": "SIEVE-IGNORE",
+        "cass-operator-token-lbdl9": "SIEVE-IGNORE",
         "cass-operator-webhook-config": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -1889,8 +1892,8 @@
             },
             "type": "Opaque"
         },
-        "default-token-hgpq5": "SIEVE-IGNORE",
-        "local-path-provisioner-service-account-token-r92d8": "SIEVE-IGNORE"
+        "default-token-b78mv": "SIEVE-IGNORE",
+        "local-path-provisioner-service-account-token-4xzzz": "SIEVE-IGNORE"
     },
     "service": {
         "cass-operator-metrics": {
@@ -1911,7 +1914,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"88df4c4c-f128-47cf-b706-0cf8b4824424\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"07333d78-4b01-4dca-ae7b-b5e599537543\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2090,7 +2093,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d88b8651-6789-48fb-8d50-559d17caefa2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"da14ebcc-7b1d-4b36-84c0-dcf9b8ca2c23\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2213,7 +2216,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d88b8651-6789-48fb-8d50-559d17caefa2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"da14ebcc-7b1d-4b36-84c0-dcf9b8ca2c23\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2358,7 +2361,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d88b8651-6789-48fb-8d50-559d17caefa2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"da14ebcc-7b1d-4b36-84c0-dcf9b8ca2c23\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2505,7 +2508,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d88b8651-6789-48fb-8d50-559d17caefa2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"da14ebcc-7b1d-4b36-84c0-dcf9b8ca2c23\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
