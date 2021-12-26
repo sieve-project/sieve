@@ -92,7 +92,7 @@
             "status/containerStatuses/*/ready",
             "status/containerStatuses/*/restartCount",
             "status/containerStatuses/*/started",
-            "status/containerStatuses/*/state/waiting",
+            "status/containerStatuses/*/state/running",
             "status/hostIP",
             "status/podIP",
             "status/podIPs/*/ip",
@@ -143,8 +143,11 @@
             "status/containerStatuses/*/containerID",
             "status/containerStatuses/*/image",
             "status/containerStatuses/*/imageID",
+            "status/containerStatuses/*/lastState/terminated",
+            "status/containerStatuses/*/ready",
             "status/containerStatuses/*/restartCount",
-            "status/containerStatuses/*/state/running/startedAt",
+            "status/containerStatuses/*/started",
+            "status/containerStatuses/*/state/terminated",
             "status/hostIP",
             "status/podIP",
             "status/podIPs/*/ip",
@@ -316,7 +319,8 @@
             "metadata/uid",
             "spec/template/spec/containers/*/env",
             "spec/template/spec/containers/*/image",
-            "status/observedGeneration"
+            "status/observedGeneration",
+            "status/readyReplicas"
         ],
         "yb-tserver": [
             "metadata/creationTimestamp",
