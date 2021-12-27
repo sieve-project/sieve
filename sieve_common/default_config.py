@@ -15,7 +15,7 @@ sieve_config = {
     "generic_object_event_checker_enabled": True,
     "generic_type_event_checker_enabled": False,
     "generic_state_checker_enabled": True,
-    "operator_checker_enabled": True,
+    "exception_checker_enabled": True,
     "test_workload_checker_enabled": True,
     "injection_desc_generation_enabled": True,
     "spec_generation_detectable_pass_enabled": True,
