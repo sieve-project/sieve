@@ -5,6 +5,7 @@ from sieve_oracle.checker_common import *
 from sieve_common.default_config import sieve_config
 import deepdiff
 from deepdiff import DeepDiff
+import controllers
 
 
 def get_resource_helper(func):
@@ -36,6 +37,14 @@ def get_crd(crd):
     return data
 
 
+def get_state_mask(test_context: TestContext):
+    return (
+        controllers.state_mask[test_context.project]
+        if test_context.project in controllers.state_mask
+        else {}
+    )
+
+
 def generate_state(test_context: TestContext):
     # print("Generating cluster resources digest...")
     kubernetes.config.load_kube_config()
@@ -61,8 +70,10 @@ def generate_state(test_context: TestContext):
     return state
 
 
-def resource_state_masked(name):
+def resource_state_masked(name, resource_key, field_key, state_mask):
     if name == "sieve-testing-global-config":
+        return True
+    elif resource_key in state_mask and field_key in state_mask[resource_key]:
         return True
     return False
 
@@ -206,6 +217,7 @@ def check_single_state(state, resource_keys, checker_name, customized_checker):
 def compare_states(test_context: TestContext):
     canonicalized_state = get_canonicalized_state(test_context)
     testing_state = get_testing_state(test_context)
+    state_mask = get_state_mask(test_context)
 
     ret_val = 0
     messages = []
@@ -270,7 +282,10 @@ def compare_states(test_context: TestContext):
             name = nested_get(source, path[:2] + ["metadata", "name"])
             namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
 
-            if resource_state_masked(name):
+            resource_key = "/".join([resource_type, namespace, name])
+            field_key = "/".join(map(str, path[2:]))
+
+            if resource_state_masked(name, resource_key, field_key, state_mask):
                 continue
 
             ret_val += 1
@@ -279,8 +294,8 @@ def compare_states(test_context: TestContext):
                     generate_alarm(
                         "[RESOURCE-KEY-ADD]",
                         "{} {} {} {} {}".format(
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "not seen during learning run, but seen as",
                             key.t2,
                             "during testing run",
@@ -292,8 +307,8 @@ def compare_states(test_context: TestContext):
                     generate_alarm(
                         "[RESOURCE-KEY-REMOVE]",
                         "{} {} {} {} {}".format(
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "seen as",
                             key.t1,
                             "during learning run, but not seen during testing run",
@@ -305,8 +320,8 @@ def compare_states(test_context: TestContext):
                     generate_alarm(
                         "[RESOURCE-KEY-DIFF]",
                         "{} {} {} {} {} {} {}".format(
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "is",
                             key.t1,
                             "during learning run, but",
@@ -321,8 +336,8 @@ def compare_states(test_context: TestContext):
                         "[RESOURCE-KEY-UNKNOWN-CHANGE]",
                         "{} {} {} {} {} {} {}".format(
                             delta_type,
-                            "/".join([resource_type, namespace, name]),
-                            "/".join(map(str, path[2:])),
+                            resource_key,
+                            field_key,
                             "is",
                             key.t1,
                             " => ",
