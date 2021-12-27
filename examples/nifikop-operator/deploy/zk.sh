@@ -7,5 +7,6 @@ helm install zookeeper bitnami/zookeeper \
     --set resources.limits.cpu=250m \
     --set global.storageClass=standard \
     --set networkPolicy.enabled=false \
-    --set replicaCount=1
+    --set replicaCount=1 \
+    --version v7.4.3
 

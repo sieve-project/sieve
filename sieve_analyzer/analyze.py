@@ -7,6 +7,7 @@ from typing import List
 from sieve_common.common import (
     CONFIGURED_MASK,
     TestContext,
+    fail,
     sieve_modes,
     sieve_stages,
 )
@@ -257,8 +258,8 @@ def generate_hear_write_pairs(causality_graph: CausalityGraph):
     operator_hear_vertices = causality_graph.operator_hear_vertices
     operator_write_vertices = causality_graph.operator_write_vertices
     vertex_pairs = base_pass(operator_hear_vertices, operator_write_vertices)
-    if ERROR_MSG_FILTER_FLAG:
-        vertex_pairs = error_msg_filtering_pass(vertex_pairs)
+    # if ERROR_MSG_FILTER_FLAG:
+    #     vertex_pairs = error_msg_filtering_pass(vertex_pairs)
     if HEAR_READ_FILTER_FLAG:
         vertex_pairs = hear_read_overlap_filtering_pass(vertex_pairs)
     return vertex_pairs
@@ -313,23 +314,25 @@ def build_causality_graph(log_path, oracle_dir):
     return causality_graph
 
 
-def generate_test_config(analysis_mode, project, log_dir, causality_graph):
+def generate_test_config(
+    analysis_mode, causality_graph: CausalityGraph, test_context: TestContext
+):
+    log_dir = test_context.result_dir
     generated_config_dir = os.path.join(log_dir, analysis_mode)
     if os.path.isdir(generated_config_dir):
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.TIME_TRAVEL:
-        time_travel_analysis(causality_graph, generated_config_dir, project)
+        return time_travel_analysis(causality_graph, generated_config_dir, test_context)
     elif analysis_mode == sieve_modes.OBS_GAP:
-        obs_gap_analysis(causality_graph, generated_config_dir, project)
+        return obs_gap_analysis(causality_graph, generated_config_dir, test_context)
     elif analysis_mode == sieve_modes.ATOM_VIO:
-        atom_vio_analysis(causality_graph, generated_config_dir, project)
+        return atom_vio_analysis(causality_graph, generated_config_dir, test_context)
 
 
 def analyze_trace(
     test_context: TestContext,
 ):
-    project = test_context.project
     log_dir = test_context.result_dir
     oracle_dir = test_context.oracle_dir
 
@@ -337,53 +340,39 @@ def analyze_trace(
     print("Sanity checking the sieve log %s..." % log_path)
     sanity_check_sieve_log(log_path)
 
+    if not os.path.exists(os.path.join(oracle_dir, "mask.json")):
+        fail("cannot find mask.json")
+        return
     causality_graph = build_causality_graph(log_path, oracle_dir)
+    sieve_learn_result = {
+        "project": test_context.project,
+        "test": test_context.test_name,
+    }
     for analysis_mode in [
         sieve_modes.TIME_TRAVEL,
         sieve_modes.OBS_GAP,
         sieve_modes.ATOM_VIO,
     ]:
-        generate_test_config(analysis_mode, project, log_dir, causality_graph)
+        (
+            baseline_spec_number,
+            after_p1_spec_number,
+            after_p2_spec_number,
+            final_spec_number,
+        ) = generate_test_config(analysis_mode, causality_graph, test_context)
+        sieve_learn_result[analysis_mode] = {
+            "baseline": baseline_spec_number,
+            "after_p1": after_p1_spec_number,
+            "after_p2": after_p2_spec_number,
+            "final": final_spec_number,
+        }
 
-
-def analyze(project, test):
-    print("Analyzing controller trace for %s's test workload %s..." % (project, test))
-    log_dir = os.path.join(
-        "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE
+    result_filename = "sieve_learn_results/{}-{}.json".format(
+        test_context.project, test_context.test_name
     )
-    analyze_trace(
-        project,
-        log_dir,
-    )
-
-
-if __name__ == "__main__":
-    usage = "usage: python3 analyze.py [options]"
-    parser = optparse.OptionParser(usage=usage)
-    parser.add_option(
-        "-p",
-        "--project",
-        dest="project",
-        help="specify PROJECT",
-        metavar="PROJECT",
-    )
-    parser.add_option(
-        "-t",
-        "--test",
-        dest="test",
-        help="specify TEST to run",
-        metavar="TEST",
-    )
-    (options, args) = parser.parse_args()
-    if options.project is None:
-        parser.error("parameter project required")
-    project = options.project
-    if project == "all":
-        for operator in test_suites:
-            for test in test_suites[operator]:
-                analyze(operator, test)
-    else:
-        if options.test is None:
-            parser.error("parameter test required")
-        test = options.test
-        analyze(project, test)
+    os.makedirs("sieve_learn_results", exist_ok=True)
+    with open(result_filename, "w") as test_result_json:
+        json.dump(
+            sieve_learn_result,
+            test_result_json,
+            indent=4,
+        )

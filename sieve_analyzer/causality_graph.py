@@ -443,6 +443,7 @@ class CausalityGraph:
                     masked_paths,
                     True,
                 )
+                operator_write.prev_obj_map = prev_read_obj_map
                 operator_write.slim_prev_obj_map = slim_prev_object
                 operator_write.slim_cur_obj_map = slim_cur_object
                 operator_write.prev_etype = prev_read_etype
@@ -485,7 +486,7 @@ class CausalityGraph:
         self.compute_event_cancel()
 
 
-def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex):
+def causality_vertices_reachable(source: CausalityVertex, sink: CausalityVertex):
     # there should be no cycles in the casuality graph
     queue = []
     visited = set()
@@ -506,4 +507,11 @@ def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex)
                 if edge.sink.gid not in visited:
                     visited.add(edge.sink.gid)
                     queue.append(edge.sink)
+    return False
+
+
+def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex):
+    for edge in source.out_inter_reconciler_edges:
+        if edge.sink.gid == sink.gid:
+            return True
     return False

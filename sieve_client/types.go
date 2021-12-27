@@ -77,6 +77,7 @@ type NotifyAtomVioAfterSideEffectsRequest struct {
 	SideEffectType string
 	Object         string
 	ResourceType   string
+	ReconcilerType string
 	Error          string
 }
 
@@ -127,15 +128,17 @@ type NotifyLearnAfterOperatorListRequest struct {
 }
 
 type NotifyAtomVioAfterOperatorGetRequest struct {
-	ResourceType string
-	Namespace    string
-	Name         string
-	Object       string
-	Error        string
+	ResourceType   string
+	Namespace      string
+	Name           string
+	Object         string
+	ReconcilerType string
+	Error          string
 }
 
 type NotifyAtomVioAfterOperatorListRequest struct {
-	ResourceType string
-	ObjectList   string
-	Error        string
+	ResourceType   string
+	ObjectList     string
+	ReconcilerType string
+	Error          string
 }

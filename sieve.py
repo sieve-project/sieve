@@ -40,7 +40,7 @@ from sieve_common.common import (
 def save_run_result(
     project, test, mode, stage, test_config, ret_val, messages, start_time
 ):
-    if stage != sieve_stages.TEST or mode == sieve_modes.VANILLA:
+    if stage != sieve_stages.TEST:
         return
 
     result_map = {
@@ -51,7 +51,9 @@ def save_run_result(
                         "duration": time.time() - start_time,
                         "ret_val": ret_val,
                         "messages": messages,
-                        "test_config_content": open(test_config).read(),
+                        "test_config_content": open(test_config).read()
+                        if mode != "vanilla"
+                        else None,
                         "host": socket.gethostname(),
                     }
                 }
@@ -157,15 +159,18 @@ def redirect_kubectl():
 
 
 def prepare_sieve_server(test_context: TestContext):
-    configured_mask = "configured-mask.json"
-    configured_mask_map = {
-        "keys": [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")],
-        "paths": [path for path in CONFIGURED_MASK if not path.startswith("**/")],
-    }
-    json.dump(configured_mask_map, open(configured_mask, "w"), indent=4, sort_keys=True)
-    learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
-    cmd_early_exit("mv %s sieve_server/configured-mask.json" % configured_mask)
-    cmd_early_exit("cp %s sieve_server/learned-mask.json" % learned_mask)
+    if test_context.stage == sieve_stages.TEST:
+        configured_mask = "configured-mask.json"
+        configured_mask_map = {
+            "keys": [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")],
+            "paths": [path for path in CONFIGURED_MASK if not path.startswith("**/")],
+        }
+        json.dump(
+            configured_mask_map, open(configured_mask, "w"), indent=4, sort_keys=True
+        )
+        learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
+        cmd_early_exit("mv %s sieve_server/configured-mask.json" % configured_mask)
+        cmd_early_exit("cp %s sieve_server/learned-mask.json" % learned_mask)
     cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_config)
     org_dir = os.getcwd()
     os.chdir("sieve_server")
@@ -410,10 +415,15 @@ def run_test(
     test_context: TestContext,
 ) -> Tuple[int, str]:
     try:
-        if test_context.phase == "all" or test_context.phase == "setup_only":
+        if (
+            test_context.phase == "all"
+            or test_context.phase == "setup_only"
+            or test_context.phase == "setup_and_workload"
+        ):
             setup_cluster(test_context)
         if (
             test_context.phase == "all"
+            or test_context.phase == "setup_and_workload"
             or test_context.phase == "workload_only"
             or test_context.phase == "workload_and_check"
         ):
@@ -472,7 +482,7 @@ def run(
         log_dir, project, test, stage, mode, os.path.basename(config)
     )
     print("Log dir: %s" % result_dir)
-    if phase == "all" or phase == "setup_only":
+    if phase == "all" or phase == "setup_only" or phase == "setup_and_workload":
         cmd_early_exit("rm -rf %s" % result_dir)
         os.makedirs(result_dir, exist_ok=True)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
@@ -669,6 +679,7 @@ if __name__ == "__main__":
         "setup_only",
         "workload_only",
         "check_only",
+        "setup_and_workload",
         "workload_and_check",
     ]:
         parser.error("invalid phase option: %s" % options.phase)

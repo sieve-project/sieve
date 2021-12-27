@@ -48,6 +48,9 @@ if __name__ == "__main__":
         pull_command_file.write(
             "docker pull {}/node:{}\n".format(args.docker, "atomicity-violation")
         )
+        pull_command_file.write(
+            "docker pull {}/node:{}\n".format(args.docker, "vanilla")
+        )
 
         for operator in operators:
             for mode in modes:
@@ -56,21 +59,28 @@ if __name__ == "__main__":
                     "docker pull {}/{}:{}\n".format(args.docker, operator, mode)
                 )
 
-                # write commands for each test case
-                for testcase in os.listdir(os.path.join("../log", operator)):
-                    configs = glob.glob(
-                        os.path.join(
-                            os.path.abspath("../log"),
-                            operator,
-                            testcase,
-                            "learn/learn-once/learn.yaml",
-                            mode,
-                            "*.yaml",
+                if mode == 'vanilla':
+                    command_file.write(
+                        "python3 sieve.py -s test -p {} -m {} -t {} -d {}\n".format(
+                            operator, mode_map[mode], testcase, args.docker
                         )
                     )
-                    for config in configs:
-                        command_file.write(
-                            "python3 sieve.py -s test -p {} -m {} -t {} -c {} -d {}\n".format(
-                                operator, mode_map[mode], testcase, config, args.docker
+                else:
+                    # write commands for each test case
+                    for testcase in os.listdir(os.path.join("../log", operator)):
+                        configs = glob.glob(
+                            os.path.join(
+                                os.path.abspath("../log"),
+                                operator,
+                                testcase,
+                                "learn/learn-once/learn.yaml",
+                                mode,
+                                "*.yaml",
                             )
                         )
+                        for config in configs:
+                            command_file.write(
+                                "python3 sieve.py -s test -p {} -m {} -t {} -c {} -d {}\n".format(
+                                    operator, mode_map[mode], testcase, config, args.docker
+                                )
+                            )

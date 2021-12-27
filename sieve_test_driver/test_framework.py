@@ -62,6 +62,12 @@ def get_pvc(resource_name, namespace):
     for pvc in pvcs:
         if pvc.metadata.name == resource_name:
             target_pvc = pvc
+            break
+        elif resource_name.endswith("*"):
+            resource_name_prefix = resource_name[:-1]
+            if pvc.metadata.name.startswith(resource_name_prefix):
+                target_pvc = pvc
+                break
     return target_pvc
 
 
@@ -119,6 +125,11 @@ class TestCmd:
         proc = subprocess.Popen(self.cmd, shell=True)
         try:
             proc.wait(timeout=60)
+            if proc.returncode != 0:
+                return 1, "cmd '%s' return non-zero code %d " % (
+                    self.cmd,
+                    proc.returncode,
+                )
         except subprocess.TimeoutExpired:
             proc.terminate()
             return 2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
@@ -359,16 +370,21 @@ class TestWaitForExistence:
         while True:
             duration = time.time() - s
             if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
-                error_message = (
-                    "soft timeout: %s does not become %s within %d seconds; we will continue"
-                    % (self.resource_name, self.status, self.soft_time_out)
+                error_message = "soft timeout: %s does not become %s within %d seconds; we will continue" % (
+                    self.resource_name,
+                    "exist" if self.exist else "non-exist",
+                    self.soft_time_out,
                 )
                 print(error_message)
                 return 0, NO_ERROR_MESSAGE
             if duration > self.hard_time_out:
                 error_message = (
                     "hard timeout: %s does not become %s within %d seconds"
-                    % (self.resource_name, self.status, self.hard_time_out)
+                    % (
+                        self.resource_name,
+                        "exist" if self.exist else "non-exist",
+                        self.hard_time_out,
+                    )
                 )
                 print(error_message)
                 return 1, error_message
@@ -410,10 +426,13 @@ class TestWaitForCRConditions:
             key_path_tokens = key_path.split("/")
             inner_resource = custom_resource
             for token in key_path_tokens:
+                if not token in inner_resource:
+                    return False
                 inner_resource = inner_resource[token]
             # print(inner_resource, desired_value)
             if not inner_resource == desired_value:
                 # print("false")
+                # print(inner_resource, desired_value)
                 return False
         return True
 

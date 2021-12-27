@@ -343,6 +343,7 @@ class OperatorWrite:
         self.__read_keys = set()
         self.__owner_controllers = set()
         self.__key = generate_key(self.rtype, self.namespace, self.name)
+        self.__prev_obj_map = None
         self.__slim_prev_obj_map = None
         self.__slim_cur_obj_map = None
         self.__prev_etype = EVENT_NONE_TYPE
@@ -413,6 +414,10 @@ class OperatorWrite:
         return self.__key
 
     @property
+    def prev_obj_map(self):
+        return self.__prev_obj_map
+
+    @property
     def slim_prev_obj_map(self):
         return self.__slim_prev_obj_map
 
@@ -443,6 +448,10 @@ class OperatorWrite:
     @read_keys.setter
     def read_keys(self, read_keys: Set[str]):
         self.__read_keys = read_keys
+
+    @prev_obj_map.setter
+    def prev_obj_map(self, prev_obj_map: Dict):
+        self.__prev_obj_map = prev_obj_map
 
     @slim_prev_obj_map.setter
     def slim_prev_obj_map(self, slim_prev_obj_map: Dict):

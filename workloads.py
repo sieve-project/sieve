@@ -58,6 +58,7 @@ workloads = {
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", RUNNING)
         .cmd("kubectl apply -f examples/casskop-operator/test/nodes-1.yaml")
+        .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", TERMINATED)
         .cmd("kubectl apply -f examples/casskop-operator/test/nodes-0.yaml"),
         # TODO(wenqing): Please fix this test case. As hinted in the operator log, we have to first set nodePerRack to 0 before resizing the dc
@@ -163,8 +164,8 @@ workloads = {
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
         .cmd("kubectl delete PerconaServerMongoDB mongodb-cluster")
-        .wait_for_pod_status("mongodb-cluster-rs0-2", TERMINATED)
-        .wait_for_pvc_status("mongod-data-mongodb-cluster-rs0-2", TERMINATED)
+        .wait_for_pod_status("mongodb-cluster-rs0-*", TERMINATED)
+        .wait_for_pvc_status("mongod-data-mongodb-cluster-rs0-*", TERMINATED)
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
         .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING),
         "disable-enable-shard": new_built_in_workload(70)
@@ -204,16 +205,28 @@ workloads = {
             "cert-manager-webhook-*", RUNNING, namespace="cert-manager"
         )
         .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
-        .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING),
+        .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
+        .wait(70),
+        "scaleup-scaledown": new_built_in_workload()
+        .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
+        .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
+        .cmd(
+            'kubectl patch PerconaServerMongoDB mongodb-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/replsets/0/size", "value": 5}]\''
+        )
+        .wait_for_pod_status("mongodb-cluster-rs0-4", RUNNING)
+        .cmd(
+            'kubectl patch PerconaServerMongoDB mongodb-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/replsets/0/size", "value": 3}]\''
+        )
+        .wait_for_pod_status("mongodb-cluster-rs0-3", TERMINATED)
+        .wait(70),
     },
     "xtradb-operator": {
         "recreate": new_built_in_workload(70)
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
         .cmd("kubectl delete perconaxtradbcluster xtradb-cluster")
-        .wait_for_pod_status("xtradb-cluster-pxc-0", TERMINATED)
-        .wait_for_pod_status("xtradb-cluster-pxc-1", TERMINATED)
-        .wait_for_pod_status("xtradb-cluster-pxc-2", TERMINATED)
+        .wait_for_pod_status("xtradb-cluster-pxc-*", TERMINATED)
+        .wait_for_pvc_status("datadir-xtradb-cluster-pxc-*", TERMINATED)
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
         .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300),
         "disable-enable-haproxy": new_built_in_workload(70)
@@ -248,10 +261,36 @@ workloads = {
             "cert-manager-webhook-*", RUNNING, namespace="cert-manager"
         )
         .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
-        .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 250),
+        .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 250)
+        .wait(70),
+        "scaleup-scaledown": new_built_in_workload()
+        .cmd("kubectl apply -f examples/xtradb-operator/test/cr.yaml")
+        .wait_for_pod_status("xtradb-cluster-pxc-2", RUNNING, 300)
+        .cmd(
+            'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"pxc":{"size":5}}}\''
+        )
+        .wait_for_pod_status("xtradb-cluster-pxc-3", RUNNING)
+        .wait_for_pod_status("xtradb-cluster-pxc-4", RUNNING)
+        .cmd(
+            'kubectl patch PerconaXtraDBCluster xtradb-cluster --type merge -p=\'{"spec":{"pxc":{"size":3}}}\''
+        )
+        .wait_for_pod_status("xtradb-cluster-pxc-3", TERMINATED, 300)
+        .wait_for_pod_status("xtradb-cluster-pxc-4", TERMINATED, 300)
+        .wait(70),
     },
     "yugabyte-operator": {
-        "disable-enable-tls": new_built_in_workload(70)
+        "recreate": new_built_in_workload()
+        .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-1.yaml")
+        .wait_for_pod_status("yb-master-2", RUNNING)
+        .wait_for_pod_status("yb-tserver-2", RUNNING)
+        .cmd("kubectl delete YBCluster example-ybcluster")
+        .wait_for_pod_status("yb-master-0", TERMINATED)
+        .wait_for_pod_status("yb-tserver-0", TERMINATED)
+        .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-1.yaml")
+        .wait_for_pod_status("yb-master-2", RUNNING)
+        .wait_for_pod_status("yb-tserver-2", RUNNING)
+        .wait(70),
+        "disable-enable-tls": new_built_in_workload()
         .cmd("kubectl apply -f examples/yugabyte-operator/test/yb-tls-enabled.yaml")
         .wait_for_pod_status("yb-master-2", RUNNING)
         .wait_for_pod_status("yb-tserver-2", RUNNING)
@@ -292,11 +331,69 @@ workloads = {
         ),
     },
     "nifikop-operator": {
-        "change-config": new_built_in_workload(60)
-        .cmd("kubectl apply -f examples/nifikop-operator/test/nc.yaml")
+        "change-config": new_built_in_workload()
+        .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
         .wait_for_pod_status("simplenifi-1-*", RUNNING, 220)
-        .cmd("kubectl apply -f examples/nifikop-operator/test/nc1.yaml")
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
+        .cmd("kubectl apply -f examples/nifikop-operator/test/nc-config.yaml")
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
         .wait(30)
-        .wait_for_pod_status("simplenifi-1-*", RUNNING, 120),
+        .wait_for_pod_status("simplenifi-1-*", RUNNING, 120)
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
+        .wait(60),
+        "recreate": new_built_in_workload()
+        .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
+        .wait_for_pod_status("simplenifi-1-*", RUNNING)
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
+        .cmd("kubectl delete nificluster simplenifi")
+        .wait_for_pod_status("simplenifi-1-*", TERMINATED)
+        .cmd("kubectl apply -f examples/nifikop-operator/test/nc-1.yaml")
+        .wait_for_pod_status("simplenifi-1-*", RUNNING)
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )  # then wait for finializer to be present
+        .wait(60),
+        "scaledown-scaleup": new_built_in_workload()
+        .cmd("kubectl apply -f examples/nifikop-operator/test/nc-2.yaml")
+        .wait_for_pod_status("simplenifi-1-*", RUNNING)
+        .wait_for_pod_status("simplenifi-2-*", RUNNING)
+        # then wait for finializer to be present
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        )
+        .cmd(
+            'kubectl patch nificluster simplenifi --type=\'json\' -p=\'[{"op": "remove", "path": "/spec/nodes/1"}]\''
+        )
+        .wait_for_pod_status("simplenifi-2-*", TERMINATED)
+        .cmd(
+            'kubectl patch nificluster simplenifi --type=\'json\' -p=\'[{"op": "add", "path": "/spec/nodes/1", "value": {"id": 2, "nodeConfigGroup": "default_group"}}]\''
+        )
+        .wait_for_pod_status("simplenifi-2-*", RUNNING)
+        # then wait for finializer to be present
+        .wait_for_cr_condition(
+            "nificluster",
+            "simplenifi",
+            [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
+        ).wait(60),
     },
 }
