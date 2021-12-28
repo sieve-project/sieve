@@ -95,13 +95,44 @@ def detectable_event_diff(
             return True
 
 
+def nondeterministic_key(project, test_name, event: Union[OperatorHear, OperatorWrite]):
+    rtype = event.rtype
+    name = event.name
+    generate_name = extract_generate_name(event.obj_map)
+    state_json_map = json.load(
+        open(os.path.join("examples", project, "oracle", test_name, "state.json"))
+    )
+    if rtype in state_json_map:
+        if name not in state_json_map[rtype]:
+            # TODO: get rid of the heuristic
+            if generate_name is not None and is_generated_random_name(
+                name, generate_name
+            ):
+                return True
+        elif state_json_map[rtype][name] == "SIEVE-IGNORE":
+            return True
+    return False
+
+
 def time_travel_detectable_pass(
-    causality_pairs: List[Tuple[CausalityVertex, CausalityVertex]]
+    project, test_name, causality_pairs: List[Tuple[CausalityVertex, CausalityVertex]]
 ):
     print("Running time travel detectable pass...")
     candidate_pairs = []
     for pair in causality_pairs:
         operator_hear = pair[0].content
+        operator_write = pair[1].content
+        if sieve_config["remove_nondeterministic_key_enabled"]:
+            if nondeterministic_key(
+                project,
+                test_name,
+                operator_hear,
+            ) or nondeterministic_key(
+                project,
+                test_name,
+                operator_write,
+            ):
+                continue
         if detectable_event_diff(
             sieve_modes.TIME_TRAVEL,
             operator_hear.slim_prev_obj_map,
@@ -238,6 +269,7 @@ def time_travel_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
     project = test_context.project
+    test_name = test_context.test_name
     candidate_pairs = get_time_travel_baseline(causality_graph)
     baseline_spec_number = len(candidate_pairs)
     after_p1_spec_number = -1
@@ -254,7 +286,9 @@ def time_travel_analysis(
             )
         after_p2_spec_number = len(candidate_pairs)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_pairs = time_travel_detectable_pass(candidate_pairs)
+        candidate_pairs = time_travel_detectable_pass(
+            project, test_name, candidate_pairs
+        )
     final_spec_number = len(candidate_pairs)
     i = 0
     for pair in candidate_pairs:
@@ -325,11 +359,20 @@ def time_travel_analysis(
     )
 
 
-def obs_gap_detectable_pass(causality_vertices: List[CausalityVertex]):
+def obs_gap_detectable_pass(
+    project, test_name, causality_vertices: List[CausalityVertex]
+):
     print("Running obs gap detectable pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_hear = vertex.content
+        if sieve_config["remove_nondeterministic_key_enabled"]:
+            if nondeterministic_key(
+                project,
+                test_name,
+                operator_hear,
+            ):
+                continue
         if detectable_event_diff(
             sieve_modes.OBS_GAP,
             operator_hear.slim_prev_obj_map,
@@ -390,6 +433,7 @@ def obs_gap_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
     project = test_context.project
+    test_name = test_context.test_name
     candidate_vertices = causality_graph.operator_hear_vertices
     candidate_vertices = overwrite_filtering_pass(candidate_vertices)
     baseline_spec_number = len(candidate_vertices)
@@ -406,7 +450,9 @@ def obs_gap_analysis(
     #         candidate_vertices = impact_filtering_pass(candidate_vertices)
     #     after_p2_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = obs_gap_detectable_pass(candidate_vertices)
+        candidate_vertices = obs_gap_detectable_pass(
+            project, test_name, candidate_vertices
+        )
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
@@ -441,11 +487,20 @@ def obs_gap_analysis(
     )
 
 
-def atom_vio_detectable_pass(causality_vertices: List[CausalityVertex]):
+def atom_vio_detectable_pass(
+    project, test_name, causality_vertices: List[CausalityVertex]
+):
     print("Running atom vio detectable pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_write = vertex.content
+        if sieve_config["remove_nondeterministic_key_enabled"]:
+            if nondeterministic_key(
+                project,
+                test_name,
+                operator_write,
+            ):
+                continue
         if detectable_event_diff(
             sieve_modes.ATOM_VIO,
             operator_write.slim_prev_obj_map,
@@ -516,6 +571,7 @@ def atom_vio_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
     project = test_context.project
+    test_name = test_context.test_name
     candidate_vertices = causality_graph.operator_write_vertices
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
@@ -527,7 +583,9 @@ def atom_vio_analysis(
             candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = atom_vio_detectable_pass(candidate_vertices)
+        candidate_vertices = atom_vio_detectable_pass(
+            project, test_name, candidate_vertices
+        )
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
