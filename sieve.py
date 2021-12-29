@@ -10,10 +10,13 @@ import glob
 from sieve_analyzer import analyze
 import controllers
 from sieve_oracle.oracle import (
-    generate_test_oracle,
-    print_error_and_debugging_info,
+    persistent_history_and_state,
+    canonicalize_history_and_state,
     generate_fatal,
     check,
+)
+from sieve_oracle.checker_common import (
+    print_error_and_debugging_info,
 )
 import yaml
 import subprocess
@@ -387,12 +390,9 @@ def run_workload(
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
-    generate_test_oracle(
-        test_context.project,
-        test_context.result_dir,
-        test_context.oracle_dir,
-        test_context.mode == sieve_modes.LEARN_TWICE,
-    )
+    persistent_history_and_state(test_context)
+    if test_context.mode == sieve_modes.LEARN_TWICE:
+        canonicalize_history_and_state(test_context)
 
 
 def check_result(
@@ -404,15 +404,7 @@ def check_result(
     else:
         if test_context.mode == sieve_modes.VANILLA:
             return 0, NO_ERROR_MESSAGE
-        ret_val, messages = check(
-            test_context,
-            controllers.event_mask[test_context.project]
-            if test_context.project in controllers.event_mask
-            else {},
-            controllers.state_mask[test_context.project]
-            if test_context.project in controllers.state_mask
-            else {},
-        )
+        ret_val, messages = check(test_context)
         open(os.path.join(test_context.result_dir, "bug-report.txt"), "w").write(
             messages
         )
