@@ -12,6 +12,16 @@ python3 reprod.py -p cass-operator -b atom-vio-1
 If reproduced, you will see:
 ```
 [ALARM][WORKLOAD] error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds
+[ALARM][WORKLOAD] error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds
+[ALARM][ALARM][RESOURCE-REMOVE] 7 secret seen after learning run ['cass-operator-token-lg7rs', 'cass-operator-webhook-config', 'cassandra-datacenter-ca-keystore', 'cassandra-datacenter-keystore', 'cluster1-superuser', 'default-token-z6zxt', 'local-path-provisioner-service-account-token-j254k'] but 6 secret seen after testing run ['cass-operator-token-hr7l4', 'cass-operator-webhook-config', 'cassandra-datacenter-ca-keystore', 'cluster1-superuser', 'default-token-z6fn2', 'local-path-provisioner-service-account-token-hdl8g']
+[ALARM][RESOURCE-KEY-ADD] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
+[ALARM][RESOURCE-KEY-ADD] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
+[ALARM][RESOURCE-KEY-ADD] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/initContainerStatuses/0/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
+[ALARM][RESOURCE-KEY-DIFF] cassandradatacenter/default/cassandra-datacenter status/cassandraOperatorProgress is Ready during learning run, but Updating during testing run
+[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/ready is True during learning run, but False during testing run
+[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/started is True during learning run, but False during testing run
+[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/ready is True during learning run, but False during testing run
+[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/started is True during learning run, but False during testing run
 ...
 ```
 The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
@@ -232,26 +242,16 @@ python3 reprod.py -p mongodb-operator -b time-travel-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 ADDED inconsistency: 2 events seen during learning run, but 
-3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 DELETED inconsistency: 1 events seen during learning run, bu
-t 2 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 ADDED inconsistency: 2 events seen during learning run, but 
-3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 DELETED inconsistency: 1 events seen during learning run, bu
-t 2 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 ADDED inconsistency: 2 events seen during learning run, but 
-3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 DELETED inconsistency: 1 events seen during learning run, bu
-t 2 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 ADDED inconsistency: 2 events seen during learning run, but 3 seen du
-ring testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 DELETED inconsistency: 1 events seen during learning run, but 2 seen 
-during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0 ADDED inconsistency: 3 events seen during learning run, but 4 seen during testing ru
-n
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0 DELETED inconsistency: 2 events seen during learning run, but 3 seen during testing 
-run
+[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0 ADDED inconsistency: 3 events seen during learning run, but 4 seen during testing run
+[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0 DELETED inconsistency: 2 events seen during learning run, but 3 seen during testing run
 [ALARM][RESOURCE-KEY-DIFF] perconaservermongodb/default/mongodb-cluster status/state is ready during learning run, but error during testing run
 [ALARM][RESOURCE-KEY-REMOVE] perconaservermongodb/default/mongodb-cluster status/mongoImage seen as percona/percona-server-mongodb:4.4.3-5 during learning run, but not seen during testing run
 [ALARM][RESOURCE-KEY-REMOVE] perconaservermongodb/default/mongodb-cluster status/mongoVersion seen as 4.4.3-5 during learning run, but not seen during testing run
