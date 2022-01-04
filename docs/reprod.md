@@ -5,28 +5,17 @@
 
 ### Atomicity violation
 
-### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
+### [k8ssandra-cass-operator-1023](https://k8ssandra.atlassian.net/browse/K8SSAND-1023)
 ```
-python3 reprod.py -p rabbitmq-operator -b atom-vio-1
-```
-If reproduced, you will see:
-```
-[RESOURCE DIFF]
-values_changed persistentvolumeclaim default persistence-rabbitmq-cluster-server-0 spec/resources/requests/storage 15Gi  =>  10Gi
-values_changed persistentvolumeclaim default persistence-rabbitmq-cluster-server-0 status/capacity/storage 15Gi  =>  10Gi
-```
-The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
-
-### [orange-opensource-nifikop-130](https://github.com/Orange-OpenSource/nifikop/issues/130)
-```
-python3 reprod.py -p nifikop-operator -b atom-vio-1
+python3 reprod.py -p cass-operator -b atom-vio-1
 ```
 If reproduced, you will see:
 ```
-[ERROR] pod/default/simplenifi-1.* CREATE inconsistency: 2 events seen during learning run, but 1 seen during testing run
-[ERROR] pod/default/simplenifi-1.* DELETE inconsistency: 1 events seen during learning run, but 0 seen during testing run
+[ALARM][WORKLOAD] error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds                     
+[ALARM][WORKLOAD] error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds
+...
 ```
-The bug was found in commit `1546e0242107bf2f2c1256db50f47c79956dd1c6`.
+The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
 
 ### [orange-opensource-casskop-370](https://github.com/Orange-OpenSource/casskop/issues/370)
 ```
@@ -34,9 +23,91 @@ python3 reprod.py -p casskop-operator -b atom-vio-1
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
+[ALARM][EVENT][KEY] /persistentvolumeclaims/default/data-cassandra-cluster-dc1-rack1-1 DELETED inconsistency: 1 events seen during learning run, but 0 seen during testing run
+[ALARM][ALARM][RESOURCE-ADD] persistentvolumeclaim/data-cassandra-cluster-dc1-rack1-1 is not seen during learning run, but seen during testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
+
+
+### [orange-opensource-nifikop-130](https://github.com/Orange-OpenSource/nifikop/issues/130)
+```
+python3 reprod.py -p nifikop-operator -b atom-vio-1
+```
+If reproduced, you will see:
+```
+[ALARM][EVENT][KEY] /pods/default/simplenifi-1-node* ADDED inconsistency: 2 events seen during learning run, but 1 seen during testing run
+[ALARM][EVENT][KEY] /pods/default/simplenifi-1-node* DELETED inconsistency: 1 events seen during learning run, but 0 seen during testing run
+```
+The bug was found in commit `1546e0242107bf2f2c1256db50f47c79956dd1c6`.
+
+### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
+```
+python3 reprod.py -p rabbitmq-operator -b atom-vio-1
+```
+If reproduced, you will see:
+```
+[ALARM][RESOURCE-KEY-DIFF] persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 spec/resources/requests/storage is 15Gi during learning run, but 10Gi during testing run
+[ALARM][RESOURCE-KEY-DIFF] persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 status/capacity/storage is 15Gi during learning run, but 10Gi during testing run
+```
+The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
+
+### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
+```
+python3 reprod.py -p rabbitmq-operator -b atom-vio-1
+```
+If reproduced, you will see:
+```
+[ALARM][RESOURCE-KEY-DIFF] persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 spec/resources/requests/storage is 15Gi during learning run, but 10Gi during testing run
+[ALARM][RESOURCE-KEY-DIFF] persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 status/capacity/storage is 15Gi during learning run, but 10Gi during testing run
+```
+The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
+
+### [percona-server-mongodb-operator-578](https://jira.percona.com/browse/K8SPSMDB-578)
+```
+python3 reprod.py -p mongodb-operator -b atom-vio-1
+```
+If reproduced, you will see:
+```
+[ALARM][ALARM][RESOURCE-REMOVE] 8 secret seen after learning run ['default-token-v5xjx', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'mongodb-cluster-ssl-internal', 'percona-server-mongodb-operator-token-ntftn'] but 7 secret seen after testing run ['default-token-2ftjd', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'percona-server-mongodb-operator-token-tgg6p']
+...
+```
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
+
+### [percona-server-mongodb-operator-579](https://jira.percona.com/browse/K8SPSMDB-579)
+```
+python3 reprod.py -p mongodb-operator -b atom-vio-2
+```
+If reproduced, you will see:
+```
+[ALARM][ALARM][RESOURCE-REMOVE] 8 secret seen after learning run ['default-token-wk4d2', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'mongodb-cluster-ssl-internal', 'percona-server-mongodb-operator-token-8gj55'] but 7 secret seen after testing run ['default-token-9fzlj', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'percona-server-mongodb-operator-token-qb5xx']
+[ALARM][ALARM][RESOURCE-REMOVE] certificate/mongodb-cluster-ssl-internal is seen during learning run, but not seen during testing run
+...
+```
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
+
+### [percona-xtradb-cluster-operator-896](https://jira.percona.com/browse/K8SPXC-896)
+```
+python3 reprod.py -p xtradb-operator -b atom-vio-1
+```
+If reproduced, you will see:
+```
+[ALARM][ALARM][RESOURCE-REMOVE] 6 secret seen after learning run ['default-token-nnl9s', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-z9v9v', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl', 'xtradb-cluster-ssl-internal'] but 5 secret seen after testing run ['default-token-v2vpv', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-mkmlg', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl']
+...
+```
+The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
+
+### [percona-xtradb-cluster-operator-897](https://jira.percona.com/browse/K8SPXC-897)
+```
+python3 reprod.py -p xtradb-operator -b atom-vio-2
+```
+If reproduced, you will see:
+```
+[ALARM][ALARM][RESOURCE-REMOVE] 6 secret seen after learning run ['default-token-sx9c2', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-fl84z', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl', 'xtradb-cluster-ssl-internal'] but 5 secret seen after testing run ['default-token-llvtq', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-bwpzc', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl']
+[ALARM][ALARM][RESOURCE-REMOVE] certificate/xtradb-cluster-ssl-internal is seen during learning run, but not seen during testing run
+[ALARM][ALARM][RESOURCE-REMOVE] certificaterequest/xtradb-cluster-ssl-internal-4197621709 is seen during learning run, but not seen during testing run
+...
+```
+The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### Observability gaps
 
@@ -72,20 +143,8 @@ If reproduced, you will see:
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
-<!-- ### [orange-opensource-casskop-357](https://github.com/Orange-OpenSource/casskop/issues/357)
-todo -->
-<!-- ```
-python3 reprod.py -p casskop-operator -b obs-gap-2
-```
-If reproduced, you will see:
-```
-[RESOURCE DIFF]
-[spec field changed] cassandracluster sonar-cassandra-cluster topology changed delta:  {'dc': {insert: [(0, {'name': 'SIEVE-IGNORE', 'nodesPerRacks': 1, 'rack': [{'name': 'SIEVE-IGNORE'}], 'resources': {}}), (1, {'name': 'SIEVE-IGNORE', 'nodesPerRacks': 1, 'rack': [{'name': 'SIEVE-IGNORE'}], 'resources': {}})]}}
-[status field changed] cassandracluster sonar-cassandra-cluster cassandraRackStatus changed delta:  {insert: {'dc2-rack1': {'cassandraLastAction': {'name': 'SIEVE-IGNORE', 'status': 'Ongoing'}, 'phase': 'Initializing', 'podLastOperation': {}}, 'dc3-rack1': {'cassandraLastAction': {'name': 'SIEVE-IGNORE', 'status': 'Ongoing'}, 'phase': 'Initializing', 'podLastOperation': {}}}}
-```
-The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`. -->
 
-### [yugabyte/yugabyte-operator-39](https://github.com/yugabyte/yugabyte-operator/issues/39)
+### [yugabyte-operator-39](https://github.com/yugabyte/yugabyte-operator/issues/39)
 ```
 python3 reprod.py -p yugabyte-operator -b obs-gap-1
 ```
