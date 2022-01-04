@@ -117,9 +117,25 @@ python3 reprod.py -p cassandra-operator -b obs-gap-1
 ```
 If reproduced, you will find
 ```
-[ERROR] persistentvolumeclaim SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
+[ALARM][RESOURCE-KEY-ADD] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/state/waiting not seen during learning run, but seen as {'message': 'back-off 1m20s restarting failed container=cassandra pod=cassandra-test-cluster-dc1-rack1-1_default(e43cb7fa-d3a3-4885-856b-a9ce94462dfd)', 'reason': 'CrashLoopBackOff'} during testing run
+[ALARM][RESOURCE-KEY-DIFF] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/ready is True during learning run, but False during testing run   
+[ALARM][RESOURCE-KEY-DIFF] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/started is True during learning run, but False during testing run
+[ALARM][RESOURCE-KEY-DIFF] statefulset/default/cassandra-test-cluster-dc1-rack1 status/readyReplicas is 2 during learning run, but 1 during testing run
+[ALARM][RESOURCE-KEY-REMOVE] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/state/running seen as {'startedAt': 'SIEVE-IGNORE'} during learning run, but not seen during testing run
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
+
+### [orange-opensource-casskop-342](https://github.com/Orange-OpenSource/casskop/issues/342)
+```
+python3 reprod.py -p casskop-operator -b obs-gap-1
+```
+If reproduced, you will find
+```
+[ALARM][ALARM][RESOURCE-ADD] 2 pod seen after learning run ['cassandra-cluster-dc1-rack1-0', 'casskop-operator-546674cfdd-z4gbj'] but 3 pod seen after testing run ['cassandra-cluster-dc1-rack1-0', 'cassandra-cluster-dc1-rack1-1', 'casskop-operator-57f5584bf6-djb4x']
+[ALARM][ALARM][RESOURCE-ADD] persistentvolumeclaim/data-cassandra-cluster-dc1-rack1-1 is not seen during learning run, but seen during testing run
+...
+```
+The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [rabbitmq-cluster-operator-758](https://github.com/rabbitmq/cluster-operator/issues/758)
 ```
@@ -127,22 +143,21 @@ python3 reprod.py -p rabbitmq-operator -b obs-gap-1
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim SIZE inconsistency: 3 seen after learning run, but 2 seen after testing run
-[ERROR] pod SIZE inconsistency: 4 seen after learning run, but 3 seen after testing run
+[ALARM][ALARM][RESOURCE-REMOVE] 4 pod seen after learning run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-cluster-server-2', 'rabbitmq-operator-b7d5945b-vl85f'] but 3 pod seen after testing run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-operator-59585b99dd-ph9rr']
+[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/persistence-rabbitmq-cluster-server-2 is seen during learning run, but not seen during testing run
+...
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
-### [orange-opensource-casskop-342](https://github.com/Orange-OpenSource/casskop/issues/342)
+### [percona-server-mongodb-operator-585](https://jira.percona.com/browse/K8SPSMDB-585)
 ```
-python3 reprod.py -p casskop-operator -b obs-gap-1
+python3 reprod.py -p mongodb-operator -b obs-gap-1
 ```
 If reproduced, you will see:
 ```
-[ERROR] persistentvolumeclaim SIZE inconsistency: 1 seen after learning run, but 2 seen after testing run
-[ERROR] pod SIZE inconsistency: 2 seen after learning run, but 3 seen after testing run
+[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/mongod-data-mongodb-cluster-rs0-4 is seen during learning run, but not seen during testing run
 ```
-The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
-
+The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [yugabyte-operator-39](https://github.com/yugabyte/yugabyte-operator/issues/39)
 ```
@@ -150,10 +165,21 @@ python3 reprod.py -p yugabyte-operator -b obs-gap-1
 ```
 If reproduced, you will see:
 ```
-[ERROR] pod SIZE inconsistency: 8 seen after learning run, but 7 seen after testing run
-[ERROR] persistentvolumeclaim SIZE inconsistency: 7 seen after learning run, but 6 seen after testing run
+[ALARM][ALARM][RESOURCE-REMOVE] 8 pod seen after learning run ['yb-master-0', 'yb-master-1', 'yb-master-2', 'yb-tserver-0', 'yb-tserver-1', 'yb-tserver-2', 'yb-tserver-3', 'yugabyte-operator-86f6465d9b-r49zx'] but 7 pod seen after testing run ['yb-master-0', 'yb-master-1', 'yb-master-2', 'yb-tserver-0', 'yb-tserver-1', 'yb-tserver-2', 'yugabyte-operator-577c59b656-8744b']                                                                
+[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/datadir0-yb-tserver-3 is seen during learning run, but not seen during testing run 
 ```
 This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882`.
+
+### [percona-xtradb-cluster-operator-918](https://jira.percona.com/browse/K8SPXC-918)
+```
+python3 reprod.py -p xtradb-operator -b obs-gap-1
+```
+If reproduced, you will see:
+```
+[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/datadir-xtradb-cluster-pxc-3 is seen during learning run, but not seen during testing run
+[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/datadir-xtradb-cluster-pxc-4 is seen during learning run, but not seen during testing run
+```
+The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### Time travel
 
