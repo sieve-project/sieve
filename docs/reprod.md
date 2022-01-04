@@ -130,9 +130,13 @@ python3 reprod.py -p rabbitmq-operator -b obs-gap-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] 4 pod seen after learning run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-cluster-server-2', 'rabbitmq-operator-b7d5945b-vl85f'] but 3 pod seen after testing run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-operator-59585b99dd-ph9rr']
+[ALARM][ALARM][RESOURCE-REMOVE] 4 pod seen after learning run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-cluster-server-2', 'rabbitmq-operator-b7d5945b-vl85f'] but 3 pod seen after testing run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-operator-59585b99dd-lsrd4']
 [ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/persistence-rabbitmq-cluster-server-2 is seen during learning run, but not seen during testing run
-...
+[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server spec/replicas is 3 during learning run, but 2 during testing run
+[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/currentReplicas is 3 during learning run, but 2 during testing run
+[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/readyReplicas is 3 during learning run, but 2 during testing run
+[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/replicas is 3 during learning run, but 2 during testing run
+[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/updatedReplicas is 3 during learning run, but 2 during testing run
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
