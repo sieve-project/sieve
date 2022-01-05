@@ -1,6 +1,7 @@
 import os
 import yaml
 import re
+import json
 
 NO_ERROR_MESSAGE = ""
 
@@ -84,6 +85,12 @@ def cmd_early_exit(cmd, early_exit=True):
             "Failed to execute {} with return code {}".format(cmd, return_code)
         )
     return return_code
+
+
+def dump_json_file(dir, data, json_file_name):
+    json.dump(
+        data, open(os.path.join(dir, json_file_name), "w"), indent=4, sort_keys=True
+    )
 
 
 class sieve_stages:
