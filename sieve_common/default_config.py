@@ -36,6 +36,7 @@ sieve_config = {
     "obs_gap_spec_generation_overwrite_pass_enabled": True,
     "atom_vio_spec_generation_error_free_pass_enabled": True,
     "persist_specs_enabled": True,
+    "remove_nondeterministic_key_enabled": False,
 }
 
 if os.path.isfile("sieve_config.json"):
