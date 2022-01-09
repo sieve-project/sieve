@@ -10,7 +10,7 @@ if [ -z "$dockertag" ]; then
     exit 1
 fi
 
-sed -i 's/go-generate generate-config-file/go-generate /g'  Makefile
+sed -i 's/go-generate generate-config-file /go-generate/g'  Makefile
 
 OPERATOR_IMAGE=${dockerrepo}/elastic-operator:${dockertag} make docker-build
 docker push ${dockerrepo}/elastic-operator:${dockertag}

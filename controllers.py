@@ -65,7 +65,7 @@ client_go_version = {
     "xtradb-operator": "v0.18.6",
     "yugabyte-operator": "v0.17.4",
     "nifikop-operator": "v0.20.2",
-    "elastic-operator": "v0.23.1",
+    "elastic-operator": "v0.23.0",
 }
 
 docker_file = {
