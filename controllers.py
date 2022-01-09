@@ -13,6 +13,7 @@ github_link = {
     "xtradb-operator": "https://github.com/percona/percona-xtradb-cluster-operator.git",
     "yugabyte-operator": "https://github.com/yugabyte/yugabyte-operator.git",
     "nifikop-operator": "https://github.com/Orange-OpenSource/nifikop.git",
+    "elastic-operator": "https://github.com/elastic/cloud-on-k8s.git",
 }
 
 sha = {
@@ -25,6 +26,7 @@ sha = {
     "xtradb-operator": "29092c9b145af6eaf5cbff534287483bec4167b6",
     "yugabyte-operator": "966ef1978ed5d714119548b2c4343925fe49f882",
     "nifikop-operator": "1546e0242107bf2f2c1256db50f47c79956dd1c6",
+    "elastic-operator": "660bc92fbfca469af552a833d8f6a4834c629649",
 }
 
 app_dir = {
@@ -37,6 +39,7 @@ app_dir = {
     "xtradb-operator": "app/xtradb-operator",
     "yugabyte-operator": "app/yugabyte-operator",
     "nifikop-operator": "app/nifikop-operator",
+    "elastic-operator": "app/elastic-operator",
 }
 
 controller_runtime_version = {
@@ -49,6 +52,7 @@ controller_runtime_version = {
     "xtradb-operator": "v0.6.2",
     "yugabyte-operator": "v0.5.2",
     "nifikop-operator": "v0.7.2",
+    "elastic-operator": "v0.11.0",
 }
 
 client_go_version = {
@@ -61,6 +65,7 @@ client_go_version = {
     "xtradb-operator": "v0.18.6",
     "yugabyte-operator": "v0.17.4",
     "nifikop-operator": "v0.20.2",
+    "elastic-operator": "v0.23.1",
 }
 
 docker_file = {
@@ -73,6 +78,7 @@ docker_file = {
     "xtradb-operator": "build/Dockerfile",
     "yugabyte-operator": "build/Dockerfile",
     "nifikop-operator": "Dockerfile",
+    "elastic-operator": "Dockerfile",
 }
 
 test_dir = {
@@ -85,6 +91,7 @@ test_dir = {
     "xtradb-operator": "examples/xtradb-operator",
     "yugabyte-operator": "examples/yugabyte-operator",
     "nifikop-operator": "examples/nifikop-operator",
+    "elastic-operator": "examples/elastic-operator",
 }
 
 test_suites = {
@@ -231,6 +238,7 @@ CRDs = {
     ],
     "yugabyte-operator": ["ybcluster"],
     "nifikop-operator": ["nificluster"],
+    "elastic-operator": ["elasticsearch"],
 }
 
 deployment_name = {
@@ -243,6 +251,7 @@ deployment_name = {
     "xtradb-operator": "percona-xtradb-cluster-operator",
     "yugabyte-operator": "yugabyte-operator",
     "nifikop-operator": "nifikop-operator",
+    "elastic-operator": "elastic-operator",
 }
 
 operator_pod_label = {
@@ -255,6 +264,7 @@ operator_pod_label = {
     "xtradb-operator": "xtradb-operator",
     "yugabyte-operator": "yugabyte-operator",
     "nifikop-operator": "nifikop-operator",
+    "elastic-operator": "elastic-operator",
 }
 
 event_mask = {
@@ -399,6 +409,13 @@ def nifikop_operator_deploy(dr, dt):
     )
     os.system("rm %s" % (new_path))
 
+def elastic_operator_deploy(dr, dt):
+    new_path = replace_docker_repo(
+        "examples/elastic-operator/deploy/operator.yaml", dr, dt
+    )
+    os.system("kubectl create -f examples/elastic-operator/deploy/crds.yaml")
+    os.system("kubectl apply -f %s" % new_path)
+    os.system("rm %s" % (new_path))
 
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
@@ -410,4 +427,5 @@ deploy = {
     "xtradb-operator": xtradb_operator_deploy,
     "yugabyte-operator": yugabyte_operator_deploy,
     "nifikop-operator": nifikop_operator_deploy,
+    "elastic-operator": elastic_operator_deploy,
 }
