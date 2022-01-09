@@ -11,7 +11,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: elastic-operator
-  namespace: elastic-system
+  namespace: default
   labels:
     control-plane: elastic-operator
     app.kubernetes.io/version: "1.9.1"
@@ -21,7 +21,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: elastic-webhook-server-cert
-  namespace: elastic-system
+  namespace: default
   labels:
     control-plane: elastic-operator
     app.kubernetes.io/version: "1.9.1"
@@ -31,7 +31,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: elastic-operator
-  namespace: elastic-system
+  namespace: default
   labels:
     control-plane: elastic-operator
     app.kubernetes.io/version: "1.9.1"
@@ -314,14 +314,14 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: elastic-operator
-    namespace: elastic-system
+    namespace: default
 ---
 # Source: eck-operator/templates/webhook.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: elastic-webhook-server
-  namespace: elastic-system
+  namespace: default
   labels:
     control-plane: elastic-operator
     app.kubernetes.io/version: "1.9.1"
@@ -338,13 +338,14 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: elastic-operator
-  namespace: elastic-system
+  namespace: default
   labels:
     control-plane: elastic-operator
     app.kubernetes.io/version: "1.9.1"
 spec:
   selector:
     matchLabels:
+      sievetag: elastic-operator
       control-plane: elastic-operator
   serviceName: elastic-operator
   replicas: 1
@@ -356,6 +357,7 @@ spec:
         "co.elastic.logs/raw": "[{\"type\":\"container\",\"json.keys_under_root\":true,\"paths\":[\"/var/log/containers/*${data.kubernetes.container.id}.log\"],\"processors\":[{\"convert\":{\"mode\":\"rename\",\"ignore_missing\":true,\"fields\":[{\"from\":\"error\",\"to\":\"_error\"}]}},{\"convert\":{\"mode\":\"rename\",\"ignore_missing\":true,\"fields\":[{\"from\":\"_error\",\"to\":\"error.message\"}]}},{\"convert\":{\"mode\":\"rename\",\"ignore_missing\":true,\"fields\":[{\"from\":\"source\",\"to\":\"_source\"}]}},{\"convert\":{\"mode\":\"rename\",\"ignore_missing\":true,\"fields\":[{\"from\":\"_source\",\"to\":\"event.source\"}]}}]}]"
         "checksum/config": 239de074c87fe1f7254f5c93ff9f4a0949c8f111ba15696c460d786d6279e4d6
       labels:
+        sievetag: elastic-operator
         control-plane: elastic-operator
     spec:
       terminationGracePeriodSeconds: 10
@@ -363,7 +365,7 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-        - image: "docker.elastic.co/eck/eck-operator:1.9.1"
+        - image: "${SIEVE-DR}/eck-operator:${SIEVE-DT}"
           imagePullPolicy: IfNotPresent
           name: manager
           args:
@@ -380,6 +382,9 @@ spec:
                   fieldPath: status.podIP
             - name: WEBHOOK_SECRET
               value: elastic-webhook-server-cert
+          envFrom:
+          - configMapRef:
+              name: sieve-testing-global-config
           resources:
             limits:
               cpu: 1
@@ -420,7 +425,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-agent-k8s-elastic-co-v1alpha1-agent
     failurePolicy: Ignore
     name: elastic-agent-validation-v1alpha1.k8s.elastic.co
@@ -441,7 +446,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-apm-k8s-elastic-co-v1-apmserver
     failurePolicy: Ignore
     name: elastic-apm-validation-v1.k8s.elastic.co
@@ -462,7 +467,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-apm-k8s-elastic-co-v1beta1-apmserver
     failurePolicy: Ignore
     name: elastic-apm-validation-v1beta1.k8s.elastic.co
@@ -483,7 +488,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-beat-k8s-elastic-co-v1beta1-beat
     failurePolicy: Ignore
     name: elastic-beat-validation-v1beta1.k8s.elastic.co
@@ -504,7 +509,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-enterprisesearch-k8s-elastic-co-v1-enterprisesearch
     failurePolicy: Ignore
     name: elastic-ent-validation-v1.k8s.elastic.co
@@ -525,7 +530,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-enterprisesearch-k8s-elastic-co-v1beta1-enterprisesearch
     failurePolicy: Ignore
     name: elastic-ent-validation-v1beta1.k8s.elastic.co
@@ -546,7 +551,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-elasticsearch-k8s-elastic-co-v1-elasticsearch
     failurePolicy: Ignore
     name: elastic-es-validation-v1.k8s.elastic.co
@@ -567,7 +572,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-elasticsearch-k8s-elastic-co-v1beta1-elasticsearch
     failurePolicy: Ignore
     name: elastic-es-validation-v1beta1.k8s.elastic.co
@@ -588,7 +593,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-kibana-k8s-elastic-co-v1-kibana
     failurePolicy: Ignore
     name: elastic-kb-validation-v1.k8s.elastic.co
@@ -609,7 +614,7 @@ webhooks:
       caBundle: Cg==
       service:
         name: elastic-webhook-server
-        namespace: elastic-system
+        namespace: default
         path: /validate-kibana-k8s-elastic-co-v1beta1-kibana
     failurePolicy: Ignore
     name: elastic-kb-validation-v1beta1.k8s.elastic.co
