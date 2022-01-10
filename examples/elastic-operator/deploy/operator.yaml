@@ -365,7 +365,7 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-        - image: "${SIEVE-DR}/eck-operator:${SIEVE-DT}"
+        - image: "${SIEVE-DR}/elastic-operator:${SIEVE-DT}"
           imagePullPolicy: IfNotPresent
           name: manager
           args:
@@ -382,6 +382,10 @@ spec:
                   fieldPath: status.podIP
             - name: WEBHOOK_SECRET
               value: elastic-webhook-server-cert
+            - name: KUBERNETES_SERVICE_HOST
+              value: "kind-control-plane"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "6443"
           envFrom:
           - configMapRef:
               name: sieve-testing-global-config
