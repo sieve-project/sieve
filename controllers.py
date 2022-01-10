@@ -122,6 +122,11 @@ test_suites = {
             workloads.workloads["casskop-operator"]["reducepdb"],
         ),
     },
+    "elastic-operator": {
+        "recreate": Suite(
+            workloads.workloads["elastic-operator"]["recreate"],
+        ),
+    },
     "mongodb-operator": {
         "recreate": Suite(
             workloads.workloads["mongodb-operator"]["recreate"],
