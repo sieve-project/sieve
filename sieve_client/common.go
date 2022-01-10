@@ -171,6 +171,9 @@ func regularizeType(object interface{}) string {
 func pluralToSingle(rtype string) string {
 	if rtype == "endpoints" {
 		return rtype
+	} else if strings.HasSuffix(rtype, "ches") {
+		// TODO: this is very dirty hack. We should have a systematic way to get resource type
+		return rtype[:len(rtype)-2]
 	} else if strings.HasSuffix(rtype, "s") {
 		return rtype[:len(rtype)-1]
 	} else {
