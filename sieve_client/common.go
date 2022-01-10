@@ -1,6 +1,7 @@
 package sieve
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/rpc"
@@ -12,6 +13,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const TIME_TRAVEL string = "time-travel"
@@ -163,9 +165,14 @@ func checkResponse(response Response, reqName string) {
 }
 
 func regularizeType(object interface{}) string {
-	rtype := reflect.TypeOf(object).String()
-	tokens := strings.Split(rtype, ".")
-	return strings.ToLower(tokens[len(tokens)-1])
+	objectUnstructured, ok := object.(*unstructured.Unstructured)
+	if ok {
+		return strings.ToLower(fmt.Sprint(objectUnstructured.Object["kind"]))
+	} else {
+		rtype := reflect.TypeOf(object).String()
+		tokens := strings.Split(rtype, ".")
+		return strings.ToLower(tokens[len(tokens)-1])
+	}
 }
 
 func pluralToSingle(rtype string) string {

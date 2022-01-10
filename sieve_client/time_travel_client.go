@@ -47,17 +47,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	if len(tokens) < 4 {
 		return
 	}
-	// TODO: implement a method to map from apiKey to rType, namespace and name
-	resourceType := pluralToSingle(tokens[len(tokens)-3])
-	// Ref: https://github.com/kubernetes/kubernetes/blob/master/pkg/kubeapiserver/default_storage_factory_builder.go#L40
-	prev := tokens[len(tokens)-4]
-	cur := tokens[len(tokens)-3]
-	if prev == "services" && cur == "endpoints" {
-		resourceType = "endpoints"
-	}
-	if prev == "services" && cur == "specs" {
-		resourceType = "service"
-	}
+	resourceType := regularizeType(object)
 	namespace := tokens[len(tokens)-2]
 	name := tokens[len(tokens)-1]
 	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
