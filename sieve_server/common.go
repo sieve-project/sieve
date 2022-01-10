@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -168,24 +169,16 @@ func isSameObjectServerSide(currentEvent map[string]interface{}, namespace strin
 	return extractedNamespace == namespace && extractedName == name
 }
 
-func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI string, redirect bool) {
+func waitForPodTermination(namespace, podLabel, leadingAPI string) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-
-	deployment, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), deployName, metav1.GetOptions{})
-	checkError(err)
-	log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
-
-	clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), deployName, metav1.DeleteOptions{})
-
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
-
 	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
@@ -197,34 +190,18 @@ func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI s
 			break
 		}
 	}
+}
 
-	newDeployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      deployment.ObjectMeta.Name,
-			Namespace: deployment.ObjectMeta.Namespace,
-			Labels:    deployment.ObjectMeta.Labels,
-		},
-		Spec: deployment.Spec,
-	}
-
-	if redirect {
-		containersNum := len(newDeployment.Spec.Template.Spec.Containers)
-		for i := 0; i < containersNum; i++ {
-			envNum := len(newDeployment.Spec.Template.Spec.Containers[i].Env)
-			for j := 0; j < envNum; j++ {
-				if newDeployment.Spec.Template.Spec.Containers[i].Env[j].Name == "KUBERNETES_SERVICE_HOST" {
-					log.Printf("change api to %s\n", followingAPI)
-					newDeployment.Spec.Template.Spec.Containers[i].Env[j].Value = followingAPI
-					break
-				}
-			}
-		}
-	}
-
-	newDeployment, err = clientset.AppsV1().Deployments(namespace).Create(context.TODO(), newDeployment, metav1.CreateOptions{})
+func waitForPodRunning(namespace, podLabel, leadingAPI string) {
+	masterUrl := "https://" + leadingAPI + ":6443"
+	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
-	log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
-
+	clientset, err := kubernetes.NewForConfig(config)
+	checkError(err)
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
 	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
@@ -245,5 +222,115 @@ func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI s
 				break
 			}
 		}
+	}
+}
+
+func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI string, redirect bool) {
+	masterUrl := "https://" + leadingAPI + ":6443"
+	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
+	checkError(err)
+	clientset, err := kubernetes.NewForConfig(config)
+	checkError(err)
+
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	}
+
+	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
+	checkError(err)
+
+	operatorPod := pods.Items[0]
+	operatorOwnerName := ""
+	operatorOwnerKind := ""
+	log.Printf("operator pod owner type: %s", operatorPod.OwnerReferences[0].Kind)
+	log.Printf("operator pod owner name: %s", operatorPod.OwnerReferences[0].Name)
+	if operatorPod.OwnerReferences[0].Kind == "ReplicaSet" {
+		ownerName := operatorPod.OwnerReferences[0].Name
+		replicaset, err := clientset.AppsV1().ReplicaSets(namespace).Get(context.TODO(), ownerName, metav1.GetOptions{})
+		checkError(err)
+		log.Printf("replicaset owner type: %s", replicaset.OwnerReferences[0].Kind)
+		log.Printf("replicaset owner name: %s", replicaset.OwnerReferences[0].Name)
+		if replicaset.OwnerReferences[0].Kind == "Deployment" {
+			operatorOwnerKind = replicaset.OwnerReferences[0].Kind
+			operatorOwnerName = replicaset.OwnerReferences[0].Name
+		} else {
+			checkError(fmt.Errorf("the owner of the replicaset should be a deployment"))
+		}
+	} else if operatorPod.OwnerReferences[0].Kind == "StatefulSet" {
+		operatorOwnerKind = operatorPod.OwnerReferences[0].Kind
+		operatorOwnerName = operatorPod.OwnerReferences[0].Name
+	} else {
+		checkError(fmt.Errorf("the owner of the pod should be either replicaset or statefulset"))
+	}
+
+	if operatorOwnerKind == "Deployment" {
+		deployment, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), operatorOwnerName, metav1.GetOptions{})
+		checkError(err)
+		log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
+		clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
+
+		waitForPodTermination(namespace, podLabel, leadingAPI)
+
+		newDeployment := &appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      deployment.ObjectMeta.Name,
+				Namespace: deployment.ObjectMeta.Namespace,
+				Labels:    deployment.ObjectMeta.Labels,
+			},
+			Spec: deployment.Spec,
+		}
+		if redirect {
+			containersNum := len(newDeployment.Spec.Template.Spec.Containers)
+			for i := 0; i < containersNum; i++ {
+				envNum := len(newDeployment.Spec.Template.Spec.Containers[i].Env)
+				for j := 0; j < envNum; j++ {
+					if newDeployment.Spec.Template.Spec.Containers[i].Env[j].Name == "KUBERNETES_SERVICE_HOST" {
+						log.Printf("change api to %s\n", followingAPI)
+						newDeployment.Spec.Template.Spec.Containers[i].Env[j].Value = followingAPI
+						break
+					}
+				}
+			}
+		}
+		newDeployment, err = clientset.AppsV1().Deployments(namespace).Create(context.TODO(), newDeployment, metav1.CreateOptions{})
+		checkError(err)
+		log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
+
+		waitForPodRunning(namespace, podLabel, leadingAPI)
+	} else {
+		statefulset, err := clientset.AppsV1().StatefulSets(namespace).Get(context.TODO(), operatorOwnerName, metav1.GetOptions{})
+		checkError(err)
+		log.Println(statefulset.Spec.Template.Spec.Containers[0].Env)
+		clientset.AppsV1().StatefulSets(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
+
+		waitForPodTermination(namespace, podLabel, leadingAPI)
+
+		newStatefulset := &appsv1.StatefulSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      statefulset.ObjectMeta.Name,
+				Namespace: statefulset.ObjectMeta.Namespace,
+				Labels:    statefulset.ObjectMeta.Labels,
+			},
+			Spec: statefulset.Spec,
+		}
+		if redirect {
+			containersNum := len(newStatefulset.Spec.Template.Spec.Containers)
+			for i := 0; i < containersNum; i++ {
+				envNum := len(newStatefulset.Spec.Template.Spec.Containers[i].Env)
+				for j := 0; j < envNum; j++ {
+					if newStatefulset.Spec.Template.Spec.Containers[i].Env[j].Name == "KUBERNETES_SERVICE_HOST" {
+						log.Printf("change api to %s\n", followingAPI)
+						newStatefulset.Spec.Template.Spec.Containers[i].Env[j].Value = followingAPI
+						break
+					}
+				}
+			}
+		}
+		newStatefulset, err = clientset.AppsV1().StatefulSets(namespace).Create(context.TODO(), newStatefulset, metav1.CreateOptions{})
+		checkError(err)
+		log.Println(newStatefulset.Spec.Template.Spec.Containers[0].Env)
+
+		waitForPodRunning(namespace, podLabel, leadingAPI)
 	}
 }
