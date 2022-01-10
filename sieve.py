@@ -159,7 +159,10 @@ def redirect_kubectl():
 
 
 def prepare_sieve_server(test_context: TestContext):
-    if test_context.stage == sieve_stages.TEST:
+    if (
+        test_context.stage == sieve_stages.TEST
+        and test_context.mode != sieve_modes.VANILLA
+    ):
         configured_mask = "configured-mask.json"
         configured_mask_map = {
             "keys": [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")],
