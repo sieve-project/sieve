@@ -32,9 +32,13 @@ def event_diff_validation_check(prev_etype: str, cur_etype: str):
     ):
         # this should never happen
         assert False, "There should not be consecutive Deleted | Added"
-    if prev_etype == OperatorHearTypes.DELETED and cur_etype != OperatorHearTypes.ADDED:
+    if (
+        prev_etype == OperatorHearTypes.DELETED
+        and cur_etype != OperatorHearTypes.ADDED
+        and cur_etype != OperatorHearTypes.UPDATED
+    ):
         # this should never happen
-        assert False, "Deleted must be followed with Added"
+        assert False, "Deleted must be followed with Added | Updated"
     if (
         prev_etype != EVENT_NONE_TYPE
         and prev_etype != OperatorHearTypes.DELETED
