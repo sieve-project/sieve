@@ -388,4 +388,13 @@ workloads = {
             [["metadata/finalizers", ["nificlusters.nifi.orange.com/finalizer"]]],
         ),
     },
+    "elastic-operator": {
+        "recreate": new_built_in_workload()
+        .cmd("kubectl apply -f examples/elastic-operator/test/elasticsearch.yaml")
+        .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING)
+        .cmd("kubectl delete Elasticsearch elasticsearch-cluster")
+        .wait_for_pod_status("elasticsearch-cluster-es-default-0", TERMINATED)
+        .cmd("kubectl apply -f examples/elastic-operator/test/elasticsearch.yaml")
+        .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING),
+    },
 }
