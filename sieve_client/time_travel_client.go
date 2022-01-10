@@ -34,6 +34,7 @@ func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{
 			printError(err, SIEVE_JSON_ERR)
 			return
 		}
+		// TODO: instead of printing key, we should parse out name, namespace and rtype here
 		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\n", eventType, key, string(jsonObject))
 	}
 	if checkTimeTravelTiming("before") {
