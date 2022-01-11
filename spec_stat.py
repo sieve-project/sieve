@@ -5,10 +5,24 @@ from sieve_common.default_config import sieve_config
 
 total_result_map = {}
 
+operator_list = [
+    "cassandra-operator",
+    "zookeeper-operator",
+    "rabbitmq-operator",
+    "mongodb-operator",
+    "cass-operator",
+    "casskop-operator",
+    "xtradb-operator",
+    "yugabyte-operator",
+    "nifikop-operator",
+]
+
 
 def collect_spec():
     sub_result_map = {}
     for operator in controllers.test_suites:
+        if operator not in operator_list:
+            continue
         sub_result_map[operator] = {}
         ds_base_cnt = 0
         ms_base_cnt = 0
@@ -69,13 +83,10 @@ def recover_config_json():
 
 def learn_all():
     for project in controllers.test_suites:
+        if project not in operator_list:
+            continue
         for test_suite in controllers.test_suites[project]:
             docker_repo_name = sieve_config["docker_repo"]
-            # overwrite_config_json(
-            #     {
-            #         "persist_specs_enabled": True,
-            #     }
-            # )
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check_only" % (
                 project,
                 test_suite,
@@ -83,15 +94,14 @@ def learn_all():
             )
             os.system(cmd)
 
-            recover_config_json()
-
 
 if __name__ == "__main__":
     table = "controller\tbaseline-ds\tafter-p1-ds\tafter-p2-ds\tds\tbaseline-ss\tafter-p1-ss\tafter-p2-ss\tss\tbaseline-ms\tafter-p1-ms\tafter-p2-ms\tms\tbaseline-total\tafter-p1-total\tafter-p2-total\ttotal\n"
     learn_all()
     sub_map = collect_spec()
     for operator in controllers.test_suites:
-
+        if operator not in operator_list:
+            continue
         baseline_ds = sub_map[operator]["baseline-ds"]
         baseline_ss = sub_map[operator]["baseline-ss"]
         baseline_ms = sub_map[operator]["baseline-ms"]

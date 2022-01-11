@@ -1,6 +1,7 @@
 package sieve
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/rpc"
@@ -12,6 +13,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const TIME_TRAVEL string = "time-travel"
@@ -163,14 +165,22 @@ func checkResponse(response Response, reqName string) {
 }
 
 func regularizeType(object interface{}) string {
-	rtype := reflect.TypeOf(object).String()
-	tokens := strings.Split(rtype, ".")
-	return strings.ToLower(tokens[len(tokens)-1])
+	objectUnstructured, ok := object.(*unstructured.Unstructured)
+	if ok {
+		return strings.ToLower(fmt.Sprint(objectUnstructured.Object["kind"]))
+	} else {
+		rtype := reflect.TypeOf(object).String()
+		tokens := strings.Split(rtype, ".")
+		return strings.ToLower(tokens[len(tokens)-1])
+	}
 }
 
 func pluralToSingle(rtype string) string {
 	if rtype == "endpoints" {
 		return rtype
+	} else if strings.HasSuffix(rtype, "ches") {
+		// TODO: this is very dirty hack. We should have a systematic way to get resource type
+		return rtype[:len(rtype)-2]
 	} else if strings.HasSuffix(rtype, "s") {
 		return rtype[:len(rtype)-1]
 	} else {

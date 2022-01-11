@@ -163,6 +163,7 @@ def generate_key(resource_type: str, namespace: str, name: str):
 
 
 def api_key_to_rtype_namespace_name(api_key):
+    # TODO: get rid of the dirty hack for getting resource type
     tokens = api_key.split("/")
     assert len(tokens) >= 4
     namespace = tokens[-2]

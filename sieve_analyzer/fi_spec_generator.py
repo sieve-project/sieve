@@ -32,9 +32,13 @@ def event_diff_validation_check(prev_etype: str, cur_etype: str):
     ):
         # this should never happen
         assert False, "There should not be consecutive Deleted | Added"
-    if prev_etype == OperatorHearTypes.DELETED and cur_etype != OperatorHearTypes.ADDED:
+    if (
+        prev_etype == OperatorHearTypes.DELETED
+        and cur_etype != OperatorHearTypes.ADDED
+        and cur_etype != OperatorHearTypes.UPDATED
+    ):
         # this should never happen
-        assert False, "Deleted must be followed with Added"
+        assert False, "Deleted must be followed with Added | Updated"
     if (
         prev_etype != EVENT_NONE_TYPE
         and prev_etype != OperatorHearTypes.DELETED
@@ -202,6 +206,11 @@ def reversed_effect_filtering_pass(
                 if operator_hear.start_timestamp <= operator_write.end_timestamp:
                     continue
                 if operator_hear.etype == OperatorHearTypes.ADDED:
+                    reversed_effect = True
+                if (
+                    sieve_config["update_cancels_delete_enabled"]
+                    and operator_hear.etype == OperatorHearTypes.UPDATED
+                ):
                     reversed_effect = True
         else:
             # if the operator_write key never appears in the operator_hear_key_map

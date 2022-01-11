@@ -50,7 +50,7 @@ def generate_state(test_context: TestContext):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     apps_v1 = kubernetes.client.AppsV1Api()
-    # TODO: should we also cover other types?
+    # TODO: we should cover all resource types
     k8s_resource_handler = {
         "deployment": apps_v1.list_namespaced_deployment,
         # "serviceaccount": core_v1.list_namespaced_service_account,
@@ -60,6 +60,7 @@ def generate_state(test_context: TestContext):
         "pod": core_v1.list_namespaced_pod,
         "service": core_v1.list_namespaced_service,
         "statefulset": apps_v1.list_namespaced_stateful_set,
+        "replicaset": apps_v1.list_namespaced_replica_set,
     }
 
     state = {}
@@ -70,11 +71,38 @@ def generate_state(test_context: TestContext):
     return state
 
 
-def resource_state_masked(name, resource_key, field_key, state_mask):
+def resource_state_masked(
+    name,
+    namespace,
+    resource_type,
+    field_key,
+    state_mask,
+    final_testing_state,
+):
+    resource_key = "/".join([resource_type, namespace, name])
     if name == "sieve-testing-global-config":
         return True
     elif resource_key in state_mask and field_key in state_mask[resource_key]:
         return True
+    tainted_queue = []
+    for pod in final_testing_state["pod"]:
+        if "sievetag" in final_testing_state["pod"][pod]["metadata"]["labels"]:
+            tainted_queue.append(
+                ("pod", final_testing_state["pod"][pod]["metadata"]["name"])
+            )
+    while len(tainted_queue) != 0:
+        # print(tainted_queue)
+        cur_id = tainted_queue.pop(0)
+        cur_type = cur_id[0]
+        cur_name = cur_id[1]
+        if cur_type == resource_type and cur_name == name:
+            return True
+        cur_resource = final_testing_state[cur_type][cur_name]
+        if "ownerReferences" in cur_resource["metadata"]:
+            for owner_ref in cur_resource["metadata"]["ownerReferences"]:
+                owner_type = owner_ref["kind"].lower()
+                owner_name = owner_ref["name"]
+                tainted_queue.append((owner_type, owner_name))
     return False
 
 
@@ -150,6 +178,8 @@ def equal_path(template, value):
     return True
 
 
+# TODO: preprocess is only for backward compability;
+# should get rid of it later
 def preprocess(learn, test):
     for resource in list(learn):
         if resource not in test:
@@ -218,6 +248,7 @@ def compare_states(test_context: TestContext):
     canonicalized_state = get_canonicalized_state(test_context)
     testing_state = get_testing_state(test_context)
     state_mask = get_state_mask(test_context)
+    final_testing_state = copy.deepcopy(testing_state)
 
     ret_val = 0
     messages = []
@@ -285,7 +316,14 @@ def compare_states(test_context: TestContext):
             resource_key = "/".join([resource_type, namespace, name])
             field_key = "/".join(map(str, path[2:]))
 
-            if resource_state_masked(name, resource_key, field_key, state_mask):
+            if resource_state_masked(
+                name,
+                namespace,
+                resource_type,
+                field_key,
+                state_mask,
+                final_testing_state,
+            ):
                 continue
 
             ret_val += 1
