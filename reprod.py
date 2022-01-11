@@ -53,6 +53,7 @@ reprod_map = {
         "time-travel-1": ["recreate", "zookeeper_time_travel_1.yaml"],
         "time-travel-2": ["scaledown-scaleup", "zookeeper_time_travel_2.yaml"],
     },
+    "elastic-operator": {},
 }
 
 
