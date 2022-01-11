@@ -57,14 +57,6 @@ def generate_jobs(ci_mode):
                 },
             ],
         }
-        collect_resources = {
-            "uses": "actions/upload-artifact@v2",
-            "if": "always()",
-            "with": {
-                "name": "sieve-%s-data" % (operator),
-                "path": "data/%s" % (operator),
-            },
-        }
         collect_log = {
             "uses": "actions/upload-artifact@v2",
             "if": "always()",
@@ -136,7 +128,6 @@ def generate_jobs(ci_mode):
                 for bug in sorted(reprod_map[operator].keys())
             ]
             job["steps"].extend(sieve_learn)
-            job["steps"].append(collect_resources)
             job["steps"].extend(sieve_test)
             job["steps"].append(collect_log)
             job["steps"].append(remove_cluster)
