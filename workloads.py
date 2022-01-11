@@ -390,11 +390,22 @@ workloads = {
     },
     "elastic-operator": {
         "recreate": new_built_in_workload()
-        .cmd("kubectl apply -f examples/elastic-operator/test/elasticsearch.yaml")
+        .cmd("kubectl apply -f examples/elastic-operator/test/es-1.yaml")
         .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING)
-        .cmd("kubectl delete Elasticsearch elasticsearch-cluster")
+        .cmd("kubectl delete elasticsearch elasticsearch-cluster")
         .wait_for_pod_status("elasticsearch-cluster-es-default-0", TERMINATED)
-        .cmd("kubectl apply -f examples/elastic-operator/test/elasticsearch.yaml")
+        .cmd("kubectl apply -f examples/elastic-operator/test/es-1.yaml")
         .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING),
+        "scaledown-scaleup": new_built_in_workload()
+        .cmd("kubectl apply -f examples/elastic-operator/test/es-2.yaml")
+        .wait_for_pod_status("elasticsearch-cluster-es-default-1", RUNNING)
+        .cmd(
+            'kubectl patch elasticsearch elasticsearch-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/nodeSets/0/count", "value": 1}]\''
+        )
+        .wait_for_pod_status("elasticsearch-cluster-es-default-1", TERMINATED)
+        .cmd(
+            'kubectl patch elasticsearch elasticsearch-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/nodeSets/0/count", "value": 2}]\''
+        )
+        .wait_for_pod_status("elasticsearch-cluster-es-default-1", RUNNING),
     },
 }

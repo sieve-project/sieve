@@ -126,6 +126,9 @@ test_suites = {
         "recreate": Suite(
             workloads.workloads["elastic-operator"]["recreate"],
         ),
+        "scaledown-scaleup": Suite(
+            workloads.workloads["elastic-operator"]["scaledown-scaleup"],
+        ),
     },
     "mongodb-operator": {
         "recreate": Suite(
@@ -414,6 +417,7 @@ def nifikop_operator_deploy(dr, dt):
     )
     os.system("rm %s" % (new_path))
 
+
 def elastic_operator_deploy(dr, dt):
     new_path = replace_docker_repo(
         "examples/elastic-operator/deploy/operator.yaml", dr, dt
@@ -421,6 +425,7 @@ def elastic_operator_deploy(dr, dt):
     os.system("kubectl create -f examples/elastic-operator/deploy/crds.yaml")
     os.system("kubectl apply -f %s" % new_path)
     os.system("rm %s" % (new_path))
+
 
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,

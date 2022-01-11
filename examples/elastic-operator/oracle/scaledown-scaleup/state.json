@@ -12,10 +12,10 @@
                 "annotations": {
                     "eck.k8s.elastic.co/orchestration-hints": "{\"no_transient_settings\":true}",
                     "elasticsearch.k8s.elastic.co/cluster-uuid": "SIEVE-IGNORE",
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"elasticsearch.k8s.elastic.co/v1\",\"kind\":\"Elasticsearch\",\"metadata\":{\"annotations\":{},\"name\":\"elasticsearch-cluster\",\"namespace\":\"default\"},\"spec\":{\"nodeSets\":[{\"config\":{\"node.store.allow_mmap\":false},\"count\":1,\"name\":\"default\"}],\"version\":\"7.16.2\"}}\n"
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"elasticsearch.k8s.elastic.co/v1\",\"kind\":\"Elasticsearch\",\"metadata\":{\"annotations\":{},\"name\":\"elasticsearch-cluster\",\"namespace\":\"default\"},\"spec\":{\"nodeSets\":[{\"config\":{\"node.store.allow_mmap\":false},\"count\":2,\"name\":\"default\"}],\"version\":\"7.16.2\"}}\n"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
-                "generation": 2,
+                "generation": 4,
                 "name": "elasticsearch-cluster",
                 "namespace": "default",
                 "resourceVersion": "SIEVE-IGNORE",
@@ -42,7 +42,7 @@
                         "config": {
                             "node.store.allow_mmap": false
                         },
-                        "count": 1,
+                        "count": 2,
                         "name": "default",
                         "podTemplate": {
                             "metadata": {
@@ -69,7 +69,7 @@
                 "version": "7.16.2"
             },
             "status": {
-                "availableNodes": 1,
+                "availableNodes": 2,
                 "health": "green",
                 "phase": "Ready",
                 "version": "7.16.2"
@@ -102,10 +102,13 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:ownerReferences": "SIEVE-IGNORE"
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
+                                }
                             }
                         },
-                        "manager": "SIEVE-IGNORE",
+                        "manager": "elastic-operator",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -114,10 +117,13 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:annotations": "SIEVE-IGNORE"
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:volume.kubernetes.io/selected-node": {}
+                                }
                             }
                         },
-                        "manager": "SIEVE-IGNORE",
+                        "manager": "kube-scheduler",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -199,6 +205,133 @@
                 },
                 "phase": "Bound"
             }
+        },
+        "elasticsearch-data-elasticsearch-cluster-es-default-1": {
+            "metadata": {
+                "annotations": {
+                    "pv.kubernetes.io/bind-completed": "yes",
+                    "pv.kubernetes.io/bound-by-controller": "yes",
+                    "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "finalizers": [
+                    "kubernetes.io/pvc-protection"
+                ],
+                "labels": {
+                    "common.k8s.elastic.co/type": "elasticsearch",
+                    "elasticsearch.k8s.elastic.co/cluster-name": "elasticsearch-cluster",
+                    "elasticsearch.k8s.elastic.co/statefulset-name": "elasticsearch-cluster-es-default"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
+                                }
+                            }
+                        },
+                        "manager": "elastic-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:volume.kubernetes.io/selected-node": {}
+                                }
+                            }
+                        },
+                        "manager": "kube-scheduler",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:pv.kubernetes.io/bind-completed": {},
+                                    "f:pv.kubernetes.io/bound-by-controller": {},
+                                    "f:volume.beta.kubernetes.io/storage-provisioner": {}
+                                },
+                                "f:labels": {
+                                    ".": {},
+                                    "f:common.k8s.elastic.co/type": {},
+                                    "f:elasticsearch.k8s.elastic.co/cluster-name": {},
+                                    "f:elasticsearch.k8s.elastic.co/statefulset-name": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:accessModes": {},
+                                "f:resources": {
+                                    "f:requests": {
+                                        ".": {},
+                                        "f:storage": {}
+                                    }
+                                },
+                                "f:volumeMode": {},
+                                "f:volumeName": {}
+                            },
+                            "f:status": {
+                                "f:accessModes": {},
+                                "f:capacity": {
+                                    ".": {},
+                                    "f:storage": {}
+                                },
+                                "f:phase": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "elasticsearch-data-elasticsearch-cluster-es-default-1",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "elasticsearch.k8s.elastic.co/v1",
+                        "kind": "Elasticsearch",
+                        "name": "elasticsearch-cluster",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/persistentvolumeclaims/elasticsearch-data-elasticsearch-cluster-es-default-1",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "1Gi"
+                    }
+                },
+                "storageClassName": "standard",
+                "volumeMode": "Filesystem",
+                "volumeName": "SIEVE-IGNORE"
+            },
+            "status": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "capacity": {
+                    "storage": "1Gi"
+                },
+                "phase": "Bound"
+            }
         }
     },
     "pod": {
@@ -237,7 +370,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"851c03c2-f8db-4964-a310-5431dfb30859\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"d691ef1c-0e82-459f-89ba-59b179a126eb\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -378,66 +511,19 @@
                         "fieldsV1": {
                             "f:status": {
                                 "f:conditions": {
-                                    ".": {},
-                                    "k:{\"type\":\"PodScheduled\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:message": {},
-                                        "f:reason": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    }
-                                }
+                                    "k:{\"type\":\"ContainersReady\"}": "SIEVE-IGNORE",
+                                    "k:{\"type\":\"Initialized\"}": "SIEVE-IGNORE",
+                                    "k:{\"type\":\"Ready\"}": "SIEVE-IGNORE"
+                                },
+                                "f:containerStatuses": "SIEVE-IGNORE",
+                                "f:hostIP": "SIEVE-IGNORE",
+                                "f:phase": "SIEVE-IGNORE",
+                                "f:podIP": "SIEVE-IGNORE",
+                                "f:podIPs": "SIEVE-IGNORE",
+                                "f:startTime": "SIEVE-IGNORE"
                             }
                         },
-                        "manager": "kube-scheduler",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:status": {
-                                "f:conditions": {
-                                    "k:{\"type\":\"ContainersReady\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    },
-                                    "k:{\"type\":\"Initialized\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    },
-                                    "k:{\"type\":\"Ready\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    }
-                                },
-                                "f:containerStatuses": {},
-                                "f:hostIP": {},
-                                "f:phase": {},
-                                "f:podIP": {},
-                                "f:podIPs": {
-                                    ".": {},
-                                    "k:{\"ip\":\"10.244.1.2\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
-                                },
-                                "f:startTime": {}
-                            }
-                        },
-                        "manager": "kubelet",
+                        "manager": "SIEVE-IGNORE",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     }
@@ -548,7 +634,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "elastic-operator-0",
-                "nodeName": "kind-worker",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -641,12 +727,12 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.4",
                 "phase": "Running",
-                "podIP": "10.244.1.2",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.1.2"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -717,7 +803,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"dc42a8f2-1c00-4dbe-99df-ecf67a5916a1\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b3ad2cd0-cd75-42dd-a5c7-3004ea730689\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1409,27 +1495,6 @@
                         "apiVersion": "v1",
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
-                            "f:spec": "SIEVE-IGNORE",
-                            "f:status": "SIEVE-IGNORE"
-                        },
-                        "manager": "SIEVE-IGNORE",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": "SIEVE-IGNORE"
-                        },
-                        "manager": "SIEVE-IGNORE",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
                             "f:status": {
                                 "f:conditions": {
                                     "k:{\"type\":\"ContainersReady\"}": {
@@ -1461,17 +1526,28 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.6\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
+                                    "k:{\"ip\":\"10.244.1.5\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
                         },
                         "manager": "kubelet",
                         "operation": "Update",
-                        "time": "2022-01-11T17:04:36Z"
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:update.k8s.elastic.co/timestamp": {}
+                                }
+                            }
+                        },
+                        "manager": "elastic-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
                     }
                 ],
                 "name": "elasticsearch-cluster-es-default-0",
@@ -2133,7 +2209,1527 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.18.0.4",
+                "initContainerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "docker.elastic.co/elasticsearch/elasticsearch:7.16.2",
+                        "imageID": "docker.elastic.co/elasticsearch/elasticsearch@sha256:055ab3c3466c6bd72ef42f7773c5fa224db4fb7cd6a9a5588ebe46642a15abf5",
+                        "lastState": {},
+                        "name": "elastic-internal-init-filesystem",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 0,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Completed",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    },
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "docker.elastic.co/elasticsearch/elasticsearch:7.16.2",
+                        "imageID": "docker.elastic.co/elasticsearch/elasticsearch@sha256:055ab3c3466c6bd72ef42f7773c5fa224db4fb7cd6a9a5588ebe46642a15abf5",
+                        "lastState": {},
+                        "name": "elastic-internal-suspend",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "SIEVE-IGNORE",
+                                "exitCode": 0,
+                                "finishedAt": "SIEVE-IGNORE",
+                                "reason": "Completed",
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "SIEVE-IGNORE",
+                "podIPs": [
+                    {
+                        "ip": "SIEVE-IGNORE"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "SIEVE-IGNORE"
+            }
+        },
+        "elasticsearch-cluster-es-default-1": {
+            "metadata": {
+                "annotations": {
+                    "co.elastic.logs/module": "elasticsearch",
+                    "elasticsearch.k8s.elastic.co/config-hash": "814329354",
+                    "update.k8s.elastic.co/timestamp": "SIEVE-IGNORE"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generateName": "elasticsearch-cluster-es-default-",
+                "labels": {
+                    "common.k8s.elastic.co/type": "elasticsearch",
+                    "controller-revision-hash": "elasticsearch-cluster-es-default-5c885447f6",
+                    "elasticsearch.k8s.elastic.co/cluster-name": "elasticsearch-cluster",
+                    "elasticsearch.k8s.elastic.co/http-scheme": "https",
+                    "elasticsearch.k8s.elastic.co/node-data": "true",
+                    "elasticsearch.k8s.elastic.co/node-data_cold": "true",
+                    "elasticsearch.k8s.elastic.co/node-data_content": "true",
+                    "elasticsearch.k8s.elastic.co/node-data_hot": "true",
+                    "elasticsearch.k8s.elastic.co/node-data_warm": "true",
+                    "elasticsearch.k8s.elastic.co/node-ingest": "true",
+                    "elasticsearch.k8s.elastic.co/node-master": "true",
+                    "elasticsearch.k8s.elastic.co/node-ml": "true",
+                    "elasticsearch.k8s.elastic.co/node-remote_cluster_client": "true",
+                    "elasticsearch.k8s.elastic.co/node-transform": "true",
+                    "elasticsearch.k8s.elastic.co/node-voting_only": "false",
+                    "elasticsearch.k8s.elastic.co/statefulset-name": "elasticsearch-cluster-es-default",
+                    "elasticsearch.k8s.elastic.co/version": "7.16.2",
+                    "statefulset.kubernetes.io/pod-name": "elasticsearch-cluster-es-default-1"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:co.elastic.logs/module": {},
+                                    "f:elasticsearch.k8s.elastic.co/config-hash": {}
+                                },
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:common.k8s.elastic.co/type": {},
+                                    "f:controller-revision-hash": {},
+                                    "f:elasticsearch.k8s.elastic.co/cluster-name": {},
+                                    "f:elasticsearch.k8s.elastic.co/http-scheme": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-data": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-data_cold": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-data_content": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-data_hot": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-data_warm": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-ingest": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-master": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-ml": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-remote_cluster_client": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-transform": {},
+                                    "f:elasticsearch.k8s.elastic.co/node-voting_only": {},
+                                    "f:elasticsearch.k8s.elastic.co/statefulset-name": {},
+                                    "f:elasticsearch.k8s.elastic.co/version": {},
+                                    "f:statefulset.kubernetes.io/pod-name": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"b3ad2cd0-cd75-42dd-a5c7-3004ea730689\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:affinity": {
+                                    ".": {},
+                                    "f:podAntiAffinity": {
+                                        ".": {},
+                                        "f:preferredDuringSchedulingIgnoredDuringExecution": {}
+                                    }
+                                },
+                                "f:automountServiceAccountToken": {},
+                                "f:containers": {
+                                    "k:{\"name\":\"elasticsearch\"}": {
+                                        ".": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"HEADLESS_SERVICE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"NAMESPACE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"NODE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"NSS_SDB_USE_CACHE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"POD_IP\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"POD_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"PROBE_PASSWORD_PATH\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"PROBE_USERNAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"READINESS_PROBE_PROTOCOL\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:lifecycle": {
+                                            ".": {},
+                                            "f:preStop": {
+                                                ".": {},
+                                                "f:exec": {
+                                                    ".": {},
+                                                    "f:command": {}
+                                                }
+                                            }
+                                        },
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":9200,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":9300,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:readinessProbe": {
+                                            ".": {},
+                                            "f:exec": {
+                                                ".": {},
+                                                "f:command": {}
+                                            },
+                                            "f:failureThreshold": {},
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/downward-api\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/elasticsearch-config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/probe-user\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/scripts\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/unicast-hosts\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/xpack-file-realm\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/bin\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/http-certs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/transport-certs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/transport-remote-certs/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/data\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/logs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/plugins\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:hostname": {},
+                                "f:initContainers": {
+                                    ".": {},
+                                    "k:{\"name\":\"elastic-internal-init-filesystem\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"HEADLESS_SERVICE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"NAMESPACE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"NODE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"POD_IP\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"POD_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:privileged": {}
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/downward-api\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/elasticsearch-bin-local\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/elasticsearch-config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/elasticsearch-config-local\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/elasticsearch-plugins-local\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/probe-user\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/scripts\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/transport-certificates\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/unicast-hosts\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/xpack-file-realm\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/http-certs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/transport-remote-certs/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/data\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/logs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    },
+                                    "k:{\"name\":\"elastic-internal-suspend\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"HEADLESS_SERVICE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"NAMESPACE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"NODE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"POD_IP\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"POD_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/downward-api\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/elasticsearch-config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/probe-user\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/scripts\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/unicast-hosts\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/mnt/elastic-internal/xpack-file-realm\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/bin\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/http-certs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/transport-certs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/config/transport-remote-certs/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:readOnly": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/data\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/logs\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/usr/share/elasticsearch/plugins\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {},
+                                "f:subdomain": {},
+                                "f:terminationGracePeriodSeconds": {},
+                                "f:volumes": {
+                                    ".": {},
+                                    "k:{\"name\":\"downward-api\"}": {
+                                        ".": {},
+                                        "f:downwardAPI": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:items": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"elastic-internal-elasticsearch-bin-local\"}": {
+                                        ".": {},
+                                        "f:emptyDir": {},
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"elastic-internal-elasticsearch-config\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:secret": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:optional": {},
+                                            "f:secretName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"elastic-internal-elasticsearch-config-local\"}": {
+                                        ".": {},
+                                        "f:emptyDir": {},
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"elastic-internal-elasticsearch-plugins-local\"}": {
+                                        ".": {},
+                                        "f:emptyDir": {},
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"elastic-internal-http-certificates\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:secret": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:optional": {},
+                                            "f:secretName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"elastic-internal-probe-user\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:secret": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:items": {},
+                                            "f:optional": {},
+                                            "f:secretName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"elastic-internal-remote-certificate-authorities\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:secret": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:optional": {},
+                                            "f:secretName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"elastic-internal-scripts\"}": {
+                                        ".": {},
+                                        "f:configMap": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:name": {},
+                                            "f:optional": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"elastic-internal-transport-certificates\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:secret": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:optional": {},
+                                            "f:secretName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"elastic-internal-unicast-hosts\"}": {
+                                        ".": {},
+                                        "f:configMap": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:name": {},
+                                            "f:optional": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"elastic-internal-xpack-file-realm\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:secret": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:optional": {},
+                                            "f:secretName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"elasticsearch-data\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:persistentVolumeClaim": {
+                                            ".": {},
+                                            "f:claimName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"elasticsearch-logs\"}": {
+                                        ".": {},
+                                        "f:emptyDir": {},
+                                        "f:name": {}
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:update.k8s.elastic.co/timestamp": {}
+                                }
+                            }
+                        },
+                        "manager": "elastic-operator",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:initContainerStatuses": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.2.3\"}": "SIEVE-IGNORE"
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "elasticsearch-cluster-es-default-1",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "StatefulSet",
+                        "name": "elasticsearch-cluster-es-default",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/api/v1/namespaces/default/pods/elasticsearch-cluster-es-default-1",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "podAffinityTerm": {
+                                    "labelSelector": {
+                                        "matchLabels": {
+                                            "elasticsearch.k8s.elastic.co/cluster-name": "elasticsearch-cluster"
+                                        }
+                                    },
+                                    "topologyKey": "kubernetes.io/hostname"
+                                },
+                                "weight": 100
+                            }
+                        ]
+                    }
+                },
+                "automountServiceAccountToken": false,
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "POD_IP",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "status.podIP"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.name"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "NODE_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "spec.nodeName"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "PROBE_PASSWORD_PATH",
+                                "value": "/mnt/elastic-internal/probe-user/elastic-internal-probe"
+                            },
+                            {
+                                "name": "PROBE_USERNAME",
+                                "value": "elastic-internal-probe"
+                            },
+                            {
+                                "name": "READINESS_PROBE_PROTOCOL",
+                                "value": "https"
+                            },
+                            {
+                                "name": "HEADLESS_SERVICE_NAME",
+                                "value": "elasticsearch-cluster-es-default"
+                            },
+                            {
+                                "name": "NSS_SDB_USE_CACHE",
+                                "value": "no"
+                            }
+                        ],
+                        "image": "docker.elastic.co/elasticsearch/elasticsearch:7.16.2",
+                        "imagePullPolicy": "IfNotPresent",
+                        "lifecycle": {
+                            "preStop": {
+                                "exec": {
+                                    "command": [
+                                        "bash",
+                                        "-c",
+                                        "/mnt/elastic-internal/scripts/pre-stop-hook-script.sh"
+                                    ]
+                                }
+                            }
+                        },
+                        "name": "elasticsearch",
+                        "ports": [
+                            {
+                                "containerPort": 9200,
+                                "name": "https",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9300,
+                                "name": "transport",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "exec": {
+                                "command": [
+                                    "bash",
+                                    "-c",
+                                    "/mnt/elastic-internal/scripts/readiness-probe-script.sh"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 5
+                        },
+                        "resources": {
+                            "limits": {
+                                "memory": "2Gi"
+                            },
+                            "requests": {
+                                "memory": "2Gi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/mnt/elastic-internal/downward-api",
+                                "name": "downward-api",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/bin",
+                                "name": "elastic-internal-elasticsearch-bin-local"
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/elasticsearch-config",
+                                "name": "elastic-internal-elasticsearch-config",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config",
+                                "name": "elastic-internal-elasticsearch-config-local"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/plugins",
+                                "name": "elastic-internal-elasticsearch-plugins-local"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/http-certs",
+                                "name": "elastic-internal-http-certificates",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/probe-user",
+                                "name": "elastic-internal-probe-user",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/transport-remote-certs/",
+                                "name": "elastic-internal-remote-certificate-authorities",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/scripts",
+                                "name": "elastic-internal-scripts",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/transport-certs",
+                                "name": "elastic-internal-transport-certificates",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/unicast-hosts",
+                                "name": "elastic-internal-unicast-hosts",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/xpack-file-realm",
+                                "name": "elastic-internal-xpack-file-realm",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/data",
+                                "name": "elasticsearch-data"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/logs",
+                                "name": "elasticsearch-logs"
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "elasticsearch-cluster-es-default-1",
+                "initContainers": [
+                    {
+                        "command": [
+                            "bash",
+                            "-c",
+                            "/mnt/elastic-internal/scripts/prepare-fs.sh"
+                        ],
+                        "env": [
+                            {
+                                "name": "POD_IP",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "status.podIP"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.name"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "NODE_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "spec.nodeName"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "HEADLESS_SERVICE_NAME",
+                                "value": "elasticsearch-cluster-es-default"
+                            }
+                        ],
+                        "image": "docker.elastic.co/elasticsearch/elasticsearch:7.16.2",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "elastic-internal-init-filesystem",
+                        "resources": {
+                            "limits": {
+                                "cpu": "100m",
+                                "memory": "50Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "50Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "privileged": false
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/mnt/elastic-internal/downward-api",
+                                "name": "downward-api",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/elasticsearch-bin-local",
+                                "name": "elastic-internal-elasticsearch-bin-local"
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/elasticsearch-config",
+                                "name": "elastic-internal-elasticsearch-config",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/elasticsearch-config-local",
+                                "name": "elastic-internal-elasticsearch-config-local"
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/elasticsearch-plugins-local",
+                                "name": "elastic-internal-elasticsearch-plugins-local"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/http-certs",
+                                "name": "elastic-internal-http-certificates",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/probe-user",
+                                "name": "elastic-internal-probe-user",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/transport-remote-certs/",
+                                "name": "elastic-internal-remote-certificate-authorities",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/scripts",
+                                "name": "elastic-internal-scripts",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/transport-certificates",
+                                "name": "elastic-internal-transport-certificates",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/unicast-hosts",
+                                "name": "elastic-internal-unicast-hosts",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/xpack-file-realm",
+                                "name": "elastic-internal-xpack-file-realm",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/data",
+                                "name": "elasticsearch-data"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/logs",
+                                "name": "elasticsearch-logs"
+                            }
+                        ]
+                    },
+                    {
+                        "command": [
+                            "bash",
+                            "-c",
+                            "/mnt/elastic-internal/scripts/suspend.sh"
+                        ],
+                        "env": [
+                            {
+                                "name": "POD_IP",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "status.podIP"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.name"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "NODE_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "spec.nodeName"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "HEADLESS_SERVICE_NAME",
+                                "value": "elasticsearch-cluster-es-default"
+                            }
+                        ],
+                        "image": "docker.elastic.co/elasticsearch/elasticsearch:7.16.2",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "elastic-internal-suspend",
+                        "resources": {
+                            "limits": {
+                                "memory": "2Gi"
+                            },
+                            "requests": {
+                                "memory": "2Gi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/mnt/elastic-internal/downward-api",
+                                "name": "downward-api",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/bin",
+                                "name": "elastic-internal-elasticsearch-bin-local"
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/elasticsearch-config",
+                                "name": "elastic-internal-elasticsearch-config",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config",
+                                "name": "elastic-internal-elasticsearch-config-local"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/plugins",
+                                "name": "elastic-internal-elasticsearch-plugins-local"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/http-certs",
+                                "name": "elastic-internal-http-certificates",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/probe-user",
+                                "name": "elastic-internal-probe-user",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/transport-remote-certs/",
+                                "name": "elastic-internal-remote-certificate-authorities",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/scripts",
+                                "name": "elastic-internal-scripts",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/config/transport-certs",
+                                "name": "elastic-internal-transport-certificates",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/unicast-hosts",
+                                "name": "elastic-internal-unicast-hosts",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/elastic-internal/xpack-file-realm",
+                                "name": "elastic-internal-xpack-file-realm",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/data",
+                                "name": "elasticsearch-data"
+                            },
+                            {
+                                "mountPath": "/usr/share/elasticsearch/logs",
+                                "name": "elasticsearch-logs"
+                            }
+                        ]
+                    }
+                ],
+                "nodeName": "SIEVE-IGNORE",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "elasticsearch-cluster-es-default",
+                "terminationGracePeriodSeconds": 180,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "elasticsearch-data",
+                        "persistentVolumeClaim": {
+                            "claimName": "elasticsearch-data-elasticsearch-cluster-es-default-1"
+                        }
+                    },
+                    {
+                        "downwardAPI": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.labels"
+                                    },
+                                    "path": "labels"
+                                }
+                            ]
+                        },
+                        "name": "downward-api"
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "elastic-internal-elasticsearch-bin-local"
+                    },
+                    {
+                        "name": "elastic-internal-elasticsearch-config",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "elasticsearch-cluster-es-default-es-config"
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "elastic-internal-elasticsearch-config-local"
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "elastic-internal-elasticsearch-plugins-local"
+                    },
+                    {
+                        "name": "elastic-internal-http-certificates",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "elasticsearch-cluster-es-http-certs-internal"
+                        }
+                    },
+                    {
+                        "name": "elastic-internal-probe-user",
+                        "secret": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "elastic-internal-probe",
+                                    "path": "elastic-internal-probe"
+                                }
+                            ],
+                            "optional": false,
+                            "secretName": "elasticsearch-cluster-es-internal-users"
+                        }
+                    },
+                    {
+                        "name": "elastic-internal-remote-certificate-authorities",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "elasticsearch-cluster-es-remote-ca"
+                        }
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 493,
+                            "name": "elasticsearch-cluster-es-scripts",
+                            "optional": false
+                        },
+                        "name": "elastic-internal-scripts"
+                    },
+                    {
+                        "name": "elastic-internal-transport-certificates",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "elasticsearch-cluster-es-default-es-transport-certs"
+                        }
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "elasticsearch-cluster-es-unicast-hosts",
+                            "optional": false
+                        },
+                        "name": "elastic-internal-unicast-hosts"
+                    },
+                    {
+                        "name": "elastic-internal-xpack-file-realm",
+                        "secret": {
+                            "defaultMode": 420,
+                            "optional": false,
+                            "secretName": "elasticsearch-cluster-es-xpack-file-realm"
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "elasticsearch-logs"
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "SIEVE-IGNORE",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "SIEVE-IGNORE",
+                        "image": "docker.elastic.co/elasticsearch/elasticsearch:7.16.2",
+                        "imageID": "docker.elastic.co/elasticsearch/elasticsearch@sha256:055ab3c3466c6bd72ef42f7773c5fa224db4fb7cd6a9a5588ebe46642a15abf5",
+                        "lastState": {},
+                        "name": "elasticsearch",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.18.0.2",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -2186,8 +3782,8 @@
     },
     "replicaset": {},
     "secret": {
-        "default-token-hj928": "SIEVE-IGNORE",
-        "elastic-operator-token-wntkm": "SIEVE-IGNORE",
+        "default-token-n28hc": "SIEVE-IGNORE",
+        "elastic-operator-token-9mmzh": "SIEVE-IGNORE",
         "elastic-webhook-server-cert": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -2276,7 +3872,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2308,7 +3904,9 @@
             "data": {
                 "ca.crt": "SIEVE-IGNORE",
                 "elasticsearch-cluster-es-default-0.tls.crt": "SIEVE-IGNORE",
-                "elasticsearch-cluster-es-default-0.tls.key": "SIEVE-IGNORE"
+                "elasticsearch-cluster-es-default-0.tls.key": "SIEVE-IGNORE",
+                "elasticsearch-cluster-es-default-1.tls.crt": "SIEVE-IGNORE",
+                "elasticsearch-cluster-es-default-1.tls.key": "SIEVE-IGNORE"
             },
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -2325,7 +3923,9 @@
                                 ".": {},
                                 "f:ca.crt": {},
                                 "f:elasticsearch-cluster-es-default-0.tls.crt": {},
-                                "f:elasticsearch-cluster-es-default-0.tls.key": {}
+                                "f:elasticsearch-cluster-es-default-0.tls.key": {},
+                                "f:elasticsearch-cluster-es-default-1.tls.crt": {},
+                                "f:elasticsearch-cluster-es-default-1.tls.key": {}
                             },
                             "f:metadata": {
                                 "f:labels": {
@@ -2335,7 +3935,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2441,7 +4041,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2500,7 +4100,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2610,7 +4210,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2663,7 +4263,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2720,7 +4320,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2826,7 +4426,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2954,7 +4554,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3044,7 +4644,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3129,7 +4729,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3631,9 +5231,9 @@
         "elasticsearch-cluster-es-default": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
-                "generation": 1,
+                "generation": 3,
                 "labels": {
-                    "common.k8s.elastic.co/template-hash": "1270425851",
+                    "common.k8s.elastic.co/template-hash": "1121908896",
                     "common.k8s.elastic.co/type": "elasticsearch",
                     "elasticsearch.k8s.elastic.co/cluster-name": "elasticsearch-cluster",
                     "elasticsearch.k8s.elastic.co/statefulset-name": "elasticsearch-cluster-es-default"
@@ -3653,7 +5253,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"2e2e4a3c-035c-46fb-9c0e-b2cca5715e33\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4422,7 +6022,7 @@
             },
             "spec": {
                 "podManagementPolicy": "Parallel",
-                "replicas": 1,
+                "replicas": 2,
                 "revisionHistoryLimit": 10,
                 "selector": {
                     "matchLabels": {
@@ -5067,13 +6667,13 @@
             },
             "status": {
                 "collisionCount": 0,
-                "currentReplicas": 1,
+                "currentReplicas": 2,
                 "currentRevision": "elasticsearch-cluster-es-default-5c885447f6",
-                "observedGeneration": 1,
-                "readyReplicas": 1,
-                "replicas": 1,
+                "observedGeneration": 3,
+                "readyReplicas": 2,
+                "replicas": 2,
                 "updateRevision": "elasticsearch-cluster-es-default-5c885447f6",
-                "updatedReplicas": 1
+                "updatedReplicas": 2
             }
         }
     }
