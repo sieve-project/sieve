@@ -207,6 +207,11 @@ def reversed_effect_filtering_pass(
                     continue
                 if operator_hear.etype == OperatorHearTypes.ADDED:
                     reversed_effect = True
+                if (
+                    sieve_config["update_cancels_delete_enabled"]
+                    and operator_hear.etype == OperatorHearTypes.UPDATED
+                ):
+                    reversed_effect = True
         else:
             # if the operator_write key never appears in the operator_hear_key_map
             # it means the operator does not watch on the resource
