@@ -14,6 +14,7 @@ sieve_config = {
         "persistentvolumeclaim",
         "secret",
         "service",
+        "replicaset",
     ],
     "compress_trivial_reconcile": True,
     "workload_wait_soft_timeout": 100,
