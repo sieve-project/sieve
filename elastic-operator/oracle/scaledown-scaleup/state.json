@@ -84,7 +84,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker"
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -101,13 +101,10 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
-                                }
+                                "f:ownerReferences": "SIEVE-IGNORE"
                             }
                         },
-                        "manager": "elastic-operator",
+                        "manager": "SIEVE-IGNORE",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -116,13 +113,10 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:volume.kubernetes.io/selected-node": {}
-                                }
+                                "f:annotations": "SIEVE-IGNORE"
                             }
                         },
-                        "manager": "kube-scheduler",
+                        "manager": "SIEVE-IGNORE",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -228,13 +222,10 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:ownerReferences": {
-                                    ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
-                                }
+                                "f:ownerReferences": "SIEVE-IGNORE"
                             }
                         },
-                        "manager": "elastic-operator",
+                        "manager": "SIEVE-IGNORE",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -243,13 +234,10 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:annotations": {
-                                    ".": {},
-                                    "f:volume.kubernetes.io/selected-node": {}
-                                }
+                                "f:annotations": "SIEVE-IGNORE"
                             }
                         },
-                        "manager": "kube-scheduler",
+                        "manager": "SIEVE-IGNORE",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -369,7 +357,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"fff2cb87-4700-4681-b49b-cd3b8a0adb5b\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b22e75e2-f2bb-44f8-bd76-83409b10c875\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -501,6 +489,29 @@
                             }
                         },
                         "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    ".": {},
+                                    "k:{\"type\":\"PodScheduled\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kube-scheduler",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -734,7 +745,7 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/elastic-operator:learn",
-                        "imageID": "sha256:9a1093be40d936cb4d45d164def54e189835455b282efa7492371c83e6fcbf6e",
+                        "imageID": "sha256:51a08d454a29eff336dd673d9ed0175eab26aece4e08ab7e13357c3925868018",
                         "lastState": {},
                         "name": "manager",
                         "ready": true,
@@ -823,7 +834,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"7e6828d4-38ab-4649-96c2-33b6f0839eaf\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"56cd3b6a-5261-44db-a758-71b09b9010b7\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2056,7 +2067,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2357,7 +2368,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"7e6828d4-38ab-4649-96c2-33b6f0839eaf\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"56cd3b6a-5261-44db-a758-71b09b9010b7\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3773,11 +3784,11 @@
                         "restartCount": 14,
                         "started": "SIEVE-IGNORE",
                         "state": {
-                            "waiting": "SIEVE-IGNORE"
+                            "running": "SIEVE-IGNORE"
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "172.18.0.2",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -3830,8 +3841,8 @@
     },
     "replicaset": {},
     "secret": {
-        "default-token-mc2q5": "SIEVE-IGNORE",
-        "elastic-operator-token-tm2xb": "SIEVE-IGNORE",
+        "default-token-sm882": "SIEVE-IGNORE",
+        "elastic-operator-token-twl9w": "SIEVE-IGNORE",
         "elastic-webhook-server-cert": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -3920,7 +3931,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -3983,7 +3994,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4089,7 +4100,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4148,7 +4159,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4258,7 +4269,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4311,7 +4322,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4368,7 +4379,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4474,7 +4485,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -4602,7 +4613,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4692,7 +4703,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4777,7 +4788,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -5301,7 +5312,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"3e8056d2-fdac-44aa-a81f-56957f60fd10\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b2cd039a-8b12-4e0b-897b-d90d104d7e03\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
