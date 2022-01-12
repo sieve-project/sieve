@@ -392,17 +392,24 @@ workloads = {
         "recreate": new_built_in_workload()
         .cmd("kubectl apply -f examples/elastic-operator/test/es-1.yaml")
         .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING)
+        .wait_for_secret_existence("elasticsearch-cluster-es-elastic-user", True)
         .cmd("kubectl delete elasticsearch elasticsearch-cluster")
         .wait_for_pod_status("elasticsearch-cluster-es-default-0", TERMINATED)
+        .wait_for_secret_existence("elasticsearch-cluster-es-elastic-user", False)
         .cmd("kubectl apply -f examples/elastic-operator/test/es-1.yaml")
-        .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING),
+        .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING)
+        .wait_for_secret_existence("elasticsearch-cluster-es-elastic-user", True),
         "scaledown-scaleup": new_built_in_workload()
         .cmd("kubectl apply -f examples/elastic-operator/test/es-2.yaml")
         .wait_for_pod_status("elasticsearch-cluster-es-default-1", RUNNING)
+        .wait_for_secret_existence("elasticsearch-cluster-es-elastic-user", True)
         .cmd(
             'kubectl patch elasticsearch elasticsearch-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/nodeSets/0/count", "value": 1}]\''
         )
         .wait_for_pod_status("elasticsearch-cluster-es-default-1", TERMINATED)
+        .wait_for_pvc_status(
+            "elasticsearch-data-elasticsearch-cluster-es-default-1", TERMINATED
+        )
         .cmd(
             'kubectl patch elasticsearch elasticsearch-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/nodeSets/0/count", "value": 2}]\''
         )
