@@ -362,7 +362,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker2"
+                    "volume.kubernetes.io/selected-node": "kind-worker"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -464,7 +464,7 @@
         }
     },
     "pod": {
-        "cassandra-operator-55bf946bb6-qgft5": "SIEVE-IGNORE",
+        "cassandra-operator-55bf946bb6-z8rqs": "SIEVE-IGNORE",
         "cassandra-test-cluster-dc1-rack1-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -495,7 +495,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d31bb3a5-608a-4b77-a292-3c01527dc215\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"d4a607ce-cf2e-444e-8477-9c974b9309d1\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -758,7 +758,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.7\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.6\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -949,7 +949,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker2",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1115,7 +1115,7 @@
                         }
                     }
                 ],
-                "hostIP": "172.18.0.3",
+                "hostIP": "SIEVE-IGNORE",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -1148,11 +1148,253 @@
             }
         }
     },
+    "replicaset": {
+        "cassandra-operator-55bf946bb6": {
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "1",
+                    "deployment.kubernetes.io/max-replicas": "2",
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "labels": {
+                    "name": "cassandra-operator",
+                    "pod-template-hash": "55bf946bb6",
+                    "sievetag": "cassandra-operator"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:deployment.kubernetes.io/desired-replicas": {},
+                                    "f:deployment.kubernetes.io/max-replicas": {},
+                                    "f:deployment.kubernetes.io/revision": {}
+                                },
+                                "f:labels": {
+                                    ".": {},
+                                    "f:name": {},
+                                    "f:pod-template-hash": {},
+                                    "f:sievetag": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"64ae6dc1-09f3-4d40-931d-f07d097b3def\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:replicas": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:pod-template-hash": {},
+                                        "f:sievetag": {}
+                                    }
+                                },
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:pod-template-hash": {},
+                                            "f:sievetag": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:containers": {
+                                            "k:{\"name\":\"cassandra-operator\"}": {
+                                                ".": {},
+                                                "f:command": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"OPERATOR_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"POD_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    },
+                                                    "k:{\"name\":\"WATCH_NAMESPACE\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "f:envFrom": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:resources": {},
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {}
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {},
+                                        "f:serviceAccount": {},
+                                        "f:serviceAccountName": {},
+                                        "f:terminationGracePeriodSeconds": {}
+                                    }
+                                }
+                            },
+                            "f:status": {
+                                "f:availableReplicas": {},
+                                "f:fullyLabeledReplicas": {},
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "cassandra-operator-55bf946bb6",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "cassandra-operator",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/apps/v1/namespaces/default/replicasets/cassandra-operator-55bf946bb6",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "name": "cassandra-operator",
+                        "pod-template-hash": "55bf946bb6",
+                        "sievetag": "cassandra-operator"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "cassandra-operator",
+                            "pod-template-hash": "55bf946bb6",
+                            "sievetag": "cassandra-operator"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "command": [
+                                    "./cassandra-operator"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "WATCH_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "POD_NAME",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "OPERATOR_NAME",
+                                        "value": "cassandra-operator"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_HOST",
+                                        "value": "kind-control-plane"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_PORT",
+                                        "value": "6443"
+                                    }
+                                ],
+                                "envFrom": [
+                                    {
+                                        "configMapRef": {
+                                            "name": "sieve-testing-global-config"
+                                        }
+                                    }
+                                ],
+                                "image": "ghcr.io/sieve-project/action/cassandra-operator:learn",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "cassandra-operator",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "serviceAccount": "cassandra-operator",
+                        "serviceAccountName": "cassandra-operator",
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "fullyLabeledReplicas": 1,
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        }
+    },
     "secret": {
-        "cassandra-operator-token-bw48n": "SIEVE-IGNORE",
-        "cassandra-performance-token-bj5r9": "SIEVE-IGNORE",
-        "cassandra-token-pgwf4": "SIEVE-IGNORE",
-        "default-token-xhd44": "SIEVE-IGNORE"
+        "cassandra-operator-token-vsncn": "SIEVE-IGNORE",
+        "cassandra-performance-token-494kx": "SIEVE-IGNORE",
+        "cassandra-token-qptcz": "SIEVE-IGNORE",
+        "default-token-r8dmg": "SIEVE-IGNORE"
     },
     "service": {
         "cassandra-operator-metrics": {
@@ -1173,7 +1415,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"fc9e7805-80ee-4117-b1cc-8b331d29790d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"64ae6dc1-09f3-4d40-931d-f07d097b3def\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1260,7 +1502,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"b2aaa0f2-c9bd-4091-93e8-e625ae1cef2d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"9c968eb5-7e51-409e-b1c5-91f7635d276e\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1359,7 +1601,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"b2aaa0f2-c9bd-4091-93e8-e625ae1cef2d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"9c968eb5-7e51-409e-b1c5-91f7635d276e\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1519,7 +1761,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"b2aaa0f2-c9bd-4091-93e8-e625ae1cef2d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"9c968eb5-7e51-409e-b1c5-91f7635d276e\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
