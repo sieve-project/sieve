@@ -534,11 +534,6 @@
                     {
                         "lastTransitionTime": "SIEVE-IGNORE",
                         "status": "True",
-                        "type": "SIEVE-IGNORE"
-                    },
-                    {
-                        "lastTransitionTime": "2022-01-11T11:03:58Z",
-                        "status": "True",
                         "type": "ClusterReady"
                     }
                 ],
@@ -677,7 +672,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                    "volume.kubernetes.io/selected-node": "kind-worker"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -936,7 +931,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"81580cf0-214c-4e0a-8591-de7ed3088a9d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"540ec7b0-09b5-4be5-8045-f76451407afd\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1205,7 +1200,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.6\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.6\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1560,7 +1555,7 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                        "imageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:524b5f514142f0bc5832c5d655e807dc6f6f8a783ccdd0f76bb65940cd2df92f",
+                        "imageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:6189aec96d0b4c84da13dbba98235add1ecf882640cb8f86350e2cdfe327d220",
                         "lastState": {},
                         "name": "mongo-init",
                         "ready": true,
@@ -1630,7 +1625,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"81580cf0-214c-4e0a-8591-de7ed3088a9d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"540ec7b0-09b5-4be5-8045-f76451407afd\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1899,7 +1894,10 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.6\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.3.6\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
                                 },
                                 "f:startTime": {}
                             }
@@ -2132,7 +2130,7 @@
                         ]
                     }
                 ],
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2254,7 +2252,7 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                        "imageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:524b5f514142f0bc5832c5d655e807dc6f6f8a783ccdd0f76bb65940cd2df92f",
+                        "imageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:6189aec96d0b4c84da13dbba98235add1ecf882640cb8f86350e2cdfe327d220",
                         "lastState": {},
                         "name": "mongo-init",
                         "ready": true,
@@ -2271,10 +2269,10 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.3.6",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.3.6"
                     }
                 ],
                 "qosClass": "Guaranteed",
@@ -2324,7 +2322,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"81580cf0-214c-4e0a-8591-de7ed3088a9d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"540ec7b0-09b5-4be5-8045-f76451407afd\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2593,10 +2591,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.3.7\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
+                                    "k:{\"ip\":\"10.244.1.7\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -2951,7 +2946,7 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                        "imageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:524b5f514142f0bc5832c5d655e807dc6f6f8a783ccdd0f76bb65940cd2df92f",
+                        "imageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:6189aec96d0b4c84da13dbba98235add1ecf882640cb8f86350e2cdfe327d220",
                         "lastState": {},
                         "name": "mongo-init",
                         "ready": true,
@@ -2968,20 +2963,296 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "10.244.3.7",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.3.7"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Guaranteed",
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "percona-server-mongodb-operator-7f696b75f5-4bmbd": "SIEVE-IGNORE"
+        "percona-server-mongodb-operator-7f696b75f5-5b2qj": "SIEVE-IGNORE"
+    },
+    "replicaset": {
+        "percona-server-mongodb-operator-7f696b75f5": {
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "1",
+                    "deployment.kubernetes.io/max-replicas": "2",
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "labels": {
+                    "name": "percona-server-mongodb-operator",
+                    "pod-template-hash": "7f696b75f5",
+                    "sievetag": "mongodb-operator"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:deployment.kubernetes.io/desired-replicas": {},
+                                    "f:deployment.kubernetes.io/max-replicas": {},
+                                    "f:deployment.kubernetes.io/revision": {}
+                                },
+                                "f:labels": {
+                                    ".": {},
+                                    "f:name": {},
+                                    "f:pod-template-hash": {},
+                                    "f:sievetag": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"f1b6a581-6ba1-48e5-ba7e-047b501eb888\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:replicas": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:pod-template-hash": {},
+                                        "f:sievetag": {}
+                                    }
+                                },
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:pod-template-hash": {},
+                                            "f:sievetag": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:containers": {
+                                            "k:{\"name\":\"percona-server-mongodb-operator\"}": {
+                                                ".": {},
+                                                "f:command": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"LOG_VERBOSE\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"OPERATOR_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"POD_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    },
+                                                    "k:{\"name\":\"RESYNC_PERIOD\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"WATCH_NAMESPACE\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "f:envFrom": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:name": {},
+                                                "f:ports": {
+                                                    ".": {},
+                                                    "k:{\"containerPort\":60000,\"protocol\":\"TCP\"}": {
+                                                        ".": {},
+                                                        "f:containerPort": {},
+                                                        "f:name": {},
+                                                        "f:protocol": {}
+                                                    }
+                                                },
+                                                "f:resources": {},
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {}
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {},
+                                        "f:serviceAccount": {},
+                                        "f:serviceAccountName": {},
+                                        "f:terminationGracePeriodSeconds": {}
+                                    }
+                                }
+                            },
+                            "f:status": {
+                                "f:availableReplicas": {},
+                                "f:fullyLabeledReplicas": {},
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "percona-server-mongodb-operator-7f696b75f5",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "percona-server-mongodb-operator",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/apps/v1/namespaces/default/replicasets/percona-server-mongodb-operator-7f696b75f5",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "name": "percona-server-mongodb-operator",
+                        "pod-template-hash": "7f696b75f5",
+                        "sievetag": "mongodb-operator"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "percona-server-mongodb-operator",
+                            "pod-template-hash": "7f696b75f5",
+                            "sievetag": "mongodb-operator"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "command": [
+                                    "percona-server-mongodb-operator"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "WATCH_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "POD_NAME",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "OPERATOR_NAME",
+                                        "value": "percona-server-mongodb-operator"
+                                    },
+                                    {
+                                        "name": "RESYNC_PERIOD",
+                                        "value": "5s"
+                                    },
+                                    {
+                                        "name": "LOG_VERBOSE",
+                                        "value": "false"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_HOST",
+                                        "value": "kind-control-plane"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_PORT",
+                                        "value": "6443"
+                                    }
+                                ],
+                                "envFrom": [
+                                    {
+                                        "configMapRef": {
+                                            "name": "sieve-testing-global-config"
+                                        }
+                                    }
+                                ],
+                                "image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "percona-server-mongodb-operator",
+                                "ports": [
+                                    {
+                                        "containerPort": 60000,
+                                        "name": "metrics",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "serviceAccount": "percona-server-mongodb-operator",
+                        "serviceAccountName": "percona-server-mongodb-operator",
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "fullyLabeledReplicas": 1,
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        }
     },
     "secret": {
-        "default-token-kh6vm": "SIEVE-IGNORE",
+        "default-token-qv52w": "SIEVE-IGNORE",
         "internal-mongodb-cluster-users": {
             "data": {
                 "MONGODB_BACKUP_PASSWORD": "SIEVE-IGNORE",
@@ -3074,7 +3345,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"12db6805-a812-4be7-98a8-8ef852a6794c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"568b986e-c8bf-4646-ba9b-8a0cb8c2ea3b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -3167,7 +3438,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"12db6805-a812-4be7-98a8-8ef852a6794c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"568b986e-c8bf-4646-ba9b-8a0cb8c2ea3b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -3216,7 +3487,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"12db6805-a812-4be7-98a8-8ef852a6794c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"568b986e-c8bf-4646-ba9b-8a0cb8c2ea3b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -3243,7 +3514,7 @@
             },
             "type": "kubernetes.io/tls"
         },
-        "percona-server-mongodb-operator-token-7s8m6": "SIEVE-IGNORE"
+        "percona-server-mongodb-operator-token-2xrdm": "SIEVE-IGNORE"
     },
     "service": {
         "kubernetes": {
@@ -3320,7 +3591,7 @@
                             "f:metadata": {
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"12db6805-a812-4be7-98a8-8ef852a6794c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"568b986e-c8bf-4646-ba9b-8a0cb8c2ea3b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3422,7 +3693,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"12db6805-a812-4be7-98a8-8ef852a6794c\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"568b986e-c8bf-4646-ba9b-8a0cb8c2ea3b\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
