@@ -1,6 +1,13 @@
 #!/bin/bash
 set -x
 
+# 0. Git pull sieve on all worker nodes
+parallel --workdir '/home/ubuntu/sieve' \
+         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
+         --sshloginfile remotehosts \
+         --onall \
+         ::: 'git pull'
+
 # 1. Delete all old docker images
 parallel --workdir '/home/ubuntu/sieve' \
          --ssh 'ssh -i "~/.ssh/id_rsa" ' \
@@ -9,8 +16,8 @@ parallel --workdir '/home/ubuntu/sieve' \
          ::: 'docker system prune -a'
 
 # 2. Generate test commands and docker pull commands
-python3 runlearn.py  # [-p projects]
-python3 gen_commands.py  # [-p projects]
+python3 runlearn.py -p $1
+python3 gen_commands.py -p $1
 
 # 3. Run docker pull commands on all nodes
 #
