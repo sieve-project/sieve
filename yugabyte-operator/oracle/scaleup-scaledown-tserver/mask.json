@@ -87,6 +87,7 @@
             "metadata/ownerReferences",
             "metadata/resourceVersion",
             "metadata/uid",
+            "spec/containers/*/command/*",
             "spec/containers/*/env",
             "spec/containers/*/image",
             "spec/containers/*/volumeMounts/*/name",
@@ -338,7 +339,10 @@
             "metadata/uid",
             "spec/template/spec/containers/*/env",
             "spec/template/spec/containers/*/image",
-            "status/observedGeneration"
+            "status/currentReplicas",
+            "status/currentRevision",
+            "status/observedGeneration",
+            "status/updatedReplicas"
         ],
         "yb-tserver": [
             "metadata/creationTimestamp",
