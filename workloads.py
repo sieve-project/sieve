@@ -389,7 +389,7 @@ workloads = {
         ),
     },
     "elastic-operator": {
-        "recreate": new_built_in_workload()
+        "recreate": new_built_in_workload(100)
         .cmd("kubectl apply -f examples/elastic-operator/test/es-1.yaml")
         .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING)
         .wait_for_secret_existence("elasticsearch-cluster-es-elastic-user", True)
@@ -399,7 +399,7 @@ workloads = {
         .cmd("kubectl apply -f examples/elastic-operator/test/es-1.yaml")
         .wait_for_pod_status("elasticsearch-cluster-es-default-0", RUNNING)
         .wait_for_secret_existence("elasticsearch-cluster-es-elastic-user", True),
-        "scaledown-scaleup": new_built_in_workload()
+        "scaledown-scaleup": new_built_in_workload(100)
         .cmd("kubectl apply -f examples/elastic-operator/test/es-2.yaml")
         .wait_for_pod_status("elasticsearch-cluster-es-default-1", RUNNING)
         .wait_for_secret_existence("elasticsearch-cluster-es-elastic-user", True)
