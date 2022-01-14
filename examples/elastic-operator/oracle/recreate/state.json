@@ -102,7 +102,7 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:ownerReferences": "SIEVE-IGNORE"
+                                "f:annotations": "SIEVE-IGNORE"
                             }
                         },
                         "manager": "SIEVE-IGNORE",
@@ -114,7 +114,7 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:annotations": "SIEVE-IGNORE"
+                                "f:ownerReferences": "SIEVE-IGNORE"
                             }
                         },
                         "manager": "SIEVE-IGNORE",
@@ -212,7 +212,7 @@
                 "generateName": "elastic-operator-",
                 "labels": {
                     "control-plane": "elastic-operator",
-                    "controller-revision-hash": "elastic-operator-5cfcbdf4c4",
+                    "controller-revision-hash": "elastic-operator-854df5f78b",
                     "sievetag": "elastic-operator",
                     "statefulset.kubernetes.io/pod-name": "elastic-operator-0"
                 },
@@ -237,7 +237,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"851c03c2-f8db-4964-a310-5431dfb30859\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b48755b6-bd88-4b99-a15a-c64c5151526d\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -378,29 +378,6 @@
                         "fieldsV1": {
                             "f:status": {
                                 "f:conditions": {
-                                    ".": {},
-                                    "k:{\"type\":\"PodScheduled\"}": {
-                                        ".": {},
-                                        "f:lastProbeTime": {},
-                                        "f:lastTransitionTime": {},
-                                        "f:message": {},
-                                        "f:reason": {},
-                                        "f:status": {},
-                                        "f:type": {}
-                                    }
-                                }
-                            }
-                        },
-                        "manager": "kube-scheduler",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:status": {
-                                "f:conditions": {
                                     "k:{\"type\":\"ContainersReady\"}": {
                                         ".": {},
                                         "f:lastProbeTime": {},
@@ -429,10 +406,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.2\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
+                                    "k:{\"ip\":\"10.244.2.2\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -504,7 +478,7 @@
                                 }
                             }
                         ],
-                        "image": "xudongs/elastic-operator:learn",
+                        "image": "ghcr.io/sieve-project/action/elastic-operator:learn",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "manager",
                         "ports": [
@@ -548,7 +522,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "elastic-operator-0",
-                "nodeName": "kind-worker",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -627,8 +601,8 @@
                 "containerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
-                        "image": "docker.io/xudongs/elastic-operator:learn",
-                        "imageID": "sha256:0e8d8c740be98e6cab9d8ff4599591771a4e445c97b9e9d2c4eea582627175d5",
+                        "image": "ghcr.io/sieve-project/action/elastic-operator:learn",
+                        "imageID": "sha256:51a08d454a29eff336dd673d9ed0175eab26aece4e08ab7e13357c3925868018",
                         "lastState": {},
                         "name": "manager",
                         "ready": true,
@@ -641,12 +615,12 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.27.0.2",
                 "phase": "Running",
-                "podIP": "10.244.1.2",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.1.2"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -717,7 +691,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"dc42a8f2-1c00-4dbe-99df-ecf67a5916a1\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6c9294bd-e0bd-4ff7-b2de-99e5d0bea17c\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1409,20 +1383,13 @@
                         "apiVersion": "v1",
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
-                            "f:spec": "SIEVE-IGNORE",
-                            "f:status": "SIEVE-IGNORE"
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:update.k8s.elastic.co/timestamp": {}
+                                }
+                            }
                         },
-                        "manager": "SIEVE-IGNORE",
-                        "operation": "Update",
-                        "time": "SIEVE-IGNORE"
-                    },
-                    {
-                        "apiVersion": "v1",
-                        "fieldsType": "FieldsV1",
-                        "fieldsV1": {
-                            "f:metadata": "SIEVE-IGNORE"
-                        },
-                        "manager": "SIEVE-IGNORE",
+                        "manager": "elastic-operator",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     },
@@ -1461,7 +1428,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.6\"}": {
+                                    "k:{\"ip\":\"10.244.1.6\"}": {
                                         ".": {},
                                         "f:ip": {}
                                     }
@@ -1471,7 +1438,7 @@
                         },
                         "manager": "kubelet",
                         "operation": "Update",
-                        "time": "2022-01-11T17:04:36Z"
+                        "time": "SIEVE-IGNORE"
                     }
                 ],
                 "name": "elasticsearch-cluster-es-default-0",
@@ -2133,7 +2100,7 @@
                         }
                     }
                 ],
-                "hostIP": "SIEVE-IGNORE",
+                "hostIP": "172.27.0.3",
                 "initContainerStatuses": [
                     {
                         "containerID": "SIEVE-IGNORE",
@@ -2173,10 +2140,10 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "SIEVE-IGNORE",
+                "podIP": "10.244.1.6",
                 "podIPs": [
                     {
-                        "ip": "SIEVE-IGNORE"
+                        "ip": "10.244.1.6"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -2186,8 +2153,8 @@
     },
     "replicaset": {},
     "secret": {
-        "default-token-hj928": "SIEVE-IGNORE",
-        "elastic-operator-token-wntkm": "SIEVE-IGNORE",
+        "default-token-d2jwk": "SIEVE-IGNORE",
+        "elastic-operator-token-vk4c8": "SIEVE-IGNORE",
         "elastic-webhook-server-cert": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -2276,7 +2243,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2335,7 +2302,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2441,7 +2408,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2500,7 +2467,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2610,7 +2577,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2663,7 +2630,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2720,7 +2687,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2826,7 +2793,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2954,7 +2921,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3044,7 +3011,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3129,7 +3096,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3265,7 +3232,7 @@
         "elastic-operator": {
             "metadata": {
                 "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"StatefulSet\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/version\":\"1.9.1\",\"control-plane\":\"elastic-operator\"},\"name\":\"elastic-operator\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"control-plane\":\"elastic-operator\",\"sievetag\":\"elastic-operator\"}},\"serviceName\":\"elastic-operator\",\"template\":{\"metadata\":{\"annotations\":{\"checksum/config\":\"239de074c87fe1f7254f5c93ff9f4a0949c8f111ba15696c460d786d6279e4d6\",\"co.elastic.logs/raw\":\"[{\\\"type\\\":\\\"container\\\",\\\"json.keys_under_root\\\":true,\\\"paths\\\":[\\\"/var/log/containers/*${data.kubernetes.container.id}.log\\\"],\\\"processors\\\":[{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"error\\\",\\\"to\\\":\\\"_error\\\"}]}},{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"_error\\\",\\\"to\\\":\\\"error.message\\\"}]}},{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"source\\\",\\\"to\\\":\\\"_source\\\"}]}},{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"_source\\\",\\\"to\\\":\\\"event.source\\\"}]}}]}]\"},\"labels\":{\"control-plane\":\"elastic-operator\",\"sievetag\":\"elastic-operator\"}},\"spec\":{\"containers\":[{\"args\":[\"manager\",\"--config=/conf/eck.yaml\"],\"env\":[{\"name\":\"OPERATOR_NAMESPACE\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.namespace\"}}},{\"name\":\"POD_IP\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"status.podIP\"}}},{\"name\":\"WEBHOOK_SECRET\",\"value\":\"elastic-webhook-server-cert\"},{\"name\":\"KUBERNETES_SERVICE_HOST\",\"value\":\"kind-control-plane\"},{\"name\":\"KUBERNETES_SERVICE_PORT\",\"value\":\"6443\"}],\"envFrom\":[{\"configMapRef\":{\"name\":\"sieve-testing-global-config\"}}],\"image\":\"xudongs/elastic-operator:learn\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"manager\",\"ports\":[{\"containerPort\":9443,\"name\":\"https-webhook\",\"protocol\":\"TCP\"}],\"resources\":{\"limits\":{\"cpu\":1,\"memory\":\"512Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"150Mi\"}},\"volumeMounts\":[{\"mountPath\":\"/conf\",\"name\":\"conf\",\"readOnly\":true},{\"mountPath\":\"/tmp/k8s-webhook-server/serving-certs\",\"name\":\"cert\",\"readOnly\":true}]}],\"securityContext\":{\"runAsNonRoot\":true},\"serviceAccountName\":\"elastic-operator\",\"terminationGracePeriodSeconds\":10,\"volumes\":[{\"configMap\":{\"name\":\"elastic-operator\"},\"name\":\"conf\"},{\"name\":\"cert\",\"secret\":{\"defaultMode\":420,\"secretName\":\"elastic-webhook-server-cert\"}}]}}}}\n"
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"StatefulSet\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/version\":\"1.9.1\",\"control-plane\":\"elastic-operator\"},\"name\":\"elastic-operator\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"control-plane\":\"elastic-operator\",\"sievetag\":\"elastic-operator\"}},\"serviceName\":\"elastic-operator\",\"template\":{\"metadata\":{\"annotations\":{\"checksum/config\":\"239de074c87fe1f7254f5c93ff9f4a0949c8f111ba15696c460d786d6279e4d6\",\"co.elastic.logs/raw\":\"[{\\\"type\\\":\\\"container\\\",\\\"json.keys_under_root\\\":true,\\\"paths\\\":[\\\"/var/log/containers/*${data.kubernetes.container.id}.log\\\"],\\\"processors\\\":[{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"error\\\",\\\"to\\\":\\\"_error\\\"}]}},{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"_error\\\",\\\"to\\\":\\\"error.message\\\"}]}},{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"source\\\",\\\"to\\\":\\\"_source\\\"}]}},{\\\"convert\\\":{\\\"mode\\\":\\\"rename\\\",\\\"ignore_missing\\\":true,\\\"fields\\\":[{\\\"from\\\":\\\"_source\\\",\\\"to\\\":\\\"event.source\\\"}]}}]}]\"},\"labels\":{\"control-plane\":\"elastic-operator\",\"sievetag\":\"elastic-operator\"}},\"spec\":{\"containers\":[{\"args\":[\"manager\",\"--config=/conf/eck.yaml\"],\"env\":[{\"name\":\"OPERATOR_NAMESPACE\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.namespace\"}}},{\"name\":\"POD_IP\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"status.podIP\"}}},{\"name\":\"WEBHOOK_SECRET\",\"value\":\"elastic-webhook-server-cert\"},{\"name\":\"KUBERNETES_SERVICE_HOST\",\"value\":\"kind-control-plane\"},{\"name\":\"KUBERNETES_SERVICE_PORT\",\"value\":\"6443\"}],\"envFrom\":[{\"configMapRef\":{\"name\":\"sieve-testing-global-config\"}}],\"image\":\"ghcr.io/sieve-project/action/elastic-operator:learn\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"manager\",\"ports\":[{\"containerPort\":9443,\"name\":\"https-webhook\",\"protocol\":\"TCP\"}],\"resources\":{\"limits\":{\"cpu\":1,\"memory\":\"512Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"150Mi\"}},\"volumeMounts\":[{\"mountPath\":\"/conf\",\"name\":\"conf\",\"readOnly\":true},{\"mountPath\":\"/tmp/k8s-webhook-server/serving-certs\",\"name\":\"cert\",\"readOnly\":true}]}],\"securityContext\":{\"runAsNonRoot\":true},\"serviceAccountName\":\"elastic-operator\",\"terminationGracePeriodSeconds\":10,\"volumes\":[{\"configMap\":{\"name\":\"elastic-operator\"},\"name\":\"conf\"},{\"name\":\"cert\",\"secret\":{\"defaultMode\":420,\"secretName\":\"elastic-webhook-server-cert\"}}]}}}}\n"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "generation": 1,
@@ -3547,7 +3514,7 @@
                                         }
                                     }
                                 ],
-                                "image": "xudongs/elastic-operator:learn",
+                                "image": "ghcr.io/sieve-project/action/elastic-operator:learn",
                                 "imagePullPolicy": "IfNotPresent",
                                 "name": "manager",
                                 "ports": [
@@ -3620,11 +3587,11 @@
             "status": {
                 "collisionCount": 0,
                 "currentReplicas": 1,
-                "currentRevision": "elastic-operator-5cfcbdf4c4",
+                "currentRevision": "elastic-operator-854df5f78b",
                 "observedGeneration": 1,
                 "readyReplicas": 1,
                 "replicas": 1,
-                "updateRevision": "elastic-operator-5cfcbdf4c4",
+                "updateRevision": "elastic-operator-854df5f78b",
                 "updatedReplicas": 1
             }
         },
@@ -3653,7 +3620,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"a2736122-b11d-499e-977d-f6fc77b60c0d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"13d99ea1-4f29-4157-837b-5dce81d37275\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
