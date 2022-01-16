@@ -8,11 +8,12 @@ from sieve_common.default_config import sieve_config
 ORIGINAL_DIR = os.getcwd()
 
 
-def download_kubernetes():
+def download_kubernetes(version):
     cmd_early_exit("rm -rf fakegopath")
     cmd_early_exit("mkdir -p fakegopath/src/k8s.io")
     cmd_early_exit(
-        "git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null"
+        "git clone --single-branch --branch %s https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null"
+        % version
     )
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     cmd_early_exit("git checkout -b sieve >> /dev/null")
@@ -43,11 +44,11 @@ def instrument_kubernetes(mode):
     os.chdir(ORIGINAL_DIR)
 
 
-def build_kubernetes(img_repo, img_tag):
+def build_kubernetes(version, img_repo, img_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     cmd_early_exit(
-        "GOPATH=%s/fakegopath KUBE_GIT_VERSION=v1.18.9-sieve-`git rev-parse HEAD` kind build node-image"
-        % ORIGINAL_DIR
+        "GOPATH=%s/fakegopath KUBE_GIT_VERSION=%s-sieve-`git rev-parse HEAD` kind build node-image"
+        % (ORIGINAL_DIR, version)
     )
     os.chdir(ORIGINAL_DIR)
     os.chdir("build_k8s")
@@ -56,11 +57,11 @@ def build_kubernetes(img_repo, img_tag):
     os.chdir(ORIGINAL_DIR)
 
 
-def setup_kubernetes(mode, img_repo, img_tag):
-    download_kubernetes()
+def setup_kubernetes(version, mode, img_repo, img_tag):
+    download_kubernetes(version)
     install_lib_for_kubernetes()
     instrument_kubernetes(mode)
-    build_kubernetes(img_repo, img_tag)
+    build_kubernetes(version, img_repo, img_tag)
 
 
 def download_controller(project, link, sha):
@@ -254,8 +255,8 @@ def setup_controller(
     build_controller(project, img_repo, img_tag)
 
 
-def setup_kubernetes_wrapper(mode, img_repo):
-    img_tag = mode
+def setup_kubernetes_wrapper(version, mode, img_repo):
+    img_tag = version + "-" + mode
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
@@ -263,10 +264,9 @@ def setup_kubernetes_wrapper(mode, img_repo):
             sieve_modes.OBS_GAP,
             sieve_modes.TIME_TRAVEL,
         ]:
-            img_tag = this_mode
-            setup_kubernetes(this_mode, img_repo, img_tag)
+            setup_kubernetes(version, this_mode, img_repo, img_tag)
     else:
-        setup_kubernetes(mode, img_repo, img_tag)
+        setup_kubernetes(version, mode, img_repo, img_tag)
 
 
 def setup_controller_wrapper(controller, mode, img_repo, sha, build_only):
@@ -313,7 +313,7 @@ if __name__ == "__main__":
         "-p",
         "--project",
         dest="project",
-        help="specify PROJECT to build",
+        help="specify PROJECT to build: Kubernetes or the controller",
         metavar="PROJECT",
         default=None,
     )
@@ -326,10 +326,18 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_option(
+        "-v",
+        "--version",
+        dest="version",
+        help="VERSION of Kubernetes",
+        metavar="VER",
+        default="v1.18.9",
+    )
+    parser.add_option(
         "-s",
         "--sha",
         dest="sha",
-        help="SHA of the project",
+        help="SHA of the controller project",
         metavar="SHA",
         default=None,
     )
@@ -378,7 +386,7 @@ if __name__ == "__main__":
         options.docker if options.docker is not None else sieve_config["docker_repo"]
     )
     if options.project == "kubernetes":
-        setup_kubernetes_wrapper(options.mode, img_repo)
+        setup_kubernetes_wrapper(options.version, options.mode, img_repo)
     elif options.project == "all":
         for controller in controllers.github_link:
             setup_controller_wrapper(

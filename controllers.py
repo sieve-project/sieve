@@ -42,6 +42,19 @@ app_dir = {
     "elastic-operator": "app/elastic-operator",
 }
 
+kubernetes_version = {
+    "cassandra-operator": "v1.18.9",
+    "zookeeper-operator": "v1.18.9",
+    "rabbitmq-operator": "v1.18.9",
+    "mongodb-operator": "v1.18.9",
+    "cass-operator": "v1.18.9",
+    "casskop-operator": "v1.18.9",
+    "xtradb-operator": "v1.18.9",
+    "yugabyte-operator": "v1.18.9",
+    "nifikop-operator": "v1.18.9",
+    "elastic-operator": "v1.18.9",
+}
+
 controller_runtime_version = {
     "cassandra-operator": "v0.4.0",
     "zookeeper-operator": "v0.5.2",

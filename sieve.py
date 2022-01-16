@@ -193,10 +193,20 @@ def stop_sieve_server():
     cmd_early_exit("docker exec kind-control-plane bash -c 'pkill sieve-server'")
 
 
-def setup_kind_cluster(kind_config, docker_repo, docker_tag):
+def setup_kind_cluster(test_context: TestContext):
+    kind_config = generate_kind_config(
+        test_context.num_apiservers, test_context.num_workers
+    )
+    k8s_docker_repo = test_context.docker_repo
+    k8s_docker_tag = (
+        controllers.kubernetes_version[test_context.project]
+        + "-"
+        + test_context.docker_tag
+    )
+
     cmd_early_exit(
         "kind create cluster --image %s/node:%s --config %s"
-        % (docker_repo, docker_tag, kind_config)
+        % (k8s_docker_repo, k8s_docker_tag, kind_config)
     )
     cmd_early_exit(
         "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
@@ -209,11 +219,7 @@ def setup_cluster(
     cmd_early_exit("kind delete cluster")
     # sleep here in case if the machine is slow and deletion is not done before creating a new cluster
     time.sleep(5)
-    setup_kind_cluster(
-        generate_kind_config(test_context.num_apiservers, test_context.num_workers),
-        test_context.docker_repo,
-        test_context.docker_tag,
-    )
+    setup_kind_cluster(test_context)
     print("\n\n")
 
     # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
