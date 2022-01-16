@@ -14,6 +14,7 @@ github_link = {
     "yugabyte-operator": "https://github.com/yugabyte/yugabyte-operator.git",
     "nifikop-operator": "https://github.com/Orange-OpenSource/nifikop.git",
     "elastic-operator": "https://github.com/elastic/cloud-on-k8s.git",
+    "contour": "https://github.com/projectcontour/contour.git",
 }
 
 sha = {
@@ -27,6 +28,7 @@ sha = {
     "yugabyte-operator": "966ef1978ed5d714119548b2c4343925fe49f882",
     "nifikop-operator": "1546e0242107bf2f2c1256db50f47c79956dd1c6",
     "elastic-operator": "660bc92fbfca469af552a833d8f6a4834c629649",
+    "contour": "49e3dcc426c1736de053fea7fab4030022ae825f",
 }
 
 app_dir = {
@@ -40,6 +42,7 @@ app_dir = {
     "yugabyte-operator": "app/yugabyte-operator",
     "nifikop-operator": "app/nifikop-operator",
     "elastic-operator": "app/elastic-operator",
+    "contour": "app/contour",
 }
 
 kubernetes_version = {
@@ -53,6 +56,7 @@ kubernetes_version = {
     "yugabyte-operator": "v1.18.9",
     "nifikop-operator": "v1.18.9",
     "elastic-operator": "v1.18.9",
+    "contour": "v1.23.1",
 }
 
 controller_runtime_version = {
@@ -66,6 +70,7 @@ controller_runtime_version = {
     "yugabyte-operator": "v0.5.2",
     "nifikop-operator": "v0.7.2",
     "elastic-operator": "v0.11.0",
+    "contour": "v0.11.0",
 }
 
 client_go_version = {
@@ -79,6 +84,7 @@ client_go_version = {
     "yugabyte-operator": "v0.17.4",
     "nifikop-operator": "v0.20.2",
     "elastic-operator": "v0.23.0",
+    "contour": "v0.23.0",
 }
 
 docker_file = {
@@ -92,6 +98,7 @@ docker_file = {
     "yugabyte-operator": "build/Dockerfile",
     "nifikop-operator": "Dockerfile",
     "elastic-operator": "Dockerfile",
+    "contour": "Dockerfile",
 }
 
 test_dir = {
@@ -105,6 +112,7 @@ test_dir = {
     "yugabyte-operator": "examples/yugabyte-operator",
     "nifikop-operator": "examples/nifikop-operator",
     "elastic-operator": "examples/elastic-operator",
+    "contour": "examples/contour",
 }
 
 test_suites = {
@@ -260,6 +268,7 @@ CRDs = {
     "yugabyte-operator": ["ybcluster"],
     "nifikop-operator": ["nificluster"],
     "elastic-operator": ["elasticsearch"],
+    "contour": ["httproute", "tlsroute"],
 }
 
 deployment_name = {
@@ -273,6 +282,7 @@ deployment_name = {
     "yugabyte-operator": "yugabyte-operator",
     "nifikop-operator": "nifikop-operator",
     "elastic-operator": "elastic-operator",
+    "contour": "contour",
 }
 
 operator_pod_label = {
@@ -286,6 +296,7 @@ operator_pod_label = {
     "yugabyte-operator": "yugabyte-operator",
     "nifikop-operator": "nifikop-operator",
     "elastic-operator": "elastic-operator",
+    "contour": "contour",
 }
 
 event_mask = {
