@@ -7,13 +7,14 @@ WORKDIR /contour
 ARG BUILD_GOPROXY
 ENV GOPROXY=${BUILD_GOPROXY}
 COPY go.mod go.sum /contour/
-RUN go mod download
+# RUN go mod download
 
 COPY cmd cmd
 COPY internal internal
 COPY pkg pkg
 COPY apis apis
 COPY Makefile Makefile
+COPY dep-sieve dep-sieve
 
 ARG BUILD_BRANCH
 ARG BUILD_SHA
