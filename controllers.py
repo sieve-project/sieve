@@ -143,6 +143,11 @@ test_suites = {
             workloads.workloads["casskop-operator"]["reducepdb"],
         ),
     },
+    "contour": {
+        "recreate": Suite(
+            workloads.workloads["contour"]["recreate"],
+        ),
+    },
     "elastic-operator": {
         "recreate": Suite(
             workloads.workloads["elastic-operator"]["recreate"],
@@ -268,7 +273,7 @@ CRDs = {
     "yugabyte-operator": ["ybcluster"],
     "nifikop-operator": ["nificluster"],
     "elastic-operator": ["elasticsearch"],
-    "contour": ["httproute", "tlsroute"],
+    "contour": ["httproute", "tlsroute", "gateway", "gatewayclass"],
 }
 
 deployment_name = {
@@ -451,6 +456,13 @@ def elastic_operator_deploy(dr, dt):
     os.system("rm %s" % (new_path))
 
 
+def contour_deploy(dr, dt):
+    new_path = replace_docker_repo("examples/contour/deploy/contour.yaml", dr, dt)
+    os.system("kubectl apply -f examples/contour/deploy/crd.yaml")
+    os.system("kubectl apply -f %s" % new_path)
+    os.system("rm %s" % (new_path))
+
+
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
     "zookeeper-operator": zookeeper_operator_deploy,
@@ -462,4 +474,5 @@ deploy = {
     "yugabyte-operator": yugabyte_operator_deploy,
     "nifikop-operator": nifikop_operator_deploy,
     "elastic-operator": elastic_operator_deploy,
+    "contour": contour_deploy,
 }
