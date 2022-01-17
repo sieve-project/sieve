@@ -16,18 +16,21 @@ func instrumentKubernetesForTimeTravel(k8s_filepath string) {
 func instrumentKubernetesForLearn(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
+	preprocess(watchCacheGoFile)
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "Learn", true, false)
 }
 
 func instrumentKubernetesForAtomVio(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
+	preprocess(watchCacheGoFile)
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "AtomVio", true, false)
 }
 
 func instrumentKubernetesForObsGap(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
+	preprocess(watchCacheGoFile)
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "ObsGap", true, false)
 }
 
