@@ -7,6 +7,22 @@ from sieve_common.default_config import sieve_config
 
 ORIGINAL_DIR = os.getcwd()
 
+DEFAULT_K8S_VERSION = "v1.18.9"
+K8S_VER_TO_LIB_VER = {"v1.18.9": "v0.18.9", "v1.23.1": "v0.23.1"}
+
+
+def update_sieve_client_go_mod_with_version(go_mod_path, version):
+    fin = open(go_mod_path)
+    data = fin.read()
+    data = data.replace(
+        "k8s.io/apimachinery v0.18.9",
+        "k8s.io/apimachinery %s" % version,
+    )
+    fin.close()
+    fout = open(go_mod_path, "w")
+    fout.write(data)
+    fout.close()
+
 
 def download_kubernetes(version):
     cmd_early_exit("rm -rf fakegopath")
@@ -20,7 +36,7 @@ def download_kubernetes(version):
     os.chdir(ORIGINAL_DIR)
 
 
-def install_lib_for_kubernetes():
+def install_lib_for_kubernetes(version):
     with open(
         "fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod", "a"
     ) as go_mod_file:
@@ -29,6 +45,11 @@ def install_lib_for_kubernetes():
     cmd_early_exit(
         "cp -r sieve_client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client"
     )
+    if version != DEFAULT_K8S_VERSION:
+        update_sieve_client_go_mod_with_version(
+            "fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client/go.mod",
+            K8S_VER_TO_LIB_VER[version],
+        )
     cmd_early_exit(
         "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client"
     )
@@ -59,7 +80,7 @@ def build_kubernetes(version, img_repo, img_tag):
 
 def setup_kubernetes(version, mode, img_repo, img_tag):
     download_kubernetes(version)
-    install_lib_for_kubernetes()
+    install_lib_for_kubernetes(version)
     instrument_kubernetes(mode)
     build_kubernetes(version, img_repo, img_tag)
 
@@ -135,6 +156,11 @@ def install_lib_for_controller(
         "cp -r sieve_client %s/dep-sieve/src/sieve.client"
         % controllers.app_dir[project]
     )
+    if controllers.kubernetes_version[project] != DEFAULT_K8S_VERSION:
+        update_sieve_client_go_mod_with_version(
+            "%s/dep-sieve/src/sieve.client/go.mod" % controllers.app_dir[project],
+            K8S_VER_TO_LIB_VER[controllers.kubernetes_version[project]],
+        )
 
     if project == "yugabyte-operator":
         # Ad-hoc fix for api incompatibility in golang
@@ -331,7 +357,7 @@ if __name__ == "__main__":
         dest="version",
         help="VERSION of Kubernetes",
         metavar="VER",
-        default="v1.18.9",
+        default=DEFAULT_K8S_VERSION,
     )
     parser.add_option(
         "-s",
