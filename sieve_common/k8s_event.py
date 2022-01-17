@@ -32,6 +32,8 @@ SIEVE_API_EVENT_MARK = "[SIEVE-API-EVENT]"
 
 EVENT_NONE_TYPE = "NONE_TYPE"
 
+DEFAULT_NS = "default"
+
 
 class APIEventTypes:
     ADDED = "ADDED"
@@ -500,7 +502,11 @@ class OperatorRead:
             objs = json.loads(obj_str)["items"]
             for obj in objs:
                 key = generate_key(
-                    self.rtype, obj["metadata"]["namespace"], obj["metadata"]["name"]
+                    self.rtype,
+                    obj["metadata"]["namespace"]
+                    if "namespace" in obj["metadata"]
+                    else DEFAULT_NS,
+                    obj["metadata"]["name"],
                 )
                 assert key not in self.key_set
                 assert key not in self.key_to_obj
