@@ -144,8 +144,8 @@ test_suites = {
         ),
     },
     "contour": {
-        "recreate": Suite(
-            workloads.workloads["contour"]["recreate"],
+        "create": Suite(
+            workloads.workloads["contour"]["create"],
         ),
     },
     "elastic-operator": {
