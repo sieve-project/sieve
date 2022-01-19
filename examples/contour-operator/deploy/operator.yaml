@@ -120,7 +120,7 @@ spec:
                     adminPort: 9001
                   service:
                     name: envoy
-                    namespace: projectcontour
+                    namespace: default
                 description: Envoy contains parameters for Envoy as well as how to
                   optionally configure a managed Envoy fleet.
                 properties:
@@ -392,7 +392,7 @@ spec:
                   service:
                     default:
                       name: envoy
-                      namespace: projectcontour
+                      namespace: default
                     description: Service holds Envoy service parameters for setting
                       Ingress status.
                     properties:
@@ -1044,7 +1044,7 @@ spec:
                         adminPort: 9001
                       service:
                         name: envoy
-                        namespace: projectcontour
+                        namespace: default
                     description: Envoy contains parameters for Envoy as well as how
                       to optionally configure a managed Envoy fleet.
                     properties:
@@ -1319,7 +1319,7 @@ spec:
                       service:
                         default:
                           name: envoy
-                          namespace: projectcontour
+                          namespace: default
                         description: Service holds Envoy service parameters for setting
                           Ingress status.
                         properties:
@@ -8958,7 +8958,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: contour-operator-leader-election
-  namespace: contour-operator
+  namespace: default
 rules:
 - apiGroups:
   - ""
@@ -9210,7 +9210,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: contour-operator-leader-election
-  namespace: contour-operator
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -9218,7 +9218,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: contour-operator
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -9231,7 +9231,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: contour-operator
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -9244,7 +9244,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: contour-operator
+  namespace: default
 ---
 apiVersion: v1
 kind: Service
@@ -9252,7 +9252,7 @@ metadata:
   labels:
     control-plane: contour-operator
   name: contour-operator-metrics
-  namespace: contour-operator
+  namespace: default
 spec:
   ports:
   - name: https
@@ -9267,16 +9267,18 @@ metadata:
   labels:
     control-plane: contour-operator
   name: contour-operator
-  namespace: contour-operator
+  namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
       control-plane: contour-operator
+      sievetag: contour-operator
   template:
     metadata:
       labels:
         control-plane: contour-operator
+        sievetag: contour-operator
     spec:
       containers:
       - args:
@@ -9294,11 +9296,19 @@ spec:
         - --enable-leader-election
         command:
         - /contour-operator
-        image: ghcr.io/projectcontour/contour-operator:main
+        image: ${SIEVE-DR}/contour-operator:${SIEVE-DT}
         imagePullPolicy: Always
         name: contour-operator
         resources:
           requests:
             cpu: 100m
             memory: 70Mi
+        env:
+        - name: KUBERNETES_SERVICE_HOST
+          value: "kind-control-plane"
+        - name: KUBERNETES_SERVICE_PORT
+          value: "6443"
+        envFrom:
+        - configMapRef:
+            name: sieve-testing-global-config
       terminationGracePeriodSeconds: 10
