@@ -10,8 +10,8 @@
             "kind": "Elasticsearch",
             "metadata": {
                 "annotations": {
-                    "eck.k8s.elastic.co/orchestration-hints": "{\"no_transient_settings\":false}",
-                    "elasticsearch.k8s.elastic.co/initial-master-nodes": "elasticsearch-cluster-es-default-0",
+                    "eck.k8s.elastic.co/orchestration-hints": "{\"no_transient_settings\":true}",
+                    "elasticsearch.k8s.elastic.co/cluster-uuid": "SIEVE-IGNORE",
                     "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"elasticsearch.k8s.elastic.co/v1\",\"kind\":\"Elasticsearch\",\"metadata\":{\"annotations\":{},\"name\":\"elasticsearch-cluster\",\"namespace\":\"default\"},\"spec\":{\"nodeSets\":[{\"config\":{\"node.store.allow_mmap\":false},\"count\":1,\"name\":\"default\"}],\"version\":\"7.16.2\"}}\n"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -69,8 +69,9 @@
                 "version": "7.16.2"
             },
             "status": {
-                "health": "unknown",
-                "phase": "ApplyingChanges",
+                "availableNodes": 1,
+                "health": "green",
+                "phase": "Ready",
                 "version": "7.16.2"
             }
         }
@@ -84,7 +85,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "kind-worker"
+                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -101,7 +102,7 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:ownerReferences": "SIEVE-IGNORE"
+                                "f:annotations": "SIEVE-IGNORE"
                             }
                         },
                         "manager": "SIEVE-IGNORE",
@@ -113,7 +114,7 @@
                         "fieldsType": "FieldsV1",
                         "fieldsV1": {
                             "f:metadata": {
-                                "f:annotations": "SIEVE-IGNORE"
+                                "f:ownerReferences": "SIEVE-IGNORE"
                             }
                         },
                         "manager": "SIEVE-IGNORE",
@@ -172,7 +173,7 @@
                         "uid": "SIEVE-IGNORE"
                     }
                 ],
-                "resourceVersion": "4523",
+                "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "/api/v1/namespaces/default/persistentvolumeclaims/elasticsearch-data-elasticsearch-cluster-es-default-0",
                 "uid": "SIEVE-IGNORE"
             },
@@ -236,7 +237,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"9f91a4ea-8bcd-437f-bffb-579b6f69cbfa\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"4b16bf18-5c09-4d14-be0f-860ae96a09ce\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -377,19 +378,40 @@
                         "fieldsV1": {
                             "f:status": {
                                 "f:conditions": {
-                                    "k:{\"type\":\"ContainersReady\"}": "SIEVE-IGNORE",
-                                    "k:{\"type\":\"Initialized\"}": "SIEVE-IGNORE",
-                                    "k:{\"type\":\"Ready\"}": "SIEVE-IGNORE"
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
                                 },
-                                "f:containerStatuses": "SIEVE-IGNORE",
-                                "f:hostIP": "SIEVE-IGNORE",
-                                "f:phase": "SIEVE-IGNORE",
-                                "f:podIP": "SIEVE-IGNORE",
-                                "f:podIPs": "SIEVE-IGNORE",
-                                "f:startTime": "SIEVE-IGNORE"
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.1.2\"}": "SIEVE-IGNORE"
+                                },
+                                "f:startTime": {}
                             }
                         },
-                        "manager": "SIEVE-IGNORE",
+                        "manager": "kubelet",
                         "operation": "Update",
                         "time": "SIEVE-IGNORE"
                     }
@@ -500,7 +522,7 @@
                 "dnsPolicy": "ClusterFirst",
                 "enableServiceLinks": true,
                 "hostname": "elastic-operator-0",
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -580,11 +602,11 @@
                     {
                         "containerID": "SIEVE-IGNORE",
                         "image": "ghcr.io/sieve-project/action/elastic-operator:learn",
-                        "imageID": "sha256:279ac4000afaab64aa2fb9131a61d91d37b7095b9b0e84b8101423db909fe2d0",
+                        "imageID": "sha256:ea2f5306344e59b554f7aa2ce6da66dfc79a582ae8735ba7ca48dfc306300907",
                         "lastState": {},
                         "name": "manager",
                         "ready": true,
-                        "restartCount": 0,
+                        "restartCount": "SIEVE-IGNORE",
                         "started": true,
                         "state": {
                             "running": {
@@ -595,10 +617,10 @@
                 ],
                 "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
-                "podIP": "10.244.2.2",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.2.2"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Burstable",
@@ -669,7 +691,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"cb743ea2-3be5-4567-b8f4-f22a024d1bcf\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"c71cc70c-b736-45a5-b1ca-54e4c9fc3457\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1381,8 +1403,6 @@
                                         ".": {},
                                         "f:lastProbeTime": {},
                                         "f:lastTransitionTime": {},
-                                        "f:message": {},
-                                        "f:reason": {},
                                         "f:status": {},
                                         "f:type": {}
                                     },
@@ -1397,8 +1417,6 @@
                                         ".": {},
                                         "f:lastProbeTime": {},
                                         "f:lastTransitionTime": {},
-                                        "f:message": {},
-                                        "f:reason": {},
                                         "f:status": {},
                                         "f:type": {}
                                     }
@@ -1410,7 +1428,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.1.6\"}": "SIEVE-IGNORE"
+                                    "k:{\"ip\":\"10.244.2.6\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1902,7 +1920,7 @@
                         ]
                     }
                 ],
-                "nodeName": "kind-worker",
+                "nodeName": "SIEVE-IGNORE",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -2046,17 +2064,13 @@
                     {
                         "lastProbeTime": null,
                         "lastTransitionTime": "SIEVE-IGNORE",
-                        "message": "containers with unready status: [elasticsearch]",
-                        "reason": "ContainersNotReady",
-                        "status": "False",
+                        "status": "True",
                         "type": "Ready"
                     },
                     {
                         "lastProbeTime": null,
                         "lastTransitionTime": "SIEVE-IGNORE",
-                        "message": "containers with unready status: [elasticsearch]",
-                        "reason": "ContainersNotReady",
-                        "status": "False",
+                        "status": "True",
                         "type": "ContainersReady"
                     },
                     {
@@ -2071,23 +2085,14 @@
                         "containerID": "SIEVE-IGNORE",
                         "image": "docker.elastic.co/elasticsearch/elasticsearch:7.16.2",
                         "imageID": "docker.elastic.co/elasticsearch/elasticsearch@sha256:055ab3c3466c6bd72ef42f7773c5fa224db4fb7cd6a9a5588ebe46642a15abf5",
-                        "lastState": {
-                            "terminated": {
-                                "containerID": "SIEVE-IGNORE",
-                                "exitCode": 78,
-                                "finishedAt": "SIEVE-IGNORE",
-                                "reason": "Error",
-                                "startedAt": "SIEVE-IGNORE"
-                            }
-                        },
+                        "lastState": {},
                         "name": "elasticsearch",
-                        "ready": false,
-                        "restartCount": 8,
-                        "started": false,
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
                         "state": {
-                            "waiting": {
-                                "message": "SIEVE-IGNORE",
-                                "reason": "CrashLoopBackOff"
+                            "running": {
+                                "startedAt": "SIEVE-IGNORE"
                             }
                         }
                     }
@@ -2145,8 +2150,8 @@
     },
     "replicaset": {},
     "secret": {
-        "default-token-75nbc": "SIEVE-IGNORE",
-        "elastic-operator-token-mrszv": "SIEVE-IGNORE",
+        "default-token-7lsb7": "SIEVE-IGNORE",
+        "elastic-operator-token-b8vm9": "SIEVE-IGNORE",
         "elastic-webhook-server-cert": {
             "data": {
                 "tls.crt": "SIEVE-IGNORE",
@@ -2208,7 +2213,7 @@
         },
         "elasticsearch-cluster-es-default-es-config": {
             "data": {
-                "elasticsearch.yml": "Y2x1c3RlcjoKICBpbml0aWFsX21hc3Rlcl9ub2RlczoKICAtIGVsYXN0aWNzZWFyY2gtY2x1c3Rlci1lcy1kZWZhdWx0LTAKICBuYW1lOiBlbGFzdGljc2VhcmNoLWNsdXN0ZXIKICByb3V0aW5nOgogICAgYWxsb2NhdGlvbjoKICAgICAgYXdhcmVuZXNzOgogICAgICAgIGF0dHJpYnV0ZXM6IGs4c19ub2RlX25hbWUKZGlzY292ZXJ5OgogIHNlZWRfcHJvdmlkZXJzOiBmaWxlCmh0dHA6CiAgcHVibGlzaF9ob3N0OiAke1BPRF9OQU1FfS4ke0hFQURMRVNTX1NFUlZJQ0VfTkFNRX0uJHtOQU1FU1BBQ0V9LnN2YwpuZXR3b3JrOgogIGhvc3Q6ICIwIgogIHB1Ymxpc2hfaG9zdDogJHtQT0RfSVB9Cm5vZGU6CiAgYXR0cjoKICAgIGs4c19ub2RlX25hbWU6ICR7Tk9ERV9OQU1FfQogIG5hbWU6ICR7UE9EX05BTUV9CiAgc3RvcmU6CiAgICBhbGxvd19tbWFwOiBmYWxzZQpwYXRoOgogIGRhdGE6IC91c3Ivc2hhcmUvZWxhc3RpY3NlYXJjaC9kYXRhCiAgbG9nczogL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2xvZ3MKeHBhY2s6CiAgbGljZW5zZToKICAgIHVwbG9hZDoKICAgICAgdHlwZXM6CiAgICAgIC0gdHJpYWwKICAgICAgLSBlbnRlcnByaXNlCiAgc2VjdXJpdHk6CiAgICBhdXRoYzoKICAgICAgcmVhbG1zOgogICAgICAgIGZpbGU6CiAgICAgICAgICBmaWxlMToKICAgICAgICAgICAgb3JkZXI6IC0xMDAKICAgICAgICBuYXRpdmU6CiAgICAgICAgICBuYXRpdmUxOgogICAgICAgICAgICBvcmRlcjogLTk5CiAgICAgIHJlc2VydmVkX3JlYWxtOgogICAgICAgIGVuYWJsZWQ6ICJmYWxzZSIKICAgIGVuYWJsZWQ6ICJ0cnVlIgogICAgaHR0cDoKICAgICAgc3NsOgogICAgICAgIGNlcnRpZmljYXRlOiAvdXNyL3NoYXJlL2VsYXN0aWNzZWFyY2gvY29uZmlnL2h0dHAtY2VydHMvdGxzLmNydAogICAgICAgIGNlcnRpZmljYXRlX2F1dGhvcml0aWVzOiAvdXNyL3NoYXJlL2VsYXN0aWNzZWFyY2gvY29uZmlnL2h0dHAtY2VydHMvY2EuY3J0CiAgICAgICAgZW5hYmxlZDogdHJ1ZQogICAgICAgIGtleTogL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2NvbmZpZy9odHRwLWNlcnRzL3Rscy5rZXkKICAgIHRyYW5zcG9ydDoKICAgICAgc3NsOgogICAgICAgIGNlcnRpZmljYXRlOiAvdXNyL3NoYXJlL2VsYXN0aWNzZWFyY2gvY29uZmlnL25vZGUtdHJhbnNwb3J0LWNlcnQvdHJhbnNwb3J0LnRscy5jcnQKICAgICAgICBjZXJ0aWZpY2F0ZV9hdXRob3JpdGllczoKICAgICAgICAtIC91c3Ivc2hhcmUvZWxhc3RpY3NlYXJjaC9jb25maWcvdHJhbnNwb3J0LWNlcnRzL2NhLmNydAogICAgICAgIC0gL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2NvbmZpZy90cmFuc3BvcnQtcmVtb3RlLWNlcnRzL2NhLmNydAogICAgICAgIGVuYWJsZWQ6ICJ0cnVlIgogICAgICAgIGtleTogL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2NvbmZpZy9ub2RlLXRyYW5zcG9ydC1jZXJ0L3RyYW5zcG9ydC50bHMua2V5CiAgICAgICAgdmVyaWZpY2F0aW9uX21vZGU6IGNlcnRpZmljYXRlCg=="
+                "elasticsearch.yml": "Y2x1c3RlcjoKICBuYW1lOiBlbGFzdGljc2VhcmNoLWNsdXN0ZXIKICByb3V0aW5nOgogICAgYWxsb2NhdGlvbjoKICAgICAgYXdhcmVuZXNzOgogICAgICAgIGF0dHJpYnV0ZXM6IGs4c19ub2RlX25hbWUKZGlzY292ZXJ5OgogIHNlZWRfcHJvdmlkZXJzOiBmaWxlCmh0dHA6CiAgcHVibGlzaF9ob3N0OiAke1BPRF9OQU1FfS4ke0hFQURMRVNTX1NFUlZJQ0VfTkFNRX0uJHtOQU1FU1BBQ0V9LnN2YwpuZXR3b3JrOgogIGhvc3Q6ICIwIgogIHB1Ymxpc2hfaG9zdDogJHtQT0RfSVB9Cm5vZGU6CiAgYXR0cjoKICAgIGs4c19ub2RlX25hbWU6ICR7Tk9ERV9OQU1FfQogIG5hbWU6ICR7UE9EX05BTUV9CiAgc3RvcmU6CiAgICBhbGxvd19tbWFwOiBmYWxzZQpwYXRoOgogIGRhdGE6IC91c3Ivc2hhcmUvZWxhc3RpY3NlYXJjaC9kYXRhCiAgbG9nczogL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2xvZ3MKeHBhY2s6CiAgbGljZW5zZToKICAgIHVwbG9hZDoKICAgICAgdHlwZXM6CiAgICAgIC0gdHJpYWwKICAgICAgLSBlbnRlcnByaXNlCiAgc2VjdXJpdHk6CiAgICBhdXRoYzoKICAgICAgcmVhbG1zOgogICAgICAgIGZpbGU6CiAgICAgICAgICBmaWxlMToKICAgICAgICAgICAgb3JkZXI6IC0xMDAKICAgICAgICBuYXRpdmU6CiAgICAgICAgICBuYXRpdmUxOgogICAgICAgICAgICBvcmRlcjogLTk5CiAgICAgIHJlc2VydmVkX3JlYWxtOgogICAgICAgIGVuYWJsZWQ6ICJmYWxzZSIKICAgIGVuYWJsZWQ6ICJ0cnVlIgogICAgaHR0cDoKICAgICAgc3NsOgogICAgICAgIGNlcnRpZmljYXRlOiAvdXNyL3NoYXJlL2VsYXN0aWNzZWFyY2gvY29uZmlnL2h0dHAtY2VydHMvdGxzLmNydAogICAgICAgIGNlcnRpZmljYXRlX2F1dGhvcml0aWVzOiAvdXNyL3NoYXJlL2VsYXN0aWNzZWFyY2gvY29uZmlnL2h0dHAtY2VydHMvY2EuY3J0CiAgICAgICAgZW5hYmxlZDogdHJ1ZQogICAgICAgIGtleTogL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2NvbmZpZy9odHRwLWNlcnRzL3Rscy5rZXkKICAgIHRyYW5zcG9ydDoKICAgICAgc3NsOgogICAgICAgIGNlcnRpZmljYXRlOiAvdXNyL3NoYXJlL2VsYXN0aWNzZWFyY2gvY29uZmlnL25vZGUtdHJhbnNwb3J0LWNlcnQvdHJhbnNwb3J0LnRscy5jcnQKICAgICAgICBjZXJ0aWZpY2F0ZV9hdXRob3JpdGllczoKICAgICAgICAtIC91c3Ivc2hhcmUvZWxhc3RpY3NlYXJjaC9jb25maWcvdHJhbnNwb3J0LWNlcnRzL2NhLmNydAogICAgICAgIC0gL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2NvbmZpZy90cmFuc3BvcnQtcmVtb3RlLWNlcnRzL2NhLmNydAogICAgICAgIGVuYWJsZWQ6ICJ0cnVlIgogICAgICAgIGtleTogL3Vzci9zaGFyZS9lbGFzdGljc2VhcmNoL2NvbmZpZy9ub2RlLXRyYW5zcG9ydC1jZXJ0L3RyYW5zcG9ydC50bHMua2V5CiAgICAgICAgdmVyaWZpY2F0aW9uX21vZGU6IGNlcnRpZmljYXRlCg=="
             },
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -2235,7 +2240,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2294,7 +2299,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2400,7 +2405,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2459,7 +2464,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2569,7 +2574,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2622,7 +2627,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2679,7 +2684,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2785,7 +2790,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -2913,7 +2918,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3003,7 +3008,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3088,7 +3093,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -3130,7 +3135,7 @@
                         "uid": "SIEVE-IGNORE"
                     }
                 ],
-                "resourceVersion": "4451",
+                "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "/api/v1/namespaces/default/services/elasticsearch-cluster-es-transport",
                 "uid": "SIEVE-IGNORE"
             },
@@ -3198,7 +3203,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "151",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -3612,7 +3617,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"99225ff6-f8aa-4fd8-b594-cdace1cbea05\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"bb4e0439-1e51-409f-9e69-52f21c1a8031\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -4352,6 +4357,7 @@
                                 "f:currentReplicas": {},
                                 "f:currentRevision": {},
                                 "f:observedGeneration": {},
+                                "f:readyReplicas": {},
                                 "f:replicas": {},
                                 "f:updateRevision": {},
                                 "f:updatedReplicas": {}
@@ -5028,6 +5034,7 @@
                 "currentReplicas": 1,
                 "currentRevision": "elasticsearch-cluster-es-default-5c885447f6",
                 "observedGeneration": 1,
+                "readyReplicas": 1,
                 "replicas": 1,
                 "updateRevision": "elasticsearch-cluster-es-default-5c885447f6",
                 "updatedReplicas": 1
