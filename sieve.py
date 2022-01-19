@@ -234,9 +234,6 @@ def setup_cluster(
         redirect_workers(test_context.num_workers)
         redirect_kubectl()
 
-    configmap = generate_configmap(test_context.test_config)
-    cmd_early_exit("kubectl apply -f %s" % configmap)
-
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
 
@@ -259,11 +256,9 @@ def setup_cluster(
             break
         time.sleep(1)
 
-    for apiserver in apiserver_list:
-        cmd_early_exit(
-            "kubectl cp %s %s:/sieve.yaml -n kube-system"
-            % (test_context.test_config, apiserver)
-        )
+    time.sleep(3)  # ensure that every apiserver will see the configmap is created
+    configmap = generate_configmap(test_context.test_config)
+    cmd_early_exit("kubectl apply -f %s" % configmap)
 
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (
@@ -337,6 +332,12 @@ def run_workload(
     )
     ok("Operator deployed")
 
+    select_container_from_pod = (
+        " -c {} ".format(controllers.container_name[test_context.project])
+        if test_context.project in controllers.container_name
+        else ""
+    )
+
     kubernetes.config.load_kube_config()
     pod_name = (
         kubernetes.client.CoreV1Api()
@@ -352,7 +353,7 @@ def run_workload(
         os.path.join(test_context.result_dir, "streamed-operator.log"), "w+"
     )
     streaming = subprocess.Popen(
-        "kubectl logs %s -f" % pod_name,
+        "kubectl logs %s %s -f" % (pod_name, select_container_from_pod),
         stdout=streamed_log_file,
         stderr=streamed_log_file,
         shell=True,
@@ -392,7 +393,8 @@ def run_workload(
         )
 
     cmd_early_exit(
-        "kubectl logs %s > %s/operator.log" % (pod_name, test_context.result_dir)
+        "kubectl logs %s %s > %s/operator.log"
+        % (pod_name, select_container_from_pod, test_context.result_dir)
     )
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
