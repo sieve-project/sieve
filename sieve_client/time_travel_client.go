@@ -20,6 +20,7 @@ func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}
 }
 
 func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{}) {
+	loadSieveConfigMap(eventType, key, object)
 	if err := loadSieveConfig(); err != nil {
 		return
 	}

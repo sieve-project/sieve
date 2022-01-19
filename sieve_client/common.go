@@ -1,8 +1,8 @@
 package sieve
 
 import (
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/rpc"
 	"os"
@@ -30,6 +30,8 @@ const SIEVE_HOST_ERR string = "[SIEVE HOST ERR]"
 const SIEVE_JSON_ERR string = "[SIEVE JSON ERR]"
 
 var config map[string]interface{} = nil
+var configFromConfigMapData map[string]interface{} = nil
+var configMapReady = false
 
 var taintMap sync.Map = sync.Map{}
 
@@ -68,27 +70,50 @@ func getConfigFromEnv() map[string]interface{} {
 	}
 }
 
+func loadSieveConfigMap(eventType, key string, object interface{}) {
+	tokens := strings.Split(key, "/")
+	name := tokens[len(tokens)-1]
+	rtype := regularizeType(object)
+	if name == "sieve-testing-global-config" {
+		log.Printf("[sieve] configmap map seen: %s, %s, %v\n", eventType, key, object)
+		if eventType == "ADDED" && rtype == "configmap" {
+			jsonObject, err := json.Marshal(object)
+			if err != nil {
+				printError(err, SIEVE_JSON_ERR)
+				return
+			}
+			configMapObject := make(map[string]interface{})
+			err = yaml.Unmarshal(jsonObject, &configMapObject)
+			if err != nil {
+				printError(err, SIEVE_JSON_ERR)
+				return
+			}
+			log.Printf("[sieve] config map is %v\n", configMapObject)
+			configFromConfigMapData = make(map[string]interface{})
+			configMapData, ok := configMapObject["Data"].(map[interface{}]interface{})
+			if !ok {
+				log.Printf("[sieve] cannot convert to map[interface{}]interface{}")
+				return
+			}
+			for k, v := range configMapData {
+				newKey := strings.ToLower(strings.TrimPrefix(k.(string), "SIEVE-"))
+				newVal := v
+				configFromConfigMapData[newKey] = newVal
+			}
+			configMapReady = true
+		}
+	}
+}
+
 func getConfig() (map[string]interface{}, error) {
+	if configMapReady {
+		return configFromConfigMapData, nil
+	}
 	configFromEnv := getConfigFromEnv()
 	if configFromEnv != nil {
-		// log.Printf("[sieve] configFromEnv:\n%v\n", configFromEnv)
 		return configFromEnv, nil
 	}
-	configPath := "/sieve.yaml"
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return nil, err
-	}
-	data, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		return nil, err
-	}
-	configFromYaml := make(map[string]interface{})
-	err = yaml.Unmarshal([]byte(data), &configFromYaml)
-	if err != nil {
-		return nil, err
-	}
-	// log.Printf("[sieve] configFromYaml:\n%v\n", configFromYaml)
-	return configFromYaml, nil
+	return nil, fmt.Errorf("config is not found")
 }
 
 func checkMode(mode string) bool {
