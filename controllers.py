@@ -14,6 +14,7 @@ github_link = {
     "yugabyte-operator": "https://github.com/yugabyte/yugabyte-operator.git",
     "nifikop-operator": "https://github.com/Orange-OpenSource/nifikop.git",
     "elastic-operator": "https://github.com/elastic/cloud-on-k8s.git",
+    "contour-operator": "https://github.com/projectcontour/contour-operator.git",
     "contour": "https://github.com/projectcontour/contour.git",
 }
 
@@ -28,6 +29,7 @@ sha = {
     "yugabyte-operator": "966ef1978ed5d714119548b2c4343925fe49f882",
     "nifikop-operator": "1546e0242107bf2f2c1256db50f47c79956dd1c6",
     "elastic-operator": "660bc92fbfca469af552a833d8f6a4834c629649",
+    "contour-operator": "e264530f6ff96079bb18ec8bca064e9060412f2d",
     "contour": "49e3dcc426c1736de053fea7fab4030022ae825f",
 }
 
@@ -42,6 +44,7 @@ app_dir = {
     "yugabyte-operator": "app/yugabyte-operator",
     "nifikop-operator": "app/nifikop-operator",
     "elastic-operator": "app/elastic-operator",
+    "contour-operator": "app/contour-operator",
     "contour": "app/contour",
 }
 
@@ -56,6 +59,7 @@ kubernetes_version = {
     "yugabyte-operator": "v1.18.9",
     "nifikop-operator": "v1.18.9",
     "elastic-operator": "v1.18.9",
+    "contour-operator": "v1.23.1",
     "contour": "v1.23.1",
 }
 
@@ -70,6 +74,7 @@ controller_runtime_version = {
     "yugabyte-operator": "v0.5.2",
     "nifikop-operator": "v0.7.2",
     "elastic-operator": "v0.11.0",
+    "contour-operator": "v0.11.0",
     "contour": "v0.11.0",
 }
 
@@ -84,6 +89,7 @@ client_go_version = {
     "yugabyte-operator": "v0.17.4",
     "nifikop-operator": "v0.20.2",
     "elastic-operator": "v0.23.0",
+    "contour-operator": "v0.23.0",
     "contour": "v0.23.0",
 }
 
@@ -98,6 +104,7 @@ docker_file = {
     "yugabyte-operator": "build/Dockerfile",
     "nifikop-operator": "Dockerfile",
     "elastic-operator": "Dockerfile",
+    "contour-operator": "Dockerfile",
     "contour": "Dockerfile",
 }
 
@@ -112,6 +119,7 @@ test_dir = {
     "yugabyte-operator": "examples/yugabyte-operator",
     "nifikop-operator": "examples/nifikop-operator",
     "elastic-operator": "examples/elastic-operator",
+    "contour-operator": "examples/contour-operator",
     "contour": "examples/contour",
 }
 
@@ -143,9 +151,9 @@ test_suites = {
             workloads.workloads["casskop-operator"]["reducepdb"],
         ),
     },
-    "contour": {
-        "create": Suite(
-            workloads.workloads["contour"]["create"],
+    "contour-operator": {
+        "recreate": Suite(
+            workloads.workloads["contour-operator"]["recreate"],
         ),
     },
     "elastic-operator": {
@@ -273,6 +281,7 @@ CRDs = {
     "yugabyte-operator": ["ybcluster"],
     "nifikop-operator": ["nificluster"],
     "elastic-operator": ["elasticsearch"],
+    "contour-operator": ["contour"],
     "contour": ["httproute", "tlsroute", "gateway", "gatewayclass"],
 }
 
@@ -287,7 +296,12 @@ deployment_name = {
     "yugabyte-operator": "yugabyte-operator",
     "nifikop-operator": "nifikop-operator",
     "elastic-operator": "elastic-operator",
+    "contour-operator": "contour-operator",
     "contour": "contour",
+}
+
+container_name = {
+    "contour-operator": "contour-operator",
 }
 
 operator_pod_label = {
@@ -301,6 +315,7 @@ operator_pod_label = {
     "yugabyte-operator": "yugabyte-operator",
     "nifikop-operator": "nifikop-operator",
     "elastic-operator": "elastic-operator",
+    "contour-operator": "contour-operator",
     "contour": "contour",
 }
 
@@ -463,6 +478,14 @@ def contour_deploy(dr, dt):
     os.system("rm %s" % (new_path))
 
 
+def contour_operator_deploy(dr, dt):
+    new_path = replace_docker_repo(
+        "examples/contour-operator/deploy/operator.yaml", dr, dt
+    )
+    os.system("kubectl apply -f %s" % new_path)
+    os.system("rm %s" % (new_path))
+
+
 deploy = {
     "cassandra-operator": cassandra_operator_deploy,
     "zookeeper-operator": zookeeper_operator_deploy,
@@ -474,5 +497,6 @@ deploy = {
     "yugabyte-operator": yugabyte_operator_deploy,
     "nifikop-operator": nifikop_operator_deploy,
     "elastic-operator": elastic_operator_deploy,
+    "contour-operator": contour_operator_deploy,
     "contour": contour_deploy,
 }
