@@ -7,11 +7,25 @@ from datetime import datetime
 import copy
 import controllers
 
+operators_for_CI = [
+    "cassandra-operator",
+    "zookeeper-operator",
+    "rabbitmq-operator",
+    "mongodb-operator",
+    "cass-operator",
+    "casskop-operator",
+    "xtradb-operator",
+    "yugabyte-operator",
+    "nifikop-operator",
+]
+
 
 def generate_jobs(ci_mode):
     jobs = {}
 
     for operator in reprod_map:
+        if operator not in operators_for_CI:
+            continue
         job = {
             "runs-on": "ubuntu-latest" if ci_mode == "test" else "self-hosted",
             "env": {
