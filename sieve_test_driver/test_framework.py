@@ -39,6 +39,17 @@ def get_pod(resource_name, namespace):
     return target_pod
 
 
+def get_pods(resource_name_prefix, namespace):
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+    pods = core_v1.list_namespaced_pod(namespace=namespace, watch=False).items
+    target_pods = []
+    for pod in pods:
+        if pod.metadata.name.startswith(resource_name_prefix):
+            target_pods.append(pod)
+    return target_pods
+
+
 def get_sts(resource_name, namespace):
     kubernetes.config.load_kube_config()
     apps_v1 = kubernetes.client.AppsV1Api()
@@ -229,6 +240,69 @@ class TestWaitForStatus:
                     break
             elif self.resource_type == PVC:
                 if self.check_pvc():
+                    break
+            else:
+                assert False, "type not supported yet"
+            time.sleep(5)
+        time.sleep(5)  # make it configurable
+        print("wait takes %f seconds" % (time.time() - s))
+        return 0, NO_ERROR_MESSAGE
+
+
+class TestWaitForNumber:
+    def __init__(
+        self,
+        resource_type,
+        resource_name_prefix,
+        number,
+        soft_time_out,
+        hard_time_out,
+        namespace,
+    ):
+        self.resource_type = resource_type
+        self.resource_name_prefix = resource_name_prefix
+        self.number = number
+        self.namespace = namespace
+        self.soft_time_out = soft_time_out
+        self.hard_time_out = hard_time_out
+
+    def check_pod(self):
+        try:
+            pods = get_pods(self.resource_name_prefix, self.namespace)
+        except Exception as err:
+            print("error occurs during check pod", err)
+            print(traceback.format_exc())
+            return False
+        running_pods = []
+        for pod in pods:
+            if pod.status.phase == RUNNING:
+                running_pods.append(pod)
+        return len(running_pods) == self.number
+
+    def run(self, mode) -> Tuple[int, str]:
+        s = time.time()
+        print(
+            "wait until the number of running %s %s becomes %s..."
+            % (self.resource_type, self.resource_name_prefix, self.number)
+        )
+        while True:
+            duration = time.time() - s
+            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
+                error_message = (
+                    "soft timeout: %s does not become %s within %d seconds; we will continue"
+                    % (self.resource_name_prefix, self.number, self.soft_time_out)
+                )
+                print(error_message)
+                return 0, NO_ERROR_MESSAGE
+            if duration > self.hard_time_out:
+                error_message = (
+                    "hard timeout: %s does not become %s within %d seconds"
+                    % (self.resource_name_prefix, self.number, self.hard_time_out)
+                )
+                print(error_message)
+                return 1, error_message
+            if self.resource_type == POD:
+                if self.check_pod():
                     break
             else:
                 assert False, "type not supported yet"
@@ -483,6 +557,20 @@ class BuiltInWorkLoad:
     def cmd(self, cmd):
         test_cmd = TestCmd(cmd)
         self.work_list.append(test_cmd)
+        return self
+
+    def wait_for_pod_number(
+        self,
+        pod_name_prefix,
+        number,
+        soft_time_out=sieve_config["workload_wait_soft_timeout"],
+        hard_time_out=sieve_config["workload_wait_hard_timeout"],
+        namespace=sieve_config["namespace"],
+    ):
+        test_wait = TestWaitForNumber(
+            POD, pod_name_prefix, number, soft_time_out, hard_time_out, namespace
+        )
+        self.work_list.append(test_wait)
         return self
 
     def wait_for_pod_status(
