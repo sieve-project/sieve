@@ -263,6 +263,7 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 }
 
 func NotifyObsGapBeforeProcessEvent(eventType, key string, object interface{}) {
+	loadSieveConfigMap(eventType, key, object)
 	if err := loadSieveConfig(); err != nil {
 		return
 	}

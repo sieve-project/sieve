@@ -309,6 +309,7 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 }
 
 func NotifyLearnBeforeProcessEvent(eventType, key string, object interface{}) {
+	loadSieveConfigMap(eventType, key, object)
 	if err := loadSieveConfig(); err != nil {
 		return
 	}

@@ -155,6 +155,7 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 }
 
 func NotifyAtomVioBeforeProcessEvent(eventType, key string, object interface{}) {
+	loadSieveConfigMap(eventType, key, object)
 	if err := loadSieveConfig(); err != nil {
 		return
 	}

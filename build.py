@@ -7,19 +7,36 @@ from sieve_common.default_config import sieve_config
 
 ORIGINAL_DIR = os.getcwd()
 
+DEFAULT_K8S_VERSION = "v1.18.9"
+K8S_VER_TO_LIB_VER = {"v1.18.9": "v0.18.9", "v1.23.1": "v0.23.1"}
 
-def download_kubernetes():
+
+def update_sieve_client_go_mod_with_version(go_mod_path, version):
+    fin = open(go_mod_path)
+    data = fin.read()
+    data = data.replace(
+        "k8s.io/apimachinery v0.18.9",
+        "k8s.io/apimachinery %s" % version,
+    )
+    fin.close()
+    fout = open(go_mod_path, "w")
+    fout.write(data)
+    fout.close()
+
+
+def download_kubernetes(version):
     cmd_early_exit("rm -rf fakegopath")
     cmd_early_exit("mkdir -p fakegopath/src/k8s.io")
     cmd_early_exit(
-        "git clone --single-branch --branch v1.18.9 https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null"
+        "git clone --single-branch --branch %s https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null"
+        % version
     )
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     cmd_early_exit("git checkout -b sieve >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
 
-def install_lib_for_kubernetes():
+def install_lib_for_kubernetes(version):
     with open(
         "fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod", "a"
     ) as go_mod_file:
@@ -28,6 +45,11 @@ def install_lib_for_kubernetes():
     cmd_early_exit(
         "cp -r sieve_client fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client"
     )
+    if version != DEFAULT_K8S_VERSION:
+        update_sieve_client_go_mod_with_version(
+            "fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client/go.mod",
+            K8S_VER_TO_LIB_VER[version],
+        )
     cmd_early_exit(
         "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client"
     )
@@ -43,11 +65,11 @@ def instrument_kubernetes(mode):
     os.chdir(ORIGINAL_DIR)
 
 
-def build_kubernetes(img_repo, img_tag):
+def build_kubernetes(version, img_repo, img_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     cmd_early_exit(
-        "GOPATH=%s/fakegopath KUBE_GIT_VERSION=v1.18.9-sieve-`git rev-parse HEAD` kind build node-image"
-        % ORIGINAL_DIR
+        "GOPATH=%s/fakegopath KUBE_GIT_VERSION=%s-sieve-`git rev-parse HEAD` kind build node-image"
+        % (ORIGINAL_DIR, version)
     )
     os.chdir(ORIGINAL_DIR)
     os.chdir("build_k8s")
@@ -56,11 +78,11 @@ def build_kubernetes(img_repo, img_tag):
     os.chdir(ORIGINAL_DIR)
 
 
-def setup_kubernetes(mode, img_repo, img_tag):
-    download_kubernetes()
-    install_lib_for_kubernetes()
+def setup_kubernetes(version, mode, img_repo, img_tag):
+    download_kubernetes(version)
+    install_lib_for_kubernetes(version)
     instrument_kubernetes(mode)
-    build_kubernetes(img_repo, img_tag)
+    build_kubernetes(version, img_repo, img_tag)
 
 
 def download_controller(project, link, sha):
@@ -134,6 +156,11 @@ def install_lib_for_controller(
         "cp -r sieve_client %s/dep-sieve/src/sieve.client"
         % controllers.app_dir[project]
     )
+    if controllers.kubernetes_version[project] != DEFAULT_K8S_VERSION:
+        update_sieve_client_go_mod_with_version(
+            "%s/dep-sieve/src/sieve.client/go.mod" % controllers.app_dir[project],
+            K8S_VER_TO_LIB_VER[controllers.kubernetes_version[project]],
+        )
 
     if project == "yugabyte-operator":
         # Ad-hoc fix for api incompatibility in golang
@@ -254,8 +281,8 @@ def setup_controller(
     build_controller(project, img_repo, img_tag)
 
 
-def setup_kubernetes_wrapper(mode, img_repo):
-    img_tag = mode
+def setup_kubernetes_wrapper(version, mode, img_repo):
+    img_tag = version + "-" + mode
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
@@ -263,10 +290,9 @@ def setup_kubernetes_wrapper(mode, img_repo):
             sieve_modes.OBS_GAP,
             sieve_modes.TIME_TRAVEL,
         ]:
-            img_tag = this_mode
-            setup_kubernetes(this_mode, img_repo, img_tag)
+            setup_kubernetes(version, this_mode, img_repo, img_tag)
     else:
-        setup_kubernetes(mode, img_repo, img_tag)
+        setup_kubernetes(version, mode, img_repo, img_tag)
 
 
 def setup_controller_wrapper(controller, mode, img_repo, sha, build_only):
@@ -313,7 +339,7 @@ if __name__ == "__main__":
         "-p",
         "--project",
         dest="project",
-        help="specify PROJECT to build",
+        help="specify PROJECT to build: Kubernetes or the controller",
         metavar="PROJECT",
         default=None,
     )
@@ -326,10 +352,18 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_option(
+        "-v",
+        "--version",
+        dest="version",
+        help="VERSION of Kubernetes",
+        metavar="VER",
+        default=DEFAULT_K8S_VERSION,
+    )
+    parser.add_option(
         "-s",
         "--sha",
         dest="sha",
-        help="SHA of the project",
+        help="SHA of the controller project",
         metavar="SHA",
         default=None,
     )
@@ -378,7 +412,7 @@ if __name__ == "__main__":
         options.docker if options.docker is not None else sieve_config["docker_repo"]
     )
     if options.project == "kubernetes":
-        setup_kubernetes_wrapper(options.mode, img_repo)
+        setup_kubernetes_wrapper(options.version, options.mode, img_repo)
     elif options.project == "all":
         for controller in controllers.github_link:
             setup_controller_wrapper(

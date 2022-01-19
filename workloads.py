@@ -415,4 +415,18 @@ workloads = {
         )
         .wait_for_pod_status("elasticsearch-cluster-es-default-1", RUNNING),
     },
+    # "contour": {
+    #     "create": new_built_in_workload(100)
+    #     .cmd("kubectl apply -f examples/contour-operator/test/gateway.yaml")
+    #     .cmd("kubectl apply -f examples/contour/test/kuard.yaml")
+    # },
+    "contour-operator": {
+        "recreate": new_built_in_workload(100)
+        .cmd("kubectl apply -f examples/contour-operator/test/contour.yaml")
+        .wait_for_pod_number("contour-", 3)
+        .cmd("kubectl delete contour contour-sample")
+        .wait_for_pod_status("envoy-*", TERMINATED)
+        .cmd("kubectl apply -f examples/contour-operator/test/contour.yaml")
+        .wait_for_pod_number("contour-", 3)
+    },
 }
