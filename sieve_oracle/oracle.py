@@ -74,7 +74,7 @@ def safety_checker(test_context: TestContext):
     ret_val = 0
     messages = []
     if sieve_config["compare_history_digests_checker_enabled"]:
-        if not test_context.mode == sieve_modes.OBS_GAP:
+        if not test_context.mode == sieve_modes.UNOBSR_STATE:
             (
                 compare_history_digests_ret_val,
                 compare_history_digests_messages,
@@ -89,7 +89,7 @@ def liveness_checker(test_context: TestContext):
     messages = []
     if sieve_config["compare_states_checker_enabled"]:
         if not (
-            test_context.mode == sieve_modes.TIME_TRAVEL and test_context.use_csi_driver
+            test_context.mode == sieve_modes.STALE_STATE and test_context.use_csi_driver
         ):
             compare_states_ret_val, compare_states_messages = compare_states(
                 test_context

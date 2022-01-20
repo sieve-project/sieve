@@ -13,7 +13,7 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+	if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -63,7 +63,7 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+	if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -108,7 +108,7 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+	if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -162,7 +162,7 @@ func NotifyAtomVioBeforeProcessEvent(eventType, key string, object interface{}) 
 	tokens := strings.Split(key, "/")
 	namespace := tokens[len(tokens)-2]
 	if namespace == config["se-namespace"].(string) {
-		if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+		if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 			return
 		}
 		jsonObject, err := json.Marshal(object)

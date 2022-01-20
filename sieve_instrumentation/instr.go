@@ -79,22 +79,26 @@ func main() {
 	project := args[1]
 	mode := args[2]
 	if project == "kubernetes" {
-		if mode == TIME_TRAVEL {
+		if mode == STALE_STATE {
 			instrumentKubernetesForTimeTravel(args[3])
 		} else if mode == LEARN {
 			instrumentKubernetesForLearn(args[3])
-		} else if mode == ATOM_VIO {
+		} else if mode == INTERMEDIATE_STATE {
 			instrumentKubernetesForAtomVio(args[3])
-		} else if mode == OBS_GAP {
+		} else if mode == UNOBSR_STATE {
 			instrumentKubernetesForObsGap(args[3])
+		} else {
+			panic(fmt.Sprintf("Unsupported mode %s", mode))
 		}
 	} else {
 		if mode == LEARN {
 			instrumentControllerForLearn(args[3], args[4])
-		} else if mode == OBS_GAP {
+		} else if mode == UNOBSR_STATE {
 			instrumentControllerForObsGap(args[3], args[4])
-		} else if mode == ATOM_VIO {
+		} else if mode == INTERMEDIATE_STATE {
 			instrumentControllerForAtomVio(args[3], args[4])
+		} else {
+			panic(fmt.Sprintf("Unsupported mode %s", mode))
 		}
 
 	}

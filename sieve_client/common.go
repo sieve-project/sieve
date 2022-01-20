@@ -16,9 +16,9 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-const TIME_TRAVEL string = "time-travel"
-const OBS_GAP string = "observability-gap"
-const ATOM_VIO string = "atomicity-violation"
+const STALE_STATE string = "stale-state"
+const UNOBSR_STATE string = "unobserved-state"
+const INTERMEDIATE_STATE string = "intermediate-state"
 const LEARN string = "learn"
 const TEST string = "test"
 
@@ -135,7 +135,7 @@ func checkStage(stage string) bool {
 }
 
 func checkTimeTravelTiming(timing string) bool {
-	if checkStage(TEST) && checkMode(TIME_TRAVEL) {
+	if checkStage(TEST) && checkMode(STALE_STATE) {
 		if timingInConfig, ok := config["timing"]; ok {
 			return timingInConfig.(string) == timing
 		} else {

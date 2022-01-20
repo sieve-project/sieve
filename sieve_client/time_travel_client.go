@@ -27,7 +27,7 @@ func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{
 	tokens := strings.Split(key, "/")
 	namespace := tokens[len(tokens)-2]
 	if namespace == config["ce-namespace"].(string) {
-		if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
+		if !checkStage(TEST) || !checkMode(STALE_STATE) {
 			return
 		}
 		jsonObject, err := json.Marshal(object)
@@ -118,7 +118,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(TIME_TRAVEL) {
+	if !checkStage(TEST) || !checkMode(STALE_STATE) {
 		return
 	}
 	// log.Printf("[sieve][NotifyTimeTravelAfterSideEffects] %s %v\n", sideEffectType, object)

@@ -24,14 +24,14 @@ func main() {
 	case sieve.TEST:
 		learnedMask, configuredMask := getMask()
 		switch config["mode"] {
-		case sieve.TIME_TRAVEL:
-			log.Println(sieve.TIME_TRAVEL)
+		case sieve.STALE_STATE:
+			log.Println(sieve.STALE_STATE)
 			rpc.Register(NewTimeTravelListener(config, learnedMask, configuredMask))
-		case sieve.OBS_GAP:
-			log.Println(sieve.OBS_GAP)
+		case sieve.UNOBSR_STATE:
+			log.Println(sieve.UNOBSR_STATE)
 			rpc.Register(NewObsGapListener(config, learnedMask, configuredMask))
-		case sieve.ATOM_VIO:
-			log.Println(sieve.ATOM_VIO)
+		case sieve.INTERMEDIATE_STATE:
+			log.Println(sieve.INTERMEDIATE_STATE)
 			rpc.Register(NewAtomVioListener(config, learnedMask, configuredMask))
 
 		default:

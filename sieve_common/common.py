@@ -99,9 +99,9 @@ class sieve_stages:
 
 
 class sieve_modes:
-    TIME_TRAVEL = "time-travel"
-    OBS_GAP = "observability-gap"
-    ATOM_VIO = "atomicity-violation"
+    STALE_STATE = "stale-state"
+    UNOBSR_STATE = "unobserved-state"
+    INTERMEDIATE_STATE = "intermediate-state"
     VANILLA = "vanilla"
     LEARN_ONCE = "learn-once"
     LEARN_TWICE = "learn-twice"

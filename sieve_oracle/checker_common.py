@@ -119,11 +119,11 @@ def generate_atom_vio_debugging_hint(test_config_content):
 
 def generate_debugging_hint(test_config_content):
     mode = test_config_content["mode"]
-    if mode == sieve_modes.TIME_TRAVEL:
+    if mode == sieve_modes.STALE_STATE:
         return generate_time_travel_debugging_hint(test_config_content)
-    elif mode == sieve_modes.OBS_GAP:
+    elif mode == sieve_modes.UNOBSR_STATE:
         return generate_obs_gap_debugging_hint(test_config_content)
-    elif mode == sieve_modes.ATOM_VIO:
+    elif mode == sieve_modes.INTERMEDIATE_STATE:
         return generate_atom_vio_debugging_hint(test_config_content)
     else:
         print("mode wrong", mode, test_config_content)
@@ -185,21 +185,21 @@ def injection_validation(test_context: TestContext):
     test_mode = test_config_content["mode"]
     validation_ret_val = 0
     validation_messages = []
-    if test_mode == sieve_modes.TIME_TRAVEL:
+    if test_mode == sieve_modes.STALE_STATE:
         if not is_time_travel_started(server_log):
             validation_messages.append(generate_warn("time travel is not started yet"))
             validation_ret_val = -1
         elif not is_time_travel_finished(server_log):
             validation_messages.append(generate_warn("time travel is not finished yet"))
             validation_ret_val = -2
-    elif test_mode == sieve_modes.OBS_GAP:
+    elif test_mode == sieve_modes.UNOBSR_STATE:
         if not is_obs_gap_started(server_log):
             validation_messages.append(generate_warn("obs gap is not started yet"))
             validation_ret_val = -1
         elif not is_obs_gap_finished(server_log):
             validation_messages.append(generate_warn("obs gap is not finished yet"))
             validation_ret_val = -2
-    elif test_mode == sieve_modes.ATOM_VIO:
+    elif test_mode == sieve_modes.INTERMEDIATE_STATE:
         if not is_atom_vio_started(server_log):
             validation_messages.append(generate_warn("atom vio is not started yet"))
             validation_ret_val = -1

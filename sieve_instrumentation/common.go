@@ -15,9 +15,9 @@ import (
 	"github.com/dave/dst/decorator/resolver/guess"
 )
 
-const TIME_TRAVEL string = "time-travel"
-const OBS_GAP string = "observability-gap"
-const ATOM_VIO string = "atomicity-violation"
+const STALE_STATE string = "stale-state"
+const UNOBSR_STATE string = "unobserved-state"
+const INTERMEDIATE_STATE string = "intermediate-state"
 const LEARN string = "learn"
 
 func check(e error) {

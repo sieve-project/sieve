@@ -58,7 +58,7 @@ def detectable_event_diff(
 ) -> bool:
     if signature_counter > 3:
         return False
-    if mode == sieve_modes.TIME_TRAVEL or mode == sieve_modes.OBS_GAP:
+    if mode == sieve_modes.STALE_STATE or mode == sieve_modes.UNOBSR_STATE:
         event_diff_validation_check(prev_etype, cur_etype)
         # undetectable if the first event is not ADDED
         if prev_etype == EVENT_NONE_TYPE and cur_etype != OperatorHearTypes.ADDED:
@@ -138,7 +138,7 @@ def time_travel_detectable_pass(
             ):
                 continue
         if detectable_event_diff(
-            sieve_modes.TIME_TRAVEL,
+            sieve_modes.STALE_STATE,
             operator_hear.slim_prev_obj_map,
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
@@ -266,7 +266,7 @@ def time_travel_template(project):
     return {
         "project": project,
         "stage": sieve_stages.TEST,
-        "mode": sieve_modes.TIME_TRAVEL,
+        "mode": sieve_modes.STALE_STATE,
         "straggler": sieve_config["time_travel_straggler"],
         "front-runner": sieve_config["time_travel_front_runner"],
         "operator-pod-label": controllers.operator_pod_label[project],
@@ -339,19 +339,19 @@ def time_travel_analysis(
         if timing == "after" or timing == "before":
             time_travel_config["timing"] = timing
             i += 1
-            file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
                 dump_to_yaml(time_travel_config, file_name)
         else:
             time_travel_config["timing"] = "after"
             i += 1
-            file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
                 dump_to_yaml(time_travel_config, file_name)
 
             time_travel_config["timing"] = "before"
             i += 1
-            file_name = os.path.join(path, "time-travel-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
                 dump_to_yaml(time_travel_config, file_name)
             baseline_spec_number += 1
@@ -359,7 +359,7 @@ def time_travel_analysis(
             after_p2_spec_number += 1
             final_spec_number += 1
 
-    cprint("Generated %d time-travel config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint("Generated %d stale-state config(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
         baseline_spec_number,
         after_p1_spec_number,
@@ -383,7 +383,7 @@ def obs_gap_detectable_pass(
             ):
                 continue
         if detectable_event_diff(
-            sieve_modes.OBS_GAP,
+            sieve_modes.UNOBSR_STATE,
             operator_hear.slim_prev_obj_map,
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
@@ -434,7 +434,7 @@ def obs_gap_template(project):
     return {
         "project": project,
         "stage": sieve_stages.TEST,
-        "mode": sieve_modes.OBS_GAP,
+        "mode": sieve_modes.UNOBSR_STATE,
     }
 
 
@@ -483,11 +483,11 @@ def obs_gap_analysis(
         obs_gap_config["ce-counter"] = str(operator_hear.signature_counter)
 
         i += 1
-        file_name = os.path.join(path, "obs-gap-config-%s.yaml" % (str(i)))
+        file_name = os.path.join(path, "unobsr-state-config-%s.yaml" % (str(i)))
         if sieve_config["persist_specs_enabled"]:
             dump_to_yaml(obs_gap_config, file_name)
 
-    cprint("Generated %d obs-gap config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint("Generated %d unobsr-state config(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
         baseline_spec_number,
         after_p1_spec_number,
@@ -511,7 +511,7 @@ def atom_vio_detectable_pass(
             ):
                 continue
         if detectable_event_diff(
-            sieve_modes.ATOM_VIO,
+            sieve_modes.INTERMEDIATE_STATE,
             operator_write.slim_prev_obj_map,
             operator_write.slim_cur_obj_map,
             operator_write.prev_etype,
@@ -569,7 +569,7 @@ def atom_vio_template(project):
     return {
         "project": project,
         "stage": sieve_stages.TEST,
-        "mode": sieve_modes.ATOM_VIO,
+        "mode": sieve_modes.INTERMEDIATE_STATE,
         "front-runner": sieve_config["time_travel_front_runner"],
         "operator-pod-label": controllers.operator_pod_label[project],
         "deployment-name": controllers.deployment_name[project],
@@ -617,11 +617,11 @@ def atom_vio_analysis(
         atom_vio_config["se-counter"] = str(operator_write.signature_counter)
 
         i += 1
-        file_name = os.path.join(path, "atom-vio-config-%s.yaml" % (str(i)))
+        file_name = os.path.join(path, "intmd-state-config-%s.yaml" % (str(i)))
         if sieve_config["persist_specs_enabled"]:
             dump_to_yaml(atom_vio_config, file_name)
 
-    cprint("Generated %d atom-vio config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint("Generated %d intmd-state config(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
         baseline_spec_number,
         after_p1_spec_number,

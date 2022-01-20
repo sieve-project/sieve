@@ -13,7 +13,7 @@ func NotifyObsGapBeforeIndexerWrite(operationType string, object interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+	if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 		return
 	}
 	rType := regularizeType(object)
@@ -53,7 +53,7 @@ func NotifyObsGapAfterIndexerWrite(operationType string, object interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+	if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 		return
 	}
 	rType := regularizeType(object)
@@ -93,7 +93,7 @@ func NotifyObsGapBeforeInformerCacheGet(readType string, namespacedName types.Na
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+	if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 		return
 	}
 	rType := regularizeType(object)
@@ -129,7 +129,7 @@ func NotifyObsGapAfterInformerCacheGet(readType string, namespacedName types.Nam
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+	if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 		return
 	}
 	rType := regularizeType(object)
@@ -165,7 +165,7 @@ func NotifyObsGapBeforeInformerCacheList(readType string, object interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+	if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 		return
 	}
 	rType := regularizeType(object)
@@ -196,7 +196,7 @@ func NotifyObsGapAfterInformerCacheList(readType string, object interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+	if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 		return
 	}
 	rType := regularizeType(object)
@@ -227,7 +227,7 @@ func NotifyObsGapAfterSideEffects(sideEffectID int, sideEffectType string, objec
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(OBS_GAP) {
+	if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 		return
 	}
 	log.Printf("[sieve][NotifyObsGapAfterSideEffects] %s %v\n", sideEffectType, object)
@@ -270,7 +270,7 @@ func NotifyObsGapBeforeProcessEvent(eventType, key string, object interface{}) {
 	tokens := strings.Split(key, "/")
 	namespace := tokens[len(tokens)-2]
 	if namespace == config["se-namespace"].(string) {
-		if !checkStage(TEST) || !checkMode(OBS_GAP) {
+		if !checkStage(TEST) || !checkMode(UNOBSR_STATE) {
 			return
 		}
 		jsonObject, err := json.Marshal(object)

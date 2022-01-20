@@ -52,12 +52,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p cassandra-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p cassandra-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p cassandra-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p cassandra-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p cassandra-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p cassandra-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p cassandra-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p cassandra-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - cassandra-operator recreate
@@ -66,12 +66,12 @@ jobs:
     - name: Sieve Learn - cassandra-operator scaledown-scaleup
       run: python3 sieve.py -p cassandra-operator -t scaledown-scaleup -s learn -m
         learn-twice -d $IMAGE_NAMESPACE
-    - name: Sieve Test - cassandra-operator obs-gap-1
-      run: python3 reprod.py -p cassandra-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - cassandra-operator time-travel-1
-      run: python3 reprod.py -p cassandra-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - cassandra-operator time-travel-2
-      run: python3 reprod.py -p cassandra-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - cassandra-operator unobsr-state-1
+      run: python3 reprod.py -p cassandra-operator -b unobsr-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - cassandra-operator stale-state-1
+      run: python3 reprod.py -p cassandra-operator -b stale-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - cassandra-operator stale-state-2
+      run: python3 reprod.py -p cassandra-operator -b stale-state-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
@@ -126,12 +126,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p cass-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p cass-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p cass-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p cass-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p cass-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p cass-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p cass-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p cass-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - cass-operator recreate
@@ -140,10 +140,10 @@ jobs:
     - name: Sieve Learn - cass-operator scaledown-scaleup
       run: python3 sieve.py -p cass-operator -t scaledown-scaleup -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-    - name: Sieve Test - cass-operator atom-vio-1
-      run: python3 reprod.py -p cass-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - cass-operator time-travel-1
-      run: python3 reprod.py -p cass-operator -b time-travel-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - cass-operator intmd-state-1
+      run: python3 reprod.py -p cass-operator -b intmd-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - cass-operator stale-state-1
+      run: python3 reprod.py -p cass-operator -b stale-state-1 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
@@ -198,12 +198,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p casskop-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p casskop-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p casskop-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p casskop-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p casskop-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p casskop-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p casskop-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p casskop-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - casskop-operator recreate
@@ -215,14 +215,14 @@ jobs:
     - name: Sieve Learn - casskop-operator scaledown-to-zero
       run: python3 sieve.py -p casskop-operator -t scaledown-to-zero -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-    - name: Sieve Test - casskop-operator atom-vio-1
-      run: python3 reprod.py -p casskop-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - casskop-operator obs-gap-1
-      run: python3 reprod.py -p casskop-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - casskop-operator time-travel-1
-      run: python3 reprod.py -p casskop-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - casskop-operator time-travel-2
-      run: python3 reprod.py -p casskop-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - casskop-operator intmd-state-1
+      run: python3 reprod.py -p casskop-operator -b intmd-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - casskop-operator unobsr-state-1
+      run: python3 reprod.py -p casskop-operator -b unobsr-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - casskop-operator stale-state-1
+      run: python3 reprod.py -p casskop-operator -b stale-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - casskop-operator stale-state-2
+      run: python3 reprod.py -p casskop-operator -b stale-state-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
@@ -277,12 +277,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p nifikop-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p nifikop-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p nifikop-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p nifikop-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p nifikop-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p nifikop-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p nifikop-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p nifikop-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - nifikop-operator change-config
@@ -294,8 +294,8 @@ jobs:
     - name: Sieve Learn - nifikop-operator scaledown-scaleup
       run: python3 sieve.py -p nifikop-operator -t scaledown-scaleup -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-    - name: Sieve Test - nifikop-operator atom-vio-1
-      run: python3 reprod.py -p nifikop-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - nifikop-operator intmd-state-1
+      run: python3 reprod.py -p nifikop-operator -b intmd-state-1 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
@@ -350,12 +350,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p rabbitmq-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p rabbitmq-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p rabbitmq-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p rabbitmq-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p rabbitmq-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p rabbitmq-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p rabbitmq-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p rabbitmq-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - rabbitmq-operator recreate
@@ -367,14 +367,14 @@ jobs:
     - name: Sieve Learn - rabbitmq-operator scaleup-scaledown
       run: python3 sieve.py -p rabbitmq-operator -t scaleup-scaledown -s learn -m
         learn-twice -d $IMAGE_NAMESPACE
-    - name: Sieve Test - rabbitmq-operator atom-vio-1
-      run: python3 reprod.py -p rabbitmq-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - rabbitmq-operator obs-gap-1
-      run: python3 reprod.py -p rabbitmq-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - rabbitmq-operator time-travel-1
-      run: python3 reprod.py -p rabbitmq-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - rabbitmq-operator time-travel-2
-      run: python3 reprod.py -p rabbitmq-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - rabbitmq-operator intmd-state-1
+      run: python3 reprod.py -p rabbitmq-operator -b intmd-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - rabbitmq-operator unobsr-state-1
+      run: python3 reprod.py -p rabbitmq-operator -b unobsr-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - rabbitmq-operator stale-state-1
+      run: python3 reprod.py -p rabbitmq-operator -b stale-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - rabbitmq-operator stale-state-2
+      run: python3 reprod.py -p rabbitmq-operator -b stale-state-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
@@ -429,12 +429,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p mongodb-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p mongodb-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p mongodb-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p mongodb-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p mongodb-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p mongodb-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p mongodb-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p mongodb-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - mongodb-operator disable-enable-arbiter
@@ -452,18 +452,18 @@ jobs:
     - name: Sieve Learn - mongodb-operator scaleup-scaledown
       run: python3 sieve.py -p mongodb-operator -t scaleup-scaledown -s learn -m learn-twice
         -d $IMAGE_NAMESPACE
-    - name: Sieve Test - mongodb-operator atom-vio-1
-      run: python3 reprod.py -p mongodb-operator -b atom-vio-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - mongodb-operator atom-vio-2
-      run: python3 reprod.py -p mongodb-operator -b atom-vio-2 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - mongodb-operator obs-gap-1
-      run: python3 reprod.py -p mongodb-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - mongodb-operator time-travel-1
-      run: python3 reprod.py -p mongodb-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - mongodb-operator time-travel-2
-      run: python3 reprod.py -p mongodb-operator -b time-travel-2 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - mongodb-operator time-travel-3
-      run: python3 reprod.py -p mongodb-operator -b time-travel-3 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - mongodb-operator intmd-state-1
+      run: python3 reprod.py -p mongodb-operator -b intmd-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - mongodb-operator intmd-state-2
+      run: python3 reprod.py -p mongodb-operator -b intmd-state-2 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - mongodb-operator unobsr-state-1
+      run: python3 reprod.py -p mongodb-operator -b unobsr-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - mongodb-operator stale-state-1
+      run: python3 reprod.py -p mongodb-operator -b stale-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - mongodb-operator stale-state-2
+      run: python3 reprod.py -p mongodb-operator -b stale-state-2 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - mongodb-operator stale-state-3
+      run: python3 reprod.py -p mongodb-operator -b stale-state-3 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
@@ -518,12 +518,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p xtradb-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p xtradb-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p xtradb-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p xtradb-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p xtradb-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p xtradb-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p xtradb-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p xtradb-operator -m vanilla -d $IMAGE_NAMESPACE
   yugabyte-operator:
@@ -572,12 +572,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p yugabyte-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p yugabyte-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p yugabyte-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p yugabyte-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p yugabyte-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p yugabyte-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p yugabyte-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p yugabyte-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - yugabyte-operator disable-enable-tls
@@ -592,12 +592,12 @@ jobs:
     - name: Sieve Learn - yugabyte-operator scaleup-scaledown-tserver
       run: python3 sieve.py -p yugabyte-operator -t scaleup-scaledown-tserver -s learn
         -m learn-twice -d $IMAGE_NAMESPACE
-    - name: Sieve Test - yugabyte-operator obs-gap-1
-      run: python3 reprod.py -p yugabyte-operator -b obs-gap-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - yugabyte-operator time-travel-1
-      run: python3 reprod.py -p yugabyte-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - yugabyte-operator time-travel-2
-      run: python3 reprod.py -p yugabyte-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - yugabyte-operator unobsr-state-1
+      run: python3 reprod.py -p yugabyte-operator -b unobsr-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - yugabyte-operator stale-state-1
+      run: python3 reprod.py -p yugabyte-operator -b stale-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - yugabyte-operator stale-state-2
+      run: python3 reprod.py -p yugabyte-operator -b stale-state-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:
@@ -652,12 +652,12 @@ jobs:
         cat sieve_config.json'
     - name: Build Image - learn
       run: python3 build.py -p zookeeper-operator -m learn -d $IMAGE_NAMESPACE
-    - name: Build Image - time-travel
-      run: python3 build.py -p zookeeper-operator -m time-travel -d $IMAGE_NAMESPACE
-    - name: Build Image - observability-gap
-      run: python3 build.py -p zookeeper-operator -m observability-gap -d $IMAGE_NAMESPACE
-    - name: Build Image - atomicity-violation
-      run: python3 build.py -p zookeeper-operator -m atomicity-violation -d $IMAGE_NAMESPACE
+    - name: Build Image - stale-state
+      run: python3 build.py -p zookeeper-operator -m stale-state -d $IMAGE_NAMESPACE
+    - name: Build Image - unobserved-state
+      run: python3 build.py -p zookeeper-operator -m unobserved-state -d $IMAGE_NAMESPACE
+    - name: Build Image - intermediate-state
+      run: python3 build.py -p zookeeper-operator -m intermediate-state -d $IMAGE_NAMESPACE
     - name: Build Image - vanilla
       run: python3 build.py -p zookeeper-operator -m vanilla -d $IMAGE_NAMESPACE
     - name: Sieve Learn - zookeeper-operator recreate
@@ -666,10 +666,10 @@ jobs:
     - name: Sieve Learn - zookeeper-operator scaledown-scaleup
       run: python3 sieve.py -p zookeeper-operator -t scaledown-scaleup -s learn -m
         learn-twice -d $IMAGE_NAMESPACE
-    - name: Sieve Test - zookeeper-operator time-travel-1
-      run: python3 reprod.py -p zookeeper-operator -b time-travel-1 -d $IMAGE_NAMESPACE
-    - name: Sieve Test - zookeeper-operator time-travel-2
-      run: python3 reprod.py -p zookeeper-operator -b time-travel-2 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - zookeeper-operator stale-state-1
+      run: python3 reprod.py -p zookeeper-operator -b stale-state-1 -d $IMAGE_NAMESPACE
+    - name: Sieve Test - zookeeper-operator stale-state-2
+      run: python3 reprod.py -p zookeeper-operator -b stale-state-2 -d $IMAGE_NAMESPACE
     - uses: actions/upload-artifact@v2
       if: always()
       with:

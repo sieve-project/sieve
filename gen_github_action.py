@@ -98,9 +98,9 @@ def generate_jobs(ci_mode):
 
         build_modes = [
             "learn",
-            sieve_modes.TIME_TRAVEL,
-            sieve_modes.OBS_GAP,
-            sieve_modes.ATOM_VIO,
+            sieve_modes.STALE_STATE,
+            sieve_modes.UNOBSR_STATE,
+            sieve_modes.INTERMEDIATE_STATE,
             sieve_modes.VANILLA,
         ]
         workload_set = set()

@@ -227,10 +227,10 @@ def setup_cluster(
     #           sieve_config["namespace"])
     prepare_sieve_server(test_context)
 
-    # when testing time-travel, we need to pause the apiserver
+    # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
-    if test_context.mode == sieve_modes.TIME_TRAVEL:
+    if test_context.mode == sieve_modes.STALE_STATE:
         redirect_workers(test_context.num_workers)
         redirect_kubectl()
 
@@ -274,7 +274,7 @@ def setup_cluster(
         cmd_early_exit(kind_load_cmd)
 
     # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
-    if test_context.mode != sieve_modes.TIME_TRAVEL and test_context.use_csi_driver:
+    if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
@@ -509,7 +509,7 @@ def run(
             generate_vanilla_config(config_to_use)
         else:
             cmd_early_exit("cp %s %s" % (config, config_to_use))
-            if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
+            if mode == sieve_modes.STALE_STATE and suite.num_apiservers < 3:
                 suite.num_apiservers = 3
             elif suite.use_csi_driver:
                 suite.num_apiservers = 1
@@ -601,7 +601,7 @@ if __name__ == "__main__":
         "-m",
         "--mode",
         dest="mode",
-        help="test MODE: vanilla, time-travel, obs-gap, atom-vio",
+        help="test MODE: vanilla, stale-state, unobsr-state, intmd-state",
         metavar="MODE",
     )
     parser.add_option(
@@ -654,10 +654,10 @@ if __name__ == "__main__":
     elif options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
         parser.error("invalid stage option: %s" % options.stage)
 
-    if options.mode == "obs-gap":
-        options.mode = sieve_modes.OBS_GAP
-    elif options.mode == "atom-vio":
-        options.mode = sieve_modes.ATOM_VIO
+    if options.mode == "unobsr-state":
+        options.mode = sieve_modes.UNOBSR_STATE
+    elif options.mode == "intmd-state":
+        options.mode = sieve_modes.INTERMEDIATE_STATE
 
     if options.stage == sieve_stages.LEARN:
         if options.mode is None:
@@ -674,9 +674,9 @@ if __name__ == "__main__":
             parser.error("parameter mode required in test stage")
         elif options.mode not in [
             sieve_modes.VANILLA,
-            sieve_modes.TIME_TRAVEL,
-            sieve_modes.OBS_GAP,
-            sieve_modes.ATOM_VIO,
+            sieve_modes.STALE_STATE,
+            sieve_modes.UNOBSR_STATE,
+            sieve_modes.INTERMEDIATE_STATE,
         ]:
             parser.error("invalid test mode option: %s" % options.mode)
         if options.mode == sieve_modes.VANILLA:
