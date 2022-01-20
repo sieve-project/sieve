@@ -87,6 +87,8 @@ func main() {
 			instrumentKubernetesForAtomVio(args[3])
 		} else if mode == UNOBSR_STATE {
 			instrumentKubernetesForObsGap(args[3])
+		} else if mode == VANILLA {
+
 		} else {
 			panic(fmt.Sprintf("Unsupported mode %s", mode))
 		}
@@ -97,6 +99,10 @@ func main() {
 			instrumentControllerForObsGap(args[3], args[4])
 		} else if mode == INTERMEDIATE_STATE {
 			instrumentControllerForAtomVio(args[3], args[4])
+		} else if mode == STALE_STATE {
+
+		} else if mode == VANILLA {
+
 		} else {
 			panic(fmt.Sprintf("Unsupported mode %s", mode))
 		}
