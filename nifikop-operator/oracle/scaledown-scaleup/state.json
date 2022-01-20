@@ -409,7 +409,7 @@
                 "finalizers": [
                     "nificlusters.nifi.orange.com/finalizer"
                 ],
-                "generation": 6,
+                "generation": 4,
                 "name": "simplenifi",
                 "namespace": "default",
                 "resourceVersion": "SIEVE-IGNORE",
@@ -696,13 +696,13 @@
                 "phase": "Bound"
             }
         },
-        "simplenifi-1-storagekg8q7": "SIEVE-IGNORE",
-        "simplenifi-2-storagecv994": "SIEVE-IGNORE"
+        "simplenifi-1-storagefpvmh": "SIEVE-IGNORE",
+        "simplenifi-2-storagewzjm4": "SIEVE-IGNORE"
     },
     "pod": {
-        "nifikop-operator-5d9557d9dd-5dh7w": "SIEVE-IGNORE",
-        "simplenifi-1-nodelszz4": "SIEVE-IGNORE",
-        "simplenifi-2-nodek7tf5": "SIEVE-IGNORE",
+        "nifikop-operator-5d9557d9dd-s47mh": "SIEVE-IGNORE",
+        "simplenifi-1-node5h2c9": "SIEVE-IGNORE",
+        "simplenifi-2-node4jf6c": "SIEVE-IGNORE",
         "zookeeper-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -735,7 +735,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"101e674a-8870-417c-9f59-02f2909d4d22\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"b3488e23-cc01-4bd3-8364-599f6c8b90c3\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1000,10 +1000,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.4\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
+                                    "k:{\"ip\":\"10.244.2.3\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1319,10 +1316,10 @@
                 ],
                 "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
-                "podIP": "10.244.2.4",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.2.4"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Guaranteed",
@@ -1330,8 +1327,357 @@
             }
         }
     },
+    "replicaset": {
+        "nifikop-operator-5d9557d9dd": {
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "1",
+                    "deployment.kubernetes.io/max-replicas": "2",
+                    "deployment.kubernetes.io/revision": "1",
+                    "meta.helm.sh/release-name": "nifikop-operator",
+                    "meta.helm.sh/release-namespace": "default"
+                },
+                "creationTimestamp": "SIEVE-IGNORE",
+                "generation": 1,
+                "labels": {
+                    "app": "nifikop",
+                    "control-plane": "nifikop",
+                    "name": "nifikop",
+                    "operator": "nifi",
+                    "pod-template-hash": "5d9557d9dd",
+                    "release": "nifikop-operator",
+                    "sievetag": "nifikop-operator"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:deployment.kubernetes.io/desired-replicas": {},
+                                    "f:deployment.kubernetes.io/max-replicas": {},
+                                    "f:deployment.kubernetes.io/revision": {},
+                                    "f:meta.helm.sh/release-name": {},
+                                    "f:meta.helm.sh/release-namespace": {}
+                                },
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:control-plane": {},
+                                    "f:name": {},
+                                    "f:operator": {},
+                                    "f:pod-template-hash": {},
+                                    "f:release": {},
+                                    "f:sievetag": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"208270f1-3da6-4c54-9145-7f9d2e46950d\"}": "SIEVE-IGNORE"
+                                }
+                            },
+                            "f:spec": {
+                                "f:replicas": {},
+                                "f:selector": {
+                                    "f:matchLabels": {
+                                        ".": {},
+                                        "f:control-plane": {},
+                                        "f:name": {},
+                                        "f:pod-template-hash": {},
+                                        "f:sievetag": {}
+                                    }
+                                },
+                                "f:template": {
+                                    "f:metadata": {
+                                        "f:labels": {
+                                            ".": {},
+                                            "f:app": {},
+                                            "f:control-plane": {},
+                                            "f:name": {},
+                                            "f:operator": {},
+                                            "f:pod-template-hash": {},
+                                            "f:release": {},
+                                            "f:sievetag": {}
+                                        }
+                                    },
+                                    "f:spec": {
+                                        "f:containers": {
+                                            "k:{\"name\":\"nifikop\"}": {
+                                                ".": {},
+                                                "f:args": {},
+                                                "f:command": {},
+                                                "f:env": {
+                                                    ".": {},
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"OPERATOR_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:value": {}
+                                                    },
+                                                    "k:{\"name\":\"POD_NAME\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    },
+                                                    "k:{\"name\":\"WATCH_NAMESPACE\"}": {
+                                                        ".": {},
+                                                        "f:name": {},
+                                                        "f:valueFrom": {
+                                                            ".": {},
+                                                            "f:fieldRef": {
+                                                                ".": {},
+                                                                "f:apiVersion": {},
+                                                                "f:fieldPath": {}
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "f:envFrom": {},
+                                                "f:image": {},
+                                                "f:imagePullPolicy": {},
+                                                "f:livenessProbe": {
+                                                    ".": {},
+                                                    "f:failureThreshold": {},
+                                                    "f:httpGet": {
+                                                        ".": {},
+                                                        "f:path": {},
+                                                        "f:port": {},
+                                                        "f:scheme": {}
+                                                    },
+                                                    "f:initialDelaySeconds": {},
+                                                    "f:periodSeconds": {},
+                                                    "f:successThreshold": {},
+                                                    "f:timeoutSeconds": {}
+                                                },
+                                                "f:name": {},
+                                                "f:readinessProbe": {
+                                                    ".": {},
+                                                    "f:failureThreshold": {},
+                                                    "f:httpGet": {
+                                                        ".": {},
+                                                        "f:path": {},
+                                                        "f:port": {},
+                                                        "f:scheme": {}
+                                                    },
+                                                    "f:initialDelaySeconds": {},
+                                                    "f:periodSeconds": {},
+                                                    "f:successThreshold": {},
+                                                    "f:timeoutSeconds": {}
+                                                },
+                                                "f:resources": {
+                                                    ".": {},
+                                                    "f:limits": {
+                                                        ".": {},
+                                                        "f:cpu": {},
+                                                        "f:memory": {}
+                                                    },
+                                                    "f:requests": {
+                                                        ".": {},
+                                                        "f:cpu": {},
+                                                        "f:memory": {}
+                                                    }
+                                                },
+                                                "f:securityContext": {
+                                                    ".": {},
+                                                    "f:allowPrivilegeEscalation": {}
+                                                },
+                                                "f:terminationMessagePath": {},
+                                                "f:terminationMessagePolicy": {}
+                                            }
+                                        },
+                                        "f:dnsPolicy": {},
+                                        "f:restartPolicy": {},
+                                        "f:schedulerName": {},
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:runAsUser": {}
+                                        },
+                                        "f:terminationGracePeriodSeconds": {}
+                                    }
+                                }
+                            },
+                            "f:status": {
+                                "f:availableReplicas": {},
+                                "f:fullyLabeledReplicas": {},
+                                "f:observedGeneration": {},
+                                "f:readyReplicas": {},
+                                "f:replicas": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "SIEVE-IGNORE"
+                    }
+                ],
+                "name": "nifikop-operator-5d9557d9dd",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "nifikop-operator",
+                        "uid": "SIEVE-IGNORE"
+                    }
+                ],
+                "resourceVersion": "SIEVE-IGNORE",
+                "selfLink": "/apis/apps/v1/namespaces/default/replicasets/nifikop-operator-5d9557d9dd",
+                "uid": "SIEVE-IGNORE"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "control-plane": "nifikop",
+                        "name": "nifikop",
+                        "pod-template-hash": "5d9557d9dd",
+                        "sievetag": "nifikop-operator"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "nifikop",
+                            "control-plane": "nifikop",
+                            "name": "nifikop",
+                            "operator": "nifi",
+                            "pod-template-hash": "5d9557d9dd",
+                            "release": "nifikop-operator",
+                            "sievetag": "nifikop-operator"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "args": [
+                                    "--leader-elect"
+                                ],
+                                "command": [
+                                    "/manager"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "WATCH_NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "POD_NAME",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.name"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_HOST",
+                                        "value": "kind-control-plane"
+                                    },
+                                    {
+                                        "name": "KUBERNETES_SERVICE_PORT",
+                                        "value": "6443"
+                                    },
+                                    {
+                                        "name": "OPERATOR_NAME",
+                                        "value": "nifikop"
+                                    }
+                                ],
+                                "envFrom": [
+                                    {
+                                        "configMapRef": {
+                                            "name": "sieve-testing-global-config"
+                                        }
+                                    }
+                                ],
+                                "image": "ghcr.io/sieve-project/action/nifikop-operator:learn",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "httpGet": {
+                                        "path": "/healthz",
+                                        "port": 8081,
+                                        "scheme": "HTTP"
+                                    },
+                                    "initialDelaySeconds": 15,
+                                    "periodSeconds": 20,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "nifikop",
+                                "readinessProbe": {
+                                    "failureThreshold": 3,
+                                    "httpGet": {
+                                        "path": "/readyz",
+                                        "port": 8081,
+                                        "scheme": "HTTP"
+                                    },
+                                    "initialDelaySeconds": 5,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 1
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "1",
+                                        "memory": "512Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "10m",
+                                        "memory": "50Mi"
+                                    }
+                                },
+                                "securityContext": {
+                                    "allowPrivilegeEscalation": false
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {
+                            "runAsUser": 1000
+                        },
+                        "terminationGracePeriodSeconds": 10
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "fullyLabeledReplicas": 1,
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        }
+    },
     "secret": {
-        "default-token-2xxmw": "SIEVE-IGNORE",
+        "default-token-dth6x": "SIEVE-IGNORE",
         "sh.helm.release.v1.nifikop-operator.v1": {
             "data": {
                 "release": "SIEVE-IGNORE"
@@ -1474,7 +1820,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"c0d30820-4e1b-4439-abfd-840cd5a74192\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6d8bb5b7-0369-440c-bd10-e9dfc252ee9f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -1550,7 +1896,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"c0d30820-4e1b-4439-abfd-840cd5a74192\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6d8bb5b7-0369-440c-bd10-e9dfc252ee9f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -1609,7 +1955,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"c0d30820-4e1b-4439-abfd-840cd5a74192\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6d8bb5b7-0369-440c-bd10-e9dfc252ee9f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1728,7 +2074,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "SIEVE-IGNORE",
+                "resourceVersion": "151",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -1778,7 +2124,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"c0d30820-4e1b-4439-abfd-840cd5a74192\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6d8bb5b7-0369-440c-bd10-e9dfc252ee9f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1887,7 +2233,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"c0d30820-4e1b-4439-abfd-840cd5a74192\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6d8bb5b7-0369-440c-bd10-e9dfc252ee9f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1994,7 +2340,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"c0d30820-4e1b-4439-abfd-840cd5a74192\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"6d8bb5b7-0369-440c-bd10-e9dfc252ee9f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
