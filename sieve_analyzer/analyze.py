@@ -14,9 +14,9 @@ from sieve_common.common import (
 from controllers import *
 
 from sieve_analyzer.fi_spec_generator import (
-    atom_vio_analysis,
-    obs_gap_analysis,
-    time_travel_analysis,
+    intermediate_state_analysis,
+    unobserved_state_analysis,
+    stale_state_analysis,
 )
 from sieve_common.k8s_event import *
 from sieve_analyzer.causality_graph import (
@@ -323,11 +323,15 @@ def generate_test_config(
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_modes.STALE_STATE:
-        return time_travel_analysis(causality_graph, generated_config_dir, test_context)
+        return stale_state_analysis(causality_graph, generated_config_dir, test_context)
     elif analysis_mode == sieve_modes.UNOBSR_STATE:
-        return obs_gap_analysis(causality_graph, generated_config_dir, test_context)
+        return unobserved_state_analysis(
+            causality_graph, generated_config_dir, test_context
+        )
     elif analysis_mode == sieve_modes.INTERMEDIATE_STATE:
-        return atom_vio_analysis(causality_graph, generated_config_dir, test_context)
+        return intermediate_state_analysis(
+            causality_graph, generated_config_dir, test_context
+        )
 
 
 def analyze_trace(

@@ -9,17 +9,17 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-func NotifyTimeTravelAfterProcessEvent(eventType, key string, object interface{}) {
+func NotifyStaleStateAfterProcessEvent(eventType, key string, object interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if checkTimeTravelTiming("after") {
-		// log.Printf("[sieve] NotifyTimeTravelAfterProcessEvent")
-		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
+	if checkStaleStateTiming("after") {
+		// log.Printf("[sieve] NotifyStaleStateAfterProcessEvent")
+		NotifyStaleStateAboutProcessEvent(eventType, key, object)
 	}
 }
 
-func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{}) {
+func NotifyStaleStateBeforeProcessEvent(eventType, key string, object interface{}) {
 	loadSieveConfigMap(eventType, key, object)
 	if err := loadSieveConfig(); err != nil {
 		return
@@ -38,13 +38,13 @@ func NotifyTimeTravelBeforeProcessEvent(eventType, key string, object interface{
 		// TODO: instead of printing key, we should parse out name, namespace and rtype here
 		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\n", eventType, key, string(jsonObject))
 	}
-	if checkTimeTravelTiming("before") {
-		// log.Printf("[sieve] NotifyTimeTravelBeforeProcessEvent")
-		NotifyTimeTravelAboutProcessEvent(eventType, key, object)
+	if checkStaleStateTiming("before") {
+		// log.Printf("[sieve] NotifyStaleStateBeforeProcessEvent")
+		NotifyStaleStateAboutProcessEvent(eventType, key, object)
 	}
 }
 
-func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}) {
+func NotifyStaleStateAboutProcessEvent(eventType, key string, object interface{}) {
 	tokens := strings.Split(key, "/")
 	if len(tokens) < 4 {
 		return
@@ -53,7 +53,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 	namespace := tokens[len(tokens)-2]
 	name := tokens[len(tokens)-1]
 	if name == config["ce-name"].(string) && namespace == config["ce-namespace"].(string) && resourceType == config["ce-rtype"].(string) {
-		log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
+		log.Printf("[sieve] NotifyStaleStateAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 		log.Printf("[sieve][rt-ns-name][curcial-event] %s %s %s", resourceType, namespace, name)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
@@ -70,21 +70,21 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 			printError(err, SIEVE_HOST_ERR)
 			return
 		}
-		request := &NotifyTimeTravelCrucialEventRequest{
+		request := &NotifyStaleStateCrucialEventRequest{
 			Hostname:  hostname,
 			EventType: eventType,
 			Object:    string(jsonObject),
 		}
 		var response Response
-		err = client.Call("TimeTravelListener.NotifyTimeTravelCrucialEvent", request, &response)
+		err = client.Call("StaleStateListener.NotifyStaleStateCrucialEvent", request, &response)
 		if err != nil {
 			printError(err, SIEVE_REPLY_ERR)
 			return
 		}
-		checkResponse(response, "NotifyTimeTravelCrucialEvent")
+		checkResponse(response, "NotifyStaleStateCrucialEvent")
 		client.Close()
 	} else if name == config["se-name"].(string) && namespace == config["se-namespace"].(string) && resourceType == config["se-rtype"].(string) && eventType == config["se-etype"] {
-		log.Printf("[sieve] NotifyTimeTravelAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
+		log.Printf("[sieve] NotifyStaleStateAboutProcessEvent, eventType: %s, key: %s, resourceType: %s, namespace: %s, name: %s", eventType, key, resourceType, namespace, name)
 		log.Printf("[sieve][rt-ns-name][side-effect] %s %s %s", resourceType, namespace, name)
 		client, err := newClient()
 		if err != nil {
@@ -96,7 +96,7 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 			printError(err, SIEVE_HOST_ERR)
 			return
 		}
-		request := &NotifyTimeTravelRestartPointRequest{
+		request := &NotifyStaleStateRestartPointRequest{
 			Hostname:     hostname,
 			EventType:    eventType,
 			ResourceType: resourceType,
@@ -104,24 +104,24 @@ func NotifyTimeTravelAboutProcessEvent(eventType, key string, object interface{}
 			Namespace:    namespace,
 		}
 		var response Response
-		err = client.Call("TimeTravelListener.NotifyTimeTravelRestartPoint", request, &response)
+		err = client.Call("StaleStateListener.NotifyStaleStateRestartPoint", request, &response)
 		if err != nil {
 			printError(err, SIEVE_REPLY_ERR)
 			return
 		}
-		checkResponse(response, "NotifyTimeTravelRestartPoint")
+		checkResponse(response, "NotifyStaleStateRestartPoint")
 		client.Close()
 	}
 }
 
-func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+func NotifyStaleStateAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
 	if !checkStage(TEST) || !checkMode(STALE_STATE) {
 		return
 	}
-	// log.Printf("[sieve][NotifyTimeTravelAfterSideEffects] %s %v\n", sideEffectType, object)
+	// log.Printf("[sieve][NotifyStaleStateAfterSideEffects] %s %v\n", sideEffectType, object)
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
@@ -136,7 +136,7 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyTimeTravelAfterSideEffectsRequest{
+	request := &NotifyStaleStateAfterSideEffectsRequest{
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
@@ -144,11 +144,11 @@ func NotifyTimeTravelAfterSideEffects(sideEffectID int, sideEffectType string, o
 		Error:          errorString,
 	}
 	var response Response
-	err = client.Call("TimeTravelListener.NotifyTimeTravelAfterSideEffects", request, &response)
+	err = client.Call("StaleStateListener.NotifyStaleStateAfterSideEffects", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
-	checkResponse(response, "NotifyTimeTravelAfterSideEffects")
+	checkResponse(response, "NotifyStaleStateAfterSideEffects")
 	client.Close()
 }

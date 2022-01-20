@@ -274,7 +274,7 @@ def time_travel_template(project):
     }
 
 
-def time_travel_analysis(
+def stale_state_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
     project = test_context.project
@@ -438,7 +438,7 @@ def obs_gap_template(project):
     }
 
 
-def obs_gap_analysis(
+def unobserved_state_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
     project = test_context.project
@@ -576,7 +576,7 @@ def atom_vio_template(project):
     }
 
 
-def atom_vio_analysis(
+def intermediate_state_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
     project = test_context.project

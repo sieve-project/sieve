@@ -6,11 +6,11 @@ import (
 	"path"
 )
 
-func instrumentKubernetesForTimeTravel(k8s_filepath string) {
+func instrumentKubernetesForStaleState(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
 	preprocess(watchCacheGoFile)
-	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "TimeTravel", true, true)
+	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "StaleState", true, true)
 }
 
 func instrumentKubernetesForLearn(k8s_filepath string) {
@@ -20,39 +20,39 @@ func instrumentKubernetesForLearn(k8s_filepath string) {
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "Learn", true, false)
 }
 
-func instrumentKubernetesForAtomVio(k8s_filepath string) {
+func instrumentKubernetesForIntmdState(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
 	preprocess(watchCacheGoFile)
-	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "AtomVio", true, false)
+	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "IntmdState", true, false)
 }
 
-func instrumentKubernetesForObsGap(k8s_filepath string) {
+func instrumentKubernetesForUnobsrState(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
 	preprocess(watchCacheGoFile)
-	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "ObsGap", true, false)
+	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "UnobsrState", true, false)
 }
 
-func instrumentControllerForObsGap(controller_runtime_filepath string, client_go_filepath string) {
+func instrumentControllerForUnobsrState(controller_runtime_filepath string, client_go_filepath string) {
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
 	preprocess(sharedInformerGoFile)
-	instrumentSharedInformerGoForObsGap(sharedInformerGoFile, sharedInformerGoFile)
+	instrumentSharedInformerGoForUnobsrState(sharedInformerGoFile, sharedInformerGoFile)
 
 	informerCacheGoFile := path.Join(controller_runtime_filepath, "pkg", "cache", "informer_cache.go")
 	fmt.Printf("instrumenting %s\n", informerCacheGoFile)
-	instrumentInformerCacheGoForObsGap(informerCacheGoFile, informerCacheGoFile)
+	instrumentInformerCacheGoForUnobsrState(informerCacheGoFile, informerCacheGoFile)
 }
 
-func instrumentControllerForAtomVio(controller_runtime_filepath string, client_go_filepath string) {
+func instrumentControllerForIntmdState(controller_runtime_filepath string, client_go_filepath string) {
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)
-	instrumentSplitGoForAll(splitGoFile, splitGoFile, "AtomVio")
+	instrumentSplitGoForAll(splitGoFile, splitGoFile, "IntmdState")
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "AtomVio", false)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "IntmdState", false)
 }
 
 func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
@@ -80,13 +80,13 @@ func main() {
 	mode := args[2]
 	if project == "kubernetes" {
 		if mode == STALE_STATE {
-			instrumentKubernetesForTimeTravel(args[3])
+			instrumentKubernetesForStaleState(args[3])
 		} else if mode == LEARN {
 			instrumentKubernetesForLearn(args[3])
 		} else if mode == INTERMEDIATE_STATE {
-			instrumentKubernetesForAtomVio(args[3])
-		} else if mode == UNOBSR_STATE {
-			instrumentKubernetesForObsGap(args[3])
+			instrumentKubernetesForIntmdState(args[3])
+		} else if mode == UNOBSERVED_STATE {
+			instrumentKubernetesForUnobsrState(args[3])
 		} else if mode == VANILLA {
 
 		} else {
@@ -95,10 +95,10 @@ func main() {
 	} else {
 		if mode == LEARN {
 			instrumentControllerForLearn(args[3], args[4])
-		} else if mode == UNOBSR_STATE {
-			instrumentControllerForObsGap(args[3], args[4])
+		} else if mode == UNOBSERVED_STATE {
+			instrumentControllerForUnobsrState(args[3], args[4])
 		} else if mode == INTERMEDIATE_STATE {
-			instrumentControllerForAtomVio(args[3], args[4])
+			instrumentControllerForIntmdState(args[3], args[4])
 		} else if mode == STALE_STATE {
 
 		} else if mode == VANILLA {

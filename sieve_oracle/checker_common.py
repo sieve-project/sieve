@@ -144,32 +144,32 @@ def generate_fatal(msg):
 
 def is_time_travel_started(server_log):
     with open(server_log) as f:
-        return "START-SIEVE-TIME-TRAVEL" in f.read()
+        return "START-SIEVE-STALE-STATE" in f.read()
 
 
 def is_obs_gap_started(server_log):
     with open(server_log) as f:
-        return "START-SIEVE-OBSERVABILITY-GAPS" in f.read()
+        return "START-SIEVE-UNOBSERVED-STATE" in f.read()
 
 
 def is_atom_vio_started(server_log):
     with open(server_log) as f:
-        return "START-SIEVE-ATOMICITY-VIOLATION" in f.read()
+        return "START-SIEVE-INTERMEDIATE-STATE" in f.read()
 
 
 def is_time_travel_finished(server_log):
     with open(server_log) as f:
-        return "FINISH-SIEVE-TIME-TRAVEL" in f.read()
+        return "FINISH-SIEVE-STALE-STATE" in f.read()
 
 
 def is_obs_gap_finished(server_log):
     with open(server_log) as f:
-        return "FINISH-SIEVE-OBSERVABILITY-GAPS" in f.read()
+        return "FINISH-SIEVE-UNOBSERVED-STATE" in f.read()
 
 
 def is_atom_vio_finished(server_log):
     with open(server_log) as f:
-        return "FINISH-SIEVE-ATOMICITY-VIOLATION" in f.read()
+        return "FINISH-SIEVE-INTERMEDIATE-STATE" in f.read()
 
 
 def is_test_workload_finished(workload_log):

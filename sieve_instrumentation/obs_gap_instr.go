@@ -6,29 +6,29 @@ import (
 	"github.com/dave/dst"
 )
 
-func instrumentSharedInformerGoForObsGap(ifilepath, ofilepath string) {
+func instrumentSharedInformerGoForUnobsrState(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache")
 	_, funcDecl := findFuncDecl(f, "HandleDeltas", 1)
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
-				instrNotifyObsGapBeforeIndexerWrite := &dst.ExprStmt{
+				instrNotifyUnobsrStateBeforeIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyObsGapBeforeIndexerWrite", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyUnobsrStateBeforeIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyObsGapBeforeIndexerWrite.Decs.End.Append("//sieve")
-				insertStmt(&rangeStmt.Body.List, 0, instrNotifyObsGapBeforeIndexerWrite)
+				instrNotifyUnobsrStateBeforeIndexerWrite.Decs.End.Append("//sieve")
+				insertStmt(&rangeStmt.Body.List, 0, instrNotifyUnobsrStateBeforeIndexerWrite)
 
-				instrNotifyObsGapAfterIndexerWrite := &dst.ExprStmt{
+				instrNotifyUnobsrStateAfterIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyObsGapAfterIndexerWrite", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyUnobsrStateAfterIndexerWrite", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyObsGapAfterIndexerWrite.Decs.End.Append("//sieve")
-				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyObsGapAfterIndexerWrite)
+				instrNotifyUnobsrStateAfterIndexerWrite.Decs.End.Append("//sieve")
+				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyUnobsrStateAfterIndexerWrite)
 
 				break
 			}
@@ -39,11 +39,11 @@ func instrumentSharedInformerGoForObsGap(ifilepath, ofilepath string) {
 	}
 }
 
-func instrumentInformerCacheGoForObsGap(ifilepath, ofilepath string) {
+func instrumentInformerCacheGoForUnobsrState(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache")
 
-	instrumentInformerCacheRead(f, "Get", "ObsGap")
-	instrumentInformerCacheRead(f, "List", "ObsGap")
+	instrumentInformerCacheRead(f, "Get", "UnobsrState")
+	instrumentInformerCacheRead(f, "List", "UnobsrState")
 
 	writeInstrumentedFile(ofilepath, "cache", f)
 }

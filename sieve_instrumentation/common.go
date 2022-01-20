@@ -16,7 +16,7 @@ import (
 )
 
 const STALE_STATE string = "stale-state"
-const UNOBSR_STATE string = "unobserved-state"
+const UNOBSERVED_STATE string = "unobserved-state"
 const INTERMEDIATE_STATE string = "intermediate-state"
 const LEARN string = "learn"
 const VANILLA string = "vanilla"

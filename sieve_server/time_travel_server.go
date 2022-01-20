@@ -8,9 +8,9 @@ import (
 )
 
 // The listener is actually a wrapper around the server.
-func NewTimeTravelListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *TimeTravelListener {
+func NewStaleStateListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *StaleStateListener {
 	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["ce-rtype"].(string), config["ce-name"].(string), learnedMask, configuredMask)
-	server := &timeTravelServer{
+	server := &staleStateServer{
 		project:        config["project"].(string),
 		restarted:      false,
 		pauseCh:        make(chan int),
@@ -30,36 +30,36 @@ func NewTimeTravelListener(config map[interface{}]interface{}, learnedMask map[s
 		maskedKeysSet:  maskedKeysSet,
 		maskedPathsSet: maskedPathsSet,
 	}
-	listener := &TimeTravelListener{
+	listener := &StaleStateListener{
 		Server: server,
 	}
 	listener.Server.Start()
 	return listener
 }
 
-type TimeTravelListener struct {
-	Server *timeTravelServer
+type StaleStateListener struct {
+	Server *staleStateServer
 }
 
 // Echo is just for testing.
-func (l *TimeTravelListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
+func (l *StaleStateListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
 	*response = sieve.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTimeTravelCrucialEventRequest, response *sieve.Response) error {
-	return l.Server.NotifyTimeTravelCrucialEvent(request, response)
+func (l *StaleStateListener) NotifyStaleStateCrucialEvent(request *sieve.NotifyStaleStateCrucialEventRequest, response *sieve.Response) error {
+	return l.Server.NotifyStaleStateCrucialEvent(request, response)
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelRestartPoint(request *sieve.NotifyTimeTravelRestartPointRequest, response *sieve.Response) error {
-	return l.Server.NotifyTimeTravelRestartPoint(request, response)
+func (l *StaleStateListener) NotifyStaleStateRestartPoint(request *sieve.NotifyStaleStateRestartPointRequest, response *sieve.Response) error {
+	return l.Server.NotifyStaleStateRestartPoint(request, response)
 }
 
-func (l *TimeTravelListener) NotifyTimeTravelAfterSideEffects(request *sieve.NotifyTimeTravelAfterSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyTimeTravelAfterSideEffects(request, response)
+func (l *StaleStateListener) NotifyStaleStateAfterSideEffects(request *sieve.NotifyStaleStateAfterSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyStaleStateAfterSideEffects(request, response)
 }
 
-type timeTravelServer struct {
+type staleStateServer struct {
 	project        string
 	straggler      string
 	frontRunner    string
@@ -80,7 +80,7 @@ type timeTravelServer struct {
 	maskedPathsSet map[string]struct{}
 }
 
-func (s *timeTravelServer) Start() {
+func (s *staleStateServer) Start() {
 	if !s.ceIsCR {
 		log.Printf("conforming diffCurEvent %v...\n", s.diffCurEvent)
 		log.Printf("conforming diffPrevEvent %v...\n", s.diffPrevEvent)
@@ -95,14 +95,14 @@ func (s *timeTravelServer) Start() {
 		s.maskedPathsSet = conformToAPIPaths(s.maskedPathsSet)
 		log.Printf("conform maskedPathsSet to %v\n", s.maskedPathsSet)
 	}
-	log.Println("start timeTravelServer...")
+	log.Println("start staleStateServer...")
 	log.Printf("target event type: %s\n", s.ceEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
 	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
 
-func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTimeTravelCrucialEventRequest, response *sieve.Response) error {
-	log.Printf("NotifyTimeTravelCrucialEvent: Hostname: %s\n", request.Hostname)
+func (s *staleStateServer) NotifyStaleStateCrucialEvent(request *sieve.NotifyStaleStateCrucialEventRequest, response *sieve.Response) error {
+	log.Printf("NotifyStaleStateCrucialEvent: Hostname: %s\n", request.Hostname)
 	if s.straggler != request.Hostname {
 		*response = sieve.Response{Message: request.Hostname, Ok: true}
 		return nil
@@ -113,18 +113,18 @@ func (s *timeTravelServer) NotifyTimeTravelCrucialEvent(request *sieve.NotifyTim
 	s.curEvent = currentEvent
 	if findTargetDiff(s.eventCounter, request.EventType, s.ceEtype, s.prevEvent, s.curEvent, s.diffPrevEvent, s.diffCurEvent, s.maskedKeysSet, s.maskedPathsSet, true) {
 		s.sleeped = true
-		startTimeTravelInjection()
+		startStaleStateInjection()
 		log.Println("[sieve] should sleep here")
 		<-s.pauseCh
 		log.Println("[sieve] sleep over")
-		finishTimeTravelInjection()
+		finishStaleStateInjection()
 	}
 	*response = sieve.Response{Message: request.Hostname, Ok: true}
 	return nil
 }
 
-func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sieve.NotifyTimeTravelRestartPointRequest, response *sieve.Response) error {
-	log.Printf("NotifyTimeTravelSideEffect: Hostname: %s\n", request.Hostname)
+func (s *staleStateServer) NotifyStaleStateRestartPoint(request *sieve.NotifyStaleStateRestartPointRequest, response *sieve.Response) error {
+	log.Printf("NotifyStaleStateSideEffect: Hostname: %s\n", request.Hostname)
 	if s.frontRunner != request.Hostname {
 		*response = sieve.Response{Message: request.Hostname, Ok: true}
 		return nil
@@ -138,20 +138,20 @@ func (s *timeTravelServer) NotifyTimeTravelRestartPoint(request *sieve.NotifyTim
 	return nil
 }
 
-func (s *timeTravelServer) NotifyTimeTravelAfterSideEffects(request *sieve.NotifyTimeTravelAfterSideEffectsRequest, response *sieve.Response) error {
+func (s *staleStateServer) NotifyStaleStateAfterSideEffects(request *sieve.NotifyStaleStateAfterSideEffectsRequest, response *sieve.Response) error {
 	log.Printf("[SIEVE-AFTER-WRITE]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 
-func (s *timeTravelServer) waitAndRestartOperator() {
+func (s *staleStateServer) waitAndRestartOperator() {
 	time.Sleep(time.Duration(10) * time.Second)
 	restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, s.straggler, true)
 	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }
 
-func (s *timeTravelServer) shouldRestart() bool {
+func (s *staleStateServer) shouldRestart() bool {
 	if s.sleeped && !s.restarted {
 		s.restarted = true
 		return true

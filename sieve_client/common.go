@@ -17,7 +17,7 @@ import (
 )
 
 const STALE_STATE string = "stale-state"
-const UNOBSR_STATE string = "unobserved-state"
+const UNOBSERVED_STATE string = "unobserved-state"
 const INTERMEDIATE_STATE string = "intermediate-state"
 const LEARN string = "learn"
 const TEST string = "test"
@@ -134,7 +134,7 @@ func checkStage(stage string) bool {
 	}
 }
 
-func checkTimeTravelTiming(timing string) bool {
+func checkStaleStateTiming(timing string) bool {
 	if checkStage(TEST) && checkMode(STALE_STATE) {
 		if timingInConfig, ok := config["timing"]; ok {
 			return timingInConfig.(string) == timing
