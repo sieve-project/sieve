@@ -3,7 +3,7 @@
 **Before reproducing the bugs**, please ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work, and set `docker_repo` in your `sieve_config.json` to `ghcr.io/sieve-project/action` (the default value).
 
 
-### Atomicity violation
+### Intermediate state bugs
 
 ### [k8ssandra-cass-operator-1023](https://k8ssandra.atlassian.net/browse/K8SSAND-1023)
 ```
@@ -106,7 +106,7 @@ If reproduced, you will see:
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
-### Observability gaps
+### Unobserved state bugs
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
@@ -182,10 +182,10 @@ If reproduced, you will see:
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
-### Time travel
+### Stale state bugs
 
 <!-- ### [datastax-cass-operator-412](https://github.com/datastax/cass-operator/issues/412) -->
-### [k8ssandra-cass-operator](https://k8ssandra.atlassian.net/browse/K8SSAND-559)
+### [k8ssandra-cass-operator-559](https://k8ssandra.atlassian.net/browse/K8SSAND-559)
 ```
 python3 reprod.py -p cass-operator -b stale-state-1
 ```
