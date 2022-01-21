@@ -1,0 +1,11 @@
+project: mongodb-operator
+stage: test
+mode: unobserved-state
+ce-name: mongodb-cluster
+ce-namespace: default
+ce-rtype: perconaservermongodb
+ce-etype-previous: Updated
+ce-etype-current: Updated
+ce-diff-previous: '{"spec": {"replsets": [{"arbiter": {"enabled": true}}]}}'
+ce-diff-current: '{"spec": {"replsets": [{"arbiter": {"enabled": false}}]}}'
+ce-counter: '1'

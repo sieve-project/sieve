@@ -39,18 +39,18 @@ def collect_spec():
         for test in controllers.test_suites[operator]:
             result_filename = "sieve_learn_results/{}-{}.json".format(operator, test)
             result_map = json.load(open(result_filename))
-            ds_base_cnt += result_map["atomicity-violation"]["baseline"]
-            ds_after_p1_cnt += result_map["atomicity-violation"]["after_p1"]
-            ds_after_p2_cnt += result_map["atomicity-violation"]["after_p2"]
-            ds_cnt += result_map["atomicity-violation"]["final"]
-            ms_base_cnt += result_map["observability-gap"]["baseline"]
-            ms_after_p1_cnt += result_map["observability-gap"]["after_p1"]
-            ms_after_p2_cnt += result_map["observability-gap"]["after_p2"]
-            ms_cnt += result_map["observability-gap"]["final"]
-            ss_base_cnt += result_map["time-travel"]["baseline"]
-            ss_after_p1_cnt += result_map["time-travel"]["after_p1"]
-            ss_after_p2_cnt += result_map["time-travel"]["after_p2"]
-            ss_cnt += result_map["time-travel"]["final"]
+            ds_base_cnt += result_map["intermediate-state"]["baseline"]
+            ds_after_p1_cnt += result_map["intermediate-state"]["after_p1"]
+            ds_after_p2_cnt += result_map["intermediate-state"]["after_p2"]
+            ds_cnt += result_map["intermediate-state"]["final"]
+            ms_base_cnt += result_map["unobserved-state"]["baseline"]
+            ms_after_p1_cnt += result_map["unobserved-state"]["after_p1"]
+            ms_after_p2_cnt += result_map["unobserved-state"]["after_p2"]
+            ms_cnt += result_map["unobserved-state"]["final"]
+            ss_base_cnt += result_map["stale-state"]["baseline"]
+            ss_after_p1_cnt += result_map["stale-state"]["after_p1"]
+            ss_after_p2_cnt += result_map["stale-state"]["after_p2"]
+            ss_cnt += result_map["stale-state"]["final"]
 
         sub_result_map[operator]["baseline-ds"] = ds_base_cnt
         sub_result_map[operator]["after-p1-ds"] = ds_after_p1_cnt

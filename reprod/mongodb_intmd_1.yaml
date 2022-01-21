@@ -1,0 +1,18 @@
+project: mongodb-operator
+stage: test
+mode: intermediate-state
+front-runner: kind-control-plane
+operator-pod-label: mongodb-operator
+deployment-name: percona-server-mongodb-operator
+se-name: mongodb-cluster-ssl
+se-namespace: default
+se-rtype: secret
+se-etype-previous: Get
+se-etype-current: Create
+se-diff-previous: '{"metadata": {}}'
+se-diff-current: '{"data": {"ca.crt": "SIEVE-NON-NIL", "tls.crt": "SIEVE-NON-NIL",
+  "tls.key": "SIEVE-NON-NIL"}, "metadata": {"managedFields": "SIEVE-NON-NIL", "name":
+  "mongodb-cluster-ssl", "namespace": "default", "ownerReferences": "SIEVE-NON-NIL",
+  "resourceVersion": "SIEVE-NON-NIL", "selfLink": "/api/v1/namespaces/default/secrets/mongodb-cluster-ssl",
+  "uid": "SIEVE-NON-NIL"}, "type": "kubernetes.io/tls"}'
+se-counter: '1'

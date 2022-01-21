@@ -1,0 +1,21 @@
+project: casskop-operator
+stage: test
+mode: stale-state
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: casskop-operator
+deployment-name: casskop-operator
+ce-name: cassandra-cluster
+ce-namespace: default
+ce-rtype: cassandracluster
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"spec": {"maxPodUnavailable": 4}}'
+ce-diff-current: '{"spec": {"maxPodUnavailable": 1}}'
+ce-counter: '1'
+ce-is-cr: 'True'
+se-name: cassandra-cluster
+se-namespace: default
+se-rtype: poddisruptionbudget
+se-etype: ADDED
+timing: before

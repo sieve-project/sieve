@@ -1,0 +1,21 @@
+project: xtradb-operator
+stage: test
+mode: intermediate-state
+front-runner: kind-control-plane
+operator-pod-label: xtradb-operator
+deployment-name: percona-xtradb-cluster-operator
+se-name: xtradb-cluster-ssl
+se-namespace: default
+se-rtype: certificate
+se-etype-previous: NONE_TYPE
+se-etype-current: Create
+se-diff-previous: '{}'
+se-diff-current: '{"metadata": {"creationTimestamp": "SIEVE-NON-NIL", "generation":
+  "SIEVE-NON-NIL", "managedFields": "SIEVE-NON-NIL", "name": "xtradb-cluster-ssl",
+  "namespace": "default", "ownerReferences": "SIEVE-NON-NIL", "resourceVersion": "SIEVE-NON-NIL",
+  "selfLink": "/apis/cert-manager.io/v1alpha2/namespaces/default/certificates/xtradb-cluster-ssl",
+  "uid": "SIEVE-NON-NIL"}, "spec": {"commonName": "xtradb-cluster-proxysql", "dnsNames":
+  ["xtradb-cluster-pxc", "*.xtradb-cluster-pxc", "*.xtradb-cluster-proxysql"], "isCA":
+  true, "issuerRef": {"kind": "Issuer", "name": "xtradb-cluster-pxc-ca"}, "secretName":
+  "xtradb-cluster-ssl"}, "status": {}}'
+se-counter: '1'

@@ -2,11 +2,11 @@ import glob
 import os
 import argparse
 
-modes = ["atomicity-violation", "observability-gap", "time-travel"]
+modes = ["intermediate-state", "unobserved-state", "stale-state"]
 mode_map = {
-    "atomicity-violation": "atom-vio",
-    "observability-gap": "obs-gap",
-    "time-travel": "time-travel",
+    "intermediate-state": "intmd-state",
+    "unobserved-state": "unobsr-state",
+    "stale-state": "stale-state",
 }
 
 if __name__ == "__main__":
@@ -40,13 +40,13 @@ if __name__ == "__main__":
         # pull all k8s images
         pull_command_file.write("docker pull {}/node:{}\n".format(args.docker, "learn"))
         pull_command_file.write(
-            "docker pull {}/node:{}\n".format(args.docker, "time-travel")
+            "docker pull {}/node:{}\n".format(args.docker, "stale-state")
         )
         pull_command_file.write(
-            "docker pull {}/node:{}\n".format(args.docker, "observability-gap")
+            "docker pull {}/node:{}\n".format(args.docker, "unobserved-state")
         )
         pull_command_file.write(
-            "docker pull {}/node:{}\n".format(args.docker, "atomicity-violation")
+            "docker pull {}/node:{}\n".format(args.docker, "intermediate-state")
         )
         pull_command_file.write(
             "docker pull {}/node:{}\n".format(args.docker, "vanilla")
@@ -59,7 +59,7 @@ if __name__ == "__main__":
                     "docker pull {}/{}:{}\n".format(args.docker, operator, mode)
                 )
 
-                if mode == 'vanilla':
+                if mode == "vanilla":
                     command_file.write(
                         "python3 sieve.py -s test -p {} -m {} -t {} -d {}\n".format(
                             operator, mode_map[mode], testcase, args.docker
@@ -81,6 +81,10 @@ if __name__ == "__main__":
                         for config in configs:
                             command_file.write(
                                 "python3 sieve.py -s test -p {} -m {} -t {} -c {} -d {}\n".format(
-                                    operator, mode_map[mode], testcase, config, args.docker
+                                    operator,
+                                    mode_map[mode],
+                                    testcase,
+                                    config,
+                                    args.docker,
                                 )
                             )

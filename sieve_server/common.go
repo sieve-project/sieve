@@ -117,28 +117,28 @@ func deepCopyMap(src map[string]interface{}) map[string]interface{} {
 	return dest
 }
 
-func startTimeTravelInjection() {
-	log.Println("START-SIEVE-TIME-TRAVEL")
+func startStaleStateInjection() {
+	log.Println("START-SIEVE-STALE-STATE")
 }
 
-func startObsGapInjection() {
-	log.Println("START-SIEVE-OBSERVABILITY-GAPS")
+func startUnobsrStateInjection() {
+	log.Println("START-SIEVE-UNOBSERVED-STATE")
 }
 
-func startAtomVioInjection() {
-	log.Println("START-SIEVE-ATOMICITY-VIOLATION")
+func startIntmdStateInjection() {
+	log.Println("START-SIEVE-INTERMEDIATE-STATE")
 }
 
-func finishTimeTravelInjection() {
-	log.Println("FINISH-SIEVE-TIME-TRAVEL")
+func finishStaleStateInjection() {
+	log.Println("FINISH-SIEVE-STALE-STATE")
 }
 
-func finishObsGapInjection() {
-	log.Println("FINISH-SIEVE-OBSERVABILITY-GAPS")
+func finishUnobsrStateInjection() {
+	log.Println("FINISH-SIEVE-UNOBSERVED-STATE")
 }
 
-func finishAtomVioInjection() {
-	log.Println("FINISH-SIEVE-ATOMICITY-VIOLATION")
+func finishIntmdStateInjection() {
+	log.Println("FINISH-SIEVE-INTERMEDIATE-STATE")
 }
 
 func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, string) {

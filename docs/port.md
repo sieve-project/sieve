@@ -47,7 +47,7 @@ You also need to modify the controller deployment a little bit so that Sieve can
 - Add a label: `sievetag: YOUR_OPERATOR_NAME`. So sieve can find the pod during testing. See [this example](../examples/zookeeper-operator/deploy/default_ns/operator.yaml#L10).
 - Set the controller image repo name to `${SIEVE-DR}`, and set the image tag to `${SIEVE-DT}`. So sieve can switch to different images when testing different bug patterns. See [this example](../examples/zookeeper-operator/deploy/default_ns/operator.yaml#L21).
 - Import configmap `sieve-testing-global-config` as Sieve needs to pass some some configurations to the instrumented controller. See [this example](../examples/zookeeper-operator/deploy/default_ns/operator.yaml#L44).
-- Specify env variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`. This is used for testing time-traveling bugs. See [this example](../examples/zookeeper-operator/deploy/default_ns/operator.yaml#L39).
+- Specify env variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`. This is used for testing stale-stateing bugs. See [this example](../examples/zookeeper-operator/deploy/default_ns/operator.yaml#L39).
 - Optional: Set `imagePullPolicy` to `IfNotPresent` (for CI run). See [this example](../examples/zookeeper-operator/deploy/default_ns/operator.yaml#L27)
 
 After that, please define the function to deploy the controller in [controllers.py](../controllers.py) and fill the function in `deploy`. See the example `zookeeper_operator_deploy`.
@@ -76,8 +76,8 @@ First run Sieve learning stage
 ```
 python3 sieve.py -p your_operator -t your_test_suite_name -s learn -m learn-twice
 ```
-Sieve will learn the promising fault injection points for atomicity-violations, observability-gaps and time-traveling testing, and encode them into yaml files stored in `log/your_operator/your_test_suite_name/learn/learn-once/{atomicity-violation, observability-gaps, time-travel}`.
-If you want to test all the atomicity-violation injection points, just run:
+Sieve will learn the promising fault injection points for intermediate-states, unobserved-states and stale-stateing testing, and encode them into yaml files stored in `log/your_operator/your_test_suite_name/learn/learn-once/{intermediate-state, unobserved-states, stale-state}`.
+If you want to test all the intermediate-state injection points, just run:
 ```
 python3 sieve.py -p your_operator -t your_test_suite_name -s test -m atom-vio -b
 ```

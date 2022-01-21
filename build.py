@@ -137,7 +137,7 @@ def install_lib_for_controller(
         )
     )
     cmd_early_exit(
-        "chmod +w -R %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
+        "chmod -R +w %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
         % (controllers.app_dir[project], controller_runtime_version)
     )
     cmd_early_exit(
@@ -149,7 +149,7 @@ def install_lib_for_controller(
         % (client_go_version, controllers.app_dir[project], client_go_version)
     )
     cmd_early_exit(
-        "chmod +w -R %s/dep-sieve/src/k8s.io/client-go@%s"
+        "chmod -R +w %s/dep-sieve/src/k8s.io/client-go@%s"
         % (controllers.app_dir[project], client_go_version)
     )
     cmd_early_exit(
@@ -286,9 +286,9 @@ def setup_kubernetes_wrapper(version, mode, img_repo):
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
-            sieve_modes.ATOM_VIO,
-            sieve_modes.OBS_GAP,
-            sieve_modes.TIME_TRAVEL,
+            sieve_modes.INTERMEDIATE_STATE,
+            sieve_modes.UNOBSR_STATE,
+            sieve_modes.STALE_STATE,
         ]:
             setup_kubernetes(version, this_mode, img_repo, img_tag)
     else:
@@ -300,9 +300,9 @@ def setup_controller_wrapper(controller, mode, img_repo, sha, build_only):
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
-            sieve_modes.ATOM_VIO,
-            sieve_modes.OBS_GAP,
-            sieve_modes.TIME_TRAVEL,
+            sieve_modes.INTERMEDIATE_STATE,
+            sieve_modes.UNOBSR_STATE,
+            sieve_modes.STALE_STATE,
         ]:
             img_tag = this_mode
             setup_controller(
@@ -347,7 +347,7 @@ if __name__ == "__main__":
         "-m",
         "--mode",
         dest="mode",
-        help="build MODE: learn, time-travel, obs-gap, atom-vio",
+        help="build MODE: learn, stale-state, unobsr-state, intmd-state",
         metavar="MODE",
         default=None,
     )
@@ -391,18 +391,19 @@ if __name__ == "__main__":
     if options.mode is None:
         parser.error("parameter mode required")
 
-    if options.mode == "obs-gap":
-        options.mode = sieve_modes.OBS_GAP
-    elif options.mode == "atom-vio":
-        options.mode = sieve_modes.ATOM_VIO
+    if options.mode == "unobsr-state":
+        options.mode = sieve_modes.UNOBSR_STATE
+    elif options.mode == "intmd-state":
+        options.mode = sieve_modes.INTERMEDIATE_STATE
+
     if options.project == "k8s":
         options.project = "kubernetes"
 
     if options.mode not in [
         sieve_modes.VANILLA,
-        sieve_modes.TIME_TRAVEL,
-        sieve_modes.OBS_GAP,
-        sieve_modes.ATOM_VIO,
+        sieve_modes.STALE_STATE,
+        sieve_modes.UNOBSR_STATE,
+        sieve_modes.INTERMEDIATE_STATE,
         sieve_stages.LEARN,
         sieve_modes.ALL,
     ]:

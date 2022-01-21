@@ -1,0 +1,21 @@
+project: yugabyte-operator
+stage: test
+mode: stale-state
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: yugabyte-operator
+deployment-name: yugabyte-operator
+ce-name: example-ybcluster
+ce-namespace: default
+ce-rtype: ybcluster
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"spec": {"tserver": {"tserverUIPort": 9000}}}'
+ce-diff-current: '{"spec": {"tserver": {}}}'
+ce-counter: '1'
+ce-is-cr: 'True'
+se-name: yb-tserver-ui
+se-namespace: default
+se-rtype: service
+se-etype: ADDED
+timing: after

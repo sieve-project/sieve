@@ -221,7 +221,7 @@ class TestWaitForStatus:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not become %s within %d seconds; we will continue"
                     % (self.resource_name, self.status, self.soft_time_out)
@@ -287,7 +287,7 @@ class TestWaitForNumber:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not become %s within %d seconds; we will continue"
                     % (self.resource_name_prefix, self.number, self.soft_time_out)
@@ -349,7 +349,7 @@ class TestWaitForStorage:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not have storage size %s within %d seconds; we will continue"
                     % (self.resource_name, self.storage_size, self.soft_time_out)
@@ -443,7 +443,7 @@ class TestWaitForExistence:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
                 error_message = "soft timeout: %s does not become %s within %d seconds; we will continue" % (
                     self.resource_name,
                     "exist" if self.exist else "non-exist",
@@ -522,7 +522,7 @@ class TestWaitForCRConditions:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.OBS_GAP and duration > self.soft_time_out:
+            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not achieve %s within %d seconds; we will continue"
                     % (self.resource_name, self.conditions, self.soft_time_out)

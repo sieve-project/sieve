@@ -503,7 +503,7 @@ func conformToAPIKeys(maskedKeysSet map[string]struct{}) map[string]struct{} {
 	return conformedKeysSet
 }
 
-// trim kind and apiVersion for atom-vio testing
+// trim kind and apiVersion for intmd-state testing
 func trimKindApiversion(event map[string]interface{}) {
 	delete(event, "kind")
 	delete(event, "apiVersion")

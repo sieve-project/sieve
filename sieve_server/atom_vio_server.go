@@ -7,9 +7,9 @@ import (
 	sieve "sieve.client"
 )
 
-func NewAtomVioListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *AtomVioListener {
+func NewIntmdStateListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *IntmdStateListener {
 	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["se-rtype"].(string), config["se-name"].(string), learnedMask, configuredMask)
-	server := &atomVioServer{
+	server := &intmdStateServer{
 		restarted:              false,
 		eventID:                -1,
 		frontRunner:            config["front-runner"].(string),
@@ -30,35 +30,35 @@ func NewAtomVioListener(config map[interface{}]interface{}, learnedMask map[stri
 		maskedPathsSet:         maskedPathsSet,
 		reconcilingMutex:       &sync.RWMutex{},
 	}
-	listener := &AtomVioListener{
+	listener := &IntmdStateListener{
 		Server: server,
 	}
 	listener.Server.Start()
 	return listener
 }
 
-type AtomVioListener struct {
-	Server *atomVioServer
+type IntmdStateListener struct {
+	Server *intmdStateServer
 }
 
-func (l *AtomVioListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
+func (l *IntmdStateListener) Echo(request *sieve.EchoRequest, response *sieve.Response) error {
 	*response = sieve.Response{Message: "echo " + request.Text, Ok: true}
 	return nil
 }
 
-func (l *AtomVioListener) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
-	return l.Server.NotifyAtomVioAfterOperatorGet(request, response)
+func (l *IntmdStateListener) NotifyIntmdStateAfterOperatorGet(request *sieve.NotifyIntmdStateAfterOperatorGetRequest, response *sieve.Response) error {
+	return l.Server.NotifyIntmdStateAfterOperatorGet(request, response)
 }
 
-func (l *AtomVioListener) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtomVioAfterOperatorListRequest, response *sieve.Response) error {
-	return l.Server.NotifyAtomVioAfterOperatorList(request, response)
+func (l *IntmdStateListener) NotifyIntmdStateAfterOperatorList(request *sieve.NotifyIntmdStateAfterOperatorListRequest, response *sieve.Response) error {
+	return l.Server.NotifyIntmdStateAfterOperatorList(request, response)
 }
 
-func (l *AtomVioListener) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
-	return l.Server.NotifyAtomVioAfterSideEffects(request, response)
+func (l *IntmdStateListener) NotifyIntmdStateAfterSideEffects(request *sieve.NotifyIntmdStateAfterSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyIntmdStateAfterSideEffects(request, response)
 }
 
-type atomVioServer struct {
+type intmdStateServer struct {
 	restarted              bool
 	frontRunner            string
 	deployName             string
@@ -80,14 +80,14 @@ type atomVioServer struct {
 	reconcilingMutex       *sync.RWMutex
 }
 
-func (s *atomVioServer) Start() {
-	log.Println("start atomVioServer...")
+func (s *intmdStateServer) Start() {
+	log.Println("start intmdStateServer...")
 	log.Printf("target event type: %s\n", s.seEtype)
 	log.Printf("target delta: prev: %s\n", mapToStr(s.diffPrevEvent))
 	log.Printf("target delta: cur: %s\n", mapToStr(s.diffCurEvent))
 }
 
-func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomVioAfterOperatorGetRequest, response *sieve.Response) error {
+func (s *intmdStateServer) NotifyIntmdStateAfterOperatorGet(request *sieve.NotifyIntmdStateAfterOperatorGetRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
 	defer s.reconcilingMutex.Unlock()
 	readObj := strToMap(request.Object)
@@ -101,7 +101,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorGet(request *sieve.NotifyAtomV
 	return nil
 }
 
-func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtomVioAfterOperatorListRequest, response *sieve.Response) error {
+func (s *intmdStateServer) NotifyIntmdStateAfterOperatorList(request *sieve.NotifyIntmdStateAfterOperatorListRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
 	defer s.reconcilingMutex.Unlock()
 	if !(request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List") {
@@ -120,7 +120,7 @@ func (s *atomVioServer) NotifyAtomVioAfterOperatorList(request *sieve.NotifyAtom
 	return nil
 }
 
-func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomVioAfterSideEffectsRequest, response *sieve.Response) error {
+func (s *intmdStateServer) NotifyIntmdStateAfterSideEffects(request *sieve.NotifyIntmdStateAfterSideEffectsRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
 	defer s.reconcilingMutex.Unlock()
 	writeObj := strToMap(request.Object)
@@ -137,9 +137,9 @@ func (s *atomVioServer) NotifyAtomVioAfterSideEffects(request *sieve.NotifyAtomV
 	log.Printf("number of reconcilers: %d\n", len(s.prevEventPerReconciler))
 	if findTargetDiff(s.eventCounter, request.SideEffectType, s.seEtype, s.prevEventPerReconciler[request.ReconcilerType], s.curEventPerReconciler[request.ReconcilerType], s.diffPrevEvent, s.diffCurEvent, s.maskedKeysSet, s.maskedPathsSet, false) {
 		log.Println("ready to crash!")
-		startAtomVioInjection()
+		startIntmdStateInjection()
 		restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
-		finishAtomVioInjection()
+		finishIntmdStateInjection()
 	}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil

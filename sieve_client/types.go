@@ -10,19 +10,19 @@ type EchoRequest struct {
 	Text string
 }
 
-type NotifyTimeTravelBeforeProcessEventRequest struct {
+type NotifyStaleStateBeforeProcessEventRequest struct {
 	EventType    string
 	ResourceType string
 	Hostname     string
 }
 
-type NotifyTimeTravelCrucialEventRequest struct {
+type NotifyStaleStateCrucialEventRequest struct {
 	Hostname  string
 	EventType string
 	Object    string
 }
 
-type NotifyTimeTravelRestartPointRequest struct {
+type NotifyStaleStateRestartPointRequest struct {
 	Hostname     string
 	EventType    string
 	ResourceType string
@@ -30,7 +30,7 @@ type NotifyTimeTravelRestartPointRequest struct {
 	Namespace    string
 }
 
-type NotifyTimeTravelAfterSideEffectsRequest struct {
+type NotifyStaleStateAfterSideEffectsRequest struct {
 	SideEffectID   int
 	SideEffectType string
 	Object         string
@@ -38,7 +38,7 @@ type NotifyTimeTravelAfterSideEffectsRequest struct {
 	Error          string
 }
 
-type NotifyObsGapAfterSideEffectsRequest struct {
+type NotifyUnobsrStateAfterSideEffectsRequest struct {
 	SideEffectID   int
 	SideEffectType string
 	Object         string
@@ -46,33 +46,33 @@ type NotifyObsGapAfterSideEffectsRequest struct {
 	Error          string
 }
 
-type NotifyObsGapBeforeIndexerWriteRequest struct {
+type NotifyUnobsrStateBeforeIndexerWriteRequest struct {
 	OperationType string
 	Object        string
 	ResourceType  string
 }
 
-type NotifyObsGapBeforeInformerCacheReadRequest struct {
+type NotifyUnobsrStateBeforeInformerCacheReadRequest struct {
 	OperationType string
 	ResourceType  string
 	Name          string
 	Namespace     string
 }
 
-type NotifyObsGapAfterInformerCacheReadRequest struct {
+type NotifyUnobsrStateAfterInformerCacheReadRequest struct {
 	OperationType string
 	ResourceType  string
 	Name          string
 	Namespace     string
 }
 
-type NotifyObsGapAfterIndexerWriteRequest struct {
+type NotifyUnobsrStateAfterIndexerWriteRequest struct {
 	OperationType string
 	Object        string
 	ResourceType  string
 }
 
-type NotifyAtomVioAfterSideEffectsRequest struct {
+type NotifyIntmdStateAfterSideEffectsRequest struct {
 	SideEffectID   int
 	SideEffectType string
 	Object         string
@@ -127,7 +127,7 @@ type NotifyLearnAfterOperatorListRequest struct {
 	Error        string
 }
 
-type NotifyAtomVioAfterOperatorGetRequest struct {
+type NotifyIntmdStateAfterOperatorGetRequest struct {
 	ResourceType   string
 	Namespace      string
 	Name           string
@@ -136,7 +136,7 @@ type NotifyAtomVioAfterOperatorGetRequest struct {
 	Error          string
 }
 
-type NotifyAtomVioAfterOperatorListRequest struct {
+type NotifyIntmdStateAfterOperatorListRequest struct {
 	ResourceType   string
 	ObjectList     string
 	ReconcilerType string

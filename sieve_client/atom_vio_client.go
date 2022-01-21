@@ -9,11 +9,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
+func NotifyIntmdStateAfterOperatorGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+	if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -42,7 +42,7 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyAtomVioAfterOperatorGetRequest{
+	request := &NotifyIntmdStateAfterOperatorGetRequest{
 		ResourceType:   regularizeType(object),
 		Namespace:      namespacedName.Namespace,
 		Name:           namespacedName.Name,
@@ -51,19 +51,19 @@ func NotifyAtomVioAfterOperatorGet(readType string, namespacedName types.Namespa
 		Error:          errorString,
 	}
 	var response Response
-	err = client.Call("AtomVioListener.NotifyAtomVioAfterOperatorGet", request, &response)
+	err = client.Call("IntmdStateListener.NotifyIntmdStateAfterOperatorGet", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
-	checkResponse(response, "NotifyAtomVioAfterOperatorGet")
+	checkResponse(response, "NotifyIntmdStateAfterOperatorGet")
 }
 
-func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr error) {
+func NotifyIntmdStateAfterOperatorList(readType string, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+	if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -89,26 +89,26 @@ func NotifyAtomVioAfterOperatorList(readType string, object interface{}, k8sErr 
 	if k8sErr != nil {
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
-	request := &NotifyAtomVioAfterOperatorListRequest{
+	request := &NotifyIntmdStateAfterOperatorListRequest{
 		ResourceType:   rType,
 		ObjectList:     string(jsonObject),
 		ReconcilerType: reconcilerType,
 		Error:          errorString,
 	}
 	var response Response
-	err = client.Call("AtomVioListener.NotifyAtomVioAfterOperatorList", request, &response)
+	err = client.Call("IntmdStateListener.NotifyIntmdStateAfterOperatorList", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
-	checkResponse(response, "NotifyAtomVioAfterOperatorList")
+	checkResponse(response, "NotifyIntmdStateAfterOperatorList")
 }
 
-func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+func NotifyIntmdStateAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
-	if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+	if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -137,7 +137,7 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		return
 	}
 	defer client.Close()
-	request := &NotifyAtomVioAfterSideEffectsRequest{
+	request := &NotifyIntmdStateAfterSideEffectsRequest{
 		SideEffectID:   sideEffectID,
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
@@ -146,15 +146,15 @@ func NotifyAtomVioAfterSideEffects(sideEffectID int, sideEffectType string, obje
 		Error:          errorString,
 	}
 	var response Response
-	err = client.Call("AtomVioListener.NotifyAtomVioAfterSideEffects", request, &response)
+	err = client.Call("IntmdStateListener.NotifyIntmdStateAfterSideEffects", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
-	checkResponse(response, "NotifyAtomVioAfterSideEffects")
+	checkResponse(response, "NotifyIntmdStateAfterSideEffects")
 }
 
-func NotifyAtomVioBeforeProcessEvent(eventType, key string, object interface{}) {
+func NotifyIntmdStateBeforeProcessEvent(eventType, key string, object interface{}) {
 	loadSieveConfigMap(eventType, key, object)
 	if err := loadSieveConfig(); err != nil {
 		return
@@ -162,7 +162,7 @@ func NotifyAtomVioBeforeProcessEvent(eventType, key string, object interface{}) 
 	tokens := strings.Split(key, "/")
 	namespace := tokens[len(tokens)-2]
 	if namespace == config["se-namespace"].(string) {
-		if !checkStage(TEST) || !checkMode(ATOM_VIO) {
+		if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
 			return
 		}
 		jsonObject, err := json.Marshal(object)

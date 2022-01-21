@@ -53,6 +53,16 @@ def check_kubectl_env():
         ok("kubectl detected")
 
 
+def check_helm_env():
+    if os.system("helm version > /dev/null 2>&1") != 0:
+        fail(
+            "helm not detected, please install it according to https://helm.sh/docs/intro/install/"
+        )
+        return
+    else:
+        ok("helm detected")
+
+
 def check_kind_env():
     if os.system("kind version > /dev/null 2>&1") != 0:
         fail(
@@ -169,6 +179,10 @@ if __name__ == "__main__":
         check_kubectl_env()
     except Exception as e:
         warn("unable to check kubectl env due to exception %s" % str(e))
+    try:
+        check_helm_env()
+    except Exception as e:
+        warn("unable to check helm env due to exception %s" % str(e))
     try:
         check_kind_env()
     except Exception as e:

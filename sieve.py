@@ -30,6 +30,7 @@ from sieve_common.common import (
     cprint,
     bcolors,
     ok,
+    fail,
     sieve_modes,
     cmd_early_exit,
     NO_ERROR_MESSAGE,
@@ -158,6 +159,19 @@ def redirect_kubectl():
     fin.close()
 
 
+def get_apiserver_ports(num_api):
+    client = docker.from_env()
+    ports = []
+    for i in range(num_api):
+        container_name_prefix = "kind-control-plane"
+        suffix = str(i + 1) if i > 0 else ""
+        cp_port = client.containers.get(container_name_prefix + suffix).attrs[
+            "NetworkSettings"
+        ]["Ports"]["6443/tcp"][0]["HostPort"]
+        ports.append(cp_port)
+    return ports
+
+
 def prepare_sieve_server(test_context: TestContext):
     if (
         test_context.stage == sieve_stages.TEST
@@ -227,10 +241,10 @@ def setup_cluster(
     #           sieve_config["namespace"])
     prepare_sieve_server(test_context)
 
-    # when testing time-travel, we need to pause the apiserver
+    # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
-    if test_context.mode == sieve_modes.TIME_TRAVEL:
+    if test_context.mode == sieve_modes.STALE_STATE:
         redirect_workers(test_context.num_workers)
         redirect_kubectl()
 
@@ -274,7 +288,7 @@ def setup_cluster(
         cmd_early_exit(kind_load_cmd)
 
     # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
-    if test_context.mode != sieve_modes.TIME_TRAVEL and test_context.use_csi_driver:
+    if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
@@ -286,7 +300,8 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Wait for project pod ready
-    print("Wait for operator pod ready...")
+    print("Wait for the operator pod to be ready...")
+    pod_ready = False
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
             sieve_config["namespace"],
@@ -295,23 +310,18 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
         ).items
         if len(project_pod) >= 1:
             if project_pod[0].status.phase == "Running":
+                pod_ready = True
                 break
         time.sleep(1)
+    if not pod_ready:
+        fail("waiting for the operator pod to be ready")
+        raise Exception("Wait timeout after 600 seconds")
 
     apiserver_addr_list = []
-    for i in range(num_apiservers):
-        label_selector = "kubernetes.io/hostname=kind-control-plane" + (
-            "" if i == 0 else str(i + 1)
-        )
-        apiserver_addr = (
-            "https://"
-            + core_v1.list_node(watch=False, label_selector=label_selector)
-            .items[0]
-            .status.addresses[0]
-            .address
-            + ":6443"
-        )
-        apiserver_addr_list.append(apiserver_addr)
+    apiserver_ports = get_apiserver_ports(num_apiservers)
+    # print("apiserver ports", apiserver_ports)
+    for port in apiserver_ports:
+        apiserver_addr_list.append("https://127.0.0.1:" + port)
     watch_crd(project, apiserver_addr_list)
 
 
@@ -509,7 +519,7 @@ def run(
             generate_vanilla_config(config_to_use)
         else:
             cmd_early_exit("cp %s %s" % (config, config_to_use))
-            if mode == sieve_modes.TIME_TRAVEL and suite.num_apiservers < 3:
+            if mode == sieve_modes.STALE_STATE and suite.num_apiservers < 3:
                 suite.num_apiservers = 3
             elif suite.use_csi_driver:
                 suite.num_apiservers = 1
@@ -601,7 +611,7 @@ if __name__ == "__main__":
         "-m",
         "--mode",
         dest="mode",
-        help="test MODE: vanilla, time-travel, obs-gap, atom-vio",
+        help="test MODE: vanilla, stale-state, unobsr-state, intmd-state",
         metavar="MODE",
     )
     parser.add_option(
@@ -654,10 +664,10 @@ if __name__ == "__main__":
     elif options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
         parser.error("invalid stage option: %s" % options.stage)
 
-    if options.mode == "obs-gap":
-        options.mode = sieve_modes.OBS_GAP
-    elif options.mode == "atom-vio":
-        options.mode = sieve_modes.ATOM_VIO
+    if options.mode == "unobsr-state":
+        options.mode = sieve_modes.UNOBSR_STATE
+    elif options.mode == "intmd-state":
+        options.mode = sieve_modes.INTERMEDIATE_STATE
 
     if options.stage == sieve_stages.LEARN:
         if options.mode is None:
@@ -674,9 +684,9 @@ if __name__ == "__main__":
             parser.error("parameter mode required in test stage")
         elif options.mode not in [
             sieve_modes.VANILLA,
-            sieve_modes.TIME_TRAVEL,
-            sieve_modes.OBS_GAP,
-            sieve_modes.ATOM_VIO,
+            sieve_modes.STALE_STATE,
+            sieve_modes.UNOBSR_STATE,
+            sieve_modes.INTERMEDIATE_STATE,
         ]:
             parser.error("invalid test mode option: %s" % options.mode)
         if options.mode == sieve_modes.VANILLA:

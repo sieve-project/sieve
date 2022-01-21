@@ -1,0 +1,21 @@
+project: yugabyte-operator
+stage: test
+mode: stale-state
+straggler: kind-control-plane3
+front-runner: kind-control-plane
+operator-pod-label: yugabyte-operator
+deployment-name: yugabyte-operator
+ce-name: example-ybcluster
+ce-namespace: default
+ce-rtype: ybcluster
+ce-etype-previous: MODIFIED
+ce-etype-current: MODIFIED
+ce-diff-previous: '{"spec": {"tls": {"enabled": true}}}'
+ce-diff-current: '{"spec": {"tls": {}}}'
+ce-counter: '1'
+ce-is-cr: 'True'
+se-name: yb-tserver-yugabyte-tls-cert
+se-namespace: default
+se-rtype: secret
+se-etype: ADDED
+timing: after
