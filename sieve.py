@@ -159,6 +159,19 @@ def redirect_kubectl():
     fin.close()
 
 
+def get_apiserver_ports(num_api):
+    client = docker.from_env()
+    ports = []
+    for i in range(num_api):
+        container_name_prefix = "kind-control-plane"
+        suffix = str(i + 1) if i > 0 else ""
+        cp_port = client.containers.get(container_name_prefix + suffix).attrs[
+            "NetworkSettings"
+        ]["Ports"]["6443/tcp"][0]["HostPort"]
+        ports.append(cp_port)
+    return ports
+
+
 def prepare_sieve_server(test_context: TestContext):
     if (
         test_context.stage == sieve_stages.TEST
@@ -305,19 +318,10 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
         raise Exception("Wait timeout after 600 seconds")
 
     apiserver_addr_list = []
-    for i in range(num_apiservers):
-        label_selector = "kubernetes.io/hostname=kind-control-plane" + (
-            "" if i == 0 else str(i + 1)
-        )
-        apiserver_addr = (
-            "https://"
-            + core_v1.list_node(watch=False, label_selector=label_selector)
-            .items[0]
-            .status.addresses[0]
-            .address
-            + ":6443"
-        )
-        apiserver_addr_list.append(apiserver_addr)
+    apiserver_ports = get_apiserver_ports(num_apiservers)
+    # print("apiserver ports", apiserver_ports)
+    for port in apiserver_ports:
+        apiserver_addr_list.append("https://127.0.0.1:" + port)
     watch_crd(project, apiserver_addr_list)
 
 
