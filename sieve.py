@@ -30,6 +30,7 @@ from sieve_common.common import (
     cprint,
     bcolors,
     ok,
+    fail,
     sieve_modes,
     cmd_early_exit,
     NO_ERROR_MESSAGE,
@@ -286,7 +287,8 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Wait for project pod ready
-    print("Wait for operator pod ready...")
+    print("Wait for the operator pod to be ready...")
+    pod_ready = False
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
             sieve_config["namespace"],
@@ -295,8 +297,12 @@ def start_operator(project, docker_repo, docker_tag, num_apiservers):
         ).items
         if len(project_pod) >= 1:
             if project_pod[0].status.phase == "Running":
+                pod_ready = True
                 break
         time.sleep(1)
+    if not pod_ready:
+        fail("waiting for the operator pod to be ready")
+        raise Exception("Wait timeout after 600 seconds")
 
     apiserver_addr_list = []
     for i in range(num_apiservers):

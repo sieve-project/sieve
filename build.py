@@ -137,7 +137,7 @@ def install_lib_for_controller(
         )
     )
     cmd_early_exit(
-        "chmod +w -R %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
+        "chmod -R +w %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
         % (controllers.app_dir[project], controller_runtime_version)
     )
     cmd_early_exit(
@@ -149,7 +149,7 @@ def install_lib_for_controller(
         % (client_go_version, controllers.app_dir[project], client_go_version)
     )
     cmd_early_exit(
-        "chmod +w -R %s/dep-sieve/src/k8s.io/client-go@%s"
+        "chmod -R +w %s/dep-sieve/src/k8s.io/client-go@%s"
         % (controllers.app_dir[project], client_go_version)
     )
     cmd_early_exit(
