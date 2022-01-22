@@ -543,7 +543,8 @@ def run(
         suite.oracle_config,
     )
     ret_val, messages = run_test(test_context)
-    print_error_and_debugging_info(ret_val, messages, test_context.test_config)
+    if ret_val != -4:
+        print_error_and_debugging_info(ret_val, messages, test_context.test_config)
     return ret_val, messages
 
 
