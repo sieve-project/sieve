@@ -36,7 +36,9 @@ def operator_panic_checker(test_context: TestContext):
     for line in file.readlines():
         if "Observed a panic" in line:
             panic_in_file = line[line.find("Observed a panic") :]
-            messages.append(generate_alarm("[OPERATOR-PANIC]", panic_in_file.strip()))
+            messages.append(
+                generate_alarm("Exception from controller:", panic_in_file.strip())
+            )
             ret_val += 1
     messages.sort()
     return ret_val, messages
@@ -50,7 +52,7 @@ def test_failure_checker(test_context: TestContext):
     for line in file.readlines():
         if line.startswith("error:"):
             ret_val += 1
-            messages.append(generate_alarm("[WORKLOAD]", line.strip()))
+            messages.append(generate_alarm("Error from the workload:", line.strip()))
     messages.sort()
     return ret_val, messages
 

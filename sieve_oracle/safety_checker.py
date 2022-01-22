@@ -284,7 +284,7 @@ def compare_history_digests(test_context: TestContext):
                 ret_val += 1
                 messages.append(
                     generate_alarm(
-                        "[EVENT][KEY]",
+                        "State-update summaries inconsistency:",
                         "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
                             key,
                             etype,

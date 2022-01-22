@@ -131,7 +131,7 @@ def generate_debugging_hint(test_config_content):
 
 
 def generate_alarm(sub_alarm, msg):
-    return "[ALARM]" + sub_alarm + " " + msg
+    return sub_alarm + " " + msg
 
 
 def generate_warn(msg):
@@ -218,7 +218,7 @@ def print_error_and_debugging_info(ret_val, messages, test_config):
         return
     test_config_content = yaml.safe_load(open(test_config))
     report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
-    cprint("[RET VAL] {}\n".format(ret_val) + messages, report_color)
+    cprint("Return value: {}\n".format(ret_val) + messages, report_color)
     if sieve_config["injection_desc_generation_enabled"]:
         hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
         cprint(hint, bcolors.WARNING)

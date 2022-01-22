@@ -330,7 +330,7 @@ def compare_states(test_context: TestContext):
             if delta_type in ["dictionary_item_added", "iterable_item_added"]:
                 messages.append(
                     generate_alarm(
-                        "[RESOURCE-KEY-ADD]",
+                        "End state inconsistency - more object fields than reference:",
                         "{} {} {} {} {}".format(
                             resource_key,
                             field_key,
@@ -343,7 +343,7 @@ def compare_states(test_context: TestContext):
             elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
                 messages.append(
                     generate_alarm(
-                        "[RESOURCE-KEY-REMOVE]",
+                        "End state inconsistency - fewer object fields than reference:",
                         "{} {} {} {} {}".format(
                             resource_key,
                             field_key,
@@ -356,7 +356,7 @@ def compare_states(test_context: TestContext):
             elif delta_type == "values_changed":
                 messages.append(
                     generate_alarm(
-                        "[RESOURCE-KEY-DIFF]",
+                        "End state inconsistency - object field has a different value:",
                         "{} {} {} {} {} {} {}".format(
                             resource_key,
                             field_key,
@@ -395,9 +395,9 @@ def compare_states(test_context: TestContext):
                 ret_val += 1
                 messages.append(
                     generate_alarm(
-                        "[ALARM][RESOURCE-ADD]"
+                        "End state inconsistency - more objects than reference:"
                         if delta > 0
-                        else "[ALARM][RESOURCE-REMOVE]",
+                        else "End state inconsistency - fewer objects than reference:",
                         "{} {} {} {} {} {} {} {} {}".format(
                             len(learn_set),
                             resource_type,
@@ -417,7 +417,7 @@ def compare_states(test_context: TestContext):
                 ret_val += 1
                 messages.append(
                     generate_alarm(
-                        "[ALARM][RESOURCE-ADD]",
+                        "End state inconsistency - more objects than reference:",
                         "{} {}".format(
                             "/".join([resource_type, name]),
                             "is not seen during learning run, but seen during testing run",
@@ -428,7 +428,7 @@ def compare_states(test_context: TestContext):
                 ret_val += 1
                 messages.append(
                     generate_alarm(
-                        "[ALARM][RESOURCE-REMOVE]",
+                        "End state inconsistency - fewer objects than reference:",
                         "{} {}".format(
                             "/".join([resource_type, name]),
                             "is seen during learning run, but not seen during testing run",

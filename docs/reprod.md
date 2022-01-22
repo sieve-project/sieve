@@ -11,17 +11,17 @@ python3 reprod.py -p cass-operator -b intmd-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][WORKLOAD] error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds
-[ALARM][WORKLOAD] error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds
-[ALARM][ALARM][RESOURCE-REMOVE] 7 secret seen after learning run ['cass-operator-token-lg7rs', 'cass-operator-webhook-config', 'cassandra-datacenter-ca-keystore', 'cassandra-datacenter-keystore', 'cluster1-superuser', 'default-token-z6zxt', 'local-path-provisioner-service-account-token-j254k'] but 6 secret seen after testing run ['cass-operator-token-hr7l4', 'cass-operator-webhook-config', 'cassandra-datacenter-ca-keystore', 'cluster1-superuser', 'default-token-z6fn2', 'local-path-provisioner-service-account-token-hdl8g']
-[ALARM][RESOURCE-KEY-ADD] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
-[ALARM][RESOURCE-KEY-ADD] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
-[ALARM][RESOURCE-KEY-ADD] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/initContainerStatuses/0/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
-[ALARM][RESOURCE-KEY-DIFF] cassandradatacenter/default/cassandra-datacenter status/cassandraOperatorProgress is Ready during learning run, but Updating during testing run
-[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/ready is True during learning run, but False during testing run
-[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/started is True during learning run, but False during testing run
-[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/ready is True during learning run, but False during testing run
-[ALARM][RESOURCE-KEY-DIFF] pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/started is True during learning run, but False during testing run
+Error from the workload: error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds
+Error from the workload: error: hard timeout: cluster1-cassandra-datacenter-default-sts-0 does not become Running within 600 seconds
+End state inconsistency - fewer objects than reference: 7 secret seen after learning run ['cass-operator-token-lg7rs', 'cass-operator-webhook-config', 'cassandra-datacenter-ca-keystore', 'cassandra-datacenter-keystore', 'cluster1-superuser', 'default-token-z6zxt', 'local-path-provisioner-service-account-token-j254k'] but 6 secret seen after testing run ['cass-operator-token-hr7l4', 'cass-operator-webhook-config', 'cassandra-datacenter-ca-keystore', 'cluster1-superuser', 'default-token-z6fn2', 'local-path-provisioner-service-account-token-hdl8g']
+End state inconsistency - more object fields than reference: pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
+End state inconsistency - more object fields than reference: pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
+End state inconsistency - more object fields than reference: pod/default/cluster1-cassandra-datacenter-default-sts-0 status/initContainerStatuses/0/state/waiting not seen during learning run, but seen as {'reason': 'PodInitializing'} during testing run
+End state inconsistency - object field has a different value: cassandradatacenter/default/cassandra-datacenter status/cassandraOperatorProgress is Ready during learning run, but Updating during testing run
+End state inconsistency - object field has a different value: pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/ready is True during learning run, but False during testing run
+End state inconsistency - object field has a different value: pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/0/started is True during learning run, but False during testing run
+End state inconsistency - object field has a different value: pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/ready is True during learning run, but False during testing run
+End state inconsistency - object field has a different value: pod/default/cluster1-cassandra-datacenter-default-sts-0 status/containerStatuses/1/started is True during learning run, but False during testing run
 ...
 ```
 The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
@@ -32,8 +32,8 @@ python3 reprod.py -p casskop-operator -b intmd-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/data-cassandra-cluster-dc1-rack1-1 DELETED inconsistency: 1 events seen during learning run, but 0 seen during testing run
-[ALARM][ALARM][RESOURCE-ADD] persistentvolumeclaim/data-cassandra-cluster-dc1-rack1-1 is not seen during learning run, but seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/data-cassandra-cluster-dc1-rack1-1 DELETED inconsistency: 1 events seen during learning run, but 0 seen during testing run
+End state inconsistency - more objects than reference: persistentvolumeclaim/data-cassandra-cluster-dc1-rack1-1 is not seen during learning run, but seen during testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
@@ -43,8 +43,8 @@ python3 reprod.py -p nifikop-operator -b intmd-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /pods/default/simplenifi-1-node* ADDED inconsistency: 2 events seen during learning run, but 1 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/simplenifi-1-node* DELETED inconsistency: 1 events seen during learning run, but 0 seen during testing run
+State-update summaries inconsistency: /pods/default/simplenifi-1-node* ADDED inconsistency: 2 events seen during learning run, but 1 seen during testing run
+State-update summaries inconsistency: /pods/default/simplenifi-1-node* DELETED inconsistency: 1 events seen during learning run, but 0 seen during testing run
 ```
 The bug was found in commit `1546e0242107bf2f2c1256db50f47c79956dd1c6`.
 
@@ -54,8 +54,8 @@ python3 reprod.py -p rabbitmq-operator -b intmd-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][RESOURCE-KEY-DIFF] persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 spec/resources/requests/storage is 15Gi during learning run, but 10Gi during testing run
-[ALARM][RESOURCE-KEY-DIFF] persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 status/capacity/storage is 15Gi during learning run, but 10Gi during testing run
+End state inconsistency - object field has a different value: persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 spec/resources/requests/storage is 15Gi during learning run, but 10Gi during testing run
+End state inconsistency - object field has a different value: persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0 status/capacity/storage is 15Gi during learning run, but 10Gi during testing run
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
@@ -65,7 +65,7 @@ python3 reprod.py -p mongodb-operator -b intmd-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] 8 secret seen after learning run ['default-token-v5xjx', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'mongodb-cluster-ssl-internal', 'percona-server-mongodb-operator-token-ntftn'] but 7 secret seen after testing run ['default-token-2ftjd', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'percona-server-mongodb-operator-token-tgg6p']
+End state inconsistency - fewer objects than reference: 8 secret seen after learning run ['default-token-v5xjx', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'mongodb-cluster-ssl-internal', 'percona-server-mongodb-operator-token-ntftn'] but 7 secret seen after testing run ['default-token-2ftjd', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'percona-server-mongodb-operator-token-tgg6p']
 ...
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
@@ -76,8 +76,8 @@ python3 reprod.py -p mongodb-operator -b intmd-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] 8 secret seen after learning run ['default-token-wk4d2', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'mongodb-cluster-ssl-internal', 'percona-server-mongodb-operator-token-8gj55'] but 7 secret seen after testing run ['default-token-9fzlj', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'percona-server-mongodb-operator-token-qb5xx']
-[ALARM][ALARM][RESOURCE-REMOVE] certificate/mongodb-cluster-ssl-internal is seen during learning run, but not seen during testing run
+End state inconsistency - fewer objects than reference: 8 secret seen after learning run ['default-token-wk4d2', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'mongodb-cluster-ssl-internal', 'percona-server-mongodb-operator-token-8gj55'] but 7 secret seen after testing run ['default-token-9fzlj', 'internal-mongodb-cluster-users', 'mongodb-cluster-mongodb-encryption-key', 'mongodb-cluster-mongodb-keyfile', 'mongodb-cluster-secrets', 'mongodb-cluster-ssl', 'percona-server-mongodb-operator-token-qb5xx']
+End state inconsistency - fewer objects than reference: certificate/mongodb-cluster-ssl-internal is seen during learning run, but not seen during testing run
 ...
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
@@ -88,7 +88,7 @@ python3 reprod.py -p xtradb-operator -b intmd-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] 6 secret seen after learning run ['default-token-nnl9s', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-z9v9v', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl', 'xtradb-cluster-ssl-internal'] but 5 secret seen after testing run ['default-token-v2vpv', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-mkmlg', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl']
+End state inconsistency - fewer objects than reference: 6 secret seen after learning run ['default-token-nnl9s', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-z9v9v', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl', 'xtradb-cluster-ssl-internal'] but 5 secret seen after testing run ['default-token-v2vpv', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-mkmlg', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl']
 ...
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
@@ -99,9 +99,9 @@ python3 reprod.py -p xtradb-operator -b intmd-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] 6 secret seen after learning run ['default-token-sx9c2', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-fl84z', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl', 'xtradb-cluster-ssl-internal'] but 5 secret seen after testing run ['default-token-llvtq', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-bwpzc', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl']
-[ALARM][ALARM][RESOURCE-REMOVE] certificate/xtradb-cluster-ssl-internal is seen during learning run, but not seen during testing run
-[ALARM][ALARM][RESOURCE-REMOVE] certificaterequest/xtradb-cluster-ssl-internal-4197621709 is seen during learning run, but not seen during testing run
+End state inconsistency - fewer objects than reference: 6 secret seen after learning run ['default-token-sx9c2', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-fl84z', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl', 'xtradb-cluster-ssl-internal'] but 5 secret seen after testing run ['default-token-llvtq', 'internal-xtradb-cluster', 'percona-xtradb-cluster-operator-token-bwpzc', 'xtradb-cluster-secrets', 'xtradb-cluster-ssl']
+End state inconsistency - fewer objects than reference: certificate/xtradb-cluster-ssl-internal is seen during learning run, but not seen during testing run
+End state inconsistency - fewer objects than reference: certificaterequest/xtradb-cluster-ssl-internal-4197621709 is seen during learning run, but not seen during testing run
 ...
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
@@ -114,11 +114,11 @@ python3 reprod.py -p cassandra-operator -b unobsr-state-1
 ```
 If reproduced, you will find
 ```
-[ALARM][RESOURCE-KEY-ADD] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/state/waiting not seen during learning run, but seen as {'message': 'back-off 1m20s restarting failed container=cassandra pod=cassandra-test-cluster-dc1-rack1-1_default(e43cb7fa-d3a3-4885-856b-a9ce94462dfd)', 'reason': 'CrashLoopBackOff'} during testing run
-[ALARM][RESOURCE-KEY-DIFF] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/ready is True during learning run, but False during testing run
-[ALARM][RESOURCE-KEY-DIFF] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/started is True during learning run, but False during testing run
-[ALARM][RESOURCE-KEY-DIFF] statefulset/default/cassandra-test-cluster-dc1-rack1 status/readyReplicas is 2 during learning run, but 1 during testing run
-[ALARM][RESOURCE-KEY-REMOVE] pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/state/running seen as {'startedAt': 'SIEVE-IGNORE'} during learning run, but not seen during testing run
+End state inconsistency - more object fields than reference: pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/state/waiting not seen during learning run, but seen as {'message': 'back-off 1m20s restarting failed container=cassandra pod=cassandra-test-cluster-dc1-rack1-1_default(e43cb7fa-d3a3-4885-856b-a9ce94462dfd)', 'reason': 'CrashLoopBackOff'} during testing run
+End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/ready is True during learning run, but False during testing run
+End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/started is True during learning run, but False during testing run
+End state inconsistency - object field has a different value: statefulset/default/cassandra-test-cluster-dc1-rack1 status/readyReplicas is 2 during learning run, but 1 during testing run
+End state inconsistency - fewer object fields than reference: pod/default/cassandra-test-cluster-dc1-rack1-1 status/containerStatuses/0/state/running seen as {'startedAt': 'SIEVE-IGNORE'} during learning run, but not seen during testing run
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
@@ -128,8 +128,8 @@ python3 reprod.py -p casskop-operator -b unobsr-state-1
 ```
 If reproduced, you will find
 ```
-[ALARM][ALARM][RESOURCE-ADD] 2 pod seen after learning run ['cassandra-cluster-dc1-rack1-0', 'casskop-operator-546674cfdd-z4gbj'] but 3 pod seen after testing run ['cassandra-cluster-dc1-rack1-0', 'cassandra-cluster-dc1-rack1-1', 'casskop-operator-57f5584bf6-djb4x']
-[ALARM][ALARM][RESOURCE-ADD] persistentvolumeclaim/data-cassandra-cluster-dc1-rack1-1 is not seen during learning run, but seen during testing run
+End state inconsistency - more objects than reference: 2 pod seen after learning run ['cassandra-cluster-dc1-rack1-0', 'casskop-operator-546674cfdd-z4gbj'] but 3 pod seen after testing run ['cassandra-cluster-dc1-rack1-0', 'cassandra-cluster-dc1-rack1-1', 'casskop-operator-57f5584bf6-djb4x']
+End state inconsistency - more objects than reference: persistentvolumeclaim/data-cassandra-cluster-dc1-rack1-1 is not seen during learning run, but seen during testing run
 ...
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
@@ -140,13 +140,13 @@ python3 reprod.py -p rabbitmq-operator -b unobsr-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] 4 pod seen after learning run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-cluster-server-2', 'rabbitmq-operator-b7d5945b-vl85f'] but 3 pod seen after testing run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-operator-59585b99dd-lsrd4']
-[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/persistence-rabbitmq-cluster-server-2 is seen during learning run, but not seen during testing run
-[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server spec/replicas is 3 during learning run, but 2 during testing run
-[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/currentReplicas is 3 during learning run, but 2 during testing run
-[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/readyReplicas is 3 during learning run, but 2 during testing run
-[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/replicas is 3 during learning run, but 2 during testing run
-[ALARM][RESOURCE-KEY-DIFF] statefulset/default/rabbitmq-cluster-server status/updatedReplicas is 3 during learning run, but 2 during testing run
+End state inconsistency - fewer objects than reference: 4 pod seen after learning run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-cluster-server-2', 'rabbitmq-operator-b7d5945b-vl85f'] but 3 pod seen after testing run ['rabbitmq-cluster-server-0', 'rabbitmq-cluster-server-1', 'rabbitmq-operator-59585b99dd-lsrd4']
+End state inconsistency - fewer objects than reference: persistentvolumeclaim/persistence-rabbitmq-cluster-server-2 is seen during learning run, but not seen during testing run
+End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server spec/replicas is 3 during learning run, but 2 during testing run
+End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server status/currentReplicas is 3 during learning run, but 2 during testing run
+End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server status/readyReplicas is 3 during learning run, but 2 during testing run
+End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server status/replicas is 3 during learning run, but 2 during testing run
+End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server status/updatedReplicas is 3 during learning run, but 2 during testing run
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
@@ -156,7 +156,7 @@ python3 reprod.py -p mongodb-operator -b unobsr-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/mongod-data-mongodb-cluster-rs0-4 is seen during learning run, but not seen during testing run
+End state inconsistency - fewer objects than reference: persistentvolumeclaim/mongod-data-mongodb-cluster-rs0-4 is seen during learning run, but not seen during testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
@@ -166,8 +166,8 @@ python3 reprod.py -p yugabyte-operator -b unobsr-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] 8 pod seen after learning run ['yb-master-0', 'yb-master-1', 'yb-master-2', 'yb-tserver-0', 'yb-tserver-1', 'yb-tserver-2', 'yb-tserver-3', 'yugabyte-operator-86f6465d9b-r49zx'] but 7 pod seen after testing run ['yb-master-0', 'yb-master-1', 'yb-master-2', 'yb-tserver-0', 'yb-tserver-1', 'yb-tserver-2', 'yugabyte-operator-577c59b656-8744b']
-[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/datadir0-yb-tserver-3 is seen during learning run, but not seen during testing run
+End state inconsistency - fewer objects than reference: 8 pod seen after learning run ['yb-master-0', 'yb-master-1', 'yb-master-2', 'yb-tserver-0', 'yb-tserver-1', 'yb-tserver-2', 'yb-tserver-3', 'yugabyte-operator-86f6465d9b-r49zx'] but 7 pod seen after testing run ['yb-master-0', 'yb-master-1', 'yb-master-2', 'yb-tserver-0', 'yb-tserver-1', 'yb-tserver-2', 'yugabyte-operator-577c59b656-8744b']
+End state inconsistency - fewer objects than reference: persistentvolumeclaim/datadir0-yb-tserver-3 is seen during learning run, but not seen during testing run
 ```
 This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882`.
 
@@ -177,8 +177,8 @@ python3 reprod.py -p xtradb-operator -b unobsr-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/datadir-xtradb-cluster-pxc-3 is seen during learning run, but not seen during testing run
-[ALARM][ALARM][RESOURCE-REMOVE] persistentvolumeclaim/datadir-xtradb-cluster-pxc-4 is seen during learning run, but not seen during testing run
+End state inconsistency - fewer objects than reference: persistentvolumeclaim/datadir-xtradb-cluster-pxc-3 is seen during learning run, but not seen during testing run
+End state inconsistency - fewer objects than reference: persistentvolumeclaim/datadir-xtradb-cluster-pxc-4 is seen during learning run, but not seen during testing run
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
@@ -191,7 +191,7 @@ python3 reprod.py -p cass-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][RESOURCE-KEY-ADD] persistentvolumeclaim/default/server-data-cluster1-cassandra-datacenter-default-sts-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:49:18Z during testing run
+End state inconsistency - more object fields than reference: persistentvolumeclaim/default/server-data-cluster1-cassandra-datacenter-default-sts-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:49:18Z during testing run
 ```
 The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
 
@@ -201,7 +201,7 @@ python3 reprod.py -p cassandra-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][RESOURCE-KEY-ADD] persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:30:36Z during testing run
+End state inconsistency - more object fields than reference: persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:30:36Z during testing run
 ```
 The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
@@ -211,7 +211,7 @@ python3 reprod.py -p cassandra-operator -b stale-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][RESOURCE-KEY-ADD] persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-1 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:40:26Z during testing run
+End state inconsistency - more object fields than reference: persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-1 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:40:26Z during testing run
 ```
 The bug was found in commit `bd8077a478997f63862848d66d4912c59e4c46ff`.
 
@@ -221,7 +221,7 @@ python3 reprod.py -p casskop-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][RESOURCE-KEY-ADD] persistentvolumeclaim/default/data-cassandra-cluster-dc1-rack1-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:56:54Z during testing run
+End state inconsistency - more object fields than reference: persistentvolumeclaim/default/data-cassandra-cluster-dc1-rack1-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T03:56:54Z during testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
@@ -231,8 +231,8 @@ python3 reprod.py -p casskop-operator -b stale-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/cassandra-cluster ADDED inconsistency: 2 events seen during learning run, but 4 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/cassandra-cluster DELETED inconsistency: 1 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/cassandra-cluster ADDED inconsistency: 2 events seen during learning run, but 4 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/cassandra-cluster DELETED inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
 The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
@@ -242,19 +242,19 @@ python3 reprod.py -p mongodb-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0 ADDED inconsistency: 3 events seen during learning run, but 4 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0 DELETED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][RESOURCE-KEY-DIFF] perconaservermongodb/default/mongodb-cluster status/state is ready during learning run, but error during testing run
-[ALARM][RESOURCE-KEY-REMOVE] perconaservermongodb/default/mongodb-cluster status/mongoImage seen as percona/percona-server-mongodb:4.4.3-5 during learning run, but not seen during testing run
-[ALARM][RESOURCE-KEY-REMOVE] perconaservermongodb/default/mongodb-cluster status/mongoVersion seen as 4.4.3-5 during learning run, but not seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/mongod-data-mongodb-cluster-rs0-2 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/mongodb-cluster-mongod-rs0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/mongodb-cluster-rs0 ADDED inconsistency: 3 events seen during learning run, but 4 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/mongodb-cluster-rs0 DELETED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+End state inconsistency - object field has a different value: perconaservermongodb/default/mongodb-cluster status/state is ready during learning run, but error during testing run
+End state inconsistency - fewer object fields than reference: perconaservermongodb/default/mongodb-cluster status/mongoImage seen as percona/percona-server-mongodb:4.4.3-5 during learning run, but not seen during testing run
+End state inconsistency - fewer object fields than reference: perconaservermongodb/default/mongodb-cluster status/mongoVersion seen as 4.4.3-5 during learning run, but not seen during testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
@@ -264,16 +264,16 @@ python3 reprod.py -p mongodb-operator -b stale-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-cfg-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-cfg-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/mongodb-cluster-cfg-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/mongodb-cluster-cfg-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /services/endpoints/default/mongodb-cluster-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /services/endpoints/default/mongodb-cluster-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /services/specs/default/mongodb-cluster-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /services/specs/default/mongodb-cluster-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/mongodb-cluster-cfg-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/mongodb-cluster-cfg-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/mongodb-cluster-cfg-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /pods/default/mongodb-cluster-cfg-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /services/endpoints/default/mongodb-cluster-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /services/endpoints/default/mongodb-cluster-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /services/specs/default/mongodb-cluster-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /services/specs/default/mongodb-cluster-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/mongodb-cluster-cfg ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/mongodb-cluster-cfg DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
@@ -283,14 +283,14 @@ python3 reprod.py -p mongodb-operator -b stale-state-3
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-arbiter-rs0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/mongodb-cluster-arbiter-rs0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/mongodb-cluster-rs0-4 ADDED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/mongodb-cluster-rs0-4 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/mongodb-cluster-rs0-arbiter-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/mongodb-cluster-rs0-arbiter-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0-arbiter ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/mongodb-cluster-rs0-arbiter DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/mongodb-cluster-arbiter-rs0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/mongodb-cluster-arbiter-rs0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/mongodb-cluster-rs0-4 ADDED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/mongodb-cluster-rs0-4 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/mongodb-cluster-rs0-arbiter-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /pods/default/mongodb-cluster-rs0-arbiter-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/mongodb-cluster-rs0-arbiter ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/mongodb-cluster-rs0-arbiter DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
@@ -300,10 +300,10 @@ python3 reprod.py -p rabbitmq-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /pods/default/rabbitmq-cluster-server-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/rabbitmq-cluster-server-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/rabbitmq-cluster-server ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/rabbitmq-cluster-server DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/rabbitmq-cluster-server-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /pods/default/rabbitmq-cluster-server-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/rabbitmq-cluster-server ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/rabbitmq-cluster-server DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ...
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
@@ -314,8 +314,8 @@ python3 reprod.py -p rabbitmq-operator -b stale-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /statefulsets/default/rabbitmq-cluster-server ADDED inconsistency: 2 events seen during learning run, but 4 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/rabbitmq-cluster-server DELETED inconsistency: 1 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/rabbitmq-cluster-server ADDED inconsistency: 2 events seen during learning run, but 4 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/rabbitmq-cluster-server DELETED inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ```
 The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
@@ -325,16 +325,16 @@ python3 reprod.py -p xtradb-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-2 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-2 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/xtradb-cluster-pxc ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/xtradb-cluster-pxc DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/xtradb-cluster-pxc ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /statefulsets/default/xtradb-cluster-pxc DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-2 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/datadir-xtradb-cluster-pxc-2 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/xtradb-cluster-pxc ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/xtradb-cluster-pxc DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/xtradb-cluster-pxc ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /statefulsets/default/xtradb-cluster-pxc DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
@@ -344,11 +344,11 @@ python3 reprod.py -p xtradb-operator -b stale-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/xtradb-cluster-haproxy ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/xtradb-cluster-haproxy DELETED inconsistency: 1 events seen during learning run, but 2 seen duri
+State-update summaries inconsistency: /poddisruptionbudgets/default/xtradb-cluster-haproxy ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/xtradb-cluster-haproxy DELETED inconsistency: 1 events seen during learning run, but 2 seen duri
 ng testing run
-[ALARM][EVENT][KEY] /pods/default/xtradb-cluster-haproxy-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/xtradb-cluster-haproxy-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/xtradb-cluster-haproxy-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /pods/default/xtradb-cluster-haproxy-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ...
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
@@ -359,12 +359,12 @@ python3 reprod.py -p xtradb-operator -b stale-state-3
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/proxydata-xtradb-cluster-proxysql-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/proxydata-xtradb-cluster-proxysql-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/xtradb-cluster-proxysql ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /poddisruptionbudgets/default/xtradb-cluster-proxysql DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/xtradb-cluster-proxysql-0 ADDED inconsistency: 2 events seen during learning run, but 4 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/xtradb-cluster-proxysql-0 DELETED inconsistency: 1 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/proxydata-xtradb-cluster-proxysql-0 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/proxydata-xtradb-cluster-proxysql-0 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/xtradb-cluster-proxysql ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /poddisruptionbudgets/default/xtradb-cluster-proxysql DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/xtradb-cluster-proxysql-0 ADDED inconsistency: 2 events seen during learning run, but 4 seen during testing run
+State-update summaries inconsistency: /pods/default/xtradb-cluster-proxysql-0 DELETED inconsistency: 1 events seen during learning run, but 3 seen during testing run
 ...
 ```
 The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
@@ -375,10 +375,10 @@ python3 reprod.py -p yugabyte-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /secrets/default/yb-master-yugabyte-tls-cert ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /secrets/default/yb-master-yugabyte-tls-cert DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /secrets/default/yb-tserver-yugabyte-tls-cert ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /secrets/default/yb-tserver-yugabyte-tls-cert DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /secrets/default/yb-master-yugabyte-tls-cert ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /secrets/default/yb-master-yugabyte-tls-cert DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /secrets/default/yb-tserver-yugabyte-tls-cert ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /secrets/default/yb-tserver-yugabyte-tls-cert DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ...
 ```
 This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882`.
@@ -389,10 +389,10 @@ python3 reprod.py -p yugabyte-operator -b stale-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /services/endpoints/default/yb-tserver-ui ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /services/endpoints/default/yb-tserver-ui DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /services/specs/default/yb-tserver-ui ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /services/specs/default/yb-tserver-ui DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /services/endpoints/default/yb-tserver-ui ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /services/endpoints/default/yb-tserver-ui DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /services/specs/default/yb-tserver-ui ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /services/specs/default/yb-tserver-ui DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882` with the prerequisite 
 [fix](https://github.com/yugabyte/yugabyte-operator/pull/34).
@@ -403,7 +403,7 @@ python3 reprod.py -p zookeeper-operator -b stale-state-1
 ```
 If reproduced, you will see:
 ```
-[ALARM][RESOURCE-KEY-ADD] persistentvolumeclaim/default/data-zookeeper-cluster-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T05:26:36Z during testing run
+End state inconsistency - more object fields than reference: persistentvolumeclaim/default/data-zookeeper-cluster-0 metadata/deletionTimestamp not seen during learning run, but seen as 2022-01-04T05:26:36Z during testing run
 ```
 The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
 
@@ -413,9 +413,9 @@ python3 reprod.py -p zookeeper-operator -b stale-state-2
 ```
 If reproduced, you will see:
 ```
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/data-zookeeper-cluster-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /persistentvolumeclaims/default/data-zookeeper-cluster-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/zookeeper-cluster-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
-[ALARM][EVENT][KEY] /pods/default/zookeeper-cluster-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/data-zookeeper-cluster-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /persistentvolumeclaims/default/data-zookeeper-cluster-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
+State-update summaries inconsistency: /pods/default/zookeeper-cluster-1 ADDED inconsistency: 2 events seen during learning run, but 3 seen during testing run
+State-update summaries inconsistency: /pods/default/zookeeper-cluster-1 DELETED inconsistency: 1 events seen during learning run, but 2 seen during testing run
 ```
 The bug was found in commit `cda03d2f270bdfb51372192766123904f6d88278`.
