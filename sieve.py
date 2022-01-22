@@ -192,7 +192,8 @@ def prepare_sieve_server(test_context: TestContext):
     org_dir = os.getcwd()
     os.chdir("sieve_server")
     cmd_early_exit("go mod tidy")
-    cmd_early_exit("go build")
+    # TODO: we should build a container image for sieve server
+    cmd_early_exit("env GOOS=linux GOARCH=amd64 go build")
     os.chdir(org_dir)
     cmd_early_exit("docker cp sieve_server kind-control-plane:/sieve_server")
 
