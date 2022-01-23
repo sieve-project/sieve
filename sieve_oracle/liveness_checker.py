@@ -414,6 +414,12 @@ def compare_states(test_context: TestContext):
         else:
             # We report resource diff detail
             for name in resource["add"]:
+                # TODO: this is a very ad-hoc fix for dealing with replicaset that hosts controller pod
+                # We should revisit it later
+                if resource_type == "replicaset" and name.startswith(
+                    controllers.deployment_name[test_context.project]
+                ):
+                    continue
                 ret_val += 1
                 messages.append(
                     generate_alarm(
@@ -425,6 +431,12 @@ def compare_states(test_context: TestContext):
                     )
                 )
             for name in resource["remove"]:
+                # TODO: this is a very ad-hoc fix for dealing with replicaset that hosts controller pod
+                # We should revisit it later
+                if resource_type == "replicaset" and name.startswith(
+                    controllers.deployment_name[test_context.project]
+                ):
+                    continue
                 ret_val += 1
                 messages.append(
                     generate_alarm(
