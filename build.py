@@ -74,15 +74,20 @@ def build_kubernetes(version, img_repo, img_tag):
     os.chdir(ORIGINAL_DIR)
     os.chdir("build_k8s")
     cmd_early_exit("docker build --no-cache -t %s/node:%s ." % (img_repo, img_tag))
-    cmd_early_exit("docker push %s/node:%s" % (img_repo, img_tag))
     os.chdir(ORIGINAL_DIR)
 
 
-def setup_kubernetes(version, mode, img_repo, img_tag):
+def push_kubernetes(img_repo, img_tag):
+    cmd_early_exit("docker push %s/node:%s" % (img_repo, img_tag))
+
+
+def setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote):
     download_kubernetes(version)
     install_lib_for_kubernetes(version)
     instrument_kubernetes(mode)
     build_kubernetes(version, img_repo, img_tag)
+    if push_to_remote:
+        push_kubernetes(img_repo, img_tag)
 
 
 def download_controller(project, link, sha):
@@ -258,6 +263,10 @@ def build_controller(project, img_repo, img_tag):
     os.chdir(ORIGINAL_DIR)
 
 
+def push_controller(project, img_repo, img_tag):
+    cmd_early_exit("docker push %s/%s:%s" % (img_repo, project, img_tag))
+
+
 def setup_controller(
     project,
     mode,
@@ -269,6 +278,7 @@ def setup_controller(
     client_go_version,
     docker_file_path,
     build_only,
+    push_to_remote,
 ):
     if not build_only:
         download_controller(project, link, sha)
@@ -279,9 +289,11 @@ def setup_controller(
             project, mode, controller_runtime_version, client_go_version
         )
     build_controller(project, img_repo, img_tag)
+    if push_to_remote:
+        push_controller(project, img_repo, img_tag)
 
 
-def setup_kubernetes_wrapper(version, mode, img_repo):
+def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
     img_tag = version + "-" + mode
     if mode == "all":
         for this_mode in [
@@ -290,12 +302,14 @@ def setup_kubernetes_wrapper(version, mode, img_repo):
             sieve_modes.UNOBSR_STATE,
             sieve_modes.STALE_STATE,
         ]:
-            setup_kubernetes(version, this_mode, img_repo, img_tag)
+            setup_kubernetes(version, this_mode, img_repo, img_tag, push_to_remote)
     else:
-        setup_kubernetes(version, mode, img_repo, img_tag)
+        setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote)
 
 
-def setup_controller_wrapper(controller, mode, img_repo, sha, build_only):
+def setup_controller_wrapper(
+    controller, mode, img_repo, sha, build_only, push_to_remote
+):
     img_tag = mode
     if mode == "all":
         for this_mode in [
@@ -316,6 +330,7 @@ def setup_controller_wrapper(controller, mode, img_repo, sha, build_only):
                 controllers.client_go_version[controller],
                 controllers.docker_file[controller],
                 build_only,
+                push_to_remote,
             )
     else:
         setup_controller(
@@ -329,6 +344,7 @@ def setup_controller_wrapper(controller, mode, img_repo, sha, build_only):
             controllers.client_go_version[controller],
             controllers.docker_file[controller],
             build_only,
+            push_to_remote,
         )
 
 
@@ -383,6 +399,7 @@ if __name__ == "__main__":
         help="build only",
         default=False,
     )
+    parser.add_option("-r", action="store_true", dest="push_to_remote", default=False)
     (options, args) = parser.parse_args()
 
     if options.project is None:
@@ -413,7 +430,9 @@ if __name__ == "__main__":
         options.docker if options.docker is not None else sieve_config["docker_repo"]
     )
     if options.project == "kubernetes":
-        setup_kubernetes_wrapper(options.version, options.mode, img_repo)
+        setup_kubernetes_wrapper(
+            options.version, options.mode, img_repo, options.push_to_remote
+        )
     elif options.project == "all":
         for controller in controllers.github_link:
             setup_controller_wrapper(
@@ -422,6 +441,7 @@ if __name__ == "__main__":
                 img_repo,
                 controllers.sha[controller],
                 options.build_only,
+                options.push_to_remote,
             )
     else:
         sha = (
@@ -433,4 +453,5 @@ if __name__ == "__main__":
             img_repo,
             sha,
             options.build_only,
+            options.push_to_remote,
         )
