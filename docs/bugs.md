@@ -99,5 +99,10 @@ https://github.com/yugabyte/yugabyte-operator/issues/43 pending (by-product, app
 ## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
 https://github.com/Orange-OpenSource/nifikop/issues/130 confirmed (intermediate state)
 
-<!-- ## [kubernetes/kubernetes](https://github.com/kubernetes/kubernetes)
-https://github.com/kubernetes/kubernetes/issues/94437 pending (by-product) -->
+## [elastic/cloud-on-k8s](https://github.com/elastic/cloud-on-k8s)
+https://github.com/elastic/cloud-on-k8s/issues/5249 confirmed (stale state)
+
+https://github.com/elastic/cloud-on-k8s/issues/5274 pending (stale state)
+
+
+
