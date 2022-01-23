@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from reprod import reprod_map
+from reproduce_bugs import reprod_map
 import yaml
 import os
 from sieve_common.common import sieve_modes
@@ -108,7 +108,9 @@ def generate_jobs(ci_mode):
         for bug in reprod_map[operator]:
             workload = reprod_map[operator][bug][0]
             config_name = reprod_map[operator][bug][1]
-            config = yaml.safe_load(open(os.path.join("reprod", config_name)).read())
+            config = yaml.safe_load(
+                open(os.path.join("bug_reproduction_test_plans", config_name)).read()
+            )
             workload_set.add(workload)
 
         for workload in controllers.test_suites[operator]:
@@ -118,7 +120,8 @@ def generate_jobs(ci_mode):
             {
                 "name": "Build Image - %s" % (mode),
                 "run": "python3 build.py -p %s -m %s -d $IMAGE_NAMESPACE"
-                % (operator, mode),
+                % (operator, mode)
+                + (" -r" if ci_mode == "daily" else ""),
             }
             for mode in build_modes
         ]
