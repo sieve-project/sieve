@@ -339,19 +339,19 @@ def stale_state_analysis(
         if timing == "after" or timing == "before":
             stale_state_config["timing"] = timing
             i += 1
-            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
                 dump_to_yaml(stale_state_config, file_name)
         else:
             stale_state_config["timing"] = "after"
             i += 1
-            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
                 dump_to_yaml(stale_state_config, file_name)
 
             stale_state_config["timing"] = "before"
             i += 1
-            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
                 dump_to_yaml(stale_state_config, file_name)
             baseline_spec_number += 1
@@ -359,7 +359,7 @@ def stale_state_analysis(
             after_p2_spec_number += 1
             final_spec_number += 1
 
-    cprint("Generated %d stale-state config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint("Generated %d stale-state test plan(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
         baseline_spec_number,
         after_p1_spec_number,
@@ -483,11 +483,13 @@ def unobserved_state_analysis(
         unobserved_state_config["ce-counter"] = str(operator_hear.signature_counter)
 
         i += 1
-        file_name = os.path.join(path, "unobsr-state-config-%s.yaml" % (str(i)))
+        file_name = os.path.join(path, "unobserved-state-test-plan-%s.yaml" % (str(i)))
         if sieve_config["persist_specs_enabled"]:
             dump_to_yaml(unobserved_state_config, file_name)
 
-    cprint("Generated %d unobsr-state config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint(
+        "Generated %d unobserved-state test plan(s) in %s" % (i, path), bcolors.OKGREEN
+    )
     return (
         baseline_spec_number,
         after_p1_spec_number,
@@ -617,11 +619,16 @@ def intermediate_state_analysis(
         intermediate_state_config["se-counter"] = str(operator_write.signature_counter)
 
         i += 1
-        file_name = os.path.join(path, "intmd-state-config-%s.yaml" % (str(i)))
+        file_name = os.path.join(
+            path, "intermediate-state-test-plan-%s.yaml" % (str(i))
+        )
         if sieve_config["persist_specs_enabled"]:
             dump_to_yaml(intermediate_state_config, file_name)
 
-    cprint("Generated %d intmd-state config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint(
+        "Generated %d intermediate-state test plan(s) in %s" % (i, path),
+        bcolors.OKGREEN,
+    )
     return (
         baseline_spec_number,
         after_p1_spec_number,
