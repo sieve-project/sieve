@@ -13,7 +13,7 @@ from sieve_common.common import (
 )
 from controllers import *
 
-from sieve_analyzer.fi_spec_generator import (
+from sieve_analyzer.test_plan_generator import (
     intermediate_state_analysis,
     unobserved_state_analysis,
     stale_state_analysis,
