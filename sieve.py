@@ -129,7 +129,7 @@ def generate_kind_config(num_apiservers, num_workers):
 
 
 def redirect_workers(num_workers):
-    target_master = sieve_config["time_travel_front_runner"]
+    target_master = sieve_config["stale_state_front_runner"]
     for i in range(num_workers):
         worker = "kind-worker" + (str(i + 1) if i > 0 else "")
         cmd_early_exit(
@@ -288,7 +288,7 @@ def setup_cluster(
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
 
-    # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
+    # csi driver can only work with one apiserver so it cannot be enabled in stale state mode
     if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")

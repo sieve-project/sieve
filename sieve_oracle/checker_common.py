@@ -28,7 +28,7 @@ def learn_twice_trim(base_resources, twice_resources):
     return stored_learn
 
 
-def generate_time_travel_debugging_hint(test_config_content):
+def generate_stale_state_debugging_hint(test_config_content):
     desc = "Sieve makes the controller time travel back to the history to see the status just {} {}: {}".format(
         test_config_content["timing"],
         test_config_content["ce-rtype"]
@@ -55,7 +55,7 @@ def generate_time_travel_debugging_hint(test_config_content):
     return desc + "\n" + suggestion + "\n"
 
 
-def generate_obs_gap_debugging_hint(test_config_content):
+def generate_unobserved_state_debugging_hint(test_config_content):
     desc = "Sieve makes the controller miss the event {}: {}".format(
         test_config_content["ce-rtype"]
         + "/"
@@ -75,7 +75,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
     return desc + "\n" + suggestion + "\n"
 
 
-def generate_obs_gap_debugging_hint(test_config_content):
+def generate_unobserved_state_debugging_hint(test_config_content):
     desc = "Sieve makes the controller miss the event {}: {}".format(
         test_config_content["ce-rtype"]
         + "/"
@@ -95,7 +95,7 @@ def generate_obs_gap_debugging_hint(test_config_content):
     return desc + "\n" + suggestion + "\n"
 
 
-def generate_atom_vio_debugging_hint(test_config_content):
+def generate_intermediate_state_debugging_hint(test_config_content):
     desc = "Sieve makes the controller crash after issuing {} {}: {}".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
@@ -120,11 +120,11 @@ def generate_atom_vio_debugging_hint(test_config_content):
 def generate_debugging_hint(test_config_content):
     mode = test_config_content["mode"]
     if mode == sieve_modes.STALE_STATE:
-        return generate_time_travel_debugging_hint(test_config_content)
+        return generate_stale_state_debugging_hint(test_config_content)
     elif mode == sieve_modes.UNOBSR_STATE:
-        return generate_obs_gap_debugging_hint(test_config_content)
+        return generate_unobserved_state_debugging_hint(test_config_content)
     elif mode == sieve_modes.INTERMEDIATE_STATE:
-        return generate_atom_vio_debugging_hint(test_config_content)
+        return generate_intermediate_state_debugging_hint(test_config_content)
     else:
         print("mode wrong", mode, test_config_content)
         return "WRONG MODE"
@@ -142,32 +142,32 @@ def generate_fatal(msg):
     return "[FATAL] " + msg
 
 
-def is_time_travel_started(server_log):
+def is_stale_state_started(server_log):
     with open(server_log) as f:
         return "START-SIEVE-STALE-STATE" in f.read()
 
 
-def is_obs_gap_started(server_log):
+def is_unobserved_state_started(server_log):
     with open(server_log) as f:
         return "START-SIEVE-UNOBSERVED-STATE" in f.read()
 
 
-def is_atom_vio_started(server_log):
+def is_intermediate_state_started(server_log):
     with open(server_log) as f:
         return "START-SIEVE-INTERMEDIATE-STATE" in f.read()
 
 
-def is_time_travel_finished(server_log):
+def is_stale_state_finished(server_log):
     with open(server_log) as f:
         return "FINISH-SIEVE-STALE-STATE" in f.read()
 
 
-def is_obs_gap_finished(server_log):
+def is_unobserved_state_finished(server_log):
     with open(server_log) as f:
         return "FINISH-SIEVE-UNOBSERVED-STATE" in f.read()
 
 
-def is_atom_vio_finished(server_log):
+def is_intermediate_state_finished(server_log):
     with open(server_log) as f:
         return "FINISH-SIEVE-INTERMEDIATE-STATE" in f.read()
 
@@ -186,25 +186,33 @@ def injection_validation(test_context: TestContext):
     validation_ret_val = 0
     validation_messages = []
     if test_mode == sieve_modes.STALE_STATE:
-        if not is_time_travel_started(server_log):
-            validation_messages.append(generate_warn("time travel is not started yet"))
+        if not is_stale_state_started(server_log):
+            validation_messages.append(generate_warn("stale state is not started yet"))
             validation_ret_val = -1
-        elif not is_time_travel_finished(server_log):
-            validation_messages.append(generate_warn("time travel is not finished yet"))
+        elif not is_stale_state_finished(server_log):
+            validation_messages.append(generate_warn("stale state is not finished yet"))
             validation_ret_val = -2
     elif test_mode == sieve_modes.UNOBSR_STATE:
-        if not is_obs_gap_started(server_log):
-            validation_messages.append(generate_warn("obs gap is not started yet"))
+        if not is_unobserved_state_started(server_log):
+            validation_messages.append(
+                generate_warn("unobserved state is not started yet")
+            )
             validation_ret_val = -1
-        elif not is_obs_gap_finished(server_log):
-            validation_messages.append(generate_warn("obs gap is not finished yet"))
+        elif not is_unobserved_state_finished(server_log):
+            validation_messages.append(
+                generate_warn("unobserved state is not finished yet")
+            )
             validation_ret_val = -2
     elif test_mode == sieve_modes.INTERMEDIATE_STATE:
-        if not is_atom_vio_started(server_log):
-            validation_messages.append(generate_warn("atom vio is not started yet"))
+        if not is_intermediate_state_started(server_log):
+            validation_messages.append(
+                generate_warn("intermediate state is not started yet")
+            )
             validation_ret_val = -1
-        elif not is_atom_vio_finished(server_log):
-            validation_messages.append(generate_warn("atom vio is not finished yet"))
+        elif not is_intermediate_state_finished(server_log):
+            validation_messages.append(
+                generate_warn("intermediate state is not finished yet")
+            )
             validation_ret_val = -2
     if not is_test_workload_finished(workload_log):
         validation_messages.append(generate_warn("test workload is not finished yet"))

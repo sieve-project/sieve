@@ -8,14 +8,14 @@ from controllers import deployment_name
 HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
 
-# flags for time travel only
+# flags for stale state only
 DELETE_ONLY_FILTER_FLAG = True
 DELETE_THEN_RECREATE_FLAG = True
 
-# flags for obs gap only
+# flags for unobserved state only
 CANCELLABLE_FLAG = True
 
-# flags for atom vio only
+# flags for intermediate state only
 READ_BEFORE_WRITE_FLAG = True
 
 ALLOWED_ERROR_TYPE = ["NoError"]
