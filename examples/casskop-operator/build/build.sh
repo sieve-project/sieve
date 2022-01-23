@@ -11,7 +11,7 @@ if [ -z "$dockertag" ]; then
 fi
 
 
-BUILD_IMAGE=laphets/casskop-build:v0.18.0-forked-pr317
+BUILD_IMAGE=ghcr.io/sieve-project/sieve/casskop-build:v0.18.0-forked-pr317
 WORKDIR=/go/casskop
 
 echo "Generate zzz-deepcopy objects"
@@ -39,5 +39,4 @@ $BUILD_IMAGE /bin/bash -c "operator-sdk build ${dockerrepo}/casskop-operator:${d
 
 
 # /usr/bin/env PUSHLATEST=true BUILD_IMAGE=laphets/casskop-build make docker-build
-# docker tag orangeopensource/casskop:latest ${dockerrepo}/casskop-operator:${dockertag} 
-docker push ${dockerrepo}/casskop-operator:${dockertag}
+# docker tag orangeopensource/casskop:latest ${dockerrepo}/casskop-operator:${dockertag}

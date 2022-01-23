@@ -13,4 +13,3 @@ fi
 docker build \
     --no-cache \
     -t "${dockerrepo}/nifikop-operator:${dockertag}" -f Dockerfile .
-docker push ${dockerrepo}/nifikop-operator:${dockertag}

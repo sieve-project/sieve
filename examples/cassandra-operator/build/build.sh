@@ -13,4 +13,3 @@ fi
 cd docker/cassandra-operator
 make
 docker tag cassandra-operator:latest ${dockerrepo}/cassandra-operator:${dockertag}
-docker push ${dockerrepo}/cassandra-operator:${dockertag}
