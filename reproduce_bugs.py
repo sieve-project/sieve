@@ -80,7 +80,9 @@ def reproduce_bug(operator, bug, docker, phase):
     if bug == "all":
         for b in reprod_map[operator]:
             reproduce_single_bug(operator, b, docker, phase)
-    elif bug == "intmd-state" or bug == "unobsr-state" or bug == "stale-state":
+    elif (
+        bug == "intermediate-state" or bug == "unobserved-state" or bug == "stale-state"
+    ):
         for b in reprod_map[operator]:
             if b.startswith(bug):
                 reproduce_single_bug(operator, b, docker, phase)
