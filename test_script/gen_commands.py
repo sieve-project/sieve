@@ -3,11 +3,6 @@ import os
 import argparse
 
 modes = ["intermediate-state", "unobserved-state", "stale-state"]
-mode_map = {
-    "intermediate-state": "intmd-state",
-    "unobserved-state": "unobsr-state",
-    "stale-state": "stale-state",
-}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -62,7 +57,7 @@ if __name__ == "__main__":
                 if mode == "vanilla":
                     command_file.write(
                         "python3 sieve.py -s test -p {} -m {} -t {} -d {}\n".format(
-                            operator, mode_map[mode], testcase, args.docker
+                            operator, mode, testcase, args.docker
                         )
                     )
                 else:
@@ -82,7 +77,7 @@ if __name__ == "__main__":
                             command_file.write(
                                 "python3 sieve.py -s test -p {} -m {} -t {} -c {} -d {}\n".format(
                                     operator,
-                                    mode_map[mode],
+                                    mode,
                                     testcase,
                                     config,
                                     args.docker,

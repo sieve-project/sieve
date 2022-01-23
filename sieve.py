@@ -613,7 +613,7 @@ if __name__ == "__main__":
         "-m",
         "--mode",
         dest="mode",
-        help="test MODE: vanilla, stale-state, unobsr-state, intmd-state",
+        help="test MODE: vanilla, stale-state, unobserved-state, intermediate-state",
         metavar="MODE",
     )
     parser.add_option(
@@ -665,11 +665,6 @@ if __name__ == "__main__":
         parser.error("parameter stage required")
     elif options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
         parser.error("invalid stage option: %s" % options.stage)
-
-    if options.mode == "unobsr-state":
-        options.mode = sieve_modes.UNOBSR_STATE
-    elif options.mode == "intmd-state":
-        options.mode = sieve_modes.INTERMEDIATE_STATE
 
     if options.stage == sieve_stages.LEARN:
         if options.mode is None:

@@ -363,7 +363,7 @@ if __name__ == "__main__":
         "-m",
         "--mode",
         dest="mode",
-        help="build MODE: learn, stale-state, unobsr-state, intmd-state",
+        help="build MODE: learn, stale-state, unobserved-state, intermediate-state",
         metavar="MODE",
         default=None,
     )
@@ -408,14 +408,6 @@ if __name__ == "__main__":
     if options.mode is None:
         parser.error("parameter mode required")
 
-    if options.mode == "unobsr-state":
-        options.mode = sieve_modes.UNOBSR_STATE
-    elif options.mode == "intmd-state":
-        options.mode = sieve_modes.INTERMEDIATE_STATE
-
-    if options.project == "k8s":
-        options.project = "kubernetes"
-
     if options.mode not in [
         sieve_modes.VANILLA,
         sieve_modes.STALE_STATE,
@@ -429,7 +421,7 @@ if __name__ == "__main__":
     img_repo = (
         options.docker if options.docker is not None else sieve_config["docker_repo"]
     )
-    if options.project == "kubernetes":
+    if options.project == "kind":
         setup_kubernetes_wrapper(
             options.version, options.mode, img_repo, options.push_to_remote
         )

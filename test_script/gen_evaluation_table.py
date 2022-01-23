@@ -20,9 +20,9 @@ def generate_anaylze_table(json_path):
 
     def make_test_key(test_type, key):
         test_type_map = {
-            "intermediate-state": "intmd-state",
+            "intermediate-state": "intermediate-state",
             "stale-state": "stale-state",
-            "unobserved-state": "unobsr-state",
+            "unobserved-state": "unobserved-state",
             "all": "all",
             "events": "events",
         }
