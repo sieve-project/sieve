@@ -7,7 +7,7 @@
 
 ### [k8ssandra-cass-operator-1023](https://k8ssandra.atlassian.net/browse/K8SSAND-1023)
 ```
-python3 reprod.py -p cass-operator -b intmd-state-1
+python3 reprod.py -p cass-operator -b intermediate-state-1
 ```
 If reproduced, you will see:
 ```
@@ -28,7 +28,7 @@ The bug was found in commit `dbd4f7a10533bb2298aed0d40ea20bfd8c133da2`.
 
 ### [orange-opensource-casskop-370](https://github.com/Orange-OpenSource/casskop/issues/370)
 ```
-python3 reprod.py -p casskop-operator -b intmd-state-1
+python3 reprod.py -p casskop-operator -b intermediate-state-1
 ```
 If reproduced, you will see:
 ```
@@ -39,7 +39,7 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [orange-opensource-nifikop-130](https://github.com/Orange-OpenSource/nifikop/issues/130)
 ```
-python3 reprod.py -p nifikop-operator -b intmd-state-1
+python3 reprod.py -p nifikop-operator -b intermediate-state-1
 ```
 If reproduced, you will see:
 ```
@@ -50,7 +50,7 @@ The bug was found in commit `1546e0242107bf2f2c1256db50f47c79956dd1c6`.
 
 ### [rabbitmq-cluster-operator-782](https://github.com/rabbitmq/cluster-operator/issues/782)
 ```
-python3 reprod.py -p rabbitmq-operator -b intmd-state-1
+python3 reprod.py -p rabbitmq-operator -b intermediate-state-1
 ```
 If reproduced, you will see:
 ```
@@ -61,7 +61,7 @@ The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [percona-server-mongodb-operator-578](https://jira.percona.com/browse/K8SPSMDB-578)
 ```
-python3 reprod.py -p mongodb-operator -b intmd-state-1
+python3 reprod.py -p mongodb-operator -b intermediate-state-1
 ```
 If reproduced, you will see:
 ```
@@ -72,7 +72,7 @@ The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [percona-server-mongodb-operator-579](https://jira.percona.com/browse/K8SPSMDB-579)
 ```
-python3 reprod.py -p mongodb-operator -b intmd-state-2
+python3 reprod.py -p mongodb-operator -b intermediate-state-2
 ```
 If reproduced, you will see:
 ```
@@ -84,7 +84,7 @@ The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [percona-xtradb-cluster-operator-896](https://jira.percona.com/browse/K8SPXC-896)
 ```
-python3 reprod.py -p xtradb-operator -b intmd-state-1
+python3 reprod.py -p xtradb-operator -b intermediate-state-1
 ```
 If reproduced, you will see:
 ```
@@ -95,7 +95,7 @@ The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [percona-xtradb-cluster-operator-897](https://jira.percona.com/browse/K8SPXC-897)
 ```
-python3 reprod.py -p xtradb-operator -b intmd-state-2
+python3 reprod.py -p xtradb-operator -b intermediate-state-2
 ```
 If reproduced, you will see:
 ```
@@ -110,7 +110,7 @@ The bug was found in commit `29092c9b145af6eaf5cbff534287483bec4167b6`.
 
 ### [instaclustr-cassandra-operator-398](https://github.com/instaclustr/cassandra-operator/issues/398)
 ```
-python3 reprod.py -p cassandra-operator -b unobsr-state-1
+python3 reprod.py -p cassandra-operator -b unobserved-state-1
 ```
 If reproduced, you will find
 ```
@@ -124,7 +124,7 @@ The bug was found in commit `fe8f91da3cd8aab47f21f7a3aad4abc5d4b6a0dd`.
 
 ### [orange-opensource-casskop-342](https://github.com/Orange-OpenSource/casskop/issues/342)
 ```
-python3 reprod.py -p casskop-operator -b unobsr-state-1
+python3 reprod.py -p casskop-operator -b unobserved-state-1
 ```
 If reproduced, you will find
 ```
@@ -136,7 +136,7 @@ The bug was found in commit `f87c8e05c1a2896732fc5f3a174f1eb99e936907`.
 
 ### [rabbitmq-cluster-operator-758](https://github.com/rabbitmq/cluster-operator/issues/758)
 ```
-python3 reprod.py -p rabbitmq-operator -b unobsr-state-1
+python3 reprod.py -p rabbitmq-operator -b unobserved-state-1
 ```
 If reproduced, you will see:
 ```
@@ -152,7 +152,7 @@ The bug was found in commit `4f13b9a942ad34fece0171d2174aa0264b10e947`.
 
 ### [percona-server-mongodb-operator-585](https://jira.percona.com/browse/K8SPSMDB-585)
 ```
-python3 reprod.py -p mongodb-operator -b unobsr-state-1
+python3 reprod.py -p mongodb-operator -b unobserved-state-1
 ```
 If reproduced, you will see:
 ```
@@ -162,7 +162,7 @@ The bug was found in commit `c12b69e2c41efc67336a890039394250420f60bb`.
 
 ### [yugabyte-operator-39](https://github.com/yugabyte/yugabyte-operator/issues/39)
 ```
-python3 reprod.py -p yugabyte-operator -b unobsr-state-1
+python3 reprod.py -p yugabyte-operator -b unobserved-state-1
 ```
 If reproduced, you will see:
 ```
@@ -173,7 +173,7 @@ This bug was found in commit `966ef1978ed5d714119548b2c4343925fe49f882`.
 
 ### [percona-xtradb-cluster-operator-918](https://jira.percona.com/browse/K8SPXC-918)
 ```
-python3 reprod.py -p xtradb-operator -b unobsr-state-1
+python3 reprod.py -p xtradb-operator -b unobserved-state-1
 ```
 If reproduced, you will see:
 ```

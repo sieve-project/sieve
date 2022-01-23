@@ -69,7 +69,7 @@ def check_bug_reproduction_test_plans():
         )
     )
 
-    reprod_configs = glob.glob("reprod/*.yaml")
+    reprod_configs = glob.glob("bug_reproduction_test_plans/*.yaml")
 
     for reprod_config in reprod_configs:
         found = False

@@ -5,47 +5,47 @@ from sieve_common.common import cprint, bcolors
 
 reprod_map = {
     "cassandra-operator": {
-        "unobsr-state-1": ["scaledown-scaleup", "cassandra1_unobsr_1.yaml"],
+        "unobserved-state-1": ["scaledown-scaleup", "cassandra1_unobsr_1.yaml"],
         "stale-state-1": ["recreate", "cassandra1_stale_1.yaml"],
         "stale-state-2": ["scaledown-scaleup", "cassandra1_stale_2.yaml"],
     },
     "cass-operator": {
-        "intmd-state-1": ["recreate", "cassandra2_intmd_1.yaml"],
+        "intermediate-state-1": ["recreate", "cassandra2_intmd_1.yaml"],
         "stale-state-1": ["recreate", "cassandra2_stale_1.yaml"],
     },
     "casskop-operator": {
-        "intmd-state-1": ["scaledown-to-zero", "cassandra3_intmd_1.yaml"],
-        "unobsr-state-1": ["scaledown-to-zero", "cassandra3_unobsr_1.yaml"],
+        "intermediate-state-1": ["scaledown-to-zero", "cassandra3_intmd_1.yaml"],
+        "unobserved-state-1": ["scaledown-to-zero", "cassandra3_unobsr_1.yaml"],
         "stale-state-1": ["recreate", "cassandra3_stale_1.yaml"],
         "stale-state-2": ["reducepdb", "cassandra3_stale_2.yaml"],
     },
     "nifikop-operator": {
-        "intmd-state-1": ["change-config", "nifi_intmd_1.yaml"],
+        "intermediate-state-1": ["change-config", "nifi_intmd_1.yaml"],
     },
     "rabbitmq-operator": {
-        "intmd-state-1": ["resize-pvc", "rabbitmq_intmd_1.yaml"],
-        "unobsr-state-1": ["scaleup-scaledown", "rabbitmq_unobsr_1.yaml"],
+        "intermediate-state-1": ["resize-pvc", "rabbitmq_intmd_1.yaml"],
+        "unobserved-state-1": ["scaleup-scaledown", "rabbitmq_unobsr_1.yaml"],
         "stale-state-1": ["recreate", "rabbitmq_stale_1.yaml"],
         "stale-state-2": ["resize-pvc", "rabbitmq_stale_2.yaml"],
     },
     "mongodb-operator": {
-        "intmd-state-1": ["disable-enable-shard", "mongodb_intmd_1.yaml"],
-        "intmd-state-2": ["run-cert-manager", "mongodb_intmd_2.yaml"],
-        "unobsr-state-1": ["disable-enable-arbiter", "mongodb_unobsr_1.yaml"],
+        "intermediate-state-1": ["disable-enable-shard", "mongodb_intmd_1.yaml"],
+        "intermediate-state-2": ["run-cert-manager", "mongodb_intmd_2.yaml"],
+        "unobserved-state-1": ["disable-enable-arbiter", "mongodb_unobsr_1.yaml"],
         "stale-state-1": ["recreate", "mongodb_stale_1.yaml"],
         "stale-state-2": ["disable-enable-shard", "mongodb_stale_2.yaml"],
         "stale-state-3": ["disable-enable-arbiter", "mongodb_stale_3.yaml"],
     },
     "xtradb-operator": {
-        "intmd-state-1": ["disable-enable-proxysql", "xtradb_intmd_1.yaml"],
-        "intmd-state-2": ["run-cert-manager", "xtradb_intmd_2.yaml"],
-        "unobsr-state-1": ["scaleup-scaledown", "xtradb_unobsr_1.yaml"],
+        "intermediate-state-1": ["disable-enable-proxysql", "xtradb_intmd_1.yaml"],
+        "intermediate-state-2": ["run-cert-manager", "xtradb_intmd_2.yaml"],
+        "unobserved-state-1": ["scaleup-scaledown", "xtradb_unobsr_1.yaml"],
         "stale-state-1": ["recreate", "xtradb_stale_1.yaml"],
         "stale-state-2": ["disable-enable-haproxy", "xtradb_stale_2.yaml"],
         "stale-state-3": ["disable-enable-proxysql", "xtradb_stale_3.yaml"],
     },
     "yugabyte-operator": {
-        "unobsr-state-1": ["scaleup-scaledown-tserver", "yugabyte_unobsr_1.yaml"],
+        "unobserved-state-1": ["scaleup-scaledown-tserver", "yugabyte_unobsr_1.yaml"],
         "stale-state-1": ["disable-enable-tls", "yugabyte_stale_1.yaml"],
         "stale-state-2": ["disable-enable-tuiport", "yugabyte_stale_2.yaml"],
     },
@@ -63,7 +63,7 @@ reprod_map = {
 def reproduce_single_bug(operator, bug, docker, phase):
     mode = bug[:-2]
     test = reprod_map[operator][bug][0]
-    config = os.path.join("reprod", reprod_map[operator][bug][1])
+    config = os.path.join("bug_reproduction_test_plans", reprod_map[operator][bug][1])
     sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s -d %s --phase=%s" % (
         operator,
         mode,
