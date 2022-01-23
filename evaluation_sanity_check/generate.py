@@ -2,26 +2,15 @@ import os
 import controllers
 import json
 from sieve_common.default_config import sieve_config
+from evaluation_sanity_check import common
 
 total_result_map = {}
-
-operator_list = [
-    "cassandra-operator",
-    "zookeeper-operator",
-    "rabbitmq-operator",
-    "mongodb-operator",
-    "cass-operator",
-    "casskop-operator",
-    "xtradb-operator",
-    "yugabyte-operator",
-    "nifikop-operator",
-]
 
 
 def collect_spec():
     sub_result_map = {}
     for operator in controllers.test_suites:
-        if operator not in operator_list:
+        if operator not in common.controllers_to_check:
             continue
         sub_result_map[operator] = {}
         ds_base_cnt = 0
@@ -83,11 +72,11 @@ def recover_config_json():
 
 def learn_all():
     for project in controllers.test_suites:
-        if project not in operator_list:
+        if project not in common.controllers_to_check:
             continue
         for test_suite in controllers.test_suites[project]:
             docker_repo_name = sieve_config["docker_repo"]
-            cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check_only" % (
+            cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check" % (
                 project,
                 test_suite,
                 docker_repo_name,
@@ -95,12 +84,12 @@ def learn_all():
             os.system(cmd)
 
 
-if __name__ == "__main__":
+def generate_test_plan_stat():
     table = "controller\tbaseline-ds\tafter-p1-ds\tafter-p2-ds\tds\tbaseline-ss\tafter-p1-ss\tafter-p2-ss\tss\tbaseline-ms\tafter-p1-ms\tafter-p2-ms\tms\tbaseline-total\tafter-p1-total\tafter-p2-total\ttotal\n"
     learn_all()
     sub_map = collect_spec()
     for operator in controllers.test_suites:
-        if operator not in operator_list:
+        if operator not in common.controllers_to_check:
             continue
         baseline_ds = sub_map[operator]["baseline-ds"]
         baseline_ss = sub_map[operator]["baseline-ss"]
@@ -135,4 +124,4 @@ if __name__ == "__main__":
             ds + ss + ms,
         )
     print(table)
-    open("spec_stat_result.tsv", "w").write(table)
+    open("test_plan_stats.tsv", "w").write(table)

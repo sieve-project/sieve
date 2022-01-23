@@ -118,10 +118,10 @@ def nondeterministic_key(project, test_name, event: Union[OperatorHear, Operator
     return False
 
 
-def time_travel_detectable_pass(
+def stale_state_detectable_pass(
     project, test_name, causality_pairs: List[Tuple[CausalityVertex, CausalityVertex]]
 ):
-    print("Running time travel detectable pass...")
+    print("Running stale state detectable pass...")
     candidate_pairs = []
     for pair in causality_pairs:
         operator_hear = pair[0].content
@@ -150,7 +150,7 @@ def time_travel_detectable_pass(
     return candidate_pairs
 
 
-def get_time_travel_baseline(causality_graph: CausalityGraph):
+def get_stale_state_baseline(causality_graph: CausalityGraph):
     operator_hear_vertices = causality_graph.operator_hear_vertices
     operator_write_vertices = causality_graph.operator_write_vertices
     candidate_pairs = []
@@ -158,7 +158,7 @@ def get_time_travel_baseline(causality_graph: CausalityGraph):
         for operator_hear_vertex in operator_hear_vertices:
             operator_write = operator_write_vertex.content
             operator_hear = operator_hear_vertex.content
-            if sieve_config["time_travel_spec_generation_delete_only"]:
+            if sieve_config["stale_state_spec_generation_delete_only"]:
                 if not operator_write.etype == OperatorWriteTypes.DELETE:
                     continue
             write_after_hear = (
@@ -223,7 +223,7 @@ def reversed_effect_filtering_pass(
     return candidate_pairs
 
 
-def decide_time_travel_timing(
+def decide_stale_state_timing(
     source_vertex: CausalityVertex, sink_vertex: CausalityVertex
 ):
     assert source_vertex.is_operator_hear()
@@ -262,13 +262,13 @@ def decide_time_travel_timing(
             assert False
 
 
-def time_travel_template(project):
+def stale_state_template(project):
     return {
         "project": project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.STALE_STATE,
-        "straggler": sieve_config["time_travel_straggler"],
-        "front-runner": sieve_config["time_travel_front_runner"],
+        "straggler": sieve_config["stale_state_straggler"],
+        "front-runner": sieve_config["stale_state_front_runner"],
         "operator-pod-label": controllers.operator_pod_label[project],
         "deployment-name": controllers.deployment_name[project],
     }
@@ -279,23 +279,23 @@ def stale_state_analysis(
 ):
     project = test_context.project
     test_name = test_context.test_name
-    candidate_pairs = get_time_travel_baseline(causality_graph)
+    candidate_pairs = get_stale_state_baseline(causality_graph)
     baseline_spec_number = len(candidate_pairs)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
     if sieve_config["spec_generation_causal_info_pass_enabled"]:
-        if sieve_config["time_travel_spec_generation_causality_pass_enabled"]:
+        if sieve_config["stale_state_spec_generation_causality_pass_enabled"]:
             candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
         after_p1_spec_number = len(candidate_pairs)
     if sieve_config["spec_generation_type_specific_pass_enabled"]:
-        if sieve_config["time_travel_spec_generation_reversed_pass_enabled"]:
+        if sieve_config["stale_state_spec_generation_reversed_pass_enabled"]:
             candidate_pairs = reversed_effect_filtering_pass(
                 candidate_pairs, causality_graph
             )
         after_p2_spec_number = len(candidate_pairs)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_pairs = time_travel_detectable_pass(
+        candidate_pairs = stale_state_detectable_pass(
             project, test_name, candidate_pairs
         )
     final_spec_number = len(candidate_pairs)
@@ -308,58 +308,58 @@ def stale_state_analysis(
         assert isinstance(operator_hear, OperatorHear)
         assert isinstance(operator_write, OperatorWrite)
 
-        timing = decide_time_travel_timing(source, sink)
+        timing = decide_stale_state_timing(source, sink)
 
-        time_travel_config = time_travel_template(project)
-        time_travel_config["ce-name"] = operator_hear.name
-        time_travel_config["ce-namespace"] = operator_hear.namespace
-        time_travel_config["ce-rtype"] = operator_hear.rtype
-        time_travel_config["ce-etype-previous"] = convert_deltafifo_etype_to_API_etype(
+        stale_state_config = stale_state_template(project)
+        stale_state_config["ce-name"] = operator_hear.name
+        stale_state_config["ce-namespace"] = operator_hear.namespace
+        stale_state_config["ce-rtype"] = operator_hear.rtype
+        stale_state_config["ce-etype-previous"] = convert_deltafifo_etype_to_API_etype(
             operator_hear.prev_etype
         )
-        time_travel_config["ce-etype-current"] = convert_deltafifo_etype_to_API_etype(
+        stale_state_config["ce-etype-current"] = convert_deltafifo_etype_to_API_etype(
             operator_hear.etype
         )
-        time_travel_config["ce-diff-previous"] = json.dumps(
+        stale_state_config["ce-diff-previous"] = json.dumps(
             operator_hear.slim_prev_obj_map, sort_keys=True
         )
-        time_travel_config["ce-diff-current"] = json.dumps(
+        stale_state_config["ce-diff-current"] = json.dumps(
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
-        time_travel_config["ce-counter"] = str(operator_hear.signature_counter)
-        time_travel_config["ce-is-cr"] = str(
+        stale_state_config["ce-counter"] = str(operator_hear.signature_counter)
+        stale_state_config["ce-is-cr"] = str(
             operator_hear.rtype in controllers.CRDs[project]
         )
-        time_travel_config["se-name"] = operator_write.name
-        time_travel_config["se-namespace"] = operator_write.namespace
-        time_travel_config["se-rtype"] = operator_write.rtype
+        stale_state_config["se-name"] = operator_write.name
+        stale_state_config["se-namespace"] = operator_write.namespace
+        stale_state_config["se-rtype"] = operator_write.rtype
         assert operator_write.etype == OperatorWriteTypes.DELETE
-        time_travel_config["se-etype"] = "ADDED"
+        stale_state_config["se-etype"] = "ADDED"
 
         if timing == "after" or timing == "before":
-            time_travel_config["timing"] = timing
+            stale_state_config["timing"] = timing
             i += 1
-            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
-                dump_to_yaml(time_travel_config, file_name)
+                dump_to_yaml(stale_state_config, file_name)
         else:
-            time_travel_config["timing"] = "after"
+            stale_state_config["timing"] = "after"
             i += 1
-            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
-                dump_to_yaml(time_travel_config, file_name)
+                dump_to_yaml(stale_state_config, file_name)
 
-            time_travel_config["timing"] = "before"
+            stale_state_config["timing"] = "before"
             i += 1
-            file_name = os.path.join(path, "stale-state-config-%s.yaml" % (str(i)))
+            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if sieve_config["persist_specs_enabled"]:
-                dump_to_yaml(time_travel_config, file_name)
+                dump_to_yaml(stale_state_config, file_name)
             baseline_spec_number += 1
             after_p1_spec_number += 1
             after_p2_spec_number += 1
             final_spec_number += 1
 
-    cprint("Generated %d stale-state config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint("Generated %d stale-state test plan(s) in %s" % (i, path), bcolors.OKGREEN)
     return (
         baseline_spec_number,
         after_p1_spec_number,
@@ -368,10 +368,10 @@ def stale_state_analysis(
     )
 
 
-def obs_gap_detectable_pass(
+def unobserved_state_detectable_pass(
     project, test_name, causality_vertices: List[CausalityVertex]
 ):
-    print("Running obs gap detectable pass...")
+    print("Running unobserved state detectable pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_hear = vertex.content
@@ -430,7 +430,7 @@ def overwrite_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
-def obs_gap_template(project):
+def unobserved_state_template(project):
     return {
         "project": project,
         "stage": sieve_stages.TEST,
@@ -450,16 +450,16 @@ def unobserved_state_analysis(
     after_p2_spec_number = -1
     final_spec_number = -1
     if sieve_config["spec_generation_causal_info_pass_enabled"]:
-        if sieve_config["obs_gap_spec_generation_causality_pass_enabled"]:
+        if sieve_config["unobserved_state_spec_generation_causality_pass_enabled"]:
             candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
         after_p1_spec_number = len(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
     # if sieve_config["spec_generation_type_specific_pass_enabled"]:
-    #     if sieve_config["obs_gap_spec_generation_overwrite_pass_enabled"]:
+    #     if sieve_config["unobserved_state_spec_generation_overwrite_pass_enabled"]:
     #         candidate_vertices = impact_filtering_pass(candidate_vertices)
     #     after_p2_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = obs_gap_detectable_pass(
+        candidate_vertices = unobserved_state_detectable_pass(
             project, test_name, candidate_vertices
         )
     final_spec_number = len(candidate_vertices)
@@ -468,26 +468,28 @@ def unobserved_state_analysis(
         operator_hear = vertex.content
         assert isinstance(operator_hear, OperatorHear)
 
-        obs_gap_config = obs_gap_template(project)
-        obs_gap_config["ce-name"] = operator_hear.name
-        obs_gap_config["ce-namespace"] = operator_hear.namespace
-        obs_gap_config["ce-rtype"] = operator_hear.rtype
-        obs_gap_config["ce-etype-previous"] = operator_hear.prev_etype
-        obs_gap_config["ce-etype-current"] = operator_hear.etype
-        obs_gap_config["ce-diff-previous"] = json.dumps(
+        unobserved_state_config = unobserved_state_template(project)
+        unobserved_state_config["ce-name"] = operator_hear.name
+        unobserved_state_config["ce-namespace"] = operator_hear.namespace
+        unobserved_state_config["ce-rtype"] = operator_hear.rtype
+        unobserved_state_config["ce-etype-previous"] = operator_hear.prev_etype
+        unobserved_state_config["ce-etype-current"] = operator_hear.etype
+        unobserved_state_config["ce-diff-previous"] = json.dumps(
             operator_hear.slim_prev_obj_map, sort_keys=True
         )
-        obs_gap_config["ce-diff-current"] = json.dumps(
+        unobserved_state_config["ce-diff-current"] = json.dumps(
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
-        obs_gap_config["ce-counter"] = str(operator_hear.signature_counter)
+        unobserved_state_config["ce-counter"] = str(operator_hear.signature_counter)
 
         i += 1
-        file_name = os.path.join(path, "unobsr-state-config-%s.yaml" % (str(i)))
+        file_name = os.path.join(path, "unobserved-state-test-plan-%s.yaml" % (str(i)))
         if sieve_config["persist_specs_enabled"]:
-            dump_to_yaml(obs_gap_config, file_name)
+            dump_to_yaml(unobserved_state_config, file_name)
 
-    cprint("Generated %d unobsr-state config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint(
+        "Generated %d unobserved-state test plan(s) in %s" % (i, path), bcolors.OKGREEN
+    )
     return (
         baseline_spec_number,
         after_p1_spec_number,
@@ -496,10 +498,10 @@ def unobserved_state_analysis(
     )
 
 
-def atom_vio_detectable_pass(
+def intermediate_state_detectable_pass(
     project, test_name, causality_vertices: List[CausalityVertex]
 ):
-    print("Running atom vio detectable pass...")
+    print("Running intermediate state detectable pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_write = vertex.content
@@ -565,12 +567,12 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
-def atom_vio_template(project):
+def intermediate_state_template(project):
     return {
         "project": project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.INTERMEDIATE_STATE,
-        "front-runner": sieve_config["time_travel_front_runner"],
+        "front-runner": sieve_config["stale_state_front_runner"],
         "operator-pod-label": controllers.operator_pod_label[project],
         "deployment-name": controllers.deployment_name[project],
     }
@@ -588,11 +590,11 @@ def intermediate_state_analysis(
     final_spec_number = -1
     after_p1_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_type_specific_pass_enabled"]:
-        if sieve_config["atom_vio_spec_generation_error_free_pass_enabled"]:
+        if sieve_config["intermediate_state_spec_generation_error_free_pass_enabled"]:
             candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
     if sieve_config["spec_generation_detectable_pass_enabled"]:
-        candidate_vertices = atom_vio_detectable_pass(
+        candidate_vertices = intermediate_state_detectable_pass(
             project, test_name, candidate_vertices
         )
     final_spec_number = len(candidate_vertices)
@@ -602,26 +604,31 @@ def intermediate_state_analysis(
         # TODO: Handle the case where operator_write == EVENT_NONE_TYPE
         assert isinstance(operator_write, OperatorWrite)
 
-        atom_vio_config = atom_vio_template(project)
-        atom_vio_config["se-name"] = operator_write.name
-        atom_vio_config["se-namespace"] = operator_write.namespace
-        atom_vio_config["se-rtype"] = operator_write.rtype
-        atom_vio_config["se-etype-previous"] = operator_write.prev_etype
-        atom_vio_config["se-etype-current"] = operator_write.etype
-        atom_vio_config["se-diff-previous"] = json.dumps(
+        intermediate_state_config = intermediate_state_template(project)
+        intermediate_state_config["se-name"] = operator_write.name
+        intermediate_state_config["se-namespace"] = operator_write.namespace
+        intermediate_state_config["se-rtype"] = operator_write.rtype
+        intermediate_state_config["se-etype-previous"] = operator_write.prev_etype
+        intermediate_state_config["se-etype-current"] = operator_write.etype
+        intermediate_state_config["se-diff-previous"] = json.dumps(
             operator_write.slim_prev_obj_map, sort_keys=True
         )
-        atom_vio_config["se-diff-current"] = json.dumps(
+        intermediate_state_config["se-diff-current"] = json.dumps(
             operator_write.slim_cur_obj_map, sort_keys=True
         )
-        atom_vio_config["se-counter"] = str(operator_write.signature_counter)
+        intermediate_state_config["se-counter"] = str(operator_write.signature_counter)
 
         i += 1
-        file_name = os.path.join(path, "intmd-state-config-%s.yaml" % (str(i)))
+        file_name = os.path.join(
+            path, "intermediate-state-test-plan-%s.yaml" % (str(i))
+        )
         if sieve_config["persist_specs_enabled"]:
-            dump_to_yaml(atom_vio_config, file_name)
+            dump_to_yaml(intermediate_state_config, file_name)
 
-    cprint("Generated %d intmd-state config(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint(
+        "Generated %d intermediate-state test plan(s) in %s" % (i, path),
+        bcolors.OKGREEN,
+    )
     return (
         baseline_spec_number,
         after_p1_spec_number,

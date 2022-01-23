@@ -129,7 +129,7 @@ def generate_kind_config(num_apiservers, num_workers):
 
 
 def redirect_workers(num_workers):
-    target_master = sieve_config["time_travel_front_runner"]
+    target_master = sieve_config["stale_state_front_runner"]
     for i in range(num_workers):
         worker = "kind-worker" + (str(i + 1) if i > 0 else "")
         cmd_early_exit(
@@ -288,7 +288,7 @@ def setup_cluster(
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
 
-    # csi driver can only work with one apiserver so it cannot be enabled in time travel mode
+    # csi driver can only work with one apiserver so it cannot be enabled in stale state mode
     if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
@@ -439,21 +439,21 @@ def run_test(
     try:
         if (
             test_context.phase == "all"
-            or test_context.phase == "setup_only"
-            or test_context.phase == "setup_and_workload"
+            or test_context.phase == "setup"
+            or test_context.phase == "setup_workload"
         ):
             setup_cluster(test_context)
         if (
             test_context.phase == "all"
-            or test_context.phase == "setup_and_workload"
-            or test_context.phase == "workload_only"
-            or test_context.phase == "workload_and_check"
+            or test_context.phase == "setup_workload"
+            or test_context.phase == "workload"
+            or test_context.phase == "workload_check"
         ):
             run_workload(test_context)
         if (
             test_context.phase == "all"
-            or test_context.phase == "check_only"
-            or test_context.phase == "workload_and_check"
+            or test_context.phase == "check"
+            or test_context.phase == "workload_check"
         ):
             ret_val, messages = check_result(test_context)
             return ret_val, messages
@@ -504,7 +504,7 @@ def run(
         log_dir, project, test, stage, mode, os.path.basename(config)
     )
     print("Log dir: %s" % result_dir)
-    if phase == "all" or phase == "setup_only" or phase == "setup_and_workload":
+    if phase == "all" or phase == "setup" or phase == "setup_workload":
         cmd_early_exit("rm -rf %s" % result_dir)
         os.makedirs(result_dir, exist_ok=True)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
@@ -634,7 +634,7 @@ if __name__ == "__main__":
     parser.add_option(
         "--phase",
         dest="phase",
-        help="run the PHASE: setup_only, workload_only, check_only or all",
+        help="run the PHASE: setup, workload, check or all",
         metavar="PHASE",
         default="all",
     )
@@ -699,11 +699,11 @@ if __name__ == "__main__":
 
     if options.phase not in [
         "all",
-        "setup_only",
-        "workload_only",
-        "check_only",
-        "setup_and_workload",
-        "workload_and_check",
+        "setup",
+        "workload",
+        "check",
+        "setup_workload",
+        "workload_check",
     ]:
         parser.error("invalid phase option: %s" % options.phase)
 

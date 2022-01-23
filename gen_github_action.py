@@ -136,7 +136,7 @@ def generate_jobs(ci_mode):
             sieve_test = [
                 {
                     "name": "Sieve Test - %s %s" % (operator, bug),
-                    "run": "python3 reprod.py -p %s -b %s -d $IMAGE_NAMESPACE"
+                    "run": "python3 reproduce_bugs.py -p %s -b %s -d $IMAGE_NAMESPACE"
                     % (operator, bug),
                 }
                 for bug in sorted(reprod_map[operator].keys())
