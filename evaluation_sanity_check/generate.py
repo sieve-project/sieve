@@ -124,4 +124,4 @@ def generate_test_plan_stat():
             ds + ss + ms,
         )
     print(table)
-    open("spec_stat_result.tsv", "w").write(table)
+    open("test_plan_stats.tsv", "w").write(table)
