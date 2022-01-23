@@ -76,7 +76,7 @@ def learn_all():
             continue
         for test_suite in controllers.test_suites[project]:
             docker_repo_name = sieve_config["docker_repo"]
-            cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check_only" % (
+            cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check" % (
                 project,
                 test_suite,
                 docker_repo_name,

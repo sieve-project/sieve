@@ -24,13 +24,10 @@ def run():
         os.system("python3 build.py -p %s -m %s" % (operator, mode))
     elif action == "learn check only":
         os.system(
-            "python3 sieve.py -p %s -t %s -s learn --phase=check_only"
-            % (operator, workload)
+            "python3 sieve.py -p %s -t %s -s learn --phase=check" % (operator, workload)
         )
     elif action == "test check only":
-        os.system(
-            "python3 sieve.py -p %s -t %s --phase=check_only" % (operator, workload)
-        )
+        os.system("python3 sieve.py -p %s -t %s --phase=check" % (operator, workload))
 
 
 class SieveTUI:

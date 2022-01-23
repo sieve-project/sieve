@@ -110,7 +110,7 @@ if __name__ == "__main__":
     parser.add_option(
         "--phase",
         dest="phase",
-        help="run the PHASE: setup_only, workload_only, check_only or all",
+        help="run the PHASE: setup, workload, check or all",
         metavar="PHASE",
         default="all",
     )
