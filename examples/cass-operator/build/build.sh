@@ -14,4 +14,3 @@ go mod tidy
 mage operator:clean
 mage operator:buildDocker
 docker tag datastax/cass-operator:latest ${dockerrepo}/cass-operator:${dockertag}
-docker push ${dockerrepo}/cass-operator:${dockertag}

@@ -12,4 +12,3 @@ fi
 
 
 REGISTRY=${dockerrepo} VERSION=${dockertag} make container
-docker push ${dockerrepo}/contour-operator:${dockertag}

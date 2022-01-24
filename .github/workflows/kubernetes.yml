@@ -31,8 +31,8 @@ jobs:
           pip install pyyaml
       - name: Build Image
         run: |
-          python3 build.py -p kubernetes -m vanilla -d $IMAGE_NAMESPACE
-          python3 build.py -p kubernetes -m learn -d $IMAGE_NAMESPACE
-          python3 build.py -p kubernetes -m stale-state -d $IMAGE_NAMESPACE
-          python3 build.py -p kubernetes -m unobsr-state -d $IMAGE_NAMESPACE
-          python3 build.py -p kubernetes -m intmd-state -d $IMAGE_NAMESPACE
+          python3 build.py -p kind -m vanilla -d $IMAGE_NAMESPACE -r
+          python3 build.py -p kind -m learn -d $IMAGE_NAMESPACE -r
+          python3 build.py -p kind -m stale-state -d $IMAGE_NAMESPACE -r
+          python3 build.py -p kind -m unobserved-state -d $IMAGE_NAMESPACE -r
+          python3 build.py -p kind -m intermediate-state -d $IMAGE_NAMESPACE -r

@@ -13,4 +13,3 @@ fi
 
 DOCKER_REGISTRY_SERVER=${dockerrepo} OPERATOR_IMAGE=rabbitmq-operator make docker-build
 docker tag ${dockerrepo}/rabbitmq-operator:latest ${dockerrepo}/rabbitmq-operator:${dockertag}
-docker push ${dockerrepo}/rabbitmq-operator:${dockertag}

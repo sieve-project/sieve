@@ -13,4 +13,3 @@ fi
 docker build \
     --no-cache \
     -t "${dockerrepo}/yugabyte-operator:${dockertag}" -f build/Dockerfile .
-docker push ${dockerrepo}/yugabyte-operator:${dockertag}

@@ -16,5 +16,3 @@ docker build \
     --build-arg GO_LDFLAGS="$GO_LDFLAGS" \
     --no-cache \
     -t "${dockerrepo}/xtradb-operator:${dockertag}" -f build/Dockerfile .
-
-docker push ${dockerrepo}/xtradb-operator:${dockertag}
