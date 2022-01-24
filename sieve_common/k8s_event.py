@@ -328,12 +328,21 @@ class OperatorHear:
 
 
 class OperatorWrite:
-    def __init__(self, id: str, etype: str, rtype: str, error: str, obj_str: str):
+    def __init__(
+        self,
+        id: str,
+        etype: str,
+        rtype: str,
+        reconciler_type: str,
+        error: str,
+        obj_str: str,
+    ):
         self.__id = int(id)
         # do not handle DELETEALLOF for now
         assert etype != OperatorWriteTypes.DELETEALLOF
         self.__etype = etype
         self.__rtype = rtype
+        self.__reconciler_type = reconciler_type
         self.__error = error
         self.__obj_str = obj_str
         self.__obj_map = json.loads(obj_str)
@@ -363,6 +372,10 @@ class OperatorWrite:
     @property
     def rtype(self):
         return self.__rtype
+
+    @property
+    def reconciler_type(self):
+        return self.__reconciler_type
 
     @property
     def error(self):
@@ -485,11 +498,13 @@ class OperatorRead:
         rtype: str,
         namespace: str,
         name: str,
+        reconciler_type: str,
         error: str,
         obj_str: str,
     ):
         self.__etype = etype
         self.__rtype = rtype
+        self.__reconciler_type = reconciler_type
         self.__error = error
         self.__key_to_obj = {}
         self.__key_set = set()
@@ -520,6 +535,10 @@ class OperatorRead:
     @property
     def rtype(self):
         return self.__rtype
+
+    @property
+    def reconciler_type(self):
+        return self.__reconciler_type
 
     @property
     def error(self):
@@ -615,7 +634,9 @@ def parse_operator_hear(line: str) -> OperatorHear:
 def parse_operator_write(line: str) -> OperatorWrite:
     assert SIEVE_AFTER_WRITE_MARK in line
     tokens = line[line.find(SIEVE_AFTER_WRITE_MARK) :].strip("\n").split("\t")
-    return OperatorWrite(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5])
+    return OperatorWrite(
+        tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6]
+    )
 
 
 def parse_operator_read(line: str) -> OperatorRead:
@@ -623,12 +644,14 @@ def parse_operator_read(line: str) -> OperatorRead:
     tokens = line[line.find(SIEVE_AFTER_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
         return OperatorRead(
-            tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6]
+            tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6], tokens[7]
         )
     else:
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
         assert tokens[2].endswith("list")
-        return OperatorRead(tokens[1], tokens[2][:-4], "", "", tokens[3], tokens[4])
+        return OperatorRead(
+            tokens[1], tokens[2][:-4], "", "", tokens[3], tokens[4], tokens[5]
+        )
 
 
 def parse_operator_hear_id_only(line: str) -> OperatorHearIDOnly:

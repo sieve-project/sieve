@@ -110,21 +110,24 @@ type NotifyLearnAfterSideEffectsRequest struct {
 	SideEffectType string
 	Object         string
 	ResourceType   string
+	ReconcilerType string
 	Error          string
 }
 
 type NotifyLearnAfterOperatorGetRequest struct {
-	ResourceType string
-	Namespace    string
-	Name         string
-	Object       string
-	Error        string
+	ResourceType   string
+	Namespace      string
+	Name           string
+	Object         string
+	ReconcilerType string
+	Error          string
 }
 
 type NotifyLearnAfterOperatorListRequest struct {
-	ResourceType string
-	ObjectList   string
-	Error        string
+	ResourceType   string
+	ObjectList     string
+	ReconcilerType string
+	Error          string
 }
 
 type NotifyIntmdStateAfterOperatorGetRequest struct {

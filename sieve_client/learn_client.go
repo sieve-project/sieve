@@ -200,6 +200,10 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 	if sideEffectID == -1 {
 		return
 	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
 	// log.Printf("[sieve][NotifyLearnAfterSideEffects] %v\n", reflect.TypeOf(object))
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
@@ -220,6 +224,7 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 		SideEffectType: sideEffectType,
 		Object:         string(jsonObject),
 		ResourceType:   regularizeType(object),
+		ReconcilerType: reconcilerType,
 		Error:          errorString,
 	}
 	var response Response
@@ -239,6 +244,10 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 	if !checkStage(LEARN) {
 		return
 	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
@@ -255,11 +264,12 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyLearnAfterOperatorGetRequest{
-		ResourceType: regularizeType(object),
-		Namespace:    namespacedName.Namespace,
-		Name:         namespacedName.Name,
-		Object:       string(jsonObject),
-		Error:        errorString,
+		ResourceType:   regularizeType(object),
+		Namespace:      namespacedName.Namespace,
+		Name:           namespacedName.Name,
+		Object:         string(jsonObject),
+		ReconcilerType: reconcilerType,
+		Error:          errorString,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterOperatorGet", request, &response)
@@ -278,6 +288,10 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 	if !checkStage(LEARN) {
 		return
 	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
@@ -294,9 +308,10 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyLearnAfterOperatorListRequest{
-		ResourceType: regularizeType(object),
-		ObjectList:   string(jsonObject),
-		Error:        errorString,
+		ResourceType:   regularizeType(object),
+		ObjectList:     string(jsonObject),
+		ReconcilerType: reconcilerType,
+		Error:          errorString,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterOperatorList", request, &response)

@@ -162,19 +162,19 @@ func (s *learnServer) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBef
 }
 
 func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ResourceType, request.ReconcilerType, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnAfterOperatorGet(request *sieve.NotifyLearnAfterOperatorGetRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.ReconcilerType, request.Error, request.Object)}
 	*response = sieve.Response{Message: "Get", Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnAfterOperatorList(request *sieve.NotifyLearnAfterOperatorListRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s\t%s\t%s", request.ResourceType, request.ReconcilerType, request.Error, request.ObjectList)}
 	*response = sieve.Response{Message: "List", Ok: true}
 	return nil
 }
