@@ -317,7 +317,7 @@
                                     }
                                 ],
                                 "image": "ghcr.io/sieve-project/action/nifikop-operator:learn",
-                                "imagePullPolicy": "Always",
+                                "imagePullPolicy": "IfNotPresent",
                                 "livenessProbe": {
                                     "failureThreshold": 3,
                                     "httpGet": {
@@ -384,7 +384,7 @@
                     {
                         "lastTransitionTime": "SIEVE-IGNORE",
                         "lastUpdateTime": "SIEVE-IGNORE",
-                        "message": "ReplicaSet \"nifikop-operator-5d9557d9dd\" has successfully progressed.",
+                        "message": "ReplicaSet \"nifikop-operator-75bbb6d6\" has successfully progressed.",
                         "reason": "NewReplicaSetAvailable",
                         "status": "True",
                         "type": "Progressing"
@@ -578,7 +578,7 @@
                     "lastSuccess": "SIEVE-IGNORE"
                 },
                 "rootProcessGroupId": "SIEVE-IGNORE",
-                "state": "ClusterReconciling"
+                "state": "ClusterRollingUpgrading"
             }
         }
     },
@@ -693,11 +693,11 @@
                 "phase": "Bound"
             }
         },
-        "simplenifi-1-storage8dsn7": "SIEVE-IGNORE"
+        "simplenifi-1-storage8gl8g": "SIEVE-IGNORE"
     },
     "pod": {
-        "nifikop-operator-5d9557d9dd-wnktw": "SIEVE-IGNORE",
-        "simplenifi-1-nodejrgxk": "SIEVE-IGNORE",
+        "nifikop-operator-75bbb6d6-8566t": "SIEVE-IGNORE",
+        "simplenifi-1-nodeh5dtr": "SIEVE-IGNORE",
         "zookeeper-0": {
             "metadata": {
                 "creationTimestamp": "SIEVE-IGNORE",
@@ -730,7 +730,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"32618205-3db8-47c4-ab07-3319f6ef6a30\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"cd872d6f-5177-4074-bb92-ba391279cb80\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1010,7 +1010,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.4\"}": {
+                                    "k:{\"ip\":\"10.244.2.6\"}": {
                                         ".": {},
                                         "f:ip": {}
                                     }
@@ -1020,7 +1020,7 @@
                         },
                         "manager": "kubelet",
                         "operation": "Update",
-                        "time": "2022-01-23T11:56:40Z"
+                        "time": "2022-01-24T08:58:20Z"
                     }
                 ],
                 "name": "zookeeper-0",
@@ -1321,10 +1321,10 @@
                 ],
                 "hostIP": "SIEVE-IGNORE",
                 "phase": "Running",
-                "podIP": "10.244.2.4",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.2.4"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Guaranteed",
@@ -1333,7 +1333,7 @@
         }
     },
     "replicaset": {
-        "nifikop-operator-5d9557d9dd": {
+        "nifikop-operator-75bbb6d6": {
             "metadata": {
                 "annotations": {
                     "deployment.kubernetes.io/desired-replicas": "1",
@@ -1349,7 +1349,7 @@
                     "control-plane": "nifikop",
                     "name": "nifikop",
                     "operator": "nifi",
-                    "pod-template-hash": "5d9557d9dd",
+                    "pod-template-hash": "75bbb6d6",
                     "release": "nifikop-operator",
                     "sievetag": "nifikop-operator"
                 },
@@ -1379,7 +1379,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"f0ff8010-eef4-4962-88b3-3397dba913d1\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"d050558c-81b3-4f04-8086-1c096bf4566d\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1531,7 +1531,7 @@
                         "time": "SIEVE-IGNORE"
                     }
                 ],
-                "name": "nifikop-operator-5d9557d9dd",
+                "name": "nifikop-operator-75bbb6d6",
                 "namespace": "default",
                 "ownerReferences": [
                     {
@@ -1544,7 +1544,7 @@
                     }
                 ],
                 "resourceVersion": "SIEVE-IGNORE",
-                "selfLink": "/apis/apps/v1/namespaces/default/replicasets/nifikop-operator-5d9557d9dd",
+                "selfLink": "/apis/apps/v1/namespaces/default/replicasets/nifikop-operator-75bbb6d6",
                 "uid": "SIEVE-IGNORE"
             },
             "spec": {
@@ -1553,7 +1553,7 @@
                     "matchLabels": {
                         "control-plane": "nifikop",
                         "name": "nifikop",
-                        "pod-template-hash": "5d9557d9dd",
+                        "pod-template-hash": "75bbb6d6",
                         "sievetag": "nifikop-operator"
                     }
                 },
@@ -1565,7 +1565,7 @@
                             "control-plane": "nifikop",
                             "name": "nifikop",
                             "operator": "nifi",
-                            "pod-template-hash": "5d9557d9dd",
+                            "pod-template-hash": "75bbb6d6",
                             "release": "nifikop-operator",
                             "sievetag": "nifikop-operator"
                         }
@@ -1619,7 +1619,7 @@
                                     }
                                 ],
                                 "image": "ghcr.io/sieve-project/action/nifikop-operator:learn",
-                                "imagePullPolicy": "Always",
+                                "imagePullPolicy": "IfNotPresent",
                                 "livenessProbe": {
                                     "failureThreshold": 3,
                                     "httpGet": {
@@ -1682,7 +1682,7 @@
         }
     },
     "secret": {
-        "default-token-2jvbq": "SIEVE-IGNORE",
+        "default-token-2s4lb": "SIEVE-IGNORE",
         "sh.helm.release.v1.nifikop-operator.v1": {
             "data": {
                 "release": "SIEVE-IGNORE"
@@ -1825,7 +1825,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1be8ff9a-c55c-4dff-8bc8-1cf5919b71e2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"781dd5b4-179e-40f9-bb81-4b563d7665d6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:type": {}
@@ -1884,7 +1884,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1be8ff9a-c55c-4dff-8bc8-1cf5919b71e2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"781dd5b4-179e-40f9-bb81-4b563d7665d6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2003,7 +2003,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "150",
+                "resourceVersion": "153",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -2053,7 +2053,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1be8ff9a-c55c-4dff-8bc8-1cf5919b71e2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"781dd5b4-179e-40f9-bb81-4b563d7665d6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2162,7 +2162,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1be8ff9a-c55c-4dff-8bc8-1cf5919b71e2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"781dd5b4-179e-40f9-bb81-4b563d7665d6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2269,7 +2269,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1be8ff9a-c55c-4dff-8bc8-1cf5919b71e2\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"781dd5b4-179e-40f9-bb81-4b563d7665d6\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
