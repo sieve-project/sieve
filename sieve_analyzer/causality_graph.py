@@ -417,6 +417,8 @@ class CausalityGraph:
                         if (
                             operator_read.reconciler_type
                             == operator_write.reconciler_type
+                            and operator_read.reconcile_id
+                            == operator_write.reconcile_id
                         ):
                             prev_read_obj_map = operator_read.key_to_obj[key]
                             prev_read_etype = operator_read.etype

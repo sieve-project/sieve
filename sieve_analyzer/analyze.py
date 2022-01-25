@@ -148,8 +148,17 @@ def parse_reconciler_events(path):
             operator_write_id_map[operator_write.id] = operator_write
             ts_to_event_map[operator_write.start_timestamp] = operator_write
         elif SIEVE_AFTER_READ_MARK in line:
+            # TODO: handle the reads that are not in any reconcile
+            if len(ongoing_reconciles) == 0:
+                continue
             operator_read = parse_operator_read(line)
+            if operator_read.reconciler_type == "unknown":
+                continue
             operator_read.end_timestamp = i
+            assert operator_read.reconciler_type in cur_reconcile_per_type
+            cur_reconcile = cur_reconcile_per_type[operator_read.reconciler_type]
+            operator_read.reconcile_id = cur_reconcile.round_id
+
             ts_to_event_map[operator_read.end_timestamp] = operator_read
             if operator_read.etype == "Get":
                 read_keys_this_reconcile.update(operator_read.key_set)

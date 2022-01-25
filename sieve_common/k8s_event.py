@@ -514,6 +514,7 @@ class OperatorRead:
         self.__etype = etype
         self.__rtype = rtype
         self.__reconciler_type = reconciler_type
+        self.__reconcile_id = -1
         self.__error = error
         self.__key_to_obj = {}
         self.__key_set = set()
@@ -550,6 +551,10 @@ class OperatorRead:
         return self.__reconciler_type
 
     @property
+    def reconcile_id(self):
+        return self.__reconcile_id
+
+    @property
     def error(self):
         return self.__error
 
@@ -568,6 +573,10 @@ class OperatorRead:
     @end_timestamp.setter
     def end_timestamp(self, end_timestamp: int):
         self.__end_timestamp = end_timestamp
+
+    @reconcile_id.setter
+    def reconcile_id(self, reconcile_id: int):
+        self.__reconcile_id = reconcile_id
 
 
 class OperatorHearIDOnly:
