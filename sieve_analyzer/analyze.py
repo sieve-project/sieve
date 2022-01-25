@@ -100,8 +100,8 @@ def parse_reconciler_events(path):
     operator_write_id_to_start_ts_map = {}
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
-    prev_reconcile_start_timestamp = {}
-    cur_reconcile_start_timestamp = {}
+    prev_reconcile_per_type = {}
+    cur_reconcile_per_type = {}
     cur_reconcile_is_trivial = {}
     ts_to_event_map = {}
     # there could be multiple controllers running concurrently
@@ -121,6 +121,7 @@ def parse_reconciler_events(path):
                 cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the operator_write since it is not caused by reconcile
             # though it should not happen at all.
+            # TODO: handle the writes that are not in any reconcile
             if len(ongoing_reconciles) == 0:
                 continue
             operator_write = parse_operator_write(line)
@@ -133,16 +134,15 @@ def parse_reconciler_events(path):
                 operator_write.id
             ]
             operator_write.end_timestamp = i
-            # We want to find the earliest timestamp before which any operator_hear will not affect the operator_write.
-            # The earlies timestamp should be min(the timestamp of the previous reconcile start of all ongoing reconciles).
-            # One special case is that at least one of the ongoing reconcile is the first reconcile of that controller.
-            # In that case we will use -1 as the earliest timestamp:
-            # we do not pose constraint on operator_hear end time in range_overlap.
-            earliest_timestamp = i
-            for controller_name in ongoing_reconciles:
-                if prev_reconcile_start_timestamp[controller_name] < earliest_timestamp:
-                    earliest_timestamp = prev_reconcile_start_timestamp[controller_name]
+            assert operator_write.reconciler_type in cur_reconcile_per_type
+            prev_reconcile = prev_reconcile_per_type[operator_write.reconciler_type]
+            cur_reconcile = cur_reconcile_per_type[operator_write.reconciler_type]
+            earliest_timestamp = -1
+            if prev_reconcile is not None:
+                earliest_timestamp = prev_reconcile.end_timestamp
             operator_write.set_range(earliest_timestamp, i)
+            operator_write.reconcile_id = cur_reconcile.round_id
+
             operator_write_id_map[operator_write.id] = operator_write
             ts_to_event_map[operator_write.start_timestamp] = operator_write
         elif SIEVE_AFTER_READ_MARK in line:
@@ -165,23 +165,23 @@ def parse_reconciler_events(path):
                 ongoing_reconciles[controller_name] += 1
             # let's assume there should be only one worker for each controller here
             assert ongoing_reconciles[controller_name] == 1
-            # We use -1 as the initial value in any prev_reconcile_start_timestamp[controller_name]
-            # which is super important.
-            if controller_name not in cur_reconcile_start_timestamp:
-                cur_reconcile_start_timestamp[controller_name] = -1
-                cur_reconcile_is_trivial[controller_name] = False
-            if (not sieve_config["compress_trivial_reconcile"]) or (
-                sieve_config["compress_trivial_reconcile"]
-                and not cur_reconcile_is_trivial[controller_name]
-            ):
-                # When compress_trivial_reconcile is disabled, we directly set prev_reconcile_start_timestamp
-                # When compress_trivial_reconcile is enabled, we do not set prev_reconcile_start_timestamp
-                # if no operator_writes happen during the last reconcile
-                prev_reconcile_start_timestamp[
-                    controller_name
-                ] = cur_reconcile_start_timestamp[controller_name]
-            cur_reconcile_start_timestamp[controller_name] = i
-            # Reset cur_reconcile_is_trivial[controller_name] to True as a new round of reconcile just starts
+            if controller_name not in cur_reconcile_per_type:
+                prev_reconcile_per_type[controller_name] = None
+                cur_reconcile_per_type[controller_name] = reconcile_begin
+            else:
+                if not sieve_config["compress_trivial_reconcile"]:
+                    prev_reconcile_per_type[controller_name] = cur_reconcile_per_type[
+                        controller_name
+                    ]
+                    cur_reconcile_per_type[controller_name] = reconcile_begin
+                elif (
+                    sieve_config["compress_trivial_reconcile"]
+                    and not cur_reconcile_is_trivial[controller_name]
+                ):
+                    prev_reconcile_per_type[controller_name] = cur_reconcile_per_type[
+                        controller_name
+                    ]
+                    cur_reconcile_per_type[controller_name] = reconcile_begin
             cur_reconcile_is_trivial[controller_name] = True
         elif SIEVE_AFTER_RECONCILE_MARK in line:
             reconcile_end = parse_reconcile(line)
@@ -207,6 +207,8 @@ def base_pass(
     vertex_pairs = []
     for operator_write_vertex in operator_write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
+            if operator_write_vertex.content.reconcile_id == -1:
+                continue
             # operator_hears can lead to that operator_write
             hear_within_reconcile_scope = (
                 operator_write_vertex.content.range_start_timestamp

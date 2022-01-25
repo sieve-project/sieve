@@ -343,6 +343,7 @@ class OperatorWrite:
         self.__etype = etype
         self.__rtype = rtype
         self.__reconciler_type = reconciler_type
+        self.__reconcile_id = -1
         self.__error = error
         self.__obj_str = obj_str
         self.__obj_map = json.loads(obj_str)
@@ -376,6 +377,10 @@ class OperatorWrite:
     @property
     def reconciler_type(self):
         return self.__reconciler_type
+
+    @property
+    def reconcile_id(self):
+        return self.__reconcile_id
 
     @property
     def error(self):
@@ -448,6 +453,10 @@ class OperatorWrite:
     @property
     def signature_counter(self):
         return self.__signature_counter
+
+    @reconcile_id.setter
+    def reconcile_id(self, reconcile_id: int):
+        self.__reconcile_id = reconcile_id
 
     @start_timestamp.setter
     def start_timestamp(self, start_timestamp: int):
