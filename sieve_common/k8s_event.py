@@ -598,14 +598,14 @@ class OperatorWriteIDOnly:
 
 
 class ReconcileBegin:
-    def __init__(self, controller_name: str, round_id: str):
-        self.__controller_name = controller_name
+    def __init__(self, reconciler_type: str, round_id: str):
+        self.__reconciler_type = reconciler_type
         self.__round_id = round_id
         self.__end_timestamp = -1
 
     @property
-    def controller_name(self):
-        return self.__controller_name
+    def reconciler_type(self):
+        return self.__reconciler_type
 
     @property
     def round_id(self):
@@ -621,14 +621,14 @@ class ReconcileBegin:
 
 
 class ReconcileEnd:
-    def __init__(self, controller_name: str, round_id: str):
-        self.__controller_name = controller_name
+    def __init__(self, reconciler_type: str, round_id: str):
+        self.__reconciler_type = reconciler_type
         self.__round_id = round_id
         self.__end_timestamp = -1
 
     @property
-    def controller_name(self):
-        return self.__controller_name
+    def reconciler_type(self):
+        return self.__reconciler_type
 
     @property
     def round_id(self):
