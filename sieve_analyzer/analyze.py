@@ -1,5 +1,4 @@
 import copy
-import optparse
 import os
 import shutil
 from typing import List
@@ -9,7 +8,6 @@ from sieve_common.common import (
     TestContext,
     fail,
     sieve_modes,
-    sieve_stages,
 )
 from controllers import *
 
@@ -22,7 +20,6 @@ from sieve_common.k8s_event import *
 from sieve_analyzer.causality_graph import (
     CausalityGraph,
     CausalityVertex,
-    CausalityEdge,
 )
 
 
@@ -136,8 +133,8 @@ def parse_reconciler_events(path):
                 operator_write.id
             ]
             operator_write.end_timestamp = i
-            # We want to find the earilest timestamp before which any operator_hear will not affect the operator_write.
-            # The earlies timestamp should be min(the timestamp of the previous reconcile start of all ongoing reconiles).
+            # We want to find the earliest timestamp before which any operator_hear will not affect the operator_write.
+            # The earlies timestamp should be min(the timestamp of the previous reconcile start of all ongoing reconciles).
             # One special case is that at least one of the ongoing reconcile is the first reconcile of that controller.
             # In that case we will use -1 as the earliest timestamp:
             # we do not pose constraint on operator_hear end time in range_overlap.
