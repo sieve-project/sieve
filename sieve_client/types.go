@@ -92,13 +92,11 @@ type NotifyLearnAfterIndexerWriteRequest struct {
 }
 
 type NotifyLearnBeforeReconcileRequest struct {
-	ControllerName string
-	ControllerAddr string
+	ReconcilerName string
 }
 
 type NotifyLearnAfterReconcileRequest struct {
-	ControllerName string
-	ControllerAddr string
+	ReconcilerName string
 }
 
 type NotifyLearnBeforeSideEffectsRequest struct {

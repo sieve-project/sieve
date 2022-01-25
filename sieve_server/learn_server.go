@@ -135,10 +135,15 @@ func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sieve.NotifyLearnAft
 }
 
 func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBeforeReconcileRequest, response *sieve.Response) error {
-	recID := request.ControllerName + request.ControllerAddr
-	waitingCh := make(chan int32)
+	recID := request.ReconcilerName
 	// We assume there is only one worker for one reconciler
-	s.reconcileChMap.Store(recID, waitingCh)
+	if obj, ok := s.reconcileChMap.Load(recID); ok {
+		if obj != nil {
+			log.Fatal("object in reconcileChMap should be nil if exist when NotifyLearnBeforeReconcile")
+		}
+	}
+	waitingCh := make(chan int32)
+	s.reconcileChMap.Store(recID, waitingCh) // set the value to the channel when the reconcile starts
 	s.notificationCh <- notificationWrapper{ntype: beforeReconcile, payload: recID}
 	<-waitingCh
 	*response = sieve.Response{Ok: true}
@@ -146,7 +151,16 @@ func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBefor
 }
 
 func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterReconcileRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterReconcile, payload: request.ControllerName + request.ControllerAddr}
+	recID := request.ReconcilerName
+	if obj, ok := s.reconcileChMap.Load(recID); ok {
+		if obj == nil {
+			log.Fatal("object in reconcileChMap should not be nil when NotifyLearnAfterReconcile")
+		}
+	} else {
+		log.Fatal("object in reconcileChMap should exist when NotifyLearnAfterReconcile")
+	}
+	s.reconcileChMap.Store(recID, nil) // set value to nil when the reconcile ends
+	s.notificationCh <- notificationWrapper{ntype: afterReconcile, payload: recID}
 	*response = sieve.Response{Ok: true}
 	return nil
 }

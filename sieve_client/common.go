@@ -229,7 +229,7 @@ func isSameObjectClientSide(object interface{}, namespace string, name string) b
 func getReconcilerFromStackTrace() string {
 	// reflect.TypeOf(c.Do).String(): *controllers.NifiClusterTaskReconciler
 	stacktrace := string(debug.Stack())
-	log.Println(stacktrace)
+	// log.Println(stacktrace)
 	stacks := strings.Split(stacktrace, "\n")
 	var stacksPruned []string
 	for _, stack := range stacks {

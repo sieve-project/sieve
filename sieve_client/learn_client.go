@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -109,7 +110,7 @@ func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
 	client.Close()
 }
 
-func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}) {
+func NotifyLearnBeforeReconcile(reconciler interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
@@ -122,9 +123,9 @@ func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}
 		printError(err, SIEVE_CONN_ERR)
 		return
 	}
+	reconcilerName := fmt.Sprintf("%s.(*%s)", reflect.TypeOf(reconciler).Elem().PkgPath(), reflect.TypeOf(reconciler).Elem().Name())
 	request := &NotifyLearnBeforeReconcileRequest{
-		ControllerName: controllerName,
-		ControllerAddr: fmt.Sprintf("%p", controllerPtr),
+		ReconcilerName: reconcilerName,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnBeforeReconcile", request, &response)
@@ -136,7 +137,7 @@ func NotifyLearnBeforeReconcile(controllerName string, controllerPtr interface{}
 	client.Close()
 }
 
-func NotifyLearnAfterReconcile(controllerName string, controllerPtr interface{}) {
+func NotifyLearnAfterReconcile(reconciler interface{}) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
@@ -149,9 +150,9 @@ func NotifyLearnAfterReconcile(controllerName string, controllerPtr interface{})
 		printError(err, SIEVE_CONN_ERR)
 		return
 	}
-	request := &NotifyLearnAfterReconcileRequest{
-		ControllerName: controllerName,
-		ControllerAddr: fmt.Sprintf("%p", controllerPtr),
+	reconcilerName := fmt.Sprintf("%s.(*%s)", reflect.TypeOf(reconciler).Elem().PkgPath(), reflect.TypeOf(reconciler).Elem().Name())
+	request := &NotifyLearnBeforeReconcileRequest{
+		ReconcilerName: reconcilerName,
 	}
 	var response Response
 	err = client.Call("LearnListener.NotifyLearnAfterReconcile", request, &response)
