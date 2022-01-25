@@ -17,7 +17,7 @@ func NotifyIntmdStateAfterOperatorGet(readType string, namespacedName types.Name
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
+	if reconcilerType != config["se-reconciler-type"] {
 		return
 	}
 	rType := regularizeType(object)
@@ -67,7 +67,7 @@ func NotifyIntmdStateAfterOperatorList(readType string, object interface{}, k8sE
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
+	if reconcilerType != config["se-reconciler-type"] {
 		return
 	}
 	rType := regularizeType(object)
@@ -112,7 +112,7 @@ func NotifyIntmdStateAfterSideEffects(sideEffectID int, sideEffectType string, o
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
+	if reconcilerType != config["se-reconciler-type"] {
 		return
 	}
 	errorString := "NoError"
