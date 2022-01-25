@@ -125,6 +125,8 @@ def parse_reconciler_events(path):
             if len(ongoing_reconciles) == 0:
                 continue
             operator_write = parse_operator_write(line)
+            if operator_write.reconciler_type == "unknown":
+                continue
             # Do deepcopy here to ensure the later changes to the two sets
             # will not affect this operator_write.
             # cache read during that possible interval
