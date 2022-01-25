@@ -598,9 +598,9 @@ class OperatorWriteIDOnly:
 
 
 class ReconcileBegin:
-    def __init__(self, reconciler_type: str, round_id: str):
+    def __init__(self, reconciler_type: str, reconcile_id: str):
         self.__reconciler_type = reconciler_type
-        self.__round_id = round_id
+        self.__reconcile_id = reconcile_id
         self.__end_timestamp = -1
 
     @property
@@ -608,8 +608,8 @@ class ReconcileBegin:
         return self.__reconciler_type
 
     @property
-    def round_id(self):
-        return self.__round_id
+    def reconcile_id(self):
+        return self.__reconcile_id
 
     @property
     def end_timestamp(self):
@@ -621,9 +621,9 @@ class ReconcileBegin:
 
 
 class ReconcileEnd:
-    def __init__(self, reconciler_type: str, round_id: str):
+    def __init__(self, reconciler_type: str, reconcile_id: str):
         self.__reconciler_type = reconciler_type
-        self.__round_id = round_id
+        self.__reconcile_id = reconcile_id
         self.__end_timestamp = -1
 
     @property
@@ -631,8 +631,8 @@ class ReconcileEnd:
         return self.__reconciler_type
 
     @property
-    def round_id(self):
-        return self.__round_id
+    def reconcile_id(self):
+        return self.__reconcile_id
 
     @property
     def end_timestamp(self):

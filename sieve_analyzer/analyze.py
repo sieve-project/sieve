@@ -144,7 +144,7 @@ def parse_reconciler_events(path):
             if prev_reconcile is not None:
                 earliest_timestamp = prev_reconcile.end_timestamp
             operator_write.set_range(earliest_timestamp, i)
-            operator_write.reconcile_id = cur_reconcile.round_id
+            operator_write.reconcile_id = cur_reconcile.reconcile_id
 
             operator_write_id_map[operator_write.id] = operator_write
             ts_to_event_map[operator_write.start_timestamp] = operator_write
@@ -158,7 +158,7 @@ def parse_reconciler_events(path):
             operator_read.end_timestamp = i
             assert operator_read.reconciler_type in cur_reconcile_per_type
             cur_reconcile = cur_reconcile_per_type[operator_read.reconciler_type]
-            operator_read.reconcile_id = cur_reconcile.round_id
+            operator_read.reconcile_id = cur_reconcile.reconcile_id
 
             ts_to_event_map[operator_read.end_timestamp] = operator_read
             if operator_read.etype == "Get":
