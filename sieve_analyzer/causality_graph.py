@@ -404,35 +404,23 @@ class CausalityGraph:
                 operator_write = operator_write_vertex.content
                 key = operator_write.key
                 if key in self.operator_read_key_to_vertices:
-                    for i in range(len(self.operator_read_key_to_vertices[key])):
-                        operator_read = self.operator_read_key_to_vertices[key][
-                            i
-                        ].content
-                        # if the first read happens after write, break
-                        if (
-                            i == 0
-                            and operator_read.end_timestamp
-                            > operator_write.start_timestamp
-                        ):
+                    for operator_read_vertex in self.operator_read_key_to_vertices[key]:
+                        operator_read = operator_read_vertex.content
+                        # TODO: we should only consider the read in the same reconcile round as the write
+                        # if the read happens after write, break
+                        if operator_read.end_timestamp > operator_write.start_timestamp:
                             break
-                        # if this is not the latest read before the write, continue
-                        if i != len(self.operator_read_key_to_vertices[key]) - 1:
-                            next_operator_read = self.operator_read_key_to_vertices[
-                                key
-                            ][i + 1].content
-                            if (
-                                next_operator_read.end_timestamp
-                                < operator_write.start_timestamp
-                            ):
-                                continue
-
                         assert operator_write.key in operator_read.key_set
                         assert (
                             operator_read.end_timestamp < operator_write.start_timestamp
                         )
-                        prev_read_obj_map = operator_read.key_to_obj[key]
-                        prev_read_etype = operator_read.etype
-                        break
+                        if (
+                            operator_read.reconciler_type
+                            == operator_write.reconciler_type
+                        ):
+                            prev_read_obj_map = operator_read.key_to_obj[key]
+                            prev_read_etype = operator_read.etype
+
                 masked_keys, masked_paths = self.retrieve_masked(
                     operator_write.rtype, operator_write.name
                 )
