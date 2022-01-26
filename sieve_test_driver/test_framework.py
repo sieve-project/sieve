@@ -131,6 +131,7 @@ class TestCmd:
         self.cmd = cmd
 
     def run(self, mode) -> Tuple[int, str]:
+        print()
         print(self.cmd)
         # TODO: need to check the return code of the cmd
         proc = subprocess.Popen(self.cmd, shell=True)
@@ -703,6 +704,7 @@ class BuiltInWorkLoad:
                     f.write("error: " + error_message + "\n")
                     if return_code == 2:
                         return
+            print()
             print(
                 "wait for final grace period %s seconds"
                 % (str(self.final_grace_period))
