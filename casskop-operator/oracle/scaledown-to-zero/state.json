@@ -13,7 +13,7 @@
                 "finalizers": [
                     "kubernetes.io/pvc-to-delete"
                 ],
-                "generation": 17,
+                "generation": 16,
                 "labels": {
                     "cluster": "k8s.kaas"
                 },
@@ -78,7 +78,7 @@
                 "cassandraNodeStatus": {
                     "cassandra-cluster-dc1-rack1-0": {
                         "hostId": "SIEVE-IGNORE",
-                        "nodeIp": "10.244.2.4"
+                        "nodeIp": "SIEVE-IGNORE"
                     },
                     "cassandra-cluster-dc1-rack1-1": {
                         "hostId": "SIEVE-IGNORE",
@@ -449,7 +449,7 @@
                     "pv.kubernetes.io/bind-completed": "yes",
                     "pv.kubernetes.io/bound-by-controller": "yes",
                     "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-                    "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+                    "volume.kubernetes.io/selected-node": "kind-worker"
                 },
                 "creationTimestamp": "SIEVE-IGNORE",
                 "finalizers": [
@@ -589,7 +589,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"d3b680fc-fbd1-4ad2-88e6-69237828ae2d\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"372b11e0-9fe4-495b-80c0-02bea4f15bd2\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1099,10 +1099,7 @@
                                 "f:podIP": {},
                                 "f:podIPs": {
                                     ".": {},
-                                    "k:{\"ip\":\"10.244.2.4\"}": {
-                                        ".": {},
-                                        "f:ip": {}
-                                    }
+                                    "k:{\"ip\":\"10.244.2.4\"}": "SIEVE-IGNORE"
                                 },
                                 "f:startTime": {}
                             }
@@ -1509,7 +1506,7 @@
                         ]
                     }
                 ],
-                "nodeName": "SIEVE-IGNORE",
+                "nodeName": "kind-worker",
                 "priority": 0,
                 "restartPolicy": "Always",
                 "schedulerName": "default-scheduler",
@@ -1674,17 +1671,17 @@
                     }
                 ],
                 "phase": "Running",
-                "podIP": "10.244.2.4",
+                "podIP": "SIEVE-IGNORE",
                 "podIPs": [
                     {
-                        "ip": "10.244.2.4"
+                        "ip": "SIEVE-IGNORE"
                     }
                 ],
                 "qosClass": "Guaranteed",
                 "startTime": "SIEVE-IGNORE"
             }
         },
-        "casskop-operator-546674cfdd-kbbqm": "SIEVE-IGNORE"
+        "casskop-operator-546674cfdd-2vwlm": "SIEVE-IGNORE"
     },
     "replicaset": {
         "casskop-operator-546674cfdd": {
@@ -1731,7 +1728,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1323c9dc-8e70-42d5-bf88-c53f1eaf95a8\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0b72ef0d-0525-46aa-93fe-cca2c1b8a8aa\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -1964,9 +1961,9 @@
         }
     },
     "secret": {
-        "cassandra-cluster-node-token-5sb2z": "SIEVE-IGNORE",
-        "cassandra-operator-token-ppsmt": "SIEVE-IGNORE",
-        "default-token-299cm": "SIEVE-IGNORE",
+        "cassandra-cluster-node-token-68hrl": "SIEVE-IGNORE",
+        "cassandra-operator-token-kvm9r": "SIEVE-IGNORE",
+        "default-token-t5pml": "SIEVE-IGNORE",
         "sh.helm.release.v1.casskop-operator.v1": {
             "data": {
                 "release": "SIEVE-IGNORE"
@@ -2038,7 +2035,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"82455b62-8978-444c-9291-51d31adc5560\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"fa8be141-6fca-494f-852b-7b36253aa84f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2131,7 +2128,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"82455b62-8978-444c-9291-51d31adc5560\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"fa8be141-6fca-494f-852b-7b36253aa84f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2216,7 +2213,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"1323c9dc-8e70-42d5-bf88-c53f1eaf95a8\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"0b72ef0d-0525-46aa-93fe-cca2c1b8a8aa\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
@@ -2321,7 +2318,7 @@
                 ],
                 "name": "kubernetes",
                 "namespace": "default",
-                "resourceVersion": "153",
+                "resourceVersion": "SIEVE-IGNORE",
                 "selfLink": "/api/v1/namespaces/default/services/kubernetes",
                 "uid": "SIEVE-IGNORE"
             },
@@ -2380,7 +2377,7 @@
                                 },
                                 "f:ownerReferences": {
                                     ".": {},
-                                    "k:{\"uid\":\"82455b62-8978-444c-9291-51d31adc5560\"}": "SIEVE-IGNORE"
+                                    "k:{\"uid\":\"fa8be141-6fca-494f-852b-7b36253aa84f\"}": "SIEVE-IGNORE"
                                 }
                             },
                             "f:spec": {
