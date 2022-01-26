@@ -252,6 +252,9 @@ def compare_states(test_context: TestContext):
 
     ret_val = 0
     messages = []
+    resource_existence_messages = []
+    fields_diff_messages = []
+    fields_existence_messages = []
 
     def nested_get(dic, keys):
         for key in keys:
@@ -314,7 +317,12 @@ def compare_states(test_context: TestContext):
             namespace = nested_get(source, path[:2] + ["metadata", "namespace"])
 
             resource_key = "/".join([resource_type, namespace, name])
-            field_key = "/".join(map(str, path[2:]))
+            field_key = ""
+            for field in map(str, path[2:]):
+                if field.isdigit():
+                    field_key += "[%s]" % field
+                else:
+                    field_key += '["%s"]' % field
 
             if resource_state_masked(
                 name,
@@ -328,58 +336,63 @@ def compare_states(test_context: TestContext):
 
             ret_val += 1
             if delta_type in ["dictionary_item_added", "iterable_item_added"]:
-                messages.append(
+                fields_existence_messages.append(
                     generate_alarm(
                         "End state inconsistency - more object fields than reference:",
-                        "{} {} {} {} {}".format(
+                        "{}{} {} {} {}".format(
                             resource_key,
                             field_key,
-                            "not seen during learning run, but seen as",
+                            "not seen after learning run, but seen as",
                             key.t2,
-                            "during testing run",
+                            "after testing run",
                         ),
                     )
                 )
             elif delta_type in ["dictionary_item_removed", "iterable_item_removed"]:
-                messages.append(
+                learned_value = key.t1
+                if learned_value == SIEVE_LEARN_VALUE_MASK:
+                    learned_value = "a nondeterministic value"
+                fields_existence_messages.append(
                     generate_alarm(
                         "End state inconsistency - fewer object fields than reference:",
-                        "{} {} {} {} {}".format(
+                        "{}{} {} {} {}".format(
                             resource_key,
                             field_key,
                             "seen as",
-                            key.t1,
-                            "during learning run, but not seen during testing run",
+                            learned_value,
+                            "after learning run, but not seen after testing run",
                         ),
                     )
                 )
             elif delta_type == "values_changed":
-                messages.append(
+                fields_diff_messages.append(
                     generate_alarm(
                         "End state inconsistency - object field has a different value:",
-                        "{} {} {} {} {} {} {}".format(
+                        "{}{} {} {} {} {} {}".format(
                             resource_key,
                             field_key,
                             "is",
                             key.t1,
-                            "during learning run, but",
+                            "after learning run, but",
                             key.t2,
-                            "during testing run",
+                            "after testing run",
                         ),
                     )
                 )
             else:
-                messages.append(
+                # TODO: we should fail here
+                fields_diff_messages.append(
                     generate_alarm(
-                        "[RESOURCE-KEY-UNKNOWN-CHANGE]",
-                        "{} {} {} {} {} {} {}".format(
+                        "End state inconsistency - object field has a different value:",
+                        "{} {}{} {} {} {} {}".format(
                             delta_type,
                             resource_key,
                             field_key,
                             "is",
                             key.t1,
-                            " => ",
+                            "after learning run, but",
                             key.t2,
+                            "after testing run",
                         ),
                     )
                 )
@@ -393,14 +406,14 @@ def compare_states(test_context: TestContext):
             test_set = set(testing_state[resource_type].keys())
             if delta != 0:
                 ret_val += 1
-                messages.append(
+                resource_existence_messages.append(
                     generate_alarm(
                         "End state inconsistency - more objects than reference:"
                         if delta > 0
                         else "End state inconsistency - fewer objects than reference:",
                         "{} {} {} {} {} {} {} {} {}".format(
                             len(learn_set),
-                            resource_type,
+                            resource_type + " object(s)",
                             "seen after learning run",
                             sorted(learn_set),
                             "but",
@@ -421,12 +434,12 @@ def compare_states(test_context: TestContext):
                 ):
                     continue
                 ret_val += 1
-                messages.append(
+                resource_existence_messages.append(
                     generate_alarm(
                         "End state inconsistency - more objects than reference:",
                         "{} {}".format(
-                            "/".join([resource_type, name]),
-                            "is not seen during learning run, but seen during testing run",
+                            "/".join([resource_type, namespace, name]),
+                            "is not seen after learning run, but seen after testing run",
                         ),
                     )
                 )
@@ -438,15 +451,21 @@ def compare_states(test_context: TestContext):
                 ):
                     continue
                 ret_val += 1
-                messages.append(
+                resource_existence_messages.append(
                     generate_alarm(
                         "End state inconsistency - fewer objects than reference:",
                         "{} {}".format(
-                            "/".join([resource_type, name]),
-                            "is seen during learning run, but not seen during testing run",
+                            "/".join([resource_type, namespace, name]),
+                            "is seen after learning run, but not seen after testing run",
                         ),
                     )
                 )
 
-    messages.sort()
+    resource_existence_messages.sort()
+    fields_diff_messages.sort()
+    fields_existence_messages.sort()
+
+    messages = (
+        resource_existence_messages + fields_diff_messages + fields_existence_messages
+    )
     return ret_val, messages

@@ -282,11 +282,13 @@ def compare_history_digests(test_context: TestContext):
                 != canonicalized_events["keys"][key][etype]
             ):
                 ret_val += 1
+                rtype, namespace, name = api_key_to_rtype_namespace_name(key)
+                resource_key = "/".join([rtype, namespace, name])
                 messages.append(
                     generate_alarm(
                         "State-update summaries inconsistency:",
-                        "{} {} inconsistency: {} events seen during learning run, but {} seen during testing run".format(
-                            key,
+                        "{} {} inconsistency: {} event(s) seen during learning run, but {} seen during testing run".format(
+                            resource_key,
                             etype,
                             str(canonicalized_events["keys"][key][etype]),
                             str(testing_events["keys"][key][etype]),
