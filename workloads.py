@@ -41,7 +41,6 @@ workloads = {
         )
         .cmd("kubectl apply -f examples/casskop-operator/test/cc-1.yaml")
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING),
-        # TODO: use wait_for
         "reducepdb": new_built_in_workload(110)
         .cmd(
             "kubectl apply -f examples/casskop-operator/test/cassandra-configmap-v1.yaml"
@@ -60,18 +59,6 @@ workloads = {
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
         .wait_for_pod_status("cassandra-cluster-dc1-rack1-1", TERMINATED)
         .cmd("kubectl apply -f examples/casskop-operator/test/nodes-0.yaml"),
-        # TODO(wenqing): Please fix this test case. As hinted in the operator log, we have to first set nodePerRack to 0 before resizing the dc
-        # "scaledown": new_built_in_workload()
-        # .cmd("kubectl apply -f examples/casskop-operator/test/cassandra-configmap-v1.yaml")
-        # .cmd("kubectl apply -f examples/casskop-operator/test/dc-3.yaml")
-        # .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
-        # .wait_for_pod_status("cassandra-cluster-dc2-rack1-0", RUNNING)
-        # .wait_for_pod_status("cassandra-cluster-dc3-rack1-0", RUNNING)
-        # .cmd("kubectl apply -f examples/casskop-operator/test/dc-2.yaml")
-        # .wait_for_pod_status("cassandra-cluster-dc3-rack1-0", TERMINATED, 10)
-        # .cmd("kubectl apply -f examples/casskop-operator/test/dc-1.yaml")
-        # .wait_for_pod_status("cassandra-cluster-dc2-rack1-0", TERMINATED, 60)
-        # .wait(50),
     },
     "cass-operator": {
         "recreate": new_built_in_workload()
