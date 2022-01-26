@@ -459,6 +459,7 @@ def run_test(
             return ret_val, messages
         return 0, NO_ERROR_MESSAGE
     except Exception:
+        print(traceback.format_exc())
         return -4, generate_fatal(traceback.format_exc())
 
 

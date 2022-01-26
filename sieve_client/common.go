@@ -21,6 +21,7 @@ const UNOBSERVED_STATE string = "unobserved-state"
 const INTERMEDIATE_STATE string = "intermediate-state"
 const LEARN string = "learn"
 const TEST string = "test"
+const UNKNOWN_RECONCILER_TYPE = "unknown"
 
 // TODO(xudong): make SIEVE_SERVER_ADDR configurable
 const SIEVE_SERVER_ADDR string = "kind-control-plane:12345"
@@ -228,6 +229,7 @@ func isSameObjectClientSide(object interface{}, namespace string, name string) b
 func getReconcilerFromStackTrace() string {
 	// reflect.TypeOf(c.Do).String(): *controllers.NifiClusterTaskReconciler
 	stacktrace := string(debug.Stack())
+	// log.Println(stacktrace)
 	stacks := strings.Split(stacktrace, "\n")
 	var stacksPruned []string
 	for _, stack := range stacks {
@@ -236,11 +238,30 @@ func getReconcilerFromStackTrace() string {
 		}
 	}
 	reconcilerType := ""
-	for i, stack := range stacksPruned {
-		if strings.HasPrefix(stack, "sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler") {
-			reconcilerLayer := stacksPruned[i-1]
-			reconcilerType = reconcilerLayer[:strings.Index(reconcilerLayer, ".Reconcile(")]
-			break
+	for i := range stacksPruned {
+		// We parse the stacktrace from bottom
+		index := len(stacksPruned) - 1 - i
+		stack := stacksPruned[index]
+		if strings.HasPrefix(stack, "sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler(") {
+			if index > 0 {
+				upper_stack := stacksPruned[index-1]
+				if strings.HasPrefix(upper_stack, "sigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).Reconcile(") {
+					if index > 1 {
+						upper_upper_stack := stacksPruned[index-2]
+						if strings.Contains(upper_upper_stack, ".Reconcile(") && !strings.HasPrefix(upper_upper_stack, "sigs.k8s.io/controller-runtime/") {
+							reconcilerType = upper_upper_stack[:strings.Index(upper_upper_stack, ".Reconcile(")]
+							break
+						} else {
+							break
+						}
+					}
+				} else if strings.Contains(upper_stack, ".Reconcile(") && !strings.HasPrefix(upper_stack, "sigs.k8s.io/controller-runtime/") {
+					reconcilerType = upper_stack[:strings.Index(upper_stack, ".Reconcile(")]
+					break
+				} else {
+					break
+				}
+			}
 		}
 	}
 	return reconcilerType

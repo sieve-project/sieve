@@ -135,10 +135,15 @@ func (s *learnServer) NotifyLearnAfterIndexerWrite(request *sieve.NotifyLearnAft
 }
 
 func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBeforeReconcileRequest, response *sieve.Response) error {
-	recID := request.ControllerName + request.ControllerAddr
-	waitingCh := make(chan int32)
+	recID := request.ReconcilerName
 	// We assume there is only one worker for one reconciler
-	s.reconcileChMap.Store(recID, waitingCh)
+	if obj, ok := s.reconcileChMap.Load(recID); ok {
+		if obj != nil {
+			log.Fatal("object in reconcileChMap should be nil if exist when NotifyLearnBeforeReconcile")
+		}
+	}
+	waitingCh := make(chan int32)
+	s.reconcileChMap.Store(recID, waitingCh) // set the value to the channel when the reconcile starts
 	s.notificationCh <- notificationWrapper{ntype: beforeReconcile, payload: recID}
 	<-waitingCh
 	*response = sieve.Response{Ok: true}
@@ -146,7 +151,16 @@ func (s *learnServer) NotifyLearnBeforeReconcile(request *sieve.NotifyLearnBefor
 }
 
 func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterReconcileRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterReconcile, payload: request.ControllerName + request.ControllerAddr}
+	recID := request.ReconcilerName
+	if obj, ok := s.reconcileChMap.Load(recID); ok {
+		if obj == nil {
+			log.Fatal("object in reconcileChMap should not be nil when NotifyLearnAfterReconcile")
+		}
+	} else {
+		log.Fatal("object in reconcileChMap should exist when NotifyLearnAfterReconcile")
+	}
+	s.reconcileChMap.Store(recID, nil) // set value to nil when the reconcile ends
+	s.notificationCh <- notificationWrapper{ntype: afterReconcile, payload: recID}
 	*response = sieve.Response{Ok: true}
 	return nil
 }
@@ -162,19 +176,19 @@ func (s *learnServer) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBef
 }
 
 func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ResourceType, request.ReconcilerType, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnAfterOperatorGet(request *sieve.NotifyLearnAfterOperatorGetRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.ReconcilerType, request.Error, request.Object)}
 	*response = sieve.Response{Message: "Get", Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnAfterOperatorList(request *sieve.NotifyLearnAfterOperatorListRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)}
+	s.notificationCh <- notificationWrapper{ntype: afterRead, payload: fmt.Sprintf("List\t%s\t%s\t%s\t%s", request.ResourceType, request.ReconcilerType, request.Error, request.ObjectList)}
 	*response = sieve.Response{Message: "List", Ok: true}
 	return nil
 }

@@ -608,6 +608,7 @@ def intermediate_state_analysis(
         intermediate_state_config["se-name"] = operator_write.name
         intermediate_state_config["se-namespace"] = operator_write.namespace
         intermediate_state_config["se-rtype"] = operator_write.rtype
+        intermediate_state_config["se-reconciler-type"] = operator_write.reconciler_type
         intermediate_state_config["se-etype-previous"] = operator_write.prev_etype
         intermediate_state_config["se-etype-current"] = operator_write.etype
         intermediate_state_config["se-diff-previous"] = json.dumps(

@@ -19,6 +19,7 @@ func NewIntmdStateListener(config map[interface{}]interface{}, learnedMask map[s
 		seName:                 config["se-name"].(string),
 		seNamespace:            config["se-namespace"].(string),
 		seRtype:                config["se-rtype"].(string),
+		seReconcilerType:       config["se-reconciler-type"].(string),
 		seEtypePrev:            config["se-etype-previous"].(string),
 		seEtype:                config["se-etype-current"].(string),
 		diffPrevEvent:          strToMap(config["se-diff-previous"].(string)),
@@ -68,6 +69,7 @@ type intmdStateServer struct {
 	seName                 string
 	seNamespace            string
 	seRtype                string
+	seReconcilerType       string
 	seEtype                string
 	diffCurEvent           map[string]interface{}
 	diffPrevEvent          map[string]interface{}
@@ -91,10 +93,10 @@ func (s *intmdStateServer) NotifyIntmdStateAfterOperatorGet(request *sieve.Notif
 	s.reconcilingMutex.Lock()
 	defer s.reconcilingMutex.Unlock()
 	readObj := strToMap(request.Object)
-	if !(request.ResourceType == s.seRtype && s.seEtypePrev == "Get" && isSameObjectServerSide(readObj, s.seNamespace, s.seName)) {
-		log.Fatalf("encounter unexpected Get: %s %s %s", request.ResourceType, request.Error, request.Object)
+	if !(request.ResourceType == s.seRtype && s.seEtypePrev == "Get" && request.ReconcilerType == s.seReconcilerType && isSameObjectServerSide(readObj, s.seNamespace, s.seName)) {
+		log.Fatalf("encounter unexpected Get: %s %s %s %s", request.ResourceType, request.ReconcilerType, request.Error, request.Object)
 	}
-	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.Error, request.Object)
+	log.Printf("[SIEVE-AFTER-READ]\tGet\t%s\t%s\t%s\t%s\t%s\t%s\n", request.ResourceType, request.Namespace, request.Name, request.ReconcilerType, request.Error, request.Object)
 	s.prevEventPerReconciler[request.ReconcilerType] = readObj
 	trimKindApiversion(s.prevEventPerReconciler[request.ReconcilerType])
 	*response = sieve.Response{Message: request.ResourceType, Ok: true}
@@ -104,10 +106,10 @@ func (s *intmdStateServer) NotifyIntmdStateAfterOperatorGet(request *sieve.Notif
 func (s *intmdStateServer) NotifyIntmdStateAfterOperatorList(request *sieve.NotifyIntmdStateAfterOperatorListRequest, response *sieve.Response) error {
 	s.reconcilingMutex.Lock()
 	defer s.reconcilingMutex.Unlock()
-	if !(request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List") {
-		log.Fatalf("encounter unexpected List: %s %s %s", request.ResourceType, request.Error, request.ObjectList)
+	if !(request.ResourceType == s.seRtype+"list" && s.seEtypePrev == "List" && request.ReconcilerType == s.seReconcilerType) {
+		log.Fatalf("encounter unexpected List: %s %s %s %s", request.ResourceType, request.ReconcilerType, request.Error, request.ObjectList)
 	}
-	log.Printf("[SIEVE-AFTER-READ]\tList\t%s\t%s\t%s", request.ResourceType, request.Error, request.ObjectList)
+	log.Printf("[SIEVE-AFTER-READ]\tList\t%s\t%s\t%s\t%s\n", request.ResourceType, request.ReconcilerType, request.Error, request.ObjectList)
 	readObjs := strToMap(request.ObjectList)["items"].([]interface{})
 	for _, readObj := range readObjs {
 		if isSameObjectServerSide(readObj.(map[string]interface{}), s.seNamespace, s.seName) {
@@ -124,10 +126,10 @@ func (s *intmdStateServer) NotifyIntmdStateAfterSideEffects(request *sieve.Notif
 	s.reconcilingMutex.Lock()
 	defer s.reconcilingMutex.Unlock()
 	writeObj := strToMap(request.Object)
-	if !(request.ResourceType == s.seRtype && isSameObjectServerSide(writeObj, s.seNamespace, s.seName) && request.Error == "NoError") {
-		log.Fatalf("encounter unexpected Write: %s %s %s %s", request.SideEffectType, request.ResourceType, request.Error, request.Object)
+	if !(request.ResourceType == s.seRtype && request.ReconcilerType == s.seReconcilerType && isSameObjectServerSide(writeObj, s.seNamespace, s.seName) && request.Error == "NoError") {
+		log.Fatalf("encounter unexpected Write: %s %s %s %s %s", request.SideEffectType, request.ResourceType, request.ReconcilerType, request.Error, request.Object)
 	}
-	log.Printf("[SIEVE-AFTER-WRITE]\t%d\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.Error, request.Object)
+	log.Printf("[SIEVE-AFTER-WRITE]\t%d\t%s\t%s\t%s\t%s\t%s\n", request.SideEffectID, request.SideEffectType, request.ResourceType, request.ReconcilerType, request.Error, request.Object)
 	s.curEventPerReconciler[request.ReconcilerType] = writeObj
 	trimKindApiversion(s.curEventPerReconciler[request.ReconcilerType])
 	if _, ok := s.prevEventPerReconciler[request.ReconcilerType]; !ok {
