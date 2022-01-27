@@ -372,9 +372,14 @@ def run_workload(
     )
 
     cprint("Running test workload...", bcolors.OKGREEN)
-    test_context.test_workload.run(
-        test_context.mode, os.path.join(test_context.result_dir, "workload.log")
+    test_command = "%s %s %s %s" % (
+        controllers.test_commands[test_context.project],
+        test_context.test_name,
+        test_context.mode,
+        os.path.join(test_context.result_dir, "workload.log"),
     )
+    process = subprocess.Popen(test_command, shell=True)
+    process.wait()
 
     pod_name = (
         kubernetes.client.CoreV1Api()
@@ -532,7 +537,6 @@ def run(
         stage,
         mode,
         phase,
-        suite.workload,
         config_to_use,
         result_dir,
         oracle_dir,
@@ -541,7 +545,6 @@ def run(
         suite.num_apiservers,
         suite.num_workers,
         suite.use_csi_driver,
-        suite.oracle_config,
     )
     ret_val, messages = run_test(test_context)
     if ret_val != -4:

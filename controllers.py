@@ -1,7 +1,5 @@
-import os
 import re
-import workloads
-from sieve_common.common import cmd_early_exit, sieve_modes, Suite
+from sieve_common.common import cmd_early_exit, Suite
 
 github_link = {
     "cassandra-operator": "https://github.com/instaclustr/cassandra-operator.git",
@@ -123,135 +121,97 @@ test_dir = {
     "contour": "examples/contour",
 }
 
+test_commands = {
+    "cass-operator": "python3 examples/cass-operator/test/test.py",
+    "cassandra-operator": "python3 examples/cassandra-operator/test/test.py",
+    "casskop-operator": "python3 examples/casskop-operator/test/test.py",
+    "mongodb-operator": "python3 examples/mongodb-operator/test/test.py",
+    "xtradb-operator": "python3 examples/xtradb-operator/test/test.py",
+    "rabbitmq-operator": "python3 examples/rabbitmq-operator/test/test.py",
+    "nifikop-operator": "python3 examples/nifikop-operator/test/test.py",
+    "zookeeper-operator": "python3 examples/zookeeper-operator/test/test.py",
+    "elastic-operator": "python3 examples/elastic-operator/test/test.py",
+    "yugabyte-operator": "python3 examples/yugabyte-operator/test/test.py",
+    "contour-operator": "python3 examples/contour-operator/test/test.py",
+    "contour": "python3 examples/contour/test/test.py",
+}
+
 test_suites = {
     "cass-operator": {
-        "recreate": Suite(
-            workloads.workloads["cass-operator"]["recreate"],
-        ),
-        "scaledown-scaleup": Suite(
-            workloads.workloads["cass-operator"]["scaledown-scaleup"], num_workers=3
-        ),
+        "recreate": Suite(),
+        "scaledown-scaleup": Suite(num_workers=3),
     },
     "cassandra-operator": {
-        "recreate": Suite(
-            workloads.workloads["cassandra-operator"]["recreate"],
-        ),
-        "scaledown-scaleup": Suite(
-            workloads.workloads["cassandra-operator"]["scaledown-scaleup"],
-        ),
+        "recreate": Suite(),
+        "scaledown-scaleup": Suite(),
     },
     "casskop-operator": {
-        "recreate": Suite(
-            workloads.workloads["casskop-operator"]["recreate"],
-        ),
-        "scaledown-to-zero": Suite(
-            workloads.workloads["casskop-operator"]["scaledown-to-zero"],
-        ),
-        "reducepdb": Suite(
-            workloads.workloads["casskop-operator"]["reducepdb"],
-        ),
+        "recreate": Suite(),
+        "scaledown-to-zero": Suite(),
+        "reducepdb": Suite(),
     },
     "contour-operator": {
-        "recreate": Suite(
-            workloads.workloads["contour-operator"]["recreate"],
-        ),
+        "recreate": Suite(),
     },
     "elastic-operator": {
-        "recreate": Suite(
-            workloads.workloads["elastic-operator"]["recreate"],
-        ),
-        "scaledown-scaleup": Suite(
-            workloads.workloads["elastic-operator"]["scaledown-scaleup"],
-        ),
+        "recreate": Suite(),
+        "scaledown-scaleup": Suite(),
     },
     "mongodb-operator": {
         "recreate": Suite(
-            workloads.workloads["mongodb-operator"]["recreate"],
             num_workers=3,
         ),
         "scaleup-scaledown": Suite(
-            workloads.workloads["mongodb-operator"]["scaleup-scaledown"],
             num_workers=5,
         ),
         "disable-enable-shard": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-shard"],
             num_workers=3,
         ),
         "disable-enable-arbiter": Suite(
-            workloads.workloads["mongodb-operator"]["disable-enable-arbiter"],
             num_workers=5,
         ),
         "run-cert-manager": Suite(
-            workloads.workloads["mongodb-operator"]["run-cert-manager"],
             num_workers=3,
         ),
     },
     "nifikop-operator": {
-        "recreate": Suite(
-            workloads.workloads["nifikop-operator"]["recreate"],
-        ),
-        "scaledown-scaleup": Suite(
-            workloads.workloads["nifikop-operator"]["scaledown-scaleup"],
-        ),
-        "change-config": Suite(
-            workloads.workloads["nifikop-operator"]["change-config"],
-        ),
+        "recreate": Suite(),
+        "scaledown-scaleup": Suite(),
+        "change-config": Suite(),
     },
     "rabbitmq-operator": {
-        "recreate": Suite(
-            workloads.workloads["rabbitmq-operator"]["recreate"],
-        ),
-        "scaleup-scaledown": Suite(
-            workloads.workloads["rabbitmq-operator"]["scaleup-scaledown"],
-        ),
+        "recreate": Suite(),
+        "scaleup-scaledown": Suite(),
         "resize-pvc": Suite(
-            workloads.workloads["rabbitmq-operator"]["resize-pvc"],
             use_csi_driver=True,
         ),
     },
     "xtradb-operator": {
         "recreate": Suite(
-            workloads.workloads["xtradb-operator"]["recreate"],
             num_workers=4,
         ),
         "disable-enable-haproxy": Suite(
-            workloads.workloads["xtradb-operator"]["disable-enable-haproxy"],
             num_workers=4,
         ),
         "disable-enable-proxysql": Suite(
-            workloads.workloads["xtradb-operator"]["disable-enable-proxysql"],
             num_workers=4,
         ),
         "run-cert-manager": Suite(
-            workloads.workloads["xtradb-operator"]["run-cert-manager"],
             num_workers=4,
         ),
         "scaleup-scaledown": Suite(
-            workloads.workloads["xtradb-operator"]["scaleup-scaledown"],
             num_workers=5,
         ),
     },
     "yugabyte-operator": {
-        "recreate": Suite(
-            workloads.workloads["yugabyte-operator"]["recreate"],
-        ),
-        "scaleup-scaledown-tserver": Suite(
-            workloads.workloads["yugabyte-operator"]["scaleup-scaledown-tserver"],
-        ),
-        "disable-enable-tls": Suite(
-            workloads.workloads["yugabyte-operator"]["disable-enable-tls"],
-        ),
-        "disable-enable-tuiport": Suite(
-            workloads.workloads["yugabyte-operator"]["disable-enable-tuiport"],
-        ),
+        "recreate": Suite(),
+        "scaleup-scaledown-tserver": Suite(),
+        "disable-enable-tls": Suite(),
+        "disable-enable-tuiport": Suite(),
     },
     "zookeeper-operator": {
-        "recreate": Suite(
-            workloads.workloads["zookeeper-operator"]["recreate"],
-        ),
-        "scaledown-scaleup": Suite(
-            workloads.workloads["zookeeper-operator"]["scaledown-scaleup"],
-        ),
+        "recreate": Suite(),
+        "scaledown-scaleup": Suite(),
     },
 }
 
