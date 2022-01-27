@@ -96,18 +96,7 @@ def generate_unobserved_state_debugging_hint(test_config_content):
 
 
 def generate_intermediate_state_debugging_hint(test_config_content):
-    desc = (
-        "Sieve makes the controller crash after the controller issues {} {}: {}".format(
-            test_config_content["se-etype-current"],
-            test_config_content["se-rtype"]
-            + "/"
-            + test_config_content["se-namespace"]
-            + "/"
-            + test_config_content["se-name"],
-            test_config_content["se-diff-current"],
-        )
-    )
-    suggestion = "Please check how controller reacts after issuing {} {}: {}, the controller might fail to recover from the intermediate state".format(
+    desc = "Sieve makes the controller crash after the controller issues {} {}: {} for the {} time".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
@@ -115,8 +104,30 @@ def generate_intermediate_state_debugging_hint(test_config_content):
         + "/"
         + test_config_content["se-name"],
         test_config_content["se-diff-current"],
+        convert_counter(test_config_content["se-counter"]),
+    )
+    suggestion = "Please check how controller reacts after issuing {} {}: {} for the {} time, the controller might fail to recover from the intermediate state".format(
+        test_config_content["se-etype-current"],
+        test_config_content["se-rtype"]
+        + "/"
+        + test_config_content["se-namespace"]
+        + "/"
+        + test_config_content["se-name"],
+        test_config_content["se-diff-current"],
+        convert_counter(test_config_content["se-counter"]),
     )
     return desc + "\n" + suggestion + "\n"
+
+
+def convert_counter(counter):
+    if counter.endswith("1"):
+        return counter + "st"
+    elif counter.endswith("2"):
+        return counter + "nd"
+    elif counter.endswith("3"):
+        return counter + "rd"
+    else:
+        return counter + "th"
 
 
 def generate_debugging_hint(test_config_content):

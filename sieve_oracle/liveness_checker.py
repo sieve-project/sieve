@@ -342,7 +342,7 @@ def compare_states(test_context: TestContext):
                         "{}{} {} {} {}".format(
                             resource_key,
                             field_key,
-                            "not seen after learning run, but seen as",
+                            "not seen after reference run, but seen as",
                             key.t2,
                             "after testing run",
                         ),
@@ -360,7 +360,7 @@ def compare_states(test_context: TestContext):
                             field_key,
                             "seen as",
                             learned_value,
-                            "after learning run, but not seen after testing run",
+                            "after reference run, but not seen after testing run",
                         ),
                     )
                 )
@@ -373,7 +373,7 @@ def compare_states(test_context: TestContext):
                             field_key,
                             "is",
                             key.t1,
-                            "after learning run, but",
+                            "after reference run, but",
                             key.t2,
                             "after testing run",
                         ),
@@ -390,7 +390,7 @@ def compare_states(test_context: TestContext):
                             field_key,
                             "is",
                             key.t1,
-                            "after learning run, but",
+                            "after reference run, but",
                             key.t2,
                             "after testing run",
                         ),
@@ -414,7 +414,7 @@ def compare_states(test_context: TestContext):
                         "{} {} {} {} {} {} {} {} {}".format(
                             len(learn_set),
                             resource_type + " object(s)",
-                            "seen after learning run",
+                            "seen after reference run",
                             sorted(learn_set),
                             "but",
                             len(test_set),
@@ -439,7 +439,7 @@ def compare_states(test_context: TestContext):
                         "End state inconsistency - more objects than reference:",
                         "{} {}".format(
                             "/".join([resource_type, namespace, name]),
-                            "is not seen after learning run, but seen after testing run",
+                            "is not seen after reference run, but seen after testing run",
                         ),
                     )
                 )
@@ -456,7 +456,7 @@ def compare_states(test_context: TestContext):
                         "End state inconsistency - fewer objects than reference:",
                         "{} {}".format(
                             "/".join([resource_type, namespace, name]),
-                            "is seen after learning run, but not seen after testing run",
+                            "is seen after reference run, but not seen after testing run",
                         ),
                     )
                 )
