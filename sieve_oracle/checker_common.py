@@ -2,6 +2,7 @@ from sieve_common.common import *
 import copy
 from deepdiff import DeepDiff
 from sieve_common.default_config import sieve_config
+from sieve_common.k8s_event import APIEventTypes, OperatorWriteTypes
 
 
 def learn_twice_trim(base_resources, twice_resources):
@@ -29,22 +30,30 @@ def learn_twice_trim(base_resources, twice_resources):
 
 
 def generate_stale_state_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller time travel back to the history to see the status just {} {}: {}".format(
+    desc = "Sieve makes the controller time travel back to the history to see the state just {} {} {}{}.".format(
         test_config_content["timing"],
+        test_config_content["ce-etype-current"],
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
         + "/"
         + test_config_content["ce-name"],
-        test_config_content["ce-diff-current"],
+        readable_resource_diff(
+            test_config_content["ce-etype-current"],
+            test_config_content["ce-diff-current"],
+        ),
     )
-    suggestion = "Please check how controller reacts when seeing {}: {}, the controller might issue {} to {} without proper checking".format(
+    suggestion = "Please check how the controller reacts when seeing {} {}{}, the controller might issue {} to {} without proper checking.".format(
+        test_config_content["ce-etype-current"],
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
         + "/"
         + test_config_content["ce-name"],
-        test_config_content["ce-diff-current"],
+        readable_resource_diff(
+            test_config_content["ce-etype-current"],
+            test_config_content["ce-diff-current"],
+        ),
         "deletion" if test_config_content["se-etype"] == "ADDED" else "creation",
         test_config_content["se-rtype"]
         + "/"
@@ -56,64 +65,58 @@ def generate_stale_state_debugging_hint(test_config_content):
 
 
 def generate_unobserved_state_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller miss the event {}: {}".format(
+    desc = "Sieve makes the controller miss the event {} {}{}.".format(
+        test_config_content["ce-etype-current"],
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
         + "/"
         + test_config_content["ce-name"],
-        test_config_content["ce-diff-current"],
+        readable_resource_diff(
+            test_config_content["ce-etype-current"],
+            test_config_content["ce-diff-current"],
+        ),
     )
-    suggestion = "Please check how controller reacts when seeing {}: {}, the event can trigger a controller side effect, and it might be cancelled by following events".format(
+    suggestion = "Please check how the controller reacts when seeing {} {}{}, the event can trigger a controller side effect, and it might be cancelled by following events.".format(
+        test_config_content["ce-etype-current"],
         test_config_content["ce-rtype"]
         + "/"
         + test_config_content["ce-namespace"]
         + "/"
         + test_config_content["ce-name"],
-        test_config_content["ce-diff-current"],
-    )
-    return desc + "\n" + suggestion + "\n"
-
-
-def generate_unobserved_state_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller miss the event {}: {}".format(
-        test_config_content["ce-rtype"]
-        + "/"
-        + test_config_content["ce-namespace"]
-        + "/"
-        + test_config_content["ce-name"],
-        test_config_content["ce-diff-current"],
-    )
-    suggestion = "Please check how controller reacts when seeing {}: {}, the event can trigger a controller side effect, and it might be cancelled by following events".format(
-        test_config_content["ce-rtype"]
-        + "/"
-        + test_config_content["ce-namespace"]
-        + "/"
-        + test_config_content["ce-name"],
-        test_config_content["ce-diff-current"],
+        readable_resource_diff(
+            test_config_content["ce-etype-current"],
+            test_config_content["ce-diff-current"],
+        ),
     )
     return desc + "\n" + suggestion + "\n"
 
 
 def generate_intermediate_state_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller crash after the controller issues {} {}: {} for the {} time".format(
+    desc = "Sieve makes the controller crash after the controller issues {} {}{} for the {} time.".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
         + test_config_content["se-namespace"]
         + "/"
         + test_config_content["se-name"],
-        test_config_content["se-diff-current"],
+        readable_resource_diff(
+            test_config_content["se-etype-current"],
+            test_config_content["se-diff-current"],
+        ),
         convert_counter(test_config_content["se-counter"]),
     )
-    suggestion = "Please check how controller reacts after issuing {} {}: {} for the {} time, the controller might fail to recover from the intermediate state".format(
+    suggestion = "Please check how the controller reacts when restarting right after issuing {} {}{} for the {} time, the controller might fail to recover from the intermediate state.".format(
         test_config_content["se-etype-current"],
         test_config_content["se-rtype"]
         + "/"
         + test_config_content["se-namespace"]
         + "/"
         + test_config_content["se-name"],
-        test_config_content["se-diff-current"],
+        readable_resource_diff(
+            test_config_content["se-etype-current"],
+            test_config_content["se-diff-current"],
+        ),
         convert_counter(test_config_content["se-counter"]),
     )
     return desc + "\n" + suggestion + "\n"
@@ -128,6 +131,18 @@ def convert_counter(counter):
         return counter + "rd"
     else:
         return counter + "th"
+
+
+def readable_resource_diff(event_type, diff_content):
+    if (
+        event_type == OperatorWriteTypes.CREATE
+        or event_type == OperatorWriteTypes.DELETE
+        or event_type == APIEventTypes.ADDED
+        or event_type == APIEventTypes.DELETED
+    ):
+        return ""
+    else:
+        return " : %s" % diff_content
 
 
 def generate_debugging_hint(test_config_content):

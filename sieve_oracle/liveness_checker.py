@@ -418,7 +418,7 @@ def compare_states(test_context: TestContext):
                             sorted(learn_set),
                             "but",
                             len(test_set),
-                            resource_type,
+                            resource_type + " object(s)",
                             "seen after testing run",
                             sorted(test_set),
                         ),
