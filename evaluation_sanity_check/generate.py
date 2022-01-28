@@ -9,7 +9,7 @@ total_result_map = {}
 
 def collect_spec():
     sub_result_map = {}
-    for operator in controllers.test_suites:
+    for operator in controllers.test_setting:
         if operator not in common.controllers_to_check:
             continue
         sub_result_map[operator] = {}
@@ -25,7 +25,7 @@ def collect_spec():
         ds_cnt = 0
         ms_cnt = 0
         ss_cnt = 0
-        for test in controllers.test_suites[operator]:
+        for test in controllers.test_setting[operator]:
             result_filename = "sieve_learn_results/{}-{}.json".format(operator, test)
             result_map = json.load(open(result_filename))
             ds_base_cnt += result_map["intermediate-state"]["baseline"]
@@ -71,10 +71,10 @@ def recover_config_json():
 
 
 def learn_all():
-    for project in controllers.test_suites:
+    for project in controllers.test_setting:
         if project not in common.controllers_to_check:
             continue
-        for test_suite in controllers.test_suites[project]:
+        for test_suite in controllers.test_setting[project]:
             docker_repo_name = sieve_config["docker_repo"]
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check" % (
                 project,
@@ -88,7 +88,7 @@ def generate_test_plan_stat():
     table = "controller\tbaseline-ds\tafter-p1-ds\tafter-p2-ds\tds\tbaseline-ss\tafter-p1-ss\tafter-p2-ss\tss\tbaseline-ms\tafter-p1-ms\tafter-p2-ms\tms\tbaseline-total\tafter-p1-total\tafter-p2-total\ttotal\n"
     learn_all()
     sub_map = collect_spec()
-    for operator in controllers.test_suites:
+    for operator in controllers.test_setting:
         if operator not in common.controllers_to_check:
             continue
         baseline_ds = sub_map[operator]["baseline-ds"]

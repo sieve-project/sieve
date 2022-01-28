@@ -399,6 +399,10 @@ def compare_states(test_context: TestContext):
 
     for resource_type in resource_map:
         resource = resource_map[resource_type]
+        # TODO: this is ad-hoc fix
+        # the state.json should contain namespace
+        # We should revisit this later
+        namespace = "default"
         if SIEVE_LEARN_VALUE_MASK in resource["add"] + resource["remove"]:
             # Then we only report number diff
             delta = len(resource["add"]) - len(resource["remove"])
