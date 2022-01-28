@@ -1,3 +1,4 @@
+import shutil
 from typing import Tuple
 import docker
 import optparse
@@ -35,6 +36,7 @@ from sieve_common.common import (
     cmd_early_exit,
     NO_ERROR_MESSAGE,
     sieve_stages,
+    deploy_directory,
 )
 
 
@@ -294,8 +296,40 @@ def setup_cluster(
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
 
-def start_operator(project, docker_repo, docker_tag, num_apiservers):
-    controllers.deploy[project](docker_repo, docker_tag)
+def deploy_controller(project, docker_repo, docker_tag):
+    deployment_file = controllers.controller_deployment_file[project]
+    # backup deployment file
+    backup_deployment_file = deployment_file + ".bkp"
+    shutil.copyfile(deployment_file, backup_deployment_file)
+
+    # modify docker_repo and docker_tag
+    fin = open(deployment_file)
+    data = fin.read()
+    data = data.replace("${SIEVE-DR}", docker_repo)
+    data = data.replace("${SIEVE-DT}", docker_tag)
+    fin.close()
+    fin = open(deployment_file, "w")
+    fin.write(data)
+    fin.close()
+
+    # run the deploy script
+    org_dir = os.getcwd()
+    os.chdir(deploy_directory(project))
+    cmd_early_exit("./deploy.sh")
+    os.chdir(org_dir)
+
+    # restore deployment file
+    deployment_file = controllers.controller_deployment_file[project]
+    shutil.copyfile(backup_deployment_file, deployment_file)
+    os.remove(backup_deployment_file)
+
+
+def start_operator(test_context: TestContext):
+    project = test_context.project
+    docker_repo = test_context.docker_repo
+    docker_tag = test_context.docker_tag
+    num_apiservers = test_context.num_apiservers
+    deploy_controller(project, docker_repo, docker_tag)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -335,12 +369,7 @@ def run_workload(
         ok("Sieve server set up")
 
     cprint("Deploying operator...", bcolors.OKGREEN)
-    start_operator(
-        test_context.project,
-        test_context.docker_repo,
-        test_context.docker_tag,
-        test_context.num_apiservers,
-    )
+    start_operator(test_context)
     ok("Operator deployed")
 
     select_container_from_pod = (

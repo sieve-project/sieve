@@ -93,6 +93,22 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
+def build_directory(controller_name):
+    return os.path.join("examples", controller_name, "build")
+
+
+def deploy_directory(controller_name):
+    return os.path.join("examples", controller_name, "deploy")
+
+
+def test_directory(controller_name):
+    return os.path.join("examples", controller_name, "test")
+
+
+def oracle_directory(controller_name):
+    return os.path.join("examples", controller_name, "oracle")
+
+
 class sieve_stages:
     LEARN = "learn"
     TEST = "test"

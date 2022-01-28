@@ -1,4 +1,3 @@
-import re
 from sieve_common.common import cmd_early_exit, Suite
 
 github_link = {
@@ -312,151 +311,166 @@ state_mask = {
     },
 }
 
-
-def make_safe_filename(filename):
-    return re.sub(r"[^\w\d-]", "_", filename)
-
-
-def replace_docker_repo(path, dr, dt):
-    fin = open(path)
-    data = fin.read()
-    data = data.replace("${SIEVE-DR}", dr)
-    data = data.replace("${SIEVE-DT}", dt)
-    fin.close()
-    tokens = path.rsplit(".", 1)
-    new_path = tokens[0] + "-" + make_safe_filename(dr) + "." + tokens[1]
-    fin = open(new_path, "w")
-    fin.write(data)
-    fin.close()
-    return new_path
-
-
-def cassandra_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/cassandra-operator/deploy/bundle.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl apply -f examples/cassandra-operator/deploy/crds.yaml")
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("rm %s" % new_path)
-
-
-def zookeeper_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/zookeeper-operator/deploy/default_ns/operator.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl create -f examples/zookeeper-operator/deploy/crds")
-    cmd_early_exit(
-        "kubectl create -f examples/zookeeper-operator/deploy/default_ns/rbac.yaml"
-    )
-    cmd_early_exit("kubectl create -f %s" % new_path)
-    cmd_early_exit("rm %s" % new_path)
-
-
-def rabbitmq_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("rm %s" % new_path)
-
-
-def mongodb_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/mongodb-operator/deploy/bundle.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("rm %s" % new_path)
-
-
-def cass_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/cass-operator/deploy/controller-manifest.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("kubectl apply -f examples/cass-operator/deploy/storageClass.yaml")
-    cmd_early_exit("rm %s" % new_path)
-
-
-def casskop_operator_deploy(dr, dt):
-    # Using helm
-    new_path = replace_docker_repo(
-        "examples/casskop-operator/deploy/values.yaml", dr, dt
-    )
-    cmd_early_exit(
-        "helm install -f %s casskop-operator examples/casskop-operator/deploy"
-        % (new_path)
-    )
-    cmd_early_exit("rm %s" % new_path)
-
-
-def xtradb_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/xtradb-operator/deploy/bundle.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("rm %s" % new_path)
-
-
-def yugabyte_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/yugabyte-operator/deploy/operator.yaml", dr, dt
-    )
-    cmd_early_exit(
-        "kubectl create -f examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
-    )
-    cmd_early_exit("kubectl create -f %s" % new_path)
-    cmd_early_exit("rm %s" % new_path)
-
-
-def nifikop_operator_deploy(dr, dt):
-    # Using helm
-    new_path = replace_docker_repo(
-        "examples/nifikop-operator/deploy/values.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl apply -f examples/nifikop-operator/deploy/role.yaml")
-    cmd_early_exit("examples/nifikop-operator/deploy/zk.sh")
-    cmd_early_exit(
-        "helm install -f %s nifikop-operator examples/nifikop-operator/deploy"
-        % (new_path)
-    )
-    cmd_early_exit("rm %s" % (new_path))
-
-
-def elastic_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/elastic-operator/deploy/operator.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl create -f examples/elastic-operator/deploy/crds.yaml")
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("rm %s" % (new_path))
-
-
-def contour_deploy(dr, dt):
-    new_path = replace_docker_repo("examples/contour/deploy/contour.yaml", dr, dt)
-    cmd_early_exit("kubectl apply -f examples/contour/deploy/crd.yaml")
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("rm %s" % (new_path))
-
-
-def contour_operator_deploy(dr, dt):
-    new_path = replace_docker_repo(
-        "examples/contour-operator/deploy/operator.yaml", dr, dt
-    )
-    cmd_early_exit("kubectl apply -f %s" % new_path)
-    cmd_early_exit("rm %s" % (new_path))
-
-
-deploy = {
-    "cassandra-operator": cassandra_operator_deploy,
-    "zookeeper-operator": zookeeper_operator_deploy,
-    "rabbitmq-operator": rabbitmq_operator_deploy,
-    "mongodb-operator": mongodb_operator_deploy,
-    "cass-operator": cass_operator_deploy,
-    "casskop-operator": casskop_operator_deploy,
-    "xtradb-operator": xtradb_operator_deploy,
-    "yugabyte-operator": yugabyte_operator_deploy,
-    "nifikop-operator": nifikop_operator_deploy,
-    "elastic-operator": elastic_operator_deploy,
-    "contour-operator": contour_operator_deploy,
-    "contour": contour_deploy,
+controller_deployment_file = {
+    "cassandra-operator": "examples/cassandra-operator/deploy/bundle.yaml",
+    "zookeeper-operator": "examples/zookeeper-operator/deploy/default_ns/operator.yaml",
+    "rabbitmq-operator": "examples/rabbitmq-operator/deploy/cluster-operator.yaml",
+    "mongodb-operator": "examples/mongodb-operator/deploy/bundle.yaml",
+    "cass-operator": "examples/cass-operator/deploy/controller-manifest.yaml",
+    "casskop-operator": "examples/casskop-operator/deploy/values.yaml",
+    "xtradb-operator": "examples/xtradb-operator/deploy/bundle.yaml",
+    "yugabyte-operator": "examples/yugabyte-operator/deploy/operator.yaml",
+    "nifikop-operator": "examples/nifikop-operator/deploy/values.yaml",
+    "elastic-operator": "examples/elastic-operator/deploy/operator.yaml",
+    "contour-operator": "examples/contour-operator/deploy/operator.yaml",
+    "contour": "examples/contour/deploy/contour.yaml",
 }
+
+
+# def make_safe_filename(filename):
+#     return re.sub(r"[^\w\d-]", "_", filename)
+
+
+# def replace_docker_repo(path, dr, dt):
+#     fin = open(path)
+#     data = fin.read()
+#     data = data.replace("${SIEVE-DR}", dr)
+#     data = data.replace("${SIEVE-DT}", dt)
+#     fin.close()
+#     tokens = path.rsplit(".", 1)
+#     new_path = tokens[0] + "-" + make_safe_filename(dr) + "." + tokens[1]
+#     fin = open(new_path, "w")
+#     fin.write(data)
+#     fin.close()
+#     return new_path
+
+
+# def cassandra_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/cassandra-operator/deploy/bundle.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl apply -f examples/cassandra-operator/deploy/crds.yaml")
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def zookeeper_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/zookeeper-operator/deploy/default_ns/operator.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl create -f examples/zookeeper-operator/deploy/crds")
+#     cmd_early_exit(
+#         "kubectl create -f examples/zookeeper-operator/deploy/default_ns/rbac.yaml"
+#     )
+#     cmd_early_exit("kubectl create -f %s" % new_path)
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def rabbitmq_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/rabbitmq-operator/deploy/cluster-operator.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def mongodb_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/mongodb-operator/deploy/bundle.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def cass_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/cass-operator/deploy/controller-manifest.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("kubectl apply -f examples/cass-operator/deploy/storageClass.yaml")
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def casskop_operator_deploy(dr, dt):
+#     # Using helm
+#     new_path = replace_docker_repo(
+#         "examples/casskop-operator/deploy/values.yaml", dr, dt
+#     )
+#     cmd_early_exit(
+#         "helm install -f %s casskop-operator examples/casskop-operator/deploy"
+#         % (new_path)
+#     )
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def xtradb_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/xtradb-operator/deploy/bundle.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def yugabyte_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/yugabyte-operator/deploy/operator.yaml", dr, dt
+#     )
+#     cmd_early_exit(
+#         "kubectl create -f examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
+#     )
+#     cmd_early_exit("kubectl create -f %s" % new_path)
+#     cmd_early_exit("rm %s" % new_path)
+
+
+# def nifikop_operator_deploy(dr, dt):
+#     # Using helm
+#     new_path = replace_docker_repo(
+#         "examples/nifikop-operator/deploy/values.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl apply -f examples/nifikop-operator/deploy/role.yaml")
+#     cmd_early_exit("examples/nifikop-operator/deploy/zk.sh")
+#     cmd_early_exit(
+#         "helm install -f %s nifikop-operator examples/nifikop-operator/deploy"
+#         % (new_path)
+#     )
+#     cmd_early_exit("rm %s" % (new_path))
+
+
+# def elastic_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/elastic-operator/deploy/operator.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl create -f examples/elastic-operator/deploy/crds.yaml")
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("rm %s" % (new_path))
+
+
+# def contour_deploy(dr, dt):
+#     new_path = replace_docker_repo("examples/contour/deploy/contour.yaml", dr, dt)
+#     cmd_early_exit("kubectl apply -f examples/contour/deploy/crd.yaml")
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("rm %s" % (new_path))
+
+
+# def contour_operator_deploy(dr, dt):
+#     new_path = replace_docker_repo(
+#         "examples/contour-operator/deploy/operator.yaml", dr, dt
+#     )
+#     cmd_early_exit("kubectl apply -f %s" % new_path)
+#     cmd_early_exit("rm %s" % (new_path))
+
+
+# deploy = {
+#     "cassandra-operator": cassandra_operator_deploy,
+#     "zookeeper-operator": zookeeper_operator_deploy,
+#     "rabbitmq-operator": rabbitmq_operator_deploy,
+#     "mongodb-operator": mongodb_operator_deploy,
+#     "cass-operator": cass_operator_deploy,
+#     "casskop-operator": casskop_operator_deploy,
+#     "xtradb-operator": xtradb_operator_deploy,
+#     "yugabyte-operator": yugabyte_operator_deploy,
+#     "nifikop-operator": nifikop_operator_deploy,
+#     "elastic-operator": elastic_operator_deploy,
+#     "contour-operator": contour_operator_deploy,
+#     "contour": contour_deploy,
+# }
