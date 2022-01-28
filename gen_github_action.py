@@ -113,7 +113,7 @@ def generate_jobs(ci_mode):
             )
             workload_set.add(workload)
 
-        for workload in controllers.test_suites[operator]:
+        for workload in controllers.test_setting[operator]:
             workload_set.add(workload)
 
         build_image = [

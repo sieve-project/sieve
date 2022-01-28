@@ -29,7 +29,7 @@ def specs_to_map(specs):
 
 def check_massive_testing_results(current_dir, previous_dir):
     for operator in common.controllers_to_check:
-        for test in controllers.test_suites[operator]:
+        for test in controllers.test_setting[operator]:
             for mode in ["atomicity-violation", "observability-gap", "time-travel"]:
                 cur_specs = glob.glob(
                     os.path.join(

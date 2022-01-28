@@ -503,7 +503,7 @@ def run(
     rate_limiter_enabled=False,
     phase="all",
 ):
-    suite = controllers.test_suites[project][test]
+    suite = controllers.test_setting[project][test]
     oracle_dir = os.path.join(controllers.test_dir[project], "oracle", test)
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(

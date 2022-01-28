@@ -62,7 +62,7 @@ The last step is to prepare the test workloads and make Sieve able to run the te
 You can provide a bash script to start the test workload, or implement the test workload using our `test_framework` API (see the examples in `workloads.py`). Besides, please also copy any test-related files into `test-your-operator/test`.
 
 After that, please fill in the entries in [controllers.py](../controllers.py)
-- `test_suites`: the test workloads provided by you. You can also specify the number of apiservers and workers your controller needs.
+- `test_setting`: the test workloads provided by you. You can also specify the number of apiservers and workers your controller needs.
 - `CRDs`: the CRD managed by your controllers. Please ensure they are specified in lower-case. Sieve needs the information to learn the related events in learning stage.
 
 

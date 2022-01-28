@@ -136,7 +136,7 @@ test_commands = {
     "contour": "python3 examples/contour/test/test.py",
 }
 
-test_suites = {
+test_setting = {
     "cass-operator": {
         "recreate": Suite(),
         "scaledown-scaleup": Suite(num_workers=3),
