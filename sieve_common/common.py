@@ -2,6 +2,7 @@ import os
 import yaml
 import re
 import json
+import glob
 
 NO_ERROR_MESSAGE = ""
 
@@ -151,6 +152,15 @@ def fail(message):
 
 def cprint(message, color):
     print(color + message + bcolors.ENDC)
+
+
+def get_all_controllers(dir):
+    controllers = set()
+    configs = glob.glob(os.path.join(dir, "*", "config.json"))
+    for config in configs:
+        tokens = config.split("/")
+        controllers.add(tokens[1])
+    return controllers
 
 
 class Suite:

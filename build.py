@@ -1,9 +1,19 @@
-from sieve_common.common import sieve_modes, cmd_early_exit, sieve_stages
+from sieve_common.common import (
+    sieve_modes,
+    cmd_early_exit,
+    sieve_stages,
+    get_all_controllers,
+)
 import os
-import controllers
+
+# import controllers
 import optparse
 import fileinput
-from sieve_common.default_config import sieve_config
+from sieve_common.default_config import (
+    sieve_config,
+    get_controller_config,
+    ControllerConfig,
+)
 
 ORIGINAL_DIR = os.getcwd()
 
@@ -90,21 +100,28 @@ def setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote):
         push_kubernetes(img_repo, img_tag)
 
 
-def download_controller(project, link, sha):
+def download_controller(
+    controller_config: ControllerConfig,
+):
     # If for some permission issue that we can't remove the operator, try sudo
     if (
-        cmd_early_exit("rm -rf %s" % controllers.app_dir[project], early_exit=False)
+        cmd_early_exit(
+            "rm -rf %s" % controller_config.application_dir, early_exit=False
+        )
         != 0
     ):
-        print("We cannot remove %s, try sudo instead" % controllers.app_dir[project])
-        cmd_early_exit("sudo rm -rf %s" % controllers.app_dir[project])
+        print(
+            "We cannot remove %s, try sudo instead" % controller_config.application_dir
+        )
+        cmd_early_exit("sudo rm -rf %s" % controller_config.application_dir)
     cmd_early_exit(
-        "git clone %s %s >> /dev/null" % (link, controllers.app_dir[project])
+        "git clone %s %s >> /dev/null"
+        % (controller_config.github_link, controller_config.application_dir)
     )
-    os.chdir(controllers.app_dir[project])
-    cmd_early_exit("git checkout %s >> /dev/null" % sha)
+    os.chdir(controller_config.application_dir)
+    cmd_early_exit("git checkout %s >> /dev/null" % controller_config.commit)
     cmd_early_exit("git checkout -b sieve >> /dev/null")
-    if project == "cassandra-operator":
+    if controller_config.controller_name == "cassandra-operator":
         cmd_early_exit("git cherry-pick bd8077a478997f63862848d66d4912c59e4c46ff")
     os.chdir(ORIGINAL_DIR)
 
@@ -122,57 +139,65 @@ def remove_replacement_in_go_mod_file(file):
             go_mod_file.write(line)
 
 
-def install_lib_for_controller(
-    project, controller_runtime_version, client_go_version, docker_file_path
-):
+def install_lib_for_controller(controller_config: ControllerConfig):
     # download controller_runtime and client_go libs
     cmd_early_exit(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
-        % controller_runtime_version
+        % controller_config.controller_runtime_version
     )
     cmd_early_exit(
-        "mkdir -p %s/dep-sieve/src/sigs.k8s.io" % controllers.app_dir[project]
+        "mkdir -p %s/dep-sieve/src/sigs.k8s.io" % controller_config.application_dir
     )
     cmd_early_exit(
         "cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
         % (
-            controller_runtime_version,
-            controllers.app_dir[project],
-            controller_runtime_version,
+            controller_config.controller_runtime_version,
+            controller_config.application_dir,
+            controller_config.controller_runtime_version,
         )
     )
     cmd_early_exit(
         "chmod -R +w %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
-        % (controllers.app_dir[project], controller_runtime_version)
+        % (
+            controller_config.application_dir,
+            controller_config.controller_runtime_version,
+        )
     )
     cmd_early_exit(
-        "go mod download k8s.io/client-go@%s >> /dev/null" % client_go_version
+        "go mod download k8s.io/client-go@%s >> /dev/null"
+        % controller_config.client_go_version
     )
-    cmd_early_exit("mkdir -p %s/dep-sieve/src/k8s.io" % controllers.app_dir[project])
+    cmd_early_exit(
+        "mkdir -p %s/dep-sieve/src/k8s.io" % controller_config.application_dir
+    )
     cmd_early_exit(
         "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sieve/src/k8s.io/client-go@%s"
-        % (client_go_version, controllers.app_dir[project], client_go_version)
+        % (
+            controller_config.client_go_version,
+            controller_config.application_dir,
+            controller_config.client_go_version,
+        )
     )
     cmd_early_exit(
         "chmod -R +w %s/dep-sieve/src/k8s.io/client-go@%s"
-        % (controllers.app_dir[project], client_go_version)
+        % (controller_config.application_dir, controller_config.client_go_version)
     )
     cmd_early_exit(
         "cp -r sieve_client %s/dep-sieve/src/sieve.client"
-        % controllers.app_dir[project]
+        % controller_config.application_dir
     )
-    if controllers.kubernetes_version[project] != DEFAULT_K8S_VERSION:
+    if controller_config.kubernetes_version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
-            "%s/dep-sieve/src/sieve.client/go.mod" % controllers.app_dir[project],
-            K8S_VER_TO_LIB_VER[controllers.kubernetes_version[project]],
+            "%s/dep-sieve/src/sieve.client/go.mod" % controller_config.application_dir,
+            K8S_VER_TO_LIB_VER[controller_config.kubernetes_version],
         )
 
-    if project == "yugabyte-operator":
+    if controller_config.controller_name == "yugabyte-operator":
         # Ad-hoc fix for api incompatibility in golang
         # Special handling of yugabyte-operator as it depends on an older apimachinery which is
         # incompatible with the one sieve.client depends on
         with fileinput.FileInput(
-            "%s/dep-sieve/src/sieve.client/go.mod" % controllers.app_dir[project],
+            "%s/dep-sieve/src/sieve.client/go.mod" % controller_config.application_dir,
             inplace=True,
             backup=".bak",
         ) as sieve_client_go_mod:
@@ -182,38 +207,41 @@ def install_lib_for_controller(
                 else:
                     print(line, end="")
 
-    os.chdir(controllers.app_dir[project])
+    os.chdir(controller_config.application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "download the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
     # modify the go.mod to import the libs
-    remove_replacement_in_go_mod_file("%s/go.mod" % controllers.app_dir[project])
-    with open("%s/go.mod" % controllers.app_dir[project], "a") as go_mod_file:
+    remove_replacement_in_go_mod_file("%s/go.mod" % controller_config.application_dir)
+    with open("%s/go.mod" % controller_config.application_dir, "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ./dep-sieve/src/sieve.client\n")
         go_mod_file.write(
             "replace sigs.k8s.io/controller-runtime => ./dep-sieve/src/sigs.k8s.io/controller-runtime@%s\n"
-            % controller_runtime_version
+            % controller_config.controller_runtime_version
         )
         go_mod_file.write(
             "replace k8s.io/client-go => ./dep-sieve/src/k8s.io/client-go@%s\n"
-            % client_go_version
+            % controller_config.client_go_version
         )
     with open(
         "%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s/go.mod"
-        % (controllers.app_dir[project], controller_runtime_version),
+        % (
+            controller_config.application_dir,
+            controller_config.controller_runtime_version,
+        ),
         "a",
     ) as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
         go_mod_file.write(
             "replace k8s.io/client-go => ../../k8s.io/client-go@%s\n"
-            % client_go_version
+            % controller_config.client_go_version
         )
     with open(
         "%s/dep-sieve/src/k8s.io/client-go@%s/go.mod"
-        % (controllers.app_dir[project], client_go_version),
+        % (controller_config.application_dir, controller_config.client_go_version),
         "a",
     ) as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
@@ -222,75 +250,71 @@ def install_lib_for_controller(
     # copy the build.sh and Dockerfile
     cmd_early_exit(
         "cp %s/build/build.sh %s/build.sh"
-        % (controllers.test_dir[project], controllers.app_dir[project])
+        % (
+            os.path.join("examples", controller_config.controller_name),
+            controller_config.application_dir,
+        )
     )
     cmd_early_exit(
         "cp %s/build/Dockerfile %s/%s"
         % (
-            controllers.test_dir[project],
-            controllers.app_dir[project],
-            docker_file_path,
+            os.path.join("examples", controller_config.controller_name),
+            controller_config.application_dir,
+            controller_config.docker_file_path,
         )
     )
-    os.chdir(controllers.app_dir[project])
+    os.chdir(controller_config.application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "import the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
 
-def instrument_controller(project, mode, controller_runtime_version, client_go_version):
+def instrument_controller(controller_config: ControllerConfig, mode):
     os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
     cmd_early_exit(
         "./instrumentation %s %s %s/%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sieve/src/k8s.io/client-go@%s"
         % (
-            project,
+            controller_config.controller_name,
             mode,
             ORIGINAL_DIR,
-            controllers.app_dir[project],
-            controller_runtime_version,
+            controller_config.application_dir,
+            controller_config.controller_runtime_version,
             ORIGINAL_DIR,
-            controllers.app_dir[project],
-            client_go_version,
+            controller_config.application_dir,
+            controller_config.client_go_version,
         )
     )
     os.chdir(ORIGINAL_DIR)
 
 
-def build_controller(project, img_repo, img_tag):
-    os.chdir(controllers.app_dir[project])
+def build_controller(controller_config: ControllerConfig, img_repo, img_tag):
+    os.chdir(controller_config.application_dir)
     cmd_early_exit("./build.sh %s %s" % (img_repo, img_tag))
     os.chdir(ORIGINAL_DIR)
 
 
-def push_controller(project, img_repo, img_tag):
-    cmd_early_exit("docker push %s/%s:%s" % (img_repo, project, img_tag))
+def push_controller(controller_config: ControllerConfig, img_repo, img_tag):
+    cmd_early_exit(
+        "docker push %s/%s:%s" % (img_repo, controller_config.controller_name, img_tag)
+    )
 
 
 def setup_controller(
-    project,
+    controller_config: ControllerConfig,
     mode,
     img_repo,
     img_tag,
-    link,
-    sha,
-    controller_runtime_version,
-    client_go_version,
-    docker_file_path,
     build_only,
     push_to_remote,
 ):
     if not build_only:
-        download_controller(project, link, sha)
-        install_lib_for_controller(
-            project, controller_runtime_version, client_go_version, docker_file_path
-        )
-        instrument_controller(
-            project, mode, controller_runtime_version, client_go_version
-        )
-    build_controller(project, img_repo, img_tag)
+        download_controller(controller_config)
+        install_lib_for_controller(controller_config)
+        instrument_controller(controller_config, mode)
+    build_controller(controller_config, img_repo, img_tag)
     if push_to_remote:
-        push_controller(project, img_repo, img_tag)
+        push_controller(controller_config, img_repo, img_tag)
 
 
 def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
@@ -308,7 +332,11 @@ def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
 
 
 def setup_controller_wrapper(
-    controller, mode, img_repo, sha, build_only, push_to_remote
+    controller_config: ControllerConfig,
+    mode,
+    img_repo,
+    build_only,
+    push_to_remote,
 ):
     img_tag = mode
     if mode == "all":
@@ -320,29 +348,19 @@ def setup_controller_wrapper(
         ]:
             img_tag = this_mode
             setup_controller(
-                controller,
+                controller_config,
                 this_mode,
                 img_repo,
                 img_tag,
-                controllers.github_link[controller],
-                sha,
-                controllers.controller_runtime_version[controller],
-                controllers.client_go_version[controller],
-                controllers.docker_file[controller],
                 build_only,
                 push_to_remote,
             )
     else:
         setup_controller(
-            controller,
+            controller_config,
             mode,
             img_repo,
             img_tag,
-            controllers.github_link[controller],
-            sha,
-            controllers.controller_runtime_version[controller],
-            controllers.client_go_version[controller],
-            controllers.docker_file[controller],
             build_only,
             push_to_remote,
         )
@@ -421,29 +439,30 @@ if __name__ == "__main__":
     img_repo = (
         options.docker if options.docker is not None else sieve_config["docker_repo"]
     )
+
     if options.project == "kind":
         setup_kubernetes_wrapper(
             options.version, options.mode, img_repo, options.push_to_remote
         )
     elif options.project == "all":
-        for controller in controllers.github_link:
+        all_controllers = get_all_controllers("examples")
+        for controller in all_controllers:
+            controller_config = get_controller_config(options.project)
             setup_controller_wrapper(
-                controller,
+                controller_config,
                 options.mode,
                 img_repo,
-                controllers.sha[controller],
                 options.build_only,
                 options.push_to_remote,
             )
     else:
-        sha = (
-            options.sha if options.sha is not None else controllers.sha[options.project]
-        )
+        controller_config = get_controller_config(options.project)
+        if options.sha is not None:
+            controller_config.commit = options.sha
         setup_controller_wrapper(
-            options.project,
+            controller_config,
             options.mode,
             img_repo,
-            sha,
             options.build_only,
             options.push_to_remote,
         )
