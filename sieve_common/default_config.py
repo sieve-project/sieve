@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Container
 
 sieve_config = {
     "docker_repo": "ghcr.io/sieve-project/action",
@@ -66,7 +67,11 @@ class ControllerConfig:
         custom_resource_definitions,
         deployment_name,
         controller_pod_label,
+        container_name,
         controller_deployment_file_path,
+        test_setting,
+        end_state_checker_mask,
+        state_update_summary_checker_mask,
     ):
         self.controller_name = controller_name
         self.github_link = github_link
@@ -80,7 +85,11 @@ class ControllerConfig:
         self.custom_resource_definitions = custom_resource_definitions
         self.deployment_name = deployment_name
         self.controller_pod_label = controller_pod_label
+        self.container_name = container_name
         self.controller_deployment_file_path = controller_deployment_file_path
+        self.test_setting = test_setting
+        self.end_state_checker_mask = end_state_checker_mask
+        self.state_update_summary_checker_mask = state_update_summary_checker_mask
 
 
 def get_global_config():
@@ -103,7 +112,21 @@ def get_controller_config(controller_name):
         custom_resource_definitions=controller_config["custom_resource_definitions"],
         deployment_name=controller_config["deployment_name"],
         controller_pod_label=controller_config["controller_pod_label"],
+        container_name=controller_config["container_name"]
+        if "container_name" in controller_config
+        else None,
         controller_deployment_file_path=controller_config[
             "controller_deployment_file_path"
         ],
+        test_setting=controller_config["test_setting"]
+        if "test_setting" in controller_config
+        else {},
+        end_state_checker_mask=controller_config["end_state_checker_mask"]
+        if "end_state_checker_mask" in controller_config
+        else {},
+        state_update_summary_checker_mask=controller_config[
+            "state_update_summary_checker_mask"
+        ]
+        if "state_update_summary_checker_mask" in controller_config
+        else {},
     )

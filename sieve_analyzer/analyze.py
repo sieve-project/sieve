@@ -9,8 +9,6 @@ from sieve_common.common import (
     fail,
     sieve_modes,
 )
-from controllers import *
-
 from sieve_analyzer.test_plan_generator import (
     intermediate_state_analysis,
     unobserved_state_analysis,

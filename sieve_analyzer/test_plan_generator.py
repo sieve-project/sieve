@@ -1,8 +1,6 @@
 import json
 import os
 from typing import List, Tuple
-
-import controllers
 from sieve_common.default_config import sieve_config
 from sieve_common.event_delta import *
 from sieve_common.common import *
@@ -262,15 +260,15 @@ def decide_stale_state_timing(
             assert False
 
 
-def stale_state_template(project):
+def stale_state_template(test_context: TestContext):
     return {
-        "project": project,
+        "project": test_context.project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.STALE_STATE,
         "straggler": sieve_config["stale_state_straggler"],
         "front-runner": sieve_config["stale_state_front_runner"],
-        "operator-pod-label": controllers.operator_pod_label[project],
-        "deployment-name": controllers.deployment_name[project],
+        "operator-pod-label": test_context.controller_config.controller_pod_label,
+        "deployment-name": test_context.controller_config.deployment_name,
     }
 
 
@@ -310,7 +308,7 @@ def stale_state_analysis(
 
         timing = decide_stale_state_timing(source, sink)
 
-        stale_state_config = stale_state_template(project)
+        stale_state_config = stale_state_template(test_context)
         stale_state_config["ce-name"] = operator_hear.name
         stale_state_config["ce-namespace"] = operator_hear.namespace
         stale_state_config["ce-rtype"] = operator_hear.rtype
@@ -328,7 +326,8 @@ def stale_state_analysis(
         )
         stale_state_config["ce-counter"] = str(operator_hear.signature_counter)
         stale_state_config["ce-is-cr"] = str(
-            operator_hear.rtype in controllers.CRDs[project]
+            operator_hear.rtype
+            in test_context.controller_config.custom_resource_definitions
         )
         stale_state_config["se-name"] = operator_write.name
         stale_state_config["se-namespace"] = operator_write.namespace
@@ -567,14 +566,14 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
-def intermediate_state_template(project):
+def intermediate_state_template(test_context: TestContext):
     return {
-        "project": project,
+        "project": test_context.project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.INTERMEDIATE_STATE,
         "front-runner": sieve_config["stale_state_front_runner"],
-        "operator-pod-label": controllers.operator_pod_label[project],
-        "deployment-name": controllers.deployment_name[project],
+        "operator-pod-label": test_context.controller_config.controller_pod_label,
+        "deployment-name": test_context.controller_config.deployment_name,
     }
 
 
@@ -604,7 +603,7 @@ def intermediate_state_analysis(
         # TODO: Handle the case where operator_write == EVENT_NONE_TYPE
         assert isinstance(operator_write, OperatorWrite)
 
-        intermediate_state_config = intermediate_state_template(project)
+        intermediate_state_config = intermediate_state_template(test_context)
         intermediate_state_config["se-name"] = operator_write.name
         intermediate_state_config["se-namespace"] = operator_write.namespace
         intermediate_state_config["se-rtype"] = operator_write.rtype

@@ -5,8 +5,6 @@ from sieve_common.common import (
     get_all_controllers,
 )
 import os
-
-# import controllers
 import optparse
 import fileinput
 from sieve_common.default_config import (

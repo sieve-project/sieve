@@ -12,5 +12,10 @@
     ],
     "deployment_name": "rabbitmq-operator",
     "controller_pod_label": "rabbitmq-operator",
-    "controller_deployment_file_path": "examples/rabbitmq-operator/deploy/cluster-operator.yaml"
+    "controller_deployment_file_path": "examples/rabbitmq-operator/deploy/cluster-operator.yaml",
+    "test_setting": {
+        "resize-pvc": {
+            "use_csi_driver": true
+        }
+    }
 }

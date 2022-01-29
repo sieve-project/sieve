@@ -4,12 +4,15 @@ import docker
 import optparse
 import os
 import kubernetes
-from sieve_common.default_config import sieve_config
+from sieve_common.default_config import (
+    ControllerConfig,
+    sieve_config,
+    get_controller_config,
+)
 import time
 import json
 import glob
 from sieve_analyzer import analyze
-import controllers
 from sieve_oracle.oracle import (
     persistent_history_and_state,
     canonicalize_history_and_state,
@@ -83,9 +86,9 @@ def save_run_result(
         )
 
 
-def watch_crd(project, addrs):
+def watch_crd(crds, addrs):
     for addr in addrs:
-        for crd in controllers.CRDs[project]:
+        for crd in crds:
             cmd_early_exit("kubectl get %s -s %s --ignore-not-found=true" % (crd, addr))
 
 
@@ -216,7 +219,7 @@ def setup_kind_cluster(test_context: TestContext):
     )
     k8s_docker_repo = test_context.docker_repo
     k8s_docker_tag = (
-        controllers.kubernetes_version[test_context.project]
+        test_context.controller_config.kubernetes_version
         + "-"
         + test_context.docker_tag
     )
@@ -230,9 +233,7 @@ def setup_kind_cluster(test_context: TestContext):
     )
 
 
-def setup_cluster(
-    test_context: TestContext,
-):
+def setup_cluster(test_context: TestContext):
     cmd_early_exit("kind delete cluster")
     # sleep here in case if the machine is slow and deletion is not done before creating a new cluster
     time.sleep(5)
@@ -296,8 +297,8 @@ def setup_cluster(
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
 
-def deploy_controller(project, docker_repo, docker_tag):
-    deployment_file = controllers.controller_deployment_file[project]
+def deploy_controller(test_context: TestContext):
+    deployment_file = test_context.controller_config.controller_deployment_file_path
     # backup deployment file
     backup_deployment_file = deployment_file + ".bkp"
     shutil.copyfile(deployment_file, backup_deployment_file)
@@ -305,8 +306,8 @@ def deploy_controller(project, docker_repo, docker_tag):
     # modify docker_repo and docker_tag
     fin = open(deployment_file)
     data = fin.read()
-    data = data.replace("${SIEVE-DR}", docker_repo)
-    data = data.replace("${SIEVE-DT}", docker_tag)
+    data = data.replace("${SIEVE-DR}", test_context.docker_repo)
+    data = data.replace("${SIEVE-DT}", test_context.docker_tag)
     fin.close()
     fin = open(deployment_file, "w")
     fin.write(data)
@@ -314,22 +315,19 @@ def deploy_controller(project, docker_repo, docker_tag):
 
     # run the deploy script
     org_dir = os.getcwd()
-    os.chdir(deploy_directory(project))
+    os.chdir(deploy_directory(test_context.project))
     cmd_early_exit("./deploy.sh")
     os.chdir(org_dir)
 
     # restore deployment file
-    deployment_file = controllers.controller_deployment_file[project]
     shutil.copyfile(backup_deployment_file, deployment_file)
     os.remove(backup_deployment_file)
 
 
 def start_operator(test_context: TestContext):
     project = test_context.project
-    docker_repo = test_context.docker_repo
-    docker_tag = test_context.docker_tag
     num_apiservers = test_context.num_apiservers
-    deploy_controller(project, docker_repo, docker_tag)
+    deploy_controller(test_context)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -357,7 +355,9 @@ def start_operator(test_context: TestContext):
     # print("apiserver ports", apiserver_ports)
     for port in apiserver_ports:
         apiserver_addr_list.append("https://127.0.0.1:" + port)
-    watch_crd(project, apiserver_addr_list)
+    watch_crd(
+        test_context.controller_config.custom_resource_definitions, apiserver_addr_list
+    )
 
 
 def run_workload(
@@ -373,8 +373,8 @@ def run_workload(
     ok("Operator deployed")
 
     select_container_from_pod = (
-        " -c {} ".format(controllers.container_name[test_context.project])
-        if test_context.project in controllers.container_name
+        " -c {} ".format(test_context.controller_config.container_name)
+        if test_context.controller_config.container_name is not None
         else ""
     )
 
@@ -402,7 +402,7 @@ def run_workload(
 
     cprint("Running test workload...", bcolors.OKGREEN)
     test_command = "%s %s %s %s" % (
-        controllers.test_commands[test_context.project],
+        test_context.controller_config.test_command,
         test_context.test_name,
         test_context.mode,
         os.path.join(test_context.result_dir, "workload.log"),
@@ -467,9 +467,7 @@ def check_result(
         return ret_val, messages
 
 
-def run_test(
-    test_context: TestContext,
-) -> Tuple[int, str]:
+def run_test(test_context: TestContext) -> Tuple[int, str]:
     try:
         if (
             test_context.phase == "all"
@@ -497,12 +495,12 @@ def run_test(
         return -4, generate_fatal(traceback.format_exc())
 
 
-def generate_learn_config(learn_config, project, mode, rate_limiter_enabled):
+def generate_learn_config(learn_config, mode, rate_limiter_enabled, crd_list):
     learn_config_map = {}
     learn_config_map["stage"] = sieve_stages.LEARN
     learn_config_map["mode"] = mode
     learn_config_map["namespace"] = sieve_config["namespace"]
-    learn_config_map["crd-list"] = controllers.CRDs[project]
+    learn_config_map["crd-list"] = crd_list
     if rate_limiter_enabled:
         learn_config_map["rate-limiter-enabled"] = "true"
         print("Turn on rate limiter")
@@ -532,8 +530,23 @@ def run(
     rate_limiter_enabled=False,
     phase="all",
 ):
-    suite = controllers.test_setting[project][test]
-    oracle_dir = os.path.join(controllers.test_dir[project], "oracle", test)
+    controller_config = get_controller_config(project)
+    num_apiservers = 1
+    num_workers = 2
+    use_csi_driver = False
+    if test in controller_config.test_setting:
+        if "num_apiservers" in controller_config.test_setting[test]:
+            num_apiservers = controller_config.test_setting[test]["num_apiservers"]
+        if "num_workers" in controller_config.test_setting[test]:
+            num_workers = controller_config.test_setting[test]["num_workers"]
+        if "use_csi_driver" in controller_config.test_setting[test]:
+            use_csi_driver = controller_config.test_setting[test]["use_csi_driver"]
+    if mode == sieve_modes.STALE_STATE and num_apiservers < 3:
+        num_apiservers = 3
+    elif use_csi_driver:
+        num_apiservers = 1
+        num_workers = 0
+    oracle_dir = os.path.join("examples", project, "oracle", test)
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
         log_dir, project, test, stage, mode, os.path.basename(config)
@@ -547,7 +560,10 @@ def run(
     if stage == sieve_stages.LEARN:
         print("Learning stage with config: %s" % config_to_use)
         generate_learn_config(
-            config_to_use, project, sieve_stages.LEARN, rate_limiter_enabled
+            config_to_use,
+            sieve_stages.LEARN,
+            rate_limiter_enabled,
+            controller_config.custom_resource_definitions,
         )
     else:
         print("Testing stage with config: %s" % config_to_use)
@@ -555,25 +571,21 @@ def run(
             generate_vanilla_config(config_to_use)
         else:
             cmd_early_exit("cp %s %s" % (config, config_to_use))
-            if mode == sieve_modes.STALE_STATE and suite.num_apiservers < 3:
-                suite.num_apiservers = 3
-            elif suite.use_csi_driver:
-                suite.num_apiservers = 1
-                suite.num_workers = 0
     test_context = TestContext(
-        project,
-        test,
-        stage,
-        mode,
-        phase,
-        config_to_use,
-        result_dir,
-        oracle_dir,
-        docker_repo,
-        docker_tag,
-        suite.num_apiservers,
-        suite.num_workers,
-        suite.use_csi_driver,
+        project=project,
+        test_name=test,
+        stage=stage,
+        mode=mode,
+        phase=phase,
+        test_config=config_to_use,
+        result_dir=result_dir,
+        oracle_dir=oracle_dir,
+        docker_repo=docker_repo,
+        docker_tag=docker_tag,
+        num_apiservers=num_apiservers,
+        num_workers=num_workers,
+        use_csi_driver=use_csi_driver,
+        controller_config=controller_config,
     )
     ret_val, messages = run_test(test_context)
     if ret_val != -4:

@@ -3,6 +3,7 @@ import yaml
 import re
 import json
 import glob
+from sieve_common.default_config import ControllerConfig
 
 NO_ERROR_MESSAGE = ""
 
@@ -163,18 +164,6 @@ def get_all_controllers(dir):
     return controllers
 
 
-class Suite:
-    def __init__(
-        self,
-        num_apiservers=1,
-        num_workers=2,
-        use_csi_driver=False,
-    ):
-        self.num_apiservers = num_apiservers
-        self.num_workers = num_workers
-        self.use_csi_driver = use_csi_driver
-
-
 class TestContext:
     def __init__(
         self,
@@ -191,6 +180,7 @@ class TestContext:
         num_apiservers,
         num_workers,
         use_csi_driver,
+        controller_config,
     ):
         self.project = project
         self.test_name = test_name
@@ -205,6 +195,7 @@ class TestContext:
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.use_csi_driver = use_csi_driver
+        self.controller_config = controller_config
 
 
 def dump_to_yaml(file_content, file_name):
