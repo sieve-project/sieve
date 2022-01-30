@@ -113,8 +113,8 @@ def download_controller(
     os.chdir(application_dir)
     cmd_early_exit("git checkout %s >> /dev/null" % controller_config.commit)
     cmd_early_exit("git checkout -b sieve >> /dev/null")
-    if controller_config.controller_name == "cassandra-operator":
-        cmd_early_exit("git cherry-pick bd8077a478997f63862848d66d4912c59e4c46ff")
+    for commit in controller_config.cherry_pick_commits:
+        cmd_early_exit("git cherry-pick %s" % commit)
     os.chdir(ORIGINAL_DIR)
 
 
@@ -177,21 +177,11 @@ def install_lib_for_controller(controller_config: ControllerConfig):
             "%s/dep-sieve/src/sieve.client/go.mod" % application_dir,
             K8S_VER_TO_LIB_VER[controller_config.kubernetes_version],
         )
-
-    if controller_config.controller_name == "yugabyte-operator":
-        # Ad-hoc fix for api incompatibility in golang
-        # Special handling of yugabyte-operator as it depends on an older apimachinery which is
-        # incompatible with the one sieve.client depends on
-        with fileinput.FileInput(
+    elif controller_config.apimachinery_version is not None:
+        update_sieve_client_go_mod_with_version(
             "%s/dep-sieve/src/sieve.client/go.mod" % application_dir,
-            inplace=True,
-            backup=".bak",
-        ) as sieve_client_go_mod:
-            for line in sieve_client_go_mod:
-                if "k8s.io/apimachinery" in line:
-                    print("\tk8s.io/apimachinery v0.17.4", end="\n")
-                else:
-                    print(line, end="")
+            controller_config.apimachinery_version,
+        )
 
     os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")

@@ -58,9 +58,11 @@ class ControllerConfig:
         controller_name,
         github_link,
         commit,
+        cherry_pick_commits,
         kubernetes_version,
         controller_runtime_version,
         client_go_version,
+        apimachinery_version,
         docker_file_path,
         test_command,
         custom_resource_definitions,
@@ -75,9 +77,11 @@ class ControllerConfig:
         self.controller_name = controller_name
         self.github_link = github_link
         self.commit = commit
+        self.cherry_pick_commits = cherry_pick_commits
         self.kubernetes_version = kubernetes_version
         self.controller_runtime_version = controller_runtime_version
         self.client_go_version = client_go_version
+        self.apimachinery_version = apimachinery_version
         self.docker_file_path = docker_file_path
         self.test_command = test_command
         self.custom_resource_definitions = custom_resource_definitions
@@ -101,9 +105,15 @@ def get_controller_config(controller_name):
         controller_name=controller_name,
         github_link=controller_config["github_link"],
         commit=controller_config["commit"],
+        cherry_pick_commits=controller_config["cherry_pick_commits"]
+        if "cherry_pick_commits" in controller_config
+        else [],
         kubernetes_version=controller_config["kubernetes_version"],
         controller_runtime_version=controller_config["controller_runtime_version"],
         client_go_version=controller_config["client_go_version"],
+        apimachinery_version=controller_config["apimachinery_version"]
+        if "apimachinery_version" in controller_config
+        else None,
         docker_file_path=controller_config["docker_file_path"],
         test_command=controller_config["test_command"],
         custom_resource_definitions=controller_config["custom_resource_definitions"],
