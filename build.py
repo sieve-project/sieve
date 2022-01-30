@@ -435,7 +435,7 @@ if __name__ == "__main__":
     elif options.project == "all":
         all_controllers = get_all_controllers("examples")
         for controller in all_controllers:
-            controller_config = get_controller_config(options.project)
+            controller_config = get_controller_config(controller)
             setup_controller_wrapper(
                 controller_config,
                 options.mode,
