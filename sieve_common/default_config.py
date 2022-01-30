@@ -61,7 +61,6 @@ class ControllerConfig:
         kubernetes_version,
         controller_runtime_version,
         client_go_version,
-        application_dir,
         docker_file_path,
         test_command,
         custom_resource_definitions,
@@ -79,7 +78,6 @@ class ControllerConfig:
         self.kubernetes_version = kubernetes_version
         self.controller_runtime_version = controller_runtime_version
         self.client_go_version = client_go_version
-        self.application_dir = application_dir
         self.docker_file_path = docker_file_path
         self.test_command = test_command
         self.custom_resource_definitions = custom_resource_definitions
@@ -106,7 +104,6 @@ def get_controller_config(controller_name):
         kubernetes_version=controller_config["kubernetes_version"],
         controller_runtime_version=controller_config["controller_runtime_version"],
         client_go_version=controller_config["client_go_version"],
-        application_dir=controller_config["application_dir"],
         docker_file_path=controller_config["docker_file_path"],
         test_command=controller_config["test_command"],
         custom_resource_definitions=controller_config["custom_resource_definitions"],

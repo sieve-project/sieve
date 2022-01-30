@@ -101,22 +101,16 @@ def setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote):
 def download_controller(
     controller_config: ControllerConfig,
 ):
+    application_dir = os.path.join("app", controller_config.controller_name)
     # If for some permission issue that we can't remove the operator, try sudo
-    if (
-        cmd_early_exit(
-            "rm -rf %s" % controller_config.application_dir, early_exit=False
-        )
-        != 0
-    ):
-        print(
-            "We cannot remove %s, try sudo instead" % controller_config.application_dir
-        )
-        cmd_early_exit("sudo rm -rf %s" % controller_config.application_dir)
+    if cmd_early_exit("rm -rf %s" % application_dir, early_exit=False) != 0:
+        print("We cannot remove %s, try sudo instead" % application_dir)
+        cmd_early_exit("sudo rm -rf %s" % application_dir)
     cmd_early_exit(
         "git clone %s %s >> /dev/null"
-        % (controller_config.github_link, controller_config.application_dir)
+        % (controller_config.github_link, application_dir)
     )
-    os.chdir(controller_config.application_dir)
+    os.chdir(application_dir)
     cmd_early_exit("git checkout %s >> /dev/null" % controller_config.commit)
     cmd_early_exit("git checkout -b sieve >> /dev/null")
     if controller_config.controller_name == "cassandra-operator":
@@ -138,26 +132,25 @@ def remove_replacement_in_go_mod_file(file):
 
 
 def install_lib_for_controller(controller_config: ControllerConfig):
+    application_dir = os.path.join("app", controller_config.controller_name)
     # download controller_runtime and client_go libs
     cmd_early_exit(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
         % controller_config.controller_runtime_version
     )
-    cmd_early_exit(
-        "mkdir -p %s/dep-sieve/src/sigs.k8s.io" % controller_config.application_dir
-    )
+    cmd_early_exit("mkdir -p %s/dep-sieve/src/sigs.k8s.io" % application_dir)
     cmd_early_exit(
         "cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
         % (
             controller_config.controller_runtime_version,
-            controller_config.application_dir,
+            application_dir,
             controller_config.controller_runtime_version,
         )
     )
     cmd_early_exit(
         "chmod -R +w %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
         % (
-            controller_config.application_dir,
+            application_dir,
             controller_config.controller_runtime_version,
         )
     )
@@ -165,28 +158,23 @@ def install_lib_for_controller(controller_config: ControllerConfig):
         "go mod download k8s.io/client-go@%s >> /dev/null"
         % controller_config.client_go_version
     )
-    cmd_early_exit(
-        "mkdir -p %s/dep-sieve/src/k8s.io" % controller_config.application_dir
-    )
+    cmd_early_exit("mkdir -p %s/dep-sieve/src/k8s.io" % application_dir)
     cmd_early_exit(
         "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sieve/src/k8s.io/client-go@%s"
         % (
             controller_config.client_go_version,
-            controller_config.application_dir,
+            application_dir,
             controller_config.client_go_version,
         )
     )
     cmd_early_exit(
         "chmod -R +w %s/dep-sieve/src/k8s.io/client-go@%s"
-        % (controller_config.application_dir, controller_config.client_go_version)
+        % (application_dir, controller_config.client_go_version)
     )
-    cmd_early_exit(
-        "cp -r sieve_client %s/dep-sieve/src/sieve.client"
-        % controller_config.application_dir
-    )
+    cmd_early_exit("cp -r sieve_client %s/dep-sieve/src/sieve.client" % application_dir)
     if controller_config.kubernetes_version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
-            "%s/dep-sieve/src/sieve.client/go.mod" % controller_config.application_dir,
+            "%s/dep-sieve/src/sieve.client/go.mod" % application_dir,
             K8S_VER_TO_LIB_VER[controller_config.kubernetes_version],
         )
 
@@ -195,7 +183,7 @@ def install_lib_for_controller(controller_config: ControllerConfig):
         # Special handling of yugabyte-operator as it depends on an older apimachinery which is
         # incompatible with the one sieve.client depends on
         with fileinput.FileInput(
-            "%s/dep-sieve/src/sieve.client/go.mod" % controller_config.application_dir,
+            "%s/dep-sieve/src/sieve.client/go.mod" % application_dir,
             inplace=True,
             backup=".bak",
         ) as sieve_client_go_mod:
@@ -205,14 +193,14 @@ def install_lib_for_controller(controller_config: ControllerConfig):
                 else:
                     print(line, end="")
 
-    os.chdir(controller_config.application_dir)
+    os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "download the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
     # modify the go.mod to import the libs
-    remove_replacement_in_go_mod_file("%s/go.mod" % controller_config.application_dir)
-    with open("%s/go.mod" % controller_config.application_dir, "a") as go_mod_file:
+    remove_replacement_in_go_mod_file("%s/go.mod" % application_dir)
+    with open("%s/go.mod" % application_dir, "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ./dep-sieve/src/sieve.client\n")
         go_mod_file.write(
@@ -226,7 +214,7 @@ def install_lib_for_controller(controller_config: ControllerConfig):
     with open(
         "%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s/go.mod"
         % (
-            controller_config.application_dir,
+            application_dir,
             controller_config.controller_runtime_version,
         ),
         "a",
@@ -239,7 +227,7 @@ def install_lib_for_controller(controller_config: ControllerConfig):
         )
     with open(
         "%s/dep-sieve/src/k8s.io/client-go@%s/go.mod"
-        % (controller_config.application_dir, controller_config.client_go_version),
+        % (application_dir, controller_config.client_go_version),
         "a",
     ) as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
@@ -250,24 +238,25 @@ def install_lib_for_controller(controller_config: ControllerConfig):
         "cp %s/build/build.sh %s/build.sh"
         % (
             os.path.join("examples", controller_config.controller_name),
-            controller_config.application_dir,
+            application_dir,
         )
     )
     cmd_early_exit(
         "cp %s/build/Dockerfile %s/%s"
         % (
             os.path.join("examples", controller_config.controller_name),
-            controller_config.application_dir,
+            application_dir,
             controller_config.docker_file_path,
         )
     )
-    os.chdir(controller_config.application_dir)
+    os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "import the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
 
 def instrument_controller(controller_config: ControllerConfig, mode):
+    application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
     cmd_early_exit(
@@ -276,10 +265,10 @@ def instrument_controller(controller_config: ControllerConfig, mode):
             controller_config.controller_name,
             mode,
             ORIGINAL_DIR,
-            controller_config.application_dir,
+            application_dir,
             controller_config.controller_runtime_version,
             ORIGINAL_DIR,
-            controller_config.application_dir,
+            application_dir,
             controller_config.client_go_version,
         )
     )
@@ -287,7 +276,8 @@ def instrument_controller(controller_config: ControllerConfig, mode):
 
 
 def build_controller(controller_config: ControllerConfig, img_repo, img_tag):
-    os.chdir(controller_config.application_dir)
+    application_dir = os.path.join("app", controller_config.controller_name)
+    os.chdir(application_dir)
     cmd_early_exit("./build.sh %s %s" % (img_repo, img_tag))
     os.chdir(ORIGINAL_DIR)
 
