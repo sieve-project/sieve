@@ -1,0 +1,24 @@
+{
+    "github_link": "https://github.com/yugabyte/yugabyte-operator.git",
+    "commit": "966ef1978ed5d714119548b2c4343925fe49f882",
+    "kubernetes_version": "v1.18.9",
+    "controller_runtime_version": "v0.5.2",
+    "client_go_version": "v0.17.4",
+    "docker_file_path": "build/Dockerfile",
+    "test_command": "python3 examples/yugabyte-operator/test/test.py",
+    "custom_resource_definitions": [
+        "ybcluster"
+    ],
+    "deployment_name": "yugabyte-operator",
+    "controller_pod_label": "yugabyte-operator",
+    "controller_deployment_file_path": "examples/yugabyte-operator/deploy/operator.yaml",
+    "state_update_summary_checker_mask": {
+        "*": {
+            "pod": [
+                "yb-master-0",
+                "yb-master-1",
+                "yb-master-2"
+            ]
+        }
+    }
+}

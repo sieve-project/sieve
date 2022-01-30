@@ -1,0 +1,17 @@
+{
+    "github_link": "https://github.com/Orange-OpenSource/casskop.git",
+    "commit": "f87c8e05c1a2896732fc5f3a174f1eb99e936907",
+    "kubernetes_version": "v1.18.9",
+    "controller_runtime_version": "v0.6.0",
+    "client_go_version": "v0.18.2",
+    "docker_file_path": "build/Dockerfile",
+    "test_command": "python3 examples/casskop-operator/test/test.py",
+    "custom_resource_definitions": [
+        "cassandracluster",
+        "cassandrarestore",
+        "cassandrabackup"
+    ],
+    "deployment_name": "casskop-operator",
+    "controller_pod_label": "casskop-operator",
+    "controller_deployment_file_path": "examples/casskop-operator/deploy/values.yaml"
+}

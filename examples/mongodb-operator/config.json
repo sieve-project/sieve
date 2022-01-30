@@ -1,0 +1,43 @@
+{
+    "github_link": "https://github.com/percona/percona-server-mongodb-operator.git",
+    "commit": "c12b69e2c41efc67336a890039394250420f60bb",
+    "kubernetes_version": "v1.18.9",
+    "controller_runtime_version": "v0.5.2",
+    "client_go_version": "v0.17.2",
+    "docker_file_path": "build/Dockerfile",
+    "test_command": "python3 examples/mongodb-operator/test/test.py",
+    "custom_resource_definitions": [
+        "perconaservermongodb",
+        "perconaservermongodbbackup",
+        "perconaservermongodbrestore"
+    ],
+    "deployment_name": "mongodb-operator",
+    "controller_pod_label": "mongodb-operator",
+    "controller_deployment_file_path": "examples/mongodb-operator/deploy/bundle.yaml",
+    "test_setting": {
+        "recreate": {
+            "num_workers": 3
+        },
+        "scaleup-scaledown": {
+            "num_workers": 5
+        },
+        "disable-enable-shard": {
+            "num_workers": 3
+        },
+        "disable-enable-arbiter": {
+            "num_workers": 5
+        },
+        "run-cert-manager": {
+            "num_workers": 3
+        }
+    },
+    "state_update_summary_checker_mask": {
+        "*": {
+            "pod": [
+                "mongodb-cluster-rs0-0",
+                "mongodb-cluster-rs0-1",
+                "mongodb-cluster-rs0-2"
+            ]
+        }
+    }
+}
