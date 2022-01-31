@@ -1,0 +1,44 @@
+{
+    "github_link": "https://github.com/percona/percona-xtradb-cluster-operator.git",
+    "commit": "29092c9b145af6eaf5cbff534287483bec4167b6",
+    "kubernetes_version": "v1.18.9",
+    "controller_runtime_version": "v0.6.2",
+    "client_go_version": "v0.18.6",
+    "docker_file_path": "build/Dockerfile",
+    "test_command": "python3 examples/xtradb-operator/test/test.py",
+    "custom_resource_definitions": [
+        "perconaxtradbcluster",
+        "perconaxtradbclusterbackup",
+        "perconaxtradbclusterrestore",
+        "perconaxtradbbackup"
+    ],
+    "deployment_name": "percona-xtradb-cluster-operator",
+    "controller_pod_label": "xtradb-operator",
+    "controller_deployment_file_path": "examples/xtradb-operator/deploy/bundle.yaml",
+    "test_setting": {
+        "recreate": {
+            "num_workers": 4
+        },
+        "scaleup-scaledown": {
+            "num_workers": 5
+        },
+        "disable-enable-haproxy": {
+            "num_workers": 4
+        },
+        "disable-enable-proxysql": {
+            "num_workers": 4
+        },
+        "run-cert-manager": {
+            "num_workers": 4
+        }
+    },
+    "state_update_summary_checker_mask": {
+        "*": {
+            "pod": [
+                "xtradb-cluster-pxc-0",
+                "xtradb-cluster-pxc-1",
+                "xtradb-cluster-pxc-2"
+            ]
+        }
+    }
+}

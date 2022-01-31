@@ -1,0 +1,20 @@
+{
+    "github_link": "https://github.com/datastax/cass-operator.git",
+    "commit": "dbd4f7a10533bb2298aed0d40ea20bfd8c133da2",
+    "kubernetes_version": "v1.18.9",
+    "controller_runtime_version": "v0.5.2",
+    "client_go_version": "v0.17.4",
+    "docker_file_path": "operator/docker/base/Dockerfile",
+    "test_command": "python3 examples/cass-operator/test/test.py",
+    "custom_resource_definitions": [
+        "cassandradatacenter"
+    ],
+    "deployment_name": "cass-operator",
+    "controller_pod_label": "cass-operator",
+    "controller_deployment_file_path": "examples/cass-operator/deploy/controller-manifest.yaml",
+    "test_setting": {
+        "scaleup-scaledown": {
+            "num_workers": 3
+        }
+    }
+}

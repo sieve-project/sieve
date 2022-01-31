@@ -2,14 +2,12 @@ from sieve_common.common import *
 import json
 import kubernetes
 from sieve_oracle.checker_common import *
-from sieve_common.default_config import sieve_config
 import deepdiff
 from deepdiff import DeepDiff
-import controllers
 
 
-def get_resource_helper(func):
-    k8s_namespace = sieve_config["namespace"]
+def get_resource_helper(func, namespace):
+    k8s_namespace = namespace
     response = func(k8s_namespace, _preload_content=False, watch=False)
     data = json.loads(response.data)
     return {resource["metadata"]["name"]: resource for resource in data["items"]}
@@ -38,11 +36,7 @@ def get_crd(crd):
 
 
 def get_state_mask(test_context: TestContext):
-    return (
-        controllers.state_mask[test_context.project]
-        if test_context.project in controllers.state_mask
-        else {}
-    )
+    return test_context.controller_config.end_state_checker_mask
 
 
 def generate_state(test_context: TestContext):
@@ -64,8 +58,10 @@ def generate_state(test_context: TestContext):
     }
 
     state = {}
-    for rtype in sieve_config["k8s_type_check_list"]:
-        state[rtype] = get_resource_helper(k8s_resource_handler[rtype])
+    for rtype in test_context.common_config.end_state_resource_check_list:
+        state[rtype] = get_resource_helper(
+            k8s_resource_handler[rtype], test_context.common_config.namespace
+        )
     for crd in get_crd_list():
         state[crd] = get_crd(crd)
     return state
@@ -434,7 +430,7 @@ def compare_states(test_context: TestContext):
                 # TODO: this is a very ad-hoc fix for dealing with replicaset that hosts controller pod
                 # We should revisit it later
                 if resource_type == "replicaset" and name.startswith(
-                    controllers.deployment_name[test_context.project]
+                    test_context.controller_config.deployment_name
                 ):
                     continue
                 ret_val += 1
@@ -451,7 +447,7 @@ def compare_states(test_context: TestContext):
                 # TODO: this is a very ad-hoc fix for dealing with replicaset that hosts controller pod
                 # We should revisit it later
                 if resource_type == "replicaset" and name.startswith(
-                    controllers.deployment_name[test_context.project]
+                    test_context.controller_config.deployment_name
                 ):
                     continue
                 ret_val += 1

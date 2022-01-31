@@ -11,8 +11,6 @@ from sieve_common.k8s_event import (
     api_key_to_rtype_namespace_name,
     generate_key,
 )
-from sieve_common.default_config import sieve_config
-import controllers
 
 
 def is_unstable_api_event_key(key, value):
@@ -65,6 +63,7 @@ def generate_history_digest(test_context: TestContext):
     api_key_event_map = {}
     api_type_event_map = {}
     taint_list = []
+    deployment_name = test_context.controller_config.deployment_name
     for line in open(api_log_path).readlines():
         if SIEVE_API_EVENT_MARK not in line:
             continue
@@ -86,7 +85,12 @@ def generate_history_digest(test_context: TestContext):
         if key not in api_key_event_map:
             api_key_event_map[key] = copy.deepcopy(api_event_empty_entry)
             if operator_related_resource(
-                project, api_event.rtype, api_event.name, api_event.obj_map, taint_list
+                project,
+                api_event.rtype,
+                api_event.name,
+                api_event.obj_map,
+                taint_list,
+                deployment_name,
             ):
                 api_key_event_map[key]["operator_related"] = True
                 taint_list.append((api_event.rtype, api_event.name))
@@ -216,11 +220,7 @@ def get_testing_history(test_context: TestContext):
 
 
 def get_event_mask(test_context: TestContext):
-    return (
-        controllers.event_mask[test_context.project]
-        if test_context.project in controllers.event_mask
-        else {}
-    )
+    return test_context.controller_config.state_update_summary_checker_mask
 
 
 def check_single_history(history, resource_keys, checker_name, customized_checker):
@@ -274,7 +274,10 @@ def compare_history_digests(test_context: TestContext):
         if should_skip_api_event_key(key, test_context.test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
-            if etype not in sieve_config["k8s_event_check_list"]:
+            if (
+                etype
+                not in test_context.common_config.state_update_summary_check_event_list
+            ):
                 continue
             assert canonicalized_events["keys"][key][etype] != SIEVE_LEARN_VALUE_MASK
             if (

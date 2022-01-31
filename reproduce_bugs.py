@@ -1,5 +1,5 @@
 import optparse
-from sieve_common.default_config import sieve_config
+from sieve_common.default_config import get_common_config
 import os
 from sieve_common.common import cprint, bcolors
 
@@ -91,6 +91,7 @@ def reproduce_bug(operator, bug, docker, phase):
 
 
 if __name__ == "__main__":
+    common_config = get_common_config()
     usage = "usage: python3 sieve.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
@@ -123,7 +124,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=sieve_config["docker_repo"],
+        default=common_config.docker_registry,
     )
 
     (options, args) = parser.parse_args()

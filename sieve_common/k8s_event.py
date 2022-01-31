@@ -1,9 +1,7 @@
 import json
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
-from sieve_common.event_delta import diff_event, conflicting_event_payload
-from sieve_common.default_config import sieve_config
-from controllers import deployment_name
+from sieve_common.event_delta import conflicting_event_payload
 
 HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
@@ -114,12 +112,10 @@ def extract_uid(obj: Dict):
 
 def extract_namespace_name(obj: Dict):
     assert "metadata" in obj, "missing metadata in: " + str(obj)
-    # TODO(Wenqing): Sometimes metadata doesn't carry namespace field, may dig into that later
+    # TODO: we should allow namespace other than default here
     obj_name = obj["metadata"]["name"]
     obj_namespace = (
-        obj["metadata"]["namespace"]
-        if "namespace" in obj["metadata"]
-        else sieve_config["namespace"]
+        obj["metadata"]["namespace"] if "namespace" in obj["metadata"] else "default"
     )
     return obj_namespace, obj_name
 
@@ -138,10 +134,14 @@ def extract_generate_name(obj: Dict):
 
 
 def operator_related_resource(
-    project: str, rtype: str, name: str, obj: Dict, taint_list: List[Tuple[str, str]]
+    project: str,
+    rtype: str,
+    name: str,
+    obj: Dict,
+    taint_list: List[Tuple[str, str]],
+    deployment_name,
 ):
-    depl_name = deployment_name[project]
-    if depl_name in name:
+    if deployment_name in name:
         return True
     obj_metadata = obj
     if "metadata" in obj:

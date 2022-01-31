@@ -2,6 +2,8 @@ import os
 import yaml
 import re
 import json
+import glob
+from sieve_common.default_config import CommonConfig, ControllerConfig
 
 NO_ERROR_MESSAGE = ""
 
@@ -93,6 +95,22 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
+def build_directory(controller_name):
+    return os.path.join("examples", controller_name, "build")
+
+
+def deploy_directory(controller_name):
+    return os.path.join("examples", controller_name, "deploy")
+
+
+def test_directory(controller_name):
+    return os.path.join("examples", controller_name, "test")
+
+
+def oracle_directory(controller_name):
+    return os.path.join("examples", controller_name, "oracle")
+
+
 class sieve_stages:
     LEARN = "learn"
     TEST = "test"
@@ -137,16 +155,13 @@ def cprint(message, color):
     print(color + message + bcolors.ENDC)
 
 
-class Suite:
-    def __init__(
-        self,
-        num_apiservers=1,
-        num_workers=2,
-        use_csi_driver=False,
-    ):
-        self.num_apiservers = num_apiservers
-        self.num_workers = num_workers
-        self.use_csi_driver = use_csi_driver
+def get_all_controllers(dir):
+    controllers = set()
+    configs = glob.glob(os.path.join(dir, "*", "config.json"))
+    for config in configs:
+        tokens = config.split("/")
+        controllers.add(tokens[1])
+    return controllers
 
 
 class TestContext:
@@ -165,6 +180,8 @@ class TestContext:
         num_apiservers,
         num_workers,
         use_csi_driver,
+        common_config: CommonConfig,
+        controller_config: ControllerConfig,
     ):
         self.project = project
         self.test_name = test_name
@@ -179,6 +196,8 @@ class TestContext:
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.use_csi_driver = use_csi_driver
+        self.common_config = common_config
+        self.controller_config = controller_config
 
 
 def dump_to_yaml(file_content, file_name):

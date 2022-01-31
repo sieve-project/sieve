@@ -1,7 +1,6 @@
 import os
-import controllers
 import json
-from sieve_common.default_config import sieve_config
+from sieve_common.default_config import get_common_config
 from evaluation_sanity_check import common
 
 total_result_map = {}
@@ -9,9 +8,7 @@ total_result_map = {}
 
 def collect_spec():
     sub_result_map = {}
-    for operator in controllers.test_setting:
-        if operator not in common.controllers_to_check:
-            continue
+    for operator in common.controllers_to_check:
         sub_result_map[operator] = {}
         ds_base_cnt = 0
         ms_base_cnt = 0
@@ -25,7 +22,7 @@ def collect_spec():
         ds_cnt = 0
         ms_cnt = 0
         ss_cnt = 0
-        for test in controllers.test_setting[operator]:
+        for test in common.controllers_to_check[operator]:
             result_filename = "sieve_learn_results/{}-{}.json".format(operator, test)
             result_map = json.load(open(result_filename))
             ds_base_cnt += result_map["intermediate-state"]["baseline"]
@@ -71,11 +68,9 @@ def recover_config_json():
 
 
 def learn_all():
-    for project in controllers.test_setting:
-        if project not in common.controllers_to_check:
-            continue
-        for test_suite in controllers.test_setting[project]:
-            docker_repo_name = sieve_config["docker_repo"]
+    for project in common.controllers_to_check:
+        for test_suite in common.controllers_to_check[project]:
+            docker_repo_name = get_common_config().docker_registry
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check" % (
                 project,
                 test_suite,
@@ -88,9 +83,7 @@ def generate_test_plan_stat():
     table = "controller\tbaseline-ds\tafter-p1-ds\tafter-p2-ds\tds\tbaseline-ss\tafter-p1-ss\tafter-p2-ss\tss\tbaseline-ms\tafter-p1-ms\tafter-p2-ms\tms\tbaseline-total\tafter-p1-total\tafter-p2-total\ttotal\n"
     learn_all()
     sub_map = collect_spec()
-    for operator in controllers.test_setting:
-        if operator not in common.controllers_to_check:
-            continue
+    for operator in common.controllers_to_check:
         baseline_ds = sub_map[operator]["baseline-ds"]
         baseline_ss = sub_map[operator]["baseline-ss"]
         baseline_ms = sub_map[operator]["baseline-ms"]

@@ -1,9 +1,6 @@
 import json
 import os
 from typing import List, Tuple
-
-import controllers
-from sieve_common.default_config import sieve_config
 from sieve_common.event_delta import *
 from sieve_common.common import *
 
@@ -126,17 +123,16 @@ def stale_state_detectable_pass(
     for pair in causality_pairs:
         operator_hear = pair[0].content
         operator_write = pair[1].content
-        if sieve_config["remove_nondeterministic_key_enabled"]:
-            if nondeterministic_key(
-                project,
-                test_name,
-                operator_hear,
-            ) or nondeterministic_key(
-                project,
-                test_name,
-                operator_write,
-            ):
-                continue
+        if nondeterministic_key(
+            project,
+            test_name,
+            operator_hear,
+        ) or nondeterministic_key(
+            project,
+            test_name,
+            operator_write,
+        ):
+            continue
         if detectable_event_diff(
             sieve_modes.STALE_STATE,
             operator_hear.slim_prev_obj_map,
@@ -158,9 +154,8 @@ def get_stale_state_baseline(causality_graph: CausalityGraph):
         for operator_hear_vertex in operator_hear_vertices:
             operator_write = operator_write_vertex.content
             operator_hear = operator_hear_vertex.content
-            if sieve_config["stale_state_spec_generation_delete_only"]:
-                if not operator_write.etype == OperatorWriteTypes.DELETE:
-                    continue
+            if not operator_write.etype == OperatorWriteTypes.DELETE:
+                continue
             write_after_hear = (
                 operator_write.start_timestamp > operator_hear.start_timestamp
             )
@@ -207,10 +202,7 @@ def reversed_effect_filtering_pass(
                     continue
                 if operator_hear.etype == OperatorHearTypes.ADDED:
                     reversed_effect = True
-                if (
-                    sieve_config["update_cancels_delete_enabled"]
-                    and operator_hear.etype == OperatorHearTypes.UPDATED
-                ):
+                if operator_hear.etype == OperatorHearTypes.UPDATED:
                     reversed_effect = True
         else:
             # if the operator_write key never appears in the operator_hear_key_map
@@ -262,15 +254,15 @@ def decide_stale_state_timing(
             assert False
 
 
-def stale_state_template(project):
+def stale_state_template(test_context: TestContext):
     return {
-        "project": project,
+        "project": test_context.project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.STALE_STATE,
-        "straggler": sieve_config["stale_state_straggler"],
-        "front-runner": sieve_config["stale_state_front_runner"],
-        "operator-pod-label": controllers.operator_pod_label[project],
-        "deployment-name": controllers.deployment_name[project],
+        "straggler": test_context.common_config.following_api,
+        "front-runner": test_context.common_config.leading_api,
+        "operator-pod-label": test_context.controller_config.controller_pod_label,
+        "deployment-name": test_context.controller_config.deployment_name,
     }
 
 
@@ -284,17 +276,15 @@ def stale_state_analysis(
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
-    if sieve_config["spec_generation_causal_info_pass_enabled"]:
-        if sieve_config["stale_state_spec_generation_causality_pass_enabled"]:
-            candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
+    if test_context.common_config.causality_prunning_enabled:
+        candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
         after_p1_spec_number = len(candidate_pairs)
-    if sieve_config["spec_generation_type_specific_pass_enabled"]:
-        if sieve_config["stale_state_spec_generation_reversed_pass_enabled"]:
-            candidate_pairs = reversed_effect_filtering_pass(
-                candidate_pairs, causality_graph
-            )
+    if test_context.common_config.effective_updates_pruning_enabled:
+        candidate_pairs = reversed_effect_filtering_pass(
+            candidate_pairs, causality_graph
+        )
         after_p2_spec_number = len(candidate_pairs)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
+    if test_context.common_config.nondeterministic_pruning_enabled:
         candidate_pairs = stale_state_detectable_pass(
             project, test_name, candidate_pairs
         )
@@ -310,7 +300,7 @@ def stale_state_analysis(
 
         timing = decide_stale_state_timing(source, sink)
 
-        stale_state_config = stale_state_template(project)
+        stale_state_config = stale_state_template(test_context)
         stale_state_config["ce-name"] = operator_hear.name
         stale_state_config["ce-namespace"] = operator_hear.namespace
         stale_state_config["ce-rtype"] = operator_hear.rtype
@@ -328,7 +318,8 @@ def stale_state_analysis(
         )
         stale_state_config["ce-counter"] = str(operator_hear.signature_counter)
         stale_state_config["ce-is-cr"] = str(
-            operator_hear.rtype in controllers.CRDs[project]
+            operator_hear.rtype
+            in test_context.controller_config.custom_resource_definitions
         )
         stale_state_config["se-name"] = operator_write.name
         stale_state_config["se-namespace"] = operator_write.namespace
@@ -340,19 +331,19 @@ def stale_state_analysis(
             stale_state_config["timing"] = timing
             i += 1
             file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
-            if sieve_config["persist_specs_enabled"]:
+            if test_context.common_config.persist_test_plans_enabled:
                 dump_to_yaml(stale_state_config, file_name)
         else:
             stale_state_config["timing"] = "after"
             i += 1
             file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
-            if sieve_config["persist_specs_enabled"]:
+            if test_context.common_config.persist_test_plans_enabled:
                 dump_to_yaml(stale_state_config, file_name)
 
             stale_state_config["timing"] = "before"
             i += 1
             file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
-            if sieve_config["persist_specs_enabled"]:
+            if test_context.common_config.persist_test_plans_enabled:
                 dump_to_yaml(stale_state_config, file_name)
             baseline_spec_number += 1
             after_p1_spec_number += 1
@@ -375,13 +366,12 @@ def unobserved_state_detectable_pass(
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_hear = vertex.content
-        if sieve_config["remove_nondeterministic_key_enabled"]:
-            if nondeterministic_key(
-                project,
-                test_name,
-                operator_hear,
-            ):
-                continue
+        if nondeterministic_key(
+            project,
+            test_name,
+            operator_hear,
+        ):
+            continue
         if detectable_event_diff(
             sieve_modes.UNOBSR_STATE,
             operator_hear.slim_prev_obj_map,
@@ -449,16 +439,11 @@ def unobserved_state_analysis(
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
-    if sieve_config["spec_generation_causal_info_pass_enabled"]:
-        if sieve_config["unobserved_state_spec_generation_causality_pass_enabled"]:
-            candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
+    if test_context.common_config.causality_prunning_enabled:
+        candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
         after_p1_spec_number = len(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
-    # if sieve_config["spec_generation_type_specific_pass_enabled"]:
-    #     if sieve_config["unobserved_state_spec_generation_overwrite_pass_enabled"]:
-    #         candidate_vertices = impact_filtering_pass(candidate_vertices)
-    #     after_p2_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
+    if test_context.common_config.nondeterministic_pruning_enabled:
         candidate_vertices = unobserved_state_detectable_pass(
             project, test_name, candidate_vertices
         )
@@ -484,7 +469,7 @@ def unobserved_state_analysis(
 
         i += 1
         file_name = os.path.join(path, "unobserved-state-test-plan-%s.yaml" % (str(i)))
-        if sieve_config["persist_specs_enabled"]:
+        if test_context.common_config.persist_test_plans_enabled:
             dump_to_yaml(unobserved_state_config, file_name)
 
     cprint(
@@ -505,13 +490,12 @@ def intermediate_state_detectable_pass(
     candidate_vertices = []
     for vertex in causality_vertices:
         operator_write = vertex.content
-        if sieve_config["remove_nondeterministic_key_enabled"]:
-            if nondeterministic_key(
-                project,
-                test_name,
-                operator_write,
-            ):
-                continue
+        if nondeterministic_key(
+            project,
+            test_name,
+            operator_write,
+        ):
+            continue
         if detectable_event_diff(
             sieve_modes.INTERMEDIATE_STATE,
             operator_write.slim_prev_obj_map,
@@ -567,14 +551,14 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
-def intermediate_state_template(project):
+def intermediate_state_template(test_context: TestContext):
     return {
-        "project": project,
+        "project": test_context.project,
         "stage": sieve_stages.TEST,
         "mode": sieve_modes.INTERMEDIATE_STATE,
-        "front-runner": sieve_config["stale_state_front_runner"],
-        "operator-pod-label": controllers.operator_pod_label[project],
-        "deployment-name": controllers.deployment_name[project],
+        "front-runner": test_context.common_config.leading_api,
+        "operator-pod-label": test_context.controller_config.controller_pod_label,
+        "deployment-name": test_context.controller_config.deployment_name,
     }
 
 
@@ -589,11 +573,10 @@ def intermediate_state_analysis(
     after_p2_spec_number = -1
     final_spec_number = -1
     after_p1_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_type_specific_pass_enabled"]:
-        if sieve_config["intermediate_state_spec_generation_error_free_pass_enabled"]:
-            candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
+    if test_context.common_config.effective_updates_pruning_enabled:
+        candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
-    if sieve_config["spec_generation_detectable_pass_enabled"]:
+    if test_context.common_config.nondeterministic_pruning_enabled:
         candidate_vertices = intermediate_state_detectable_pass(
             project, test_name, candidate_vertices
         )
@@ -604,7 +587,7 @@ def intermediate_state_analysis(
         # TODO: Handle the case where operator_write == EVENT_NONE_TYPE
         assert isinstance(operator_write, OperatorWrite)
 
-        intermediate_state_config = intermediate_state_template(project)
+        intermediate_state_config = intermediate_state_template(test_context)
         intermediate_state_config["se-name"] = operator_write.name
         intermediate_state_config["se-namespace"] = operator_write.namespace
         intermediate_state_config["se-rtype"] = operator_write.rtype
@@ -623,7 +606,7 @@ def intermediate_state_analysis(
         file_name = os.path.join(
             path, "intermediate-state-test-plan-%s.yaml" % (str(i))
         )
-        if sieve_config["persist_specs_enabled"]:
+        if test_context.common_config.persist_test_plans_enabled:
             dump_to_yaml(intermediate_state_config, file_name)
 
     cprint(

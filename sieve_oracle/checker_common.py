@@ -1,7 +1,6 @@
 from sieve_common.common import *
 import copy
 from deepdiff import DeepDiff
-from sieve_common.default_config import sieve_config
 from sieve_common.k8s_event import APIEventTypes, OperatorWriteTypes
 
 
@@ -249,15 +248,15 @@ def injection_validation(test_context: TestContext):
     return validation_ret_val, validation_messages
 
 
-def print_error_and_debugging_info(ret_val, messages, test_config):
+def print_error_and_debugging_info(test_context: TestContext, ret_val, messages):
     if ret_val == 0:
         return
-    test_config_content = yaml.safe_load(open(test_config))
+    test_config_content = yaml.safe_load(open(test_context.test_config))
     report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
     cprint(
         "{} detected inconsistencies as follows:\n".format(ret_val) + messages,
         report_color,
     )
-    if sieve_config["injection_desc_generation_enabled"]:
+    if test_context.common_config.generate_debugging_information_enabled:
         hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
         cprint(hint, bcolors.WARNING)

@@ -1,0 +1,20 @@
+{
+    "github_link": "https://github.com/rabbitmq/cluster-operator.git",
+    "commit": "4f13b9a942ad34fece0171d2174aa0264b10e947",
+    "kubernetes_version": "v1.18.9",
+    "controller_runtime_version": "v0.8.3",
+    "client_go_version": "v0.20.2",
+    "docker_file_path": "Dockerfile",
+    "test_command": "python3 examples/rabbitmq-operator/test/test.py",
+    "custom_resource_definitions": [
+        "rabbitmqcluster"
+    ],
+    "deployment_name": "rabbitmq-operator",
+    "controller_pod_label": "rabbitmq-operator",
+    "controller_deployment_file_path": "examples/rabbitmq-operator/deploy/cluster-operator.yaml",
+    "test_setting": {
+        "resize-pvc": {
+            "use_csi_driver": true
+        }
+    }
+}

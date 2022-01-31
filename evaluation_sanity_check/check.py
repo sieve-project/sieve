@@ -1,6 +1,5 @@
 import glob
 import os
-import controllers
 from evaluation_sanity_check import common
 
 mode_compability_map = {
@@ -29,7 +28,7 @@ def specs_to_map(specs):
 
 def check_massive_testing_results(current_dir, previous_dir):
     for operator in common.controllers_to_check:
-        for test in controllers.test_setting[operator]:
+        for test in common.controllers_to_check[operator]:
             for mode in ["atomicity-violation", "observability-gap", "time-travel"]:
                 cur_specs = glob.glob(
                     os.path.join(

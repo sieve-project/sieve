@@ -1,0 +1,18 @@
+{
+    "github_link": "https://github.com/projectcontour/contour.git",
+    "commit": "49e3dcc426c1736de053fea7fab4030022ae825f",
+    "kubernetes_version": "v1.23.1",
+    "controller_runtime_version": "v0.11.0",
+    "client_go_version": "v0.23.0",
+    "docker_file_path": "Dockerfile",
+    "test_command": "python3 examples/contour/test/test.py",
+    "custom_resource_definitions": [
+        "httproute",
+        "tlsroute",
+        "gateway",
+        "gatewayclass"
+    ],
+    "deployment_name": "contour",
+    "controller_pod_label": "contour",
+    "controller_deployment_file_path": "examples/contour/deploy/contour.yaml"
+}
