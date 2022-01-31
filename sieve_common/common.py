@@ -3,7 +3,7 @@ import yaml
 import re
 import json
 import glob
-from sieve_common.default_config import ControllerConfig
+from sieve_common.default_config import CommonConfig, ControllerConfig
 
 NO_ERROR_MESSAGE = ""
 
@@ -180,7 +180,8 @@ class TestContext:
         num_apiservers,
         num_workers,
         use_csi_driver,
-        controller_config,
+        common_config: CommonConfig,
+        controller_config: ControllerConfig,
     ):
         self.project = project
         self.test_name = test_name
@@ -195,6 +196,7 @@ class TestContext:
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.use_csi_driver = use_csi_driver
+        self.common_config = common_config
         self.controller_config = controller_config
 
 

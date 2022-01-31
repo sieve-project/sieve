@@ -2,13 +2,12 @@ from sieve_common.common import *
 import json
 import kubernetes
 from sieve_oracle.checker_common import *
-from sieve_common.default_config import sieve_config
 import deepdiff
 from deepdiff import DeepDiff
 
 
-def get_resource_helper(func):
-    k8s_namespace = sieve_config["namespace"]
+def get_resource_helper(func, namespace):
+    k8s_namespace = namespace
     response = func(k8s_namespace, _preload_content=False, watch=False)
     data = json.loads(response.data)
     return {resource["metadata"]["name"]: resource for resource in data["items"]}
@@ -59,8 +58,10 @@ def generate_state(test_context: TestContext):
     }
 
     state = {}
-    for rtype in sieve_config["k8s_type_check_list"]:
-        state[rtype] = get_resource_helper(k8s_resource_handler[rtype])
+    for rtype in test_context.common_config.end_state_resource_check_list:
+        state[rtype] = get_resource_helper(
+            k8s_resource_handler[rtype], test_context.common_config.namespace
+        )
     for crd in get_crd_list():
         state[crd] = get_crd(crd)
     return state

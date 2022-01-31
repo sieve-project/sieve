@@ -5,8 +5,7 @@ import optparse
 import os
 import kubernetes
 from sieve_common.default_config import (
-    ControllerConfig,
-    sieve_config,
+    get_common_config,
     get_controller_config,
 )
 import time
@@ -133,13 +132,13 @@ def generate_kind_config(num_apiservers, num_workers):
     return kind_config_filename
 
 
-def redirect_workers(num_workers):
-    target_master = sieve_config["stale_state_front_runner"]
-    for i in range(num_workers):
+def redirect_workers(test_context: TestContext):
+    leading_api = test_context.common_config.leading_api
+    for i in range(test_context.num_workers):
         worker = "kind-worker" + (str(i + 1) if i > 0 else "")
         cmd_early_exit(
             "docker exec %s bash -c \"sed -i 's/kind-external-load-balancer/%s/g' /etc/kubernetes/kubelet.conf\""
-            % (worker, target_master)
+            % (worker, leading_api)
         )
         cmd_early_exit('docker exec %s bash -c "systemctl restart kubelet"' % worker)
 
@@ -240,16 +239,13 @@ def setup_cluster(test_context: TestContext):
     setup_kind_cluster(test_context)
     print("\n\n")
 
-    # cmd_early_exit("kubectl create namespace %s" % sieve_config["namespace"])
-    # cmd_early_exit("kubectl config set-context --current --namespace=%s" %
-    #           sieve_config["namespace"])
     prepare_sieve_server(test_context)
 
     # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
     if test_context.mode == sieve_modes.STALE_STATE:
-        redirect_workers(test_context.num_workers)
+        redirect_workers(test_context)
         redirect_kubectl()
 
     kubernetes.config.load_kube_config()
@@ -337,7 +333,7 @@ def start_operator(test_context: TestContext):
     pod_ready = False
     for tick in range(600):
         project_pod = core_v1.list_namespaced_pod(
-            sieve_config["namespace"],
+            test_context.common_config.namespace,
             watch=False,
             label_selector="sievetag=" + project,
         ).items
@@ -382,7 +378,7 @@ def run_workload(
     pod_name = (
         kubernetes.client.CoreV1Api()
         .list_namespaced_pod(
-            sieve_config["namespace"],
+            test_context.common_config.namespace,
             watch=False,
             label_selector="sievetag=" + test_context.project,
         )
@@ -413,7 +409,7 @@ def run_workload(
     pod_name = (
         kubernetes.client.CoreV1Api()
         .list_namespaced_pod(
-            sieve_config["namespace"],
+            test_context.common_config.namespace,
             watch=False,
             label_selector="sievetag=" + test_context.project,
         )
@@ -495,11 +491,13 @@ def run_test(test_context: TestContext) -> Tuple[int, str]:
         return -4, generate_fatal(traceback.format_exc())
 
 
-def generate_learn_config(learn_config, mode, rate_limiter_enabled, crd_list):
+def generate_learn_config(
+    namespace, learn_config, mode, rate_limiter_enabled, crd_list
+):
     learn_config_map = {}
     learn_config_map["stage"] = sieve_stages.LEARN
     learn_config_map["mode"] = mode
-    learn_config_map["namespace"] = sieve_config["namespace"]
+    learn_config_map["namespace"] = namespace
     learn_config_map["crd-list"] = crd_list
     if rate_limiter_enabled:
         learn_config_map["rate-limiter-enabled"] = "true"
@@ -530,6 +528,7 @@ def run(
     rate_limiter_enabled=False,
     phase="all",
 ):
+    common_config = get_common_config()
     controller_config = get_controller_config(project)
     num_apiservers = 1
     num_workers = 2
@@ -560,6 +559,7 @@ def run(
     if stage == sieve_stages.LEARN:
         print("Learning stage with config: %s" % config_to_use)
         generate_learn_config(
+            common_config.namespace,
             config_to_use,
             sieve_stages.LEARN,
             rate_limiter_enabled,
@@ -585,11 +585,12 @@ def run(
         num_apiservers=num_apiservers,
         num_workers=num_workers,
         use_csi_driver=use_csi_driver,
+        common_config=common_config,
         controller_config=controller_config,
     )
     ret_val, messages = run_test(test_context)
     if ret_val != -4:
-        print_error_and_debugging_info(ret_val, messages, test_context.test_config)
+        print_error_and_debugging_info(test_context, ret_val, messages)
     return ret_val, messages
 
 
@@ -627,6 +628,7 @@ def run_batch(project, test, dir, mode, stage, docker):
 
 if __name__ == "__main__":
     start_time = time.time()
+    common_config = get_common_config()
     usage = "usage: python3 sieve.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
@@ -649,7 +651,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=sieve_config["docker_repo"],
+        default=common_config.docker_registry,
     )
     parser.add_option(
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"

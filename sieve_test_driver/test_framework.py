@@ -16,10 +16,12 @@ from sieve_common.common import (
 )
 import time
 import traceback
-from sieve_common.default_config import sieve_config
+from sieve_common.default_config import get_common_config
 import datetime
 import subprocess
 import json
+
+common_config = get_common_config()
 
 
 def get_pod(resource_name, namespace):
@@ -564,9 +566,9 @@ class BuiltInWorkLoad:
         self,
         pod_name_prefix,
         number,
-        soft_time_out=sieve_config["workload_wait_soft_timeout"],
-        hard_time_out=sieve_config["workload_wait_hard_timeout"],
-        namespace=sieve_config["namespace"],
+        soft_time_out=common_config.workload_soft_timeout,
+        hard_time_out=common_config.workload_hard_timeout,
+        namespace=common_config.namespace,
     ):
         test_wait = TestWaitForNumber(
             POD, pod_name_prefix, number, soft_time_out, hard_time_out, namespace
@@ -578,9 +580,9 @@ class BuiltInWorkLoad:
         self,
         pod_name,
         status,
-        soft_time_out=sieve_config["workload_wait_soft_timeout"],
-        hard_time_out=sieve_config["workload_wait_hard_timeout"],
-        namespace=sieve_config["namespace"],
+        soft_time_out=common_config.workload_soft_timeout,
+        hard_time_out=common_config.workload_hard_timeout,
+        namespace=common_config.namespace,
     ):
         test_wait = TestWaitForStatus(
             POD,
@@ -597,9 +599,9 @@ class BuiltInWorkLoad:
         self,
         pvc_name,
         status,
-        soft_time_out=sieve_config["workload_wait_soft_timeout"],
-        hard_time_out=sieve_config["workload_wait_hard_timeout"],
-        namespace=sieve_config["namespace"],
+        soft_time_out=common_config.workload_soft_timeout,
+        hard_time_out=common_config.workload_hard_timeout,
+        namespace=common_config.namespace,
     ):
         test_wait = TestWaitForStatus(
             PVC,
@@ -616,9 +618,9 @@ class BuiltInWorkLoad:
         self,
         secret_name,
         exist: bool,
-        soft_time_out=sieve_config["workload_wait_soft_timeout"],
-        hard_time_out=sieve_config["workload_wait_hard_timeout"],
-        namespace=sieve_config["namespace"],
+        soft_time_out=common_config.workload_soft_timeout,
+        hard_time_out=common_config.workload_hard_timeout,
+        namespace=common_config.namespace,
     ):
         test_wait = TestWaitForExistence(
             SECRET,
@@ -635,9 +637,9 @@ class BuiltInWorkLoad:
         self,
         service_name,
         exist: bool,
-        soft_time_out=sieve_config["workload_wait_soft_timeout"],
-        hard_time_out=sieve_config["workload_wait_hard_timeout"],
-        namespace=sieve_config["namespace"],
+        soft_time_out=common_config.workload_soft_timeout,
+        hard_time_out=common_config.workload_hard_timeout,
+        namespace=common_config.namespace,
     ):
         test_wait = TestWaitForExistence(
             SERVICE,
@@ -654,9 +656,9 @@ class BuiltInWorkLoad:
         self,
         sts_name,
         storage_size,
-        soft_time_out=sieve_config["workload_wait_soft_timeout"],
-        hard_time_out=sieve_config["workload_wait_hard_timeout"],
-        namespace=sieve_config["namespace"],
+        soft_time_out=common_config.workload_soft_timeout,
+        hard_time_out=common_config.workload_hard_timeout,
+        namespace=common_config.namespace,
     ):
         test_wait = TestWaitForStorage(
             STS,
@@ -674,9 +676,9 @@ class BuiltInWorkLoad:
         custom_resource_type,
         resource_name,
         conditions,
-        soft_time_out=sieve_config["workload_wait_soft_timeout"],
-        hard_time_out=sieve_config["workload_wait_hard_timeout"],
-        namespace=sieve_config["namespace"],
+        soft_time_out=common_config.workload_soft_timeout,
+        hard_time_out=common_config.workload_hard_timeout,
+        namespace=common_config.namespace,
     ):
         test_wait = TestWaitForCRConditions(
             custom_resource_type,

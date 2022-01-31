@@ -11,7 +11,6 @@ from sieve_common.k8s_event import (
     api_key_to_rtype_namespace_name,
     generate_key,
 )
-from sieve_common.default_config import sieve_config
 
 
 def is_unstable_api_event_key(key, value):
@@ -275,7 +274,10 @@ def compare_history_digests(test_context: TestContext):
         if should_skip_api_event_key(key, test_context.test_name, event_mask):
             continue
         for etype in testing_events["keys"][key]:
-            if etype not in sieve_config["k8s_event_check_list"]:
+            if (
+                etype
+                not in test_context.common_config.state_update_summary_check_event_list
+            ):
                 continue
             assert canonicalized_events["keys"][key][etype] != SIEVE_LEARN_VALUE_MASK
             if (

@@ -6,26 +6,22 @@ from sieve_oracle.liveness_checker import *
 
 
 def persistent_history_and_state(test_context: TestContext):
-    if sieve_config["safety_checker_enabled"]:
-        history = generate_history(test_context)
-        history_digest = generate_history_digest(test_context)
-        dump_json_file(test_context.result_dir, history, "history.json")
-        dump_json_file(test_context.result_dir, history_digest, "event.json")
-    if sieve_config["liveness_checker_enabled"]:
-        state = generate_state(test_context)
-        dump_json_file(test_context.result_dir, state, "state.json")
+    history = generate_history(test_context)
+    history_digest = generate_history_digest(test_context)
+    dump_json_file(test_context.result_dir, history, "history.json")
+    dump_json_file(test_context.result_dir, history_digest, "event.json")
+    state = generate_state(test_context)
+    dump_json_file(test_context.result_dir, state, "state.json")
 
 
 def canonicalize_history_and_state(test_context: TestContext):
     assert test_context.mode == sieve_modes.LEARN_TWICE
-    if sieve_config["safety_checker_enabled"]:
-        can_history_digest = canonicalize_history_digest(test_context)
-        dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")
-    if sieve_config["liveness_checker_enabled"]:
-        can_state = canonicalize_state(test_context)
-        dump_json_file(test_context.oracle_dir, can_state, "state.json")
-        state_mask = generate_state_mask(can_state)
-        dump_json_file(test_context.oracle_dir, state_mask, "mask.json")
+    can_history_digest = canonicalize_history_digest(test_context)
+    dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")
+    can_state = canonicalize_state(test_context)
+    dump_json_file(test_context.oracle_dir, can_state, "state.json")
+    state_mask = generate_state_mask(can_state)
+    dump_json_file(test_context.oracle_dir, state_mask, "mask.json")
 
 
 def operator_panic_checker(test_context: TestContext):
@@ -60,12 +56,12 @@ def test_failure_checker(test_context: TestContext):
 def textbook_checker(test_context: TestContext):
     ret_val = 0
     messages = []
-    if sieve_config["operator_panic_checker_enabled"]:
+    if test_context.common_config.controller_exception_check_enabled:
         panic_ret_val, panic_messages = operator_panic_checker(test_context)
         ret_val += panic_ret_val
         messages.extend(panic_messages)
 
-    if sieve_config["test_failure_checker_enabled"]:
+    if test_context.common_config.workload_error_check_enabled:
         workload_ret_val, workload_messages = test_failure_checker(test_context)
         ret_val += workload_ret_val
         messages.extend(workload_messages)
@@ -75,7 +71,7 @@ def textbook_checker(test_context: TestContext):
 def safety_checker(test_context: TestContext):
     ret_val = 0
     messages = []
-    if sieve_config["compare_history_digests_checker_enabled"]:
+    if test_context.common_config.state_update_summary_check_enabled:
         if not test_context.mode == sieve_modes.UNOBSR_STATE:
             (
                 compare_history_digests_ret_val,
@@ -89,7 +85,7 @@ def safety_checker(test_context: TestContext):
 def liveness_checker(test_context: TestContext):
     ret_val = 0
     messages = []
-    if sieve_config["compare_states_checker_enabled"]:
+    if test_context.common_config.end_state_check_enabled:
         if not (
             test_context.mode == sieve_modes.STALE_STATE and test_context.use_csi_driver
         ):

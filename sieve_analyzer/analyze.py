@@ -94,7 +94,7 @@ def parse_receiver_events(path):
     return operator_hear_list
 
 
-def parse_reconciler_events(path):
+def parse_reconciler_events(test_context: TestContext, path):
     operator_write_id_map = {}
     operator_write_id_to_start_ts_map = {}
     read_types_this_reconcile = set()
@@ -179,13 +179,13 @@ def parse_reconciler_events(path):
                 prev_reconcile_per_type[reconciler_type] = None
                 cur_reconcile_per_type[reconciler_type] = reconcile_begin
             else:
-                if not sieve_config["compress_trivial_reconcile"]:
+                if not test_context.common_config.compress_trivial_reconcile_enabled:
                     prev_reconcile_per_type[reconciler_type] = cur_reconcile_per_type[
                         reconciler_type
                     ]
                     cur_reconcile_per_type[reconciler_type] = reconcile_begin
                 elif (
-                    sieve_config["compress_trivial_reconcile"]
+                    test_context.common_config.compress_trivial_reconcile_enabled
                     and not cur_reconcile_is_trivial[reconciler_type]
                 ):
                     prev_reconcile_per_type[reconciler_type] = cur_reconcile_per_type[
@@ -297,12 +297,12 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
     return vertex_pairs
 
 
-def build_causality_graph(log_path, oracle_dir):
+def build_causality_graph(test_context: TestContext, log_path, oracle_dir):
     learned_masked_paths = json.load(open(os.path.join(oracle_dir, "mask.json")))
     configured_masked = CONFIGURED_MASK
 
     operator_hear_list = parse_receiver_events(log_path)
-    reconciler_event_list = parse_reconciler_events(log_path)
+    reconciler_event_list = parse_reconciler_events(test_context, log_path)
 
     causality_graph = CausalityGraph(learned_masked_paths, configured_masked)
     causality_graph.add_sorted_operator_hears(operator_hear_list)
@@ -324,7 +324,7 @@ def build_causality_graph(log_path, oracle_dir):
 
 
 def generate_test_config(
-    analysis_mode, causality_graph: CausalityGraph, test_context: TestContext
+    test_context: TestContext, analysis_mode, causality_graph: CausalityGraph
 ):
     log_dir = test_context.result_dir
     generated_config_dir = os.path.join(log_dir, analysis_mode)
@@ -356,7 +356,7 @@ def analyze_trace(
     if not os.path.exists(os.path.join(oracle_dir, "mask.json")):
         fail("cannot find mask.json")
         return
-    causality_graph = build_causality_graph(log_path, oracle_dir)
+    causality_graph = build_causality_graph(test_context, log_path, oracle_dir)
     sieve_learn_result = {
         "project": test_context.project,
         "test": test_context.test_name,
@@ -371,7 +371,7 @@ def analyze_trace(
             after_p1_spec_number,
             after_p2_spec_number,
             final_spec_number,
-        ) = generate_test_config(analysis_mode, causality_graph, test_context)
+        ) = generate_test_config(test_context, analysis_mode, causality_graph)
         sieve_learn_result[analysis_mode] = {
             "baseline": baseline_spec_number,
             "after_p1": after_p1_spec_number,

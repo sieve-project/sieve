@@ -6,17 +6,16 @@ from sieve_common.common import (
 )
 import os
 import optparse
-import fileinput
 from sieve_common.default_config import (
-    sieve_config,
     get_controller_config,
+    get_common_config,
     ControllerConfig,
 )
 
 ORIGINAL_DIR = os.getcwd()
 
 DEFAULT_K8S_VERSION = "v1.18.9"
-K8S_VER_TO_LIB_VER = {"v1.18.9": "v0.18.9", "v1.23.1": "v0.23.1"}
+K8S_VER_TO_APIMACHINERY_VER = {"v1.18.9": "v0.18.9", "v1.23.1": "v0.23.1"}
 
 
 def update_sieve_client_go_mod_with_version(go_mod_path, version):
@@ -56,7 +55,7 @@ def install_lib_for_kubernetes(version):
     if version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
             "fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client/go.mod",
-            K8S_VER_TO_LIB_VER[version],
+            K8S_VER_TO_APIMACHINERY_VER[version],
         )
     cmd_early_exit(
         "ln -s ../staging/src/sieve.client fakegopath/src/k8s.io/kubernetes/vendor/sieve.client"
@@ -175,7 +174,7 @@ def install_lib_for_controller(controller_config: ControllerConfig):
     if controller_config.kubernetes_version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
             "%s/dep-sieve/src/sieve.client/go.mod" % application_dir,
-            K8S_VER_TO_LIB_VER[controller_config.kubernetes_version],
+            K8S_VER_TO_APIMACHINERY_VER[controller_config.kubernetes_version],
         )
     elif controller_config.apimachinery_version is not None:
         update_sieve_client_go_mod_with_version(
@@ -345,6 +344,7 @@ def setup_controller_wrapper(
 
 
 if __name__ == "__main__":
+    common_config = get_common_config()
     usage = "usage: python3 build.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
@@ -385,7 +385,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=None,
+        default=common_config.docker_registry,
     )
     parser.add_option(
         "-b",
@@ -414,13 +414,9 @@ if __name__ == "__main__":
     ]:
         parser.error("invalid build mode option: %s" % options.mode)
 
-    img_repo = (
-        options.docker if options.docker is not None else sieve_config["docker_repo"]
-    )
-
     if options.project == "kind":
         setup_kubernetes_wrapper(
-            options.version, options.mode, img_repo, options.push_to_remote
+            options.version, options.mode, options.docker, options.push_to_remote
         )
     elif options.project == "all":
         all_controllers = get_all_controllers("examples")
@@ -429,7 +425,7 @@ if __name__ == "__main__":
             setup_controller_wrapper(
                 controller_config,
                 options.mode,
-                img_repo,
+                options.docker,
                 options.build_only,
                 options.push_to_remote,
             )
@@ -440,7 +436,7 @@ if __name__ == "__main__":
         setup_controller_wrapper(
             controller_config,
             options.mode,
-            img_repo,
+            options.docker,
             options.build_only,
             options.push_to_remote,
         )
