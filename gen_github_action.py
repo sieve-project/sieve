@@ -4,20 +4,35 @@ import yaml
 import os
 from sieve_common.common import sieve_modes
 from datetime import datetime
-import copy
-import controllers
 
-operators_for_CI = [
-    "cassandra-operator",
-    "zookeeper-operator",
-    "rabbitmq-operator",
-    "mongodb-operator",
-    "cass-operator",
-    "casskop-operator",
-    "xtradb-operator",
-    "yugabyte-operator",
-    "nifikop-operator",
-]
+operators_for_CI = {
+    "cassandra-operator": ["recreate", "scaledown-scaleup"],
+    "zookeeper-operator": ["recreate", "scaledown-scaleup"],
+    "rabbitmq-operator": ["recreate", "scaleup-scaledown", "resize-pvc"],
+    "mongodb-operator": [
+        "recreate",
+        "scaleup-scaledown",
+        "disable-enable-shard",
+        "disable-enable-arbiter",
+        "run-cert-manager",
+    ],
+    "cass-operator": ["recreate", "scaledown-scaleup"],
+    "casskop-operator": ["recreate", "scaledown-to-zero", "reducepdb"],
+    "xtradb-operator": [
+        "recreate",
+        "disable-enable-haproxy",
+        "disable-enable-proxysql",
+        "run-cert-manager",
+        "scaleup-scaledown",
+    ],
+    "yugabyte-operator": [
+        "recreate",
+        "scaleup-scaledown-tserver",
+        "disable-enable-tls",
+        "disable-enable-tuiport",
+    ],
+    "nifikop-operator": ["recreate", "scaledown-scaleup", "change-config"],
+}
 
 
 def generate_jobs(ci_mode):
@@ -113,7 +128,7 @@ def generate_jobs(ci_mode):
             )
             workload_set.add(workload)
 
-        for workload in controllers.test_setting[operator]:
+        for workload in operators_for_CI[operator]:
             workload_set.add(workload)
 
         build_image = [
