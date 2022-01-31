@@ -1,6 +1,6 @@
 import os
 import json
-from sieve_common.default_config import sieve_config
+from sieve_common.default_config import get_common_config
 from evaluation_sanity_check import common
 
 total_result_map = {}
@@ -70,7 +70,7 @@ def recover_config_json():
 def learn_all():
     for project in common.controllers_to_check:
         for test_suite in common.controllers_to_check[project]:
-            docker_repo_name = sieve_config["docker_repo"]
+            docker_repo_name = get_common_config().docker_registry
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check" % (
                 project,
                 test_suite,
