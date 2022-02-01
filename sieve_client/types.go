@@ -113,6 +113,7 @@ type NotifyLearnAfterSideEffectsRequest struct {
 }
 
 type NotifyLearnAfterOperatorGetRequest struct {
+	FromCache      bool
 	ResourceType   string
 	Namespace      string
 	Name           string
@@ -122,6 +123,7 @@ type NotifyLearnAfterOperatorGetRequest struct {
 }
 
 type NotifyLearnAfterOperatorListRequest struct {
+	FromCache      bool
 	ResourceType   string
 	ObjectList     string
 	ReconcilerType string

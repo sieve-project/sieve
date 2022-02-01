@@ -504,6 +504,7 @@ class OperatorRead:
     def __init__(
         self,
         etype: str,
+        from_cache: str,
         rtype: str,
         namespace: str,
         name: str,
@@ -512,6 +513,7 @@ class OperatorRead:
         obj_str: str,
     ):
         self.__etype = etype
+        self.__from_cache = True if from_cache == "true" else False
         self.__rtype = rtype
         self.__reconciler_type = reconciler_type
         self.__reconcile_id = -1
@@ -541,6 +543,10 @@ class OperatorRead:
     @property
     def etype(self):
         return self.__etype
+
+    @property
+    def from_cache(self):
+        return self.__from_cache
 
     @property
     def rtype(self):
@@ -662,14 +668,30 @@ def parse_operator_read(line: str) -> OperatorRead:
     tokens = line[line.find(SIEVE_AFTER_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
         return OperatorRead(
-            tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6], tokens[7]
+            tokens[1],
+            tokens[2],
+            tokens[3],
+            tokens[4],
+            tokens[5],
+            tokens[6],
+            tokens[7],
+            tokens[8],
+        )
+    elif tokens[1] == "List":
+        # When using List, the resource type is like xxxlist so we need to trim the last four characters here
+        assert tokens[3].endswith("list")
+        return OperatorRead(
+            tokens[1],
+            tokens[2],
+            tokens[3][:-4],
+            "",
+            "",
+            tokens[4],
+            tokens[5],
+            tokens[6],
         )
     else:
-        # When using List, the resource type is like xxxlist so we need to trim the last four characters here
-        assert tokens[2].endswith("list")
-        return OperatorRead(
-            tokens[1], tokens[2][:-4], "", "", tokens[3], tokens[4], tokens[5]
-        )
+        assert False, "read type should be: Get, List"
 
 
 def parse_operator_hear_id_only(line: str) -> OperatorHearIDOnly:

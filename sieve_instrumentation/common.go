@@ -250,7 +250,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
 				instrumentationExpr.Decs.End.Append("//sieve")
@@ -259,7 +259,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
 					},
 				}
 				instrumentationExpr.Decs.End.Append("//sieve")
@@ -303,7 +303,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 							instrumentationExpr := &dst.ExprStmt{
 								X: &dst.CallExpr{
 									Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-									Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+									Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 								},
 							}
 							instrumentationExpr.Decs.End.Append("//sieve")
@@ -312,7 +312,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 							instrumentationExpr := &dst.ExprStmt{
 								X: &dst.CallExpr{
 									Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-									Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
+									Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
 								},
 							}
 							instrumentationExpr.Decs.End.Append("//sieve")
