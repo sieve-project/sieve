@@ -1,258 +1,162 @@
 {
-    "keys": {
-        "/cassandra.datastax.com/cassandradatacenters/default/cassandra-datacenter": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/configmaps/default/cass-operator-lock": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/configmaps/default/local-path-config": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/controllerrevisions/default/cluster1-cassandra-datacenter-default-sts-575846d69f": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/deployments/default/cass-operator": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/deployments/default/local-path-provisioner": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/endpointslices/default/cass-operator-metrics-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/endpointslices/default/cassandradatacenter-webhook-service-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/endpointslices/default/cluster1-cassandra-datacenter-all-pods-service-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/endpointslices/default/cluster1-cassandra-datacenter-service-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/endpointslices/default/cluster1-seed-service-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/persistentvolumeclaims/default/server-data-cluster1-cassandra-datacenter-default-sts-0": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/persistentvolumeclaims/default/server-data-cluster1-cassandra-datacenter-default-sts-1": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/poddisruptionbudgets/default/cassandra-datacenter-pdb": {
-            "ADDED": 3,
-            "DELETED": 2,
-            "operator_related": false
-        },
-        "/pods/default/cass-operator-595d8d4bc7-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/pods/default/cluster1-cassandra-datacenter-default-sts-0": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/pods/default/cluster1-cassandra-datacenter-default-sts-1": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/pods/default/local-path-provisioner-579c65cb9b-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/replicasets/default/cass-operator-595d8d4bc7": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/replicasets/default/local-path-provisioner-579c65cb9b": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/rolebindings/default/cass-operator": {
-            "ADDED": 2,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/roles/default/cass-operator": {
-            "ADDED": 2,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/secrets/default/cass-operator-webhook-config": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/secrets/default/cassandra-datacenter-ca-keystore": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/secrets/default/cassandra-datacenter-keystore": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/secrets/default/cluster1-superuser": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/serviceaccounts/default/cass-operator": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/serviceaccounts/default/local-path-provisioner-service-account": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/endpoints/default/cass-operator-metrics": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/services/endpoints/default/cassandradatacenter-webhook-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/endpoints/default/cluster1-cassandra-datacenter-all-pods-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/endpoints/default/cluster1-cassandra-datacenter-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/endpoints/default/cluster1-seed-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/endpoints/default/rancher.io-local-path": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/specs/default/cass-operator-metrics": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/services/specs/default/cassandradatacenter-webhook-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/specs/default/cluster1-cassandra-datacenter-all-pods-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/specs/default/cluster1-cassandra-datacenter-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/services/specs/default/cluster1-seed-service": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/statefulsets/default/cluster1-cassandra-datacenter-default-sts": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        }
+    "cassandradatacenter/default/cassandra-datacenter": {
+        "ADDED": 1,
+        "DELETED": 0
     },
-    "types": {
-        "/cassandra.datastax.com/cassandradatacenters": {
-            "ADDED": 1,
-            "DELETED": 0
-        },
-        "/configmaps": {
-            "ADDED": 1,
-            "DELETED": 0
-        },
-        "/controllerrevisions": {
-            "ADDED": 1,
-            "DELETED": 0
-        },
-        "/deployments": {
-            "ADDED": 1,
-            "DELETED": 0
-        },
-        "/persistentvolumeclaims": {
-            "ADDED": 3,
-            "DELETED": 1
-        },
-        "/poddisruptionbudgets": {
-            "ADDED": 3,
-            "DELETED": 2
-        },
-        "/pods": {
-            "ADDED": 8,
-            "DELETED": 5
-        },
-        "/replicasets": {
-            "ADDED": 1,
-            "DELETED": 0
-        },
-        "/secrets": {
-            "ADDED": 4,
-            "DELETED": 0
-        },
-        "/serviceaccounts": {
-            "ADDED": 1,
-            "DELETED": 0
-        },
-        "/services/endpoints": {
-            "ADDED": 5,
-            "DELETED": 0
-        },
-        "/services/specs": {
-            "ADDED": 4,
-            "DELETED": 0
-        },
-        "/statefulsets": {
-            "ADDED": 1,
-            "DELETED": 0
-        }
+    "configmap/default/cass-operator-lock": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "configmap/default/local-path-config": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "controllerrevision/default/cluster1-cassandra-datacenter-default-sts-575846d69f": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "deployment/default/cass-operator": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "deployment/default/local-path-provisioner": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/cass-operator-metrics": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/cassandradatacenter-webhook-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/cluster1-cassandra-datacenter-all-pods-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/cluster1-cassandra-datacenter-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/cluster1-seed-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/rancher.io-local-path": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpointslice/default/cass-operator-metrics-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpointslice/default/cassandradatacenter-webhook-service-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpointslice/default/cluster1-cassandra-datacenter-all-pods-service-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpointslice/default/cluster1-cassandra-datacenter-service-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpointslice/default/cluster1-seed-service-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "persistentvolumeclaim/default/server-data-cluster1-cassandra-datacenter-default-sts-0": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "persistentvolumeclaim/default/server-data-cluster1-cassandra-datacenter-default-sts-1": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "pod/default/cass-operator-595d8d4bc7-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "pod/default/cluster1-cassandra-datacenter-default-sts-0": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "pod/default/cluster1-cassandra-datacenter-default-sts-1": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "pod/default/local-path-provisioner-579c65cb9b-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "poddisruptionbudget/default/cassandra-datacenter-pdb": {
+        "ADDED": 3,
+        "DELETED": 2
+    },
+    "replicaset/default/cass-operator-595d8d4bc7": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "replicaset/default/local-path-provisioner-579c65cb9b": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "role/default/cass-operator": {
+        "ADDED": 2,
+        "DELETED": 0
+    },
+    "rolebinding/default/cass-operator": {
+        "ADDED": 2,
+        "DELETED": 0
+    },
+    "secret/default/cass-operator-webhook-config": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "secret/default/cassandra-datacenter-ca-keystore": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "secret/default/cassandra-datacenter-keystore": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "secret/default/cluster1-superuser": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "serviceaccount/default/cass-operator": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "serviceaccount/default/local-path-provisioner-service-account": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "spec/default/cass-operator-metrics": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "spec/default/cassandradatacenter-webhook-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "spec/default/cluster1-cassandra-datacenter-all-pods-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "spec/default/cluster1-cassandra-datacenter-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "spec/default/cluster1-seed-service": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "statefulset/default/cluster1-cassandra-datacenter-default-sts": {
+        "ADDED": 1,
+        "DELETED": 0
     }
 }
