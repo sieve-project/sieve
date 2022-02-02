@@ -121,16 +121,16 @@ def extract_namespace_name(obj: Dict):
 
 
 def extract_generate_name(obj: Dict):
-    obj_uid = None
+    obj_generate_name = None
     if "metadata" in obj:
-        obj_uid = (
+        obj_generate_name = (
             obj["metadata"]["generateName"]
             if "generateName" in obj["metadata"]
             else None
         )
     else:
-        obj_uid = obj["generateName"] if "generateName" in obj else None
-    return obj_uid
+        obj_generate_name = obj["generateName"] if "generateName" in obj else None
+    return obj_generate_name
 
 
 def operator_related_resource(
@@ -182,13 +182,21 @@ def api_key_to_rtype_namespace_name(api_key):
 
 
 class APIEvent:
-    def __init__(self, etype: str, key: str, obj_str: str):
+    def __init__(
+        self,
+        etype: str,
+        orignal_key: str,
+        rtype: str,
+        namespace: str,
+        name: str,
+        obj_str: str,
+    ):
         self.__etype = etype
-        self.__key = key
-        assert key.startswith("/")
-        self.__rtype, self.__namespace, self.__name = api_key_to_rtype_namespace_name(
-            key
-        )
+        self.__original_key = orignal_key
+        self.__key = "/".join([rtype, namespace, name])
+        self.__rtype = rtype
+        self.__namespace = namespace
+        self.__name = name
         self.__obj_str = obj_str
         self.__obj_map = json.loads(obj_str)
 
@@ -727,7 +735,7 @@ def parse_reconcile(line: str) -> Union[ReconcileBegin, ReconcileEnd]:
 def parse_api_event(line: str) -> APIEvent:
     assert SIEVE_API_EVENT_MARK in line
     tokens = line[line.find(SIEVE_API_EVENT_MARK) :].strip("\n").split("\t")
-    return APIEvent(tokens[1], tokens[2], tokens[3])
+    return APIEvent(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6])
 
 
 def conflicting_event(
