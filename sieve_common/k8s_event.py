@@ -164,23 +164,6 @@ def generate_key(resource_type: str, namespace: str, name: str):
     return "/".join([resource_type, namespace, name])
 
 
-def api_key_to_rtype_namespace_name(api_key):
-    # TODO: get rid of the dirty hack for getting resource type
-    tokens = api_key.split("/")
-    assert len(tokens) >= 4
-    namespace = tokens[-2]
-    name = tokens[-1]
-    if tokens[-4] == "services" and tokens[-3] == "endpoints":
-        rtype = "endpoints"
-    elif tokens[-4] == "services" and tokens[-3] == "specs":
-        rtype = "service"
-    elif tokens[-3].endswith("s"):
-        rtype = tokens[-3][:-1]
-    else:
-        rtype = tokens[-3]
-    return rtype, namespace, name
-
-
 class APIEvent:
     def __init__(
         self,

@@ -7,8 +7,6 @@ from sieve_common.k8s_event import (
     parse_api_event,
     extract_generate_name,
     is_generated_random_name,
-    api_key_to_rtype_namespace_name,
-    generate_key,
 )
 
 
@@ -23,7 +21,11 @@ def is_unstable_api_event_key(key, value):
 
 
 def should_skip_api_event_key(api_event_key, test_name, masked):
-    rtype, _, name = api_key_to_rtype_namespace_name(api_event_key)
+    tokens = api_event_key.split("/")
+    assert len(tokens) == 3
+    rtype = tokens[0]
+    namespace = tokens[1]
+    name = tokens[2]
     for masked_test_name in masked:
         if masked_test_name == "*" or masked_test_name == test_name:
             for masked_rtype in masked[masked_test_name]:
@@ -198,8 +200,7 @@ def check_single_history(history, resource_keys, checker_name, customized_checke
     for key in resource_keys:
         current_state[key] = None
     for event in history:
-        rtype, ns, name = api_key_to_rtype_namespace_name(event["key"])
-        resource_key = generate_key(rtype, ns, name)
+        resource_key = event["key"]
         if resource_key in resource_keys:
             if event["etype"] == "DELETED":
                 current_state[event["key"]] = None
