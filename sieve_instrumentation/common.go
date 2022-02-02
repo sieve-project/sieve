@@ -111,6 +111,9 @@ func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefor
 	instrumentSideEffect(f, "Update", mode, instrumentBefore, 2)
 	instrumentSideEffect(f, "Patch", mode, instrumentBefore, 2)
 
+	instrumentClientRead(f, "Get", mode)
+	instrumentClientRead(f, "List", mode)
+
 	writeInstrumentedFile(ofilepath, "client", f)
 }
 
@@ -223,6 +226,106 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 	}
 }
 
+func instrumentClientRead(f *dst.File, etype, mode string) {
+	funName := "Notify" + mode + "AfterOperator" + etype
+	_, funcDecl := findFuncDecl(f, etype, 1)
+	if funcDecl != nil {
+		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
+
+			// Change return to assign
+			modifiedInstruction := &dst.AssignStmt{
+				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
+				Tok: token.DEFINE,
+				Rhs: returnStmt.Results,
+			}
+			modifiedInstruction.Decs.End.Append("//sieve")
+			funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
+
+			// Instrument after client read
+			if etype == "Get" {
+				instrumentationExpr := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					},
+				}
+				instrumentationExpr.Decs.End.Append("//sieve")
+				funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+			} else if etype == "List" {
+				instrumentationExpr := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					},
+				}
+				instrumentationExpr.Decs.End.Append("//sieve")
+				funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+			} else {
+				panic(fmt.Errorf("Wrong type %s for operator read", etype))
+			}
+
+			// return the error of client read
+			instrumentationReturn := &dst.ReturnStmt{
+				Results: []dst.Expr{&dst.Ident{Name: "err"}},
+			}
+			instrumentationReturn.Decs.End.Append("//sieve")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
+		} else if switchStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.TypeSwitchStmt); ok {
+			defaultCaseClause, ok := switchStmt.Body.List[len(switchStmt.Body.List)-1].(*dst.CaseClause)
+			if !ok {
+				panic(fmt.Errorf("Last stmt in SwitchStmt is not CaseClause"))
+			}
+			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body)-1].(*dst.ReturnStmt); ok {
+
+				// Change return to assign
+				modifiedInstruction := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
+					Tok: token.DEFINE,
+					Rhs: innerReturnStmt.Results,
+				}
+				modifiedInstruction.Decs.End.Append("//sieve")
+				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = modifiedInstruction
+
+				// Instrument after client read
+				if etype == "Get" {
+					instrumentationExpr := &dst.ExprStmt{
+						X: &dst.CallExpr{
+							Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
+							Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						},
+					}
+					instrumentationExpr.Decs.End.Append("//sieve")
+					defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
+				} else if etype == "List" {
+					instrumentationExpr := &dst.ExprStmt{
+						X: &dst.CallExpr{
+							Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
+							Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						},
+					}
+					instrumentationExpr.Decs.End.Append("//sieve")
+					defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
+				} else {
+					panic(fmt.Errorf("Wrong type %s for operator read", etype))
+				}
+
+				// return the error of client read
+				instrumentationReturn := &dst.ReturnStmt{
+					Results: []dst.Expr{&dst.Ident{Name: "err"}},
+				}
+				instrumentationReturn.Decs.End.Append("//sieve")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationReturn)
+			} else {
+				panic(fmt.Errorf("Last stmt inside default case of %s is not return", etype))
+			}
+		} else {
+			panic(fmt.Errorf("Last stmt of %s is neither return nor typeswitch", etype))
+		}
+	} else {
+		panic(fmt.Errorf("Cannot find function %s", etype))
+	}
+}
+
 func instrumentSplitGoForAll(ifilepath, ofilepath, mode string) {
 	f := parseSourceFile(ifilepath, "client")
 
@@ -236,6 +339,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 	funName := "Notify" + mode + "AfterOperator" + etype
 	_, funcDecl := findFuncDecl(f, etype, 1)
 	if funcDecl != nil {
+		// instrument cache read
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 			modifiedInstruction := &dst.AssignStmt{
 				Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
@@ -249,7 +353,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
 				instrumentationExpr.Decs.End.Append("//sieve")
@@ -258,7 +362,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
 					},
 				}
 				instrumentationExpr.Decs.End.Append("//sieve")

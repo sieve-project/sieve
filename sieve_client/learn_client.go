@@ -238,7 +238,7 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 	client.Close()
 }
 
-func NotifyLearnAfterOperatorGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
+func NotifyLearnAfterOperatorGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
@@ -265,6 +265,7 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyLearnAfterOperatorGetRequest{
+		FromCache:      fromCache,
 		ResourceType:   regularizeType(object),
 		Namespace:      namespacedName.Namespace,
 		Name:           namespacedName.Name,
@@ -282,7 +283,7 @@ func NotifyLearnAfterOperatorGet(readType string, namespacedName types.Namespace
 	client.Close()
 }
 
-func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr error) {
+func NotifyLearnAfterOperatorList(readType string, fromCache bool, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
@@ -309,6 +310,7 @@ func NotifyLearnAfterOperatorList(readType string, object interface{}, k8sErr er
 		errorString = string(errors.ReasonForError(k8sErr))
 	}
 	request := &NotifyLearnAfterOperatorListRequest{
+		FromCache:      fromCache,
 		ResourceType:   regularizeType(object),
 		ObjectList:     string(jsonObject),
 		ReconcilerType: reconcilerType,

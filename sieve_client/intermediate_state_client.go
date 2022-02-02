@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func NotifyIntmdStateAfterOperatorGet(readType string, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
+func NotifyIntmdStateAfterOperatorGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
@@ -59,7 +59,7 @@ func NotifyIntmdStateAfterOperatorGet(readType string, namespacedName types.Name
 	checkResponse(response, "NotifyIntmdStateAfterOperatorGet")
 }
 
-func NotifyIntmdStateAfterOperatorList(readType string, object interface{}, k8sErr error) {
+func NotifyIntmdStateAfterOperatorList(readType string, fromCache bool, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
