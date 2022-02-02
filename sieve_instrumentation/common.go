@@ -379,64 +379,6 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 		} else {
 			panic(fmt.Errorf("Last stmt of %s is not return", etype))
 		}
-		// instrument client read
-		if ifStmt, ok := funcDecl.Body.List[0].(*dst.IfStmt); ok {
-			if elseIfStmt, ok := ifStmt.Else.(*dst.IfStmt); ok {
-				if returnStmtInElse, ok := elseIfStmt.Body.List[0].(*dst.ReturnStmt); ok {
-					shouldInstrument := false
-					if callExpr, ok := returnStmtInElse.Results[0].(*dst.CallExpr); ok {
-						if selectorExpr, ok := callExpr.Fun.(*dst.SelectorExpr); ok {
-							if selselectorExpr, ok := selectorExpr.X.(*dst.SelectorExpr); ok {
-								if selectorExpr.Sel.Name == etype && selselectorExpr.Sel.Name == "ClientReader" {
-									shouldInstrument = true
-								}
-							}
-						}
-					}
-					if shouldInstrument {
-						modifiedInstruction := &dst.AssignStmt{
-							Lhs: []dst.Expr{&dst.Ident{Name: "err"}},
-							Tok: token.DEFINE,
-							Rhs: returnStmtInElse.Results,
-						}
-						modifiedInstruction.Decs.End.Append("//sieve")
-						elseIfStmt.Body.List[0] = modifiedInstruction
-
-						if etype == "Get" {
-							instrumentationExpr := &dst.ExprStmt{
-								X: &dst.CallExpr{
-									Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-									Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
-								},
-							}
-							instrumentationExpr.Decs.End.Append("//sieve")
-							elseIfStmt.Body.List = append(elseIfStmt.Body.List, instrumentationExpr)
-						} else if etype == "List" {
-							instrumentationExpr := &dst.ExprStmt{
-								X: &dst.CallExpr{
-									Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-									Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
-								},
-							}
-							instrumentationExpr.Decs.End.Append("//sieve")
-							elseIfStmt.Body.List = append(elseIfStmt.Body.List, instrumentationExpr)
-						} else {
-							panic(fmt.Errorf("Wrong type %s for operator read", etype))
-						}
-
-						instrumentationReturn := &dst.ReturnStmt{
-							Results: []dst.Expr{&dst.Ident{Name: "err"}},
-						}
-						instrumentationReturn.Decs.End.Append("//sieve")
-						elseIfStmt.Body.List = append(elseIfStmt.Body.List, instrumentationReturn)
-					}
-				}
-			} else {
-				fmt.Println("There is no client read in split.go")
-			}
-		} else {
-			fmt.Println("There is no client read in split.go")
-		}
 	} else {
 		panic(fmt.Errorf("Cannot find function %s", etype))
 	}
