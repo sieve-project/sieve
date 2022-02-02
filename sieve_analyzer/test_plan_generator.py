@@ -159,9 +159,7 @@ def get_stale_state_baseline(causality_graph: CausalityGraph):
             write_after_hear = (
                 operator_write.start_timestamp > operator_hear.start_timestamp
             )
-            # allowed_error = operator_write.error in ALLOWED_ERROR_TYPE
 
-            # if write_after_hear and allowed_error:
             if write_after_hear:
                 pair = (operator_hear_vertex, operator_write_vertex)
                 candidate_pairs.append(pair)
