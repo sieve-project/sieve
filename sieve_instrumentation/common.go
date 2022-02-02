@@ -246,7 +246,7 @@ func instrumentClientRead(f *dst.File, etype, mode string) {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
 				instrumentationExpr.Decs.End.Append("//sieve")
@@ -255,7 +255,7 @@ func instrumentClientRead(f *dst.File, etype, mode string) {
 				instrumentationExpr := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
 				instrumentationExpr.Decs.End.Append("//sieve")
@@ -291,20 +291,20 @@ func instrumentClientRead(f *dst.File, etype, mode string) {
 					instrumentationExpr := &dst.ExprStmt{
 						X: &dst.CallExpr{
 							Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-							Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+							Args: []dst.Expr{&dst.Ident{Name: "\"Get\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 						},
 					}
 					instrumentationExpr.Decs.End.Append("//sieve")
-					funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+					defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
 				} else if etype == "List" {
 					instrumentationExpr := &dst.ExprStmt{
 						X: &dst.CallExpr{
 							Fun:  &dst.Ident{Name: funName, Path: "sieve.client"},
-							Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "true"}, &dst.Ident{Name: "list"}, &dst.Ident{Name: "err"}},
+							Args: []dst.Expr{&dst.Ident{Name: "\"List\""}, &dst.Ident{Name: "false"}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 						},
 					}
 					instrumentationExpr.Decs.End.Append("//sieve")
-					funcDecl.Body.List = append(funcDecl.Body.List, instrumentationExpr)
+					defaultCaseClause.Body = append(defaultCaseClause.Body, instrumentationExpr)
 				} else {
 					panic(fmt.Errorf("Wrong type %s for operator read", etype))
 				}
