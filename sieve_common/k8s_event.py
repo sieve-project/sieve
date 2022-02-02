@@ -211,6 +211,14 @@ class APIEvent:
     def obj_map(self):
         return self.__obj_map
 
+    def get_metadata_value(self, mkey):
+        if mkey in self.obj_map:
+            return self.obj_map[mkey]
+        elif "metadata" in self.obj_map and mkey in self.obj_map["metadata"]:
+            return self.obj_map["metadata"][mkey]
+        else:
+            return None
+
 
 class OperatorHear:
     def __init__(self, id: str, etype: str, rtype: str, obj_str: str):

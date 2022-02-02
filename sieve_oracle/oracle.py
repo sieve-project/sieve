@@ -5,23 +5,39 @@ from sieve_oracle.safety_checker import *
 from sieve_oracle.liveness_checker import *
 
 
-def persistent_history_and_state(test_context: TestContext):
+def persist_history(test_context: TestContext):
+    cprint("Generating state update summary...", bcolors.OKGREEN)
     history = generate_history(test_context)
     history_digest = generate_history_digest(test_context)
     dump_json_file(test_context.result_dir, history, "history.json")
     dump_json_file(test_context.result_dir, history_digest, "event.json")
+
+
+def persist_state(test_context: TestContext):
+    cprint("Generating end state...", bcolors.OKGREEN)
     state = generate_state(test_context)
     dump_json_file(test_context.result_dir, state, "state.json")
 
 
 def canonicalize_history_and_state(test_context: TestContext):
     assert test_context.mode == sieve_modes.LEARN_TWICE
+    cprint("Generating canonicalized state update summary...", bcolors.OKGREEN)
     can_history_digest = canonicalize_history_digest(test_context)
     dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")
+    cprint("Generating canonicalized end state...", bcolors.OKGREEN)
     can_state = canonicalize_state(test_context)
     dump_json_file(test_context.oracle_dir, can_state, "state.json")
+    cprint(
+        "Generating canonicalized state mask (for generating test plans)...",
+        bcolors.OKGREEN,
+    )
     state_mask = generate_state_mask(can_state)
     dump_json_file(test_context.oracle_dir, state_mask, "mask.json")
+    cprint("Generating controller family list...", bcolors.OKGREEN)
+    controller_related_list = generate_controller_related_list(test_context)
+    dump_json_file(
+        test_context.oracle_dir, controller_related_list, "controller_family.json"
+    )
 
 
 def operator_panic_checker(test_context: TestContext):
