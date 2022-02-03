@@ -13,7 +13,8 @@ import json
 import glob
 from sieve_analyzer import analyze
 from sieve_oracle.oracle import (
-    persistent_history_and_state,
+    persist_state,
+    persist_history,
     canonicalize_history_and_state,
     generate_fatal,
     check,
@@ -441,16 +442,17 @@ def run_workload(
     streamed_log_file.close()
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
-
-    persistent_history_and_state(test_context)
-    if test_context.mode == sieve_modes.LEARN_TWICE:
-        canonicalize_history_and_state(test_context)
+    # TODO: we should get the state from apiserver log and move it to check_result
+    persist_state(test_context)
 
 
 def check_result(
     test_context: TestContext,
 ) -> Tuple[int, str]:
+    persist_history(test_context)
     if test_context.stage == sieve_stages.LEARN:
+        if test_context.mode == sieve_modes.LEARN_TWICE:
+            canonicalize_history_and_state(test_context)
         analyze.analyze_trace(test_context)
         return 0, NO_ERROR_MESSAGE
     else:

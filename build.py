@@ -295,7 +295,6 @@ def setup_controller(
 
 
 def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
-    img_tag = version + "-" + mode
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
@@ -303,8 +302,10 @@ def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
             sieve_modes.UNOBSR_STATE,
             sieve_modes.STALE_STATE,
         ]:
+            img_tag = version + "-" + this_mode
             setup_kubernetes(version, this_mode, img_repo, img_tag, push_to_remote)
     else:
+        img_tag = version + "-" + mode
         setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote)
 
 

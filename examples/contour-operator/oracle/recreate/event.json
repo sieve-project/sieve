@@ -1,246 +1,146 @@
 {
-    "keys": {
-        "/configmaps/default/0d879e31.projectcontour.io": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/configmaps/default/contour": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/configmaps/default/leader-elect": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/configmaps/default/sieve-testing-global-config": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/controllerrevisions/default/envoy-5cf8cb4f6d": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/daemonsets/default/envoy": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/deployments/default/contour": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/deployments/default/contour-operator": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/endpointslices/default/contour-*": {
-            "ADDED": 4,
-            "DELETED": 2,
-            "operator_related": false
-        },
-        "/endpointslices/default/contour-operator-metrics-*": {
-            "ADDED": 2,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/endpointslices/default/envoy-*": {
-            "ADDED": 4,
-            "DELETED": 2,
-            "operator_related": false
-        },
-        "/jobs/default/contour-certgen-main": {
-            "ADDED": 4,
-            "DELETED": 4,
-            "operator_related": false
-        },
-        "/leases/default/0d879e31.projectcontour.io": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/leases/default/leader-elect": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/operator.projectcontour.io/contours/default/contour-sample": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/pods/default/contour-556489f6bb-*": {
-            "ADDED": 4,
-            "DELETED": 2,
-            "operator_related": false
-        },
-        "/pods/default/contour-certgen-main-*": {
-            "ADDED": 4,
-            "DELETED": 4,
-            "operator_related": false
-        },
-        "/pods/default/contour-operator-8d55466d5-*": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/pods/default/envoy-*": {
-            "ADDED": 4,
-            "DELETED": 2,
-            "operator_related": false
-        },
-        "/replicasets/default/contour-556489f6bb": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/replicasets/default/contour-operator-8d55466d5": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/rolebindings/default/contour": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/rolebindings/default/contour-operator-leader-election": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/roles/default/contour-certgen": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/roles/default/contour-operator-leader-election": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/secrets/default/contourcert": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/secrets/default/envoycert": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": false
-        },
-        "/serviceaccounts/default/contour": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/serviceaccounts/default/contour-certgen": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/serviceaccounts/default/envoy": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/services/endpoints/default/contour": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/services/endpoints/default/contour-operator-metrics": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/services/endpoints/default/envoy": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/services/specs/default/contour": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        },
-        "/services/specs/default/contour-operator-metrics": {
-            "ADDED": 1,
-            "DELETED": 0,
-            "operator_related": true
-        },
-        "/services/specs/default/envoy": {
-            "ADDED": 2,
-            "DELETED": 1,
-            "operator_related": false
-        }
+    "configmap/default/0d879e31.projectcontour.io": {
+        "ADDED": 1,
+        "DELETED": 0
     },
-    "types": {
-        "/configmaps": {
-            "ADDED": 5,
-            "DELETED": 1
-        },
-        "/controllerrevisions": {
-            "ADDED": 2,
-            "DELETED": 1
-        },
-        "/daemonsets": {
-            "ADDED": 2,
-            "DELETED": 1
-        },
-        "/deployments": {
-            "ADDED": 2,
-            "DELETED": 1
-        },
-        "/jobs": {
-            "ADDED": 4,
-            "DELETED": 4
-        },
-        "/leases": {
-            "ADDED": 2,
-            "DELETED": 0
-        },
-        "/operator.projectcontour.io/contours": {
-            "ADDED": 2,
-            "DELETED": 1
-        },
-        "/pods": {
-            "ADDED": 12,
-            "DELETED": 8
-        },
-        "/replicasets": {
-            "ADDED": 2,
-            "DELETED": 1
-        },
-        "/rolebindings": {
-            "ADDED": 2,
-            "DELETED": 1
-        },
-        "/roles": {
-            "ADDED": 2,
-            "DELETED": 1
-        },
-        "/secrets": {
-            "ADDED": 8,
-            "DELETED": 3
-        },
-        "/serviceaccounts": {
-            "ADDED": 6,
-            "DELETED": 3
-        },
-        "/services/endpoints": {
-            "ADDED": 4,
-            "DELETED": 2
-        },
-        "/services/specs": {
-            "ADDED": 4,
-            "DELETED": 2
-        }
+    "configmap/default/contour": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "configmap/default/leader-elect": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "configmap/default/sieve-testing-global-config": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "contour/default/contour-sample": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "controllerrevision/default/envoy-5cf8cb4f6d": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "daemonset/default/envoy": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "deployment/default/contour": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "deployment/default/contour-operator": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/contour": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "endpoint/default/contour-operator-metrics": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "endpoint/default/envoy": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "endpointslice/default/contour-*": {
+        "ADDED": 4,
+        "DELETED": 2
+    },
+    "endpointslice/default/contour-operator-metrics-*": {
+        "ADDED": 2,
+        "DELETED": 0
+    },
+    "endpointslice/default/envoy-*": {
+        "ADDED": 4,
+        "DELETED": 2
+    },
+    "job/default/contour-certgen-main": {
+        "ADDED": 4,
+        "DELETED": 4
+    },
+    "lease/default/0d879e31.projectcontour.io": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "lease/default/leader-elect": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "pod/default/contour-556489f6bb-*": {
+        "ADDED": 4,
+        "DELETED": 2
+    },
+    "pod/default/contour-certgen-main-*": {
+        "ADDED": 4,
+        "DELETED": 4
+    },
+    "pod/default/contour-operator-8d55466d5-*": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "pod/default/envoy-*": {
+        "ADDED": 4,
+        "DELETED": 2
+    },
+    "replicaset/default/contour-556489f6bb": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "replicaset/default/contour-operator-8d55466d5": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "role/default/contour-certgen": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "role/default/contour-operator-leader-election": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "rolebinding/default/contour": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "rolebinding/default/contour-operator-leader-election": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "secret/default/contourcert": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "secret/default/envoycert": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "serviceaccount/default/contour": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "serviceaccount/default/contour-certgen": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "serviceaccount/default/envoy": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "spec/default/contour": {
+        "ADDED": 2,
+        "DELETED": 1
+    },
+    "spec/default/contour-operator-metrics": {
+        "ADDED": 1,
+        "DELETED": 0
+    },
+    "spec/default/envoy": {
+        "ADDED": 2,
+        "DELETED": 1
     }
 }

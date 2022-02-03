@@ -7,30 +7,28 @@ from sieve_common.k8s_event import (
     parse_api_event,
     extract_generate_name,
     is_generated_random_name,
-    operator_related_resource,
-    api_key_to_rtype_namespace_name,
-    generate_key,
 )
 
 
-def is_unstable_api_event_key(key, value):
-    if value["operator_related"]:
-        return True
-    if key.endswith("-metrics"):
-        return True
-    if key.startswith("/endpointslices"):
-        return True
-    return False
+# def is_unstable_api_event_key(key, value):
+#     if value["operator_related"]:
+#         return True
+#     if key.endswith("-metrics"):
+#         return True
+#     if key.startswith("/endpointslices"):
+#         return True
+#     return False
 
 
 def should_skip_api_event_key(api_event_key, test_name, masked):
-    rtype, _, name = api_key_to_rtype_namespace_name(api_event_key)
     for masked_test_name in masked:
         if masked_test_name == "*" or masked_test_name == test_name:
-            for masked_rtype in masked[masked_test_name]:
-                if masked_rtype == rtype:
-                    if name in masked[masked_test_name][masked_rtype]:
-                        return True
+            for masked_key in masked[masked_test_name]:
+                if masked_key == api_event_key:
+                    print(
+                        "Skipping %s for state-update-summary checker" % api_event_key
+                    )
+                    return True
     return False
 
 
@@ -56,56 +54,27 @@ def generate_history(test_context: TestContext):
 
 
 def generate_history_digest(test_context: TestContext):
-    project = test_context.project
     log_dir = test_context.result_dir
     api_log_path = os.path.join(log_dir, "apiserver1.log")
-    api_event_map = {}
-    api_key_event_map = {}
-    api_type_event_map = {}
-    taint_list = []
-    deployment_name = test_context.controller_config.deployment_name
+    state_update_summary = {}
     for line in open(api_log_path).readlines():
         if SIEVE_API_EVENT_MARK not in line:
             continue
         api_event = parse_api_event(line)
         key = api_event.key
         if (
-            api_event.etype != APIEventTypes.ADDED
-            and api_event.etype != APIEventTypes.DELETED
+            api_event.etype
+            not in test_context.common_config.state_update_summary_check_event_list
         ):
-            continue
-        if api_event.namespace != "default":
             continue
         generate_name = extract_generate_name(api_event.obj_map)
         if generate_name is not None:
             if is_generated_random_name(api_event.name, generate_name):
                 key = key[:-5] + "*"
-        assert "/default/" in key
-        type_prefix = key[: key.find("/default/")]
-        if key not in api_key_event_map:
-            api_key_event_map[key] = copy.deepcopy(api_event_empty_entry)
-            if operator_related_resource(
-                project,
-                api_event.rtype,
-                api_event.name,
-                api_event.obj_map,
-                taint_list,
-                deployment_name,
-            ):
-                api_key_event_map[key]["operator_related"] = True
-                taint_list.append((api_event.rtype, api_event.name))
-            else:
-                api_key_event_map[key]["operator_related"] = False
-        api_key_event_map[key][api_event.etype] += 1
-        if not is_unstable_api_event_key(key, api_key_event_map[key]):
-            if type_prefix not in api_type_event_map:
-                api_type_event_map[type_prefix] = copy.deepcopy(api_event_empty_entry)
-            api_type_event_map[type_prefix][api_event.etype] += 1
-
-    api_event_map["keys"] = api_key_event_map
-    api_event_map["types"] = api_type_event_map
-
-    return api_event_map
+        if key not in state_update_summary:
+            state_update_summary[key] = copy.deepcopy(api_event_empty_entry)
+        state_update_summary[key][api_event.etype] += 1
+    return state_update_summary
 
 
 def canonicalize_history_digest(test_context: TestContext):
@@ -137,9 +106,7 @@ def canonicalize_history_digest(test_context: TestContext):
         for key in ignored:
             event_map.pop(key, None)
 
-    remove_ignored_value(can_history_digest["keys"])
-    remove_ignored_value(can_history_digest["types"])
-
+    remove_ignored_value(can_history_digest)
     return can_history_digest
 
 
@@ -230,8 +197,7 @@ def check_single_history(history, resource_keys, checker_name, customized_checke
     for key in resource_keys:
         current_state[key] = None
     for event in history:
-        rtype, ns, name = api_key_to_rtype_namespace_name(event["key"])
-        resource_key = generate_key(rtype, ns, name)
+        resource_key = event["key"]
         if resource_key in resource_keys:
             if event["etype"] == "DELETED":
                 current_state[event["key"]] = None
@@ -260,41 +226,42 @@ def compare_history_digests(test_context: TestContext):
     canonicalized_events = get_canonicalized_history_digest(test_context)
     testing_events = get_testing_history_digest(test_context)
     event_mask = get_event_mask(test_context)
+    controller_family = get_controller_related_list(test_context)
 
     ret_val = 0
     messages = []
 
     # checking events inconsistency for each key
-    testing_keys = set(testing_events["keys"].keys())
-    learning_keys = set(canonicalized_events["keys"].keys())
+    testing_keys = set(testing_events.keys())
+    learning_keys = set(canonicalized_events.keys())
     for key in testing_keys.intersection(learning_keys):
-        assert canonicalized_events["keys"][key] != SIEVE_LEARN_VALUE_MASK
-        if is_unstable_api_event_key(key, canonicalized_events["keys"][key]):
+        if canonicalized_events[key] == SIEVE_LEARN_VALUE_MASK:
             continue
+        # if is_unstable_api_event_key(key, canonicalized_events[key]):
+        #     continue
+        # TODO: we should check the unstable resources
         if should_skip_api_event_key(key, test_context.test_name, event_mask):
             continue
-        for etype in testing_events["keys"][key]:
+        if key in controller_family:
+            continue
+        for etype in testing_events[key]:
             if (
                 etype
                 not in test_context.common_config.state_update_summary_check_event_list
             ):
                 continue
-            assert canonicalized_events["keys"][key][etype] != SIEVE_LEARN_VALUE_MASK
-            if (
-                testing_events["keys"][key][etype]
-                != canonicalized_events["keys"][key][etype]
-            ):
+            if canonicalized_events[key][etype] == SIEVE_LEARN_VALUE_MASK:
+                continue
+            if testing_events[key][etype] != canonicalized_events[key][etype]:
                 ret_val += 1
-                rtype, namespace, name = api_key_to_rtype_namespace_name(key)
-                resource_key = "/".join([rtype, namespace, name])
                 messages.append(
                     generate_alarm(
                         "State-update summaries inconsistency:",
                         "{} {} inconsistency: {} event(s) seen during reference run, but {} seen during testing run".format(
-                            resource_key,
+                            key,
                             etype,
-                            str(canonicalized_events["keys"][key][etype]),
-                            str(testing_events["keys"][key][etype]),
+                            str(canonicalized_events[key][etype]),
+                            str(testing_events[key][etype]),
                         ),
                     )
                 )

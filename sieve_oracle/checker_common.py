@@ -1,7 +1,65 @@
 from sieve_common.common import *
 import copy
 from deepdiff import DeepDiff
-from sieve_common.k8s_event import APIEventTypes, OperatorWriteTypes
+from sieve_common.k8s_event import (
+    APIEventTypes,
+    OperatorWriteTypes,
+    SIEVE_API_EVENT_MARK,
+    parse_api_event,
+)
+
+
+def get_controller_related_list(test_context: TestContext):
+    return json.load(
+        open(os.path.join(test_context.oracle_dir, "controller_family.json"))
+    )
+
+
+def generate_controller_related_list(test_context: TestContext):
+    log_dir = test_context.result_dir
+    api_log_path = os.path.join(log_dir, "apiserver1.log")
+    api_event_list = []
+    controller_related_list = []
+    controller_related_uid_set = set()
+    for line in open(api_log_path).readlines():
+        if SIEVE_API_EVENT_MARK not in line:
+            continue
+        api_event = parse_api_event(line)
+        api_event_list.append(api_event)
+    for api_event in api_event_list:
+        if api_event.rtype == "pod":
+            pod_as_map = api_event.obj_map
+            if "labels" in pod_as_map and "sievetag" in pod_as_map["labels"]:
+                controller_related_uid_set.add(pod_as_map["uid"])
+                for owner_reference in pod_as_map["ownerReferences"]:
+                    controller_related_uid_set.add(owner_reference["uid"])
+                break
+    keep_tainting = True
+    while keep_tainting:
+        keep_tainting = False
+        for api_event in api_event_list:
+            if api_event.get_metadata_value("ownerReferences") is None:
+                continue
+            if api_event.get_metadata_value("uid") in controller_related_uid_set:
+                for owner_reference in api_event.get_metadata_value("ownerReferences"):
+                    if owner_reference["uid"] not in controller_related_uid_set:
+                        controller_related_uid_set.add(owner_reference["uid"])
+                        keep_tainting = True
+            else:
+                for owner_reference in api_event.get_metadata_value("ownerReferences"):
+                    if owner_reference["uid"] in controller_related_uid_set:
+                        controller_related_uid_set.add(
+                            api_event.get_metadata_value("uid")
+                        )
+                        keep_tainting = True
+    for api_event in api_event_list:
+        if (
+            api_event.get_metadata_value("uid") in controller_related_uid_set
+            and api_event.key not in controller_related_list
+        ):
+            controller_related_list.append(api_event.key)
+    controller_related_list.sort()
+    return controller_related_list
 
 
 def learn_twice_trim(base_resources, twice_resources):
