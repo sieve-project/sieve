@@ -10,28 +10,22 @@ from sieve_common.k8s_event import (
 )
 
 
-def is_unstable_api_event_key(key, value):
-    if value["operator_related"]:
-        return True
-    if key.endswith("-metrics"):
-        return True
-    if key.startswith("/endpointslices"):
-        return True
-    return False
+# def is_unstable_api_event_key(key, value):
+#     if value["operator_related"]:
+#         return True
+#     if key.endswith("-metrics"):
+#         return True
+#     if key.startswith("/endpointslices"):
+#         return True
+#     return False
 
 
 def should_skip_api_event_key(api_event_key, test_name, masked):
-    tokens = api_event_key.split("/")
-    assert len(tokens) == 3
-    rtype = tokens[0]
-    namespace = tokens[1]
-    name = tokens[2]
     for masked_test_name in masked:
         if masked_test_name == "*" or masked_test_name == test_name:
-            for masked_rtype in masked[masked_test_name]:
-                if masked_rtype == rtype:
-                    if name in masked[masked_test_name][masked_rtype]:
-                        return True
+            for masked_key in masked[masked_test_name]:
+                if masked_key == api_event_key:
+                    return True
     return False
 
 
@@ -229,6 +223,7 @@ def compare_history_digests(test_context: TestContext):
     canonicalized_events = get_canonicalized_history_digest(test_context)
     testing_events = get_testing_history_digest(test_context)
     event_mask = get_event_mask(test_context)
+    controller_family = get_controller_related_list(test_context)
 
     ret_val = 0
     messages = []
@@ -243,6 +238,8 @@ def compare_history_digests(test_context: TestContext):
         #     continue
         # TODO: we should check the unstable resources
         if should_skip_api_event_key(key, test_context.test_name, event_mask):
+            continue
+        if key in controller_family:
             continue
         for etype in testing_events[key]:
             if (
