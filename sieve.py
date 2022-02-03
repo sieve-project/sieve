@@ -449,8 +449,8 @@ def run_workload(
 def check_result(
     test_context: TestContext,
 ) -> Tuple[int, str]:
+    persist_history(test_context)
     if test_context.stage == sieve_stages.LEARN:
-        persist_history(test_context)
         if test_context.mode == sieve_modes.LEARN_TWICE:
             canonicalize_history_and_state(test_context)
         analyze.analyze_trace(test_context)
