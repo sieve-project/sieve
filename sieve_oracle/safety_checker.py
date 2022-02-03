@@ -25,6 +25,9 @@ def should_skip_api_event_key(api_event_key, test_name, masked):
         if masked_test_name == "*" or masked_test_name == test_name:
             for masked_key in masked[masked_test_name]:
                 if masked_key == api_event_key:
+                    print(
+                        "Skipping %s for state-update-summary checker" % api_event_key
+                    )
                     return True
     return False
 
