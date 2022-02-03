@@ -342,7 +342,6 @@ func NotifyLearnBeforeProcessEvent(eventType, key string, object interface{}) {
 			printError(err, SIEVE_JSON_ERR)
 			return
 		}
-		tokens := strings.Split(key, "/")
 		if len(tokens) < 4 {
 			log.Printf("unrecognizable key %s\n", key)
 			return

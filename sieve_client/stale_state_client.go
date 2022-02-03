@@ -35,8 +35,14 @@ func NotifyStaleStateBeforeProcessEvent(eventType, key string, object interface{
 			printError(err, SIEVE_JSON_ERR)
 			return
 		}
-		// TODO: instead of printing key, we should parse out name, namespace and rtype here
-		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\n", eventType, key, string(jsonObject))
+		if len(tokens) < 4 {
+			log.Printf("unrecognizable key %s\n", key)
+			return
+		}
+		resourceType := regularizeType(object)
+		namespace := tokens[len(tokens)-2]
+		name := tokens[len(tokens)-1]
+		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
 	}
 	if checkStaleStateTiming("before") {
 		// log.Printf("[sieve] NotifyStaleStateBeforeProcessEvent")
