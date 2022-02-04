@@ -226,7 +226,7 @@ def compare_history_digests(test_context: TestContext):
     canonicalized_events = get_canonicalized_history_digest(test_context)
     testing_events = get_testing_history_digest(test_context)
     event_mask = get_event_mask(test_context)
-    controller_family = get_controller_related_list(test_context)
+    controller_family = get_current_controller_related_list(test_context)
 
     ret_val = 0
     messages = []

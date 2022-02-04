@@ -9,9 +9,15 @@ from sieve_common.k8s_event import (
 )
 
 
-def get_controller_related_list(test_context: TestContext):
+def get_reference_controller_related_list(test_context: TestContext):
     return json.load(
         open(os.path.join(test_context.oracle_dir, "controller_family.json"))
+    )
+
+
+def get_current_controller_related_list(test_context: TestContext):
+    return json.load(
+        open(os.path.join(test_context.result_dir, "controller_family.json"))
     )
 
 

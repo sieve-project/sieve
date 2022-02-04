@@ -1,4 +1,5 @@
 import os
+import shutil
 from sieve_common.common import *
 from sieve_oracle.checker_common import *
 from sieve_oracle.safety_checker import *
@@ -19,6 +20,14 @@ def persist_state(test_context: TestContext):
     dump_json_file(test_context.result_dir, state, "state.json")
 
 
+def generate_controller_family(test_context: TestContext):
+    cprint("Generating controller family list...", bcolors.OKGREEN)
+    controller_related_list = generate_controller_related_list(test_context)
+    dump_json_file(
+        test_context.result_dir, controller_related_list, "controller_family.json"
+    )
+
+
 def canonicalize_history_and_state(test_context: TestContext):
     assert test_context.mode == sieve_modes.LEARN_TWICE
     cprint("Generating canonicalized state update summary...", bcolors.OKGREEN)
@@ -33,10 +42,13 @@ def canonicalize_history_and_state(test_context: TestContext):
     )
     state_mask = generate_state_mask(can_state)
     dump_json_file(test_context.oracle_dir, state_mask, "mask.json")
-    cprint("Generating controller family list...", bcolors.OKGREEN)
-    controller_related_list = generate_controller_related_list(test_context)
-    dump_json_file(
-        test_context.oracle_dir, controller_related_list, "controller_family.json"
+    cprint(
+        "Copying controller family to the oracle dir...",
+        bcolors.OKGREEN,
+    )
+    shutil.copy(
+        os.path.join(test_context.result_dir, "controller_family.json"),
+        os.path.join(test_context.oracle_dir, "controller_family.json"),
     )
 
 
