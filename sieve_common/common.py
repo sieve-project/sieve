@@ -26,6 +26,25 @@ SIEVE_LEARN_VALUE_MASK = "SIEVE-IGNORE"
 EXIST = True
 NONEXIST = False
 
+METADATA_FIELDS = [
+    "name",
+    "generateName",
+    "namespace",
+    "selfLink",
+    "uid",
+    "resourceVersion",
+    "generation",
+    "creationTimestamp",
+    "deletionTimestamp",
+    "deletionGracePeriodSeconds",
+    "labels",
+    "annotations",
+    "ownerReferences",
+    "finalizers",
+    "clusterName",
+    "managedFields",
+]
+
 # If paths started with `**/name`, it means we will ignore any key whose name is `name`
 # Otherwise, we will match base on he full path
 # `x/*/y` * means matching any array index

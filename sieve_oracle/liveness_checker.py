@@ -127,7 +127,20 @@ def generate_state_mask(data):
         mask_list = set()
         if data[key] != SIEVE_LEARN_VALUE_MASK:
             generate_state_mask_helper(mask_list, predefine, "", data[key], "")
-            mask_map[key] = sorted(list(mask_list))
+            # make the masked field_path compabitable with controller shape
+            metadata_field_set = set(METADATA_FIELDS)
+            translated_mask_list = []
+            for masked_field_path in mask_list:
+                tokens = masked_field_path.split("/")
+                new_tokens = copy.deepcopy(tokens)
+                if tokens[0] in metadata_field_set:
+                    new_tokens = ["metadata"] + new_tokens
+                else:
+                    for i in range(len(new_tokens)):
+                        new_tokens[i] = new_tokens[i][:1].lower() + new_tokens[i][1:]
+                translated_mask_list.append("/".join(new_tokens))
+            translated_mask_list.sort()
+            mask_map[key] = translated_mask_list
     return mask_map
 
 
@@ -210,26 +223,7 @@ def get_objects_from_state_by_type(state, rtype):
 
 
 def tranlate_apiserver_shape_to_controller_shape(path):
-    metadata_fields = set(
-        [
-            "name",
-            "generateName",
-            "namespace",
-            "selfLink",
-            "uid",
-            "resourceVersion",
-            "generation",
-            "creationTimestamp",
-            "deletionTimestamp",
-            "deletionGracePeriodSeconds",
-            "labels",
-            "annotations",
-            "ownerReferences",
-            "finalizers",
-            "clusterName",
-            "managedFields",
-        ]
-    )
+    metadata_fields = set(METADATA_FIELDS)
     translated_path = copy.deepcopy(path)
     if len(path) > 1:
         if path[1] in metadata_fields:
@@ -452,64 +446,6 @@ def compare_states(test_context: TestContext):
                 )
             else:
                 assert False
-
-    # for resource_type in resource_map:
-    #     resource = resource_map[resource_type]
-    #     # TODO: this is ad-hoc fix
-    #     # the state.json should contain namespace
-    #     # We should revisit this later
-    #     namespace = "default"
-    #     if SIEVE_LEARN_VALUE_MASK in resource["add"] + resource["remove"]:
-    #         # Then we only report number diff
-    #         delta = len(resource["add"]) - len(resource["remove"])
-    #         learn_list = get_objects_from_state_by_type(reference_state, resource_type)
-    #         test_list = get_objects_from_state_by_type(testing_state, resource_type)
-    #         learn_list.sort()
-    #         test_list.sort()
-    #         if delta != 0:
-    #             ret_val += 1
-    #             resource_existence_messages.append(
-    #                 generate_alarm(
-    #                     "End state inconsistency - more objects than reference:"
-    #                     if delta > 0
-    #                     else "End state inconsistency - fewer objects than reference:",
-    #                     "{} {} {} {} {} {} {} {} {}".format(
-    #                         len(learn_list),
-    #                         resource_type + " object(s)",
-    #                         "seen after reference run",
-    #                         learn_list,
-    #                         "but",
-    #                         len(test_list),
-    #                         resource_type + " object(s)",
-    #                         "seen after testing run",
-    #                         test_list,
-    #                     ),
-    #                 )
-    #             )
-    #     else:
-    #         # We report resource diff detail
-    #         for name in resource["add"]:
-    #             ret_val += 1
-    #             resource_existence_messages.append(
-    #                 generate_alarm(
-    #                     "End state inconsistency - more objects than reference:",
-    #                     "{} {}".format(
-    #                         "/".join([resource_type, namespace, name]),
-    #                         "is not seen after reference run, but seen after testing run",
-    #                     ),
-    #                 )
-    #             )
-    #         for name in resource["remove"]:
-    #             ret_val += 1
-    #             resource_existence_messages.append(
-    #                 generate_alarm(
-    #                     "End state inconsistency - fewer objects than reference:",
-    #                     "{} {}".format(
-    #                         "/".join([resource_type, namespace, name]),
-    #                         "is seen after reference run, but not seen after testing run",
-    #                     ),
-    #                 )
-    #             )
 
     resource_existence_messages.sort()
     fields_diff_messages.sort()
