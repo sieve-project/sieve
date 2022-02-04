@@ -15,6 +15,7 @@ from sieve_analyzer import analyze
 from sieve_oracle.oracle import (
     persist_state,
     persist_history,
+    generate_controller_family,
     canonicalize_history_and_state,
     generate_fatal,
     check,
@@ -442,14 +443,14 @@ def run_workload(
     streamed_log_file.close()
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
-    # TODO: we should get the state from apiserver log and move it to check_result
-    persist_state(test_context)
 
 
 def check_result(
     test_context: TestContext,
 ) -> Tuple[int, str]:
+    generate_controller_family(test_context)
     persist_history(test_context)
+    persist_state(test_context)
     if test_context.stage == sieve_stages.LEARN:
         if test_context.mode == sieve_modes.LEARN_TWICE:
             canonicalize_history_and_state(test_context)
