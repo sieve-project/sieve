@@ -1,323 +1,372 @@
 {
-    "agent": {},
-    "apmserver": {},
-    "beat": {},
-    "deployment": {},
-    "elasticmapsserver": {},
-    "elasticsearch": {
-        "elasticsearch-cluster": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/generation",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ]
-    },
-    "enterprisesearch": {},
-    "kibana": {},
-    "persistentvolumeclaim": {
-        "elasticsearch-data-elasticsearch-cluster-es-default-0": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/volumeName"
-        ],
-        "elasticsearch-data-elasticsearch-cluster-es-default-1": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/volumeName"
-        ]
-    },
-    "pod": {
-        "elastic-operator-0": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/generateName",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/containers/*/env",
-            "spec/containers/*/image",
-            "spec/containers/*/volumeMounts/*/name",
-            "spec/nodeName",
-            "spec/volumes/*/name",
-            "spec/volumes/*/secret/secretName",
-            "status/conditions",
-            "status/containerStatuses/*/containerID",
-            "status/containerStatuses/*/image",
-            "status/containerStatuses/*/imageID",
-            "status/containerStatuses/*/restartCount",
-            "status/containerStatuses/*/state/running/startedAt",
-            "status/hostIP",
-            "status/podIP",
-            "status/podIPs/*/ip",
-            "status/startTime"
-        ],
-        "elasticsearch-cluster-es-default-0": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/generateName",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/containers/*/env",
-            "spec/containers/*/image",
-            "spec/initContainers/*/image",
-            "spec/nodeName",
-            "status/conditions",
-            "status/containerStatuses/*/containerID",
-            "status/containerStatuses/*/image",
-            "status/containerStatuses/*/imageID",
-            "status/containerStatuses/*/restartCount",
-            "status/containerStatuses/*/state/running/startedAt",
-            "status/hostIP",
-            "status/initContainerStatuses/*/containerID",
-            "status/initContainerStatuses/*/image",
-            "status/initContainerStatuses/*/imageID",
-            "status/initContainerStatuses/*/state/terminated/containerID",
-            "status/initContainerStatuses/*/state/terminated/finishedAt",
-            "status/initContainerStatuses/*/state/terminated/startedAt",
-            "status/podIP",
-            "status/podIPs/*/ip",
-            "status/startTime"
-        ],
-        "elasticsearch-cluster-es-default-1": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/generateName",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/containers/*/env",
-            "spec/containers/*/image",
-            "spec/initContainers/*/image",
-            "spec/nodeName",
-            "status/conditions",
-            "status/containerStatuses/*/containerID",
-            "status/containerStatuses/*/image",
-            "status/containerStatuses/*/imageID",
-            "status/containerStatuses/*/restartCount",
-            "status/containerStatuses/*/state/running/startedAt",
-            "status/hostIP",
-            "status/initContainerStatuses/*/containerID",
-            "status/initContainerStatuses/*/image",
-            "status/initContainerStatuses/*/imageID",
-            "status/initContainerStatuses/*/state/terminated/containerID",
-            "status/initContainerStatuses/*/state/terminated/finishedAt",
-            "status/initContainerStatuses/*/state/terminated/startedAt",
-            "status/podIP",
-            "status/podIPs/*/ip",
-            "status/startTime"
-        ]
-    },
-    "replicaset": {},
-    "secret": {
-        "elastic-webhook-server-cert": [
-            "data/tls.crt",
-            "data/tls.key",
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-default-es-config": [
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-default-es-transport-certs": [
-            "data/ca.crt",
-            "data/elasticsearch-cluster-es-default-0.tls.crt",
-            "data/elasticsearch-cluster-es-default-0.tls.key",
-            "data/elasticsearch-cluster-es-default-1.tls.crt",
-            "data/elasticsearch-cluster-es-default-1.tls.key",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-elastic-user": [
-            "data/elastic",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-http-ca-internal": [
-            "data/tls.crt",
-            "data/tls.key",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-http-certs-internal": [
-            "data/ca.crt",
-            "data/tls.crt",
-            "data/tls.key",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-http-certs-public": [
-            "data/ca.crt",
-            "data/tls.crt",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-internal-users": [
-            "data/elastic-internal",
-            "data/elastic-internal-monitoring",
-            "data/elastic-internal-probe",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-remote-ca": [
-            "data/ca.crt",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-transport-ca-internal": [
-            "data/tls.crt",
-            "data/tls.key",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-transport-certs-public": [
-            "data/ca.crt",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ],
-        "elasticsearch-cluster-es-xpack-file-realm": [
-            "data/users",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid"
-        ]
-    },
-    "service": {
-        "elastic-webhook-server": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/clusterIP",
-            "spec/ports"
-        ],
-        "elasticsearch-cluster-es-default": [
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/ports"
-        ],
-        "elasticsearch-cluster-es-http": [
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/clusterIP",
-            "spec/ports"
-        ],
-        "elasticsearch-cluster-es-transport": [
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/ports"
-        ],
-        "kubernetes": [
-            "metadata/creationTimestamp",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/clusterIP",
-            "spec/ports"
-        ]
-    },
-    "statefulset": {
-        "elastic-operator": [
-            "metadata/annotations",
-            "metadata/creationTimestamp",
-            "metadata/generation",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/template/spec/containers/*/env",
-            "spec/template/spec/containers/*/image",
-            "status/observedGeneration"
-        ],
-        "elasticsearch-cluster-es-default": [
-            "metadata/creationTimestamp",
-            "metadata/generation",
-            "metadata/labels",
-            "metadata/managedFields",
-            "metadata/ownerReferences",
-            "metadata/resourceVersion",
-            "metadata/uid",
-            "spec/template/spec/containers/*/env",
-            "spec/template/spec/containers/*/image",
-            "spec/template/spec/initContainers/*/image",
-            "status/observedGeneration"
-        ]
-    }
+    "configmap/default/elastic-licensing": [
+        "data/timestamp",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "configmap/default/elastic-operator": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "configmap/default/elastic-operator-leader": [
+        "metadata/annotations/control-plane.alpha.kubernetes.io/leader",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "configmap/default/elastic-operator-uuid": [
+        "data/uuid",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/uid"
+    ],
+    "configmap/default/elasticsearch-cluster-es-scripts": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "configmap/default/elasticsearch-cluster-es-unicast-hosts": [
+        "data/unicast_hosts.txt",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "configmap/default/sieve-testing-global-config": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "controllerrevision/default/elastic-operator-854df5f78b": [
+        "data/spec/template/spec/containers/*/image",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"66ef3449-444e-4ff5-b70b-5b154b76c614\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "controllerrevision/default/elasticsearch-cluster-es-default-5c885447f6": [
+        "data/spec/template/spec/containers/*/image",
+        "data/spec/template/spec/initContainers/*/image",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"22e58be3-912a-42f4-adc0-75876fb4139f\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "elasticsearch/default/elasticsearch-cluster": [
+        "metadata/annotations",
+        "metadata/creationTimestamp",
+        "metadata/generation",
+        "metadata/managedFields",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "endpoints/default/elastic-webhook-server": [
+        "metadata/annotations/endpoints.kubernetes.io/last-change-trigger-time",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/nodeName",
+        "subsets/*/addresses/*/targetRef/resourceVersion",
+        "subsets/*/addresses/*/targetRef/uID"
+    ],
+    "endpoints/default/elasticsearch-cluster-es-default": [
+        "metadata/annotations/endpoints.kubernetes.io/last-change-trigger-time",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/targetRef/resourceVersion",
+        "subsets/*/addresses/*/targetRef/uID"
+    ],
+    "endpoints/default/elasticsearch-cluster-es-http": [
+        "metadata/annotations/endpoints.kubernetes.io/last-change-trigger-time",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/targetRef/resourceVersion",
+        "subsets/*/addresses/*/targetRef/uID"
+    ],
+    "endpoints/default/elasticsearch-cluster-es-transport": [
+        "metadata/annotations/endpoints.kubernetes.io/last-change-trigger-time",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/targetRef/resourceVersion",
+        "subsets/*/addresses/*/targetRef/uID"
+    ],
+    "persistentvolumeclaim/default/elasticsearch-data-elasticsearch-cluster-es-default-0": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:annotations",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences",
+        "metadata/managedFields/*/manager",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "spec/volumeName"
+    ],
+    "persistentvolumeclaim/default/elasticsearch-data-elasticsearch-cluster-es-default-1": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "spec/volumeName"
+    ],
+    "pod/default/elastic-operator-0": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"66ef3449-444e-4ff5-b70b-5b154b76c614\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.2\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "spec/containers/*/volumeMounts/*/name",
+        "spec/nodeName",
+        "spec/volumes/*/name",
+        "spec/volumes/*/secret/secretName",
+        "status/conditions/*/lastTransitionTime",
+        "status/containerStatuses/*/containerID",
+        "status/containerStatuses/*/state/running/startedAt",
+        "status/hostIP",
+        "status/podIPs/*/iP",
+        "status/startTime"
+    ],
+    "pod/default/elasticsearch-cluster-es-default-0": [
+        "metadata/annotations/update.k8s.elastic.co/timestamp",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"22e58be3-912a-42f4-adc0-75876fb4139f\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.3\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "status/conditions/*/lastTransitionTime",
+        "status/containerStatuses/*/containerID",
+        "status/containerStatuses/*/state/running/startedAt",
+        "status/hostIP",
+        "status/initContainerStatuses/*/containerID",
+        "status/initContainerStatuses/*/state/terminated/containerID",
+        "status/initContainerStatuses/*/state/terminated/finishedAt",
+        "status/initContainerStatuses/*/state/terminated/startedAt",
+        "status/podIPs/*/iP",
+        "status/startTime"
+    ],
+    "pod/default/elasticsearch-cluster-es-default-1": [
+        "metadata/annotations/update.k8s.elastic.co/timestamp",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"22e58be3-912a-42f4-adc0-75876fb4139f\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.7\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "status/conditions/*/lastTransitionTime",
+        "status/containerStatuses/*/containerID",
+        "status/containerStatuses/*/state/running/startedAt",
+        "status/hostIP",
+        "status/initContainerStatuses/*/containerID",
+        "status/initContainerStatuses/*/state/terminated/containerID",
+        "status/initContainerStatuses/*/state/terminated/finishedAt",
+        "status/initContainerStatuses/*/state/terminated/startedAt",
+        "status/podIPs/*/iP",
+        "status/startTime"
+    ],
+    "poddisruptionbudget/default/elasticsearch-cluster-es-default": [
+        "metadata/creationTimestamp",
+        "metadata/labels/common.k8s.elastic.co/template-hash",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elastic-webhook-server-cert": [
+        "data/tls.crt",
+        "data/tls.key",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-default-es-config": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-default-es-transport-certs": [
+        "data/ca.crt",
+        "data/elasticsearch-cluster-es-default-0.tls.crt",
+        "data/elasticsearch-cluster-es-default-0.tls.key",
+        "data/elasticsearch-cluster-es-default-1.tls.crt",
+        "data/elasticsearch-cluster-es-default-1.tls.key",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-elastic-user": [
+        "data/elastic",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-http-ca-internal": [
+        "data/tls.crt",
+        "data/tls.key",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-http-certs-internal": [
+        "data/ca.crt",
+        "data/tls.crt",
+        "data/tls.key",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-http-certs-public": [
+        "data/ca.crt",
+        "data/tls.crt",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-internal-users": [
+        "data/elastic-internal",
+        "data/elastic-internal-monitoring",
+        "data/elastic-internal-probe",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-remote-ca": [
+        "data/ca.crt",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-transport-ca-internal": [
+        "data/tls.crt",
+        "data/tls.key",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-transport-certs-public": [
+        "data/ca.crt",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "secret/default/elasticsearch-cluster-es-xpack-file-realm": [
+        "data/users",
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "service/default/elastic-webhook-server": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "spec/clusterIP"
+    ],
+    "service/default/elasticsearch-cluster-es-default": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "service/default/elasticsearch-cluster-es-http": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "spec/clusterIP"
+    ],
+    "service/default/elasticsearch-cluster-es-transport": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "serviceaccount/default/elastic-operator": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"elastic-operator-token-tbv5x\"}",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "secrets/*/name"
+    ],
+    "statefulset/default/elastic-operator": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ],
+    "statefulset/default/elasticsearch-cluster-es-default": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9421b116-6bad-4ef1-98bb-6d65d70c6644\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid"
+    ]
 }
