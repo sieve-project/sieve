@@ -39,7 +39,6 @@ def generate_controller_related_list(test_context: TestContext):
                 controller_related_uid_set.add(pod_as_map["uid"])
                 for owner_reference in pod_as_map["ownerReferences"]:
                     controller_related_uid_set.add(owner_reference["uid"])
-                break
     keep_tainting = True
     while keep_tainting:
         keep_tainting = False
