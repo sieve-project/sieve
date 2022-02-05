@@ -437,7 +437,7 @@ def compare_states(test_context: TestContext):
                         ),
                     )
                 )
-            elif delta_type == "values_changed":
+            elif delta_type == "values_changed" or delta_type == "type_changes":
                 fields_diff_messages.append(
                     generate_alarm(
                         "End state inconsistency - object field has a different value:",
@@ -453,6 +453,7 @@ def compare_states(test_context: TestContext):
                     )
                 )
             else:
+                print(delta_type)
                 assert False
 
     resource_existence_messages.sort()
