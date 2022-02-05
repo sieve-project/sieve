@@ -1,7 +1,7 @@
 {
     "configmap/default/percona-server-mongodb-operator-lock": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a49dc12d-1d8a-4f48-801c-6ee2d0528fd1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"3f1bdf55-775b-4604-935b-12f2c7e4e4f4\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/name",
         "metadata/ownerReferences/*/uid",
@@ -11,12 +11,11 @@
     "configmap/default/sieve-testing-global-config": [
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
-        "metadata/resourceVersion",
         "metadata/uid"
     ],
     "deployment/default/mongodb-cluster-mongos": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -33,7 +32,10 @@
         "metadata/resourceVersion",
         "metadata/uid",
         "status/conditions/*/lastTransitionTime",
-        "status/conditions/*/lastUpdateTime"
+        "status/conditions/*/lastUpdateTime",
+        "status/conditions/*/message",
+        "status/conditions/*/reason",
+        "status/conditions/*/type"
     ],
     "endpoints/default/mongodb-cluster-cfg": [
         "metadata/annotations/endpoints.kubernetes.io/last-change-trigger-time",
@@ -41,18 +43,19 @@
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
+        "subsets/*/addresses/*/hostname",
         "subsets/*/addresses/*/iP",
-        "subsets/*/addresses/*/nodeName",
+        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
     "endpoints/default/mongodb-cluster-mongos": [
         "metadata/annotations/endpoints.kubernetes.io/last-change-trigger-time",
         "metadata/creationTimestamp",
+        "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
         "subsets/*/addresses/*/iP",
-        "subsets/*/addresses/*/nodeName",
         "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
@@ -63,8 +66,9 @@
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
+        "subsets/*/addresses/*/hostname",
         "subsets/*/addresses/*/iP",
-        "subsets/*/addresses/*/nodeName",
+        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -79,8 +83,6 @@
         "spec/image",
         "spec/pmm/image",
         "status/conditions",
-        "status/mongos/ready",
-        "status/mongos/size",
         "status/observedGeneration"
     ],
     "persistentvolumeclaim/default/mongod-data-mongodb-cluster-cfg-0": [
@@ -92,7 +94,6 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/mongod-data-mongodb-cluster-cfg-1": [
-        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -108,7 +109,6 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/mongod-data-mongodb-cluster-rs0-0": [
-        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -136,7 +136,8 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"c069391d-e8cd-40d2-9604-076634749b80\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"d993dac1-0cbe-4a53-b5d8-b9528824bdaa\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.3.6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -162,15 +163,14 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"c069391d-e8cd-40d2-9604-076634749b80\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.6\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"d993dac1-0cbe-4a53-b5d8-b9528824bdaa\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.7\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
         "spec/initContainers/*/volumeMounts/*/name",
-        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -189,8 +189,8 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"c069391d-e8cd-40d2-9604-076634749b80\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.3.9\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"d993dac1-0cbe-4a53-b5d8-b9528824bdaa\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.9\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -216,14 +216,13 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cbe153aa-60a1-4d98-b26c-6093eed1a37e\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"449804a6-2f74-4def-b997-94abe5695490\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
         "spec/initContainers/*/volumeMounts/*/name",
-        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -242,8 +241,8 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cbe153aa-60a1-4d98-b26c-6093eed1a37e\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.7\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"449804a6-2f74-4def-b997-94abe5695490\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.3.7\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -269,8 +268,8 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cbe153aa-60a1-4d98-b26c-6093eed1a37e\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.3.10\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"449804a6-2f74-4def-b997-94abe5695490\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.10\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -293,7 +292,7 @@
     ],
     "poddisruptionbudget/default/mongodb-cluster-cfg-cfg": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"c069391d-e8cd-40d2-9604-076634749b80\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"d993dac1-0cbe-4a53-b5d8-b9528824bdaa\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -301,7 +300,7 @@
     ],
     "poddisruptionbudget/default/mongodb-cluster-mongod-rs0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cbe153aa-60a1-4d98-b26c-6093eed1a37e\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"449804a6-2f74-4def-b997-94abe5695490\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -309,7 +308,7 @@
     ],
     "poddisruptionbudget/default/mongodb-cluster-mongos-": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9306e418-d02f-42db-9e3d-c1a992cb5bd0\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5af8a8ac-ec99-4bb7-acf3-5e76cfcc3751\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -317,7 +316,7 @@
     ],
     "replicaset/default/percona-server-mongodb-operator-7f696b75f5": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"72b865ca-90ca-4fe3-9f81-1daa4f0c2442\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"93ee061f-5169-4551-9ac3-26f12199596b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -349,14 +348,16 @@
         "data/encryption-key",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
         "metadata/uid"
     ],
     "secret/default/mongodb-cluster-mongodb-keyfile": [
         "data/mongodb-key",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
         "metadata/uid"
     ],
     "secret/default/mongodb-cluster-secrets": [
@@ -374,7 +375,7 @@
         "data/tls.crt",
         "data/tls.key",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -385,14 +386,15 @@
         "data/tls.crt",
         "data/tls.key",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
         "metadata/uid"
     ],
     "service/default/mongodb-cluster-cfg": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -400,7 +402,7 @@
     ],
     "service/default/mongodb-cluster-mongos": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -409,7 +411,7 @@
     ],
     "service/default/mongodb-cluster-rs0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -417,14 +419,15 @@
     ],
     "serviceaccount/default/percona-server-mongodb-operator": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"percona-server-mongodb-operator-token-nxvb7\"}",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"percona-server-mongodb-operator-token-4pbxq\"}",
         "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
         "metadata/uid",
         "secrets/*/name"
     ],
     "statefulset/default/mongodb-cluster-cfg": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -436,7 +439,7 @@
     ],
     "statefulset/default/mongodb-cluster-rs0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"edebd943-7d7f-4d37-97ef-453e12e05649\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e479c2bb-5d98-4aba-af2e-3b8abdb96e6b\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
