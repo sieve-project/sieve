@@ -311,6 +311,10 @@ def compare_states(test_context: TestContext):
                 )
             )
     for resource_type in resource_type_with_random_names:
+        if resource_type not in testing_resource_to_object_map:
+            testing_resource_to_object_map[resource_type] = []
+        if resource_type not in reference_resource_to_object_map:
+            reference_resource_to_object_map[resource_type] = []
         delta = len(testing_resource_to_object_map[resource_type]) - len(
             reference_resource_to_object_map[resource_type]
         )
