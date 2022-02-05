@@ -289,13 +289,13 @@ def setup_cluster(test_context: TestContext):
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
 
+
+def deploy_controller(test_context: TestContext):
     # csi driver can only work with one apiserver so it cannot be enabled in stale state mode
     if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
-
-def deploy_controller(test_context: TestContext):
     deployment_file = test_context.controller_config.controller_deployment_file_path
     # backup deployment file
     backup_deployment_file = deployment_file + ".bkp"
