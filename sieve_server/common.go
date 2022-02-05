@@ -36,10 +36,10 @@ func getConfig() map[interface{}]interface{} {
 	return m
 }
 
-func getMask() (map[string]map[string][]string, map[string][]string) {
+func getMask() (map[string][]string, map[string][]string) {
 	data, err := ioutil.ReadFile("learned-mask.json")
 	checkError(err)
-	learnedMask := make(map[string]map[string][]string)
+	learnedMask := make(map[string][]string)
 
 	err = yaml.Unmarshal([]byte(data), &learnedMask)
 	checkError(err)
@@ -56,11 +56,13 @@ func getMask() (map[string]map[string][]string, map[string][]string) {
 	return learnedMask, configuredMask
 }
 
-func mergeAndRefineMask(resourceType, resourceName string, learnedMask map[string]map[string][]string, configuredMask map[string][]string) (map[string]struct{}, map[string]struct{}) {
+func mergeAndRefineMask(resourceType, resourceNamespace, resourceName string, learnedMask map[string][]string, configuredMask map[string][]string) (map[string]struct{}, map[string]struct{}) {
 	maskedKeysSet := make(map[string]struct{})
 	maskedPathsSet := make(map[string]struct{})
 
-	learnedMaskedPathsList := learnedMask[resourceType][resourceName]
+	resourceKey := fmt.Sprintf("%s/%s/%s", resourceType, resourceNamespace, resourceName)
+
+	learnedMaskedPathsList := learnedMask[resourceKey]
 	for _, val := range learnedMaskedPathsList {
 		maskedPathsSet[val] = exists
 	}

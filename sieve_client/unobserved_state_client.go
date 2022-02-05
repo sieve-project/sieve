@@ -269,7 +269,7 @@ func NotifyUnobsrStateBeforeProcessEvent(eventType, key string, object interface
 	}
 	tokens := strings.Split(key, "/")
 	namespace := tokens[len(tokens)-2]
-	if namespace == config["se-namespace"].(string) {
+	if namespace == config["ce-namespace"].(string) {
 		if !checkStage(TEST) || !checkMode(UNOBSERVED_STATE) {
 			return
 		}

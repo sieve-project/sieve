@@ -15,6 +15,7 @@ from sieve_analyzer import analyze
 from sieve_oracle.oracle import (
     persist_state,
     persist_history,
+    generate_controller_family,
     canonicalize_history_and_state,
     generate_fatal,
     check,
@@ -288,13 +289,13 @@ def setup_cluster(test_context: TestContext):
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
 
+
+def deploy_controller(test_context: TestContext):
     # csi driver can only work with one apiserver so it cannot be enabled in stale state mode
     if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
-
-def deploy_controller(test_context: TestContext):
     deployment_file = test_context.controller_config.controller_deployment_file_path
     # backup deployment file
     backup_deployment_file = deployment_file + ".bkp"
@@ -442,14 +443,14 @@ def run_workload(
     streamed_log_file.close()
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
-    # TODO: we should get the state from apiserver log and move it to check_result
-    persist_state(test_context)
 
 
 def check_result(
     test_context: TestContext,
 ) -> Tuple[int, str]:
+    generate_controller_family(test_context)
     persist_history(test_context)
+    persist_state(test_context)
     if test_context.stage == sieve_stages.LEARN:
         if test_context.mode == sieve_modes.LEARN_TWICE:
             canonicalize_history_and_state(test_context)

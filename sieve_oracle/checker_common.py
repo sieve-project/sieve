@@ -6,12 +6,34 @@ from sieve_common.k8s_event import (
     OperatorWriteTypes,
     SIEVE_API_EVENT_MARK,
     parse_api_event,
+    parse_key,
 )
 
 
-def get_controller_related_list(test_context: TestContext):
+def kind_native_objects(key: str):
+    rtype, ns, name = parse_key(key)
+    if rtype == "endpoints" and name == "kubernetes":
+        return True
+    elif rtype == "secret" and name.startswith("default-token-") and len(name) == 19:
+        return True
+    elif rtype == "serviceaccount" and name == "default":
+        return True
+    elif rtype == "service" and name == "kubernetes":
+        return True
+    elif rtype == "endpointslice" and name == "kubernetes":
+        return True
+    return False
+
+
+def get_reference_controller_related_list(test_context: TestContext):
     return json.load(
         open(os.path.join(test_context.oracle_dir, "controller_family.json"))
+    )
+
+
+def get_current_controller_related_list(test_context: TestContext):
+    return json.load(
+        open(os.path.join(test_context.result_dir, "controller_family.json"))
     )
 
 
@@ -33,7 +55,6 @@ def generate_controller_related_list(test_context: TestContext):
                 controller_related_uid_set.add(pod_as_map["uid"])
                 for owner_reference in pod_as_map["ownerReferences"]:
                     controller_related_uid_set.add(owner_reference["uid"])
-                break
     keep_tainting = True
     while keep_tainting:
         keep_tainting = False

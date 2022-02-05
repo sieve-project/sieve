@@ -7,8 +7,8 @@ import (
 	sieve "sieve.client"
 )
 
-func NewIntmdStateListener(config map[interface{}]interface{}, learnedMask map[string]map[string][]string, configuredMask map[string][]string) *IntmdStateListener {
-	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["se-rtype"].(string), config["se-name"].(string), learnedMask, configuredMask)
+func NewIntmdStateListener(config map[interface{}]interface{}, learnedMask map[string][]string, configuredMask map[string][]string) *IntmdStateListener {
+	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["se-rtype"].(string), config["se-namespace"].(string), config["se-name"].(string), learnedMask, configuredMask)
 	server := &intmdStateServer{
 		restarted:              false,
 		eventID:                -1,
