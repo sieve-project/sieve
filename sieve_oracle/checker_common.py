@@ -6,7 +6,23 @@ from sieve_common.k8s_event import (
     OperatorWriteTypes,
     SIEVE_API_EVENT_MARK,
     parse_api_event,
+    parse_key,
 )
+
+
+def kind_native_objects(key: str):
+    rtype, ns, name = parse_key(key)
+    if rtype == "endpoints" and name == "kubernetes":
+        return True
+    elif rtype == "secret" and name.startswith("default-token-") and len(name) == 19:
+        return True
+    elif rtype == "serviceaccount" and name == "default":
+        return True
+    elif rtype == "service" and name == "kubernetes":
+        return True
+    elif rtype == "endpointslice" and name == "kubernetes":
+        return True
+    return False
 
 
 def get_reference_controller_related_list(test_context: TestContext):

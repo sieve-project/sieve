@@ -255,6 +255,8 @@ def compare_states(test_context: TestContext):
     keys_in_reference_state = set(reference_state.keys())
 
     for resource_key in keys_in_testing_state.union(keys_in_reference_state):
+        if kind_native_objects(resource_key):
+            continue
         resource_type, namespace, name = parse_key(resource_key)
         if resource_key in testing_state:
             if resource_type not in testing_resource_to_object_map:
@@ -275,6 +277,8 @@ def compare_states(test_context: TestContext):
     )
 
     for resource_key in keys_in_testing_state_only:
+        if kind_native_objects(resource_key):
+            continue
         if resource_key_should_be_masked(test_context, resource_key):
             continue
         resource_type, namespace, name = parse_key(resource_key)
@@ -290,6 +294,8 @@ def compare_states(test_context: TestContext):
                 )
             )
     for resource_key in keys_in_reference_state_only:
+        if kind_native_objects(resource_key):
+            continue
         if resource_key_should_be_masked(test_context, resource_key):
             continue
         resource_type, namespace, name = parse_key(resource_key)
@@ -343,6 +349,8 @@ def compare_states(test_context: TestContext):
             untranslated_path = key.path(output_format="list")
             path = tranlate_apiserver_shape_to_controller_shape(untranslated_path)
             resource_key = path[0]
+            if kind_native_objects(resource_key):
+                continue
             resource_type, namespace, name = parse_key(resource_key)
 
             # Handle for resource size diff
