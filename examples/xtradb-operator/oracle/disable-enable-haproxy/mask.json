@@ -23,7 +23,6 @@
         "metadata/uid"
     ],
     "controllerrevision/default/xtradb-cluster-haproxy-85cbdfc459": [
-        "data/spec/template/spec/containers/*/image",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"82dc69e8-2095-44d7-a29c-a9f1891d188a\"}",
         "metadata/managedFields/*/time",
@@ -99,20 +98,11 @@
         "subsets/*/addresses/*/targetRef/uID"
     ],
     "perconaxtradbcluster/default/xtradb-cluster": [
-        "metadata/annotations",
         "metadata/creationTimestamp",
-        "metadata/generation",
-        "metadata/managedFields",
+        "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
-        "spec/haproxy/image",
-        "spec/logcollector/image",
-        "spec/pmm/image",
-        "spec/proxysql/image",
-        "spec/pxc/image",
-        "status/conditions",
-        "status/observedGeneration",
-        "status/pxc/image"
+        "status/conditions/*/lastTransitionTime"
     ],
     "persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-0": [
         "metadata/annotations/volume.kubernetes.io/selected-node",
