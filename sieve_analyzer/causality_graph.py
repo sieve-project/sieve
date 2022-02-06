@@ -186,7 +186,7 @@ class CausalityGraph:
             set(get_mask_by_key(self.configured_masked_keys, rtype, namespace, name))
         )
         masked_paths = set()
-        masked_keys.update(
+        masked_paths.update(
             set(get_mask_by_key(self.configured_masked_paths, rtype, namespace, name))
         )
         masked_paths.update(
