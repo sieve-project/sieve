@@ -181,12 +181,17 @@ class CausalityGraph:
         return self.__intra_reconciler_edges
 
     def retrieve_masked(self, rtype, namespace, name):
-        key = generate_key(rtype, namespace, name)
         masked_keys = set()
-        masked_keys.update(set(get_mask_by_key(self.configured_masked_keys, key)))
+        masked_keys.update(
+            set(get_mask_by_key(self.configured_masked_keys, rtype, namespace, name))
+        )
         masked_paths = set()
-        masked_keys.update(set(get_mask_by_key(self.configured_masked_paths, key)))
-        masked_paths.update(set(get_mask_by_key(self.learned_masked_paths, key)))
+        masked_keys.update(
+            set(get_mask_by_key(self.configured_masked_paths, rtype, namespace, name))
+        )
+        masked_paths.update(
+            set(get_mask_by_key(self.learned_masked_paths, rtype, namespace, name))
+        )
         return (masked_keys, masked_paths)
 
     def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
