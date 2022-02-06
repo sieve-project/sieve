@@ -1,8 +1,7 @@
 from sieve_common.common import *
 import json
 from sieve_oracle.checker_common import *
-from sieve_common.k8s_event import parse_key
-import deepdiff
+from sieve_common.k8s_event import get_mask_by_key, parse_key
 from deepdiff import DeepDiff
 
 
@@ -92,16 +91,14 @@ def canonicalize_state(test_context: TestContext):
     return canonicalized_state
 
 
-def generate_state_mask_helper(mask_list, predefine, key, obj, path):
-    if path in predefine["path"] or key in predefine["key"]:
-        mask_list.add(path)
-        return
+def generate_state_mask_helper(mask_list, key, obj, path):
     if type(obj) is str:
         # Check for SIEVE-IGNORE
         if obj == SIEVE_LEARN_VALUE_MASK:
             mask_list.add(path)
             return
         # Check for ignore regex rule
+        # TODO: revisit to decide whether we should include the regex here
         if match_mask_regex(obj):
             mask_list.add(path)
             return
@@ -109,24 +106,20 @@ def generate_state_mask_helper(mask_list, predefine, key, obj, path):
         for i in range(len(obj)):
             val = obj[i]
             newpath = os.path.join(path, "*")
-            generate_state_mask_helper(mask_list, predefine, i, val, newpath)
+            generate_state_mask_helper(mask_list, i, val, newpath)
     elif type(obj) is dict:
         for key in obj:
             val = obj[key]
             newpath = os.path.join(path, key)
-            generate_state_mask_helper(mask_list, predefine, key, val, newpath)
+            generate_state_mask_helper(mask_list, key, val, newpath)
 
 
 def generate_state_mask(data):
     mask_map = {}
     for key in data:
-        predefine = {
-            "path": set(gen_mask_paths()),
-            "key": set(gen_mask_keys()),
-        }
         mask_list = set()
         if data[key] != SIEVE_LEARN_VALUE_MASK:
-            generate_state_mask_helper(mask_list, predefine, "", data[key], "")
+            generate_state_mask_helper(mask_list, "", data[key], "")
             # make the masked field_path compabitable with controller shape
             metadata_field_set = set(METADATA_FIELDS)
             translated_mask_list = []
@@ -345,8 +338,6 @@ def compare_states(test_context: TestContext):
 
     tdiff = DeepDiff(reference_state, testing_state, ignore_order=False, view="tree")
     resource_map = {}
-    mask_keys = set(gen_mask_keys())
-    mask_paths = set(gen_mask_paths())
 
     for delta_type in tdiff:
         for key in tdiff[delta_type]:
@@ -356,6 +347,22 @@ def compare_states(test_context: TestContext):
             if kind_native_objects(resource_key):
                 continue
             resource_type, namespace, name = parse_key(resource_key)
+            mask_keys = set(
+                get_mask_by_key(
+                    test_context.common_config.field_key_mask,
+                    resource_type,
+                    namespace,
+                    name,
+                )
+            )
+            mask_paths = set(
+                get_mask_by_key(
+                    test_context.common_config.field_path_mask,
+                    resource_type,
+                    namespace,
+                    name,
+                )
+            )
 
             # Handle for resource size diff
             if len(path) == 1:

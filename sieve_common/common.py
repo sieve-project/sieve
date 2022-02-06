@@ -45,40 +45,41 @@ METADATA_FIELDS = [
     "managedFields",
 ]
 
+
 # If paths started with `**/name`, it means we will ignore any key whose name is `name`
 # Otherwise, we will match base on he full path
 # `x/*/y` * means matching any array index
-CONFIGURED_MASK = [
-    "**/image",
-    "**/imageID",
-    "**/containerID",
-    "**/uid",
-    "metadata/annotations",
-    "metadata/managedFields",
-    "metadata/labels",
-    "metadata/resourceVersion",
-    "metadata/generateName",
-    "metadata/generation",
-    "metadata/ownerReferences",
-    "metadata/deletionGracePeriodSeconds",
-    "spec/template/spec/containers/*/env",
-    "spec/containers/*/env",
-    "spec/nodeName",
-    "spec/ports",
-    "spec/selector/pod-template-hash",
-    "status/conditions",
-    "status/observedGeneration",
-    "status/containerStatuses/*/lastState/terminated",
-    "status/containerStatuses/*/restartCount",
-]
+# CONFIGURED_MASK = [
+#     "**/image",
+#     "**/imageID",
+#     "**/containerID",
+#     "**/uid",
+#     "metadata/annotations",
+#     "metadata/managedFields",
+#     "metadata/labels",
+#     "metadata/resourceVersion",
+#     "metadata/generateName",
+#     "metadata/generation",
+#     "metadata/ownerReferences",
+#     "metadata/deletionGracePeriodSeconds",
+#     "spec/template/spec/containers/*/env",
+#     "spec/containers/*/env",
+#     "spec/nodeName",
+#     "spec/ports",
+#     "spec/selector/pod-template-hash",
+#     "status/conditions",
+#     "status/observedGeneration",
+#     "status/containerStatuses/*/lastState/terminated",
+#     "status/containerStatuses/*/restartCount",
+# ]
 
 
-def gen_mask_keys():
-    return [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")]
+# def gen_mask_keys():
+#     return [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")]
 
 
-def gen_mask_paths():
-    return [path for path in CONFIGURED_MASK if not path.startswith("**/")]
+# def gen_mask_paths():
+#     return [path for path in CONFIGURED_MASK if not path.startswith("**/")]
 
 
 TIME_REG = "^[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+Z$"

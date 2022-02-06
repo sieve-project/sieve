@@ -170,6 +170,19 @@ def parse_key(key: str):
     return tokens[0], tokens[1], tokens[2]
 
 
+def get_mask_by_key(key_mask_map, rtype, namespace, name):
+    masked_keys = []
+    for key in key_mask_map:
+        this_rtype, this_ns, this_name = parse_key(key)
+        if (
+            (this_rtype == rtype or this_rtype == "*")
+            and (this_ns == namespace or this_ns == "*")
+            and (this_name == name or this_name == "*")
+        ):
+            masked_keys += key_mask_map[key]
+    return masked_keys
+
+
 class APIEvent:
     def __init__(
         self,

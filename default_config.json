@@ -27,5 +27,34 @@
     "causality_prunning_enabled": true,
     "effective_updates_pruning_enabled": true,
     "nondeterministic_pruning_enabled": true,
-    "persist_test_plans_enabled": true
+    "persist_test_plans_enabled": true,
+    "field_key_mask": {
+        "*/*/*": [
+            "image",
+            "imageID",
+            "containerID",
+            "uid"
+        ]
+    },
+    "field_path_mask": {
+        "*/*/*": [
+            "metadata/annotations",
+            "metadata/managedFields",
+            "metadata/labels",
+            "metadata/resourceVersion",
+            "metadata/generateName",
+            "metadata/generation",
+            "metadata/ownerReferences",
+            "metadata/deletionGracePeriodSeconds",
+            "spec/template/spec/containers/*/env",
+            "spec/containers/*/env",
+            "spec/nodeName",
+            "spec/ports",
+            "spec/selector/pod-template-hash",
+            "status/conditions",
+            "status/observedGeneration",
+            "status/containerStatuses/*/lastState/terminated",
+            "status/containerStatuses/*/restartCount"
+        ]
+    }
 }

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -36,44 +37,69 @@ func getConfig() map[interface{}]interface{} {
 	return m
 }
 
-func getMask() (map[string][]string, map[string][]string) {
-	data, err := ioutil.ReadFile("learned-mask.json")
+func getMask() (map[string][]string, map[string][]string, map[string][]string) {
+	data, err := ioutil.ReadFile("learned_field_path_mask.json")
 	checkError(err)
-	learnedMask := make(map[string][]string)
+	learnedFieldPathMask := make(map[string][]string)
 
-	err = yaml.Unmarshal([]byte(data), &learnedMask)
+	err = yaml.Unmarshal([]byte(data), &learnedFieldPathMask)
 	checkError(err)
-	log.Printf("learned mask:\n%v\n", learnedMask)
+	log.Printf("learned mask:\n%v\n", learnedFieldPathMask)
 
-	data, err = ioutil.ReadFile("configured-mask.json")
+	data, err = ioutil.ReadFile("configured_field_path_mask.json")
 	checkError(err)
-	configuredMask := make(map[string][]string)
+	configuredFieldPathMask := make(map[string][]string)
 
-	err = yaml.Unmarshal([]byte(data), &configuredMask)
+	err = yaml.Unmarshal([]byte(data), &configuredFieldPathMask)
 	checkError(err)
-	log.Printf("configured mask:\n%v\n", configuredMask)
+	log.Printf("configured mask:\n%v\n", configuredFieldPathMask)
 
-	return learnedMask, configuredMask
+	data, err = ioutil.ReadFile("configured_field_key_mask.json")
+	checkError(err)
+	configuredFieldKeyMask := make(map[string][]string)
+
+	err = yaml.Unmarshal([]byte(data), &configuredFieldKeyMask)
+	checkError(err)
+	log.Printf("configured mask:\n%v\n", configuredFieldKeyMask)
+
+	return learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask
 }
 
-func mergeAndRefineMask(resourceType, resourceNamespace, resourceName string, learnedMask map[string][]string, configuredMask map[string][]string) (map[string]struct{}, map[string]struct{}) {
+func getMaskByKey(maskMap map[string][]string, resourceType, namespace, name string) []string {
+	var maskList []string
+	for key, val := range maskMap {
+		tokens := strings.Split(key, "/")
+		thisResourceType := tokens[0]
+		thisNamespace := tokens[1]
+		thisName := tokens[2]
+		if (thisResourceType == resourceType || thisResourceType == "*") && (thisNamespace == namespace || thisNamespace == "*") && (thisName == name || thisName == "*") {
+			maskList = append(maskList, val...)
+		}
+	}
+	return maskList
+}
+
+func mergeAndRefineMask(resourceType, resourceNamespace, resourceName string, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][]string) (map[string]struct{}, map[string]struct{}) {
 	maskedKeysSet := make(map[string]struct{})
 	maskedPathsSet := make(map[string]struct{})
 
-	resourceKey := fmt.Sprintf("%s/%s/%s", resourceType, resourceNamespace, resourceName)
-
-	learnedMaskedPathsList := learnedMask[resourceKey]
+	learnedMaskedPathsList := getMaskByKey(learnedFieldPathMask, resourceType, resourceNamespace, resourceName)
 	for _, val := range learnedMaskedPathsList {
 		maskedPathsSet[val] = exists
 	}
 
-	for _, val := range configuredMask["paths"] {
+	configuredMaskedPathsList := getMaskByKey(configuredFieldPathMask, resourceType, resourceNamespace, resourceName)
+	for _, val := range configuredMaskedPathsList {
 		maskedPathsSet[val] = exists
 	}
 
-	for _, val := range configuredMask["keys"] {
+	configuredMaskedKeysList := getMaskByKey(configuredFieldKeyMask, resourceType, resourceNamespace, resourceName)
+	for _, val := range configuredMaskedKeysList {
 		maskedKeysSet[val] = exists
 	}
+
+	fmt.Printf("maskedKeysSet: %v\n", maskedKeysSet)
+	fmt.Printf("maskedPathsSet: %v\n", maskedPathsSet)
 
 	return maskedKeysSet, maskedPathsSet
 }
