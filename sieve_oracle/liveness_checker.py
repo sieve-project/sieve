@@ -93,13 +93,7 @@ def canonicalize_state(test_context: TestContext):
 
 def generate_state_mask_helper(mask_list, key, obj, path):
     if type(obj) is str:
-        # Check for SIEVE-IGNORE
         if obj == SIEVE_LEARN_VALUE_MASK:
-            mask_list.add(path)
-            return
-        # Check for ignore regex rule
-        # TODO: revisit to decide whether we should include the regex here
-        if match_mask_regex(obj):
             mask_list.add(path)
             return
     if type(obj) is list:
