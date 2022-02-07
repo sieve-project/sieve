@@ -33,7 +33,8 @@
             "image",
             "imageID",
             "containerID",
-            "uid"
+            "uid",
+            "resourceVersion"
         ]
     },
     "field_path_mask": {
@@ -41,23 +42,30 @@
             "metadata/annotations",
             "metadata/managedFields",
             "metadata/labels",
-            "metadata/resourceVersion",
             "metadata/generateName",
             "metadata/generation",
-            "metadata/ownerReferences",
             "metadata/deletionGracePeriodSeconds",
-            "spec/template/spec/containers/*/env",
-            "spec/selector/pod-template-hash",
             "status/conditions",
             "status/observedGeneration"
         ],
         "pod/*/*": [
             "spec/containers/*/env",
+            "spec/nodeName",
             "status/containerStatuses/*/lastState/terminated",
             "status/containerStatuses/*/restartCount"
         ],
         "controllerrevision/*/*": [
             "spec/ports"
+        ],
+        "statefulset/*/*": [
+            "spec/template/spec/containers/*/env"
+        ],
+        "deployment/*/*": [
+            "spec/template/spec/containers/*/env"
+        ],
+        "replicaset/*/*": [
+            "spec/template/spec/containers/*/env",
+            "spec/selector/pod-template-hash"
         ],
         "endpoints/*/*": [
             "subsets"
