@@ -8,7 +8,7 @@
     ],
     "configmap/default/rabbitmq-cluster-plugins-conf": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -16,7 +16,7 @@
     ],
     "configmap/default/rabbitmq-cluster-server-conf": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -32,7 +32,7 @@
         "data/spec/template/spec/containers/*/image",
         "data/spec/template/spec/initContainers/*/image",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43d4d556-f2d5-42c3-8a1e-e860111ed3cd\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cd9ab373-49b0-46b4-a3d0-029b23c02163\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -53,6 +53,8 @@
         "metadata/resourceVersion",
         "metadata/uid",
         "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/nodeName",
+        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -60,8 +62,12 @@
         "metadata/annotations/endpoints.kubernetes.io/last-change-trigger-time",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
         "metadata/uid",
+        "subsets/*/addresses/*/hostname",
         "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/nodeName",
+        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -75,8 +81,9 @@
         "spec/renewTime"
     ],
     "persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0": [
+        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -84,8 +91,9 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-1": [
+        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -93,8 +101,9 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-2": [
+        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -103,13 +112,15 @@
     ],
     "pod/default/rabbitmq-cluster-server-0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43d4d556-f2d5-42c3-8a1e-e860111ed3cd\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cd9ab373-49b0-46b4-a3d0-029b23c02163\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.3\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
         "spec/initContainers/*/volumeMounts/*/name",
+        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -125,13 +136,15 @@
     ],
     "pod/default/rabbitmq-cluster-server-1": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43d4d556-f2d5-42c3-8a1e-e860111ed3cd\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cd9ab373-49b0-46b4-a3d0-029b23c02163\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.4\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
         "spec/initContainers/*/volumeMounts/*/name",
+        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -147,13 +160,15 @@
     ],
     "pod/default/rabbitmq-cluster-server-2": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43d4d556-f2d5-42c3-8a1e-e860111ed3cd\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cd9ab373-49b0-46b4-a3d0-029b23c02163\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.5\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
         "spec/initContainers/*/volumeMounts/*/name",
+        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -179,7 +194,7 @@
     ],
     "replicaset/default/rabbitmq-operator-b7d5945b": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"3f9c2d5f-a18e-4bc6-9e8e-b03a208460a5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"3583c861-cf1a-41b5-9cc6-345e7003a62c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -188,12 +203,11 @@
     "role/default/rabbitmq-cluster-leader-election-role": [
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
-        "metadata/resourceVersion",
         "metadata/uid"
     ],
     "role/default/rabbitmq-cluster-peer-discovery": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -202,12 +216,11 @@
     "rolebinding/default/rabbitmq-cluster-leader-election-rolebinding": [
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
-        "metadata/resourceVersion",
         "metadata/uid"
     ],
     "rolebinding/default/rabbitmq-cluster-server": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -218,7 +231,7 @@
         "data/password",
         "data/username",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -227,7 +240,7 @@
     "secret/default/rabbitmq-cluster-erlang-cookie": [
         "data/.erlang.cookie",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -235,7 +248,7 @@
     ],
     "service/default/rabbitmq-cluster": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -244,7 +257,7 @@
     ],
     "service/default/rabbitmq-cluster-nodes": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -252,16 +265,15 @@
     ],
     "serviceaccount/default/rabbitmq-cluster-operator": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"rabbitmq-cluster-operator-token-9b94g\"}",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"rabbitmq-cluster-operator-token-pdqsq\"}",
         "metadata/managedFields/*/time",
-        "metadata/resourceVersion",
         "metadata/uid",
         "secrets/*/name"
     ],
     "serviceaccount/default/rabbitmq-cluster-server": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
-        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"rabbitmq-cluster-server-token-grxlh\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"rabbitmq-cluster-server-token-7ng5v\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -270,7 +282,7 @@
     ],
     "statefulset/default/rabbitmq-cluster-server": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bde0b9df-7e2e-41b3-8b91-4afb922485e5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"9a6318ce-3beb-4716-a1a4-f43759580bf8\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
