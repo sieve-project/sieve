@@ -47,14 +47,17 @@
             "metadata/ownerReferences",
             "metadata/deletionGracePeriodSeconds",
             "spec/template/spec/containers/*/env",
-            "spec/containers/*/env",
-            "spec/nodeName",
-            "spec/ports",
             "spec/selector/pod-template-hash",
             "status/conditions",
-            "status/observedGeneration",
+            "status/observedGeneration"
+        ],
+        "pod/*/*": [
+            "spec/containers/*/env",
             "status/containerStatuses/*/lastState/terminated",
             "status/containerStatuses/*/restartCount"
+        ],
+        "controllerrevision/*/*": [
+            "spec/ports"
         ],
         "endpoints/*/*": [
             "subsets"
