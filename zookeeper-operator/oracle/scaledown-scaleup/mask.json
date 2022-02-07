@@ -7,7 +7,7 @@
     ],
     "configmap/default/zookeeper-cluster-configmap": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a9d0be4f-0e9c-41f0-a4e5-77d3cebb5fe8\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a29e7f92-5082-40dd-87f3-11c7298de125\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -15,7 +15,7 @@
     ],
     "configmap/default/zookeeper-operator-lock": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"2be4f1f6-a6dd-4924-b466-1596d102979b\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a02f9f8b-20f1-42af-9450-8b2c936e0c53\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/name",
         "metadata/ownerReferences/*/uid",
@@ -25,7 +25,7 @@
     "controllerrevision/default/zookeeper-cluster-7cf668f98b": [
         "data/spec/template/spec/containers/*/image",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e228ed8e-97a4-44fb-91d1-1c064b4ed39d\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a819fee7-219c-4d5a-8cc8-0d564c13d34e\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -47,7 +47,6 @@
         "metadata/uid",
         "subsets/*/addresses/*/iP",
         "subsets/*/addresses/*/nodeName",
-        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -59,7 +58,6 @@
         "metadata/uid",
         "subsets/*/addresses/*/iP",
         "subsets/*/addresses/*/nodeName",
-        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -69,14 +67,13 @@
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
-        "subsets/*/addresses/*/hostname",
         "subsets/*/addresses/*/iP",
         "subsets/*/addresses/*/nodeName",
-        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
     "persistentvolumeclaim/default/data-zookeeper-cluster-0": [
+        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -84,6 +81,7 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/data-zookeeper-cluster-1": [
+        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -92,13 +90,13 @@
     ],
     "pod/default/zookeeper-cluster-0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e228ed8e-97a4-44fb-91d1-1c064b4ed39d\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a819fee7-219c-4d5a-8cc8-0d564c13d34e\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
+        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -110,13 +108,13 @@
     ],
     "pod/default/zookeeper-cluster-1": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e228ed8e-97a4-44fb-91d1-1c064b4ed39d\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.7\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a819fee7-219c-4d5a-8cc8-0d564c13d34e\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
+        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -128,7 +126,7 @@
     ],
     "poddisruptionbudget/default/zookeeper-cluster": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a9d0be4f-0e9c-41f0-a4e5-77d3cebb5fe8\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a29e7f92-5082-40dd-87f3-11c7298de125\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -136,7 +134,7 @@
     ],
     "replicaset/default/zookeeper-operator-5fc77867c7": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"460d8877-8877-4084-b152-897188ca4a1f\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"b0f5c773-dd77-4870-b7dd-300839456dd0\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -156,7 +154,7 @@
     ],
     "service/default/zookeeper-cluster-admin-server": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a9d0be4f-0e9c-41f0-a4e5-77d3cebb5fe8\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a29e7f92-5082-40dd-87f3-11c7298de125\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -166,7 +164,7 @@
     ],
     "service/default/zookeeper-cluster-client": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a9d0be4f-0e9c-41f0-a4e5-77d3cebb5fe8\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a29e7f92-5082-40dd-87f3-11c7298de125\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -175,7 +173,7 @@
     ],
     "service/default/zookeeper-cluster-headless": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a9d0be4f-0e9c-41f0-a4e5-77d3cebb5fe8\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a29e7f92-5082-40dd-87f3-11c7298de125\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -189,7 +187,7 @@
     ],
     "statefulset/default/zookeeper-cluster": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a9d0be4f-0e9c-41f0-a4e5-77d3cebb5fe8\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"a29e7f92-5082-40dd-87f3-11c7298de125\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -205,6 +203,7 @@
         "spec/image",
         "spec/ports",
         "status/conditions",
-        "status/internalClientEndpoint"
+        "status/internalClientEndpoint",
+        "status/members/ready/*"
     ]
 }
