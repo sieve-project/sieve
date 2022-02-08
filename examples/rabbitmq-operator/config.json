@@ -16,5 +16,15 @@
         "resize-pvc": {
             "use_csi_driver": true
         }
+    },
+    "end_state_checker_mask": {
+        "*": {
+            "service/default/rabbitmq-cluster": [
+                [
+                    "spec",
+                    "ports"
+                ]
+            ]
+        }
     }
 }

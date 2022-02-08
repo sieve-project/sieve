@@ -34,10 +34,6 @@ def get_crd(crd):
     return data
 
 
-def get_state_mask(test_context: TestContext):
-    return test_context.controller_config.end_state_checker_mask
-
-
 def generate_state(test_context: TestContext):
     end_state = {}
     deleted = set()
@@ -55,26 +51,6 @@ def generate_state(test_context: TestContext):
         else:
             end_state[api_event.key] = api_event.obj_map
     return end_state
-
-
-def resource_key_should_be_masked(
-    test_context: TestContext,
-    resource_key,
-):
-    resource_type, namespace, name = parse_key(resource_key)
-    if name == "sieve-testing-global-config":
-        return True
-    else:
-        current_controller_family = get_current_controller_related_list(test_context)
-        reference_controller_family = get_reference_controller_related_list(
-            test_context
-        )
-        if (
-            resource_key in current_controller_family
-            or resource_key in reference_controller_family
-        ):
-            return True
-    return False
 
 
 def canonicalize_state(test_context: TestContext):
@@ -218,6 +194,7 @@ def get_objects_from_state_by_type(state, rtype):
     return objects
 
 
+# TODO: this translation might be too ad-hoc
 def tranlate_apiserver_shape_to_controller_shape(path):
     metadata_fields = set(METADATA_FIELDS)
     translated_path = copy.deepcopy(path)
@@ -227,10 +204,49 @@ def tranlate_apiserver_shape_to_controller_shape(path):
         else:
             for i in range(1, len(path)):
                 if isinstance(translated_path[i], str):
+                    if translated_path[i].startswith("SIEVE"):
+                        break
                     translated_path[i] = (
                         translated_path[i][:1].lower() + translated_path[i][1:]
                     )
     return translated_path
+
+
+def resource_key_should_be_masked(
+    test_context: TestContext,
+    resource_key,
+):
+    resource_type, namespace, name = parse_key(resource_key)
+    if name == "sieve-testing-global-config":
+        return True
+    else:
+        current_controller_family = get_current_controller_related_list(test_context)
+        reference_controller_family = get_reference_controller_related_list(
+            test_context
+        )
+        if (
+            resource_key in current_controller_family
+            or resource_key in reference_controller_family
+        ):
+            return True
+    return False
+
+
+def resource_field_path_should_be_masked(
+    test_context: TestContext, resource_key, field_path_list
+):
+    # TODO: we should also mask fields as specified in the common_config
+    state_mask = test_context.controller_config.end_state_checker_mask
+    for test_name in state_mask:
+        if test_name == test_context.test_name or test_name == "*":
+            if resource_key in state_mask[test_name]:
+                for masked_path in state_mask[test_name][resource_key]:
+                    field_path_list_prefix = []
+                    for field in field_path_list:
+                        field_path_list_prefix.append(field)
+                        if field_path_list_prefix == masked_path:
+                            return True
+    return False
 
 
 def compare_states(test_context: TestContext):
@@ -401,23 +417,22 @@ def compare_states(test_context: TestContext):
                 continue
 
             field_path_for_print = ""
-            field_path = ""
+            field_path_list = []
             for field in map(str, path[1:]):
+                field_path_list.append(str(field))
                 if field.isdigit():
                     field_path_for_print += "[%s]" % field
-                    field_path += "%s/" % field
                 else:
                     field_path_for_print += '["%s"]' % field
-                    field_path += "%s/" % field
-            field_path = field_path[:-1]
-
-            state_mask = get_state_mask(test_context)
-            if resource_key in state_mask and field_path in state_mask[resource_key]:
-                continue
 
             if resource_key_should_be_masked(
                 test_context,
                 resource_key,
+            ):
+                continue
+
+            if resource_field_path_should_be_masked(
+                test_context, resource_key, field_path_list
             ):
                 continue
 
