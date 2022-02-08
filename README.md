@@ -14,11 +14,11 @@
 6. [Learn more](#learn-more)
 
 ### Overview
-The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, the controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety and liveness violations.
+The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, a controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety and liveness violations.
 
-Sieve is a tool to help developers test their controllers by injecting various faults and detect dormant bugs during development. Sieve does not require the developers to modify the controller and can reliably reproduce the bugs it finds.
+Sieve is a tool to help developers test their controllers by deterministically injecting faults and detecting dormant bugs at development time. Sieve does not require the developers to modify the controller and can reliably reproduce the bugs it finds.
 
-To use Sieve, developers need to port their controllers and provide end-to-end test cases (see [Getting started](#getting-started) for more information). Sieve will automatically instrument the controller by intercepting the event handlers in `client-go` and `controller-runtime`. Sieve runs in two stages: in the learning stage, Sieve will learn the specific timing and place for promising fault injections by analyzing the event trace collected by the instrumentation; in the testing stage, Sieve will perform the fault injection accordingly to trigger potential bugs.
+To use Sieve, developers need to port their controllers and provide end-to-end test cases (see [Getting started](#getting-started) for more information). Sieve will automatically instrument the controller by intercepting the event handlers in `client-go` and `controller-runtime`. Sieve runs in two stages. In the learning stage, Sieve will run a test case and identify promising points in an execution to inject faults. It does so by analyzing the sequence of events traced by the instrumented controller. The learning produces test plans that are then executed in the testing stage. A test plan tells Sieve of the type of fault and the point in the execution to inject the fault.
 
 The high-level architecture is shown as below.
 
@@ -26,14 +26,14 @@ The high-level architecture is shown as below.
   <img src="https://github.com/sieve-project/sieve/blob/readme/docs/sieve-arch.png"  width="70%"/>
 </p>
 
-Note that Sieve is still at the **early stage as a prototype**. The tool might not be user-friendly enough due to potential bugs and lack of documentation. We are working hard to address these issues and add new features. Hopefully we will release Sieve as a production-quality software in the near future.
+Note that Sieve is an early stage prototype. The tool might not be user-friendly enough due to potential bugs and lack of documentation. We are working hard to address these issues and add new features. Hopefully we will release Sieve as a production-quality software in the near future.
 
 We welcome any users who want to test their controllers using Sieve and we are more than happy to help you port and test your controllers.
 
 ### Testing approaches
 | Approach                        | Description                                                                                                                                                                                                                                                                                                                                     |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Intermediate-state Pattern | Intermediate-state Pattern restarts the controller before it finishes all the cluster state update during one reconcile. After restart the controller will see a partially updated cluster state (i.e., an intermediate state). If the controller fails to recover from the intermediate state, Sieve recognizes it as a bug.                                                            |
+| Intermediate-state Pattern | Intermediate-state Pattern restarts the controller in the middle of its reconcile loop. After restart, the controller will see a partially updated cluster state (i.e., an intermediate state). If the controller fails to recover from the intermediate state, Sieve recognizes it as a bug.                                                            |
 | Unobserved-state Pattern    | Unobserved-state pattern manipulates the interleaving between the informer goroutines and the reconciler goroutines in a controller to make the controller miss some particular events received from the apiserver. As controllers are supposed to be fully level-triggered, failing to achieve the desired final state after missing the event indicates a bug. |
 | Stale-state Pattern                  | Stale-state pattern aims to find bugs in High-Availability clusters where multiple apiservers are running. It redirects a controller to a relatively stale apiserver. Sieve reports a bug if the controller misbehaves after reading stale cluster state.                                                                                            |
 
