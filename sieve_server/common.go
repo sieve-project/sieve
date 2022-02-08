@@ -37,10 +37,10 @@ func getConfig() map[interface{}]interface{} {
 	return m
 }
 
-func getMask() (map[string][]string, map[string][]string, map[string][]string) {
+func getMask() (map[string][][]string, map[string][][]string, map[string][][]string) {
 	data, err := ioutil.ReadFile("learned_field_path_mask.json")
 	checkError(err)
-	learnedFieldPathMask := make(map[string][]string)
+	learnedFieldPathMask := make(map[string][][]string)
 
 	err = yaml.Unmarshal([]byte(data), &learnedFieldPathMask)
 	checkError(err)
@@ -48,7 +48,7 @@ func getMask() (map[string][]string, map[string][]string, map[string][]string) {
 
 	data, err = ioutil.ReadFile("configured_field_path_mask.json")
 	checkError(err)
-	configuredFieldPathMask := make(map[string][]string)
+	configuredFieldPathMask := make(map[string][][]string)
 
 	err = yaml.Unmarshal([]byte(data), &configuredFieldPathMask)
 	checkError(err)
@@ -56,7 +56,7 @@ func getMask() (map[string][]string, map[string][]string, map[string][]string) {
 
 	data, err = ioutil.ReadFile("configured_field_key_mask.json")
 	checkError(err)
-	configuredFieldKeyMask := make(map[string][]string)
+	configuredFieldKeyMask := make(map[string][][]string)
 
 	err = yaml.Unmarshal([]byte(data), &configuredFieldKeyMask)
 	checkError(err)
@@ -65,21 +65,30 @@ func getMask() (map[string][]string, map[string][]string, map[string][]string) {
 	return learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask
 }
 
-func getMaskByKey(maskMap map[string][]string, resourceType, namespace, name string) []string {
+func getMaskByKey(maskMap map[string][][]string, resourceType, namespace, name string) []string {
 	var maskList []string
-	for key, val := range maskMap {
+	for key := range maskMap {
 		tokens := strings.Split(key, "/")
 		thisResourceType := tokens[0]
 		thisNamespace := tokens[1]
 		thisName := tokens[2]
 		if (thisResourceType == resourceType || thisResourceType == "*") && (thisNamespace == namespace || thisNamespace == "*") && (thisName == name || thisName == "*") {
-			maskList = append(maskList, val...)
+			for idx := range maskMap[key] {
+				if len(maskMap[key]) == 0 {
+					log.Fatal("mask list len cannot be zero")
+				}
+				if len(maskMap[key]) == 1 {
+					maskList = append(maskList, maskMap[key][idx][0])
+				} else {
+					maskList = append(maskList, strings.Join(maskMap[key][idx], "/"))
+				}
+			}
 		}
 	}
 	return maskList
 }
 
-func mergeAndRefineMask(resourceType, resourceNamespace, resourceName string, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][]string) (map[string]struct{}, map[string]struct{}) {
+func mergeAndRefineMask(resourceType, resourceNamespace, resourceName string, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][][]string) (map[string]struct{}, map[string]struct{}) {
 	maskedKeysSet := make(map[string]struct{})
 	maskedPathsSet := make(map[string]struct{})
 
