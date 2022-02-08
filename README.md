@@ -1,4 +1,4 @@
-# Sieve: Automated, Distributed Systems Testing for Kubernetes Controllers
+# Sieve: Automated Reliability Testing for Kubernetes Controllers
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Kubernetes Image Build](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml)
