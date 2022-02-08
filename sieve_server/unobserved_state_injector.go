@@ -7,7 +7,7 @@ import (
 	sieve "sieve.client"
 )
 
-func NewUnobsrStateListener(config map[interface{}]interface{}, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][]string) *UnobsrStateListener {
+func NewUnobsrStateListener(config map[interface{}]interface{}, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][][]string) *UnobsrStateListener {
 	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["ce-rtype"].(string), config["ce-namespace"].(string), config["ce-name"].(string), learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask)
 	server := &unobsrStateServer{
 		eventID:          -1,

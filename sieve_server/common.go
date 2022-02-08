@@ -74,10 +74,10 @@ func getMaskByKey(maskMap map[string][][]string, resourceType, namespace, name s
 		thisName := tokens[2]
 		if (thisResourceType == resourceType || thisResourceType == "*") && (thisNamespace == namespace || thisNamespace == "*") && (thisName == name || thisName == "*") {
 			for idx := range maskMap[key] {
-				if len(maskMap[key]) == 0 {
+				if len(maskMap[key][idx]) == 0 {
 					log.Fatal("mask list len cannot be zero")
 				}
-				if len(maskMap[key]) == 1 {
+				if len(maskMap[key][idx]) == 1 {
 					maskList = append(maskList, maskMap[key][idx][0])
 				} else {
 					maskList = append(maskList, strings.Join(maskMap[key][idx], "/"))
@@ -94,16 +94,19 @@ func mergeAndRefineMask(resourceType, resourceNamespace, resourceName string, le
 
 	learnedMaskedPathsList := getMaskByKey(learnedFieldPathMask, resourceType, resourceNamespace, resourceName)
 	for _, val := range learnedMaskedPathsList {
+		log.Printf("learned mask path: %s\n", val)
 		maskedPathsSet[val] = exists
 	}
 
 	configuredMaskedPathsList := getMaskByKey(configuredFieldPathMask, resourceType, resourceNamespace, resourceName)
 	for _, val := range configuredMaskedPathsList {
+		log.Printf("configured mask path: %s", val)
 		maskedPathsSet[val] = exists
 	}
 
 	configuredMaskedKeysList := getMaskByKey(configuredFieldKeyMask, resourceType, resourceNamespace, resourceName)
 	for _, val := range configuredMaskedKeysList {
+		log.Printf("learned mask key: %s\n", val)
 		maskedKeysSet[val] = exists
 	}
 

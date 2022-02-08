@@ -8,7 +8,7 @@ import (
 )
 
 // The listener is actually a wrapper around the server.
-func NewStaleStateListener(config map[interface{}]interface{}, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][]string) *StaleStateListener {
+func NewStaleStateListener(config map[interface{}]interface{}, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][][]string) *StaleStateListener {
 	maskedKeysSet, maskedPathsSet := mergeAndRefineMask(config["ce-rtype"].(string), config["ce-namespace"].(string), config["ce-name"].(string), learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask)
 	server := &staleStateServer{
 		project:        config["project"].(string),
