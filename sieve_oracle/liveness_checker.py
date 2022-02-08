@@ -94,38 +94,47 @@ def canonicalize_state(test_context: TestContext):
 def generate_state_mask_helper(mask_list, key, obj, path):
     if type(obj) is str:
         if obj == SIEVE_LEARN_VALUE_MASK:
-            mask_list.add(path)
+            already_in = False
+            for mask in mask_list:
+                if mask == path:
+                    already_in = True
+            if not already_in:
+                mask_list.append(path)
             return
     if type(obj) is list:
         for i in range(len(obj)):
             val = obj[i]
-            newpath = os.path.join(path, "*")
+            newpath = copy.deepcopy(path)
+            newpath.append("*")
             generate_state_mask_helper(mask_list, i, val, newpath)
     elif type(obj) is dict:
         for key in obj:
             val = obj[key]
-            newpath = os.path.join(path, key)
+            newpath = copy.deepcopy(path)
+            newpath.append(key)
             generate_state_mask_helper(mask_list, key, val, newpath)
 
 
 def generate_state_mask(data):
     mask_map = {}
     for key in data:
-        mask_list = set()
+        mask_list = []
         if data[key] != SIEVE_LEARN_VALUE_MASK:
-            generate_state_mask_helper(mask_list, "", data[key], "")
+            generate_state_mask_helper(mask_list, "", data[key], [])
             # make the masked field_path compabitable with controller shape
             metadata_field_set = set(METADATA_FIELDS)
             translated_mask_list = []
             for masked_field_path in mask_list:
-                tokens = masked_field_path.split("/")
-                new_tokens = copy.deepcopy(tokens)
-                if tokens[0] in metadata_field_set:
-                    new_tokens = ["metadata"] + new_tokens
+                new_masked_field_path = copy.deepcopy(masked_field_path)
+                if masked_field_path[0] in metadata_field_set:
+                    new_masked_field_path = ["metadata"] + new_masked_field_path
                 else:
-                    for i in range(len(new_tokens)):
-                        new_tokens[i] = new_tokens[i][:1].lower() + new_tokens[i][1:]
-                translated_mask_list.append("/".join(new_tokens))
+                    for i in range(len(new_masked_field_path)):
+                        new_masked_field_path[i] = (
+                            new_masked_field_path[i][:1].lower()
+                            + new_masked_field_path[i][1:]
+                        )
+                translated_mask_list.append(new_masked_field_path)
             translated_mask_list.sort()
             mask_map[key] = translated_mask_list
     return mask_map
