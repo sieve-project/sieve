@@ -264,6 +264,16 @@ def stale_state_template(test_context: TestContext):
     }
 
 
+def state_diff_or_empty(operator_hear_or_write: Union[OperatorWrite, OperatorHear]):
+    if is_creation_or_deletion(operator_hear_or_write.etype):
+        return {}, {}
+    else:
+        return (
+            operator_hear_or_write.slim_prev_obj_map,
+            operator_hear_or_write.slim_cur_obj_map,
+        )
+
+
 def stale_state_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
@@ -308,12 +318,9 @@ def stale_state_analysis(
         stale_state_config["ce-etype-current"] = convert_deltafifo_etype_to_API_etype(
             operator_hear.etype
         )
-        stale_state_config["ce-diff-previous"] = json.dumps(
-            operator_hear.slim_prev_obj_map, sort_keys=True
-        )
-        stale_state_config["ce-diff-current"] = json.dumps(
-            operator_hear.slim_cur_obj_map, sort_keys=True
-        )
+        prev_diff, cur_diff = state_diff_or_empty(operator_hear)
+        stale_state_config["ce-diff-previous"] = json.dumps(prev_diff, sort_keys=True)
+        stale_state_config["ce-diff-current"] = json.dumps(cur_diff, sort_keys=True)
         stale_state_config["ce-counter"] = str(operator_hear.signature_counter)
         stale_state_config["ce-is-cr"] = str(
             operator_hear.rtype
@@ -457,11 +464,12 @@ def unobserved_state_analysis(
         unobserved_state_config["ce-rtype"] = operator_hear.rtype
         unobserved_state_config["ce-etype-previous"] = operator_hear.prev_etype
         unobserved_state_config["ce-etype-current"] = operator_hear.etype
+        prev_diff, cur_diff = state_diff_or_empty(operator_hear)
         unobserved_state_config["ce-diff-previous"] = json.dumps(
-            operator_hear.slim_prev_obj_map, sort_keys=True
+            prev_diff, sort_keys=True
         )
         unobserved_state_config["ce-diff-current"] = json.dumps(
-            operator_hear.slim_cur_obj_map, sort_keys=True
+            cur_diff, sort_keys=True
         )
         unobserved_state_config["ce-counter"] = str(operator_hear.signature_counter)
 
@@ -592,11 +600,12 @@ def intermediate_state_analysis(
         intermediate_state_config["se-reconciler-type"] = operator_write.reconciler_type
         intermediate_state_config["se-etype-previous"] = operator_write.prev_etype
         intermediate_state_config["se-etype-current"] = operator_write.etype
+        prev_diff, cur_diff = state_diff_or_empty(operator_write)
         intermediate_state_config["se-diff-previous"] = json.dumps(
-            operator_write.slim_prev_obj_map, sort_keys=True
+            prev_diff, sort_keys=True
         )
         intermediate_state_config["se-diff-current"] = json.dumps(
-            operator_write.slim_cur_obj_map, sort_keys=True
+            cur_diff, sort_keys=True
         )
         intermediate_state_config["se-counter"] = str(operator_write.signature_counter)
 
