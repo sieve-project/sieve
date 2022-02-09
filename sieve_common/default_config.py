@@ -23,6 +23,8 @@ class CommonConfig:
         effective_updates_pruning_enabled,
         nondeterministic_pruning_enabled,
         persist_test_plans_enabled,
+        field_key_mask,
+        field_path_mask,
     ):
         self.docker_registry = docker_registry
         self.namespace = namespace
@@ -46,6 +48,8 @@ class CommonConfig:
         self.effective_updates_pruning_enabled = effective_updates_pruning_enabled
         self.nondeterministic_pruning_enabled = nondeterministic_pruning_enabled
         self.persist_test_plans_enabled = persist_test_plans_enabled
+        self.field_key_mask = field_key_mask
+        self.field_path_mask = field_path_mask
 
 
 def get_common_config():
@@ -88,6 +92,8 @@ def get_common_config():
             "nondeterministic_pruning_enabled"
         ],
         persist_test_plans_enabled=common_config["persist_test_plans_enabled"],
+        field_key_mask=common_config["field_key_mask"],
+        field_path_mask=common_config["field_path_mask"],
     )
 
 

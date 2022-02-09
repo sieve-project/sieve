@@ -22,17 +22,17 @@ func main() {
 		rpc.Register(NewLearnListener(config))
 
 	case sieve.TEST:
-		learnedMask, configuredMask := getMask()
+		learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask := getMask()
 		switch config["mode"] {
 		case sieve.STALE_STATE:
 			log.Println(sieve.STALE_STATE)
-			rpc.Register(NewStaleStateListener(config, learnedMask, configuredMask))
+			rpc.Register(NewStaleStateListener(config, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask))
 		case sieve.UNOBSERVED_STATE:
 			log.Println(sieve.UNOBSERVED_STATE)
-			rpc.Register(NewUnobsrStateListener(config, learnedMask, configuredMask))
+			rpc.Register(NewUnobsrStateListener(config, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask))
 		case sieve.INTERMEDIATE_STATE:
 			log.Println(sieve.INTERMEDIATE_STATE)
-			rpc.Register(NewIntmdStateListener(config, learnedMask, configuredMask))
+			rpc.Register(NewIntmdStateListener(config, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask))
 
 		default:
 			log.Fatalf("Cannot recognize mode: %s\n", config["mode"])

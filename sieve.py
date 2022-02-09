@@ -30,7 +30,6 @@ import errno
 import socket
 import traceback
 from sieve_common.common import (
-    CONFIGURED_MASK,
     TestContext,
     cprint,
     bcolors,
@@ -183,17 +182,30 @@ def prepare_sieve_server(test_context: TestContext):
         test_context.stage == sieve_stages.TEST
         and test_context.mode != sieve_modes.VANILLA
     ):
-        configured_mask = "configured-mask.json"
-        configured_mask_map = {
-            "keys": [path[3:] for path in CONFIGURED_MASK if path.startswith("**/")],
-            "paths": [path for path in CONFIGURED_MASK if not path.startswith("**/")],
-        }
+        configured_field_key_mask_json = "configured_field_key_mask.json"
+        configured_field_path_mask_json = "configured_field_path_mask.json"
         json.dump(
-            configured_mask_map, open(configured_mask, "w"), indent=4, sort_keys=True
+            test_context.common_config.field_key_mask,
+            open(configured_field_key_mask_json, "w"),
+            indent=4,
+            sort_keys=True,
+        )
+        json.dump(
+            test_context.common_config.field_path_mask,
+            open(configured_field_path_mask_json, "w"),
+            indent=4,
+            sort_keys=True,
         )
         learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
-        cmd_early_exit("mv %s sieve_server/configured-mask.json" % configured_mask)
-        cmd_early_exit("cp %s sieve_server/learned-mask.json" % learned_mask)
+        cmd_early_exit(
+            "mv %s sieve_server/%s"
+            % (configured_field_key_mask_json, configured_field_key_mask_json)
+        )
+        cmd_early_exit(
+            "mv %s sieve_server/%s"
+            % (configured_field_path_mask_json, configured_field_path_mask_json)
+        )
+        cmd_early_exit("cp %s sieve_server/learned_field_path_mask.json" % learned_mask)
     cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_config)
     org_dir = os.getcwd()
     os.chdir("sieve_server")

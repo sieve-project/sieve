@@ -170,6 +170,28 @@ def parse_key(key: str):
     return tokens[0], tokens[1], tokens[2]
 
 
+def get_mask_by_key(key_mask_map, rtype, namespace, name):
+    # TODO: converting the list to a string may lead to ambiguity
+    # consider two lists: ["a", "b", "c"] and ["a/b", "c"]
+    # after converting to string they look the same
+    masked_keys = []
+    for key in key_mask_map:
+        this_rtype, this_ns, this_name = parse_key(key)
+        if (
+            (this_rtype == rtype or this_rtype == "*")
+            and (this_ns == namespace or this_ns == "*")
+            and (this_name == name or this_name == "*")
+        ):
+            for field_path_list in key_mask_map[key]:
+                assert isinstance(field_path_list, List)
+                assert len(field_path_list) > 0
+                if len(field_path_list) == 1:
+                    masked_keys.append(field_path_list[0])
+                else:
+                    masked_keys.append("/".join(field_path_list))
+    return masked_keys
+
+
 class APIEvent:
     def __init__(
         self,

@@ -54,6 +54,9 @@ def check_kubectl_env():
 
 
 def check_helm_env():
+    warn(
+        "helm is only required for certain controllers, please ignore the following failure if your controller does not need helm"
+    )
     if os.system("helm version > /dev/null 2>&1") != 0:
         fail(
             "helm not detected, please install it according to https://helm.sh/docs/intro/install/"
@@ -61,6 +64,17 @@ def check_helm_env():
         return
     else:
         ok("helm detected")
+
+
+def check_mage_env():
+    warn(
+        "mage is only required for certain controllers, please ignore the following failure if your controller does not need mage"
+    )
+    if os.system("mage --version > /dev/null 2>&1") != 0:
+        fail("mage not detected, please install it according to https://magefile.org/")
+        return
+    else:
+        ok("mage detected")
 
 
 def check_kind_env():
@@ -180,10 +194,6 @@ if __name__ == "__main__":
     except Exception as e:
         warn("unable to check kubectl env due to exception %s" % str(e))
     try:
-        check_helm_env()
-    except Exception as e:
-        warn("unable to check helm env due to exception %s" % str(e))
-    try:
         check_kind_env()
     except Exception as e:
         warn("unable to check kind env due to exception %s" % str(e))
@@ -191,6 +201,14 @@ if __name__ == "__main__":
         check_python_env()
     except Exception as e:
         warn("unable to check python env due to exception %s" % str(e))
+    try:
+        check_helm_env()
+    except Exception as e:
+        warn("unable to check helm env due to exception %s" % str(e))
+    try:
+        check_mage_env()
+    except Exception as e:
+        warn("unable to check mage env due to exception %s" % str(e))
     # try:
     #     check_sqlite_env()
     # except Exception as e:

@@ -1,8 +1,7 @@
 from sieve_common.common import *
 import json
 from sieve_oracle.checker_common import *
-from sieve_common.k8s_event import parse_key
-import deepdiff
+from sieve_common.k8s_event import get_mask_by_key, parse_key
 from deepdiff import DeepDiff
 
 
@@ -35,10 +34,6 @@ def get_crd(crd):
     return data
 
 
-def get_state_mask(test_context: TestContext):
-    return test_context.controller_config.end_state_checker_mask
-
-
 def generate_state(test_context: TestContext):
     end_state = {}
     deleted = set()
@@ -58,26 +53,6 @@ def generate_state(test_context: TestContext):
     return end_state
 
 
-def resource_key_should_be_masked(
-    test_context: TestContext,
-    resource_key,
-):
-    resource_type, namespace, name = parse_key(resource_key)
-    if name == "sieve-testing-global-config":
-        return True
-    else:
-        current_controller_family = get_current_controller_related_list(test_context)
-        reference_controller_family = get_reference_controller_related_list(
-            test_context
-        )
-        if (
-            resource_key in current_controller_family
-            or resource_key in reference_controller_family
-        ):
-            return True
-    return False
-
-
 def canonicalize_state(test_context: TestContext):
     assert test_context.mode == sieve_modes.LEARN_TWICE
     learn_twice_dir = test_context.result_dir
@@ -92,53 +67,50 @@ def canonicalize_state(test_context: TestContext):
     return canonicalized_state
 
 
-def generate_state_mask_helper(mask_list, predefine, key, obj, path):
-    if path in predefine["path"] or key in predefine["key"]:
-        mask_list.add(path)
-        return
+def generate_state_mask_helper(mask_list, key, obj, path):
     if type(obj) is str:
-        # Check for SIEVE-IGNORE
         if obj == SIEVE_LEARN_VALUE_MASK:
-            mask_list.add(path)
-            return
-        # Check for ignore regex rule
-        if match_mask_regex(obj):
-            mask_list.add(path)
+            already_in = False
+            for mask in mask_list:
+                if mask == path:
+                    already_in = True
+            if not already_in:
+                mask_list.append(path)
             return
     if type(obj) is list:
         for i in range(len(obj)):
             val = obj[i]
-            newpath = os.path.join(path, "*")
-            generate_state_mask_helper(mask_list, predefine, i, val, newpath)
+            newpath = copy.deepcopy(path)
+            newpath.append("*")
+            generate_state_mask_helper(mask_list, i, val, newpath)
     elif type(obj) is dict:
         for key in obj:
             val = obj[key]
-            newpath = os.path.join(path, key)
-            generate_state_mask_helper(mask_list, predefine, key, val, newpath)
+            newpath = copy.deepcopy(path)
+            newpath.append(key)
+            generate_state_mask_helper(mask_list, key, val, newpath)
 
 
 def generate_state_mask(data):
     mask_map = {}
     for key in data:
-        predefine = {
-            "path": set(gen_mask_paths()),
-            "key": set(gen_mask_keys()),
-        }
-        mask_list = set()
+        mask_list = []
         if data[key] != SIEVE_LEARN_VALUE_MASK:
-            generate_state_mask_helper(mask_list, predefine, "", data[key], "")
+            generate_state_mask_helper(mask_list, "", data[key], [])
             # make the masked field_path compabitable with controller shape
             metadata_field_set = set(METADATA_FIELDS)
             translated_mask_list = []
             for masked_field_path in mask_list:
-                tokens = masked_field_path.split("/")
-                new_tokens = copy.deepcopy(tokens)
-                if tokens[0] in metadata_field_set:
-                    new_tokens = ["metadata"] + new_tokens
+                new_masked_field_path = copy.deepcopy(masked_field_path)
+                if masked_field_path[0] in metadata_field_set:
+                    new_masked_field_path = ["metadata"] + new_masked_field_path
                 else:
-                    for i in range(len(new_tokens)):
-                        new_tokens[i] = new_tokens[i][:1].lower() + new_tokens[i][1:]
-                translated_mask_list.append("/".join(new_tokens))
+                    for i in range(len(new_masked_field_path)):
+                        new_masked_field_path[i] = (
+                            new_masked_field_path[i][:1].lower()
+                            + new_masked_field_path[i][1:]
+                        )
+                translated_mask_list.append(new_masked_field_path)
             translated_mask_list.sort()
             mask_map[key] = translated_mask_list
     return mask_map
@@ -222,6 +194,7 @@ def get_objects_from_state_by_type(state, rtype):
     return objects
 
 
+# TODO: this translation might be too ad-hoc
 def tranlate_apiserver_shape_to_controller_shape(path):
     metadata_fields = set(METADATA_FIELDS)
     translated_path = copy.deepcopy(path)
@@ -231,10 +204,49 @@ def tranlate_apiserver_shape_to_controller_shape(path):
         else:
             for i in range(1, len(path)):
                 if isinstance(translated_path[i], str):
+                    if translated_path[i].startswith("SIEVE"):
+                        break
                     translated_path[i] = (
                         translated_path[i][:1].lower() + translated_path[i][1:]
                     )
     return translated_path
+
+
+def resource_key_should_be_masked(
+    test_context: TestContext,
+    resource_key,
+):
+    resource_type, namespace, name = parse_key(resource_key)
+    if name == "sieve-testing-global-config":
+        return True
+    else:
+        current_controller_family = get_current_controller_related_list(test_context)
+        reference_controller_family = get_reference_controller_related_list(
+            test_context
+        )
+        if (
+            resource_key in current_controller_family
+            or resource_key in reference_controller_family
+        ):
+            return True
+    return False
+
+
+def resource_field_path_should_be_masked(
+    test_context: TestContext, resource_key, field_path_list
+):
+    # TODO: we should also mask fields as specified in the common_config
+    state_mask = test_context.controller_config.end_state_checker_mask
+    for test_name in state_mask:
+        if test_name == test_context.test_name or test_name == "*":
+            if resource_key in state_mask[test_name]:
+                for masked_path in state_mask[test_name][resource_key]:
+                    field_path_list_prefix = []
+                    for field in field_path_list:
+                        field_path_list_prefix.append(field)
+                        if field_path_list_prefix == masked_path:
+                            return True
+    return False
 
 
 def compare_states(test_context: TestContext):
@@ -345,8 +357,6 @@ def compare_states(test_context: TestContext):
 
     tdiff = DeepDiff(reference_state, testing_state, ignore_order=False, view="tree")
     resource_map = {}
-    mask_keys = set(gen_mask_keys())
-    mask_paths = set(gen_mask_paths())
 
     for delta_type in tdiff:
         for key in tdiff[delta_type]:
@@ -356,6 +366,22 @@ def compare_states(test_context: TestContext):
             if kind_native_objects(resource_key):
                 continue
             resource_type, namespace, name = parse_key(resource_key)
+            mask_keys = set(
+                get_mask_by_key(
+                    test_context.common_config.field_key_mask,
+                    resource_type,
+                    namespace,
+                    name,
+                )
+            )
+            mask_paths = set(
+                get_mask_by_key(
+                    test_context.common_config.field_path_mask,
+                    resource_type,
+                    namespace,
+                    name,
+                )
+            )
 
             # Handle for resource size diff
             if len(path) == 1:
@@ -391,23 +417,22 @@ def compare_states(test_context: TestContext):
                 continue
 
             field_path_for_print = ""
-            field_path = ""
+            field_path_list = []
             for field in map(str, path[1:]):
+                field_path_list.append(str(field))
                 if field.isdigit():
                     field_path_for_print += "[%s]" % field
-                    field_path += "%s/" % field
                 else:
                     field_path_for_print += '["%s"]' % field
-                    field_path += "%s/" % field
-            field_path = field_path[:-1]
-
-            state_mask = get_state_mask(test_context)
-            if resource_key in state_mask and field_path in state_mask[resource_key]:
-                continue
 
             if resource_key_should_be_masked(
                 test_context,
                 resource_key,
+            ):
+                continue
+
+            if resource_field_path_should_be_masked(
+                test_context, resource_key, field_path_list
             ):
                 continue
 

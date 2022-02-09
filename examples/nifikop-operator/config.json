@@ -13,9 +13,18 @@
     "controller_pod_label": "nifikop-operator",
     "controller_deployment_file_path": "examples/nifikop-operator/deploy/values.yaml",
     "end_state_checker_mask": {
-        "nificluster/default/simplenifi": [
-            "status/state",
-            "status/prometheusReportingTask/version"
-        ]
+        "*": {
+            "nificluster/default/simplenifi": [
+                [
+                    "status",
+                    "state"
+                ],
+                [
+                    "status",
+                    "prometheusReportingTask",
+                    "version"
+                ]
+            ]
+        }
     }
 }
