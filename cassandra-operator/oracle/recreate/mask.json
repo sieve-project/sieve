@@ -16,7 +16,7 @@
     ],
     "configmap/default/cassandra-test-cluster-dc1-operator-config": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"8652405f-16bc-4e25-aed1-2ae3040afde1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ddf2cd7e-7f9f-4a5d-a304-b55ca01f63e6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -25,7 +25,7 @@
     "configmap/default/cassandra-test-cluster-dc1-rack-config-rack1": [
         "data/cassandra_rackdc_properties",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"8652405f-16bc-4e25-aed1-2ae3040afde1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ddf2cd7e-7f9f-4a5d-a304-b55ca01f63e6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -33,7 +33,7 @@
     ],
     "configmap/default/myoperator-lock": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"27b7166d-ae2c-43bc-a746-78f07b696cbe\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"83e7537e-f96b-4a42-997f-0237cc1daa58\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/name",
         "metadata/ownerReferences/*/uid",
@@ -50,7 +50,7 @@
         "data/spec/template/spec/containers/*/image",
         "data/spec/template/spec/initContainers/*/image",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"f58225c8-c266-4007-9df3-cccc78080280\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bea11718-83bd-4f0c-9816-819563d4c667\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -71,6 +71,7 @@
         "metadata/resourceVersion",
         "metadata/uid",
         "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/nodeName",
         "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
@@ -82,6 +83,7 @@
         "metadata/resourceVersion",
         "metadata/uid",
         "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/nodeName",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -92,10 +94,12 @@
         "metadata/resourceVersion",
         "metadata/uid",
         "subsets/*/addresses/*/iP",
+        "subsets/*/addresses/*/nodeName",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
     "persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-0": [
+        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -104,13 +108,14 @@
     ],
     "pod/default/cassandra-test-cluster-dc1-rack1-0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"f58225c8-c266-4007-9df3-cccc78080280\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bea11718-83bd-4f0c-9816-819563d4c667\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
         "spec/initContainers/*/volumeMounts/*/name",
+        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -126,7 +131,7 @@
     ],
     "replicaset/default/cassandra-operator-55bf946bb6": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bcb2a3da-d646-413c-9484-08edcc548fd1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"767e7097-6a2d-4336-9242-d5d8a829903f\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -170,7 +175,7 @@
     ],
     "service/default/cassandra-operator-metrics": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"bcb2a3da-d646-413c-9484-08edcc548fd1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"767e7097-6a2d-4336-9242-d5d8a829903f\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -179,7 +184,7 @@
     ],
     "service/default/cassandra-test-cluster-dc1-nodes": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"8652405f-16bc-4e25-aed1-2ae3040afde1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ddf2cd7e-7f9f-4a5d-a304-b55ca01f63e6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -187,7 +192,7 @@
     ],
     "service/default/cassandra-test-cluster-dc1-seeds": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"8652405f-16bc-4e25-aed1-2ae3040afde1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ddf2cd7e-7f9f-4a5d-a304-b55ca01f63e6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -195,7 +200,7 @@
     ],
     "serviceaccount/default/cassandra": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"cassandra-token-6hvcj\"}",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"cassandra-token-6c9vj\"}",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
@@ -203,7 +208,7 @@
     ],
     "serviceaccount/default/cassandra-operator": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"cassandra-operator-token-jsnnd\"}",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"cassandra-operator-token-9l4vj\"}",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
@@ -211,9 +216,7 @@
     ],
     "serviceaccount/default/cassandra-performance": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata",
-        "metadata/managedFields/*/fieldsV1/f:secrets",
-        "metadata/managedFields/*/manager",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"cassandra-performance-token-ddrp4\"}",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
@@ -221,7 +224,7 @@
     ],
     "statefulset/default/cassandra-test-cluster-dc1-rack1": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"8652405f-16bc-4e25-aed1-2ae3040afde1\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ddf2cd7e-7f9f-4a5d-a304-b55ca01f63e6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
