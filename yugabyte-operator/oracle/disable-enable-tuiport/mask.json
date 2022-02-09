@@ -7,7 +7,7 @@
     ],
     "configmap/default/yugabyte-k8s-operator-lock": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"7d36d747-e29b-4658-9bb9-1646a8aaf8c6\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"69661d2c-6de3-4f37-9eb3-aed1246ff0f2\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/name",
         "metadata/ownerReferences/*/uid",
@@ -17,7 +17,7 @@
     "controllerrevision/default/yb-master-66cd5c9ddd": [
         "data/spec/template/spec/containers/*/image",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e72dd3f6-0a93-45e4-8336-b6262700ff3a\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"633f4152-273f-44e0-a278-78bbbe076ec0\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -26,7 +26,7 @@
     "controllerrevision/default/yb-tserver-79ff67796c": [
         "data/spec/template/spec/containers/*/image",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ca7f34ec-7147-4462-99d8-c08b13374a42\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5624f5e4-018a-4b14-a9b9-53a0f81f0860\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -35,7 +35,7 @@
     "controllerrevision/default/yb-tserver-d8d5b87b5": [
         "data/spec/template/spec/containers/*/image",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ca7f34ec-7147-4462-99d8-c08b13374a42\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5624f5e4-018a-4b14-a9b9-53a0f81f0860\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -112,7 +112,6 @@
         "subsets/*/addresses/*/targetRef/uID"
     ],
     "persistentvolumeclaim/default/datadir0-yb-master-0": [
-        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -128,7 +127,6 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/datadir0-yb-master-2": [
-        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -143,6 +141,7 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/datadir0-yb-tserver-1": [
+        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -150,7 +149,6 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/datadir0-yb-tserver-2": [
-        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -159,14 +157,13 @@
     ],
     "pod/default/yb-master-0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e72dd3f6-0a93-45e4-8336-b6262700ff3a\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"633f4152-273f-44e0-a278-78bbbe076ec0\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.5\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
-        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -178,8 +175,8 @@
     ],
     "pod/default/yb-master-1": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e72dd3f6-0a93-45e4-8336-b6262700ff3a\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.5\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"633f4152-273f-44e0-a278-78bbbe076ec0\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.4\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -197,14 +194,13 @@
     ],
     "pod/default/yb-master-2": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e72dd3f6-0a93-45e4-8336-b6262700ff3a\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.4\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"633f4152-273f-44e0-a278-78bbbe076ec0\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
-        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -216,8 +212,8 @@
     ],
     "pod/default/yb-tserver-0": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ca7f34ec-7147-4462-99d8-c08b13374a42\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.10\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5624f5e4-018a-4b14-a9b9-53a0f81f0860\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.11\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -234,26 +230,8 @@
     ],
     "pod/default/yb-tserver-1": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ca7f34ec-7147-4462-99d8-c08b13374a42\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.8\"}",
-        "metadata/managedFields/*/time",
-        "metadata/ownerReferences/*/uid",
-        "metadata/resourceVersion",
-        "metadata/uid",
-        "spec/containers/*/volumeMounts/*/name",
-        "spec/volumes/*/name",
-        "spec/volumes/*/secret/secretName",
-        "status/conditions/*/lastTransitionTime",
-        "status/containerStatuses/*/containerID",
-        "status/containerStatuses/*/state/running/startedAt",
-        "status/hostIP",
-        "status/podIPs/*/iP",
-        "status/startTime"
-    ],
-    "pod/default/yb-tserver-2": [
-        "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"ca7f34ec-7147-4462-99d8-c08b13374a42\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.9\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5624f5e4-018a-4b14-a9b9-53a0f81f0860\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.7\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -269,9 +247,27 @@
         "status/podIPs/*/iP",
         "status/startTime"
     ],
+    "pod/default/yb-tserver-2": [
+        "metadata/creationTimestamp",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5624f5e4-018a-4b14-a9b9-53a0f81f0860\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.10\"}",
+        "metadata/managedFields/*/time",
+        "metadata/ownerReferences/*/uid",
+        "metadata/resourceVersion",
+        "metadata/uid",
+        "spec/containers/*/volumeMounts/*/name",
+        "spec/volumes/*/name",
+        "spec/volumes/*/secret/secretName",
+        "status/conditions/*/lastTransitionTime",
+        "status/containerStatuses/*/containerID",
+        "status/containerStatuses/*/state/running/startedAt",
+        "status/hostIP",
+        "status/podIPs/*/iP",
+        "status/startTime"
+    ],
     "replicaset/default/yugabyte-operator-86f6465d9b": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"2c090474-f49f-40dc-a477-cb46d46aef63\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"8a08c577-2811-4b7f-8cf6-aabb99fade2f\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -279,7 +275,7 @@
     ],
     "service/default/yb-master-ui": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"6190b196-e387-4a5e-a63c-0cfbde0d2b18\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43a6aacd-bb40-4549-bccb-5f89226f6f15\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -288,7 +284,7 @@
     ],
     "service/default/yb-masters": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"6190b196-e387-4a5e-a63c-0cfbde0d2b18\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43a6aacd-bb40-4549-bccb-5f89226f6f15\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -296,7 +292,7 @@
     ],
     "service/default/yb-tserver-ui": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"6190b196-e387-4a5e-a63c-0cfbde0d2b18\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43a6aacd-bb40-4549-bccb-5f89226f6f15\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -305,7 +301,7 @@
     ],
     "service/default/yb-tservers": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"6190b196-e387-4a5e-a63c-0cfbde0d2b18\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43a6aacd-bb40-4549-bccb-5f89226f6f15\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -313,7 +309,7 @@
     ],
     "service/default/yugabyte-operator-metrics": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"2c090474-f49f-40dc-a477-cb46d46aef63\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"8a08c577-2811-4b7f-8cf6-aabb99fade2f\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -328,7 +324,7 @@
     ],
     "statefulset/default/yb-master": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"6190b196-e387-4a5e-a63c-0cfbde0d2b18\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43a6aacd-bb40-4549-bccb-5f89226f6f15\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -336,7 +332,7 @@
     ],
     "statefulset/default/yb-tserver": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"6190b196-e387-4a5e-a63c-0cfbde0d2b18\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"43a6aacd-bb40-4549-bccb-5f89226f6f15\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
