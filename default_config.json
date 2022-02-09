@@ -81,26 +81,7 @@
         "pod/*/*": [
             [
                 "spec",
-                "containers",
-                "*",
-                "env"
-            ],
-            [
-                "spec",
                 "nodeName"
-            ],
-            [
-                "status",
-                "containerStatuses",
-                "*",
-                "lastState",
-                "terminated"
-            ],
-            [
-                "status",
-                "containerStatuses",
-                "*",
-                "restartCount"
             ]
         ],
         "controllerrevision/*/*": [
@@ -109,35 +90,7 @@
                 "ports"
             ]
         ],
-        "statefulset/*/*": [
-            [
-                "spec",
-                "template",
-                "spec",
-                "containers",
-                "*",
-                "env"
-            ]
-        ],
-        "deployment/*/*": [
-            [
-                "spec",
-                "template",
-                "spec",
-                "containers",
-                "*",
-                "env"
-            ]
-        ],
         "replicaset/*/*": [
-            [
-                "spec",
-                "template",
-                "spec",
-                "containers",
-                "*",
-                "env"
-            ],
             [
                 "spec",
                 "selector",
