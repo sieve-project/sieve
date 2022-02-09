@@ -1,7 +1,7 @@
 {
     "configmap/default/auto-xtradb-cluster-pxc": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -9,7 +9,7 @@
     ],
     "configmap/default/percona-xtradb-cluster-operator-lock": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"aab25fa9-5c64-4748-b5e2-f744b00d1d0f\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1599be8d-3fb3-4e3f-8a73-a90b02619c23\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/name",
         "metadata/ownerReferences/*/uid",
@@ -49,7 +49,6 @@
         "metadata/resourceVersion",
         "metadata/uid",
         "subsets/*/addresses/*/iP",
-        "subsets/*/addresses/*/nodeName",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -60,7 +59,6 @@
         "metadata/resourceVersion",
         "metadata/uid",
         "subsets/*/addresses/*/iP",
-        "subsets/*/addresses/*/nodeName",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -70,8 +68,10 @@
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
+        "subsets/*/addresses/*/hostname",
         "subsets/*/addresses/*/iP",
         "subsets/*/addresses/*/nodeName",
+        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -83,6 +83,7 @@
         "metadata/uid",
         "subsets/*/addresses/*/iP",
         "subsets/*/addresses/*/nodeName",
+        "subsets/*/addresses/*/targetRef/name",
         "subsets/*/addresses/*/targetRef/resourceVersion",
         "subsets/*/addresses/*/targetRef/uID"
     ],
@@ -106,6 +107,7 @@
         "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
+        "metadata/resourceVersion",
         "metadata/uid",
         "spec/volumeName"
     ],
@@ -126,7 +128,6 @@
         "spec/volumeName"
     ],
     "persistentvolumeclaim/default/proxydata-xtradb-cluster-proxysql-0": [
-        "metadata/annotations/volume.kubernetes.io/selected-node",
         "metadata/creationTimestamp",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
@@ -138,14 +139,13 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"fc9929c8-a972-41ad-8dfc-94720e84c52c\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5bb51829-6b48-449e-8832-44bc7551c046\"}",
         "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.4.6\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
         "metadata/uid",
         "spec/containers/*/volumeMounts/*/name",
-        "spec/nodeName",
         "spec/volumes/*/name",
         "spec/volumes/*/secret/secretName",
         "status/conditions/*/lastTransitionTime",
@@ -160,7 +160,8 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"557a8574-47eb-436e-87a6-233cf74e4b32\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e4ef4cb5-cf3a-4481-93c7-1afb11bbe366\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.3.3\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -186,7 +187,8 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"557a8574-47eb-436e-87a6-233cf74e4b32\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e4ef4cb5-cf3a-4481-93c7-1afb11bbe366\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.2.3\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -212,8 +214,8 @@
         "metadata/annotations/percona.com/ssl-internal-hash",
         "metadata/creationTimestamp",
         "metadata/labels/controller-revision-hash",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"557a8574-47eb-436e-87a6-233cf74e4b32\"}",
-        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.3.4\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e4ef4cb5-cf3a-4481-93c7-1afb11bbe366\"}",
+        "metadata/managedFields/*/fieldsV1/f:status/f:podIPs/k:{\"ip\":\"10.244.1.4\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -236,7 +238,7 @@
     ],
     "poddisruptionbudget/default/xtradb-cluster-proxysql": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"fc9929c8-a972-41ad-8dfc-94720e84c52c\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5bb51829-6b48-449e-8832-44bc7551c046\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -244,7 +246,7 @@
     ],
     "poddisruptionbudget/default/xtradb-cluster-pxc": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"557a8574-47eb-436e-87a6-233cf74e4b32\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"e4ef4cb5-cf3a-4481-93c7-1afb11bbe366\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -252,7 +254,7 @@
     ],
     "replicaset/default/percona-xtradb-cluster-operator-56c7bd8b98": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"76a4c2ad-c40a-444d-aa22-8fa6faade121\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5aaa2ecd-60a5-40ed-982d-d9d2619bafce\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -299,7 +301,7 @@
         "data/tls.crt",
         "data/tls.key",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -310,7 +312,7 @@
         "data/tls.crt",
         "data/tls.key",
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -318,7 +320,7 @@
     ],
     "service/default/percona-xtradb-cluster-operator": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"76a4c2ad-c40a-444d-aa22-8fa6faade121\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"5aaa2ecd-60a5-40ed-982d-d9d2619bafce\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -327,7 +329,7 @@
     ],
     "service/default/xtradb-cluster-proxysql": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -336,7 +338,7 @@
     ],
     "service/default/xtradb-cluster-proxysql-unready": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -344,7 +346,7 @@
     ],
     "service/default/xtradb-cluster-pxc": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -352,7 +354,7 @@
     ],
     "service/default/xtradb-cluster-pxc-unready": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -360,7 +362,7 @@
     ],
     "serviceaccount/default/percona-xtradb-cluster-operator": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"percona-xtradb-cluster-operator-token-hkk5t\"}",
+        "metadata/managedFields/*/fieldsV1/f:secrets/k:{\"name\":\"percona-xtradb-cluster-operator-token-l4g9c\"}",
         "metadata/managedFields/*/time",
         "metadata/resourceVersion",
         "metadata/uid",
@@ -368,7 +370,7 @@
     ],
     "statefulset/default/xtradb-cluster-proxysql": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
@@ -380,7 +382,7 @@
     ],
     "statefulset/default/xtradb-cluster-pxc": [
         "metadata/creationTimestamp",
-        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"1a50f4f7-a0c2-47f7-8234-5002c509afb3\"}",
+        "metadata/managedFields/*/fieldsV1/f:metadata/f:ownerReferences/k:{\"uid\":\"cb74a5b8-f59a-4801-8dea-0f794947734c\"}",
         "metadata/managedFields/*/time",
         "metadata/ownerReferences/*/uid",
         "metadata/resourceVersion",
