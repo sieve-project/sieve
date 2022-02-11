@@ -12,7 +12,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"9a9df72d-222c-4e64-84de-08f88d5c8b5b\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"9d0a5e1c-ca88-4fae-ba10-2599a8346a58\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -80,8 +80,8 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "controllerrevision/default/mongodb-cluster-rs0-5488565cdc": "SIEVE-IGNORE",
-    "controllerrevision/default/mongodb-cluster-rs0-arbiter-7ffbf7d746": "SIEVE-IGNORE",
+    "controllerrevision/default/mongodb-cluster-rs0-76f7f89765": "SIEVE-IGNORE",
+    "controllerrevision/default/mongodb-cluster-rs0-arbiter-5cd6d7c6b8": "SIEVE-IGNORE",
     "deployment/default/percona-server-mongodb-operator": {
         "Spec": {
             "MinReadySeconds": 0,
@@ -470,22 +470,8 @@
                 "Addresses": [
                     {
                         "Hostname": "SIEVE-IGNORE",
-                        "IP": "10.244.1.3",
-                        "NodeName": "SIEVE-IGNORE",
-                        "TargetRef": {
-                            "APIVersion": "",
-                            "FieldPath": "",
-                            "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
-                            "Namespace": "default",
-                            "ResourceVersion": "SIEVE-IGNORE",
-                            "UID": "SIEVE-IGNORE"
-                        }
-                    },
-                    {
-                        "Hostname": "SIEVE-IGNORE",
                         "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker3",
+                        "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
@@ -512,7 +498,21 @@
                     },
                     {
                         "Hostname": "SIEVE-IGNORE",
-                        "IP": "10.244.4.4",
+                        "IP": "10.244.4.3",
+                        "NodeName": "SIEVE-IGNORE",
+                        "TargetRef": {
+                            "APIVersion": "",
+                            "FieldPath": "",
+                            "Kind": "Pod",
+                            "Name": "SIEVE-IGNORE",
+                            "Namespace": "default",
+                            "ResourceVersion": "SIEVE-IGNORE",
+                            "UID": "SIEVE-IGNORE"
+                        }
+                    },
+                    {
+                        "Hostname": "SIEVE-IGNORE",
+                        "IP": "SIEVE-IGNORE",
                         "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
@@ -584,7 +584,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "endpointslice/default/mongodb-cluster-rs0-2vc2j": "SIEVE-IGNORE",
+    "endpointslice/default/mongodb-cluster-rs0-44n58": "SIEVE-IGNORE",
     "perconaservermongodb/default/mongodb-cluster": {
         "apiVersion": "psmdb.percona.com/v1-7-0",
         "kind": "PerconaServerMongoDB",
@@ -1251,7 +1251,7 @@
             "pv.kubernetes.io/bind-completed": "yes",
             "pv.kubernetes.io/bound-by-controller": "yes",
             "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-            "volume.kubernetes.io/selected-node": "kind-worker3"
+            "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
         },
         "creationTimestamp": "SIEVE-IGNORE",
         "finalizers": [
@@ -1362,7 +1362,7 @@
             "pv.kubernetes.io/bind-completed": "yes",
             "pv.kubernetes.io/bound-by-controller": "yes",
             "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-            "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
+            "volume.kubernetes.io/selected-node": "kind-worker"
         },
         "creationTimestamp": "SIEVE-IGNORE",
         "finalizers": [
@@ -2275,7 +2275,7 @@
                 {
                     "ContainerID": "SIEVE-IGNORE",
                     "Image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:7189d3dba8fe65c4fb02692f06df0d928847e62a8f695408b9d7e3b52ad914c8",
+                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:217f6c3e6d86c9702791f4c2a7367c082f939f672f8538988348a5a01c4fbbf4",
                     "LastTerminationState": {
                         "Running": null,
                         "Terminated": null,
@@ -2353,7 +2353,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"caf8da5c-7d73-4b4b-a51b-6327639c6516\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0f1307a8-ff38-485d-9798-12894d3376f6\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2932,7 +2932,7 @@
                     "WorkingDir": ""
                 }
             ],
-            "NodeName": "kind-worker3",
+            "NodeName": "SIEVE-IGNORE",
             "NodeSelector": null,
             "Overhead": null,
             "PreemptionPolicy": null,
@@ -3253,12 +3253,12 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "SIEVE-IGNORE",
+            "HostIP": "172.18.0.2",
             "InitContainerStatuses": [
                 {
                     "ContainerID": "SIEVE-IGNORE",
                     "Image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:7189d3dba8fe65c4fb02692f06df0d928847e62a8f695408b9d7e3b52ad914c8",
+                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:217f6c3e6d86c9702791f4c2a7367c082f939f672f8538988348a5a01c4fbbf4",
                     "LastTerminationState": {
                         "Running": null,
                         "Terminated": null,
@@ -3336,7 +3336,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"caf8da5c-7d73-4b4b-a51b-6327639c6516\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0f1307a8-ff38-485d-9798-12894d3376f6\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -3605,7 +3605,7 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.4.3\"}": "SIEVE-IGNORE"
                         },
                         "f:startTime": {}
                     }
@@ -3915,7 +3915,7 @@
                     "WorkingDir": ""
                 }
             ],
-            "NodeName": "SIEVE-IGNORE",
+            "NodeName": "kind-worker",
             "NodeSelector": null,
             "Overhead": null,
             "PreemptionPolicy": null,
@@ -4241,7 +4241,7 @@
                 {
                     "ContainerID": "SIEVE-IGNORE",
                     "Image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:7189d3dba8fe65c4fb02692f06df0d928847e62a8f695408b9d7e3b52ad914c8",
+                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:217f6c3e6d86c9702791f4c2a7367c082f939f672f8538988348a5a01c4fbbf4",
                     "LastTerminationState": {
                         "Running": null,
                         "Terminated": null,
@@ -4319,7 +4319,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"caf8da5c-7d73-4b4b-a51b-6327639c6516\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0f1307a8-ff38-485d-9798-12894d3376f6\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -4588,7 +4588,7 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.5.3\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.2.3\"}": "SIEVE-IGNORE"
                         },
                         "f:startTime": {}
                     }
@@ -5219,12 +5219,12 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.7",
+            "HostIP": "SIEVE-IGNORE",
             "InitContainerStatuses": [
                 {
                     "ContainerID": "SIEVE-IGNORE",
                     "Image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:7189d3dba8fe65c4fb02692f06df0d928847e62a8f695408b9d7e3b52ad914c8",
+                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:217f6c3e6d86c9702791f4c2a7367c082f939f672f8538988348a5a01c4fbbf4",
                     "LastTerminationState": {
                         "Running": null,
                         "Terminated": null,
@@ -5302,7 +5302,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"caf8da5c-7d73-4b4b-a51b-6327639c6516\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0f1307a8-ff38-485d-9798-12894d3376f6\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -5571,7 +5571,7 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.4.4\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.5.4\"}": "SIEVE-IGNORE"
                         },
                         "f:startTime": {}
                     }
@@ -5881,7 +5881,7 @@
                     "WorkingDir": ""
                 }
             ],
-            "NodeName": "SIEVE-IGNORE",
+            "NodeName": "kind-worker2",
             "NodeSelector": null,
             "Overhead": null,
             "PreemptionPolicy": null,
@@ -6202,12 +6202,12 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.2",
+            "HostIP": "SIEVE-IGNORE",
             "InitContainerStatuses": [
                 {
                     "ContainerID": "SIEVE-IGNORE",
                     "Image": "ghcr.io/sieve-project/action/mongodb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:7189d3dba8fe65c4fb02692f06df0d928847e62a8f695408b9d7e3b52ad914c8",
+                    "ImageID": "ghcr.io/sieve-project/action/mongodb-operator@sha256:217f6c3e6d86c9702791f4c2a7367c082f939f672f8538988348a5a01c4fbbf4",
                     "LastTerminationState": {
                         "Running": null,
                         "Terminated": null,
@@ -6285,7 +6285,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"fe46deba-1f4f-456b-806b-e03134ddf3dd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"305f343c-4c60-4975-8cbf-ebbcd59628c9\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6549,7 +6549,7 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.1.4\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.4.4\"}": "SIEVE-IGNORE"
                         },
                         "f:startTime": {}
                     }
@@ -6574,7 +6574,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "pod/default/percona-server-mongodb-operator-7f696b75f5-g57nd": "SIEVE-IGNORE",
+    "pod/default/percona-server-mongodb-operator-7f696b75f5-h2zvf": "SIEVE-IGNORE",
     "poddisruptionbudget/default/mongodb-cluster-arbiter-rs0": {
         "Spec": {
             "MaxUnavailable": 1,
@@ -6608,7 +6608,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"fe46deba-1f4f-456b-806b-e03134ddf3dd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"305f343c-4c60-4975-8cbf-ebbcd59628c9\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6694,7 +6694,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"caf8da5c-7d73-4b4b-a51b-6327639c6516\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0f1307a8-ff38-485d-9798-12894d3376f6\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6952,7 +6952,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"5e61c89a-e7d8-4dec-9f3f-1274c2e87849\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"3e0af9da-e127-464b-b71e-db976ea0244a\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -7381,7 +7381,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"6eb6df52-e6ed-4b01-958f-c9b64cfb60bc\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"88466470-b835-47ec-b658-44e7b482e065\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:type": {}
@@ -7470,7 +7470,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"6eb6df52-e6ed-4b01-958f-c9b64cfb60bc\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"88466470-b835-47ec-b658-44e7b482e065\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:type": {}
@@ -7517,7 +7517,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"6eb6df52-e6ed-4b01-958f-c9b64cfb60bc\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"88466470-b835-47ec-b658-44e7b482e065\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:type": {}
@@ -7541,7 +7541,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "secret/default/percona-server-mongodb-operator-token-sbf5b": "SIEVE-IGNORE",
+    "secret/default/percona-server-mongodb-operator-token-dvhk2": "SIEVE-IGNORE",
     "service/default/mongodb-cluster-rs0": {
         "Spec": {
             "ClusterIP": "None",
@@ -7589,7 +7589,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"6eb6df52-e6ed-4b01-958f-c9b64cfb60bc\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"88466470-b835-47ec-b658-44e7b482e065\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -7660,7 +7660,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"percona-server-mongodb-operator-token-sbf5b\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"percona-server-mongodb-operator-token-dvhk2\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -8238,7 +8238,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"6eb6df52-e6ed-4b01-958f-c9b64cfb60bc\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"88466470-b835-47ec-b658-44e7b482e065\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -9094,7 +9094,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"6eb6df52-e6ed-4b01-958f-c9b64cfb60bc\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"88466470-b835-47ec-b658-44e7b482e065\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
