@@ -6,6 +6,7 @@ class CommonConfig:
     def __init__(
         self,
         docker_registry,
+        controller_folder,
         namespace,
         leading_api,
         following_api,
@@ -14,7 +15,6 @@ class CommonConfig:
         workload_error_check_enabled,
         controller_exception_check_enabled,
         state_update_summary_check_event_list,
-        end_state_resource_check_list,
         compress_trivial_reconcile_enabled,
         workload_hard_timeout,
         workload_soft_timeout,
@@ -27,6 +27,7 @@ class CommonConfig:
         field_path_mask,
     ):
         self.docker_registry = docker_registry
+        self.controller_folder = controller_folder
         self.namespace = namespace
         self.leading_api = leading_api
         self.following_api = following_api
@@ -37,7 +38,6 @@ class CommonConfig:
         self.state_update_summary_check_event_list = (
             state_update_summary_check_event_list
         )
-        self.end_state_resource_check_list = end_state_resource_check_list
         self.compress_trivial_reconcile_enabled = compress_trivial_reconcile_enabled
         self.workload_hard_timeout = workload_hard_timeout
         self.workload_soft_timeout = workload_soft_timeout
@@ -61,6 +61,7 @@ def get_common_config():
             common_config[key] = override_config[key]
     return CommonConfig(
         docker_registry=common_config["docker_registry"],
+        controller_folder=common_config["controller_folder"],
         namespace=common_config["namespace"],
         leading_api=common_config["leading_api"],
         following_api=common_config["following_api"],
@@ -75,7 +76,6 @@ def get_common_config():
         state_update_summary_check_event_list=common_config[
             "state_update_summary_check_event_list"
         ],
-        end_state_resource_check_list=common_config["end_state_resource_check_list"],
         compress_trivial_reconcile_enabled=common_config[
             "compress_trivial_reconcile_enabled"
         ],
@@ -137,8 +137,10 @@ class ControllerConfig:
         self.state_update_summary_checker_mask = state_update_summary_checker_mask
 
 
-def get_controller_config(controller_name):
-    controller_config_path = os.path.join("examples", controller_name, "config.json")
+def get_controller_config(controller_folder, controller_name):
+    controller_config_path = os.path.join(
+        controller_folder, controller_name, "config.json"
+    )
     controller_config = json.load(open(controller_config_path))
     return ControllerConfig(
         controller_name=controller_name,

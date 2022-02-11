@@ -7,6 +7,7 @@ from sieve_common.common import (
 import os
 import optparse
 from sieve_common.default_config import (
+    CommonConfig,
     get_controller_config,
     get_common_config,
     ControllerConfig,
@@ -98,6 +99,7 @@ def setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote):
 
 
 def download_controller(
+    common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
@@ -130,7 +132,9 @@ def remove_replacement_in_go_mod_file(file):
             go_mod_file.write(line)
 
 
-def install_lib_for_controller(controller_config: ControllerConfig):
+def install_lib_for_controller(
+    common_config: CommonConfig, controller_config: ControllerConfig
+):
     application_dir = os.path.join("app", controller_config.controller_name)
     # download controller_runtime and client_go libs
     cmd_early_exit(
@@ -226,14 +230,18 @@ def install_lib_for_controller(controller_config: ControllerConfig):
     cmd_early_exit(
         "cp %s/build/build.sh %s/build.sh"
         % (
-            os.path.join("examples", controller_config.controller_name),
+            os.path.join(
+                common_config.controller_folder, controller_config.controller_name
+            ),
             application_dir,
         )
     )
     cmd_early_exit(
         "cp %s/build/Dockerfile %s/%s"
         % (
-            os.path.join("examples", controller_config.controller_name),
+            os.path.join(
+                common_config.controller_folder, controller_config.controller_name
+            ),
             application_dir,
             controller_config.docker_file_path,
         )
@@ -244,7 +252,9 @@ def install_lib_for_controller(controller_config: ControllerConfig):
     os.chdir(ORIGINAL_DIR)
 
 
-def instrument_controller(controller_config: ControllerConfig, mode):
+def instrument_controller(
+    common_config: CommonConfig, controller_config: ControllerConfig, mode
+):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
@@ -264,20 +274,25 @@ def instrument_controller(controller_config: ControllerConfig, mode):
     os.chdir(ORIGINAL_DIR)
 
 
-def build_controller(controller_config: ControllerConfig, img_repo, img_tag):
+def build_controller(
+    common_config: CommonConfig, controller_config: ControllerConfig, img_repo, img_tag
+):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir(application_dir)
     cmd_early_exit("./build.sh %s %s" % (img_repo, img_tag))
     os.chdir(ORIGINAL_DIR)
 
 
-def push_controller(controller_config: ControllerConfig, img_repo, img_tag):
+def push_controller(
+    common_config: CommonConfig, controller_config: ControllerConfig, img_repo, img_tag
+):
     cmd_early_exit(
         "docker push %s/%s:%s" % (img_repo, controller_config.controller_name, img_tag)
     )
 
 
 def setup_controller(
+    common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
     img_repo,
@@ -286,12 +301,12 @@ def setup_controller(
     push_to_remote,
 ):
     if not build_only:
-        download_controller(controller_config)
-        install_lib_for_controller(controller_config)
-        instrument_controller(controller_config, mode)
-    build_controller(controller_config, img_repo, img_tag)
+        download_controller(common_config, controller_config)
+        install_lib_for_controller(common_config, controller_config)
+        instrument_controller(common_config, controller_config, mode)
+    build_controller(common_config, controller_config, img_repo, img_tag)
     if push_to_remote:
-        push_controller(controller_config, img_repo, img_tag)
+        push_controller(common_config, controller_config, img_repo, img_tag)
 
 
 def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
@@ -310,6 +325,7 @@ def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
 
 
 def setup_controller_wrapper(
+    common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
     img_repo,
@@ -326,6 +342,7 @@ def setup_controller_wrapper(
         ]:
             img_tag = this_mode
             setup_controller(
+                common_config,
                 controller_config,
                 this_mode,
                 img_repo,
@@ -335,6 +352,7 @@ def setup_controller_wrapper(
             )
     else:
         setup_controller(
+            common_config,
             controller_config,
             mode,
             img_repo,
@@ -420,10 +438,13 @@ if __name__ == "__main__":
             options.version, options.mode, options.docker, options.push_to_remote
         )
     elif options.project == "all":
-        all_controllers = get_all_controllers("examples")
+        all_controllers = get_all_controllers(common_config.controller_folder)
         for controller in all_controllers:
-            controller_config = get_controller_config(controller)
+            controller_config = get_controller_config(
+                common_config.controller_folder, controller
+            )
             setup_controller_wrapper(
+                common_config,
                 controller_config,
                 options.mode,
                 options.docker,
@@ -431,10 +452,13 @@ if __name__ == "__main__":
                 options.push_to_remote,
             )
     else:
-        controller_config = get_controller_config(options.project)
+        controller_config = get_controller_config(
+            common_config.controller_folder, options.project
+        )
         if options.sha is not None:
             controller_config.commit = options.sha
         setup_controller_wrapper(
+            common_config,
             controller_config,
             options.mode,
             options.docker,

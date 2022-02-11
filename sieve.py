@@ -325,7 +325,7 @@ def deploy_controller(test_context: TestContext):
 
     # run the deploy script
     org_dir = os.getcwd()
-    os.chdir(deploy_directory(test_context.project))
+    os.chdir(deploy_directory(test_context))
     cmd_early_exit("./deploy.sh")
     os.chdir(org_dir)
 
@@ -544,7 +544,7 @@ def run(
     phase="all",
 ):
     common_config = get_common_config()
-    controller_config = get_controller_config(project)
+    controller_config = get_controller_config(common_config.controller_folder, project)
     num_apiservers = 1
     num_workers = 2
     use_csi_driver = False
@@ -560,7 +560,7 @@ def run(
     elif use_csi_driver:
         num_apiservers = 1
         num_workers = 0
-    oracle_dir = os.path.join("examples", project, "oracle", test)
+    oracle_dir = os.path.join(common_config.controller_folder, project, "oracle", test)
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
         log_dir, project, test, stage, mode, os.path.basename(config)

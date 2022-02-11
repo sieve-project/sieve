@@ -52,6 +52,42 @@ IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01
 MASK_REGS = [TIME_REG, IP_REG]
 
 
+class TestContext:
+    def __init__(
+        self,
+        project,
+        test_name,
+        stage,
+        mode,
+        phase,
+        test_config,
+        result_dir,
+        oracle_dir,
+        docker_repo,
+        docker_tag,
+        num_apiservers,
+        num_workers,
+        use_csi_driver,
+        common_config: CommonConfig,
+        controller_config: ControllerConfig,
+    ):
+        self.project = project
+        self.test_name = test_name
+        self.stage = stage
+        self.mode = mode
+        self.phase = phase
+        self.test_config = test_config
+        self.result_dir = result_dir
+        self.oracle_dir = oracle_dir
+        self.docker_repo = docker_repo
+        self.docker_tag = docker_tag
+        self.num_apiservers = num_apiservers
+        self.num_workers = num_workers
+        self.use_csi_driver = use_csi_driver
+        self.common_config = common_config
+        self.controller_config = controller_config
+
+
 def match_mask_regex(val):
     # Search for ignore regex
     if type(val) is str:
@@ -79,20 +115,28 @@ def dump_json_file(dir, data, json_file_name):
     )
 
 
-def build_directory(controller_name):
-    return os.path.join("examples", controller_name, "build")
+def build_directory(test_context: TestContext):
+    return os.path.join(
+        test_context.common_config.controller_folder, test_context.project, "build"
+    )
 
 
-def deploy_directory(controller_name):
-    return os.path.join("examples", controller_name, "deploy")
+def deploy_directory(test_context: TestContext):
+    return os.path.join(
+        test_context.common_config.controller_folder, test_context.project, "deploy"
+    )
 
 
-def test_directory(controller_name):
-    return os.path.join("examples", controller_name, "test")
+def test_directory(test_context: TestContext):
+    return os.path.join(
+        test_context.common_config.controller_folder, test_context.project, "test"
+    )
 
 
-def oracle_directory(controller_name):
-    return os.path.join("examples", controller_name, "oracle")
+def oracle_directory(test_context: TestContext):
+    return os.path.join(
+        test_context.common_config.controller_folder, test_context.project, "oracle"
+    )
 
 
 class sieve_stages:
@@ -146,42 +190,6 @@ def get_all_controllers(dir):
         tokens = config.split("/")
         controllers.add(tokens[1])
     return controllers
-
-
-class TestContext:
-    def __init__(
-        self,
-        project,
-        test_name,
-        stage,
-        mode,
-        phase,
-        test_config,
-        result_dir,
-        oracle_dir,
-        docker_repo,
-        docker_tag,
-        num_apiservers,
-        num_workers,
-        use_csi_driver,
-        common_config: CommonConfig,
-        controller_config: ControllerConfig,
-    ):
-        self.project = project
-        self.test_name = test_name
-        self.stage = stage
-        self.mode = mode
-        self.phase = phase
-        self.test_config = test_config
-        self.result_dir = result_dir
-        self.oracle_dir = oracle_dir
-        self.docker_repo = docker_repo
-        self.docker_tag = docker_tag
-        self.num_apiservers = num_apiservers
-        self.num_workers = num_workers
-        self.use_csi_driver = use_csi_driver
-        self.common_config = common_config
-        self.controller_config = controller_config
 
 
 def dump_to_yaml(file_content, file_name):
