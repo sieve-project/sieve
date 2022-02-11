@@ -25,4 +25,5 @@ controllers_to_check = {
         "disable-enable-tuiport",
     ],
     "nifikop-operator": ["recreate", "scaledown-scaleup", "change-config"],
+    "elastic-operator": ["recreate", "scaledown-scaleup"],
 }
