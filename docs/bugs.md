@@ -66,7 +66,7 @@ https://jira.percona.com/browse/K8SPSMDB-578 confirmed (intermediate state)
 
 https://jira.percona.com/browse/K8SPSMDB-579 confirmed (intermediate state)
 
-https://jira.percona.com/browse/K8SPSMDB-585 pending (unobserved state)
+https://jira.percona.com/browse/K8SPSMDB-585 confirmed (unobserved state)
 
 https://jira.percona.com/browse/K8SPSMDB-590 confirmed (by-product, stale-state)
 
@@ -79,9 +79,9 @@ https://jira.percona.com/browse/K8SPXC-725 confirmed (stale state)
 
 https://jira.percona.com/browse/K8SPXC-763 confirmed (stale state)
 
-https://jira.percona.com/browse/K8SPXC-896 confirmed (intermediate state)
+https://jira.percona.com/browse/K8SPXC-896 confirmed and fixed by us (intermediate state)
 
-https://jira.percona.com/browse/K8SPXC-897 confirmed (intermediate state)
+https://jira.percona.com/browse/K8SPXC-897 confirmed and fixed by us (intermediate state)
 
 https://jira.percona.com/browse/K8SPXC-918 confirmed (unobserved state)
 
@@ -100,9 +100,9 @@ https://github.com/yugabyte/yugabyte-operator/issues/43 pending (by-product, app
 https://github.com/Orange-OpenSource/nifikop/issues/130 confirmed (intermediate state)
 
 ## [elastic/cloud-on-k8s](https://github.com/elastic/cloud-on-k8s)
-https://github.com/elastic/cloud-on-k8s/issues/5249 confirmed (stale state)
+https://github.com/elastic/cloud-on-k8s/issues/5249 confirmed and fixed by us (stale state)
 
-https://github.com/elastic/cloud-on-k8s/issues/5274 pending (stale state)
+https://github.com/elastic/cloud-on-k8s/issues/5274 confirmed (stale state)
 
 
 
