@@ -22,7 +22,6 @@ func NewStaleStateListener(config map[interface{}]interface{}, learnedFieldPathM
 		eventCounter:   strToInt(config["ce-counter"].(string)),
 		podLabel:       config["operator-pod-label"].(string),
 		frontRunner:    config["front-runner"].(string),
-		deployName:     config["deployment-name"].(string),
 		namespace:      "default",
 		prevEvent:      make(map[string]interface{}),
 		curEvent:       make(map[string]interface{}),
@@ -69,7 +68,6 @@ type staleStateServer struct {
 	podLabel       string
 	restarted      bool
 	pauseCh        chan int
-	deployName     string
 	namespace      string
 	prevEvent      map[string]interface{}
 	curEvent       map[string]interface{}
@@ -146,7 +144,7 @@ func (s *staleStateServer) NotifyStaleStateAfterSideEffects(request *sieve.Notif
 
 func (s *staleStateServer) waitAndRestartOperator() {
 	time.Sleep(time.Duration(10) * time.Second)
-	restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, s.straggler, true)
+	restartOperator(s.namespace, s.podLabel, s.frontRunner, s.straggler, true)
 	time.Sleep(time.Duration(20) * time.Second)
 	s.pauseCh <- 0
 }

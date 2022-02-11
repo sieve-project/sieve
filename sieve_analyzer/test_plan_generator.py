@@ -260,7 +260,6 @@ def stale_state_template(test_context: TestContext):
         "straggler": test_context.common_config.following_api,
         "front-runner": test_context.common_config.leading_api,
         "operator-pod-label": test_context.controller_config.controller_pod_label,
-        "deployment-name": test_context.controller_config.deployment_name,
     }
 
 
@@ -564,7 +563,6 @@ def intermediate_state_template(test_context: TestContext):
         "mode": sieve_modes.INTERMEDIATE_STATE,
         "front-runner": test_context.common_config.leading_api,
         "operator-pod-label": test_context.controller_config.controller_pod_label,
-        "deployment-name": test_context.controller_config.deployment_name,
     }
 
 

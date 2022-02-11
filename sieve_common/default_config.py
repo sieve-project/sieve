@@ -111,7 +111,6 @@ class ControllerConfig:
         docker_file_path,
         test_command,
         custom_resource_definitions,
-        deployment_name,
         controller_pod_label,
         container_name,
         controller_deployment_file_path,
@@ -130,7 +129,6 @@ class ControllerConfig:
         self.docker_file_path = docker_file_path
         self.test_command = test_command
         self.custom_resource_definitions = custom_resource_definitions
-        self.deployment_name = deployment_name
         self.controller_pod_label = controller_pod_label
         self.container_name = container_name
         self.controller_deployment_file_path = controller_deployment_file_path
@@ -158,7 +156,6 @@ def get_controller_config(controller_name):
         docker_file_path=controller_config["docker_file_path"],
         test_command=controller_config["test_command"],
         custom_resource_definitions=controller_config["custom_resource_definitions"],
-        deployment_name=controller_config["deployment_name"],
         controller_pod_label=controller_config["controller_pod_label"],
         container_name=controller_config["container_name"]
         if "container_name" in controller_config

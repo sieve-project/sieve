@@ -265,7 +265,7 @@ func waitForPodRunning(namespace, podLabel, leadingAPI string) {
 	}
 }
 
-func restartOperator(namespace, deployName, podLabel, leadingAPI, followingAPI string, redirect bool) {
+func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redirect bool) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)

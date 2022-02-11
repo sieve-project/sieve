@@ -133,27 +133,27 @@ def extract_generate_name(obj: Dict):
     return obj_generate_name
 
 
-def operator_related_resource(
-    project: str,
-    rtype: str,
-    name: str,
-    obj: Dict,
-    taint_list: List[Tuple[str, str]],
-    deployment_name,
-):
-    if deployment_name in name:
-        return True
-    obj_metadata = obj
-    if "metadata" in obj:
-        obj_metadata = obj["metadata"]
-    if "ownerReferences" in obj_metadata:
-        for owner in obj_metadata["ownerReferences"]:
-            # if owner["kind"].lower() == "deployment" and owner["name"] == depl_name:
-            #     return True
-            for taint in taint_list:
-                if owner["kind"].lower() == taint[0] and owner["name"] == taint[1]:
-                    return True
-    return False
+# def operator_related_resource(
+#     project: str,
+#     rtype: str,
+#     name: str,
+#     obj: Dict,
+#     taint_list: List[Tuple[str, str]],
+#     deployment_name,
+# ):
+#     if deployment_name in name:
+#         return True
+#     obj_metadata = obj
+#     if "metadata" in obj:
+#         obj_metadata = obj["metadata"]
+#     if "ownerReferences" in obj_metadata:
+#         for owner in obj_metadata["ownerReferences"]:
+#             # if owner["kind"].lower() == "deployment" and owner["name"] == depl_name:
+#             #     return True
+#             for taint in taint_list:
+#                 if owner["kind"].lower() == taint[0] and owner["name"] == taint[1]:
+#                     return True
+#     return False
 
 
 def is_generated_random_name(name: str, generate_name: str):

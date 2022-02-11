@@ -53,7 +53,6 @@ You also need to modify the controller deployment a little bit so that Sieve can
 After that, please define the function to deploy the controller in [controllers.py](../controllers.py) and fill the function in `deploy`. See the example `zookeeper_operator_deploy`.
 
 Please also specify the following entries in [controllers.py](../controllers.py)
-- `deployment_name`: the name of the controller deployment
 - `operator_pod_label`: the label of the controller pod you just specified. Sieve needs the information to find the pod during testing.
 
 ### Test

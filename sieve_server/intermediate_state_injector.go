@@ -13,7 +13,6 @@ func NewIntmdStateListener(config map[interface{}]interface{}, learnedFieldPathM
 		restarted:              false,
 		eventID:                -1,
 		frontRunner:            config["front-runner"].(string),
-		deployName:             config["deployment-name"].(string),
 		namespace:              "default",
 		podLabel:               config["operator-pod-label"].(string),
 		seName:                 config["se-name"].(string),
@@ -62,7 +61,6 @@ func (l *IntmdStateListener) NotifyIntmdStateAfterSideEffects(request *sieve.Not
 type intmdStateServer struct {
 	restarted              bool
 	frontRunner            string
-	deployName             string
 	namespace              string
 	podLabel               string
 	eventID                int32
@@ -140,7 +138,7 @@ func (s *intmdStateServer) NotifyIntmdStateAfterSideEffects(request *sieve.Notif
 	if findTargetDiff(s.eventCounter, request.SideEffectType, s.seEtype, s.prevEventPerReconciler[request.ReconcilerType], s.curEventPerReconciler[request.ReconcilerType], s.diffPrevEvent, s.diffCurEvent, s.maskedKeysSet, s.maskedPathsSet, false) {
 		log.Println("ready to crash!")
 		startIntmdStateInjection()
-		restartOperator(s.namespace, s.deployName, s.podLabel, s.frontRunner, "", false)
+		restartOperator(s.namespace, s.podLabel, s.frontRunner, "", false)
 		finishIntmdStateInjection()
 	}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
