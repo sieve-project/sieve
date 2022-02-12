@@ -81,6 +81,9 @@ def learn_all():
 
 def generate_test_plan_stat():
     table = "controller\tbaseline-ds\tafter-p1-ds\tafter-p2-ds\tds\tbaseline-ss\tafter-p1-ss\tafter-p2-ss\tss\tbaseline-ms\tafter-p1-ms\tafter-p2-ms\tms\tbaseline-total\tafter-p1-total\tafter-p2-total\ttotal\n"
+    short_table = (
+        "controller\tintermediate-state\tstale-state\tunobserved-state\ttotal\n"
+    )
     learn_all()
     sub_map = collect_spec()
     for operator in common.controllers_to_check:
@@ -116,5 +119,12 @@ def generate_test_plan_stat():
             after_p2_ds + after_p2_ss + after_p2_ms,
             ds + ss + ms,
         )
-    print(table)
+        short_table += "{}\t{}\t{}\t{}\t{}\n".format(
+            operator,
+            ds,
+            ss,
+            ms,
+            ds + ss + ms,
+        )
+    print(short_table)
     open("test_plan_stats.tsv", "w").write(table)
