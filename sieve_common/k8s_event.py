@@ -1,20 +1,11 @@
 import json
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Set, Union
 
 from sieve_common.event_delta import conflicting_event_payload
 
 HEAR_READ_FILTER_FLAG = True
 ERROR_MSG_FILTER_FLAG = True
 
-# flags for stale state only
-DELETE_ONLY_FILTER_FLAG = True
-DELETE_THEN_RECREATE_FLAG = True
-
-# flags for unobserved state only
-CANCELLABLE_FLAG = True
-
-# flags for intermediate state only
-READ_BEFORE_WRITE_FLAG = True
 
 ALLOWED_ERROR_TYPE = ["NoError"]
 
@@ -204,7 +195,7 @@ class APIEvent:
     ):
         self.__etype = etype
         self.__original_key = orignal_key
-        self.__key = "/".join([rtype, namespace, name])
+        self.__key = generate_key(rtype, namespace, name)
         self.__rtype = rtype
         self.__namespace = namespace
         self.__name = name
