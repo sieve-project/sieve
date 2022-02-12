@@ -14,7 +14,7 @@ WORKDIR /src
 COPY pkg ./pkg
 COPY cmd ./cmd
 COPY go.mod ./
-COPY dep-sieve/ dep-sieve/
+COPY sieve-dependency/ sieve-dependency/
 
 # Download all dependencies.
 # RUN go mod download

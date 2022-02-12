@@ -15,7 +15,7 @@ COPY ["go.mod", "go.sum", "./"]
 # Copy the go source
 COPY pkg/    pkg/
 COPY cmd/    cmd/
-COPY dep-sieve/ dep-sieve/
+COPY sieve-dependency/ sieve-dependency/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux \

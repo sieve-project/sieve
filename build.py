@@ -141,9 +141,9 @@ def install_lib_for_controller(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
         % controller_config.controller_runtime_version
     )
-    cmd_early_exit("mkdir -p %s/dep-sieve/src/sigs.k8s.io" % application_dir)
+    cmd_early_exit("mkdir -p %s/sieve-dependency/src/sigs.k8s.io" % application_dir)
     cmd_early_exit(
-        "cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
+        "cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
         % (
             controller_config.controller_runtime_version,
             application_dir,
@@ -151,7 +151,7 @@ def install_lib_for_controller(
         )
     )
     cmd_early_exit(
-        "chmod -R +w %s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s"
+        "chmod -R +w %s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
         % (
             application_dir,
             controller_config.controller_runtime_version,
@@ -161,9 +161,9 @@ def install_lib_for_controller(
         "go mod download k8s.io/client-go@%s >> /dev/null"
         % controller_config.client_go_version
     )
-    cmd_early_exit("mkdir -p %s/dep-sieve/src/k8s.io" % application_dir)
+    cmd_early_exit("mkdir -p %s/sieve-dependency/src/k8s.io" % application_dir)
     cmd_early_exit(
-        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/dep-sieve/src/k8s.io/client-go@%s"
+        "cp -r ${GOPATH}/pkg/mod/k8s.io/client-go@%s %s/sieve-dependency/src/k8s.io/client-go@%s"
         % (
             controller_config.client_go_version,
             application_dir,
@@ -171,18 +171,20 @@ def install_lib_for_controller(
         )
     )
     cmd_early_exit(
-        "chmod -R +w %s/dep-sieve/src/k8s.io/client-go@%s"
+        "chmod -R +w %s/sieve-dependency/src/k8s.io/client-go@%s"
         % (application_dir, controller_config.client_go_version)
     )
-    cmd_early_exit("cp -r sieve_client %s/dep-sieve/src/sieve.client" % application_dir)
+    cmd_early_exit(
+        "cp -r sieve_client %s/sieve-dependency/src/sieve.client" % application_dir
+    )
     if controller_config.kubernetes_version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
-            "%s/dep-sieve/src/sieve.client/go.mod" % application_dir,
+            "%s/sieve-dependency/src/sieve.client/go.mod" % application_dir,
             K8S_VER_TO_APIMACHINERY_VER[controller_config.kubernetes_version],
         )
     elif controller_config.apimachinery_version is not None:
         update_sieve_client_go_mod_with_version(
-            "%s/dep-sieve/src/sieve.client/go.mod" % application_dir,
+            "%s/sieve-dependency/src/sieve.client/go.mod" % application_dir,
             controller_config.apimachinery_version,
         )
 
@@ -195,17 +197,19 @@ def install_lib_for_controller(
     remove_replacement_in_go_mod_file("%s/go.mod" % application_dir)
     with open("%s/go.mod" % application_dir, "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
-        go_mod_file.write("replace sieve.client => ./dep-sieve/src/sieve.client\n")
         go_mod_file.write(
-            "replace sigs.k8s.io/controller-runtime => ./dep-sieve/src/sigs.k8s.io/controller-runtime@%s\n"
+            "replace sieve.client => ./sieve-dependency/src/sieve.client\n"
+        )
+        go_mod_file.write(
+            "replace sigs.k8s.io/controller-runtime => ./sieve-dependency/src/sigs.k8s.io/controller-runtime@%s\n"
             % controller_config.controller_runtime_version
         )
         go_mod_file.write(
-            "replace k8s.io/client-go => ./dep-sieve/src/k8s.io/client-go@%s\n"
+            "replace k8s.io/client-go => ./sieve-dependency/src/k8s.io/client-go@%s\n"
             % controller_config.client_go_version
         )
     with open(
-        "%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s/go.mod"
+        "%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s/go.mod"
         % (
             application_dir,
             controller_config.controller_runtime_version,
@@ -219,7 +223,7 @@ def install_lib_for_controller(
             % controller_config.client_go_version
         )
     with open(
-        "%s/dep-sieve/src/k8s.io/client-go@%s/go.mod"
+        "%s/sieve-dependency/src/k8s.io/client-go@%s/go.mod"
         % (application_dir, controller_config.client_go_version),
         "a",
     ) as go_mod_file:
@@ -259,7 +263,7 @@ def instrument_controller(
     os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
     cmd_early_exit(
-        "./instrumentation %s %s %s/%s/dep-sieve/src/sigs.k8s.io/controller-runtime@%s %s/%s/dep-sieve/src/k8s.io/client-go@%s"
+        "./instrumentation %s %s %s/%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s %s/%s/sieve-dependency/src/k8s.io/client-go@%s"
         % (
             controller_config.controller_name,
             mode,

@@ -16,7 +16,7 @@ COPY cmd/contour-operator.go contour-operator.go
 COPY api/ api/
 COPY internal/ internal/
 COPY pkg/ pkg/
-COPY dep-sieve/ dep-sieve/
+COPY sieve-dependency/ sieve-dependency/
 
 ARG TARGETOS
 ARG TARGETARCH

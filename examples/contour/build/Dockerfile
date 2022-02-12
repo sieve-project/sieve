@@ -14,7 +14,7 @@ COPY internal internal
 COPY pkg pkg
 COPY apis apis
 COPY Makefile Makefile
-COPY dep-sieve dep-sieve
+COPY sieve-dependency sieve-dependency
 
 ARG BUILD_BRANCH
 ARG BUILD_SHA
