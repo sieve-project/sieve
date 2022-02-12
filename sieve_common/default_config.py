@@ -108,7 +108,7 @@ class ControllerConfig:
         controller_runtime_version,
         client_go_version,
         apimachinery_version,
-        docker_file_path,
+        dockerfile_path,
         test_command,
         custom_resource_definitions,
         controller_pod_label,
@@ -126,7 +126,7 @@ class ControllerConfig:
         self.controller_runtime_version = controller_runtime_version
         self.client_go_version = client_go_version
         self.apimachinery_version = apimachinery_version
-        self.docker_file_path = docker_file_path
+        self.dockerfile_path = dockerfile_path
         self.test_command = test_command
         self.custom_resource_definitions = custom_resource_definitions
         self.controller_pod_label = controller_pod_label
@@ -155,7 +155,7 @@ def get_controller_config(controller_folder, controller_name):
         apimachinery_version=controller_config["apimachinery_version"]
         if "apimachinery_version" in controller_config
         else None,
-        docker_file_path=controller_config["docker_file_path"],
+        dockerfile_path=controller_config["dockerfile_path"],
         test_command=controller_config["test_command"],
         custom_resource_definitions=controller_config["custom_resource_definitions"],
         controller_pod_label=controller_config["controller_pod_label"],

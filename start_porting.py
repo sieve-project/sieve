@@ -35,10 +35,10 @@ controller_config_map = {
     "kubernetes_version": "",
     "controller_runtime_version": "",
     "client_go_version": "",
-    "docker_file_path": "",
+    "dockerfile_path": "",
     "test_command": "",
     "custom_resource_definitions": [],
     "controller_pod_label": "",
     "controller_deployment_file_path": "",
 }
-json.dump(controller_config_map, open(config_json, "w"))
+json.dump(controller_config_map, open(config_json, "w"), indent=4)

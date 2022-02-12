@@ -247,7 +247,7 @@ def install_lib_for_controller(
                 common_config.controller_folder, controller_config.controller_name
             ),
             application_dir,
-            controller_config.docker_file_path,
+            controller_config.dockerfile_path,
         )
     )
     os.chdir(application_dir)
