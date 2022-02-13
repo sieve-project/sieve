@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path"
+
+	"gopkg.in/yaml.v2"
 )
 
 func instrumentKubernetesForStaleState(k8s_filepath string) {
@@ -74,31 +78,48 @@ func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepat
 	instrumentSharedInformerGoForLearn(sharedInformerGoFile, sharedInformerGoFile)
 }
 
+func readConfig(configPath string) map[string]interface{} {
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		log.Fatalf("Fail due to error: %v\n", err)
+	}
+	configMap := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(data), &configMap)
+	if err != nil {
+		log.Fatalf("Fail due to error: %v\n", err)
+	}
+	return configMap
+}
+
 func main() {
 	args := os.Args
-	project := args[1]
-	mode := args[2]
+	configMap := readConfig(args[1])
+	project := configMap["project"].(string)
+	mode := configMap["mode"].(string)
 	if project == "kubernetes" {
+		k8s_filepath := configMap["k8s_filepath"].(string)
 		if mode == STALE_STATE {
-			instrumentKubernetesForStaleState(args[3])
+			instrumentKubernetesForStaleState(k8s_filepath)
 		} else if mode == LEARN {
-			instrumentKubernetesForLearn(args[3])
+			instrumentKubernetesForLearn(k8s_filepath)
 		} else if mode == INTERMEDIATE_STATE {
-			instrumentKubernetesForIntmdState(args[3])
+			instrumentKubernetesForIntmdState(k8s_filepath)
 		} else if mode == UNOBSERVED_STATE {
-			instrumentKubernetesForUnobsrState(args[3])
+			instrumentKubernetesForUnobsrState(k8s_filepath)
 		} else if mode == VANILLA {
 
 		} else {
 			panic(fmt.Sprintf("Unsupported mode %s", mode))
 		}
 	} else {
+		controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
+		client_go_filepath := configMap["client_go_filepath"].(string)
 		if mode == LEARN {
-			instrumentControllerForLearn(args[3], args[4])
+			instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath)
 		} else if mode == UNOBSERVED_STATE {
-			instrumentControllerForUnobsrState(args[3], args[4])
+			instrumentControllerForUnobsrState(controller_runtime_filepath, client_go_filepath)
 		} else if mode == INTERMEDIATE_STATE {
-			instrumentControllerForIntmdState(args[3], args[4])
+			instrumentControllerForIntmdState(controller_runtime_filepath, client_go_filepath)
 		} else if mode == STALE_STATE {
 
 		} else if mode == VANILLA {

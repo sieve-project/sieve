@@ -6,6 +6,7 @@ from sieve_common.common import (
 )
 import os
 import optparse
+import json
 from sieve_common.default_config import (
     CommonConfig,
     get_controller_config,
@@ -66,10 +67,13 @@ def install_lib_for_kubernetes(version):
 def instrument_kubernetes(mode):
     os.chdir("sieve_instrumentation")
     cmd_early_exit("go build")
-    cmd_early_exit(
-        "./instrumentation kubernetes %s %s/fakegopath/src/k8s.io/kubernetes"
-        % (mode, ORIGINAL_DIR)
-    )
+    instrumentation_config = {
+        "project": "kubernetes",
+        "mode": mode,
+        "k8s_filepath": "%s/fakegopath/src/k8s.io/kubernetes" % (ORIGINAL_DIR),
+    }
+    json.dump(instrumentation_config, open("config.json", "w"))
+    cmd_early_exit("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -261,20 +265,25 @@ def instrument_controller(
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
-    cmd_early_exit("go build")
-    cmd_early_exit(
-        "./instrumentation %s %s %s/%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s %s/%s/sieve-dependency/src/k8s.io/client-go@%s"
+    instrumentation_config = {
+        "project": controller_config.controller_name,
+        "mode": mode,
+        "controller_runtime_filepath": "%s/%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
         % (
-            controller_config.controller_name,
-            mode,
             ORIGINAL_DIR,
             application_dir,
             controller_config.controller_runtime_version,
+        ),
+        "client_go_filepath": "%s/%s/sieve-dependency/src/k8s.io/client-go@%s"
+        % (
             ORIGINAL_DIR,
             application_dir,
             controller_config.client_go_version,
-        )
-    )
+        ),
+    }
+    json.dump(instrumentation_config, open("config.json", "w"))
+    cmd_early_exit("go build")
+    cmd_early_exit("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
 

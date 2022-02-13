@@ -99,6 +99,24 @@ func preprocess(path string) {
 	check(err)
 }
 
+func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, mode string) {
+	f := parseSourceFile(ifilepath, pkg)
+	_, funcDecl := findFuncDecl(f, funName, 1)
+	toCall := "Notify" + mode + "AfterNonK8sSideEffects"
+
+	// Instrument after side effect
+	instr := &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun:  &dst.Ident{Name: toCall, Path: "sieve.client"},
+			Args: []dst.Expr{&dst.Ident{Name: funName}},
+		},
+	}
+	instr.Decs.End.Append("//sieve")
+	insertStmt(&funcDecl.Body.List, 0, instr)
+
+	writeInstrumentedFile(ofilepath, pkg, f)
+}
+
 func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, "client")
 
