@@ -285,6 +285,15 @@ def build_controller(
     os.chdir(application_dir)
     cmd_early_exit("./build.sh %s %s" % (img_repo, img_tag))
     os.chdir(ORIGINAL_DIR)
+    os.system(
+        "docker tag %s %s/%s:%s"
+        % (
+            controller_config.controller_image_name,
+            img_repo,
+            controller_config.controller_name,
+            img_tag,
+        )
+    )
 
 
 def push_controller(

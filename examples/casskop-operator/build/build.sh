@@ -1,16 +1,6 @@
 #!/bin/bash
 set -x
 
-dockerrepo=$1
-dockertag=$2
-if [ -z "$dockerrepo" ]; then
-    exit 1
-fi
-if [ -z "$dockertag" ]; then
-    exit 1
-fi
-
-
 BUILD_IMAGE=ghcr.io/sieve-project/sieve/casskop-build:v0.18.0-forked-pr317
 WORKDIR=/go/casskop
 
@@ -34,9 +24,5 @@ echo "Build Cassandra Operator. Using cache from "$(go env GOCACHE)
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):$WORKDIR \
   \
 --env GO111MODULE=on  \
-$BUILD_IMAGE /bin/bash -c "operator-sdk build ${dockerrepo}/casskop-operator:${dockertag}  \
+$BUILD_IMAGE /bin/bash -c "operator-sdk build orangeopensource/casskop-operator:latest  \
  && chmod -R 777 build/_output/"
-
-
-# /usr/bin/env PUSHLATEST=true BUILD_IMAGE=laphets/casskop-build make docker-build
-# docker tag orangeopensource/casskop:latest ${dockerrepo}/casskop-operator:${dockertag}
