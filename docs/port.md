@@ -32,6 +32,7 @@ After that, please specify following entries in `examples/your-controller/config
 - `controller_runtime_version`: the version of the `controller-runtime` used by the controller
 - `client_go_version`: the version of the `client-go` used by the controller
 - `dockerfile_path`: the relative path from the cloned controller project to the Dockerfile in the project
+- `controller_image_name`: the name of the image built by `examples/your-controller/build/build.sh` (e.g., your-controller/latest)
 
 Now run `python3 build.py -p your-controller -m learn`. This command will do the following:
 1. download the controller project to `app/your-controller`
@@ -62,7 +63,7 @@ please specify following entries in `examples/your-controller/config.json`:
 - `controller_deployment_file_path`: the relative path from `sieve` to the YAML file that is modified by the user
 
 ### Test
-The last step is to prepare the test workloads. The user needs to provide a command for Sieve to run the test workload by filling `test_command` in `examples/your-controller/config.json`. The command should accept an argument to specify which test case to run. As an example, please refer to the [test command](../examples/zookeeper-operator/config.json#L8) we used for the zookeeper-operator which calls a Python script. The Python script implements two test cases.
+The last step is to prepare the test workloads. The user needs to provide a command for Sieve to run the test workload by filling `test_command` in `examples/your-controller/config.json`. The command should accept an argument to specify which test case to run. As an example, please refer to the [test command](../examples/zookeeper-operator/config.json#L9) we used for the zookeeper-operator which calls a Python script. The Python script implements two test cases.
 
 
 Now you are all set. To test your controllers, just build the images:
