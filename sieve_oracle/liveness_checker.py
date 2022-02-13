@@ -361,11 +361,16 @@ def compare_states(test_context: TestContext):
     for delta_type in tdiff:
         for key in tdiff[delta_type]:
             untranslated_path = key.path(output_format="list")
-            path = tranlate_apiserver_shape_to_controller_shape(untranslated_path)
-            resource_key = path[0]
+            resource_key = untranslated_path[0]
             if kind_native_objects(resource_key):
                 continue
             resource_type, namespace, name = parse_key(resource_key)
+            path = untranslated_path
+            if (
+                resource_type
+                not in test_context.controller_config.custom_resource_definitions
+            ):
+                path = tranlate_apiserver_shape_to_controller_shape(untranslated_path)
             mask_keys = set(
                 get_mask_by_key(
                     test_context.common_config.field_key_mask,
