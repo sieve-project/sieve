@@ -191,6 +191,17 @@ func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int
 	return response.Number
 }
 
+func NotifyLearnAfterNonK8sSideEffects(funName string) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
+	if !checkStage(LEARN) {
+		return
+	}
+
+	log.Println("nonk8ssideeffect")
+}
+
 func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return

@@ -6,12 +6,10 @@ import (
 	"go/token"
 	"io/ioutil"
 	"os"
-	"strings"
-
-	"github.com/dave/dst/decorator/resolver/goast"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
+	"github.com/dave/dst/decorator/resolver/goast"
 	"github.com/dave/dst/decorator/resolver/guess"
 )
 
@@ -57,10 +55,15 @@ func findTypeDecl(f *dst.File, typeName string) (int, int, *dst.TypeSpec) {
 	return -1, -1, nil
 }
 
-func parseSourceFile(ifilepath, pkg string) *dst.File {
+func parseSourceFile(ifilepath, pkg string, customizedImportMap map[string]string) *dst.File {
+	importMap := map[string]string{}
+	importMap["k8s.io/klog/v2"] = "klog"
+	for k, v := range customizedImportMap {
+		importMap[k] = v
+	}
 	code, err := ioutil.ReadFile(ifilepath)
 	check(err)
-	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), pkg, goast.New())
+	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), pkg, goast.WithResolver(guess.WithMap(importMap)))
 	f, err := dec.Parse(code)
 	check(err)
 	return f
@@ -76,31 +79,27 @@ func insertDecl(list *[]dst.Decl, index int, instrumentation dst.Decl) {
 	(*list)[index] = instrumentation
 }
 
-func writeInstrumentedFile(ofilepath, pkg string, f *dst.File) {
-	res := decorator.NewRestorerWithImports(pkg, guess.New())
+func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportMap map[string]string) {
+	importMap := map[string]string{}
+	importMap["k8s.io/klog/v2"] = "klog"
+	for k, v := range customizedImportMap {
+		importMap[k] = v
+	}
+	res := decorator.NewRestorerWithImports(pkg, guess.WithMap(importMap))
 	fres := res.FileRestorer()
 	fres.Alias["sieve.client"] = "sieve"
-	fres.Alias["k8s.io/klog/v2"] = "klog"
 
 	autoInstrFile, err := os.Create(ofilepath)
 	check(err)
 	defer autoInstrFile.Close()
 	var buf bytes.Buffer
 	err = fres.Fprint(&buf, f)
+	check(err)
 	autoInstrFile.Write(buf.Bytes())
-	check(err)
 }
 
-func preprocess(path string) {
-	read, err := ioutil.ReadFile(path)
-	check(err)
-	newContents := strings.Replace(string(read), "\"k8s.io/klog/v2\"", "klog \"k8s.io/klog/v2\"", 1)
-	err = ioutil.WriteFile(path, []byte(newContents), 0)
-	check(err)
-}
-
-func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, mode string) {
-	f := parseSourceFile(ifilepath, pkg)
+func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, mode string, customizedImportMap map[string]string) {
+	f := parseSourceFile(ifilepath, pkg, customizedImportMap)
 	_, funcDecl := findFuncDecl(f, funName, 1)
 	toCall := "Notify" + mode + "AfterNonK8sSideEffects"
 
@@ -108,17 +107,17 @@ func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, mode string) {
 	instr := &dst.ExprStmt{
 		X: &dst.CallExpr{
 			Fun:  &dst.Ident{Name: toCall, Path: "sieve.client"},
-			Args: []dst.Expr{&dst.Ident{Name: funName}},
+			Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 		},
 	}
 	instr.Decs.End.Append("//sieve")
 	insertStmt(&funcDecl.Body.List, 0, instr)
 
-	writeInstrumentedFile(ofilepath, pkg, f)
+	writeInstrumentedFile(ofilepath, pkg, f, customizedImportMap)
 }
 
 func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefore bool) {
-	f := parseSourceFile(ifilepath, "client")
+	f := parseSourceFile(ifilepath, "client", map[string]string{})
 
 	instrumentSideEffect(f, "Create", mode, instrumentBefore, 1)
 	instrumentSideEffect(f, "Update", mode, instrumentBefore, 1)
@@ -132,7 +131,7 @@ func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefor
 	instrumentClientRead(f, "Get", mode)
 	instrumentClientRead(f, "List", mode)
 
-	writeInstrumentedFile(ofilepath, "client", f)
+	writeInstrumentedFile(ofilepath, "client", f, map[string]string{})
 }
 
 func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool, expectedCnt int) {
@@ -345,12 +344,12 @@ func instrumentClientRead(f *dst.File, etype, mode string) {
 }
 
 func instrumentSplitGoForAll(ifilepath, ofilepath, mode string) {
-	f := parseSourceFile(ifilepath, "client")
+	f := parseSourceFile(ifilepath, "client", map[string]string{})
 
 	instrumentCacheRead(f, "Get", mode)
 	instrumentCacheRead(f, "List", mode)
 
-	writeInstrumentedFile(ofilepath, "client", f)
+	writeInstrumentedFile(ofilepath, "client", f, map[string]string{})
 }
 
 func instrumentCacheRead(f *dst.File, etype, mode string) {
@@ -403,7 +402,7 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 }
 
 func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentBefore, instrumentAfter bool) {
-	f := parseSourceFile(ifilepath, "cacher")
+	f := parseSourceFile(ifilepath, "cacher", map[string]string{})
 
 	funNameBefore := "Notify" + mode + "BeforeProcessEvent"
 	funNameAfter := "Notify" + mode + "AfterProcessEvent"
@@ -438,5 +437,5 @@ func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentB
 		insertStmt(&funcDecl.Body.List, instrumentationIndex, instrumentationInProcessEventAfterReconcile)
 	}
 
-	writeInstrumentedFile(ofilepath, "cacher", f)
+	writeInstrumentedFile(ofilepath, "cacher", f, map[string]string{})
 }

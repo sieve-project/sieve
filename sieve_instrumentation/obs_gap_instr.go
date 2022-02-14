@@ -7,7 +7,7 @@ import (
 )
 
 func instrumentSharedInformerGoForUnobsrState(ifilepath, ofilepath string) {
-	f := parseSourceFile(ifilepath, "cache")
+	f := parseSourceFile(ifilepath, "cache", map[string]string{})
 	_, funcDecl := findFuncDecl(f, "HandleDeltas", 1)
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
@@ -33,19 +33,19 @@ func instrumentSharedInformerGoForUnobsrState(ifilepath, ofilepath string) {
 				break
 			}
 		}
-		writeInstrumentedFile(ofilepath, "cache", f)
+		writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 	} else {
 		panic(fmt.Errorf("Cannot find function HandleDeltas"))
 	}
 }
 
 func instrumentInformerCacheGoForUnobsrState(ifilepath, ofilepath string) {
-	f := parseSourceFile(ifilepath, "cache")
+	f := parseSourceFile(ifilepath, "cache", map[string]string{})
 
 	instrumentInformerCacheRead(f, "Get", "UnobsrState")
 	instrumentInformerCacheRead(f, "List", "UnobsrState")
 
-	writeInstrumentedFile(ofilepath, "cache", f)
+	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 }
 
 func instrumentInformerCacheRead(f *dst.File, etype, mode string) {

@@ -8,7 +8,7 @@ import (
 )
 
 func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
-	f := parseSourceFile(ifilepath, "cache")
+	f := parseSourceFile(ifilepath, "cache", map[string]string{})
 	_, funcDecl := findFuncDecl(f, "HandleDeltas", 1)
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
@@ -39,11 +39,11 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 		panic(fmt.Errorf("Cannot find function HandleDeltas"))
 	}
 
-	writeInstrumentedFile(ofilepath, "cache", f)
+	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 }
 
 func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
-	f := parseSourceFile(ifilepath, "controller")
+	f := parseSourceFile(ifilepath, "controller", map[string]string{})
 	_, funcDecl := findFuncDecl(f, "reconcileHandler", 1)
 	if funcDecl != nil {
 		index := 0
@@ -69,5 +69,5 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		panic(fmt.Errorf("Cannot find function reconcileHandler"))
 	}
 
-	writeInstrumentedFile(ofilepath, "controller", f)
+	writeInstrumentedFile(ofilepath, "controller", f, map[string]string{})
 }
