@@ -42,7 +42,7 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 	checkError(err)
 	learnedFieldPathMask := make(map[string][][]string)
 
-	err = yaml.Unmarshal([]byte(data), &learnedFieldPathMask)
+	err = json.Unmarshal([]byte(data), &learnedFieldPathMask)
 	checkError(err)
 	log.Printf("learned mask:\n%v\n", learnedFieldPathMask)
 
@@ -50,7 +50,7 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 	checkError(err)
 	configuredFieldPathMask := make(map[string][][]string)
 
-	err = yaml.Unmarshal([]byte(data), &configuredFieldPathMask)
+	err = json.Unmarshal([]byte(data), &configuredFieldPathMask)
 	checkError(err)
 	log.Printf("configured mask:\n%v\n", configuredFieldPathMask)
 
@@ -58,7 +58,7 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 	checkError(err)
 	configuredFieldKeyMask := make(map[string][][]string)
 
-	err = yaml.Unmarshal([]byte(data), &configuredFieldKeyMask)
+	err = json.Unmarshal([]byte(data), &configuredFieldKeyMask)
 	checkError(err)
 	log.Printf("configured mask:\n%v\n", configuredFieldKeyMask)
 
