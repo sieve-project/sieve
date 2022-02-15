@@ -66,13 +66,14 @@ def install_lib_for_kubernetes(version):
 
 def instrument_kubernetes(mode):
     os.chdir("sieve_instrumentation")
-    cmd_early_exit("go build")
     instrumentation_config = {
         "project": "kubernetes",
         "mode": mode,
         "k8s_filepath": "%s/fakegopath/src/k8s.io/kubernetes" % (ORIGINAL_DIR),
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
+    cmd_early_exit("go mod tidy")
+    cmd_early_exit("go build")
     cmd_early_exit("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
@@ -324,6 +325,7 @@ def instrument_controller(
         "apis_to_instrument": controller_config.apis_to_instrument,
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
+    cmd_early_exit("go mod tidy")
     cmd_early_exit("go build")
     cmd_early_exit("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
