@@ -87,14 +87,16 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 		file_path := entry["file_path"].(string)
 		pkg := entry["package"].(string)
 		funName := entry["func_name"].(string)
+		typeName := entry["type_name"].(string)
 		customizedImportMap := map[string]string{}
-		tempMap := entry["import_map"].(map[string]interface{})
-		for key, val := range tempMap {
-			customizedImportMap[key] = val.(string)
+		if val, ok := entry["import_map"]; ok {
+			tempMap := val.(map[string]interface{})
+			for key, val := range tempMap {
+				customizedImportMap[key] = val.(string)
+			}
 		}
-		// typeName := api_to_instrument["type_name"]
 		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, file_path)
-		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, "Learn", customizedImportMap)
+		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "Learn", customizedImportMap)
 	}
 }
 

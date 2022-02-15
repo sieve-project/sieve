@@ -8,7 +8,7 @@ import (
 
 func instrumentSharedInformerGoForUnobsrState(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache", map[string]string{})
-	_, funcDecl := findFuncDecl(f, "HandleDeltas", 1)
+	_, funcDecl := findFuncDecl(f, "HandleDeltas", "*sharedIndexInformer")
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
@@ -51,7 +51,7 @@ func instrumentInformerCacheGoForUnobsrState(ifilepath, ofilepath string) {
 func instrumentInformerCacheRead(f *dst.File, etype, mode string) {
 	funNameBefore := "Notify" + mode + "BeforeInformerCache" + etype
 	funNameAfter := "Notify" + mode + "AfterInformerCache" + etype
-	_, funcDecl := findFuncDecl(f, etype, 1)
+	_, funcDecl := findFuncDecl(f, etype, "*informerCache")
 	if funcDecl != nil {
 		if _, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 			if etype == "Get" {

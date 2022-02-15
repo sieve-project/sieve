@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"go/token"
 	"io/ioutil"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
@@ -25,14 +27,24 @@ func check(e error) {
 	}
 }
 
-func findFuncDecl(f *dst.File, funName string, expectedCnt int) (int, *dst.FuncDecl) {
-	cnt := 0
+func findFuncDecl(f *dst.File, funName, recvTypeName string) (int, *dst.FuncDecl) {
 	for i, decl := range f.Decls {
 		if funcDecl, ok := decl.(*dst.FuncDecl); ok {
-			if funcDecl.Name.Name == funName {
-				cnt += 1
-				if cnt == expectedCnt {
-					return i, funcDecl
+			if funcDecl.Recv != nil {
+				if funcDecl.Name.Name == funName {
+					for _, field := range funcDecl.Recv.List {
+						if strings.HasPrefix(recvTypeName, "*") {
+							if starExpr, ok := field.Type.(*dst.StarExpr); ok {
+								if ident, ok := starExpr.X.(*dst.Ident); ok {
+									if ident.Name == recvTypeName[1:] {
+										return i, funcDecl
+									}
+								}
+							}
+						} else {
+							log.Fatal("crash here")
+						}
+					}
 				}
 			}
 		}
@@ -98,14 +110,14 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportM
 	autoInstrFile.Write(buf.Bytes())
 }
 
-func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, mode string, customizedImportMap map[string]string) {
+func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string) {
 	f := parseSourceFile(ifilepath, pkg, customizedImportMap)
-	_, funcDecl := findFuncDecl(f, funName, 1)
+	_, funcDecl := findFuncDecl(f, funName, recvTypeName)
 	toCall := "Notify" + mode + "AfterNonK8sSideEffects"
 
 	// Instrument after side effect
-	instr := &dst.ExprStmt{
-		X: &dst.CallExpr{
+	instr := &dst.DeferStmt{
+		Call: &dst.CallExpr{
 			Fun:  &dst.Ident{Name: toCall, Path: "sieve.client"},
 			Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 		},
@@ -119,14 +131,14 @@ func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, mode string, custom
 func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, "client", map[string]string{})
 
-	instrumentSideEffect(f, "Create", mode, instrumentBefore, 1)
-	instrumentSideEffect(f, "Update", mode, instrumentBefore, 1)
-	instrumentSideEffect(f, "Delete", mode, instrumentBefore, 1)
-	instrumentSideEffect(f, "DeleteAllOf", mode, instrumentBefore, 1)
-	instrumentSideEffect(f, "Patch", mode, instrumentBefore, 1)
+	instrumentSideEffect(f, "Create", mode, instrumentBefore, "*client")
+	instrumentSideEffect(f, "Update", mode, instrumentBefore, "*client")
+	instrumentSideEffect(f, "Delete", mode, instrumentBefore, "*client")
+	instrumentSideEffect(f, "DeleteAllOf", mode, instrumentBefore, "*client")
+	instrumentSideEffect(f, "Patch", mode, instrumentBefore, "*client")
 
-	instrumentSideEffect(f, "Update", mode, instrumentBefore, 2)
-	instrumentSideEffect(f, "Patch", mode, instrumentBefore, 2)
+	instrumentSideEffect(f, "Update", mode, instrumentBefore, "*statusWriter")
+	instrumentSideEffect(f, "Patch", mode, instrumentBefore, "*statusWriter")
 
 	instrumentClientRead(f, "Get", mode)
 	instrumentClientRead(f, "List", mode)
@@ -134,12 +146,12 @@ func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefor
 	writeInstrumentedFile(ofilepath, "client", f, map[string]string{})
 }
 
-func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool, expectedCnt int) {
+func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool, recvTypeName string) {
 	funNameBefore := "Notify" + mode + "BeforeSideEffects"
 	funNameAfter := "Notify" + mode + "AfterSideEffects"
-	_, funcDecl := findFuncDecl(f, etype, expectedCnt)
+	_, funcDecl := findFuncDecl(f, etype, recvTypeName)
 	writeName := etype
-	if expectedCnt == 2 {
+	if recvTypeName == "*statusWriter" {
 		writeName = "Status" + writeName
 	}
 	if funcDecl != nil {
@@ -245,7 +257,7 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 
 func instrumentClientRead(f *dst.File, etype, mode string) {
 	funName := "Notify" + mode + "AfterOperator" + etype
-	_, funcDecl := findFuncDecl(f, etype, 1)
+	_, funcDecl := findFuncDecl(f, etype, "*client")
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 
@@ -354,7 +366,11 @@ func instrumentSplitGoForAll(ifilepath, ofilepath, mode string) {
 
 func instrumentCacheRead(f *dst.File, etype, mode string) {
 	funName := "Notify" + mode + "AfterOperator" + etype
-	_, funcDecl := findFuncDecl(f, etype, 1)
+	_, funcDecl := findFuncDecl(f, etype, "*delegatingReader")
+	if funcDecl == nil {
+		// support older version controller-runtime
+		_, funcDecl = findFuncDecl(f, etype, "*DelegatingReader")
+	}
 	if funcDecl != nil {
 		// instrument cache read
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
@@ -410,7 +426,7 @@ func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentB
 	// TODO: do not hardcode the instrumentationIndex
 	instrumentationIndex := 5
 
-	_, funcDecl := findFuncDecl(f, "processEvent", 1)
+	_, funcDecl := findFuncDecl(f, "processEvent", "*watchCache")
 	if funcDecl == nil {
 		panic("instrumentWatchCacheGo error")
 	}
