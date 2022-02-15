@@ -103,6 +103,12 @@ type NotifyLearnBeforeSideEffectsRequest struct {
 	SideEffectType string
 }
 
+type NotifyLearnAfterNonK8sSideEffectsRequest struct {
+	RecvTypeName   string
+	FunName        string
+	ReconcilerType string
+}
+
 type NotifyLearnAfterSideEffectsRequest struct {
 	SideEffectID   int
 	SideEffectType string

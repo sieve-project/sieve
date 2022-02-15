@@ -119,7 +119,7 @@ func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode 
 	instr := &dst.DeferStmt{
 		Call: &dst.CallExpr{
 			Fun:  &dst.Ident{Name: toCall, Path: "sieve.client"},
-			Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
+			Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 		},
 	}
 	instr.Decs.End.Append("//sieve")

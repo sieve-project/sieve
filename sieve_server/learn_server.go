@@ -70,6 +70,10 @@ func (l *LearnListener) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnB
 	return l.Server.NotifyLearnBeforeSideEffects(request, response)
 }
 
+func (l *LearnListener) NotifyLearnAfterNonK8sSideEffects(request *sieve.NotifyLearnAfterNonK8sSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterNonK8sSideEffects(request, response)
+}
+
 func (l *LearnListener) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnAfterSideEffects(request, response)
 }
@@ -89,6 +93,7 @@ const (
 	afterReconcile
 	beforeSideEffect
 	afterSideEffect
+	afterNonK8sSideEffect
 	afterRead
 	beforeEvent
 	afterEvent
@@ -175,6 +180,12 @@ func (s *learnServer) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBef
 	return nil
 }
 
+func (s *learnServer) NotifyLearnAfterNonK8sSideEffects(request *sieve.NotifyLearnAfterNonK8sSideEffectsRequest, response *sieve.Response) error {
+	s.notificationCh <- notificationWrapper{ntype: afterNonK8sSideEffect, payload: fmt.Sprintf("%s\t%s\t%s", request.RecvTypeName, request.FunName, request.ReconcilerType)}
+	*response = sieve.Response{Message: request.FunName, Ok: true}
+	return nil
+}
+
 func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ResourceType, request.ReconcilerType, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
@@ -237,6 +248,8 @@ func (s *learnServer) coordinatingEvents() {
 				}
 			case afterSideEffect:
 				log.Printf("[SIEVE-AFTER-WRITE]\t%s\n", nw.payload)
+			case afterNonK8sSideEffect:
+				log.Printf("[SIEVE-AFTER-NON-K8S-WRITE]\t%s\n", nw.payload)
 			case beforeEvent:
 				if !s.rateLimiterEnabled {
 					eventID := strings.Split(nw.payload, "\t")[0]

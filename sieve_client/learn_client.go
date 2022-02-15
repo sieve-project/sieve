@@ -191,15 +191,35 @@ func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int
 	return response.Number
 }
 
-func NotifyLearnAfterNonK8sSideEffects(funName string) {
+func NotifyLearnAfterNonK8sSideEffects(typeName, funName string) {
 	if err := loadSieveConfig(); err != nil {
 		return
 	}
 	if !checkStage(LEARN) {
 		return
 	}
-
-	log.Println("nonk8ssideeffect")
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	request := &NotifyLearnAfterNonK8sSideEffectsRequest{
+		RecvTypeName:   typeName,
+		FunName:        funName,
+		ReconcilerType: reconcilerType,
+	}
+	var response Response
+	err = client.Call("LearnListener.NotifyLearnAfterNonK8sSideEffects", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterNonK8sSideEffects")
+	client.Close()
 }
 
 func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
