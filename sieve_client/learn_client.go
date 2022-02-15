@@ -191,37 +191,6 @@ func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int
 	return response.Number
 }
 
-func NotifyLearnAfterNonK8sSideEffects(typeName, funName string) {
-	if err := loadSieveConfig(); err != nil {
-		return
-	}
-	if !checkStage(LEARN) {
-		return
-	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
-		reconcilerType = UNKNOWN_RECONCILER_TYPE
-	}
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	request := &NotifyLearnAfterNonK8sSideEffectsRequest{
-		RecvTypeName:   typeName,
-		FunName:        funName,
-		ReconcilerType: reconcilerType,
-	}
-	var response Response
-	err = client.Call("LearnListener.NotifyLearnAfterNonK8sSideEffects", request, &response)
-	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
-		return
-	}
-	checkResponse(response, "NotifyLearnAfterNonK8sSideEffects")
-	client.Close()
-}
-
 func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
 	if err := loadSieveConfig(); err != nil {
 		return
@@ -266,6 +235,65 @@ func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterSideEffects")
+	client.Close()
+}
+
+func NotifyLearnBeforeNonK8sSideEffects(typeName, funName string) int {
+	if err := loadSieveConfig(); err != nil {
+		return -1
+	}
+	if !checkStage(LEARN) {
+		return -1
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return -1
+	}
+	request := &NotifyLearnBeforeNonK8sSideEffectsRequest{
+		RecvTypeName: typeName,
+		FunName:      funName,
+	}
+	var response Response
+	err = client.Call("LearnListener.NotifyLearnBeforeNonK8sSideEffects", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return -1
+	}
+	checkResponse(response, "NotifyLearnBeforeNonK8sSideEffects")
+	client.Close()
+	return response.Number
+}
+
+func NotifyLearnAfterNonK8sSideEffects(sideEffectID int, typeName, funName string) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
+	if !checkStage(LEARN) {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	request := &NotifyLearnAfterNonK8sSideEffectsRequest{
+		SideEffectID:   sideEffectID,
+		RecvTypeName:   typeName,
+		FunName:        funName,
+		ReconcilerType: reconcilerType,
+	}
+	var response Response
+	err = client.Call("LearnListener.NotifyLearnAfterNonK8sSideEffects", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterNonK8sSideEffects")
 	client.Close()
 }
 

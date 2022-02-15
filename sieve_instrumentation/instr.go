@@ -96,7 +96,7 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 			}
 		}
 		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, file_path)
-		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "Learn", customizedImportMap)
+		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "Learn", customizedImportMap, true)
 	}
 }
 

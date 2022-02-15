@@ -110,20 +110,40 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportM
 	autoInstrFile.Write(buf.Bytes())
 }
 
-func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string) {
+func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, pkg, customizedImportMap)
 	_, funcDecl := findFuncDecl(f, funName, recvTypeName)
-	toCall := "Notify" + mode + "AfterNonK8sSideEffects"
+	toCallAfter := "Notify" + mode + "AfterNonK8sSideEffects"
+
+	sideEffectIDVar := "-1"
+	if instrumentBefore {
+		sideEffectIDVar = "sieveSideEffectID"
+	}
 
 	// Instrument after side effect
-	instr := &dst.DeferStmt{
+	instrAfterSideEffect := &dst.DeferStmt{
 		Call: &dst.CallExpr{
-			Fun:  &dst.Ident{Name: toCall, Path: "sieve.client"},
-			Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
+			Fun:  &dst.Ident{Name: toCallAfter, Path: "sieve.client"},
+			Args: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 		},
 	}
-	instr.Decs.End.Append("//sieve")
-	insertStmt(&funcDecl.Body.List, 0, instr)
+	instrAfterSideEffect.Decs.End.Append("//sieve")
+	insertStmt(&funcDecl.Body.List, 0, instrAfterSideEffect)
+
+	// Instrument before side effect
+	if instrumentBefore {
+		toCallBefore := "Notify" + mode + "BeforeNonK8sSideEffects"
+		instrBeforeSideEffect := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
+			Rhs: []dst.Expr{&dst.CallExpr{
+				Fun:  &dst.Ident{Name: toCallBefore, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
+			}},
+			Tok: token.DEFINE,
+		}
+		instrBeforeSideEffect.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, 0, instrBeforeSideEffect)
+	}
 
 	writeInstrumentedFile(ofilepath, pkg, f, customizedImportMap)
 }
