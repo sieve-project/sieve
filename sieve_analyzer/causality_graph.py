@@ -479,6 +479,20 @@ class CausalityGraph:
                     event_signature
                 ]
 
+        non_k8s_signature_counter_map = {}
+        for operator_non_k8s_write in self.operator_non_k8s_write_vertices:
+            signature = (
+                operator_non_k8s_write.content.recv_type
+                + "/"
+                + operator_non_k8s_write.content.fun_name
+            )
+            if signature not in non_k8s_signature_counter_map:
+                non_k8s_signature_counter_map[signature] = 0
+            non_k8s_signature_counter_map[signature] += 1
+            operator_non_k8s_write.content.signature_counter = (
+                non_k8s_signature_counter_map[signature]
+            )
+
     def compute_event_cancel(self):
         for key in self.operator_hear_key_to_vertices:
             for i in range(len(self.operator_hear_key_to_vertices[key]) - 1):
