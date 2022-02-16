@@ -13,6 +13,8 @@ SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-HEAR]"
 SIEVE_AFTER_HEAR_MARK = "[SIEVE-AFTER-HEAR]"
 SIEVE_BEFORE_WRITE_MARK = "[SIEVE-BEFORE-WRITE]"
 SIEVE_AFTER_WRITE_MARK = "[SIEVE-AFTER-WRITE]"
+SIEVE_BEFORE_NON_K8S_WRITE_MARK = "[SIEVE-BEFORE-NON-K8S-WRITE]"
+SIEVE_AFTER_NON_K8S_WRITE_MARK = "[SIEVE-AFTER-NON-K8S-WRITE]"
 SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
@@ -345,6 +347,84 @@ class OperatorHear:
         self.__signature_counter = signature_counter
 
 
+class OperatorNonK8sWrite:
+    def __init__(self, id: str, recv_type: str, fun_name: str, reconciler_type: str):
+        self.__id = int(id)
+        self.__recv_type = recv_type
+        self.__fun_name = fun_name
+        self.__reconciler_type = reconciler_type
+        self.__reconcile_id = -1
+        self.__start_timestamp = -1
+        self.__end_timestamp = -1
+        self.__range_start_timestamp = -1
+        self.__range_end_timestamp = -1
+        self.__signature_counter = 1
+
+    @property
+    def id(self):
+        return self.__id
+
+    @property
+    def recv_type(self):
+        return self.__recv_type
+
+    @property
+    def fun_name(self):
+        return self.__fun_name
+
+    @property
+    def reconciler_type(self):
+        return self.__reconciler_type
+
+    @property
+    def reconcile_id(self):
+        return self.__reconcile_id
+
+    @property
+    def start_timestamp(self):
+        return self.__start_timestamp
+
+    @property
+    def end_timestamp(self):
+        return self.__end_timestamp
+
+    @property
+    def range_start_timestamp(self):
+        return self.__range_start_timestamp
+
+    @property
+    def range_end_timestamp(self):
+        return self.__range_end_timestamp
+
+    @property
+    def signature_counter(self):
+        return self.__signature_counter
+
+    @reconcile_id.setter
+    def reconcile_id(self, reconcile_id: int):
+        self.__reconcile_id = reconcile_id
+
+    @start_timestamp.setter
+    def start_timestamp(self, start_timestamp: int):
+        self.__start_timestamp = start_timestamp
+
+    @end_timestamp.setter
+    def end_timestamp(self, end_timestamp: int):
+        self.__end_timestamp = end_timestamp
+
+    @range_start_timestamp.setter
+    def range_start_timestamp(self, range_start_timestamp: int):
+        self.__range_start_timestamp = range_start_timestamp
+
+    @range_end_timestamp.setter
+    def range_end_timestamp(self, range_end_timestamp: int):
+        self.__range_end_timestamp = range_end_timestamp
+
+    @signature_counter.setter
+    def signature_counter(self, signature_counter: int):
+        self.__signature_counter = signature_counter
+
+
 class OperatorWrite:
     def __init__(
         self,
@@ -372,7 +452,6 @@ class OperatorWrite:
         self.__range_end_timestamp = -1
         self.__read_types = set()
         self.__read_keys = set()
-        self.__owner_controllers = set()
         self.__key = generate_key(self.rtype, self.namespace, self.name)
         self.__prev_obj_map = None
         self.__slim_prev_obj_map = None
@@ -443,10 +522,6 @@ class OperatorWrite:
     @property
     def range_end_timestamp(self):
         return self.__range_end_timestamp
-
-    @property
-    def owner_controllers(self):
-        return self.__owner_controllers
 
     @property
     def key(self):
@@ -621,6 +696,15 @@ class OperatorWriteIDOnly:
         return self.__id
 
 
+class OperatorNonK8sWriteIDOnly:
+    def __init__(self, id: str):
+        self.__id = int(id)
+
+    @property
+    def id(self):
+        return self.__id
+
+
 class ReconcileBegin:
     def __init__(self, reconciler_type: str, reconcile_id: str):
         self.__reconciler_type = reconciler_type
@@ -681,6 +765,12 @@ def parse_operator_write(line: str) -> OperatorWrite:
     )
 
 
+def parse_operator_non_k8s_write(line: str) -> OperatorNonK8sWrite:
+    assert SIEVE_AFTER_NON_K8S_WRITE_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_NON_K8S_WRITE_MARK) :].strip("\n").split("\t")
+    return OperatorNonK8sWrite(tokens[1], tokens[2], tokens[3], tokens[4])
+
+
 def parse_operator_read(line: str) -> OperatorRead:
     assert SIEVE_AFTER_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_READ_MARK) :].strip("\n").split("\t")
@@ -730,6 +820,23 @@ def parse_operator_write_id_only(line: str) -> OperatorWriteIDOnly:
     else:
         tokens = line[line.find(SIEVE_BEFORE_WRITE_MARK) :].strip("\n").split("\t")
         return OperatorWriteIDOnly(tokens[1])
+
+
+def parse_operator_non_k8s_write_id_only(line: str) -> OperatorNonK8sWriteIDOnly:
+    assert (
+        SIEVE_AFTER_NON_K8S_WRITE_MARK in line
+        or SIEVE_BEFORE_NON_K8S_WRITE_MARK in line
+    )
+    if SIEVE_AFTER_NON_K8S_WRITE_MARK in line:
+        tokens = (
+            line[line.find(SIEVE_AFTER_NON_K8S_WRITE_MARK) :].strip("\n").split("\t")
+        )
+        return OperatorNonK8sWriteIDOnly(tokens[1])
+    else:
+        tokens = (
+            line[line.find(SIEVE_BEFORE_NON_K8S_WRITE_MARK) :].strip("\n").split("\t")
+        )
+        return OperatorNonK8sWriteIDOnly(tokens[1])
 
 
 def parse_reconcile(line: str) -> Union[ReconcileBegin, ReconcileEnd]:

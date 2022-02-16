@@ -2,6 +2,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 from sieve_common.k8s_event import (
     OperatorHear,
     OperatorWrite,
+    OperatorNonK8sWrite,
     OperatorRead,
     ReconcileBegin,
     ReconcileEnd,
@@ -23,7 +24,12 @@ class CausalityVertex:
         self,
         gid: int,
         content: Union[
-            OperatorHear, OperatorWrite, OperatorRead, ReconcileBegin, ReconcileEnd
+            OperatorHear,
+            OperatorWrite,
+            OperatorNonK8sWrite,
+            OperatorRead,
+            ReconcileBegin,
+            ReconcileEnd,
         ],
     ):
         self.__gid = gid
@@ -58,6 +64,9 @@ class CausalityVertex:
 
     def is_operator_write(self) -> bool:
         return isinstance(self.content, OperatorWrite)
+
+    def is_operator_non_k8s_write(self) -> bool:
+        return isinstance(self.content, OperatorNonK8sWrite)
 
     def is_operator_read(self) -> bool:
         return isinstance(self.content, OperatorRead)
@@ -101,6 +110,7 @@ class CausalityGraph:
         self.__vertex_cnt = 0
         self.__operator_hear_vertices = []
         self.__operator_write_vertices = []
+        self.__operator_non_k8s_write_vertices = []
         self.__operator_read_vertices = []
         self.__reconcile_begin_vertices = []
         self.__reconcile_end_vertices = []
@@ -131,6 +141,10 @@ class CausalityGraph:
     @property
     def operator_write_vertices(self) -> List[CausalityVertex]:
         return self.__operator_write_vertices
+
+    @property
+    def operator_non_k8s_write_vertices(self) -> List[CausalityVertex]:
+        return self.__operator_non_k8s_write_vertices
 
     @property
     def operator_read_vertices(self) -> List[CausalityVertex]:
@@ -303,7 +317,13 @@ class CausalityGraph:
     def add_sorted_reconciler_events(
         self,
         reconciler_event_list: List[
-            Union[OperatorWrite, OperatorRead, ReconcileBegin, ReconcileEnd]
+            Union[
+                OperatorWrite,
+                OperatorNonK8sWrite,
+                OperatorRead,
+                ReconcileBegin,
+                ReconcileEnd,
+            ]
         ],
     ):
         event_vertex_list = []
@@ -316,6 +336,8 @@ class CausalityGraph:
                 if key not in self.operator_write_key_to_vertices:
                     self.operator_write_key_to_vertices[key] = []
                 self.operator_write_key_to_vertices[key].append(event_vertex)
+            elif event_vertex.is_operator_non_k8s_write():
+                self.operator_non_k8s_write_vertices.append(event_vertex)
             elif event_vertex.is_operator_read():
                 self.operator_read_vertices.append(event_vertex)
                 for key in event_vertex.content.key_set:
@@ -342,7 +364,10 @@ class CausalityGraph:
         operator_write_vertex: CausalityVertex,
     ):
         assert operator_hear_vertex.is_operator_hear()
-        assert operator_write_vertex.is_operator_write()
+        assert (
+            operator_write_vertex.is_operator_write()
+            or operator_write_vertex.is_operator_non_k8s_write()
+        )
         assert (
             operator_hear_vertex.content.start_timestamp
             < operator_write_vertex.content.start_timestamp

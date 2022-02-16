@@ -95,7 +95,9 @@ def parse_receiver_events(path):
 
 def parse_reconciler_events(test_context: TestContext, path):
     operator_write_id_map = {}
-    operator_write_id_to_start_ts_map = {}
+    operator_write_start_timestamp_map = {}
+    operator_nk_write_id_map = {}
+    operator_nk_write_start_timestamp_map = {}
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
     prev_reconcile_per_type = {}
@@ -113,8 +115,8 @@ def parse_reconciler_events(test_context: TestContext, path):
         line = lines[i]
         if SIEVE_BEFORE_WRITE_MARK in line:
             operator_write_id_only = parse_operator_write_id_only(line)
-            operator_write_id_to_start_ts_map[operator_write_id_only.id] = i
-        if SIEVE_AFTER_WRITE_MARK in line:
+            operator_write_start_timestamp_map[operator_write_id_only.id] = i
+        elif SIEVE_AFTER_WRITE_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the operator_write since it is not caused by reconcile
@@ -130,7 +132,7 @@ def parse_reconciler_events(test_context: TestContext, path):
             # cache read during that possible interval
             operator_write.read_keys = copy.deepcopy(read_keys_this_reconcile)
             operator_write.read_types = copy.deepcopy(read_types_this_reconcile)
-            operator_write.start_timestamp = operator_write_id_to_start_ts_map[
+            operator_write.start_timestamp = operator_write_start_timestamp_map[
                 operator_write.id
             ]
             operator_write.end_timestamp = i
@@ -142,9 +144,33 @@ def parse_reconciler_events(test_context: TestContext, path):
                 earliest_timestamp = prev_reconcile.end_timestamp
             operator_write.set_range(earliest_timestamp, i)
             operator_write.reconcile_id = cur_reconcile.reconcile_id
-
             operator_write_id_map[operator_write.id] = operator_write
             ts_to_event_map[operator_write.start_timestamp] = operator_write
+        elif SIEVE_BEFORE_NON_K8S_WRITE_MARK in line:
+            id_only = parse_operator_non_k8s_write_id_only(line)
+            operator_nk_write_start_timestamp_map[id_only.id] = i
+        elif SIEVE_AFTER_NON_K8S_WRITE_MARK in line:
+            for key in cur_reconcile_is_trivial:
+                cur_reconcile_is_trivial[key] = False
+            if len(ongoing_reconciles) == 0:
+                continue
+            operator_nk_write = parse_operator_non_k8s_write(line)
+            if operator_nk_write.reconciler_type == "unknown":
+                continue
+            operator_nk_write.start_timestamp = operator_nk_write_start_timestamp_map[
+                operator_nk_write.id
+            ]
+            operator_nk_write.end_timestamp = i
+            assert operator_nk_write.reconciler_type in cur_reconcile_per_type
+            prev_reconcile = prev_reconcile_per_type[operator_nk_write.reconciler_type]
+            cur_reconcile = cur_reconcile_per_type[operator_nk_write.reconciler_type]
+            earliest_timestamp = -1
+            if prev_reconcile is not None:
+                earliest_timestamp = prev_reconcile.end_timestamp
+            operator_nk_write.set_range(earliest_timestamp, i)
+            operator_nk_write.reconcile_id = cur_reconcile.reconcile_id
+            operator_nk_write_id_map[operator_nk_write.id] = operator_nk_write
+            ts_to_event_map[operator_nk_write.start_timestamp] = operator_nk_write
         elif SIEVE_AFTER_READ_MARK in line:
             # TODO: handle the reads that are not in any reconcile
             if len(ongoing_reconciles) == 0:
@@ -211,10 +237,12 @@ def parse_reconciler_events(test_context: TestContext, path):
 def base_pass(
     operator_hear_vertices: List[CausalityVertex],
     operator_write_vertices: List[CausalityVertex],
+    operator_non_k8s_write_vertices: List[CausalityVertex],
 ):
     print("Running base pass...")
     vertex_pairs = []
-    for operator_write_vertex in operator_write_vertices:
+    write_vertices = operator_write_vertices + operator_non_k8s_write_vertices
+    for operator_write_vertex in write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
             if operator_write_vertex.content.reconcile_id == -1:
                 continue
@@ -238,14 +266,18 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     for pair in vertex_pairs:
         operator_hear_vertex = pair[0]
         operator_write_vertex = pair[1]
-        key_match = (
-            operator_hear_vertex.content.key in operator_write_vertex.content.read_keys
-        )
-        type_match = (
-            operator_hear_vertex.content.rtype
-            in operator_write_vertex.content.read_types
-        )
-        if key_match or type_match:
+        if operator_write_vertex.is_operator_write():
+            key_match = (
+                operator_hear_vertex.content.key
+                in operator_write_vertex.content.read_keys
+            )
+            type_match = (
+                operator_hear_vertex.content.rtype
+                in operator_write_vertex.content.read_types
+            )
+            if key_match or type_match:
+                pruned_vertex_pairs.append(pair)
+        else:
             pruned_vertex_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
@@ -256,7 +288,10 @@ def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
         operator_write_vertex = pair[1]
-        if operator_write_vertex.content.error in ALLOWED_ERROR_TYPE:
+        if operator_write_vertex.is_operator_write():
+            if operator_write_vertex.content.error in ALLOWED_ERROR_TYPE:
+                pruned_vertex_pairs.append(pair)
+        else:
             pruned_vertex_pairs.append(pair)
     print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
@@ -265,9 +300,10 @@ def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
 def generate_hear_write_pairs(causality_graph: CausalityGraph):
     operator_hear_vertices = causality_graph.operator_hear_vertices
     operator_write_vertices = causality_graph.operator_write_vertices
-    vertex_pairs = base_pass(operator_hear_vertices, operator_write_vertices)
-    # if ERROR_MSG_FILTER_FLAG:
-    #     vertex_pairs = error_msg_filtering_pass(vertex_pairs)
+    operator_non_k8s_write_vertices = causality_graph.operator_non_k8s_write_vertices
+    vertex_pairs = base_pass(
+        operator_hear_vertices, operator_write_vertices, operator_non_k8s_write_vertices
+    )
     if HEAR_READ_FILTER_FLAG:
         vertex_pairs = hear_read_overlap_filtering_pass(vertex_pairs)
     return vertex_pairs
@@ -311,13 +347,13 @@ def build_causality_graph(test_context: TestContext, log_path, oracle_dir):
     causality_graph.add_sorted_reconciler_events(reconciler_event_list)
 
     hear_write_pairs = generate_hear_write_pairs(causality_graph)
-    write_hear_pairs = generate_write_hear_pairs(causality_graph)
+    # write_hear_pairs = generate_write_hear_pairs(causality_graph)
 
     for pair in hear_write_pairs:
         causality_graph.connect_hear_to_write(pair[0], pair[1])
 
-    for pair in write_hear_pairs:
-        causality_graph.connect_write_to_hear(pair[0], pair[1])
+    # for pair in write_hear_pairs:
+    #     causality_graph.connect_write_to_hear(pair[0], pair[1])
 
     causality_graph.finalize()
     causality_graph.sanity_check()
