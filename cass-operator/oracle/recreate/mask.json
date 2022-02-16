@@ -59,7 +59,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"b751d4a2-026e-455e-8f45-b8dd98825bb5\"}"
+            "k:{\"uid\":\"7a2a3ce4-a81e-40b8-804c-8270247cbc27\"}"
         ],
         [
             "metadata",
@@ -140,7 +140,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"9cad8f80-adf8-4604-b528-f46105ffb5b1\"}"
+            "k:{\"uid\":\"b24b7b7a-9436-44ae-9848-03055bb1e08d\"}"
         ],
         [
             "metadata",
@@ -256,7 +256,7 @@
             "*",
             "addresses",
             "*",
-            "iP"
+            "nodeName"
         ],
         [
             "subsets",
@@ -312,7 +312,7 @@
             "*",
             "addresses",
             "*",
-            "iP"
+            "nodeName"
         ],
         [
             "subsets",
@@ -368,7 +368,7 @@
             "*",
             "addresses",
             "*",
-            "nodeName"
+            "iP"
         ],
         [
             "subsets",
@@ -416,7 +416,7 @@
             "*",
             "addresses",
             "*",
-            "nodeName"
+            "iP"
         ],
         [
             "subsets",
@@ -464,7 +464,7 @@
             "*",
             "addresses",
             "*",
-            "nodeName"
+            "iP"
         ],
         [
             "subsets",
@@ -511,11 +511,6 @@
     "persistentvolumeclaim/default/server-data-cluster1-cassandra-datacenter-default-sts-0": [
         [
             "metadata",
-            "annotations",
-            "volume.kubernetes.io/selected-node"
-        ],
-        [
-            "metadata",
             "creationTimestamp"
         ],
         [
@@ -549,7 +544,16 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"9cad8f80-adf8-4604-b528-f46105ffb5b1\"}"
+            "k:{\"uid\":\"b24b7b7a-9436-44ae-9848-03055bb1e08d\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.1.4\"}"
         ],
         [
             "metadata",
@@ -589,10 +593,6 @@
         ],
         [
             "spec",
-            "nodeName"
-        ],
-        [
-            "spec",
             "volumes",
             "*",
             "name"
@@ -626,6 +626,10 @@
         ],
         [
             "status",
+            "hostIP"
+        ],
+        [
+            "status",
             "initContainerStatuses",
             "*",
             "containerID"
@@ -656,6 +660,12 @@
         ],
         [
             "status",
+            "podIPs",
+            "*",
+            "iP"
+        ],
+        [
+            "status",
             "startTime"
         ]
     ],
@@ -671,7 +681,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00460067-9812-445c-9da6-5b43d723151b\"}"
+            "k:{\"uid\":\"e06990c8-5ad6-4d1c-941c-693530ff7351\"}"
         ],
         [
             "metadata",
@@ -706,7 +716,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"df0af93c-04c3-4b18-aefc-62b9cb79f444\"}"
+            "k:{\"uid\":\"4aa4cc35-6b67-4568-a4f1-34a7bd88f12d\"}"
         ],
         [
             "metadata",
@@ -741,7 +751,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"be1239df-bcdd-4aad-897b-85b656675ad5\"}"
+            "k:{\"uid\":\"3fa30175-ff04-46bb-a322-26f66bddc96a\"}"
         ],
         [
             "metadata",
@@ -920,7 +930,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"df0af93c-04c3-4b18-aefc-62b9cb79f444\"}"
+            "k:{\"uid\":\"4aa4cc35-6b67-4568-a4f1-34a7bd88f12d\"}"
         ],
         [
             "metadata",
@@ -983,7 +993,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00460067-9812-445c-9da6-5b43d723151b\"}"
+            "k:{\"uid\":\"e06990c8-5ad6-4d1c-941c-693530ff7351\"}"
         ],
         [
             "metadata",
@@ -1018,7 +1028,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00460067-9812-445c-9da6-5b43d723151b\"}"
+            "k:{\"uid\":\"e06990c8-5ad6-4d1c-941c-693530ff7351\"}"
         ],
         [
             "metadata",
@@ -1053,7 +1063,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00460067-9812-445c-9da6-5b43d723151b\"}"
+            "k:{\"uid\":\"e06990c8-5ad6-4d1c-941c-693530ff7351\"}"
         ],
         [
             "metadata",
@@ -1087,7 +1097,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"cass-operator-token-xbnzb\"}"
+            "k:{\"name\":\"cass-operator-token-2vg9d\"}"
         ],
         [
             "metadata",
@@ -1119,8 +1129,20 @@
             "managedFields",
             "*",
             "fieldsV1",
-            "f:secrets",
-            "k:{\"name\":\"local-path-provisioner-service-account-token-g9t96\"}"
+            "f:metadata"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:secrets"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "manager"
         ],
         [
             "metadata",
@@ -1154,7 +1176,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00460067-9812-445c-9da6-5b43d723151b\"}"
+            "k:{\"uid\":\"e06990c8-5ad6-4d1c-941c-693530ff7351\"}"
         ],
         [
             "metadata",
