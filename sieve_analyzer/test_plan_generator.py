@@ -621,9 +621,20 @@ def intermediate_state_analysis(
             )
         else:
             assert isinstance(operator_write, OperatorNonK8sWrite)
-            intermediate_state_config["recv-type"] = operator_write.recv_type
-            intermediate_state_analysis["fun-name"] = operator_write.fun_name
-            intermediate_state_analysis["counter"] = operator_write.signature_counter
+            # TODO: We need a better handling for non k8s event
+            intermediate_state_config["se-name"] = ""
+            intermediate_state_config["se-namespace"] = ""
+            intermediate_state_config["se-rtype"] = ""
+            intermediate_state_config[
+                "se-reconciler-type"
+            ] = operator_write.reconciler_type
+            intermediate_state_config["se-etype-previous"] = ""
+            intermediate_state_config["se-etype-current"] = NON_K8S_WRITE
+            intermediate_state_config["se-diff-previous"] = None
+            intermediate_state_config["se-diff-current"] = None
+            intermediate_state_config["se-counter"] = str(
+                operator_write.signature_counter
+            )
 
         i += 1
         file_name = os.path.join(
