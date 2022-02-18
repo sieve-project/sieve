@@ -631,18 +631,19 @@ class OperatorRead:
             self.key_to_obj[key] = json.loads(obj_str)
         else:
             objs = json.loads(obj_str)["items"]
-            for obj in objs:
-                key = generate_key(
-                    self.rtype,
-                    obj["metadata"]["namespace"]
-                    if "namespace" in obj["metadata"]
-                    else DEFAULT_NS,
-                    obj["metadata"]["name"],
-                )
-                assert key not in self.key_set
-                assert key not in self.key_to_obj
-                self.key_set.add(key)
-                self.key_to_obj[key] = obj
+            if objs is not None:
+                for obj in objs:
+                    key = generate_key(
+                        self.rtype,
+                        obj["metadata"]["namespace"]
+                        if "namespace" in obj["metadata"]
+                        else DEFAULT_NS,
+                        obj["metadata"]["name"],
+                    )
+                    assert key not in self.key_set
+                    assert key not in self.key_to_obj
+                    self.key_set.add(key)
+                    self.key_to_obj[key] = obj
 
     @property
     def etype(self):
