@@ -154,6 +154,38 @@ func NotifyIntmdStateAfterSideEffects(sideEffectID int, sideEffectType string, o
 	checkResponse(response, "NotifyIntmdStateAfterSideEffects")
 }
 
+func NotifyIntmdStateAfterNonK8sSideEffects(sideEffectID int, typeName, funName string) {
+	if err := loadSieveConfig(); err != nil {
+		return
+	}
+	if !checkStage(TEST) || !checkMode(INTERMEDIATE_STATE) {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	request := &NotifyIntmdStateAfterNonK8sSideEffectsRequest{
+		SideEffectID:   sideEffectID,
+		RecvTypeName:   typeName,
+		FunName:        funName,
+		ReconcilerType: reconcilerType,
+	}
+	var response Response
+	err = client.Call("IntmdStateListener.NotifyIntmdStateAfterNonK8sSideEffects", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyIntmdStateAfterNonK8sSideEffects")
+	client.Close()
+}
+
 func NotifyIntmdStateBeforeProcessEvent(eventType, key string, object interface{}) {
 	loadSieveConfigMap(eventType, key, object)
 	if err := loadSieveConfig(); err != nil {

@@ -48,7 +48,9 @@ func instrumentControllerForUnobsrState(configMap map[string]interface{}) {
 }
 
 func instrumentControllerForIntmdState(configMap map[string]interface{}) {
+	application_file_path := configMap["app_file_path"].(string)
 	controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
+	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
 
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)
@@ -57,6 +59,24 @@ func instrumentControllerForIntmdState(configMap map[string]interface{}) {
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
 	instrumentClientGoForAll(clientGoFile, clientGoFile, "IntmdState", false)
+
+	for _, api_to_instrument := range apis_to_instrument {
+		entry := api_to_instrument.(map[string]interface{})
+		module := entry["module"].(string)
+		file_path := entry["file_path"].(string)
+		pkg := entry["package"].(string)
+		funName := entry["func_name"].(string)
+		typeName := entry["type_name"].(string)
+		customizedImportMap := map[string]string{}
+		if val, ok := entry["import_map"]; ok {
+			tempMap := val.(map[string]interface{})
+			for key, val := range tempMap {
+				customizedImportMap[key] = val.(string)
+			}
+		}
+		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, file_path)
+		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "IntmdState", customizedImportMap, false)
+	}
 }
 
 func instrumentControllerForLearn(configMap map[string]interface{}) {
