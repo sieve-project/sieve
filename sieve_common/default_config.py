@@ -112,6 +112,7 @@ class ControllerConfig:
         apis_to_instrument,
         controller_image_name,
         test_command,
+        loosen_reconciler_boundary,
         custom_resource_definitions,
         controller_pod_label,
         container_name,
@@ -132,6 +133,7 @@ class ControllerConfig:
         self.apis_to_instrument = apis_to_instrument
         self.controller_image_name = controller_image_name
         self.test_command = test_command
+        self.loosen_reconciler_boundary = loosen_reconciler_boundary
         self.custom_resource_definitions = custom_resource_definitions
         self.controller_pod_label = controller_pod_label
         self.container_name = container_name
@@ -165,6 +167,9 @@ def get_controller_config(controller_folder, controller_name):
         else [],
         controller_image_name=controller_config["controller_image_name"],
         test_command=controller_config["test_command"],
+        loosen_reconciler_boundary=controller_config["loosen_reconciler_boundary"]
+        if "loosen_reconciler_boundary" in controller_config
+        else False,
         custom_resource_definitions=controller_config["custom_resource_definitions"],
         controller_pod_label=controller_config["controller_pod_label"],
         container_name=controller_config["container_name"]

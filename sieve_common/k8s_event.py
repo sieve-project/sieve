@@ -26,6 +26,8 @@ NON_K8S_WRITE = "NON_K8S_WRITE"
 
 DEFAULT_NS = "default"
 
+UNKNOWN_RECONCILER_TYPE = "unknown"
+
 
 class APIEventTypes:
     ADDED = "ADDED"
@@ -401,6 +403,10 @@ class OperatorNonK8sWrite:
     def signature_counter(self):
         return self.__signature_counter
 
+    @reconciler_type.setter
+    def reconciler_type(self, reconciler_type: str):
+        self.__reconciler_type = reconciler_type
+
     @reconcile_id.setter
     def reconcile_id(self, reconcile_id: int):
         self.__reconcile_id = reconcile_id
@@ -547,6 +553,10 @@ class OperatorWrite:
     @property
     def signature_counter(self):
         return self.__signature_counter
+
+    @reconciler_type.setter
+    def reconciler_type(self, reconciler_type: str):
+        self.__reconciler_type = reconciler_type
 
     @reconcile_id.setter
     def reconcile_id(self, reconcile_id: int):

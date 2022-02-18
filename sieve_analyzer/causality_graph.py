@@ -260,22 +260,23 @@ class CausalityGraph:
                     self.operator_write_vertices[i].content.start_timestamp
                     > self.operator_write_vertices[i - 1].content.start_timestamp
                 )
-            assert self.operator_write_vertices[i].content.range_end_timestamp != -1
-            assert (
-                self.operator_write_vertices[i].content.range_start_timestamp
-                < self.operator_write_vertices[i].content.range_end_timestamp
-            )
             assert (
                 self.operator_write_vertices[i].content.start_timestamp
                 < self.operator_write_vertices[i].content.end_timestamp
             )
-            assert (
-                self.operator_write_vertices[i].content.end_timestamp
-                == self.operator_write_vertices[i].content.range_end_timestamp
-            )
             assert self.operator_write_vertices[i].is_operator_write
             for edge in self.operator_write_vertices[i].out_inter_reconciler_edges:
                 assert self.operator_write_vertices[i].gid == edge.source.gid
+            if self.operator_write_vertices[i].content.reconcile_id != -1:
+                assert self.operator_write_vertices[i].content.range_end_timestamp != -1
+                assert (
+                    self.operator_write_vertices[i].content.range_start_timestamp
+                    < self.operator_write_vertices[i].content.range_end_timestamp
+                )
+                assert (
+                    self.operator_write_vertices[i].content.end_timestamp
+                    == self.operator_write_vertices[i].content.range_end_timestamp
+                )
         for edge in self.operator_hear_operator_write_edges:
             assert isinstance(edge.source, CausalityVertex)
             assert isinstance(edge.sink, CausalityVertex)

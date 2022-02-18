@@ -94,9 +94,7 @@ def parse_receiver_events(path):
 
 
 def parse_reconciler_events(test_context: TestContext, path):
-    operator_write_id_map = {}
     operator_write_start_timestamp_map = {}
-    operator_nk_write_id_map = {}
     operator_nk_write_start_timestamp_map = {}
     read_types_this_reconcile = set()
     read_keys_this_reconcile = set()
@@ -122,11 +120,10 @@ def parse_reconciler_events(test_context: TestContext, path):
             # If we have not met any reconcile yet, skip the operator_write since it is not caused by reconcile
             # though it should not happen at all.
             # TODO: handle the writes that are not in any reconcile
-            if len(ongoing_reconciles) == 0:
-                continue
             operator_write = parse_operator_write(line)
-            if operator_write.reconciler_type == "unknown":
-                continue
+            if operator_write.reconciler_type not in cur_reconcile_per_type:
+                if not test_context.controller_config.loosen_reconciler_boundary:
+                    continue
             # Do deepcopy here to ensure the later changes to the two sets
             # will not affect this operator_write.
             # cache read during that possible interval
@@ -136,15 +133,14 @@ def parse_reconciler_events(test_context: TestContext, path):
                 operator_write.id
             ]
             operator_write.end_timestamp = i
-            assert operator_write.reconciler_type in cur_reconcile_per_type
-            prev_reconcile = prev_reconcile_per_type[operator_write.reconciler_type]
-            cur_reconcile = cur_reconcile_per_type[operator_write.reconciler_type]
-            earliest_timestamp = -1
-            if prev_reconcile is not None:
-                earliest_timestamp = prev_reconcile.end_timestamp
-            operator_write.set_range(earliest_timestamp, i)
-            operator_write.reconcile_id = cur_reconcile.reconcile_id
-            operator_write_id_map[operator_write.id] = operator_write
+            if operator_write.reconciler_type in cur_reconcile_per_type:
+                prev_reconcile = prev_reconcile_per_type[operator_write.reconciler_type]
+                cur_reconcile = cur_reconcile_per_type[operator_write.reconciler_type]
+                earliest_timestamp = -1
+                if prev_reconcile is not None:
+                    earliest_timestamp = prev_reconcile.end_timestamp
+                operator_write.set_range(earliest_timestamp, i)
+                operator_write.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[operator_write.start_timestamp] = operator_write
         elif SIEVE_BEFORE_NON_K8S_WRITE_MARK in line:
             id_only = parse_operator_non_k8s_write_id_only(line)
@@ -152,43 +148,41 @@ def parse_reconciler_events(test_context: TestContext, path):
         elif SIEVE_AFTER_NON_K8S_WRITE_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
-            if len(ongoing_reconciles) == 0:
-                continue
             operator_nk_write = parse_operator_non_k8s_write(line)
-            if operator_nk_write.reconciler_type == "unknown":
-                continue
+            if operator_nk_write.reconciler_type not in cur_reconcile_per_type:
+                if not test_context.controller_config.loosen_reconciler_boundary:
+                    continue
             operator_nk_write.start_timestamp = operator_nk_write_start_timestamp_map[
                 operator_nk_write.id
             ]
             operator_nk_write.end_timestamp = i
-            assert operator_nk_write.reconciler_type in cur_reconcile_per_type
-            prev_reconcile = prev_reconcile_per_type[operator_nk_write.reconciler_type]
-            cur_reconcile = cur_reconcile_per_type[operator_nk_write.reconciler_type]
-            earliest_timestamp = -1
-            if prev_reconcile is not None:
-                earliest_timestamp = prev_reconcile.end_timestamp
-            operator_nk_write.set_range(earliest_timestamp, i)
-            operator_nk_write.reconcile_id = cur_reconcile.reconcile_id
-            operator_nk_write_id_map[operator_nk_write.id] = operator_nk_write
+            if operator_nk_write.reconciler_type in cur_reconcile_per_type:
+                prev_reconcile = prev_reconcile_per_type[
+                    operator_nk_write.reconciler_type
+                ]
+                cur_reconcile = cur_reconcile_per_type[
+                    operator_nk_write.reconciler_type
+                ]
+                earliest_timestamp = -1
+                if prev_reconcile is not None:
+                    earliest_timestamp = prev_reconcile.end_timestamp
+                operator_nk_write.set_range(earliest_timestamp, i)
+                operator_nk_write.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[operator_nk_write.start_timestamp] = operator_nk_write
+            print("nk write end")
         elif SIEVE_AFTER_READ_MARK in line:
             # TODO: handle the reads that are not in any reconcile
-            if len(ongoing_reconciles) == 0:
-                continue
             operator_read = parse_operator_read(line)
-            if operator_read.reconciler_type == "unknown":
+            if operator_read.reconciler_type not in cur_reconcile_per_type:
                 continue
             operator_read.end_timestamp = i
-            assert operator_read.reconciler_type in cur_reconcile_per_type
             cur_reconcile = cur_reconcile_per_type[operator_read.reconciler_type]
             operator_read.reconcile_id = cur_reconcile.reconcile_id
-
             ts_to_event_map[operator_read.end_timestamp] = operator_read
             if operator_read.etype == "Get":
                 read_keys_this_reconcile.update(operator_read.key_set)
             else:
                 read_types_this_reconcile.add(operator_read.rtype)
-
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
             reconcile_begin = parse_reconcile(line)
             reconcile_begin.end_timestamp = i
