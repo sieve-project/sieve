@@ -6,7 +6,7 @@ examples/
   |- your-controller/
     |- config.json
     |- build/
-      |- build.sh  
+      |- build.sh
     |- deploy/
       |- deploy.sh
     |- oracle/
