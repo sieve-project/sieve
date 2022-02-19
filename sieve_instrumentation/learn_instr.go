@@ -8,8 +8,8 @@ import (
 )
 
 func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
-	f := parseSourceFile(ifilepath, "cache")
-	_, funcDecl := findFuncDecl(f, "HandleDeltas", 1)
+	f := parseSourceFile(ifilepath, "cache", map[string]string{})
+	_, funcDecl := findFuncDecl(f, "HandleDeltas", "*sharedIndexInformer")
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
@@ -39,12 +39,12 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 		panic(fmt.Errorf("Cannot find function HandleDeltas"))
 	}
 
-	writeInstrumentedFile(ofilepath, "cache", f)
+	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 }
 
 func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
-	f := parseSourceFile(ifilepath, "controller")
-	_, funcDecl := findFuncDecl(f, "reconcileHandler", 1)
+	f := parseSourceFile(ifilepath, "controller", map[string]string{})
+	_, funcDecl := findFuncDecl(f, "reconcileHandler", "*Controller")
 	if funcDecl != nil {
 		index := 0
 		beforeReconcileInstrumentation := &dst.ExprStmt{
@@ -69,5 +69,5 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		panic(fmt.Errorf("Cannot find function reconcileHandler"))
 	}
 
-	writeInstrumentedFile(ofilepath, "controller", f)
+	writeInstrumentedFile(ofilepath, "controller", f, map[string]string{})
 }

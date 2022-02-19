@@ -81,6 +81,13 @@ type NotifyIntmdStateAfterSideEffectsRequest struct {
 	Error          string
 }
 
+type NotifyIntmdStateAfterNonK8sSideEffectsRequest struct {
+	SideEffectID   int
+	RecvTypeName   string
+	FunName        string
+	ReconcilerType string
+}
+
 type NotifyLearnBeforeIndexerWriteRequest struct {
 	OperationType string
 	Object        string
@@ -110,6 +117,18 @@ type NotifyLearnAfterSideEffectsRequest struct {
 	ResourceType   string
 	ReconcilerType string
 	Error          string
+}
+
+type NotifyLearnBeforeNonK8sSideEffectsRequest struct {
+	RecvTypeName string
+	FunName      string
+}
+
+type NotifyLearnAfterNonK8sSideEffectsRequest struct {
+	SideEffectID   int
+	RecvTypeName   string
+	FunName        string
+	ReconcilerType string
 }
 
 type NotifyLearnAfterOperatorGetRequest struct {

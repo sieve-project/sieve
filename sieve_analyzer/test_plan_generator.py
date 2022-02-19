@@ -486,30 +486,35 @@ def intermediate_state_detectable_pass(
     print("Running intermediate state detectable pass...")
     candidate_vertices = []
     for vertex in causality_vertices:
-        operator_write = vertex.content
-        if nondeterministic_key(
-            test_context,
-            operator_write,
-        ):
-            continue
-        if detectable_event_diff(
-            sieve_modes.INTERMEDIATE_STATE,
-            operator_write.slim_prev_obj_map,
-            operator_write.slim_cur_obj_map,
-            operator_write.prev_etype,
-            operator_write.etype,
-            operator_write.signature_counter,
-        ):
+        if vertex.is_operator_non_k8s_write():
             candidate_vertices.append(vertex)
+        else:
+            operator_write = vertex.content
+            if nondeterministic_key(
+                test_context,
+                operator_write,
+            ):
+                continue
+            if detectable_event_diff(
+                sieve_modes.INTERMEDIATE_STATE,
+                operator_write.slim_prev_obj_map,
+                operator_write.slim_cur_obj_map,
+                operator_write.prev_etype,
+                operator_write.etype,
+                operator_write.signature_counter,
+            ):
+                candidate_vertices.append(vertex)
     print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
-    print("Running optional pass:  no-error-write-filtering...")
+def effective_write_filtering_pass(causality_vertices: List[CausalityVertex]):
+    print("Running optional pass:  effective-write-filtering...")
     candidate_vertices = []
     for vertex in causality_vertices:
-        if vertex.content.error in ALLOWED_ERROR_TYPE:
+        if vertex.is_operator_non_k8s_write():
+            candidate_vertices.append(vertex)
+        else:
             if is_creation_or_deletion(vertex.content.etype):
                 candidate_vertices.append(vertex)
             else:
@@ -547,6 +552,18 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
+def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
+    print("Running optional pass:  no-error-write-filtering...")
+    candidate_vertices = []
+    for vertex in causality_vertices:
+        if vertex.is_operator_non_k8s_write():
+            candidate_vertices.append(vertex)
+        elif vertex.content.error in ALLOWED_ERROR_TYPE:
+            candidate_vertices.append(vertex)
+    print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
+    return candidate_vertices
+
+
 def intermediate_state_template(test_context: TestContext):
     return {
         "project": test_context.project,
@@ -560,15 +577,17 @@ def intermediate_state_template(test_context: TestContext):
 def intermediate_state_analysis(
     causality_graph: CausalityGraph, path: str, test_context: TestContext
 ):
-    project = test_context.project
-    test_name = test_context.test_name
-    candidate_vertices = causality_graph.operator_write_vertices
+    candidate_vertices = (
+        causality_graph.operator_write_vertices
+        + causality_graph.operator_non_k8s_write_vertices
+    )
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
     after_p1_spec_number = len(candidate_vertices)
     if test_context.common_config.effective_updates_pruning_enabled:
+        candidate_vertices = effective_write_filtering_pass(candidate_vertices)
         candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)
     if test_context.common_config.nondeterministic_pruning_enabled:
@@ -579,24 +598,43 @@ def intermediate_state_analysis(
     i = 0
     for vertex in candidate_vertices:
         operator_write = vertex.content
-        # TODO: Handle the case where operator_write == EVENT_NONE_TYPE
-        assert isinstance(operator_write, OperatorWrite)
 
         intermediate_state_config = intermediate_state_template(test_context)
-        intermediate_state_config["se-name"] = operator_write.name
-        intermediate_state_config["se-namespace"] = operator_write.namespace
-        intermediate_state_config["se-rtype"] = operator_write.rtype
-        intermediate_state_config["se-reconciler-type"] = operator_write.reconciler_type
-        intermediate_state_config["se-etype-previous"] = operator_write.prev_etype
-        intermediate_state_config["se-etype-current"] = operator_write.etype
-        prev_diff, cur_diff = state_diff_or_empty(operator_write)
-        intermediate_state_config["se-diff-previous"] = json.dumps(
-            prev_diff, sort_keys=True
-        )
-        intermediate_state_config["se-diff-current"] = json.dumps(
-            cur_diff, sort_keys=True
-        )
-        intermediate_state_config["se-counter"] = str(operator_write.signature_counter)
+        if isinstance(operator_write, OperatorWrite):
+            intermediate_state_config["se-name"] = operator_write.name
+            intermediate_state_config["se-namespace"] = operator_write.namespace
+            intermediate_state_config["se-rtype"] = operator_write.rtype
+            intermediate_state_config[
+                "se-reconciler-type"
+            ] = operator_write.reconciler_type
+            intermediate_state_config["se-etype-previous"] = operator_write.prev_etype
+            intermediate_state_config["se-etype-current"] = operator_write.etype
+            prev_diff, cur_diff = state_diff_or_empty(operator_write)
+            intermediate_state_config["se-diff-previous"] = json.dumps(
+                prev_diff, sort_keys=True
+            )
+            intermediate_state_config["se-diff-current"] = json.dumps(
+                cur_diff, sort_keys=True
+            )
+            intermediate_state_config["se-counter"] = str(
+                operator_write.signature_counter
+            )
+        else:
+            assert isinstance(operator_write, OperatorNonK8sWrite)
+            # TODO: We need a better handling for non k8s event
+            intermediate_state_config["se-name"] = operator_write.fun_name
+            intermediate_state_config["se-namespace"] = "default"
+            intermediate_state_config["se-rtype"] = operator_write.recv_type
+            intermediate_state_config[
+                "se-reconciler-type"
+            ] = operator_write.reconciler_type
+            intermediate_state_config["se-etype-previous"] = ""
+            intermediate_state_config["se-etype-current"] = NON_K8S_WRITE
+            intermediate_state_config["se-diff-previous"] = json.dumps({})
+            intermediate_state_config["se-diff-current"] = json.dumps({})
+            intermediate_state_config["se-counter"] = str(
+                operator_write.signature_counter
+            )
 
         i += 1
         file_name = os.path.join(

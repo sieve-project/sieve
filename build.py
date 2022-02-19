@@ -6,6 +6,7 @@ from sieve_common.common import (
 )
 import os
 import optparse
+import json
 from sieve_common.default_config import (
     CommonConfig,
     get_controller_config,
@@ -65,11 +66,15 @@ def install_lib_for_kubernetes(version):
 
 def instrument_kubernetes(mode):
     os.chdir("sieve_instrumentation")
+    instrumentation_config = {
+        "project": "kubernetes",
+        "mode": mode,
+        "k8s_filepath": "%s/fakegopath/src/k8s.io/kubernetes" % (ORIGINAL_DIR),
+    }
+    json.dump(instrumentation_config, open("config.json", "w"), indent=4)
+    cmd_early_exit("go mod tidy")
     cmd_early_exit("go build")
-    cmd_early_exit(
-        "./instrumentation kubernetes %s %s/fakegopath/src/k8s.io/kubernetes"
-        % (mode, ORIGINAL_DIR)
-    )
+    cmd_early_exit("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -136,7 +141,7 @@ def install_lib_for_controller(
     common_config: CommonConfig, controller_config: ControllerConfig
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
-    # download controller_runtime and client_go libs
+    # download controller_runtime
     cmd_early_exit(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
         % controller_config.controller_runtime_version
@@ -157,6 +162,7 @@ def install_lib_for_controller(
             controller_config.controller_runtime_version,
         )
     )
+    # download client_go
     cmd_early_exit(
         "go mod download k8s.io/client-go@%s >> /dev/null"
         % controller_config.client_go_version
@@ -187,6 +193,33 @@ def install_lib_for_controller(
             "%s/sieve-dependency/src/sieve.client/go.mod" % application_dir,
             controller_config.apimachinery_version,
         )
+    # download the other dependencies
+    downloaded_module = set()
+    for api_to_instrument in controller_config.apis_to_instrument:
+        module = api_to_instrument["module"]
+        if module in downloaded_module:
+            continue
+        downloaded_module.add(module)
+        cmd_early_exit("go mod download %s >> /dev/null" % module)
+        cmd_early_exit(
+            "mkdir -p %s/sieve-dependency/src/%s"
+            % (application_dir, os.path.dirname(module))
+        )
+        cmd_early_exit(
+            "cp -r ${GOPATH}/pkg/mod/%s %s/sieve-dependency/src/%s"
+            % (
+                module,
+                application_dir,
+                module,
+            )
+        )
+        cmd_early_exit(
+            "chmod -R +w %s/sieve-dependency/src/%s"
+            % (
+                application_dir,
+                module,
+            )
+        )
 
     os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
@@ -208,6 +241,18 @@ def install_lib_for_controller(
             "replace k8s.io/client-go => ./sieve-dependency/src/k8s.io/client-go@%s\n"
             % controller_config.client_go_version
         )
+        added_module = set()
+        for api_to_instrument in controller_config.apis_to_instrument:
+            module = api_to_instrument["module"]
+            if module in added_module:
+                continue
+            added_module.add(module)
+            go_mod_file.write(
+                "replace %s => ./sieve-dependency/src/%s\n"
+                % (module.split("@")[0], module)
+            )
+
+    # TODO: do we need to modify go.mod in controller-runtime and client-go?
     with open(
         "%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s/go.mod"
         % (
@@ -261,20 +306,28 @@ def instrument_controller(
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
-    cmd_early_exit("go build")
-    cmd_early_exit(
-        "./instrumentation %s %s %s/%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s %s/%s/sieve-dependency/src/k8s.io/client-go@%s"
+    instrumentation_config = {
+        "project": controller_config.controller_name,
+        "mode": mode,
+        "app_file_path": "%s/%s" % (ORIGINAL_DIR, application_dir),
+        "controller_runtime_filepath": "%s/%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
         % (
-            controller_config.controller_name,
-            mode,
             ORIGINAL_DIR,
             application_dir,
             controller_config.controller_runtime_version,
+        ),
+        "client_go_filepath": "%s/%s/sieve-dependency/src/k8s.io/client-go@%s"
+        % (
             ORIGINAL_DIR,
             application_dir,
             controller_config.client_go_version,
-        )
-    )
+        ),
+        "apis_to_instrument": controller_config.apis_to_instrument,
+    }
+    json.dump(instrumentation_config, open("config.json", "w"), indent=4)
+    cmd_early_exit("go mod tidy")
+    cmd_early_exit("go build")
+    cmd_early_exit("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
 

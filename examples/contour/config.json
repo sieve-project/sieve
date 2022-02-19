@@ -6,6 +6,16 @@
     "client_go_version": "v0.23.0",
     "dockerfile_path": "Dockerfile",
     "controller_image_name": "contour/contour:latest",
+    "apis_to_instrument": [
+        {
+            "module": "github.com/envoyproxy/go-control-plane@v0.9.10-0.20211006050637-f76d23b38f14",
+            "file_path": "envoy/service/cluster/v3/cds.pb.go",
+            "package": "clusterv3",
+            "func_name": "Send",
+            "type_name": "*clusterDiscoveryServiceStreamClustersServer"
+        }
+    ],
+    "loosen_reconciler_boundary": true,
     "test_command": "python3 examples/contour/test/test.py",
     "custom_resource_definitions": [
         "httproute",

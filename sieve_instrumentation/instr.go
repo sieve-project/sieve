@@ -2,42 +2,44 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path"
+
+	"encoding/json"
 )
 
 func instrumentKubernetesForStaleState(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-	preprocess(watchCacheGoFile)
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "StaleState", true, true)
 }
 
 func instrumentKubernetesForLearn(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-	preprocess(watchCacheGoFile)
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "Learn", true, false)
 }
 
 func instrumentKubernetesForIntmdState(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-	preprocess(watchCacheGoFile)
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "IntmdState", true, false)
 }
 
 func instrumentKubernetesForUnobsrState(k8s_filepath string) {
 	watchCacheGoFile := path.Join(k8s_filepath, "staging", "src", "k8s.io", "apiserver", "pkg", "storage", "cacher", "watch_cache.go")
 	fmt.Printf("instrumenting %s\n", watchCacheGoFile)
-	preprocess(watchCacheGoFile)
 	instrumentWatchCacheGoForAll(watchCacheGoFile, watchCacheGoFile, "UnobsrState", true, false)
 }
 
-func instrumentControllerForUnobsrState(controller_runtime_filepath string, client_go_filepath string) {
+func instrumentControllerForUnobsrState(configMap map[string]interface{}) {
+	controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
+	client_go_filepath := configMap["client_go_filepath"].(string)
+
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
-	preprocess(sharedInformerGoFile)
 	instrumentSharedInformerGoForUnobsrState(sharedInformerGoFile, sharedInformerGoFile)
 
 	informerCacheGoFile := path.Join(controller_runtime_filepath, "pkg", "cache", "informer_cache.go")
@@ -45,7 +47,11 @@ func instrumentControllerForUnobsrState(controller_runtime_filepath string, clie
 	instrumentInformerCacheGoForUnobsrState(informerCacheGoFile, informerCacheGoFile)
 }
 
-func instrumentControllerForIntmdState(controller_runtime_filepath string, client_go_filepath string) {
+func instrumentControllerForIntmdState(configMap map[string]interface{}) {
+	application_file_path := configMap["app_file_path"].(string)
+	controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
+	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
+
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)
 	instrumentSplitGoForAll(splitGoFile, splitGoFile, "IntmdState")
@@ -53,9 +59,32 @@ func instrumentControllerForIntmdState(controller_runtime_filepath string, clien
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
 	instrumentClientGoForAll(clientGoFile, clientGoFile, "IntmdState", false)
+
+	for _, api_to_instrument := range apis_to_instrument {
+		entry := api_to_instrument.(map[string]interface{})
+		module := entry["module"].(string)
+		file_path := entry["file_path"].(string)
+		pkg := entry["package"].(string)
+		funName := entry["func_name"].(string)
+		typeName := entry["type_name"].(string)
+		customizedImportMap := map[string]string{}
+		if val, ok := entry["import_map"]; ok {
+			tempMap := val.(map[string]interface{})
+			for key, val := range tempMap {
+				customizedImportMap[key] = val.(string)
+			}
+		}
+		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, file_path)
+		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "IntmdState", customizedImportMap, false)
+	}
 }
 
-func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepath string) {
+func instrumentControllerForLearn(configMap map[string]interface{}) {
+	application_file_path := configMap["app_file_path"].(string)
+	controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
+	client_go_filepath := configMap["client_go_filepath"].(string)
+	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
+
 	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
 	instrumentControllerGoForLearn(controllerGoFile, controllerGoFile)
@@ -70,23 +99,55 @@ func instrumentControllerForLearn(controller_runtime_filepath, client_go_filepat
 
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
-	preprocess(sharedInformerGoFile)
 	instrumentSharedInformerGoForLearn(sharedInformerGoFile, sharedInformerGoFile)
+
+	for _, api_to_instrument := range apis_to_instrument {
+		entry := api_to_instrument.(map[string]interface{})
+		module := entry["module"].(string)
+		file_path := entry["file_path"].(string)
+		pkg := entry["package"].(string)
+		funName := entry["func_name"].(string)
+		typeName := entry["type_name"].(string)
+		customizedImportMap := map[string]string{}
+		if val, ok := entry["import_map"]; ok {
+			tempMap := val.(map[string]interface{})
+			for key, val := range tempMap {
+				customizedImportMap[key] = val.(string)
+			}
+		}
+		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, file_path)
+		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "Learn", customizedImportMap, true)
+	}
+}
+
+func readConfig(configPath string) map[string]interface{} {
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		log.Fatalf("Fail due to error: %v\n", err)
+	}
+	configMap := make(map[string]interface{})
+	err = json.Unmarshal([]byte(data), &configMap)
+	if err != nil {
+		log.Fatalf("Fail due to error: %v\n", err)
+	}
+	return configMap
 }
 
 func main() {
 	args := os.Args
-	project := args[1]
-	mode := args[2]
+	configMap := readConfig(args[1])
+	project := configMap["project"].(string)
+	mode := configMap["mode"].(string)
 	if project == "kubernetes" {
+		k8s_filepath := configMap["k8s_filepath"].(string)
 		if mode == STALE_STATE {
-			instrumentKubernetesForStaleState(args[3])
+			instrumentKubernetesForStaleState(k8s_filepath)
 		} else if mode == LEARN {
-			instrumentKubernetesForLearn(args[3])
+			instrumentKubernetesForLearn(k8s_filepath)
 		} else if mode == INTERMEDIATE_STATE {
-			instrumentKubernetesForIntmdState(args[3])
+			instrumentKubernetesForIntmdState(k8s_filepath)
 		} else if mode == UNOBSERVED_STATE {
-			instrumentKubernetesForUnobsrState(args[3])
+			instrumentKubernetesForUnobsrState(k8s_filepath)
 		} else if mode == VANILLA {
 
 		} else {
@@ -94,11 +155,11 @@ func main() {
 		}
 	} else {
 		if mode == LEARN {
-			instrumentControllerForLearn(args[3], args[4])
+			instrumentControllerForLearn(configMap)
 		} else if mode == UNOBSERVED_STATE {
-			instrumentControllerForUnobsrState(args[3], args[4])
+			instrumentControllerForUnobsrState(configMap)
 		} else if mode == INTERMEDIATE_STATE {
-			instrumentControllerForIntmdState(args[3], args[4])
+			instrumentControllerForIntmdState(configMap)
 		} else if mode == STALE_STATE {
 
 		} else if mode == VANILLA {

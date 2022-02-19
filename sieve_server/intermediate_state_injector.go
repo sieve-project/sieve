@@ -58,6 +58,10 @@ func (l *IntmdStateListener) NotifyIntmdStateAfterSideEffects(request *sieve.Not
 	return l.Server.NotifyIntmdStateAfterSideEffects(request, response)
 }
 
+func (l *IntmdStateListener) NotifyIntmdStateAfterNonK8sSideEffects(request *sieve.NotifyIntmdStateAfterNonK8sSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyIntmdStateAfterNonK8sSideEffects(request, response)
+}
+
 type intmdStateServer struct {
 	restarted              bool
 	frontRunner            string
@@ -142,5 +146,20 @@ func (s *intmdStateServer) NotifyIntmdStateAfterSideEffects(request *sieve.Notif
 		finishIntmdStateInjection()
 	}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
+	return nil
+}
+
+func (s *intmdStateServer) NotifyIntmdStateAfterNonK8sSideEffects(request *sieve.NotifyIntmdStateAfterNonK8sSideEffectsRequest, response *sieve.Response) error {
+	s.reconcilingMutex.Lock()
+	defer s.reconcilingMutex.Unlock()
+	log.Printf("[SIEVE-AFTER-NON-K8S-WRITE]\t%d\t%s\t%s\t%s\n", request.SideEffectID, request.ReconcilerType, request.RecvTypeName, request.FunName)
+	if s.seEtype == "NON_K8S_WRITE" && s.seName == request.FunName && s.seRtype == request.RecvTypeName {
+		if findTargetDiff(s.eventCounter, "NON_K8S_WRITE", s.seEtype, nil, nil, s.diffPrevEvent, s.diffCurEvent, s.maskedKeysSet, s.maskedPathsSet, false) {
+			log.Println("ready to crash!")
+			startIntmdStateInjection()
+			restartOperator(s.namespace, s.podLabel, s.frontRunner, "", false)
+			finishIntmdStateInjection()
+		}
+	}
 	return nil
 }

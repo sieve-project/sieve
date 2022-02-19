@@ -22,17 +22,19 @@ func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
 		log.Fatal("invalid rate-limiter-interval in config")
 	}
 	server := &learnServer{
-		rateLimitedEventCh:  make(chan notificationWrapper, 500),
-		eventID:             -1,
-		sideEffectID:        -1,
-		eventChMap:          sync.Map{},
-		sideEffectChMap:     sync.Map{},
-		reconcileChMap:      sync.Map{},
-		notificationCh:      make(chan notificationWrapper, 500),
-		ongoingReconcileCnt: 0,
-		reconcileCntMap:     map[string]int{},
-		rateLimiterEnabled:  rateLimiterEnabledFromConfig,
-		rateLimiterInterval: rateLimiterIntervalFromConfig,
+		rateLimitedEventCh:    make(chan notificationWrapper, 500),
+		eventID:               -1,
+		sideEffectID:          -1,
+		nonK8sSideEffectID:    -1,
+		eventChMap:            sync.Map{},
+		sideEffectChMap:       sync.Map{},
+		nonK8sSideEffectChMap: sync.Map{},
+		reconcileChMap:        sync.Map{},
+		notificationCh:        make(chan notificationWrapper, 500),
+		ongoingReconcileCnt:   0,
+		reconcileCntMap:       map[string]int{},
+		rateLimiterEnabled:    rateLimiterEnabledFromConfig,
+		rateLimiterInterval:   rateLimiterIntervalFromConfig,
 	}
 	listener := &LearnListener{
 		Server: server,
@@ -74,6 +76,14 @@ func (l *LearnListener) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAf
 	return l.Server.NotifyLearnAfterSideEffects(request, response)
 }
 
+func (l *LearnListener) NotifyLearnBeforeNonK8sSideEffects(request *sieve.NotifyLearnBeforeNonK8sSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnBeforeNonK8sSideEffects(request, response)
+}
+
+func (l *LearnListener) NotifyLearnAfterNonK8sSideEffects(request *sieve.NotifyLearnAfterNonK8sSideEffectsRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterNonK8sSideEffects(request, response)
+}
+
 func (l *LearnListener) NotifyLearnAfterOperatorGet(request *sieve.NotifyLearnAfterOperatorGetRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnAfterOperatorGet(request, response)
 }
@@ -89,6 +99,8 @@ const (
 	afterReconcile
 	beforeSideEffect
 	afterSideEffect
+	beforeNonK8sSideEffect
+	afterNonK8sSideEffect
 	afterRead
 	beforeEvent
 	afterEvent
@@ -100,17 +112,19 @@ type notificationWrapper struct {
 }
 
 type learnServer struct {
-	rateLimitedEventCh  chan notificationWrapper
-	eventID             int32
-	sideEffectID        int32
-	eventChMap          sync.Map
-	sideEffectChMap     sync.Map
-	reconcileChMap      sync.Map
-	notificationCh      chan notificationWrapper
-	ongoingReconcileCnt int
-	reconcileCntMap     map[string]int
-	rateLimiterEnabled  bool
-	rateLimiterInterval int64
+	rateLimitedEventCh    chan notificationWrapper
+	eventID               int32
+	sideEffectID          int32
+	nonK8sSideEffectID    int32
+	eventChMap            sync.Map
+	sideEffectChMap       sync.Map
+	nonK8sSideEffectChMap sync.Map
+	reconcileChMap        sync.Map
+	notificationCh        chan notificationWrapper
+	ongoingReconcileCnt   int
+	reconcileCntMap       map[string]int
+	rateLimiterEnabled    bool
+	rateLimiterInterval   int64
 }
 
 func (s *learnServer) Start() {
@@ -169,7 +183,7 @@ func (s *learnServer) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBef
 	sID := atomic.AddInt32(&s.sideEffectID, 1)
 	waitingCh := make(chan int32)
 	s.sideEffectChMap.Store(fmt.Sprint(sID), waitingCh)
-	s.notificationCh <- notificationWrapper{ntype: beforeSideEffect, payload: fmt.Sprintf("%d", sID)}
+	s.notificationCh <- notificationWrapper{ntype: beforeSideEffect, payload: fmt.Sprint(sID)}
 	<-waitingCh
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true, Number: int(sID)}
 	return nil
@@ -178,6 +192,22 @@ func (s *learnServer) NotifyLearnBeforeSideEffects(request *sieve.NotifyLearnBef
 func (s *learnServer) NotifyLearnAfterSideEffects(request *sieve.NotifyLearnAfterSideEffectsRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: afterSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ResourceType, request.ReconcilerType, request.Error, request.Object)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
+	return nil
+}
+
+func (s *learnServer) NotifyLearnBeforeNonK8sSideEffects(request *sieve.NotifyLearnBeforeNonK8sSideEffectsRequest, response *sieve.Response) error {
+	sID := atomic.AddInt32(&s.nonK8sSideEffectID, 1)
+	waitingCh := make(chan int32)
+	s.nonK8sSideEffectChMap.Store(fmt.Sprint(sID), waitingCh)
+	s.notificationCh <- notificationWrapper{ntype: beforeNonK8sSideEffect, payload: fmt.Sprint(sID)}
+	<-waitingCh
+	*response = sieve.Response{Message: request.FunName, Ok: true, Number: int(sID)}
+	return nil
+}
+
+func (s *learnServer) NotifyLearnAfterNonK8sSideEffects(request *sieve.NotifyLearnAfterNonK8sSideEffectsRequest, response *sieve.Response) error {
+	s.notificationCh <- notificationWrapper{ntype: afterNonK8sSideEffect, payload: fmt.Sprintf("%d\t%s\t%s\t%s", request.SideEffectID, request.RecvTypeName, request.FunName, request.ReconcilerType)}
+	*response = sieve.Response{Message: request.FunName, Ok: true}
 	return nil
 }
 
@@ -227,8 +257,7 @@ func (s *learnServer) coordinatingEvents() {
 				}
 				log.Printf("[SIEVE-AFTER-RECONCILE]\t%s\t%d\n", nw.payload, s.reconcileCntMap[nw.payload])
 			case beforeSideEffect:
-				sideEffectID := strings.Split(nw.payload, "\t")[0]
-				if obj, ok := s.sideEffectChMap.Load(sideEffectID); ok {
+				if obj, ok := s.sideEffectChMap.Load(nw.payload); ok {
 					log.Printf("[SIEVE-BEFORE-WRITE]\t%s\n", nw.payload)
 					ch := obj.(chan int32)
 					ch <- 0
@@ -237,6 +266,16 @@ func (s *learnServer) coordinatingEvents() {
 				}
 			case afterSideEffect:
 				log.Printf("[SIEVE-AFTER-WRITE]\t%s\n", nw.payload)
+			case beforeNonK8sSideEffect:
+				if obj, ok := s.nonK8sSideEffectChMap.Load(nw.payload); ok {
+					log.Printf("[SIEVE-BEFORE-NON-K8S-WRITE]\t%s\n", nw.payload)
+					ch := obj.(chan int32)
+					ch <- 0
+				} else {
+					log.Fatal("invalid object in eventChMap")
+				}
+			case afterNonK8sSideEffect:
+				log.Printf("[SIEVE-AFTER-NON-K8S-WRITE]\t%s\n", nw.payload)
 			case beforeEvent:
 				if !s.rateLimiterEnabled {
 					eventID := strings.Split(nw.payload, "\t")[0]

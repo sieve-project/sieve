@@ -398,7 +398,10 @@ func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType str
 	if onlineCurEventType != targetCurEventType {
 		return false
 	} else {
-		if isCreationOrDeletion(targetCurEventType) {
+		if targetCurEventType == "NON_K8S_WRITE" {
+			seenTargetCounter += 1
+			log.Printf("Find the target non k8s write with counter: %d\n", seenTargetCounter)
+		} else if isCreationOrDeletion(targetCurEventType) {
 			seenTargetCounter += 1
 			log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
 		} else {
