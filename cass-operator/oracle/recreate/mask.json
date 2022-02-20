@@ -59,7 +59,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"cf6fcdca-2226-4f7e-83af-9e2871cd8bf8\"}"
+            "k:{\"uid\":\"341a9f9d-8233-4d11-a37d-32f65c12a9f9\"}"
         ],
         [
             "metadata",
@@ -140,7 +140,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"dda9e893-2dd3-4063-8ac6-b004f4862852\"}"
+            "k:{\"uid\":\"3725db92-b844-4481-b79a-c8ba50da98e8\"}"
         ],
         [
             "metadata",
@@ -263,6 +263,13 @@
             "*",
             "addresses",
             "*",
+            "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
             "targetRef",
             "name"
         ],
@@ -313,6 +320,13 @@
             "addresses",
             "*",
             "iP"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "nodeName"
         ],
         [
             "subsets",
@@ -375,6 +389,13 @@
             "*",
             "addresses",
             "*",
+            "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
             "targetRef",
             "resourceVersion"
         ],
@@ -417,6 +438,13 @@
             "addresses",
             "*",
             "iP"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "nodeName"
         ],
         [
             "subsets",
@@ -471,6 +499,13 @@
             "*",
             "addresses",
             "*",
+            "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
             "targetRef",
             "resourceVersion"
         ],
@@ -511,6 +546,11 @@
     "persistentvolumeclaim/default/server-data-cluster1-cassandra-datacenter-default-sts-0": [
         [
             "metadata",
+            "annotations",
+            "volume.kubernetes.io/selected-node"
+        ],
+        [
+            "metadata",
             "creationTimestamp"
         ],
         [
@@ -544,7 +584,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"dda9e893-2dd3-4063-8ac6-b004f4862852\"}"
+            "k:{\"uid\":\"3725db92-b844-4481-b79a-c8ba50da98e8\"}"
         ],
         [
             "metadata",
@@ -553,7 +593,7 @@
             "fieldsV1",
             "f:status",
             "f:podIPs",
-            "k:{\"ip\":\"10.244.1.3\"}"
+            "k:{\"ip\":\"10.244.2.6\"}"
         ],
         [
             "metadata",
@@ -590,6 +630,10 @@
             "volumeMounts",
             "*",
             "name"
+        ],
+        [
+            "spec",
+            "nodeName"
         ],
         [
             "spec",
@@ -681,7 +725,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00ef4c62-3d5d-4a78-8bad-831e80b7f8aa\"}"
+            "k:{\"uid\":\"f5b291e7-e228-4959-a16b-d2503b5ec462\"}"
         ],
         [
             "metadata",
@@ -716,7 +760,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"3f542b54-0014-46e3-a5cb-86bbd52abee8\"}"
+            "k:{\"uid\":\"008a5b21-ab9c-47da-a01f-81f0b0b844da\"}"
         ],
         [
             "metadata",
@@ -751,7 +795,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"c3fc0bd5-0fbe-4908-9ffb-41d39ce6e664\"}"
+            "k:{\"uid\":\"bd05437d-03f0-4d3c-ac24-f3a849c55a9a\"}"
         ],
         [
             "metadata",
@@ -930,7 +974,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"3f542b54-0014-46e3-a5cb-86bbd52abee8\"}"
+            "k:{\"uid\":\"008a5b21-ab9c-47da-a01f-81f0b0b844da\"}"
         ],
         [
             "metadata",
@@ -993,7 +1037,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00ef4c62-3d5d-4a78-8bad-831e80b7f8aa\"}"
+            "k:{\"uid\":\"f5b291e7-e228-4959-a16b-d2503b5ec462\"}"
         ],
         [
             "metadata",
@@ -1028,7 +1072,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00ef4c62-3d5d-4a78-8bad-831e80b7f8aa\"}"
+            "k:{\"uid\":\"f5b291e7-e228-4959-a16b-d2503b5ec462\"}"
         ],
         [
             "metadata",
@@ -1063,7 +1107,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00ef4c62-3d5d-4a78-8bad-831e80b7f8aa\"}"
+            "k:{\"uid\":\"f5b291e7-e228-4959-a16b-d2503b5ec462\"}"
         ],
         [
             "metadata",
@@ -1096,20 +1140,8 @@
             "managedFields",
             "*",
             "fieldsV1",
-            "f:metadata"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:secrets"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "manager"
+            "f:secrets",
+            "k:{\"name\":\"cass-operator-token-s8hvx\"}"
         ],
         [
             "metadata",
@@ -1142,7 +1174,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"local-path-provisioner-service-account-token-cjf4t\"}"
+            "k:{\"name\":\"local-path-provisioner-service-account-token-v62g7\"}"
         ],
         [
             "metadata",
@@ -1176,7 +1208,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"00ef4c62-3d5d-4a78-8bad-831e80b7f8aa\"}"
+            "k:{\"uid\":\"f5b291e7-e228-4959-a16b-d2503b5ec462\"}"
         ],
         [
             "metadata",
