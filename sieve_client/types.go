@@ -164,3 +164,35 @@ type NotifyIntmdStateAfterOperatorListRequest struct {
 	ReconcilerType string
 	Error          string
 }
+
+type NotifyTestBeforeControllerRecvRequest struct {
+	OperationType string
+	ResourceKey   string
+	Object        string
+}
+
+type NotifyTestAfterControllerRecvRequest struct {
+	OperationType string
+	ResourceKey   string
+	Object        string
+}
+
+type NotifyTestAfterControllerGetRequest struct {
+	ResourceKey    string
+	ReconcilerType string
+	Object         string
+}
+
+type NotifyTestAfterControllerListRequest struct {
+	ResourceType   string
+	ReconcilerType string
+	ObjectList     string
+}
+
+type NotifyTestAfterControllerWriteRequest struct {
+	writeID        int
+	writeType      string
+	ResourceKey    string
+	ReconcilerType string
+	Object         string
+}

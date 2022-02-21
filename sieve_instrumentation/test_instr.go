@@ -6,29 +6,29 @@ import (
 	"github.com/dave/dst"
 )
 
-func instrumentSharedInformerGoForUnobsrState(ifilepath, ofilepath string) {
+func instrumentSharedInformerGoForTest(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache", map[string]string{})
 	_, funcDecl := findFuncDecl(f, "HandleDeltas", "*sharedIndexInformer")
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
-				instrNotifyUnobsrStateBeforeIndexerWrite := &dst.ExprStmt{
+				instrNotifyTestBeforeIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyUnobsrStateBeforeIndexerWrite", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyTestBeforeControllerRecv", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyUnobsrStateBeforeIndexerWrite.Decs.End.Append("//sieve")
-				insertStmt(&rangeStmt.Body.List, 0, instrNotifyUnobsrStateBeforeIndexerWrite)
+				instrNotifyTestBeforeIndexerWrite.Decs.End.Append("//sieve")
+				insertStmt(&rangeStmt.Body.List, 0, instrNotifyTestBeforeIndexerWrite)
 
-				instrNotifyUnobsrStateAfterIndexerWrite := &dst.ExprStmt{
+				instrNotifyTestAfterIndexerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyUnobsrStateAfterIndexerWrite", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyTestAfterControllerRecv", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyUnobsrStateAfterIndexerWrite.Decs.End.Append("//sieve")
-				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyUnobsrStateAfterIndexerWrite)
+				instrNotifyTestAfterIndexerWrite.Decs.End.Append("//sieve")
+				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyTestAfterIndexerWrite)
 
 				break
 			}
@@ -39,11 +39,11 @@ func instrumentSharedInformerGoForUnobsrState(ifilepath, ofilepath string) {
 	}
 }
 
-func instrumentInformerCacheGoForUnobsrState(ifilepath, ofilepath string) {
+func instrumentInformerCacheGoForTest(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache", map[string]string{})
 
-	instrumentInformerCacheRead(f, "Get", "UnobsrState")
-	instrumentInformerCacheRead(f, "List", "UnobsrState")
+	instrumentInformerCacheRead(f, "Get", "Test")
+	instrumentInformerCacheRead(f, "List", "Test")
 
 	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 }

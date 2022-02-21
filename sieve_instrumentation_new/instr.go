@@ -28,10 +28,6 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 	client_go_filepath := configMap["client_go_filepath"].(string)
 	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
 
-	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
-	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
-	instrumentSharedInformerGoForLearn(sharedInformerGoFile, sharedInformerGoFile)
-
 	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
 	instrumentControllerGoForLearn(controllerGoFile, controllerGoFile)
@@ -43,6 +39,14 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)
 	instrumentSplitGoForAll(splitGoFile, splitGoFile, "Learn")
+
+	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
+	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
+	instrumentSharedInformerGoForTest(sharedInformerGoFile, sharedInformerGoFile)
+
+	informerCacheGoFile := path.Join(controller_runtime_filepath, "pkg", "cache", "informer_cache.go")
+	fmt.Printf("instrumenting %s\n", informerCacheGoFile)
+	instrumentInformerCacheGoForTest(informerCacheGoFile, informerCacheGoFile)
 
 	for _, api_to_instrument := range apis_to_instrument {
 		entry := api_to_instrument.(map[string]interface{})
@@ -71,7 +75,7 @@ func instrumentControllerForTest(configMap map[string]interface{}) {
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "Test", false)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "Test", true)
 
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)
@@ -79,11 +83,7 @@ func instrumentControllerForTest(configMap map[string]interface{}) {
 
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
-	instrumentSharedInformerGoForTest(sharedInformerGoFile, sharedInformerGoFile)
-
-	// informerCacheGoFile := path.Join(controller_runtime_filepath, "pkg", "cache", "informer_cache.go")
-	// fmt.Printf("instrumenting %s\n", informerCacheGoFile)
-	// instrumentInformerCacheGoForTest(informerCacheGoFile, informerCacheGoFile)
+	instrumentSharedInformerGoForLearn(sharedInformerGoFile, sharedInformerGoFile)
 
 	for _, api_to_instrument := range apis_to_instrument {
 		entry := api_to_instrument.(map[string]interface{})

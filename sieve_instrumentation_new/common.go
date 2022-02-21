@@ -114,7 +114,7 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportM
 func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, pkg, customizedImportMap)
 	_, funcDecl := findFuncDecl(f, funName, recvTypeName)
-	toCallAfter := "Notify" + mode + "AfterNonK8sControllerWrite"
+	toCallAfter := "Notify" + mode + "AfterNonK8sSideEffects"
 
 	sideEffectIDVar := "-1"
 	if instrumentBefore {
@@ -133,7 +133,7 @@ func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode 
 
 	// Instrument before side effect
 	if instrumentBefore {
-		toCallBefore := "Notify" + mode + "BeforeNonK8sControllerWrite"
+		toCallBefore := "Notify" + mode + "BeforeNonK8sSideEffects"
 		instrBeforeSideEffect := &dst.AssignStmt{
 			Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
 			Rhs: []dst.Expr{&dst.CallExpr{
@@ -168,8 +168,8 @@ func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefor
 }
 
 func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool, recvTypeName string) {
-	funNameBefore := "Notify" + mode + "BeforeControllerWrite"
-	funNameAfter := "Notify" + mode + "AfterControllerWrite"
+	funNameBefore := "Notify" + mode + "BeforeSideEffects"
+	funNameAfter := "Notify" + mode + "AfterSideEffects"
 	_, funcDecl := findFuncDecl(f, etype, recvTypeName)
 	writeName := etype
 	if recvTypeName == "*statusWriter" {
@@ -277,7 +277,7 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 }
 
 func instrumentClientRead(f *dst.File, etype, mode string) {
-	funName := "Notify" + mode + "AfterController" + etype
+	funName := "Notify" + mode + "AfterOperator" + etype
 	_, funcDecl := findFuncDecl(f, etype, "*client")
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
@@ -386,7 +386,7 @@ func instrumentSplitGoForAll(ifilepath, ofilepath, mode string) {
 }
 
 func instrumentCacheRead(f *dst.File, etype, mode string) {
-	funName := "Notify" + mode + "AfterController" + etype
+	funName := "Notify" + mode + "AfterOperator" + etype
 	_, funcDecl := findFuncDecl(f, etype, "*delegatingReader")
 	if funcDecl == nil {
 		// support older version controller-runtime
@@ -441,8 +441,8 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentBefore, instrumentAfter bool) {
 	f := parseSourceFile(ifilepath, "cacher", map[string]string{})
 
-	funNameBefore := "Notify" + mode + "BeforeAPIServerRecv"
-	funNameAfter := "Notify" + mode + "AfterAPIServerRecv"
+	funNameBefore := "Notify" + mode + "BeforeProcessEvent"
+	funNameAfter := "Notify" + mode + "AfterProcessEvent"
 
 	// TODO: do not hardcode the instrumentationIndex
 	instrumentationIndex := 5
