@@ -14,8 +14,8 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
 	}
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
-	resourcekey := generateResourceKey(resourceType, namespace, name)
-	if _, ok := watchSet[resourcekey]; !ok {
+	resourceKey := generateResourceKey(resourceType, namespace, name)
+	if !checkKVPairInTriggerCondition(resourceKey, "triggerType", "beforeControllerRecv", false) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
@@ -23,26 +23,26 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-	log.Printf("NotifyTestBeforeControllerRecv %s %s %s\n", operationType, resourcekey, string(jsonObject))
-	// client, err := newClient()
-	// if err != nil {
-	// 	printError(err, SIEVE_CONN_ERR)
-	// 	return
-	// }
-	// defer client.Close()
-	// request := &NotifyTestBeforeControllerRecvRequest{
-	// 	OperationType: operationType,
-	// 	ResourceKey:   resourcekey,
-	// 	Object:        string(jsonObject),
-	// }
-	// var response Response
-	// err = client.Call("TestListener.NotifyTestBeforeControllerRecv", request, &response)
-	// if err != nil {
-	// 	printError(err, SIEVE_REPLY_ERR)
-	// 	return
-	// }
-	// checkResponse(response, "NotifyTestBeforeControllerRecv")
-	// client.Close()
+	log.Printf("NotifyTestBeforeControllerRecv %s %s %s\n", operationType, resourceKey, string(jsonObject))
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	defer client.Close()
+	request := &NotifyTestBeforeControllerRecvRequest{
+		OperationType: operationType,
+		ResourceKey:   resourceKey,
+		Object:        string(jsonObject),
+	}
+	var response Response
+	err = client.Call("TestCoordinator.NotifyTestBeforeControllerRecv", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestBeforeControllerRecv")
+	client.Close()
 }
 
 func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
@@ -51,8 +51,8 @@ func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
 	}
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
-	resourcekey := generateResourceKey(resourceType, namespace, name)
-	if _, ok := watchSet[resourcekey]; !ok {
+	resourceKey := generateResourceKey(resourceType, namespace, name)
+	if !checkKVPairInTriggerCondition(resourceKey, "triggerType", "afterControllerRecv", false) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
@@ -60,26 +60,26 @@ func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-	log.Printf("NotifyTestAfterControllerRecv %s %s %s\n", operationType, resourcekey, string(jsonObject))
-	// client, err := newClient()
-	// if err != nil {
-	// 	printError(err, SIEVE_CONN_ERR)
-	// 	return
-	// }
-	// defer client.Close()
-	// request := &NotifyTestAfterControllerRecvRequest{
-	// 	OperationType: operationType,
-	// 	ResourceKey:   resourcekey,
-	// 	Object:        string(jsonObject),
-	// }
-	// var response Response
-	// err = client.Call("TestListener.NotifyTestAfterControllerRecv", request, &response)
-	// if err != nil {
-	// 	printError(err, SIEVE_REPLY_ERR)
-	// 	return
-	// }
-	// checkResponse(response, "NotifyTestAfterControllerRecv")
-	// client.Close()
+	log.Printf("NotifyTestAfterControllerRecv %s %s %s\n", operationType, resourceKey, string(jsonObject))
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	defer client.Close()
+	request := &NotifyTestAfterControllerRecvRequest{
+		OperationType: operationType,
+		ResourceKey:   resourceKey,
+		Object:        string(jsonObject),
+	}
+	var response Response
+	err = client.Call("TestCoordinator.NotifyTestAfterControllerRecv", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestAfterControllerRecv")
+	client.Close()
 }
 
 func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
@@ -89,10 +89,10 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 	if k8sErr != nil {
 		return
 	}
-	// reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getReconcilerFromStackTrace()
 	resourceType := regularizeType(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	if _, ok := watchSet[resourceKey]; !ok {
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
@@ -101,24 +101,24 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceKey, string(jsonObject))
-	// client, err := newClient()
-	// if err != nil {
-	// 	printError(err, SIEVE_CONN_ERR)
-	// 	return
-	// }
-	// defer client.Close()
-	// request := &NotifyTestAfterControllerGetRequest{
-	// 	ResourceKey:    resourceKey,
-	// 	ReconcilerType: reconcilerType,
-	// 	Object:         string(jsonObject),
-	// }
-	// var response Response
-	// err = client.Call("TestListener.NotifyTestAfterControllerGet", request, &response)
-	// if err != nil {
-	// 	printError(err, SIEVE_REPLY_ERR)
-	// 	return
-	// }
-	// checkResponse(response, "NotifyTestAfterControllerGet")
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	defer client.Close()
+	request := &NotifyTestAfterControllerGetRequest{
+		ResourceKey:    resourceKey,
+		ReconcilerType: reconcilerType,
+		Object:         string(jsonObject),
+	}
+	var response Response
+	err = client.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestAfterControllerGet")
 }
 
 func NotifyTestAfterControllerList(readType string, fromCache bool, object interface{}, k8sErr error) {
@@ -128,15 +128,9 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	if k8sErr != nil {
 		return
 	}
-	// reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getReconcilerFromStackTrace()
 	resourceType := regularizeType(object)
-	skip := false
-	for key := range watchSet {
-		if strings.HasPrefix(key, resourceType+"/") {
-			skip = true
-		}
-	}
-	if skip {
+	if !checkKVPairInTriggerObservationPoint(resourceType, "by", reconcilerType, true) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
@@ -145,24 +139,24 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceType, string(jsonObject))
-	// client, err := newClient()
-	// if err != nil {
-	// 	printError(err, SIEVE_CONN_ERR)
-	// 	return
-	// }
-	// defer client.Close()
-	// request := &NotifyTestAfterControllerListRequest{
-	// 	ResourceType:   resourceType,
-	// 	ReconcilerType: reconcilerType,
-	// 	ObjectList:     string(jsonObject),
-	// }
-	// var response Response
-	// err = client.Call("TestListener.NotifyTestAfterControllerList", request, &response)
-	// if err != nil {
-	// 	printError(err, SIEVE_REPLY_ERR)
-	// 	return
-	// }
-	// checkResponse(response, "NotifyTestAfterControllerList")
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	defer client.Close()
+	request := &NotifyTestAfterControllerListRequest{
+		ResourceType:   resourceType,
+		ReconcilerType: reconcilerType,
+		ObjectList:     string(jsonObject),
+	}
+	var response Response
+	err = client.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestAfterControllerList")
 }
 
 func NotifyTestAfterControllerWrite(writeID int, writeType string, object interface{}, k8sErr error) {
@@ -172,11 +166,11 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 	if k8sErr != nil {
 		return
 	}
-	// reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getReconcilerFromStackTrace()
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
-	if _, ok := watchSet[resourceKey]; !ok {
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
@@ -185,26 +179,26 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 		return
 	}
 	log.Printf("NotifyTestAfterControllerWrite %s %s %s\n", writeType, resourceKey, string(jsonObject))
-	// client, err := newClient()
-	// if err != nil {
-	// 	printError(err, SIEVE_CONN_ERR)
-	// 	return
-	// }
-	// defer client.Close()
-	// request := &NotifyTestAfterControllerWriteRequest{
-	// 	writeID:        writeID,
-	// 	writeType:      writeType,
-	// 	ResourceKey:    resourceKey,
-	// 	ReconcilerType: reconcilerType,
-	// 	Object:         string(jsonObject),
-	// }
-	// var response Response
-	// err = client.Call("TestListener.NotifyTestAfterControllerWrite", request, &response)
-	// if err != nil {
-	// 	printError(err, SIEVE_REPLY_ERR)
-	// 	return
-	// }
-	// checkResponse(response, "NotifyTestAfterControllerWrite")
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	defer client.Close()
+	request := &NotifyTestAfterControllerWriteRequest{
+		writeID:        writeID,
+		writeType:      writeType,
+		ResourceKey:    resourceKey,
+		ReconcilerType: reconcilerType,
+		Object:         string(jsonObject),
+	}
+	var response Response
+	err = client.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestAfterControllerWrite")
 }
 
 func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {

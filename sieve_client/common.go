@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"runtime/debug"
 	"strings"
-	"sync"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -33,45 +32,92 @@ const SIEVE_JSON_ERR string = "[SIEVE JSON ERR]"
 const SIEVE_CONFIG_ERR string = "[SIEVE CONFIG ERR]"
 
 var config map[string]interface{} = nil
-var watchSet map[string]struct{} = make(map[string]struct{})
-var exists = struct{}{}
+var triggerDefinitions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
 
-var taintMap sync.Map = sync.Map{}
+// var exists = struct{}{}
 
-func loadwatchSetFromTrigger(trigger map[interface{}]interface{}) error {
-	triggerTopology, ok := trigger["triggerTopology"].(string)
-	if !ok {
-		return fmt.Errorf("cannot convert trigger[\"triggerTopology\"] to string")
+// var taintMap sync.Map = sync.Map{}
+
+func checkKVPairInTriggerContent(content map[interface{}]interface{}, key, val string) bool {
+	if valInTestPlan, ok := content[key]; ok {
+		if valInTestPlanStr, ok := valInTestPlan.(string); ok {
+			if val == valInTestPlanStr {
+				return true
+			}
+		}
 	}
-	switch triggerTopology {
-	case "single":
-		resourceKey, ok := trigger["resourceKey"].(string)
-		if !ok {
-			return fmt.Errorf("cannot convert trigger[\"resourceKey\"] to string")
-		}
-		watchSet[resourceKey] = exists
-	case "sequential", "and", "or":
-		internal, ok := trigger["internal"].([]interface{})
-		if !ok {
-			return fmt.Errorf("cannot convert trigger[\"internal\"] to []interface{}")
-		}
-		for idx, val := range internal {
-			internalTrigger, ok := val.(map[interface{}]interface{})
-			if !ok {
-				return fmt.Errorf("cannot convert trigger[\"internal\"][%d] to map[interface{}]interface{}", idx)
-			}
-			err := loadwatchSetFromTrigger(internalTrigger)
-			if err != nil {
-				return err
+	return false
+}
+
+func checkKVPairInTriggerCondition(resourceKey, key, val string, onlyMatchType bool) bool {
+	for triggerResourceKey, triggers := range triggerDefinitions {
+		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
+			for _, trigger := range triggers {
+				if triggerCondition, ok := trigger["condition"]; ok {
+					if triggerConditionMap, ok := triggerCondition.(map[interface{}]interface{}); ok {
+						if checkKVPairInTriggerContent(triggerConditionMap, key, val) {
+							return true
+						}
+					}
+				}
 			}
 		}
-	default:
-		return fmt.Errorf("wrong trigger[\"triggerTopology\"] value %s", triggerTopology)
+	}
+	return false
+}
+
+func checkKVPairInTriggerObservationPoint(resourceKey, key, val string, onlyMatchType bool) bool {
+	for triggerResourceKey, triggers := range triggerDefinitions {
+		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
+			for _, trigger := range triggers {
+				if triggerObservationPoint, ok := trigger["observationPoint"]; ok {
+					if triggerObservationPointMap, ok := triggerObservationPoint.(map[interface{}]interface{}); ok {
+						if checkKVPairInTriggerContent(triggerObservationPointMap, key, val) {
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+func internalLoadTriggerDefinitions(trigger map[interface{}]interface{}) error {
+	definitions, ok := trigger["definitions"].([]interface{})
+	if !ok {
+		return fmt.Errorf("cannot convert trigger[\"definitions\"] to []interface{}")
+	}
+	for idx, definitionRaw := range definitions {
+		definition, ok := definitionRaw.(map[interface{}]interface{})
+		if !ok {
+			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d] to map[interface{}]interface{}", idx)
+		}
+		conditionRaw, ok := definition["condition"]
+		if !ok {
+			return fmt.Errorf("cannot find condition in trigger[\"definitions\"][%d]", idx)
+		}
+		condition, ok := conditionRaw.(map[interface{}]interface{})
+		if !ok {
+			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"] to map[interface{}]interface{}", idx)
+		}
+		resourceKeyRaw, ok := condition["resourceKey"]
+		if !ok {
+			return fmt.Errorf("cannot find resourceKey in trigger[\"definitions\"][%d][\"condition\"]", idx)
+		}
+		resourceKey, ok := resourceKeyRaw.(string)
+		if !ok {
+			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"resourcekey\"] to string", idx)
+		}
+		if _, ok := triggerDefinitions[resourceKey]; !ok {
+			triggerDefinitions[resourceKey] = []map[interface{}]interface{}{}
+		}
+		triggerDefinitions[resourceKey] = append(triggerDefinitions[resourceKey], definition)
 	}
 	return nil
 }
 
-func loadwatchSet(testPlan map[string]interface{}) error {
+func loadTriggerDefinitions(testPlan map[string]interface{}) error {
 	actions, ok := testPlan["actions"].([]interface{})
 	if !ok {
 		return fmt.Errorf("cannot convert testPlan[\"actions\"] to []interface{}")
@@ -85,12 +131,12 @@ func loadwatchSet(testPlan map[string]interface{}) error {
 		if !ok {
 			return fmt.Errorf("cannot convert testPlan[\"actions\"][%d][\"trigger\"] to []interface{}", idx)
 		}
-		err := loadwatchSetFromTrigger(trigger)
+		err := internalLoadTriggerDefinitions(trigger)
 		if err != nil {
 			return err
 		}
 	}
-	log.Printf("watchSet:\n%v\n", watchSet)
+	log.Printf("triggerDefinitions:\n%v\n", triggerDefinitions)
 	return nil
 }
 
@@ -108,7 +154,7 @@ func loadSieveConfigFromEnv() error {
 		}
 		log.Printf("config from env:\n%v\n", configFromEnv)
 		config = configFromEnv
-		err = loadwatchSet(configFromEnv)
+		err = loadTriggerDefinitions(configFromEnv)
 		if err != nil {
 			printError(err, SIEVE_CONFIG_ERR)
 			return fmt.Errorf("fail to load from env")
@@ -151,7 +197,7 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) err
 			}
 			log.Printf("config from configMap:\n%v\n", configFromConfigMapData)
 			config = configFromConfigMapData
-			err = loadwatchSet(configFromConfigMapData)
+			err = loadTriggerDefinitions(configFromConfigMapData)
 			if err != nil {
 				printError(err, SIEVE_CONFIG_ERR)
 				return fmt.Errorf("fail to load from configmap")
