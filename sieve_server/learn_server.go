@@ -12,7 +12,8 @@ import (
 	sieve "sieve.client"
 )
 
-func NewLearnListener(config map[interface{}]interface{}) *LearnListener {
+func NewLearnListener() *LearnListener {
+	config := getConfig()
 	rateLimiterEnabledFromConfig, err := strconv.ParseBool(config["rate-limiter-enabled"].(string))
 	if err != nil {
 		log.Fatal("invalid rate-limiter-enabled in config")

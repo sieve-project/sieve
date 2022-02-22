@@ -65,6 +65,40 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 	return learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask
 }
 
+func getMergedMask() (map[string]map[string]struct{}, map[string]map[string]struct{}) {
+	learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask := getMask()
+	mergedFieldPathMask := make(map[string]map[string]struct{})
+	mergedFieldKeyMask := make(map[string]map[string]struct{})
+	for key, val := range learnedFieldPathMask {
+		if _, ok := mergedFieldPathMask[key]; !ok {
+			mergedFieldPathMask[key] = map[string]struct{}{}
+		}
+		for _, item := range val {
+			maskedPath := strings.Join(item, "/")
+			mergedFieldPathMask[key][maskedPath] = exists
+		}
+	}
+	for key, val := range configuredFieldPathMask {
+		if _, ok := mergedFieldPathMask[key]; !ok {
+			mergedFieldPathMask[key] = map[string]struct{}{}
+		}
+		for _, item := range val {
+			maskedPath := strings.Join(item, "/")
+			mergedFieldPathMask[key][maskedPath] = exists
+		}
+	}
+	for key, val := range configuredFieldKeyMask {
+		if _, ok := mergedFieldKeyMask[key]; !ok {
+			mergedFieldKeyMask[key] = map[string]struct{}{}
+		}
+		for _, item := range val {
+			maskedKey := item[0]
+			mergedFieldKeyMask[key][maskedKey] = exists
+		}
+	}
+	return mergedFieldPathMask, mergedFieldKeyMask
+}
+
 func getMaskByKey(maskMap map[string][][]string, resourceType, namespace, name string) []string {
 	var maskList []string
 	for key := range maskMap {
