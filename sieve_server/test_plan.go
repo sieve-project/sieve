@@ -105,7 +105,7 @@ func (rca *RestartControllerAction) getTriggerDefinitions() map[string]TriggerDe
 
 func (rca *RestartControllerAction) run(actionConext *ActionContext) {
 	log.Println("run the RestartControllerAction")
-	restartOperator(actionConext.namespace, rca.controllerLabel, actionConext.leadingAPIServer, actionConext.followingAPIServer, false)
+	restartControllerHelper(actionConext.namespace, rca.controllerLabel, actionConext.leadingAPIServer)
 }
 
 type TestPlan struct {

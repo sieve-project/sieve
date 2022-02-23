@@ -278,13 +278,13 @@ func isSameObjectServerSide(currentEvent map[string]interface{}, namespace strin
 	return extractedNamespace == namespace && extractedName == name
 }
 
-func waitForPodTermination(namespace, podLabel, leadingAPI string) {
+func waitForPodTermination(namespace, controllerLabel, leadingAPI string) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": controllerLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
@@ -301,13 +301,13 @@ func waitForPodTermination(namespace, podLabel, leadingAPI string) {
 	}
 }
 
-func waitForPodRunning(namespace, podLabel, leadingAPI string) {
+func waitForPodRunning(namespace, controllerLabel, leadingAPI string) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": controllerLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
@@ -334,14 +334,18 @@ func waitForPodRunning(namespace, podLabel, leadingAPI string) {
 	}
 }
 
-func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redirect bool) {
+func restartControllerHelper(namespace, controllerLabel, leadingAPI string) {
+	reconnectControllerHelper(namespace, controllerLabel, leadingAPI, "", false)
+}
+
+func reconnectControllerHelper(namespace, controllerLabel, leadingAPI, followingAPI string, redirect bool) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
 
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": controllerLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
@@ -379,7 +383,7 @@ func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redir
 		log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
 		clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
 
-		waitForPodTermination(namespace, podLabel, leadingAPI)
+		waitForPodTermination(namespace, controllerLabel, leadingAPI)
 
 		newDeployment := &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
@@ -406,14 +410,14 @@ func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redir
 		checkError(err)
 		log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
 
-		waitForPodRunning(namespace, podLabel, leadingAPI)
+		waitForPodRunning(namespace, controllerLabel, leadingAPI)
 	} else {
 		statefulset, err := clientset.AppsV1().StatefulSets(namespace).Get(context.TODO(), operatorOwnerName, metav1.GetOptions{})
 		checkError(err)
 		log.Println(statefulset.Spec.Template.Spec.Containers[0].Env)
 		clientset.AppsV1().StatefulSets(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
 
-		waitForPodTermination(namespace, podLabel, leadingAPI)
+		waitForPodTermination(namespace, controllerLabel, leadingAPI)
 
 		newStatefulset := &appsv1.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -440,6 +444,6 @@ func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redir
 		checkError(err)
 		log.Println(newStatefulset.Spec.Template.Spec.Containers[0].Env)
 
-		waitForPodRunning(namespace, podLabel, leadingAPI)
+		waitForPodRunning(namespace, controllerLabel, leadingAPI)
 	}
 }
