@@ -60,8 +60,8 @@ type TestPlan struct {
 
 func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 	condition := raw["condition"].(map[interface{}]interface{})
-	triggerType := condition["triggerType"].(string)
-	switch triggerType {
+	conditionType := condition["conditionType"].(string)
+	switch conditionType {
 	case onObjectCreate:
 		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
 		return &ObjectCreateTrigger{
@@ -86,7 +86,7 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 			timeoutValue: condition["timeoutValue"].(int),
 		}
 	default:
-		log.Fatalf("invalid trigger type %v", triggerType)
+		log.Fatalf("invalid trigger type %v", conditionType)
 		return nil
 	}
 }

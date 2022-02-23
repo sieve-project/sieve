@@ -15,7 +15,7 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
-	if !checkKVPairInTriggerCondition(resourceKey, "triggerType", "beforeControllerRecv", false) {
+	if !checkKVPairInTriggerCondition(resourceKey, "conditionType", "beforeControllerRecv", false) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
@@ -52,7 +52,7 @@ func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
-	if !checkKVPairInTriggerCondition(resourceKey, "triggerType", "afterControllerRecv", false) {
+	if !checkKVPairInTriggerCondition(resourceKey, "conditionType", "afterControllerRecv", false) {
 		return
 	}
 	jsonObject, err := json.Marshal(object)
