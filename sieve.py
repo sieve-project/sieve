@@ -93,18 +93,12 @@ def watch_crd(crds, addrs):
 
 
 def generate_configmap(test_config):
-    yaml_map = yaml.safe_load(open(test_config))
+    test_plan_content = open(test_config).read()
     configmap = {}
     configmap["apiVersion"] = "v1"
     configmap["kind"] = "ConfigMap"
     configmap["metadata"] = {"name": "sieve-testing-global-config"}
-    configmap["data"] = {}
-    for key in yaml_map:
-        if isinstance(yaml_map[key], list):
-            assert key.endswith("-list")
-            configmap["data"]["SIEVE-" + key.upper()] = ",".join(yaml_map[key])
-        else:
-            configmap["data"]["SIEVE-" + key.upper()] = yaml_map[key]
+    configmap["data"] = {"sieveTestPlan": test_plan_content}
     configmap_path = "%s-configmap.yaml" % test_config[:-5]
     yaml.dump(configmap, open(configmap_path, "w"), sort_keys=False)
     return configmap_path
@@ -216,9 +210,10 @@ def prepare_sieve_server(test_context: TestContext):
     cmd_early_exit("docker cp sieve_server kind-control-plane:/sieve_server")
 
 
-def start_sieve_server():
+def start_sieve_server(test_context: TestContext):
     cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server &> sieve-server.log &'"
+        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server %s &> sieve-server.log &'"
+        % test_context.stage
     )
 
 
@@ -375,7 +370,7 @@ def run_workload(
 ) -> Tuple[int, str]:
     if test_context.mode != sieve_modes.VANILLA:
         cprint("Setting up Sieve server...", bcolors.OKGREEN)
-        start_sieve_server()
+        start_sieve_server(test_context)
         ok("Sieve server set up")
 
     cprint("Deploying operator...", bcolors.OKGREEN)
@@ -741,12 +736,7 @@ if __name__ == "__main__":
     if options.stage == sieve_stages.TEST:
         if options.mode is None:
             parser.error("parameter mode required in test stage")
-        elif options.mode not in [
-            sieve_modes.VANILLA,
-            sieve_modes.STALE_STATE,
-            sieve_modes.UNOBSR_STATE,
-            sieve_modes.INTERMEDIATE_STATE,
-        ]:
+        elif options.mode not in [sieve_modes.TEST]:
             parser.error("invalid test mode option: %s" % options.mode)
         if options.mode == sieve_modes.VANILLA:
             options.config = "vanilla.yaml"

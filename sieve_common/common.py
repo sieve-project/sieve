@@ -145,6 +145,7 @@ class sieve_stages:
 
 
 class sieve_modes:
+    TEST = "test"
     STALE_STATE = "stale-state"
     UNOBSR_STATE = "unobserved-state"
     INTERMEDIATE_STATE = "intermediate-state"
