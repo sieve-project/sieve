@@ -103,7 +103,8 @@ func internalLoadTriggerDefinitions(trigger map[interface{}]interface{}) error {
 		}
 		resourceKeyRaw, ok := condition["resourceKey"]
 		if !ok {
-			return fmt.Errorf("cannot find resourceKey in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			// return fmt.Errorf("cannot find resourceKey in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			continue
 		}
 		resourceKey, ok := resourceKeyRaw.(string)
 		if !ok {
