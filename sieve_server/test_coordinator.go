@@ -11,15 +11,23 @@ type TestCoordinator struct {
 }
 
 type testCoordinator struct {
+	testPlan            *TestPlan
+	stateNotificationCh chan TriggerNotification
+	blockingChs         map[string]map[string]map[string]chan string
+	objectStates        map[string]map[string]map[string]string
 	mergedFieldPathMask map[string]map[string]struct{}
 	mergedFieldKeyMask  map[string]map[string]struct{}
 }
 
 func NewTestCoordinator() *TestCoordinator {
 	config := getConfig()
-	parseTestPlan(config)
+	testPlan := parseTestPlan(config)
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	server := &testCoordinator{
+		testPlan:            testPlan,
+		stateNotificationCh: make(chan TriggerNotification, 500),
+		blockingChs:         map[string]map[string]map[string]chan string{},
+		objectStates:        map[string]map[string]map[string]string{},
 		mergedFieldPathMask: mergedFieldPathMask,
 		mergedFieldKeyMask:  mergedFieldKeyMask,
 	}

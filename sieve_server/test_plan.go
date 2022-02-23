@@ -103,6 +103,7 @@ func parseTestPlan(raw map[interface{}]interface{}) *TestPlan {
 		prefix := infixToPrefix(infix)
 		binaryTreeRoot := prefixExpressionToBinaryTree(prefix)
 		triggerGraph := binaryTreeToTriggerGraph(binaryTreeRoot)
+		printTriggerGraph(triggerGraph)
 
 		definitionsInTestPlan := triggerInTestPlan["definitions"].([]interface{})
 		triggerDefinitions := []TriggerDefinition{}
@@ -130,16 +131,21 @@ func printExpression(exp []string) {
 
 func printTriggerNode(triggerNode *TriggerNode) {
 	log.Printf("node name: %s, node type: %s\n", triggerNode.nodeName, triggerNode.nodeType)
-	for _, successor := range triggerNode.successors {
-		log.Printf("successor: %s\n", successor.nodeName)
+	for _, predecessor := range triggerNode.predecessors {
+		log.Printf("predecessor: %s\n", predecessor.nodeName)
 	}
 	for _, successor := range triggerNode.successors {
-		printTriggerNode(successor)
+		log.Printf("successor: %s\n", successor.nodeName)
 	}
 }
 
 func printTriggerGraph(triggerGraph *TriggerGraph) {
-	for _, source := range triggerGraph.sources {
-		printTriggerNode(source)
+	log.Println("all nodes:")
+	for _, node := range triggerGraph.allNodes {
+		log.Printf("node name: %s\n", node.nodeName)
+	}
+	log.Println("print each node:")
+	for _, node := range triggerGraph.allNodes {
+		printTriggerNode(node)
 	}
 }

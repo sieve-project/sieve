@@ -19,9 +19,14 @@ const (
 )
 
 type TriggerNode struct {
-	nodeType   string
-	nodeName   string
-	successors []*TriggerNode
+	nodeType     string
+	nodeName     string
+	predecessors []*TriggerNode
+	successors   []*TriggerNode
+}
+
+func (tn *TriggerNode) addPredecessors(nodes []*TriggerNode) {
+	tn.predecessors = append(tn.predecessors, nodes...)
 }
 
 func (tn *TriggerNode) addSuccessors(nodes []*TriggerNode) {
@@ -29,8 +34,80 @@ func (tn *TriggerNode) addSuccessors(nodes []*TriggerNode) {
 }
 
 type TriggerGraph struct {
-	sources []*TriggerNode
-	sink    *TriggerNode
+	sources   []*TriggerNode
+	sink      *TriggerNode
+	allNodes  map[string]*TriggerNode
+	toSatisfy map[string]struct{}
+	satisfied map[string]struct{}
+}
+
+func (tg *TriggerGraph) fullyTriggered() bool {
+	_, ok := tg.satisfied[tg.sink.nodeName]
+	return ok
+}
+
+func (tg *TriggerGraph) trigger(nodeName string) {
+	_, ok := tg.toSatisfy[nodeName]
+	if !ok {
+		log.Fatalf("%s not in toSatisfy", nodeName)
+	}
+	_, ok = tg.satisfied[nodeName]
+	if ok {
+		log.Fatalf("%s in satisfied", nodeName)
+	}
+	if tg.allNodes[nodeName].nodeType != Literal {
+		log.Fatalf("%s is not literal", nodeName)
+	}
+	tg.satisfied[nodeName] = exists
+	delete(tg.toSatisfy, nodeName)
+	for _, successor := range tg.allNodes[nodeName].successors {
+		tg.toSatisfy[successor.nodeName] = exists
+		if successor.nodeType == Or {
+			tg.triggerOrAnd(successor.nodeName)
+		} else if successor.nodeType == And {
+			andIsTriggered := true
+			for _, predecessor := range successor.predecessors {
+				if _, ok := tg.satisfied[predecessor.nodeName]; !ok {
+					andIsTriggered = false
+				}
+			}
+			if andIsTriggered {
+				tg.triggerOrAnd(successor.nodeName)
+			}
+		}
+	}
+}
+
+func (tg *TriggerGraph) triggerOrAnd(nodeName string) {
+	_, ok := tg.toSatisfy[nodeName]
+	if !ok {
+		log.Fatalf("%s not in toSatisfy", nodeName)
+	}
+	_, ok = tg.satisfied[nodeName]
+	if ok {
+		log.Fatalf("%s in satisfied", nodeName)
+	}
+	if tg.allNodes[nodeName].nodeType != Or && tg.allNodes[nodeName].nodeType != And {
+		log.Fatalf("%s is not Or nor And", nodeName)
+	}
+	tg.satisfied[nodeName] = exists
+	delete(tg.toSatisfy, nodeName)
+	for _, successor := range tg.allNodes[nodeName].successors {
+		tg.toSatisfy[successor.nodeName] = exists
+		if successor.nodeType == Or {
+			tg.triggerOrAnd(successor.nodeName)
+		} else if successor.nodeType == And {
+			andIsTriggered := true
+			for _, predecessor := range successor.predecessors {
+				if _, ok := tg.satisfied[predecessor.nodeName]; !ok {
+					andIsTriggered = false
+				}
+			}
+			if andIsTriggered {
+				tg.triggerOrAnd(successor.nodeName)
+			}
+		}
+	}
 }
 
 func prefixExpressionToBinaryTree(prefix []string) *TreeNode {
@@ -72,52 +149,65 @@ func prefixExpressionToBinaryTree(prefix []string) *TreeNode {
 	return treeNodesMap[tokenStack.Pop()]
 }
 
-func binaryTreeToTriggerNode(node *TreeNode) ([]*TriggerNode, *TriggerNode) {
+func binaryTreeToTriggerNode(node *TreeNode, allNodes map[string]*TriggerNode) ([]*TriggerNode, *TriggerNode) {
 	switch node.name {
 	case ";":
-		sourcesOfLeft, sinkOfLeft := binaryTreeToTriggerNode(node.left)
-		sourcesOfRight, sinkOfRight := binaryTreeToTriggerNode(node.right)
+		sourcesOfLeft, sinkOfLeft := binaryTreeToTriggerNode(node.left, allNodes)
+		sourcesOfRight, sinkOfRight := binaryTreeToTriggerNode(node.right, allNodes)
 		sinkOfLeft.addSuccessors(sourcesOfRight)
+		for idx := range sourcesOfRight {
+			sourcesOfRight[idx].addPredecessors([]*TriggerNode{sinkOfLeft})
+		}
 		return sourcesOfLeft, sinkOfRight
 	case "&":
-		sourcesOfLeft, sinkOfLeft := binaryTreeToTriggerNode(node.left)
-		sourcesOfRight, sinkOfRight := binaryTreeToTriggerNode(node.right)
+		sourcesOfLeft, sinkOfLeft := binaryTreeToTriggerNode(node.left, allNodes)
+		sourcesOfRight, sinkOfRight := binaryTreeToTriggerNode(node.right, allNodes)
 		triggerAndNode := &TriggerNode{
-			nodeType:   And,
-			nodeName:   node.composedName,
-			successors: []*TriggerNode{},
+			nodeType:     And,
+			nodeName:     node.composedName,
+			predecessors: []*TriggerNode{sinkOfLeft, sinkOfRight},
+			successors:   []*TriggerNode{},
 		}
 		sinkOfLeft.addSuccessors([]*TriggerNode{triggerAndNode})
 		sinkOfRight.addSuccessors([]*TriggerNode{triggerAndNode})
 		sources := append(sourcesOfLeft, sourcesOfRight...)
+		allNodes[node.composedName] = triggerAndNode
 		return sources, triggerAndNode
 	case "|":
-		sourcesOfLeft, sinkOfLeft := binaryTreeToTriggerNode(node.left)
-		sourcesOfRight, sinkOfRight := binaryTreeToTriggerNode(node.right)
+		sourcesOfLeft, sinkOfLeft := binaryTreeToTriggerNode(node.left, allNodes)
+		sourcesOfRight, sinkOfRight := binaryTreeToTriggerNode(node.right, allNodes)
 		triggerOrNode := &TriggerNode{
-			nodeType:   Or,
-			nodeName:   node.composedName,
-			successors: []*TriggerNode{},
+			nodeType:     Or,
+			nodeName:     node.composedName,
+			predecessors: []*TriggerNode{sinkOfLeft, sinkOfRight},
+			successors:   []*TriggerNode{},
 		}
 		sinkOfLeft.addSuccessors([]*TriggerNode{triggerOrNode})
 		sinkOfRight.addSuccessors([]*TriggerNode{triggerOrNode})
 		sources := append(sourcesOfLeft, sourcesOfRight...)
+		allNodes[node.composedName] = triggerOrNode
 		return sources, triggerOrNode
 	default:
 		triggerLiteralNode := &TriggerNode{
-			nodeType:   Literal,
-			nodeName:   node.name,
-			successors: []*TriggerNode{},
+			nodeType:     Literal,
+			nodeName:     node.composedName,
+			predecessors: []*TriggerNode{},
+			successors:   []*TriggerNode{},
 		}
+		allNodes[node.composedName] = triggerLiteralNode
 		return []*TriggerNode{triggerLiteralNode}, triggerLiteralNode
 	}
 }
 
 func binaryTreeToTriggerGraph(node *TreeNode) *TriggerGraph {
-	sources, sink := binaryTreeToTriggerNode(node)
+	allNodes := map[string]*TriggerNode{}
+	sources, sink := binaryTreeToTriggerNode(node, allNodes)
 	triggerGraph := &TriggerGraph{
-		sources: sources,
-		sink:    sink,
+		sources:   sources,
+		sink:      sink,
+		allNodes:  allNodes,
+		toSatisfy: map[string]struct{}{},
+		satisfied: map[string]struct{}{},
 	}
 	return triggerGraph
 }
