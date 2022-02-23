@@ -12,6 +12,7 @@ const (
 
 type TriggerDefinition interface {
 	getTriggerName() string
+	satisfy(TriggerNotification, int) bool
 }
 
 type TimeoutTrigger struct {
@@ -21,6 +22,10 @@ type TimeoutTrigger struct {
 
 func (tt *TimeoutTrigger) getTriggerName() string {
 	return tt.name
+}
+
+func (tt *TimeoutTrigger) satisfy(TriggerNotification, int) bool {
+	return false
 }
 
 type ObjectCreateTrigger struct {
@@ -35,6 +40,10 @@ func (oct *ObjectCreateTrigger) getTriggerName() string {
 	return oct.name
 }
 
+func (oct *ObjectCreateTrigger) satisfy(TriggerNotification, int) bool {
+	return false
+}
+
 type ObjectDeleteTrigger struct {
 	name         string
 	resourceKey  string
@@ -47,11 +56,15 @@ func (odt *ObjectDeleteTrigger) getTriggerName() string {
 	return odt.name
 }
 
+func (odt *ObjectDeleteTrigger) satisfy(TriggerNotification, int) bool {
+	return false
+}
+
 type Action struct {
 	actionType         string
 	actionTarget       string
 	triggerGraph       *TriggerGraph
-	triggerDefinitions []TriggerDefinition
+	triggerDefinitions map[string]TriggerDefinition
 }
 
 type TestPlan struct {
@@ -106,10 +119,10 @@ func parseTestPlan(raw map[interface{}]interface{}) *TestPlan {
 		printTriggerGraph(triggerGraph)
 
 		definitionsInTestPlan := triggerInTestPlan["definitions"].([]interface{})
-		triggerDefinitions := []TriggerDefinition{}
+		triggerDefinitions := map[string]TriggerDefinition{}
 		for _, definition := range definitionsInTestPlan {
 			triggerDefinition := parseTriggerDefinition(definition.(map[interface{}]interface{}))
-			triggerDefinitions = append(triggerDefinitions, triggerDefinition)
+			triggerDefinitions[triggerDefinition.getTriggerName()] = triggerDefinition
 		}
 
 		action := &Action{

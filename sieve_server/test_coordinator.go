@@ -17,19 +17,23 @@ type testCoordinator struct {
 	objectStates        map[string]map[string]map[string]string
 	mergedFieldPathMask map[string]map[string]struct{}
 	mergedFieldKeyMask  map[string]map[string]struct{}
+	stateMachine        *StateMachine
 }
 
 func NewTestCoordinator() *TestCoordinator {
 	config := getConfig()
 	testPlan := parseTestPlan(config)
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
+	stateNotificationCh := make(chan TriggerNotification, 500)
+	blockingChs := map[string]map[string]map[string]chan string{}
 	server := &testCoordinator{
 		testPlan:            testPlan,
-		stateNotificationCh: make(chan TriggerNotification, 500),
-		blockingChs:         map[string]map[string]map[string]chan string{},
+		stateNotificationCh: stateNotificationCh,
+		blockingChs:         blockingChs,
 		objectStates:        map[string]map[string]map[string]string{},
 		mergedFieldPathMask: mergedFieldPathMask,
 		mergedFieldKeyMask:  mergedFieldKeyMask,
+		stateMachine:        NewStateMachine(testPlan, stateNotificationCh),
 	}
 	listener := &TestCoordinator{
 		Server: server,
@@ -62,6 +66,7 @@ func (s *testCoordinator) Start() {
 	log.Println("start testCoordinator...")
 	log.Printf("mergedFieldPathMask:\n%v\n", s.mergedFieldPathMask)
 	log.Printf("mergedFieldKeyMask:\n%v\n", s.mergedFieldKeyMask)
+	go s.stateMachine.run()
 }
 
 func (s *testCoordinator) NotifyTestBeforeControllerRecv(request *sieve.NotifyTestBeforeControllerRecvRequest, response *sieve.Response) error {
