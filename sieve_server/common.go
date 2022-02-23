@@ -8,6 +8,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -39,6 +40,18 @@ const (
 	afterControllerWrite string = "afterControllerWrite"
 	// afterControllerRecv  string = "afterControllerRecv"
 )
+
+const (
+	restartController string = "restartController"
+)
+
+type ActionContext struct {
+	namespace          string
+	leadingAPIServer   string
+	followingAPIServer string
+	controllerLock     *sync.RWMutex
+	apiserverLocks     map[string]*sync.RWMutex
+}
 
 func checkError(err error) {
 	if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sync"
 
 	sieve "sieve.client"
 )
@@ -12,6 +13,7 @@ type TestCoordinator struct {
 
 type testCoordinator struct {
 	testPlan            *TestPlan
+	actionConext        *ActionContext
 	stateNotificationCh chan TriggerNotification
 	blockingChs         map[string]map[string]map[string]chan string
 	objectStates        map[string]map[string]map[string]string
@@ -23,17 +25,25 @@ type testCoordinator struct {
 func NewTestCoordinator() *TestCoordinator {
 	config := getConfig()
 	testPlan := parseTestPlan(config)
+	actionConext := &ActionContext{
+		namespace:          "default",
+		leadingAPIServer:   "kind-control-plane",
+		followingAPIServer: "kind-control-plane3",
+		controllerLock:     &sync.RWMutex{},
+		apiserverLocks:     map[string]*sync.RWMutex{},
+	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)
 	blockingChs := map[string]map[string]map[string]chan string{}
 	server := &testCoordinator{
 		testPlan:            testPlan,
+		actionConext:        actionConext,
 		stateNotificationCh: stateNotificationCh,
 		blockingChs:         blockingChs,
 		objectStates:        map[string]map[string]map[string]string{},
 		mergedFieldPathMask: mergedFieldPathMask,
 		mergedFieldKeyMask:  mergedFieldKeyMask,
-		stateMachine:        NewStateMachine(testPlan, stateNotificationCh),
+		stateMachine:        NewStateMachine(testPlan, stateNotificationCh, actionConext),
 	}
 	listener := &TestCoordinator{
 		Server: server,

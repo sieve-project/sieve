@@ -83,15 +83,33 @@ func (odt *ObjectDeleteTrigger) satisfy(triggerNotification TriggerNotification)
 	return false
 }
 
-type Action struct {
-	actionType         string
-	actionTarget       string
+type Action interface {
+	getTriggerGraph() *TriggerGraph
+	getTriggerDefinitions() map[string]TriggerDefinition
+	run(*ActionContext)
+}
+
+type RestartControllerAction struct {
+	controllerLabel    string
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
 }
 
+func (rca *RestartControllerAction) getTriggerGraph() *TriggerGraph {
+	return rca.triggerGraph
+}
+
+func (rca *RestartControllerAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return rca.triggerDefinitions
+}
+
+func (rca *RestartControllerAction) run(actionConext *ActionContext) {
+	log.Println("run the RestartControllerAction")
+	restartOperator(actionConext.namespace, rca.controllerLabel, actionConext.leadingAPIServer, actionConext.followingAPIServer, false)
+}
+
 type TestPlan struct {
-	actions []*Action
+	actions []Action
 }
 
 func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
@@ -129,33 +147,43 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 	}
 }
 
-func parseTestPlan(raw map[interface{}]interface{}) *TestPlan {
-	actionsInTestPlan := raw["actions"].([]interface{})
-	actions := []*Action{}
-	for _, rawAction := range actionsInTestPlan {
-		actionInTestPlan := rawAction.(map[interface{}]interface{})
-		triggerInTestPlan := actionInTestPlan["trigger"].(map[interface{}]interface{})
+func parseAction(raw map[interface{}]interface{}) Action {
+	trigger := raw["trigger"].(map[interface{}]interface{})
 
-		expression := triggerInTestPlan["expression"].(string)
-		infix := expressionToInfixTokens(expression)
-		prefix := infixToPrefix(infix)
-		binaryTreeRoot := prefixExpressionToBinaryTree(prefix)
-		triggerGraph := binaryTreeToTriggerGraph(binaryTreeRoot)
-		printTriggerGraph(triggerGraph)
+	expression := trigger["expression"].(string)
+	infix := expressionToInfixTokens(expression)
+	prefix := infixToPrefix(infix)
+	binaryTreeRoot := prefixExpressionToBinaryTree(prefix)
+	triggerGraph := binaryTreeToTriggerGraph(binaryTreeRoot)
+	printTriggerGraph(triggerGraph)
 
-		definitionsInTestPlan := triggerInTestPlan["definitions"].([]interface{})
-		triggerDefinitions := map[string]TriggerDefinition{}
-		for _, definition := range definitionsInTestPlan {
-			triggerDefinition := parseTriggerDefinition(definition.(map[interface{}]interface{}))
-			triggerDefinitions[triggerDefinition.getTriggerName()] = triggerDefinition
-		}
+	definitions := trigger["definitions"].([]interface{})
+	triggerDefinitions := map[string]TriggerDefinition{}
+	for _, definition := range definitions {
+		triggerDefinition := parseTriggerDefinition(definition.(map[interface{}]interface{}))
+		triggerDefinitions[triggerDefinition.getTriggerName()] = triggerDefinition
+	}
 
-		action := &Action{
-			actionType:         actionInTestPlan["actionType"].(string),
-			actionTarget:       actionInTestPlan["actionTarget"].(string),
+	actionType := raw["actionType"].(string)
+	switch actionType {
+	case restartController:
+		return &RestartControllerAction{
+			controllerLabel:    raw["controllerLabel"].(string),
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
+	default:
+		log.Fatalf("invalid action type %s\n", actionType)
+		return nil
+	}
+}
+
+func parseTestPlan(raw map[interface{}]interface{}) *TestPlan {
+	actionsInTestPlan := raw["actions"].([]interface{})
+	actions := []Action{}
+	for _, rawAction := range actionsInTestPlan {
+		actionInTestPlan := rawAction.(map[interface{}]interface{})
+		action := parseAction(actionInTestPlan)
 		actions = append(actions, action)
 	}
 	return &TestPlan{

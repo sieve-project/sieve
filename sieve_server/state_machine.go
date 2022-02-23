@@ -6,18 +6,20 @@ import (
 )
 
 type StateMachine struct {
-	states                []*Action
+	states                []Action
 	nextState             int
 	stateNotificationCh   chan TriggerNotification
 	timeoutNotificationCh chan TriggerNotification
+	actionConext          *ActionContext
 }
 
-func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification) *StateMachine {
+func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification, actionContext *ActionContext) *StateMachine {
 	return &StateMachine{
 		states:                testPlan.actions,
 		nextState:             0,
 		stateNotificationCh:   stateNotificationCh,
 		timeoutNotificationCh: make(chan TriggerNotification, 500),
+		actionConext:          actionContext,
 	}
 }
 
@@ -32,15 +34,16 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 	if sm.nextState >= len(sm.states) {
 		return
 	}
-	triggerGraph := sm.states[sm.nextState].triggerGraph
-	triggerDefinitions := sm.states[sm.nextState].triggerDefinitions
+	action := sm.states[sm.nextState]
+	triggerGraph := sm.states[sm.nextState].getTriggerGraph()
+	triggerDefinitions := sm.states[sm.nextState].getTriggerDefinitions()
 	for triggerName := range triggerGraph.toSatisfy {
 		triggerDefinition := triggerDefinitions[triggerName]
 		if triggerDefinition.satisfy(notification) {
 			triggerGraph.trigger(triggerName)
 			if triggerGraph.fullyTriggered() {
 				log.Println("all triggers are satisfied")
-				// TODO: run the action here
+				action.run(sm.actionConext)
 				sm.nextState += 1
 				if sm.nextState >= len(sm.states) {
 					log.Println("all actions are done")
