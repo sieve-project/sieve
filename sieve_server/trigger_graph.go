@@ -113,6 +113,7 @@ func (tg *TriggerGraph) triggerOrAnd(nodeName string) {
 func prefixExpressionToBinaryTree(prefix []string) *TreeNode {
 	tokenStack := NewStack()
 	treeNodesMap := map[string]*TreeNode{}
+	log.Println(prefix)
 	for i := len(prefix) - 1; i >= 0; i-- {
 		token := prefix[i]
 		if !isOperator(prefix[i]) {
@@ -202,11 +203,15 @@ func binaryTreeToTriggerNode(node *TreeNode, allNodes map[string]*TriggerNode) (
 func binaryTreeToTriggerGraph(node *TreeNode) *TriggerGraph {
 	allNodes := map[string]*TriggerNode{}
 	sources, sink := binaryTreeToTriggerNode(node, allNodes)
+	toSatisfy := map[string]struct{}{}
+	for _, source := range sources {
+		toSatisfy[source.nodeName] = exists
+	}
 	triggerGraph := &TriggerGraph{
 		sources:   sources,
 		sink:      sink,
 		allNodes:  allNodes,
-		toSatisfy: map[string]struct{}{},
+		toSatisfy: toSatisfy,
 		satisfied: map[string]struct{}{},
 	}
 	return triggerGraph

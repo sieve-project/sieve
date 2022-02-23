@@ -18,6 +18,28 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+	HEAR_ADDED          string = "Added"
+	HEAR_UPDATED        string = "Updated"
+	HEAR_DELETED        string = "Deleted"
+	HEAR_REPLACED       string = "Replaced"
+	HEAR_SYNC           string = "Sync"
+	API_ADDED           string = "ADDED"
+	API_MODIFIED        string = "MODIFIED"
+	API_DELETED         string = "DELETED"
+	WRITE_CREATE        string = "Create"
+	WRITE_UPDATE        string = "Update"
+	WRITE_DELETE        string = "Delete"
+	WRITE_PATCH         string = "Patch"
+	WRITE_STATUS_UPDATE string = "StatusUpdate"
+	WRITE_STATUS_PATCH  string = "StatusPatch"
+)
+
+const (
+	afterControllerWrite string = "afterControllerWrite"
+	// afterControllerRecv  string = "afterControllerRecv"
+)
+
 func checkError(err error) {
 	if err != nil {
 		log.Fatalf("Fail due to error: %v\n", err)

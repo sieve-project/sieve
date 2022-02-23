@@ -190,8 +190,8 @@ type NotifyTestAfterControllerListRequest struct {
 }
 
 type NotifyTestAfterControllerWriteRequest struct {
-	writeID        int
-	writeType      string
+	WriteID        int
+	WriteType      string
 	ResourceKey    string
 	ReconcilerType string
 	Object         string

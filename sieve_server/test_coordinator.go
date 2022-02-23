@@ -94,7 +94,35 @@ func (s *testCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTes
 }
 
 func (s *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyTestAfterControllerWriteRequest, response *sieve.Response) error {
-	log.Printf("NotifyTestAfterControllerWrite\t%s\t%s\t%s", request.ResourceKey, request.ReconcilerType, request.Object)
+	log.Printf("NotifyTestAfterControllerWrite\t%s\t%s\t%s\t%s", request.WriteType, request.ResourceKey, request.ReconcilerType, request.Object)
+	switch request.WriteType {
+	case WRITE_CREATE:
+		blockingCh := make(chan string)
+		notification := &ObjectCreateNotification{
+			resourceKey:  request.ResourceKey,
+			observedWhen: afterControllerWrite,
+			observedBy:   request.ReconcilerType,
+			blockingCh:   blockingCh,
+		}
+		log.Println("send ObjectCreateNotification")
+		s.stateNotificationCh <- notification
+		<-blockingCh
+		log.Println("block is over")
+	case WRITE_DELETE:
+		blockingCh := make(chan string)
+		notification := &ObjectDeleteNotification{
+			resourceKey:  request.ResourceKey,
+			observedWhen: afterControllerWrite,
+			observedBy:   request.ReconcilerType,
+			blockingCh:   blockingCh,
+		}
+		log.Println("send ObjectDeleteNotification")
+		s.stateNotificationCh <- notification
+		<-blockingCh
+		log.Println("block is over")
+	default:
+		log.Println("do not support other types than create and delete")
+	}
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }

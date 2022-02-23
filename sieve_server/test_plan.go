@@ -12,7 +12,7 @@ const (
 
 type TriggerDefinition interface {
 	getTriggerName() string
-	satisfy(TriggerNotification, int) bool
+	satisfy(TriggerNotification) bool
 }
 
 type TimeoutTrigger struct {
@@ -24,39 +24,62 @@ func (tt *TimeoutTrigger) getTriggerName() string {
 	return tt.name
 }
 
-func (tt *TimeoutTrigger) satisfy(TriggerNotification, int) bool {
+func (tt *TimeoutTrigger) satisfy(triggerNotification TriggerNotification) bool {
+	if notification, ok := triggerNotification.(*TimeoutNotification); ok {
+		if notification.conditionName == tt.name {
+			return true
+		}
+	}
 	return false
 }
 
 type ObjectCreateTrigger struct {
-	name         string
-	resourceKey  string
-	observedWhen string
-	observedBy   string
-	repeat       int
+	name          string
+	resourceKey   string
+	desiredRepeat int
+	currentRepeat int
+	observedWhen  string
+	observedBy    string
 }
 
 func (oct *ObjectCreateTrigger) getTriggerName() string {
 	return oct.name
 }
 
-func (oct *ObjectCreateTrigger) satisfy(TriggerNotification, int) bool {
+func (oct *ObjectCreateTrigger) satisfy(triggerNotification TriggerNotification) bool {
+	if notification, ok := triggerNotification.(*ObjectCreateNotification); ok {
+		if notification.resourceKey == oct.resourceKey && notification.observedWhen == oct.observedWhen && notification.observedBy == oct.observedBy {
+			oct.currentRepeat += 1
+			if oct.currentRepeat == oct.desiredRepeat {
+				return true
+			}
+		}
+	}
 	return false
 }
 
 type ObjectDeleteTrigger struct {
-	name         string
-	resourceKey  string
-	observedWhen string
-	observedBy   string
-	repeat       int
+	name          string
+	resourceKey   string
+	desiredRepeat int
+	currentRepeat int
+	observedWhen  string
+	observedBy    string
 }
 
 func (odt *ObjectDeleteTrigger) getTriggerName() string {
 	return odt.name
 }
 
-func (odt *ObjectDeleteTrigger) satisfy(TriggerNotification, int) bool {
+func (odt *ObjectDeleteTrigger) satisfy(triggerNotification TriggerNotification) bool {
+	if notification, ok := triggerNotification.(*ObjectDeleteNotification); ok {
+		if notification.resourceKey == odt.resourceKey && notification.observedWhen == odt.observedWhen && notification.observedBy == odt.observedBy {
+			odt.currentRepeat += 1
+			if odt.currentRepeat == odt.desiredRepeat {
+				return true
+			}
+		}
+	}
 	return false
 }
 
@@ -78,20 +101,22 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 	case onObjectCreate:
 		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
 		return &ObjectCreateTrigger{
-			name:         raw["triggerName"].(string),
-			resourceKey:  condition["resourceKey"].(string),
-			repeat:       condition["repeat"].(int),
-			observedWhen: observationPoint["when"].(string),
-			observedBy:   observationPoint["by"].(string),
+			name:          raw["triggerName"].(string),
+			resourceKey:   condition["resourceKey"].(string),
+			desiredRepeat: condition["repeat"].(int),
+			currentRepeat: 0,
+			observedWhen:  observationPoint["when"].(string),
+			observedBy:    observationPoint["by"].(string),
 		}
 	case onObjectDelete:
 		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
 		return &ObjectDeleteTrigger{
-			name:         raw["triggerName"].(string),
-			resourceKey:  condition["resourceKey"].(string),
-			repeat:       condition["repeat"].(int),
-			observedWhen: observationPoint["when"].(string),
-			observedBy:   observationPoint["by"].(string),
+			name:          raw["triggerName"].(string),
+			resourceKey:   condition["resourceKey"].(string),
+			desiredRepeat: condition["repeat"].(int),
+			currentRepeat: 0,
+			observedWhen:  observationPoint["when"].(string),
+			observedBy:    observationPoint["by"].(string),
 		}
 	case onTimeout:
 		return &TimeoutTrigger{

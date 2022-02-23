@@ -1,23 +1,23 @@
 package main
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 type StateMachine struct {
-	states                   []*Action
-	satisfiedTriggerCounters []map[string]int
-	nextState                int
-	stateNotificationCh      chan TriggerNotification
-	timeoutNotificationCh    chan TriggerNotification
+	states                []*Action
+	nextState             int
+	stateNotificationCh   chan TriggerNotification
+	timeoutNotificationCh chan TriggerNotification
 }
 
 func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification) *StateMachine {
-	satisfiedTriggerCounters := make([]map[string]int, len(testPlan.actions))
 	return &StateMachine{
-		states:                   testPlan.actions,
-		satisfiedTriggerCounters: satisfiedTriggerCounters,
-		nextState:                0,
-		stateNotificationCh:      stateNotificationCh,
-		timeoutNotificationCh:    make(chan TriggerNotification, 500),
+		states:                testPlan.actions,
+		nextState:             0,
+		stateNotificationCh:   stateNotificationCh,
+		timeoutNotificationCh: make(chan TriggerNotification, 500),
 	}
 }
 
@@ -29,20 +29,25 @@ func (sm *StateMachine) waitForTimeout(timeoutValue int, triggerName string) {
 }
 
 func (sm *StateMachine) processNotification(notification TriggerNotification) {
+	if sm.nextState >= len(sm.states) {
+		return
+	}
 	triggerGraph := sm.states[sm.nextState].triggerGraph
 	triggerDefinitions := sm.states[sm.nextState].triggerDefinitions
 	for triggerName := range triggerGraph.toSatisfy {
 		triggerDefinition := triggerDefinitions[triggerName]
-		if _, ok := sm.satisfiedTriggerCounters[sm.nextState][triggerName]; !ok {
-			sm.satisfiedTriggerCounters[sm.nextState][triggerName] = 0
-		}
-		if triggerDefinition.satisfy(notification, sm.satisfiedTriggerCounters[sm.nextState][triggerName]) {
+		if triggerDefinition.satisfy(notification) {
 			triggerGraph.trigger(triggerName)
 			if triggerGraph.fullyTriggered() {
-				// run the action here
+				log.Println("all triggers are satisfied")
+				// TODO: run the action here
 				sm.nextState += 1
+				if sm.nextState >= len(sm.states) {
+					log.Println("all actions are done")
+				}
 				break
 			} else {
+				log.Printf("trigger %s is satisfied\n", triggerName)
 				for triggerName := range triggerGraph.toSatisfy {
 					if timeoutTrigger, ok := triggerDefinitions[triggerName].(*TimeoutTrigger); ok {
 						go sm.waitForTimeout(timeoutTrigger.timeoutValue, timeoutTrigger.getTriggerName())
@@ -59,6 +64,7 @@ func (sm *StateMachine) run() {
 		case stateNotification := <-sm.stateNotificationCh:
 			sm.processNotification(stateNotification)
 			blockingCh := stateNotification.getBlockingCh()
+			log.Println("release the blocking ch")
 			blockingCh <- "release"
 		case timeoutNotification := <-sm.timeoutNotificationCh:
 			sm.processNotification(timeoutNotification)

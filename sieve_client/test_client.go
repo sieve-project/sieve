@@ -186,8 +186,8 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 	}
 	defer client.Close()
 	request := &NotifyTestAfterControllerWriteRequest{
-		writeID:        writeID,
-		writeType:      writeType,
+		WriteID:        writeID,
+		WriteType:      writeType,
 		ResourceKey:    resourceKey,
 		ReconcilerType: reconcilerType,
 		Object:         string(jsonObject),
