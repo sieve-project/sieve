@@ -12,16 +12,14 @@ type TreeNode struct {
 	right        *TreeNode
 }
 
-type TriggerNodeType string
-
 const (
-	Literal TriggerNodeType = "Literal"
-	And                     = "And"
-	Or                      = "Or"
+	Literal string = "Literal"
+	And     string = "And"
+	Or      string = "Or"
 )
 
 type TriggerNode struct {
-	nodeType   TriggerNodeType
+	nodeType   string
 	nodeName   string
 	successors []*TriggerNode
 }
