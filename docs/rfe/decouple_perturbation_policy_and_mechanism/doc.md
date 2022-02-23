@@ -44,30 +44,34 @@ actions:
   - actionType: restartController
     actionTarget: xxx
     trigger:
-      topologyType: single
-      triggerName: cond1
-      triggerType: onObjectUpdate
-      resourceKey: xxx
-      prevState: xxx
-      curState: xxx
-      observePoint: afterControllerWrite
-      observeBy: xxx
-      repeat: 1
+      definitions:
+        - triggerName: cond1
+          condition:
+            triggerType: onObjectUpdate
+            resourceKey: xxx
+            prevState: xxx
+            curState: xxx
+            repeat: 1
+          observationPoint:
+            timing: afterControllerWrite
+            observeBy: xxx
+      expression: cond1
 ```
 - `testName`: the test case to run
 - `actions`: a list of actions that the coordinator should take
 - `actionType`: we should support at least `restartController`, `killController`, `startController`, `pauseController`, `resumeController`, `pauseAPIServer`, `resumeAPIServer`
 - `actionTarget`: which controller to restart
-- `trigger`: all the triggering conditions which should be satisfied before taking the action organized in certain topology
-- `topologyType`: it can be `single`, `and`, `or` and `sequential`, discussed [here](#Proposed-condition-triggers-topology-implementation-(Optional-feature))
+- `trigger`: the triggers that should be satisfied before taking the action organized
+- `definitions`: definitions of the triggers
 - `triggerType`: we should support at least `onObjectUpdate`, `onAnyFieldModified`, `onAllFieldsModified`, `onObjectCreation`, `onObjectDeletion`, `onTimeout`, `none`
-- `conditionName`: mainly used for debugging
+- `conditionName`: mainly used in `expression`
 - `resourceKey`: it should be `resource_type/namespace/name` (e.g., `pod/default/mypod`) and used to identify a resource
 - `prevState`: only applicable for `onObjectUpdate` and used to indicate the particular update to an object
 - `curState`: only applicable for `onObjectUpdate` and used to indicate the particular update to an object
+- `repeat`: how many times this condition needs to be satisfied
 - `observePoint`: only applicable for `onObjectUpdate`, `onAnyFieldModified`, `onAllFieldsModified`, `onObjectCreation`, `onObjectDeletion` and used to decide where the change is observed
 - `observeBy`: who makes the observation; it can be some API server or some controller
-- `repeat`: how many times this condition needs to be satisfied
+- `expression`: express the boolean relationship between all the defined triggers as discussed [here](#Proposed-condition-triggers-topology-implementation)
 
 The test plans for other patterns will look similar.
 
@@ -106,40 +110,28 @@ Inside the `processStateTriggerConditions`, the state machine will check whether
 We will also allow the user to specify the topology of the triggers. That is, to progress to the next state, the triggers do not have to be satisfied one by one sequentially. Here is one example of the proposed format to specify the triggers topology in the test plan (some fields are omitted for simplicity): 
 ```yaml
     trigger:
-      topologyType: sequential
-      internal:
-      - topologyType: single
-        triggerName: cond1
-      - topologyType: single
-        triggerName: cond2
-      - topologyType: or
-        triggerName: cond3
-        internal:
-          - topologyType: single
-            triggerName: cond4
-          - topologyType: and
-            triggerName: cond5
-            internal:
-              - topologyType: single
-                triggerName: cond6
-              - topologyType: sequential
-                - topologyType: single
-                  triggerName: cond7
-                - topologyType: single
-                  triggerName: cond8
+      definitions:
+        - triggerName: cond1
+        - triggerName: cond2
+        - triggerName: cond3
+        - triggerName: cond4
+        - triggerName: cond5
+        - triggerName: cond6
+      expression: cond1;cond2;(cond3|cond4&(cond5;cond6))  
 ```
-Each trigger (including the top level one) has a `topologyType` which can be `sequential`, `single`, `or` and `and`:
-- `sequential` is satisfied only when all the `internal` triggers get satisfied following the same order as in the test plan.
-- `and` is satisfied when all the triggers in `internal` are satisfied without any order requirement.
-- `or` is satisfied when at least one of its `internal` triggers is satisfied.
-- `single` is satisfied as long as the single trigger is satisfied (by state update or timeout).
+The user first defines each trigger with a unique name (fields other than `triggerName` are omitted for simplicity here). The `expression` consists of `triggerName`s and three operators `;`, `&` and `|`:
+- `;`: the triggers connected by `;` should be satisfied sequentially
+- `&`: both the triggers connected by `&` should be satisfied without any order requirement
+- `|`: at least one of the triggers connected by `|` should be satisfied without any order requirement
+
+Regarding the priority, `&` > `|` > `;`.
 
 The test coordinator will construct a graph for each `trigger` of each `action`.
 For the above `trigger`, the graph is constructed as follows:
 ```
-cond1 -> cond2 -> cond4 -> *
-             |--> cond6 ---------> *
-             |--> cond7 -> cond8 --^
+cond1 -> cond2 -> cond3 -> *
+             |--> cond4 ---------> *
+             |--> cond5 -> cond6 --^
 ```
 Each trigger can be satisfied only when all the preceding triggers are satisfied. When reaching to `*`, the state machine can move to the next state.
 
