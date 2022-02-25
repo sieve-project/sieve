@@ -7,6 +7,7 @@ import (
 const (
 	onObjectCreate string = "onObjectCreate"
 	onObjectDelete string = "onObjectDelete"
+	onObjectUpdate string = "onObjectUpdate"
 	onTimeout      string = "onTimeout"
 )
 
@@ -83,6 +84,42 @@ func (odt *ObjectDeleteTrigger) satisfy(triggerNotification TriggerNotification)
 	return false
 }
 
+type ObjectUpdateTrigger struct {
+	name          string
+	resourceKey   string
+	prevStateDiff map[string]interface{}
+	curStateDiff  map[string]interface{}
+	desiredRepeat int
+	currentRepeat int
+	observedWhen  string
+	observedBy    string
+}
+
+func (out *ObjectUpdateTrigger) getTriggerName() string {
+	return out.name
+}
+
+func (out *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) bool {
+	if notification, ok := triggerNotification.(*ObjectUpdateNotification); ok {
+		if notification.resourceKey == out.resourceKey && notification.observedWhen == out.observedWhen && notification.observedBy == out.observedBy {
+			// compute state diff
+			exactMatch := true
+			if notification.observedWhen == beforeAPIServerRecv || notification.observedWhen == afterAPIServerRecv {
+				exactMatch = false
+			}
+			log.Println(notification.fieldKeyMask)
+			log.Println(notification.fieldPathMask)
+			if isDesiredUpdate(notification.prevState, notification.curState, out.prevStateDiff, out.curStateDiff, notification.fieldKeyMask, notification.fieldPathMask, exactMatch) {
+				out.currentRepeat += 1
+				if out.currentRepeat == out.desiredRepeat {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 type Action interface {
 	getTriggerGraph() *TriggerGraph
 	getTriggerDefinitions() map[string]TriggerDefinition
@@ -131,6 +168,18 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 		return &ObjectDeleteTrigger{
 			name:          raw["triggerName"].(string),
 			resourceKey:   condition["resourceKey"].(string),
+			desiredRepeat: condition["repeat"].(int),
+			currentRepeat: 0,
+			observedWhen:  observationPoint["when"].(string),
+			observedBy:    observationPoint["by"].(string),
+		}
+	case onObjectUpdate:
+		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
+		return &ObjectUpdateTrigger{
+			name:          raw["triggerName"].(string),
+			resourceKey:   condition["resourceKey"].(string),
+			prevStateDiff: strToMap(condition["prevStateDiff"].(string)),
+			curStateDiff:  strToMap(condition["curStateDiff"].(string)),
 			desiredRepeat: condition["repeat"].(int),
 			currentRepeat: 0,
 			observedWhen:  observationPoint["when"].(string),

@@ -16,7 +16,7 @@ type testCoordinator struct {
 	actionConext        *ActionContext
 	stateNotificationCh chan TriggerNotification
 	blockingChs         map[string]map[string]map[string]chan string
-	objectStates        map[string]map[string]map[string]string
+	objectStates        map[string]map[string]map[string]map[string]interface{}
 	mergedFieldPathMask map[string]map[string]struct{}
 	mergedFieldKeyMask  map[string]map[string]struct{}
 	stateMachine        *StateMachine
@@ -40,7 +40,7 @@ func NewTestCoordinator() *TestCoordinator {
 		actionConext:        actionConext,
 		stateNotificationCh: stateNotificationCh,
 		blockingChs:         blockingChs,
-		objectStates:        map[string]map[string]map[string]string{},
+		objectStates:        map[string]map[string]map[string]map[string]interface{}{},
 		mergedFieldPathMask: mergedFieldPathMask,
 		mergedFieldKeyMask:  mergedFieldKeyMask,
 		stateMachine:        NewStateMachine(testPlan, stateNotificationCh, actionConext),
@@ -115,6 +115,36 @@ func (s *testCoordinator) SendObjectDeleteNotificationAndBlock(handlerName, reso
 	log.Printf("%s: block over for ObjectDeleteNotification\n", handlerName)
 }
 
+func (s *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string, prevState, curState map[string]interface{}) {
+	blockingCh := make(chan string)
+	notification := &ObjectUpdateNotification{
+		resourceKey:   resourceKey,
+		observedWhen:  observedWhen,
+		observedBy:    observedBy,
+		prevState:     prevState,
+		curState:      curState,
+		fieldKeyMask:  s.mergedFieldKeyMask[resourceKey],
+		fieldPathMask: s.mergedFieldPathMask[resourceKey],
+		blockingCh:    blockingCh,
+	}
+	log.Printf("%s: send ObjectUpdateNotification\n", handlerName)
+	s.stateNotificationCh <- notification
+	<-blockingCh
+	log.Printf("%s: block over for ObjectUpdateNotification\n", handlerName)
+}
+
+func (s *testCoordinator) InitializeObjectStatesEntry(observedBy, observedWhen, resourceKey string) {
+	if _, ok := s.objectStates[observedBy]; !ok {
+		s.objectStates[observedBy] = map[string]map[string]map[string]interface{}{}
+	}
+	if _, ok := s.objectStates[observedBy][observedWhen]; !ok {
+		s.objectStates[observedBy][observedWhen] = map[string]map[string]interface{}{}
+	}
+	if _, ok := s.objectStates[observedBy][observedWhen][resourceKey]; !ok {
+		s.objectStates[observedBy][observedWhen][resourceKey] = map[string]interface{}{}
+	}
+}
+
 func (s *testCoordinator) NotifyTestBeforeAPIServerRecv(request *sieve.NotifyTestBeforeAPIServerRecvRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestBeforeAPIServerRecv"
 	log.Printf("%s\t%s\t%s\t%s\t%s", request.APIServerHostname, handlerName, request.OperationType, request.ResourceKey, request.Object)
@@ -177,12 +207,26 @@ func (s *testCoordinator) NotifyTestAfterControllerRecv(request *sieve.NotifyTes
 
 func (s *testCoordinator) NotifyTestAfterControllerGet(request *sieve.NotifyTestAfterControllerGetRequest, response *sieve.Response) error {
 	log.Printf("NotifyTestAfterControllerGet\t%s\t%s\t%s", request.ResourceKey, request.ReconcilerType, request.Object)
+	s.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
+	// need lock here
+	objectState := strToMap(request.Object)
+	trimKindApiversion(objectState)
+	s.objectStates[request.ReconcilerType][afterControllerWrite][request.ResourceKey] = objectState
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
 
 func (s *testCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTestAfterControllerListRequest, response *sieve.Response) error {
 	log.Printf("NotifyTestAfterControllerList\t%s\t%s\t%s", request.ResourceType, request.ReconcilerType, request.ObjectList)
+	// need lock here
+	objects := strToMap(request.ObjectList)["items"].([]interface{})
+	for _, object := range objects {
+		objectState := object.(map[string]interface{})
+		name, namespace := extractNameNamespaceFromObjMap(objectState)
+		resourceKey := generateResourceKey(request.ResourceType, namespace, name)
+		trimKindApiversion(objectState)
+		s.objectStates[request.ReconcilerType][afterControllerWrite][resourceKey] = objectState
+	}
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
@@ -190,9 +234,15 @@ func (s *testCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTes
 func (s *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyTestAfterControllerWriteRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestAfterControllerWrite"
 	log.Printf("%s\t%s\t%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey, request.ReconcilerType, request.Object)
+	s.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
+	prevObjectState := s.objectStates[request.ReconcilerType][afterControllerWrite][request.ResourceKey]
 	switch request.WriteType {
 	case WRITE_CREATE:
 		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType)
+	case WRITE_UPDATE, WRITE_PATCH, WRITE_STATUS_UPDATE, WRITE_STATUS_PATCH:
+		curObjectState := strToMap(request.Object)
+		trimKindApiversion(curObjectState)
+		s.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType, prevObjectState, curObjectState)
 	case WRITE_DELETE:
 		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType)
 	default:

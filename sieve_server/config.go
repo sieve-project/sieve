@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -50,6 +51,22 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 	return learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask
 }
 
+func wildCardToRegexp(patternWithWildcard string) string {
+	var result strings.Builder
+	for i, literal := range strings.Split(patternWithWildcard, "*") {
+
+		// Replace * with .*
+		if i > 0 {
+			result.WriteString(".*")
+		}
+
+		// Quote any regular expression meta characters in the
+		// literal text.
+		result.WriteString(regexp.QuoteMeta(literal))
+	}
+	return result.String()
+}
+
 func getMergedMask() (map[string]map[string]struct{}, map[string]map[string]struct{}) {
 	learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask := getMask()
 	mergedFieldPathMask := make(map[string]map[string]struct{})
@@ -81,5 +98,30 @@ func getMergedMask() (map[string]map[string]struct{}, map[string]map[string]stru
 			mergedFieldKeyMask[key][maskedKey] = exists
 		}
 	}
+
+	handleWildcardsForMask(mergedFieldKeyMask)
+	handleWildcardsForMask(mergedFieldPathMask)
 	return mergedFieldPathMask, mergedFieldKeyMask
+}
+
+func handleWildcardsForMask(mask map[string]map[string]struct{}) {
+	// handle keys that contain wildcard
+	for resourceKey1 := range mask {
+		if strings.Contains(resourceKey1, "*") {
+			pattern := wildCardToRegexp(resourceKey1)
+			for resourceKey2 := range mask {
+				if !strings.Contains(resourceKey2, "*") {
+					matched, err := regexp.MatchString(pattern, resourceKey2)
+					if err != nil {
+						log.Fatalf("error when matching %s with %s: %v", resourceKey2, pattern, err)
+					}
+					if matched {
+						for k := range mask[resourceKey1] {
+							mask[resourceKey2][k] = exists
+						}
+					}
+				}
+			}
+		}
+	}
 }

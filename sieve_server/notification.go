@@ -33,3 +33,18 @@ type ObjectDeleteNotification struct {
 func (odn *ObjectDeleteNotification) getBlockingCh() chan string {
 	return odn.blockingCh
 }
+
+type ObjectUpdateNotification struct {
+	resourceKey   string
+	observedWhen  string
+	observedBy    string
+	prevState     map[string]interface{}
+	curState      map[string]interface{}
+	fieldKeyMask  map[string]struct{}
+	fieldPathMask map[string]struct{}
+	blockingCh    chan string
+}
+
+func (oun *ObjectUpdateNotification) getBlockingCh() chan string {
+	return oun.blockingCh
+}

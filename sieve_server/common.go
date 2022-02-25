@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -33,15 +34,16 @@ const (
 	WRITE_STATUS_PATCH  string = "StatusPatch"
 )
 
+// observedWhen
 const (
-	beforeAPIServerRecv   string = "beforeAPIServerRecv"
-	afterAPIServerRecv    string = "afterAPIServerRecv"
-	beforeControllerRecv  string = "beforeControllerRecv"
-	afterControllerRecv   string = "afterControllerRecv"
-	beforeControllerWrite string = "beforeControllerWrite"
-	afterControllerWrite  string = "afterControllerWrite"
+	beforeAPIServerRecv  string = "beforeAPIServerRecv"
+	afterAPIServerRecv   string = "afterAPIServerRecv"
+	beforeControllerRecv string = "beforeControllerRecv"
+	afterControllerRecv  string = "afterControllerRecv"
+	afterControllerWrite string = "afterControllerWrite"
 )
 
+// actionType
 const (
 	restartController string = "restartController"
 )
@@ -122,6 +124,10 @@ func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, stri
 		}
 	}
 	return name, namespace
+}
+
+func generateResourceKey(resourceType, namespace, name string) string {
+	return path.Join(resourceType, namespace, name)
 }
 
 func isSameObjectServerSide(currentEvent map[string]interface{}, namespace string, name string) bool {
