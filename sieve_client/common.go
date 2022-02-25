@@ -33,10 +33,29 @@ const SIEVE_CONFIG_ERR string = "[SIEVE CONFIG ERR]"
 
 var config map[string]interface{} = nil
 var triggerDefinitions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
+var actions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
+var apiserverHostname string = ""
 
 // var exists = struct{}{}
 
 // var taintMap sync.Map = sync.Map{}
+
+func checkKVPairInAction(actionType, key, val string) bool {
+	for actionKey, actionsOfTheSameType := range actions {
+		if actionKey == actionType {
+			for _, action := range actionsOfTheSameType {
+				if valInTestPlan, ok := action[key]; ok {
+					if valInTestPlanStr, ok := valInTestPlan.(string); ok {
+						if val == valInTestPlanStr {
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
 
 func checkKVPairInTriggerContent(content map[interface{}]interface{}, key, val string) bool {
 	if valInTestPlan, ok := content[key]; ok {
@@ -83,7 +102,7 @@ func checkKVPairInTriggerObservationPoint(resourceKey, key, val string, onlyMatc
 	return false
 }
 
-func internalLoadTriggerDefinitions(trigger map[interface{}]interface{}) error {
+func loadTriggerDefinitions(trigger map[interface{}]interface{}) error {
 	definitions, ok := trigger["definitions"].([]interface{})
 	if !ok {
 		return fmt.Errorf("cannot convert trigger[\"definitions\"] to []interface{}")
@@ -118,13 +137,29 @@ func internalLoadTriggerDefinitions(trigger map[interface{}]interface{}) error {
 	return nil
 }
 
-func loadTriggerDefinitions(testPlan map[string]interface{}) error {
+func loadActions(action map[interface{}]interface{}) error {
+	actionType, ok := action["actionType"].(string)
+	if !ok {
+		return fmt.Errorf("cannot convert action[\"actionType\"] to string")
+	}
+	if _, ok := actions[actionType]; !ok {
+		actions[actionType] = []map[interface{}]interface{}{}
+	}
+	actions[actionType] = append(actions[actionType], action)
+	return nil
+}
+
+func loadActionsAndTriggers(testPlan map[string]interface{}) error {
 	actions, ok := testPlan["actions"].([]interface{})
 	if !ok {
 		return fmt.Errorf("cannot convert testPlan[\"actions\"] to []interface{}")
 	}
 	for idx, val := range actions {
 		action, ok := val.(map[interface{}]interface{})
+		err := loadActions(action)
+		if err != nil {
+			return nil
+		}
 		if !ok {
 			return fmt.Errorf("cannot convert testPlan[\"actions\"][%d] to []interface{}", idx)
 		}
@@ -132,7 +167,7 @@ func loadTriggerDefinitions(testPlan map[string]interface{}) error {
 		if !ok {
 			return fmt.Errorf("cannot convert testPlan[\"actions\"][%d][\"trigger\"] to []interface{}", idx)
 		}
-		err := internalLoadTriggerDefinitions(trigger)
+		err = loadTriggerDefinitions(trigger)
 		if err != nil {
 			return err
 		}
@@ -155,7 +190,7 @@ func loadSieveConfigFromEnv() error {
 		}
 		log.Printf("config from env:\n%v\n", configFromEnv)
 		config = configFromEnv
-		err = loadTriggerDefinitions(configFromEnv)
+		err = loadActionsAndTriggers(configFromEnv)
 		if err != nil {
 			printError(err, SIEVE_CONFIG_ERR)
 			return fmt.Errorf("fail to load from env")
@@ -167,10 +202,18 @@ func loadSieveConfigFromEnv() error {
 }
 
 func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) error {
+	var err error = nil
+	if apiserverHostname == "" {
+		apiserverHostname, err = os.Hostname()
+		if err != nil {
+			return err
+		}
+		log.Printf("host name is %s\n", apiserverHostname)
+	}
 	tokens := strings.Split(key, "/")
 	name := tokens[len(tokens)-1]
-	rtype := regularizeType(object)
-	if name == "sieve-testing-global-config" && eventType == "ADDED" && rtype == "configmap" {
+	resourceType := regularizeType(object)
+	if name == "sieve-testing-global-config" && eventType == "ADDED" && resourceType == "configmap" {
 		log.Printf("[sieve] configmap map seen: %s, %s, %v\n", eventType, key, object)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
@@ -198,7 +241,7 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) err
 			}
 			log.Printf("config from configMap:\n%v\n", configFromConfigMapData)
 			config = configFromConfigMapData
-			err = loadTriggerDefinitions(configFromConfigMapData)
+			err = loadActionsAndTriggers(configFromConfigMapData)
 			if err != nil {
 				printError(err, SIEVE_CONFIG_ERR)
 				return fmt.Errorf("fail to load from configmap")
@@ -257,8 +300,8 @@ func checkResponse(response Response, reqName string) {
 	}
 }
 
-func generateResourceKey(resourceKey, namespace, name string) string {
-	return path.Join(resourceKey, namespace, name)
+func generateResourceKey(resourceType, namespace, name string) string {
+	return path.Join(resourceType, namespace, name)
 }
 
 func regularizeType(object interface{}) string {
@@ -266,8 +309,8 @@ func regularizeType(object interface{}) string {
 	if ok {
 		return strings.ToLower(fmt.Sprint(objectUnstructured.Object["kind"]))
 	} else {
-		rtype := reflect.TypeOf(object).String()
-		tokens := strings.Split(rtype, ".")
+		resourceType := reflect.TypeOf(object).String()
+		tokens := strings.Split(resourceType, ".")
 		return strings.ToLower(tokens[len(tokens)-1])
 	}
 }
@@ -323,4 +366,34 @@ func getReconcilerFromStackTrace() string {
 		}
 	}
 	return reconcilerType
+}
+
+func getResourceNamespaceNameFromAPIKey(key string) (string, string, error) {
+	namespace := ""
+	name := ""
+	tokens := strings.Split(key, "/")
+	if len(tokens) < 4 {
+		// log.Printf("unrecognizable key %s\n", key)
+		return namespace, name, fmt.Errorf("tokens len should be >= 4")
+	}
+	namespace = tokens[len(tokens)-2]
+	name = tokens[len(tokens)-1]
+	return namespace, name, nil
+}
+
+func LogAPIEvent(eventType, key string, object interface{}) {
+	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
+	if err != nil {
+		return
+	}
+	if namespace != "default" {
+		return
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+	resourceType := regularizeType(object)
+	log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
 }

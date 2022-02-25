@@ -3,7 +3,6 @@ package sieve
 import (
 	"encoding/json"
 	"log"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -205,27 +204,88 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 	if err := loadSieveConfigFromConfigMap(eventType, key, object); err != nil {
 		return
 	}
-	tokens := strings.Split(key, "/")
-	namespace := tokens[len(tokens)-2]
-	if namespace == "default" {
-		jsonObject, err := json.Marshal(object)
-		if err != nil {
-			printError(err, SIEVE_JSON_ERR)
-			return
-		}
-		if len(tokens) < 4 {
-			log.Printf("unrecognizable key %s\n", key)
-			return
-		}
-		resourceType := regularizeType(object)
-		namespace := tokens[len(tokens)-2]
-		name := tokens[len(tokens)-1]
-		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
+	resourceType := regularizeType(object)
+	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
+	if err != nil {
+		return
 	}
+	LogAPIEvent(eventType, key, object)
+	resourceKey := generateResourceKey(resourceType, namespace, name)
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeAPIServerRecv", false) {
+		return
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+	log.Printf("NotifyTestBeforeAPIServerRecv %s %s %s\n", eventType, resourceKey, string(jsonObject))
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	defer client.Close()
+	request := &NotifyTestBeforeAPIServerRecvRequest{
+		APIServerHostname: apiserverHostname,
+		OperationType:     eventType,
+		ResourceKey:       resourceKey,
+		Object:            string(jsonObject),
+	}
+	var response Response
+	err = client.Call("TestCoordinator.NotifyTestBeforeAPIServerRecv", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestBeforeAPIServerRecv")
+
+	// if !checkKVPairInAction("pauseAPIServer", "serverName", apiserverHostname) {
+	// 	return
+	// }
+	// if !checkKVPairInAction("pauseAPIServer", "watchName", resourceType) {
+	// 	return
+	// }
+	// Ask test coordinator whether to pause here
+	// log.Println("Ask test coordinator whether to pause here")
 }
 
 func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 	if err := loadSieveConfigFromConfigMap(eventType, key, object); err != nil {
 		return
 	}
+	resourceType := regularizeType(object)
+	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
+	if err != nil {
+		return
+	}
+	resourceKey := generateResourceKey(resourceType, namespace, name)
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterAPIServerRecv", false) {
+		return
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+	log.Printf("NotifyTestAfterAPIServerRecv %s %s %s\n", eventType, resourceKey, string(jsonObject))
+	client, err := newClient()
+	if err != nil {
+		printError(err, SIEVE_CONN_ERR)
+		return
+	}
+	defer client.Close()
+	request := &NotifyTestAfterAPIServerRecvRequest{
+		APIServerHostname: apiserverHostname,
+		OperationType:     eventType,
+		ResourceKey:       resourceKey,
+		Object:            string(jsonObject),
+	}
+	var response Response
+	err = client.Call("TestCoordinator.NotifyTestAfterAPIServerRecv", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestAfterAPIServerRecv")
 }

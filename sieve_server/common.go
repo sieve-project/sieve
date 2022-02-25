@@ -34,8 +34,12 @@ const (
 )
 
 const (
-	afterControllerWrite string = "afterControllerWrite"
-	// afterControllerRecv  string = "afterControllerRecv"
+	beforeAPIServerRecv   string = "beforeAPIServerRecv"
+	afterAPIServerRecv    string = "afterAPIServerRecv"
+	beforeControllerRecv  string = "beforeControllerRecv"
+	afterControllerRecv   string = "afterControllerRecv"
+	beforeControllerWrite string = "beforeControllerWrite"
+	afterControllerWrite  string = "afterControllerWrite"
 )
 
 const (

@@ -71,6 +71,20 @@ type NotifyLearnAfterOperatorListRequest struct {
 	Error          string
 }
 
+type NotifyTestBeforeAPIServerRecvRequest struct {
+	APIServerHostname string
+	OperationType     string
+	ResourceKey       string
+	Object            string
+}
+
+type NotifyTestAfterAPIServerRecvRequest struct {
+	APIServerHostname string
+	OperationType     string
+	ResourceKey       string
+	Object            string
+}
+
 type NotifyTestBeforeControllerRecvRequest struct {
 	OperationType string
 	ResourceKey   string
