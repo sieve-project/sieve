@@ -11,6 +11,9 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
 	if err := loadSieveConfigFromEnv(); err != nil {
 		return
 	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
@@ -23,29 +26,25 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
 		return
 	}
 	log.Printf("NotifyTestBeforeControllerRecv %s %s %s\n", operationType, resourceKey, string(jsonObject))
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	defer client.Close()
 	request := &NotifyTestBeforeControllerRecvRequest{
 		OperationType: operationType,
 		ResourceKey:   resourceKey,
 		Object:        string(jsonObject),
 	}
 	var response Response
-	err = client.Call("TestCoordinator.NotifyTestBeforeControllerRecv", request, &response)
+	err = rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerRecv", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyTestBeforeControllerRecv")
-	client.Close()
 }
 
 func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
 	if err := loadSieveConfigFromEnv(); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
 		return
 	}
 	resourceType := regularizeType(object)
@@ -60,25 +59,18 @@ func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
 		return
 	}
 	log.Printf("NotifyTestAfterControllerRecv %s %s %s\n", operationType, resourceKey, string(jsonObject))
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	defer client.Close()
 	request := &NotifyTestAfterControllerRecvRequest{
 		OperationType: operationType,
 		ResourceKey:   resourceKey,
 		Object:        string(jsonObject),
 	}
 	var response Response
-	err = client.Call("TestCoordinator.NotifyTestAfterControllerRecv", request, &response)
+	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerRecv", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerRecv")
-	client.Close()
 }
 
 func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
@@ -86,6 +78,9 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 		return
 	}
 	if k8sErr != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -100,19 +95,13 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceKey, string(jsonObject))
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	defer client.Close()
 	request := &NotifyTestAfterControllerGetRequest{
 		ResourceKey:    resourceKey,
 		ReconcilerType: reconcilerType,
 		Object:         string(jsonObject),
 	}
 	var response Response
-	err = client.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
+	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
@@ -127,6 +116,9 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	if k8sErr != nil {
 		return
 	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
 	reconcilerType := getReconcilerFromStackTrace()
 	resourceType := regularizeType(object)
 	if !checkKVPairInTriggerObservationPoint(resourceType, "by", reconcilerType, true) {
@@ -138,19 +130,13 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceType, string(jsonObject))
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	defer client.Close()
 	request := &NotifyTestAfterControllerListRequest{
 		ResourceType:   resourceType,
 		ReconcilerType: reconcilerType,
 		ObjectList:     string(jsonObject),
 	}
 	var response Response
-	err = client.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
+	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
@@ -163,6 +149,9 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 		return
 	}
 	if k8sErr != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
@@ -178,12 +167,6 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 		return
 	}
 	log.Printf("NotifyTestAfterControllerWrite %s %s %s\n", writeType, resourceKey, string(jsonObject))
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	defer client.Close()
 	request := &NotifyTestAfterControllerWriteRequest{
 		WriteID:        writeID,
 		WriteType:      writeType,
@@ -192,7 +175,7 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 		Object:         string(jsonObject),
 	}
 	var response Response
-	err = client.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
+	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
@@ -204,12 +187,19 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 	if err := loadSieveConfigFromConfigMap(eventType, key, object); err != nil {
 		return
 	}
+	// we should log the API event before initializing the client
+	LogAPIEvent(eventType, key, object)
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	if err := initAPIServerHostName(); err != nil {
+		return
+	}
 	resourceType := regularizeType(object)
 	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
 	if err != nil {
 		return
 	}
-	LogAPIEvent(eventType, key, object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeAPIServerRecv", false) {
 		return
@@ -220,12 +210,6 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 		return
 	}
 	log.Printf("NotifyTestBeforeAPIServerRecv %s %s %s\n", eventType, resourceKey, string(jsonObject))
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	defer client.Close()
 	request := &NotifyTestBeforeAPIServerRecvRequest{
 		APIServerHostname: apiserverHostname,
 		OperationType:     eventType,
@@ -233,7 +217,7 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 		Object:            string(jsonObject),
 	}
 	var response Response
-	err = client.Call("TestCoordinator.NotifyTestBeforeAPIServerRecv", request, &response)
+	err = rpcClient.Call("TestCoordinator.NotifyTestBeforeAPIServerRecv", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
@@ -254,6 +238,12 @@ func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 	if err := loadSieveConfigFromConfigMap(eventType, key, object); err != nil {
 		return
 	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	if err := initAPIServerHostName(); err != nil {
+		return
+	}
 	resourceType := regularizeType(object)
 	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
 	if err != nil {
@@ -269,12 +259,6 @@ func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 		return
 	}
 	log.Printf("NotifyTestAfterAPIServerRecv %s %s %s\n", eventType, resourceKey, string(jsonObject))
-	client, err := newClient()
-	if err != nil {
-		printError(err, SIEVE_CONN_ERR)
-		return
-	}
-	defer client.Close()
 	request := &NotifyTestAfterAPIServerRecvRequest{
 		APIServerHostname: apiserverHostname,
 		OperationType:     eventType,
@@ -282,7 +266,7 @@ func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 		Object:            string(jsonObject),
 	}
 	var response Response
-	err = client.Call("TestCoordinator.NotifyTestAfterAPIServerRecv", request, &response)
+	err = rpcClient.Call("TestCoordinator.NotifyTestAfterAPIServerRecv", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return

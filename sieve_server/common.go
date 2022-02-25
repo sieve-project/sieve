@@ -50,8 +50,8 @@ type ActionContext struct {
 	namespace          string
 	leadingAPIServer   string
 	followingAPIServer string
-	controllerLock     *sync.RWMutex
-	apiserverLocks     map[string]*sync.RWMutex
+	controllerLock     *sync.Mutex
+	apiserverLocks     map[string]*sync.Mutex
 }
 
 func checkError(err error) {

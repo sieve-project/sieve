@@ -29,8 +29,8 @@ func NewTestCoordinator() *TestCoordinator {
 		namespace:          "default",
 		leadingAPIServer:   "kind-control-plane",
 		followingAPIServer: "kind-control-plane3",
-		controllerLock:     &sync.RWMutex{},
-		apiserverLocks:     map[string]*sync.RWMutex{},
+		controllerLock:     &sync.Mutex{},
+		apiserverLocks:     map[string]*sync.Mutex{},
 	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)

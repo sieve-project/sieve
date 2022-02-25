@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"runtime/debug"
 	"strings"
+	"sync"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -32,9 +33,11 @@ const SIEVE_JSON_ERR string = "[SIEVE JSON ERR]"
 const SIEVE_CONFIG_ERR string = "[SIEVE CONFIG ERR]"
 
 var config map[string]interface{} = nil
+var configLoadingLock sync.Mutex
 var triggerDefinitions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
 var actions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
 var apiserverHostname string = ""
+var rpcClient *rpc.Client = nil
 
 // var exists = struct{}{}
 
@@ -180,6 +183,11 @@ func loadSieveConfigFromEnv() error {
 	if config != nil {
 		return nil
 	}
+	configLoadingLock.Lock()
+	defer configLoadingLock.Unlock()
+	if config != nil {
+		return nil
+	}
 	if _, ok := os.LookupEnv("sieveTestPlan"); ok {
 		configFromEnv := make(map[string]interface{})
 		data := os.Getenv("sieveTestPlan")
@@ -202,19 +210,23 @@ func loadSieveConfigFromEnv() error {
 }
 
 func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) error {
-	var err error = nil
-	if apiserverHostname == "" {
-		apiserverHostname, err = os.Hostname()
-		if err != nil {
-			return err
-		}
-		log.Printf("host name is %s\n", apiserverHostname)
+	if config != nil {
+		return nil
+	}
+	configLoadingLock.Lock()
+	defer configLoadingLock.Unlock()
+	if config != nil {
+		return nil
 	}
 	tokens := strings.Split(key, "/")
+	if len(tokens) < 4 {
+		return fmt.Errorf("tokens len should be >= 4")
+	}
+	namespace := tokens[len(tokens)-2]
 	name := tokens[len(tokens)-1]
 	resourceType := regularizeType(object)
-	if name == "sieve-testing-global-config" && eventType == "ADDED" && resourceType == "configmap" {
-		log.Printf("[sieve] configmap map seen: %s, %s, %v\n", eventType, key, object)
+	if eventType == "ADDED" && resourceType == "configmap" && namespace == "default" && name == "sieve-testing-global-config" {
+		log.Printf("configmap map seen: %s, %s, %v\n", eventType, key, object)
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
 			printError(err, SIEVE_JSON_ERR)
@@ -226,11 +238,11 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) err
 			printError(err, SIEVE_JSON_ERR)
 			return fmt.Errorf("fail to load from configmap")
 		}
-		log.Printf("[sieve] config map is %v\n", configMapObject)
+		// log.Printf("config map is %v\n", configMapObject)
 		configFromConfigMapData := make(map[string]interface{})
 		configMapData, ok := configMapObject["Data"].(map[interface{}]interface{})
 		if !ok {
-			log.Printf("[sieve] cannot convert to map[interface{}]interface{}")
+			log.Printf("cannot convert configMapObject[\"Data\"] to map[interface{}]interface{}")
 			return fmt.Errorf("fail to load from configmap")
 		}
 		if str, ok := configMapData["sieveTestPlan"].(string); ok {
@@ -250,6 +262,48 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) err
 			log.Printf("cannot convert %v to string", configMapData["sieveTestPlan"])
 			return fmt.Errorf("fail to load from configmap")
 		}
+	} else {
+		return fmt.Errorf("have not seen sieve-testing-global-config yet")
+	}
+	return nil
+}
+
+func initAPIServerHostName() error {
+	if apiserverHostname != "" {
+		return nil
+	}
+	configLoadingLock.Lock()
+	defer configLoadingLock.Unlock()
+	if apiserverHostname != "" {
+		return nil
+	}
+	var err error = nil
+	apiserverHostname, err = os.Hostname()
+	if err != nil {
+		log.Printf("error in getting host name\n")
+		return err
+	}
+	return nil
+}
+
+func initRPCClient() error {
+	if rpcClient != nil {
+		return nil
+	}
+	configLoadingLock.Lock()
+	defer configLoadingLock.Unlock()
+	if rpcClient != nil {
+		return nil
+	}
+	var err error
+	hostPort := SIEVE_SERVER_ADDR
+	if val, ok := config["serverEndpoint"]; ok {
+		hostPort = val.(string)
+	}
+	rpcClient, err = rpc.Dial("tcp", hostPort)
+	if err != nil {
+		log.Printf("error in setting up connection to %s due to %v\n", hostPort, err)
+		return err
 	}
 	return nil
 }
@@ -273,19 +327,6 @@ func getCRDs() []string {
 		log.Println("do not find CRDList from config")
 	}
 	return crds
-}
-
-func newClient() (*rpc.Client, error) {
-	hostPort := SIEVE_SERVER_ADDR
-	if val, ok := config["serverEndpoint"]; ok {
-		hostPort = val.(string)
-	}
-	client, err := rpc.Dial("tcp", hostPort)
-	if err != nil {
-		log.Printf("[sieve] error in setting up connection to %s due to %v\n", hostPort, err)
-		return nil, err
-	}
-	return client, nil
 }
 
 func printError(err error, text string) {
