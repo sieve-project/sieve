@@ -52,6 +52,23 @@ IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01
 MASK_REGS = [TIME_REG, IP_REG]
 
 
+class sieve_stages:
+    LEARN = "learn"
+    TEST = "test"
+
+
+class sieve_modes:
+    TEST = "test"
+    STALE_STATE = "stale-state"
+    UNOBSR_STATE = "unobserved-state"
+    INTERMEDIATE_STATE = "intermediate-state"
+    VANILLA = "vanilla"
+    LEARN_ONCE = "learn-once"
+    LEARN_TWICE = "learn-twice"
+    ALL = "all"
+    NONE = "none"
+
+
 class TestContext:
     def __init__(
         self,
@@ -86,6 +103,21 @@ class TestContext:
         self.use_csi_driver = use_csi_driver
         self.common_config = common_config
         self.controller_config = controller_config
+        self.test_plan = None
+        self.action_types = []
+        if self.stage == sieve_stages.TEST:
+            self.test_plan = yaml.safe_load(open(test_config))
+            for action in self.test_plan["actions"]:
+                self.action_types.append(action["actionType"])
+            if "reconnectController" in self.action_types:
+                if self.num_apiservers < 3:
+                    self.num_apiservers = 3
+            if self.num_apiservers > 1:
+                # csi driver can only work with one apiserver so it cannot be enabled here
+                self.use_csi_driver = False
+            elif self.use_csi_driver:
+                self.num_apiservers = 1
+                self.num_workers = 0
 
 
 def match_mask_regex(val):
@@ -137,23 +169,6 @@ def oracle_directory(test_context: TestContext):
     return os.path.join(
         test_context.common_config.controller_folder, test_context.project, "oracle"
     )
-
-
-class sieve_stages:
-    LEARN = "learn"
-    TEST = "test"
-
-
-class sieve_modes:
-    TEST = "test"
-    STALE_STATE = "stale-state"
-    UNOBSR_STATE = "unobserved-state"
-    INTERMEDIATE_STATE = "intermediate-state"
-    VANILLA = "vanilla"
-    LEARN_ONCE = "learn-once"
-    LEARN_TWICE = "learn-twice"
-    ALL = "all"
-    NONE = "none"
 
 
 class bcolors:

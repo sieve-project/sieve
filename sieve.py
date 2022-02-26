@@ -248,14 +248,17 @@ def setup_cluster(test_context: TestContext):
     setup_kind_cluster(test_context)
     print("\n\n")
 
-    prepare_sieve_server(test_context)
-
     # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
-    if test_context.mode == sieve_modes.STALE_STATE:
+    if "reconnectController" in test_context.action_types:
+        cprint(
+            "Redirecting workers and kubectl to the leading API server...",
+            bcolors.OKGREEN,
+        )
         redirect_workers(test_context)
         redirect_kubectl()
+        ok("Redirection done")
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -279,6 +282,12 @@ def setup_cluster(test_context: TestContext):
             break
         time.sleep(1)
 
+    if test_context.mode != sieve_modes.VANILLA:
+        prepare_sieve_server(test_context)
+        cprint("Setting up Sieve server...", bcolors.OKGREEN)
+        start_sieve_server(test_context)
+        ok("Sieve server set up")
+
     time.sleep(3)  # ensure that every apiserver will see the configmap is created
     configmap = generate_configmap(test_context.test_config)
     cmd_early_exit("kubectl apply -f %s" % configmap)
@@ -298,8 +307,7 @@ def setup_cluster(test_context: TestContext):
 
 
 def deploy_controller(test_context: TestContext):
-    # csi driver can only work with one apiserver so it cannot be enabled in stale state mode
-    if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
+    if test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
@@ -368,10 +376,6 @@ def start_operator(test_context: TestContext):
 def run_workload(
     test_context: TestContext,
 ) -> Tuple[int, str]:
-    if test_context.mode != sieve_modes.VANILLA:
-        cprint("Setting up Sieve server...", bcolors.OKGREEN)
-        start_sieve_server(test_context)
-        ok("Sieve server set up")
 
     cprint("Deploying operator...", bcolors.OKGREEN)
     start_operator(test_context)
@@ -550,11 +554,6 @@ def run(
             num_workers = controller_config.test_setting[test]["num_workers"]
         if "use_csi_driver" in controller_config.test_setting[test]:
             use_csi_driver = controller_config.test_setting[test]["use_csi_driver"]
-    if mode == sieve_modes.STALE_STATE and num_apiservers < 3:
-        num_apiservers = 3
-    elif use_csi_driver:
-        num_apiservers = 1
-        num_workers = 0
     oracle_dir = os.path.join(common_config.controller_folder, project, "oracle", test)
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
