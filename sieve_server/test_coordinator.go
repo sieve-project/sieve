@@ -179,13 +179,13 @@ func (s *testCoordinator) NotifyTestAfterAPIServerRecv(request *sieve.NotifyTest
 	switch request.OperationType {
 	case API_ADDED:
 		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterAPIServerRecv, request.APIServerHostname)
-	case API_DELETED:
-		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterAPIServerRecv, request.APIServerHostname)
 	case API_MODIFIED:
 		prevObjectStateStr := s.ReadFromObjectStates(request.APIServerHostname, afterAPIServerRecv, request.ResourceKey)
 		s.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, afterAPIServerRecv, request.APIServerHostname, strToMap(prevObjectStateStr), strToMap(request.Object))
+	case API_DELETED:
+		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterAPIServerRecv, request.APIServerHostname)
 	default:
-		log.Println("do not support other types than create and delete")
+		log.Printf("do not support %s\n", request.OperationType)
 	}
 	s.WriteToObjectStates(request.APIServerHostname, afterAPIServerRecv, request.ResourceKey, request.Object)
 	*response = sieve.Response{Message: "", Ok: true}
@@ -201,7 +201,7 @@ func (s *testCoordinator) NotifyTestBeforeControllerRecv(request *sieve.NotifyTe
 	case HEAR_DELETED:
 		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerRecv, "")
 	default:
-		log.Println("do not support other types than create and delete")
+		log.Printf("do not support %s\n", request.OperationType)
 	}
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
@@ -216,7 +216,7 @@ func (s *testCoordinator) NotifyTestAfterControllerRecv(request *sieve.NotifyTes
 	case HEAR_DELETED:
 		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterControllerRecv, "")
 	default:
-		log.Println("do not support other types than create and delete")
+		log.Printf("do not support %s\n", request.OperationType)
 	}
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
@@ -261,7 +261,7 @@ func (s *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyTe
 	case WRITE_DELETE:
 		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType)
 	default:
-		log.Println("do not support other types than create and delete")
+		log.Printf("do not support %s\n", request.WriteType)
 	}
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
