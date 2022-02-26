@@ -21,13 +21,13 @@ type TimeoutTrigger struct {
 	timeoutValue int
 }
 
-func (tt *TimeoutTrigger) getTriggerName() string {
-	return tt.name
+func (t *TimeoutTrigger) getTriggerName() string {
+	return t.name
 }
 
-func (tt *TimeoutTrigger) satisfy(triggerNotification TriggerNotification) bool {
+func (t *TimeoutTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*TimeoutNotification); ok {
-		if notification.conditionName == tt.name {
+		if notification.conditionName == t.name {
 			return true
 		}
 	}
@@ -43,15 +43,15 @@ type ObjectCreateTrigger struct {
 	observedBy    string
 }
 
-func (oct *ObjectCreateTrigger) getTriggerName() string {
-	return oct.name
+func (t *ObjectCreateTrigger) getTriggerName() string {
+	return t.name
 }
 
-func (oct *ObjectCreateTrigger) satisfy(triggerNotification TriggerNotification) bool {
+func (t *ObjectCreateTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*ObjectCreateNotification); ok {
-		if notification.resourceKey == oct.resourceKey && notification.observedWhen == oct.observedWhen && notification.observedBy == oct.observedBy {
-			oct.currentRepeat += 1
-			if oct.currentRepeat == oct.desiredRepeat {
+		if notification.resourceKey == t.resourceKey && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
+			t.currentRepeat += 1
+			if t.currentRepeat == t.desiredRepeat {
 				return true
 			}
 		}
@@ -68,15 +68,15 @@ type ObjectDeleteTrigger struct {
 	observedBy    string
 }
 
-func (odt *ObjectDeleteTrigger) getTriggerName() string {
-	return odt.name
+func (t *ObjectDeleteTrigger) getTriggerName() string {
+	return t.name
 }
 
-func (odt *ObjectDeleteTrigger) satisfy(triggerNotification TriggerNotification) bool {
+func (t *ObjectDeleteTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*ObjectDeleteNotification); ok {
-		if notification.resourceKey == odt.resourceKey && notification.observedWhen == odt.observedWhen && notification.observedBy == odt.observedBy {
-			odt.currentRepeat += 1
-			if odt.currentRepeat == odt.desiredRepeat {
+		if notification.resourceKey == t.resourceKey && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
+			t.currentRepeat += 1
+			if t.currentRepeat == t.desiredRepeat {
 				return true
 			}
 		}
@@ -95,13 +95,13 @@ type ObjectUpdateTrigger struct {
 	observedBy    string
 }
 
-func (out *ObjectUpdateTrigger) getTriggerName() string {
-	return out.name
+func (t *ObjectUpdateTrigger) getTriggerName() string {
+	return t.name
 }
 
-func (out *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) bool {
+func (t *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*ObjectUpdateNotification); ok {
-		if notification.resourceKey == out.resourceKey && notification.observedWhen == out.observedWhen && notification.observedBy == out.observedBy {
+		if notification.resourceKey == t.resourceKey && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
 			// compute state diff
 			exactMatch := true
 			if notification.observedWhen == beforeAPIServerRecv || notification.observedWhen == afterAPIServerRecv {
@@ -109,9 +109,9 @@ func (out *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification)
 			}
 			log.Println(notification.fieldKeyMask)
 			log.Println(notification.fieldPathMask)
-			if isDesiredUpdate(notification.prevState, notification.curState, out.prevStateDiff, out.curStateDiff, notification.fieldKeyMask, notification.fieldPathMask, exactMatch) {
-				out.currentRepeat += 1
-				if out.currentRepeat == out.desiredRepeat {
+			if isDesiredUpdate(notification.prevState, notification.curState, t.prevStateDiff, t.curStateDiff, notification.fieldKeyMask, notification.fieldPathMask, exactMatch) {
+				t.currentRepeat += 1
+				if t.currentRepeat == t.desiredRepeat {
 					return true
 				}
 			}
@@ -126,23 +126,101 @@ type Action interface {
 	run(*ActionContext)
 }
 
-type RestartControllerAction struct {
-	controllerLabel    string
+type PauseAPIServerAction struct {
+	apiServerName      string
+	async              bool
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
 }
 
-func (rca *RestartControllerAction) getTriggerGraph() *TriggerGraph {
-	return rca.triggerGraph
+func (a *PauseAPIServerAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
 }
 
-func (rca *RestartControllerAction) getTriggerDefinitions() map[string]TriggerDefinition {
-	return rca.triggerDefinitions
+func (a *PauseAPIServerAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
 }
 
-func (rca *RestartControllerAction) run(actionConext *ActionContext) {
+func (a *PauseAPIServerAction) run(actionConext *ActionContext) {
+	log.Println("run the PauseAPIServerAction")
+	// if a.async {
+	// 	// do something
+	// } else {
+	// 	// do something
+	// }
+}
+
+type ResumeAPIServerAction struct {
+	apiServerName      string
+	async              bool
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *ResumeAPIServerAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *ResumeAPIServerAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *ResumeAPIServerAction) run(actionConext *ActionContext) {
+	log.Println("run the ResumeAPIServerAction")
+	// if a.async {
+	// 	// do something
+	// } else {
+	// 	// do something
+	// }
+}
+
+type RestartControllerAction struct {
+	controllerLabel    string
+	async              bool
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *RestartControllerAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *RestartControllerAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *RestartControllerAction) run(actionConext *ActionContext) {
 	log.Println("run the RestartControllerAction")
-	restartControllerHelper(actionConext.namespace, rca.controllerLabel, actionConext.leadingAPIServer)
+	if a.async {
+		go restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, "", false)
+	} else {
+		restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, "", false)
+	}
+}
+
+type ReconnectControllerAction struct {
+	controllerLabel    string
+	reconnectAPIServer string
+	async              bool
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *ReconnectControllerAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *ReconnectControllerAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *ReconnectControllerAction) run(actionConext *ActionContext) {
+	log.Println("run the ReconnectControllerAction")
+	// if a.async {
+	// 	go restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, a.reconnectAPIServer, true)
+	// } else {
+	// 	restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, a.reconnectAPIServer, true)
+	// }
 }
 
 type TestPlan struct {
@@ -214,10 +292,37 @@ func parseAction(raw map[interface{}]interface{}) Action {
 	}
 
 	actionType := raw["actionType"].(string)
+	async := false
+	if _, ok := raw["async"]; ok {
+		async = true
+	}
 	switch actionType {
+	case pauseAPIServer:
+		return &PauseAPIServerAction{
+			apiServerName:      raw["apiServerName"].(string),
+			async:              async,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
+	case resumeAPIServer:
+		return &ResumeAPIServerAction{
+			apiServerName:      raw["apiServerName"].(string),
+			async:              async,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
 	case restartController:
 		return &RestartControllerAction{
 			controllerLabel:    raw["controllerLabel"].(string),
+			async:              async,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
+	case reconnectController:
+		return &ReconnectControllerAction{
+			controllerLabel:    raw["controllerLabel"].(string),
+			reconnectAPIServer: raw["reconnectAPIServer"].(string),
+			async:              async,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}

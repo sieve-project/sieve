@@ -45,7 +45,12 @@ const (
 
 // actionType
 const (
-	restartController string = "restartController"
+	pauseAPIServer      string = "pauseAPIServer"
+	resumeAPIServer     string = "resumeAPIServer"
+	pauseController     string = "pauseController"
+	resumeController    string = "resumeController"
+	restartController   string = "restartController"
+	reconnectController string = "reconnectController"
 )
 
 type ActionContext struct {
@@ -191,11 +196,7 @@ func waitForPodRunning(namespace, controllerLabel, leadingAPI string) {
 	}
 }
 
-func restartControllerHelper(namespace, controllerLabel, leadingAPI string) {
-	reconnectControllerHelper(namespace, controllerLabel, leadingAPI, "", false)
-}
-
-func reconnectControllerHelper(namespace, controllerLabel, leadingAPI, followingAPI string, redirect bool) {
+func restartAndreconnectController(namespace, controllerLabel, leadingAPI, followingAPI string, redirect bool) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
