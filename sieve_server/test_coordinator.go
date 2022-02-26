@@ -15,8 +15,8 @@ type testCoordinator struct {
 	testPlan            *TestPlan
 	actionConext        *ActionContext
 	stateNotificationCh chan TriggerNotification
-	blockingChs         map[string]map[string]map[string]chan string
-	objectStates        map[string]map[string]map[string]map[string]interface{}
+	objectStates        map[string]map[string]map[string]string
+	objectStatesLock    sync.RWMutex
 	mergedFieldPathMask map[string]map[string]struct{}
 	mergedFieldKeyMask  map[string]map[string]struct{}
 	stateMachine        *StateMachine
@@ -34,13 +34,11 @@ func NewTestCoordinator() *TestCoordinator {
 	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)
-	blockingChs := map[string]map[string]map[string]chan string{}
 	server := &testCoordinator{
 		testPlan:            testPlan,
 		actionConext:        actionConext,
 		stateNotificationCh: stateNotificationCh,
-		blockingChs:         blockingChs,
-		objectStates:        map[string]map[string]map[string]map[string]interface{}{},
+		objectStates:        map[string]map[string]map[string]string{},
 		mergedFieldPathMask: mergedFieldPathMask,
 		mergedFieldKeyMask:  mergedFieldKeyMask,
 		stateMachine:        NewStateMachine(testPlan, stateNotificationCh, actionConext),
@@ -134,15 +132,29 @@ func (s *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, reso
 }
 
 func (s *testCoordinator) InitializeObjectStatesEntry(observedBy, observedWhen, resourceKey string) {
+	s.objectStatesLock.Lock()
+	defer s.objectStatesLock.Unlock()
 	if _, ok := s.objectStates[observedBy]; !ok {
-		s.objectStates[observedBy] = map[string]map[string]map[string]interface{}{}
+		s.objectStates[observedBy] = map[string]map[string]string{}
 	}
 	if _, ok := s.objectStates[observedBy][observedWhen]; !ok {
-		s.objectStates[observedBy][observedWhen] = map[string]map[string]interface{}{}
+		s.objectStates[observedBy][observedWhen] = map[string]string{}
 	}
 	if _, ok := s.objectStates[observedBy][observedWhen][resourceKey]; !ok {
-		s.objectStates[observedBy][observedWhen][resourceKey] = map[string]interface{}{}
+		s.objectStates[observedBy][observedWhen][resourceKey] = "{}"
 	}
+}
+
+func (s *testCoordinator) ReadFromObjectStates(observedBy, observedWhen, resourceKey string) string {
+	s.objectStatesLock.RLock()
+	defer s.objectStatesLock.RUnlock()
+	return s.objectStates[observedBy][observedWhen][resourceKey]
+}
+
+func (s *testCoordinator) WriteToObjectStates(observedBy, observedWhen, resourceKey string, value string) {
+	s.objectStatesLock.Lock()
+	defer s.objectStatesLock.Unlock()
+	s.objectStates[observedBy][observedWhen][resourceKey] = value
 }
 
 func (s *testCoordinator) NotifyTestBeforeAPIServerRecv(request *sieve.NotifyTestBeforeAPIServerRecvRequest, response *sieve.Response) error {
@@ -163,14 +175,19 @@ func (s *testCoordinator) NotifyTestBeforeAPIServerRecv(request *sieve.NotifyTes
 func (s *testCoordinator) NotifyTestAfterAPIServerRecv(request *sieve.NotifyTestAfterAPIServerRecvRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestAfterAPIServerRecv"
 	log.Printf("%s\t%s\t%s\t%s\t%s", request.APIServerHostname, handlerName, request.OperationType, request.ResourceKey, request.Object)
+	s.InitializeObjectStatesEntry(request.APIServerHostname, afterAPIServerRecv, request.ResourceKey)
 	switch request.OperationType {
 	case API_ADDED:
 		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterAPIServerRecv, request.APIServerHostname)
 	case API_DELETED:
 		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterAPIServerRecv, request.APIServerHostname)
+	case API_MODIFIED:
+		prevObjectStateStr := s.ReadFromObjectStates(request.APIServerHostname, afterAPIServerRecv, request.ResourceKey)
+		s.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, afterAPIServerRecv, request.APIServerHostname, strToMap(prevObjectStateStr), strToMap(request.Object))
 	default:
 		log.Println("do not support other types than create and delete")
 	}
+	s.WriteToObjectStates(request.APIServerHostname, afterAPIServerRecv, request.ResourceKey, request.Object)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
@@ -208,24 +225,20 @@ func (s *testCoordinator) NotifyTestAfterControllerRecv(request *sieve.NotifyTes
 func (s *testCoordinator) NotifyTestAfterControllerGet(request *sieve.NotifyTestAfterControllerGetRequest, response *sieve.Response) error {
 	log.Printf("NotifyTestAfterControllerGet\t%s\t%s\t%s", request.ResourceKey, request.ReconcilerType, request.Object)
 	s.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
-	// need lock here
-	objectState := strToMap(request.Object)
-	trimKindApiversion(objectState)
-	s.objectStates[request.ReconcilerType][afterControllerWrite][request.ResourceKey] = objectState
+	s.WriteToObjectStates(request.ReconcilerType, afterControllerWrite, request.ResourceKey, request.Object)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
 
 func (s *testCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTestAfterControllerListRequest, response *sieve.Response) error {
 	log.Printf("NotifyTestAfterControllerList\t%s\t%s\t%s", request.ResourceType, request.ReconcilerType, request.ObjectList)
-	// need lock here
 	objects := strToMap(request.ObjectList)["items"].([]interface{})
 	for _, object := range objects {
 		objectState := object.(map[string]interface{})
 		name, namespace := extractNameNamespaceFromObjMap(objectState)
 		resourceKey := generateResourceKey(request.ResourceType, namespace, name)
-		trimKindApiversion(objectState)
-		s.objectStates[request.ReconcilerType][afterControllerWrite][resourceKey] = objectState
+		s.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, resourceKey)
+		s.WriteToObjectStates(request.ReconcilerType, afterControllerWrite, resourceKey, mapToStr(objectState))
 	}
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
@@ -235,11 +248,13 @@ func (s *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyTe
 	handlerName := "NotifyTestAfterControllerWrite"
 	log.Printf("%s\t%s\t%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey, request.ReconcilerType, request.Object)
 	s.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
-	prevObjectState := s.objectStates[request.ReconcilerType][afterControllerWrite][request.ResourceKey]
+	prevObjectStateStr := s.ReadFromObjectStates(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
 	switch request.WriteType {
 	case WRITE_CREATE:
 		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType)
 	case WRITE_UPDATE, WRITE_PATCH, WRITE_STATUS_UPDATE, WRITE_STATUS_PATCH:
+		prevObjectState := strToMap(prevObjectStateStr)
+		trimKindApiversion(prevObjectState)
 		curObjectState := strToMap(request.Object)
 		trimKindApiversion(curObjectState)
 		s.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType, prevObjectState, curObjectState)
