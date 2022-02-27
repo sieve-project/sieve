@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 )
 
 const (
@@ -131,6 +132,8 @@ type PauseAPIServerAction struct {
 	apiServerName      string
 	pauseScope         string
 	async              bool
+	waitBefore         int
+	waitAfter          int
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
 }
@@ -147,26 +150,45 @@ func (a *PauseAPIServerAction) isAsync() bool {
 	return a.async
 }
 
-func (a *PauseAPIServerAction) run(actionConext *ActionContext) {
+func (a *PauseAPIServerAction) runInternal(actionContext *ActionContext, async bool) {
 	log.Println("run the PauseAPIServerAction")
-	if _, ok := actionConext.apiserverLockedMap[a.apiServerName]; !ok {
-		actionConext.apiserverLockedMap[a.apiServerName] = map[string]bool{}
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
-	if _, ok := actionConext.apiserverLocks[a.apiServerName]; !ok {
-		actionConext.apiserverLocks[a.apiServerName] = map[string]chan string{}
+	if _, ok := actionContext.apiserverLockedMap[a.apiServerName]; !ok {
+		actionContext.apiserverLockedMap[a.apiServerName] = map[string]bool{}
+	}
+	if _, ok := actionContext.apiserverLocks[a.apiServerName]; !ok {
+		actionContext.apiserverLocks[a.apiServerName] = map[string]chan string{}
 	}
 	log.Printf("Create channel for %s %s\n", a.apiServerName, a.pauseScope)
-	if _, ok := actionConext.apiserverLocks[a.apiServerName][a.pauseScope]; !ok {
-		actionConext.apiserverLocks[a.apiServerName][a.pauseScope] = make(chan string)
+	if _, ok := actionContext.apiserverLocks[a.apiServerName][a.pauseScope]; !ok {
+		actionContext.apiserverLocks[a.apiServerName][a.pauseScope] = make(chan string)
 	}
-	actionConext.apiserverLockedMap[a.apiServerName][a.pauseScope] = true
+	actionContext.apiserverLockedMap[a.apiServerName][a.pauseScope] = true
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
 	log.Println("PauseAPIServerAction done")
+}
+
+func (a *PauseAPIServerAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
 }
 
 type ResumeAPIServerAction struct {
 	apiServerName      string
 	pauseScope         string
 	async              bool
+	waitBefore         int
+	waitAfter          int
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
 }
@@ -183,18 +205,37 @@ func (a *ResumeAPIServerAction) isAsync() bool {
 	return a.async
 }
 
-func (a *ResumeAPIServerAction) run(actionConext *ActionContext) {
+func (a *ResumeAPIServerAction) runInternal(actionContext *ActionContext, async bool) {
 	log.Println("run the ResumeAPIServerAction")
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
 	log.Printf("Close channel for %s %s\n", a.apiServerName, a.pauseScope)
-	actionConext.apiserverLocks[a.apiServerName][a.pauseScope] <- "release"
-	close(actionConext.apiserverLocks[a.apiServerName][a.pauseScope])
-	actionConext.apiserverLockedMap[a.apiServerName][a.pauseScope] = false
+	actionContext.apiserverLocks[a.apiServerName][a.pauseScope] <- "release"
+	close(actionContext.apiserverLocks[a.apiServerName][a.pauseScope])
+	actionContext.apiserverLockedMap[a.apiServerName][a.pauseScope] = false
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
 	log.Println("ResumeAPIServerAction done")
+}
+
+func (a *ResumeAPIServerAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
 }
 
 type RestartControllerAction struct {
 	controllerLabel    string
 	async              bool
+	waitBefore         int
+	waitAfter          int
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
 }
@@ -211,16 +252,35 @@ func (a *RestartControllerAction) isAsync() bool {
 	return a.async
 }
 
-func (a *RestartControllerAction) run(actionConext *ActionContext) {
+func (a *RestartControllerAction) runInternal(actionContext *ActionContext, async bool) {
 	log.Println("run the RestartControllerAction")
-	restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, "", false)
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+	restartAndreconnectController(actionContext.namespace, a.controllerLabel, actionContext.leadingAPIServer, "", false)
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
 	log.Println("RestartControllerAction done")
+}
+
+func (a *RestartControllerAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
 }
 
 type ReconnectControllerAction struct {
 	controllerLabel    string
 	reconnectAPIServer string
 	async              bool
+	waitBefore         int
+	waitAfter          int
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
 }
@@ -237,11 +297,27 @@ func (a *ReconnectControllerAction) isAsync() bool {
 	return a.async
 }
 
-func (a *ReconnectControllerAction) run(actionConext *ActionContext) {
+func (a *ReconnectControllerAction) runInternal(actionContext *ActionContext, async bool) {
 	log.Println("run the ReconnectControllerAction")
-	restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, a.reconnectAPIServer, true)
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+	restartAndreconnectController(actionContext.namespace, a.controllerLabel, actionContext.leadingAPIServer, a.reconnectAPIServer, true)
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
 	log.Println("ReconnectControllerAction done")
+}
 
+func (a *ReconnectControllerAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
 }
 
 type TestPlan struct {
@@ -314,15 +390,26 @@ func parseAction(raw map[interface{}]interface{}) Action {
 
 	actionType := raw["actionType"].(string)
 	async := false
-	if _, ok := raw["async"]; ok {
-		async = true
+	if val, ok := raw["async"]; ok {
+		async = val.(bool)
 	}
+	waitBefore := 0
+	if val, ok := raw["waitBefore"]; ok {
+		waitBefore = val.(int)
+	}
+	waitAfter := 0
+	if val, ok := raw["waitAfter"]; ok {
+		waitAfter = val.(int)
+	}
+
 	switch actionType {
 	case pauseAPIServer:
 		return &PauseAPIServerAction{
 			apiServerName:      raw["apiServerName"].(string),
 			pauseScope:         raw["pauseScope"].(string),
 			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
@@ -331,6 +418,8 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			apiServerName:      raw["apiServerName"].(string),
 			pauseScope:         raw["pauseScope"].(string),
 			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
@@ -338,6 +427,8 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		return &RestartControllerAction{
 			controllerLabel:    raw["controllerLabel"].(string),
 			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
@@ -346,6 +437,8 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			controllerLabel:    raw["controllerLabel"].(string),
 			reconnectAPIServer: raw["reconnectAPIServer"].(string),
 			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
