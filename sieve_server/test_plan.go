@@ -123,11 +123,13 @@ func (t *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) b
 type Action interface {
 	getTriggerGraph() *TriggerGraph
 	getTriggerDefinitions() map[string]TriggerDefinition
+	isAsync() bool
 	run(*ActionContext)
 }
 
 type PauseAPIServerAction struct {
 	apiServerName      string
+	pauseScope         string
 	async              bool
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
@@ -141,17 +143,29 @@ func (a *PauseAPIServerAction) getTriggerDefinitions() map[string]TriggerDefinit
 	return a.triggerDefinitions
 }
 
+func (a *PauseAPIServerAction) isAsync() bool {
+	return a.async
+}
+
 func (a *PauseAPIServerAction) run(actionConext *ActionContext) {
 	log.Println("run the PauseAPIServerAction")
-	// if a.async {
-	// 	// do something
-	// } else {
-	// 	// do something
-	// }
+	if _, ok := actionConext.apiserverLockedMap[a.apiServerName]; !ok {
+		actionConext.apiserverLockedMap[a.apiServerName] = map[string]bool{}
+	}
+	if _, ok := actionConext.apiserverLocks[a.apiServerName]; !ok {
+		actionConext.apiserverLocks[a.apiServerName] = map[string]chan string{}
+	}
+	log.Printf("Create channel for %s %s\n", a.apiServerName, a.pauseScope)
+	if _, ok := actionConext.apiserverLocks[a.apiServerName][a.pauseScope]; !ok {
+		actionConext.apiserverLocks[a.apiServerName][a.pauseScope] = make(chan string)
+	}
+	actionConext.apiserverLockedMap[a.apiServerName][a.pauseScope] = true
+	log.Println("PauseAPIServerAction done")
 }
 
 type ResumeAPIServerAction struct {
 	apiServerName      string
+	pauseScope         string
 	async              bool
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
@@ -165,13 +179,17 @@ func (a *ResumeAPIServerAction) getTriggerDefinitions() map[string]TriggerDefini
 	return a.triggerDefinitions
 }
 
+func (a *ResumeAPIServerAction) isAsync() bool {
+	return a.async
+}
+
 func (a *ResumeAPIServerAction) run(actionConext *ActionContext) {
 	log.Println("run the ResumeAPIServerAction")
-	// if a.async {
-	// 	// do something
-	// } else {
-	// 	// do something
-	// }
+	log.Printf("Close channel for %s %s\n", a.apiServerName, a.pauseScope)
+	actionConext.apiserverLocks[a.apiServerName][a.pauseScope] <- "release"
+	close(actionConext.apiserverLocks[a.apiServerName][a.pauseScope])
+	actionConext.apiserverLockedMap[a.apiServerName][a.pauseScope] = false
+	log.Println("ResumeAPIServerAction done")
 }
 
 type RestartControllerAction struct {
@@ -189,13 +207,14 @@ func (a *RestartControllerAction) getTriggerDefinitions() map[string]TriggerDefi
 	return a.triggerDefinitions
 }
 
+func (a *RestartControllerAction) isAsync() bool {
+	return a.async
+}
+
 func (a *RestartControllerAction) run(actionConext *ActionContext) {
 	log.Println("run the RestartControllerAction")
-	if a.async {
-		go restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, "", false)
-	} else {
-		restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, "", false)
-	}
+	restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, "", false)
+	log.Println("RestartControllerAction done")
 }
 
 type ReconnectControllerAction struct {
@@ -214,13 +233,15 @@ func (a *ReconnectControllerAction) getTriggerDefinitions() map[string]TriggerDe
 	return a.triggerDefinitions
 }
 
+func (a *ReconnectControllerAction) isAsync() bool {
+	return a.async
+}
+
 func (a *ReconnectControllerAction) run(actionConext *ActionContext) {
 	log.Println("run the ReconnectControllerAction")
-	// if a.async {
-	// 	go restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, a.reconnectAPIServer, true)
-	// } else {
-	// 	restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, a.reconnectAPIServer, true)
-	// }
+	restartAndreconnectController(actionConext.namespace, a.controllerLabel, actionConext.leadingAPIServer, a.reconnectAPIServer, true)
+	log.Println("ReconnectControllerAction done")
+
 }
 
 type TestPlan struct {
@@ -300,6 +321,7 @@ func parseAction(raw map[interface{}]interface{}) Action {
 	case pauseAPIServer:
 		return &PauseAPIServerAction{
 			apiServerName:      raw["apiServerName"].(string),
+			pauseScope:         raw["pauseScope"].(string),
 			async:              async,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
@@ -307,6 +329,7 @@ func parseAction(raw map[interface{}]interface{}) Action {
 	case resumeAPIServer:
 		return &ResumeAPIServerAction{
 			apiServerName:      raw["apiServerName"].(string),
+			pauseScope:         raw["pauseScope"].(string),
 			async:              async,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,

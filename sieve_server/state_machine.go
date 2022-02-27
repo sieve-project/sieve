@@ -6,20 +6,22 @@ import (
 )
 
 type StateMachine struct {
-	states                []Action
-	nextState             int
-	stateNotificationCh   chan TriggerNotification
-	timeoutNotificationCh chan TriggerNotification
-	actionConext          *ActionContext
+	states                       []Action
+	nextState                    int
+	stateNotificationCh          chan TriggerNotification
+	timeoutNotificationCh        chan TriggerNotification
+	apiServerPauseNotificationCh chan *APIServerPauseNotification
+	actionConext                 *ActionContext
 }
 
-func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification, actionContext *ActionContext) *StateMachine {
+func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification, apiServerPauseNotificationCh chan *APIServerPauseNotification, actionContext *ActionContext) *StateMachine {
 	return &StateMachine{
-		states:                testPlan.actions,
-		nextState:             0,
-		stateNotificationCh:   stateNotificationCh,
-		timeoutNotificationCh: make(chan TriggerNotification, 500),
-		actionConext:          actionContext,
+		states:                       testPlan.actions,
+		nextState:                    0,
+		stateNotificationCh:          stateNotificationCh,
+		timeoutNotificationCh:        make(chan TriggerNotification, 500),
+		apiServerPauseNotificationCh: apiServerPauseNotificationCh,
+		actionConext:                 actionContext,
 	}
 }
 
@@ -41,9 +43,20 @@ func (sm *StateMachine) setTimeoutForTimeoutTriggers() {
 }
 
 func (sm *StateMachine) processNotification(notification TriggerNotification) {
+	sentBack := false
 	if sm.nextState >= len(sm.states) {
 		return
 	}
+
+	defer func() {
+		if !sentBack {
+			if blockingCh := notification.getBlockingCh(); blockingCh != nil {
+				log.Println("release the blocking ch")
+				blockingCh <- "release"
+			}
+		}
+	}()
+
 	action := sm.states[sm.nextState]
 	triggerGraph := sm.states[sm.nextState].getTriggerGraph()
 	triggerDefinitions := sm.states[sm.nextState].getTriggerDefinitions()
@@ -54,6 +67,13 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 			log.Printf("trigger %s is satisfied\n", triggerName)
 			if triggerGraph.fullyTriggered() {
 				log.Printf("all triggers are satisfied for action %d\n", sm.nextState)
+				if action.isAsync() {
+					if blockingCh := notification.getBlockingCh(); blockingCh != nil {
+						log.Println("release the blocking ch earlier due to async")
+						blockingCh <- "release"
+						sentBack = true
+					}
+				}
 				action.run(sm.actionConext)
 				sm.nextState += 1
 				if sm.nextState >= len(sm.states) {
@@ -69,16 +89,32 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 	}
 }
 
+func (sm *StateMachine) processAPIServerPause(notification *APIServerPauseNotification) {
+	go func() {
+		if notification.pausedByAll {
+			log.Printf("Start to pause API server for %s\n", notification.apiServerName)
+			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName]["all"]
+			<-pausingCh
+		} else {
+			log.Printf("Start to pause API server for %s %s\n", notification.apiServerName, notification.resourceKey)
+			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName][notification.resourceKey]
+			<-pausingCh
+		}
+		log.Printf("Pause API server done")
+		blockingCh := notification.getBlockingCh()
+		blockingCh <- "release"
+	}()
+}
+
 func (sm *StateMachine) run() {
 	for {
 		select {
 		case stateNotification := <-sm.stateNotificationCh:
 			sm.processNotification(stateNotification)
-			blockingCh := stateNotification.getBlockingCh()
-			log.Println("release the blocking ch")
-			blockingCh <- "release"
 		case timeoutNotification := <-sm.timeoutNotificationCh:
 			sm.processNotification(timeoutNotification)
+		case apiServerNotification := <-sm.apiServerPauseNotificationCh:
+			sm.processAPIServerPause(apiServerNotification)
 		}
 	}
 }

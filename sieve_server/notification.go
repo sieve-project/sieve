@@ -8,7 +8,7 @@ type TimeoutNotification struct {
 	conditionName string
 }
 
-func (tn *TimeoutNotification) getBlockingCh() chan string {
+func (n *TimeoutNotification) getBlockingCh() chan string {
 	return nil
 }
 
@@ -19,8 +19,8 @@ type ObjectCreateNotification struct {
 	blockingCh   chan string
 }
 
-func (ocn *ObjectCreateNotification) getBlockingCh() chan string {
-	return ocn.blockingCh
+func (n *ObjectCreateNotification) getBlockingCh() chan string {
+	return n.blockingCh
 }
 
 type ObjectDeleteNotification struct {
@@ -30,8 +30,8 @@ type ObjectDeleteNotification struct {
 	blockingCh   chan string
 }
 
-func (odn *ObjectDeleteNotification) getBlockingCh() chan string {
-	return odn.blockingCh
+func (n *ObjectDeleteNotification) getBlockingCh() chan string {
+	return n.blockingCh
 }
 
 type ObjectUpdateNotification struct {
@@ -45,6 +45,17 @@ type ObjectUpdateNotification struct {
 	blockingCh    chan string
 }
 
-func (oun *ObjectUpdateNotification) getBlockingCh() chan string {
-	return oun.blockingCh
+func (n *ObjectUpdateNotification) getBlockingCh() chan string {
+	return n.blockingCh
+}
+
+type APIServerPauseNotification struct {
+	apiServerName string
+	resourceKey   string
+	pausedByAll   bool
+	blockingCh    chan string
+}
+
+func (n *APIServerPauseNotification) getBlockingCh() chan string {
+	return n.blockingCh
 }
