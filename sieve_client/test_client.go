@@ -223,15 +223,6 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 		return
 	}
 	checkResponse(response, "NotifyTestBeforeAPIServerRecv")
-
-	// if !checkKVPairInAction("pauseAPIServer", "serverName", apiserverHostname) {
-	// 	return
-	// }
-	// if !checkKVPairInAction("pauseAPIServer", "watchName", resourceType) {
-	// 	return
-	// }
-	// Ask test coordinator whether to pause here
-	// log.Println("Ask test coordinator whether to pause here")
 }
 
 func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {

@@ -213,57 +213,55 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) err
 	if config != nil {
 		return nil
 	}
-	configLoadingLock.Lock()
-	defer configLoadingLock.Unlock()
-	if config != nil {
-		return nil
-	}
-	tokens := strings.Split(key, "/")
-	if len(tokens) < 4 {
-		return fmt.Errorf("tokens len should be >= 4")
-	}
-	namespace := tokens[len(tokens)-2]
-	name := tokens[len(tokens)-1]
-	resourceType := regularizeType(object)
-	if eventType == "ADDED" && resourceType == "configmap" && namespace == "default" && name == "sieve-testing-global-config" {
-		log.Printf("configmap map seen: %s, %s, %v\n", eventType, key, object)
-		jsonObject, err := json.Marshal(object)
-		if err != nil {
-			printError(err, SIEVE_JSON_ERR)
-			return fmt.Errorf("fail to load from configmap")
+	if eventType == "ADDED" {
+		tokens := strings.Split(key, "/")
+		if len(tokens) < 4 {
+			return fmt.Errorf("tokens len should be >= 4")
 		}
-		configMapObject := make(map[string]interface{})
-		err = yaml.Unmarshal(jsonObject, &configMapObject)
-		if err != nil {
-			printError(err, SIEVE_JSON_ERR)
-			return fmt.Errorf("fail to load from configmap")
-		}
-		// log.Printf("config map is %v\n", configMapObject)
-		configFromConfigMapData := make(map[string]interface{})
-		configMapData, ok := configMapObject["Data"].(map[interface{}]interface{})
-		if !ok {
-			log.Printf("cannot convert configMapObject[\"Data\"] to map[interface{}]interface{}")
-			return fmt.Errorf("fail to load from configmap")
-		}
-		if str, ok := configMapData["sieveTestPlan"].(string); ok {
-			err = yaml.Unmarshal([]byte(str), &configFromConfigMapData)
-			if err != nil {
-				printError(err, SIEVE_JSON_ERR)
-				return fmt.Errorf("fail to load from configmap")
+		namespace := tokens[len(tokens)-2]
+		name := tokens[len(tokens)-1]
+		if namespace == "default" && name == "sieve-testing-global-config" {
+			resourceType := regularizeType(object)
+			if resourceType == "configmap" {
+				log.Println("have seen ADDED configmap/default/sieve-testing-global-config")
+				jsonObject, err := json.Marshal(object)
+				if err != nil {
+					printError(err, SIEVE_JSON_ERR)
+					return fmt.Errorf("fail to load from configmap")
+				}
+				configMapObject := make(map[string]interface{})
+				err = yaml.Unmarshal(jsonObject, &configMapObject)
+				if err != nil {
+					printError(err, SIEVE_JSON_ERR)
+					return fmt.Errorf("fail to load from configmap")
+				}
+				configFromConfigMapData := make(map[string]interface{})
+				configMapData, ok := configMapObject["Data"].(map[interface{}]interface{})
+				if !ok {
+					log.Printf("cannot convert configMapObject[\"Data\"] to map[interface{}]interface{}")
+					return fmt.Errorf("fail to load from configmap")
+				}
+				if str, ok := configMapData["sieveTestPlan"].(string); ok {
+					err = yaml.Unmarshal([]byte(str), &configFromConfigMapData)
+					if err != nil {
+						printError(err, SIEVE_JSON_ERR)
+						return fmt.Errorf("fail to load from configmap")
+					}
+					log.Printf("config from configMap:\n%v\n", configFromConfigMapData)
+					config = configFromConfigMapData
+					err = loadActionsAndTriggers(configFromConfigMapData)
+					if err != nil {
+						printError(err, SIEVE_CONFIG_ERR)
+						return fmt.Errorf("fail to load from configmap")
+					}
+				} else {
+					log.Printf("cannot convert %v to string", configMapData["sieveTestPlan"])
+					return fmt.Errorf("fail to load from configmap")
+				}
 			}
-			log.Printf("config from configMap:\n%v\n", configFromConfigMapData)
-			config = configFromConfigMapData
-			err = loadActionsAndTriggers(configFromConfigMapData)
-			if err != nil {
-				printError(err, SIEVE_CONFIG_ERR)
-				return fmt.Errorf("fail to load from configmap")
-			}
-		} else {
-			log.Printf("cannot convert %v to string", configMapData["sieveTestPlan"])
-			return fmt.Errorf("fail to load from configmap")
 		}
 	} else {
-		return fmt.Errorf("have not seen sieve-testing-global-config yet")
+		return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
 	}
 	return nil
 }
