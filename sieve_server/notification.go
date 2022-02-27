@@ -59,3 +59,6 @@ type APIServerPauseNotification struct {
 func (n *APIServerPauseNotification) getBlockingCh() chan string {
 	return n.blockingCh
 }
+
+type AsyncDoneNotification struct {
+}

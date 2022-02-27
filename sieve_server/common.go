@@ -61,6 +61,7 @@ type ActionContext struct {
 	controllerLocked   bool
 	apiserverLocks     map[string]map[string]chan string
 	apiserverLockedMap map[string]map[string]bool
+	asyncDoneCh        chan *AsyncDoneNotification
 }
 
 func checkError(err error) {

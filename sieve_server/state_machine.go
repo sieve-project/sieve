@@ -11,16 +11,20 @@ type StateMachine struct {
 	stateNotificationCh          chan TriggerNotification
 	timeoutNotificationCh        chan TriggerNotification
 	apiServerPauseNotificationCh chan *APIServerPauseNotification
+	asyncDoneCh                  chan *AsyncDoneNotification
+	asyncActionInExecution       bool
 	actionConext                 *ActionContext
 }
 
-func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification, apiServerPauseNotificationCh chan *APIServerPauseNotification, actionContext *ActionContext) *StateMachine {
+func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification, apiServerPauseNotificationCh chan *APIServerPauseNotification, asyncDoneCh chan *AsyncDoneNotification, actionContext *ActionContext) *StateMachine {
 	return &StateMachine{
 		states:                       testPlan.actions,
 		nextState:                    0,
 		stateNotificationCh:          stateNotificationCh,
 		timeoutNotificationCh:        make(chan TriggerNotification, 500),
 		apiServerPauseNotificationCh: apiServerPauseNotificationCh,
+		asyncDoneCh:                  asyncDoneCh,
+		asyncActionInExecution:       false,
 		actionConext:                 actionContext,
 	}
 }
@@ -43,19 +47,20 @@ func (sm *StateMachine) setTimeoutForTimeoutTriggers() {
 }
 
 func (sm *StateMachine) processNotification(notification TriggerNotification) {
-	sentBack := false
-	if sm.nextState >= len(sm.states) {
-		return
-	}
-
 	defer func() {
-		if !sentBack {
-			if blockingCh := notification.getBlockingCh(); blockingCh != nil {
-				log.Println("release the blocking ch")
-				blockingCh <- "release"
-			}
+		if blockingCh := notification.getBlockingCh(); blockingCh != nil {
+			log.Println("release the blocking ch")
+			blockingCh <- "release"
 		}
 	}()
+	if sm.nextState >= len(sm.states) {
+		// all the actions are finished
+		return
+	}
+	if sm.asyncActionInExecution {
+		// do not process triggers before the previous async action gets finished
+		return
+	}
 
 	action := sm.states[sm.nextState]
 	triggerGraph := sm.states[sm.nextState].getTriggerGraph()
@@ -67,19 +72,16 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 			log.Printf("trigger %s is satisfied\n", triggerName)
 			if triggerGraph.fullyTriggered() {
 				log.Printf("all triggers are satisfied for action %d\n", sm.nextState)
-				if action.isAsync() {
-					if blockingCh := notification.getBlockingCh(); blockingCh != nil {
-						log.Println("release the blocking ch earlier due to async")
-						blockingCh <- "release"
-						sentBack = true
-					}
-				}
 				action.run(sm.actionConext)
-				sm.nextState += 1
-				if sm.nextState >= len(sm.states) {
-					log.Println("all actions are done")
+				if !action.isAsync() {
+					sm.nextState += 1
+					if sm.nextState >= len(sm.states) {
+						log.Println("all actions are done")
+					} else {
+						sm.setTimeoutForTimeoutTriggers()
+					}
 				} else {
-					sm.setTimeoutForTimeoutTriggers()
+					sm.asyncActionInExecution = true
 				}
 				break
 			} else {
@@ -106,6 +108,16 @@ func (sm *StateMachine) processAPIServerPause(notification *APIServerPauseNotifi
 	}()
 }
 
+func (sm *StateMachine) processAsyncDone(notification *AsyncDoneNotification) {
+	sm.nextState += 1
+	sm.asyncActionInExecution = false
+	if sm.nextState >= len(sm.states) {
+		log.Println("all actions are done")
+	} else {
+		sm.setTimeoutForTimeoutTriggers()
+	}
+}
+
 func (sm *StateMachine) run() {
 	for {
 		select {
@@ -115,6 +127,8 @@ func (sm *StateMachine) run() {
 			sm.processNotification(timeoutNotification)
 		case apiServerNotification := <-sm.apiServerPauseNotificationCh:
 			sm.processAPIServerPause(apiServerNotification)
+		case asyncDoneNotification := <-sm.asyncDoneCh:
+			sm.processAsyncDone(asyncDoneNotification)
 		}
 	}
 }

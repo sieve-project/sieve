@@ -26,6 +26,7 @@ type testCoordinator struct {
 func NewTestCoordinator() *TestCoordinator {
 	config := getConfig()
 	testPlan := parseTestPlan(config)
+	asyncDoneCh := make(chan *AsyncDoneNotification)
 	actionConext := &ActionContext{
 		namespace:          "default",
 		leadingAPIServer:   "kind-control-plane",
@@ -34,6 +35,7 @@ func NewTestCoordinator() *TestCoordinator {
 		controllerLocked:   false,
 		apiserverLocks:     map[string]map[string]chan string{},
 		apiserverLockedMap: map[string]map[string]bool{},
+		asyncDoneCh:        asyncDoneCh,
 	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)
@@ -46,7 +48,7 @@ func NewTestCoordinator() *TestCoordinator {
 		objectStates:                 map[string]map[string]map[string]string{},
 		mergedFieldPathMask:          mergedFieldPathMask,
 		mergedFieldKeyMask:           mergedFieldKeyMask,
-		stateMachine:                 NewStateMachine(testPlan, stateNotificationCh, apiServerPauseNotificationCh, actionConext),
+		stateMachine:                 NewStateMachine(testPlan, stateNotificationCh, apiServerPauseNotificationCh, asyncDoneCh, actionConext),
 	}
 	listener := &TestCoordinator{
 		Server: server,
