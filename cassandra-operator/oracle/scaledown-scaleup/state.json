@@ -21,70 +21,12 @@
                     "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
                     "fieldsType": "FieldsV1",
                     "fieldsV1": {
-                        "f:cluster": {},
-                        "f:datacenter": {},
                         "f:metadata": {
-                            "f:annotations": {
-                                ".": {},
-                                "f:kubectl.kubernetes.io/last-applied-configuration": {}
-                            },
-                            "f:labels": {
-                                ".": {},
-                                "f:app": {}
-                            }
+                            "f:finalizers": "SIEVE-IGNORE"
                         },
-                        "f:spec": {
-                            ".": {},
-                            "f:cassandraAuth": {
-                                ".": {},
-                                "f:authenticator": {},
-                                "f:authorizer": {},
-                                "f:roleManager": {}
-                            },
-                            "f:cassandraImage": {},
-                            "f:dataVolumeClaimSpec": {
-                                ".": {},
-                                "f:accessModes": {},
-                                "f:resources": {
-                                    ".": {},
-                                    "f:requests": {
-                                        ".": {},
-                                        "f:storage": {}
-                                    }
-                                }
-                            },
-                            "f:deletePVCs": {},
-                            "f:fsGroup": {},
-                            "f:imagePullPolicy": {},
-                            "f:imagePullSecrets": {},
-                            "f:optimizeKernelParams": {},
-                            "f:resources": {
-                                ".": {},
-                                "f:limits": {
-                                    ".": {},
-                                    "f:memory": {}
-                                },
-                                "f:requests": {
-                                    ".": {},
-                                    "f:memory": {}
-                                }
-                            },
-                            "f:serviceAccountName": {},
-                            "f:sidecarImage": {},
-                            "f:sidecarResources": {
-                                ".": {},
-                                "f:limits": {
-                                    ".": {},
-                                    "f:memory": {}
-                                },
-                                "f:requests": {
-                                    ".": {},
-                                    "f:memory": {}
-                                }
-                            }
-                        }
+                        "f:status": "SIEVE-IGNORE"
                     },
-                    "manager": "kubectl-client-side-apply",
+                    "manager": "SIEVE-IGNORE",
                     "operation": "Update",
                     "time": "SIEVE-IGNORE"
                 },
@@ -92,15 +34,15 @@
                     "apiVersion": "cassandraoperator.instaclustr.com/v1alpha1",
                     "fieldsType": "FieldsV1",
                     "fieldsV1": {
+                        "f:cluster": "SIEVE-IGNORE",
+                        "f:datacenter": "SIEVE-IGNORE",
                         "f:metadata": {
-                            "f:finalizers": {
-                                ".": {},
-                                "v:\"finalizer.pvcs.cassandraoperator.instaclustr.com\"": {}
-                            }
+                            "f:annotations": "SIEVE-IGNORE",
+                            "f:labels": "SIEVE-IGNORE"
                         },
-                        "f:status": {}
+                        "f:spec": "SIEVE-IGNORE"
                     },
-                    "manager": "cassandra-operator",
+                    "manager": "SIEVE-IGNORE",
                     "operation": "Update",
                     "time": "SIEVE-IGNORE"
                 },
@@ -247,7 +189,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"00808adc-c70a-4aa6-af6c-0d7960a3432e\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"172e7bab-caa9-411f-8c25-353617cd9607\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -274,7 +216,7 @@
     "configmap/default/cassandra-test-cluster-dc1-rack-config-rack1": {
         "BinaryData": null,
         "Data": {
-            "cassandra_rackdc_properties": "SIEVE-IGNORE"
+            "cassandra_rackdc_properties": "# generated by cassandra-operator\nprefer_local=true\ndc=dc1\nrack=rack1\n"
         },
         "Immutable": null,
         "creationTimestamp": "SIEVE-IGNORE",
@@ -303,7 +245,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"00808adc-c70a-4aa6-af6c-0d7960a3432e\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"172e7bab-caa9-411f-8c25-353617cd9607\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -340,7 +282,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"66177fbe-98f4-4b0a-b7ba-5c6b3d761d83\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"df570dc8-ee0f-4e41-8f38-6d21ae6cee3c\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -674,7 +616,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"914ff91e-f799-4fd3-9821-40405f0bb98d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0441db10-2fa1-40d9-a5bc-b991fecaaa29\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:revision": {}
@@ -1051,7 +993,7 @@
                     {
                         "Hostname": "",
                         "IP": "SIEVE-IGNORE",
-                        "NodeName": "SIEVE-IGNORE",
+                        "NodeName": "kind-worker2",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
@@ -1121,12 +1063,12 @@
                     {
                         "Hostname": "",
                         "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker",
+                        "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
                             "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
+                            "Name": "cassandra-test-cluster-dc1-rack1-0",
                             "Namespace": "default",
                             "ResourceVersion": "SIEVE-IGNORE",
                             "UID": "SIEVE-IGNORE"
@@ -1135,12 +1077,12 @@
                     {
                         "Hostname": "",
                         "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker2",
+                        "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
                             "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
+                            "Name": "cassandra-test-cluster-dc1-rack1-1",
                             "Namespace": "default",
                             "ResourceVersion": "SIEVE-IGNORE",
                             "UID": "SIEVE-IGNORE"
@@ -1203,28 +1145,28 @@
             {
                 "Addresses": [
                     {
-                        "Hostname": "SIEVE-IGNORE",
+                        "Hostname": "cassandra-test-cluster-dc1-rack1-0",
                         "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker",
+                        "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
                             "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
+                            "Name": "cassandra-test-cluster-dc1-rack1-0",
                             "Namespace": "default",
                             "ResourceVersion": "SIEVE-IGNORE",
                             "UID": "SIEVE-IGNORE"
                         }
                     },
                     {
-                        "Hostname": "SIEVE-IGNORE",
+                        "Hostname": "cassandra-test-cluster-dc1-rack1-1",
                         "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker2",
+                        "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
                             "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
+                            "Name": "cassandra-test-cluster-dc1-rack1-1",
                             "Namespace": "default",
                             "ResourceVersion": "SIEVE-IGNORE",
                             "UID": "SIEVE-IGNORE"
@@ -1276,9 +1218,9 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "endpointslice/default/cassandra-operator-metrics-zhntq": "SIEVE-IGNORE",
-    "endpointslice/default/cassandra-test-cluster-dc1-nodes-cnct2": "SIEVE-IGNORE",
-    "endpointslice/default/cassandra-test-cluster-dc1-seeds-d4jwr": "SIEVE-IGNORE",
+    "endpointslice/default/cassandra-operator-metrics-zzxdc": "SIEVE-IGNORE",
+    "endpointslice/default/cassandra-test-cluster-dc1-nodes-qk7j9": "SIEVE-IGNORE",
+    "endpointslice/default/cassandra-test-cluster-dc1-seeds-d9v2h": "SIEVE-IGNORE",
     "persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-0": {
         "Spec": {
             "AccessModes": [
@@ -1493,7 +1435,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "pod/default/cassandra-operator-55bf946bb6-v6klr": "SIEVE-IGNORE",
+    "pod/default/cassandra-operator-55bf946bb6-jk4dq": "SIEVE-IGNORE",
     "pod/default/cassandra-test-cluster-dc1-rack1-0": {
         "Spec": {
             "ActiveDeadlineSeconds": null,
@@ -2128,7 +2070,7 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.4",
+            "HostIP": "SIEVE-IGNORE",
             "InitContainerStatuses": [
                 {
                     "ContainerID": "SIEVE-IGNORE",
@@ -2198,7 +2140,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"914ff91e-f799-4fd3-9821-40405f0bb98d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0441db10-2fa1-40d9-a5bc-b991fecaaa29\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2461,7 +2403,7 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.2.4\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.1.4\"}": "SIEVE-IGNORE"
                         },
                         "f:startTime": {}
                     }
@@ -3120,7 +3062,7 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.3",
+            "HostIP": "SIEVE-IGNORE",
             "InitContainerStatuses": [
                 {
                     "ContainerID": "SIEVE-IGNORE",
@@ -3190,7 +3132,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"914ff91e-f799-4fd3-9821-40405f0bb98d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0441db10-2fa1-40d9-a5bc-b991fecaaa29\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -3453,7 +3395,7 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.1.6\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.2.6\"}": "SIEVE-IGNORE"
                         },
                         "f:startTime": {}
                     }
@@ -3664,7 +3606,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a08b5888-82e3-4847-97db-2537e3c9f7af\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0f238df0-c921-4444-b0a1-090bd4756b01\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -4217,9 +4159,9 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "secret/default/cassandra-operator-token-dvtld": "SIEVE-IGNORE",
-    "secret/default/cassandra-performance-token-q6d92": "SIEVE-IGNORE",
-    "secret/default/cassandra-token-jhkf5": "SIEVE-IGNORE",
+    "secret/default/cassandra-operator-token-pxv94": "SIEVE-IGNORE",
+    "secret/default/cassandra-performance-token-ttbbv": "SIEVE-IGNORE",
+    "secret/default/cassandra-token-zn46h": "SIEVE-IGNORE",
     "service/default/cassandra-operator-metrics": {
         "Spec": {
             "ClusterIP": "SIEVE-IGNORE",
@@ -4278,7 +4220,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a08b5888-82e3-4847-97db-2537e3c9f7af\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0f238df0-c921-4444-b0a1-090bd4756b01\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -4380,7 +4322,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"00808adc-c70a-4aa6-af6c-0d7960a3432e\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"172e7bab-caa9-411f-8c25-353617cd9607\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -4484,7 +4426,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"00808adc-c70a-4aa6-af6c-0d7960a3432e\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"172e7bab-caa9-411f-8c25-353617cd9607\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -4555,7 +4497,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"cassandra-token-jhkf5\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"cassandra-token-zn46h\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -4608,7 +4550,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"cassandra-operator-token-dvtld\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"cassandra-operator-token-pxv94\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -4661,7 +4603,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"cassandra-performance-token-q6d92\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"cassandra-performance-token-ttbbv\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -5224,7 +5166,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"00808adc-c70a-4aa6-af6c-0d7960a3432e\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"172e7bab-caa9-411f-8c25-353617cd9607\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
