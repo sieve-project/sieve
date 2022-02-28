@@ -20,6 +20,8 @@ type testCoordinator struct {
 	objectStatesLock             sync.RWMutex
 	mergedFieldPathMask          map[string]map[string]struct{}
 	mergedFieldKeyMask           map[string]map[string]struct{}
+	mergedFieldPathMaskAPIFrom   map[string]map[string]struct{}
+	mergedFieldKeyMaskAPIForm    map[string]map[string]struct{}
 	stateMachine                 *StateMachine
 }
 
@@ -48,6 +50,8 @@ func NewTestCoordinator() *TestCoordinator {
 		objectStates:                 map[string]map[string]map[string]string{},
 		mergedFieldPathMask:          mergedFieldPathMask,
 		mergedFieldKeyMask:           mergedFieldKeyMask,
+		mergedFieldPathMaskAPIFrom:   convertFieldPathMaskToAPIForm(mergedFieldPathMask),
+		mergedFieldKeyMaskAPIForm:    convertFieldKeyMaskToAPIForm(mergedFieldKeyMask),
 		stateMachine:                 NewStateMachine(testPlan, stateNotificationCh, apiServerPauseNotificationCh, asyncDoneCh, actionConext),
 	}
 	listener := &TestCoordinator{
@@ -89,6 +93,8 @@ func (s *testCoordinator) Start() {
 	log.Println("start testCoordinator...")
 	log.Printf("mergedFieldPathMask:\n%v\n", s.mergedFieldPathMask)
 	log.Printf("mergedFieldKeyMask:\n%v\n", s.mergedFieldKeyMask)
+	log.Printf("mergedFieldPathMaskAPIFrom:\n%v\n", s.mergedFieldPathMaskAPIFrom)
+	log.Printf("mergedFieldKeyMaskAPIForm:\n%v\n", s.mergedFieldKeyMaskAPIForm)
 	go s.stateMachine.run()
 }
 
@@ -123,14 +129,16 @@ func (s *testCoordinator) SendObjectDeleteNotificationAndBlock(handlerName, reso
 func (s *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string, prevState, curState map[string]interface{}) {
 	blockingCh := make(chan string)
 	notification := &ObjectUpdateNotification{
-		resourceKey:   resourceKey,
-		observedWhen:  observedWhen,
-		observedBy:    observedBy,
-		prevState:     prevState,
-		curState:      curState,
-		fieldKeyMask:  s.mergedFieldKeyMask[resourceKey],
-		fieldPathMask: s.mergedFieldPathMask[resourceKey],
-		blockingCh:    blockingCh,
+		resourceKey:          resourceKey,
+		observedWhen:         observedWhen,
+		observedBy:           observedBy,
+		prevState:            prevState,
+		curState:             curState,
+		fieldKeyMask:         getMaskByResourceKey(s.mergedFieldKeyMask, resourceKey),
+		fieldPathMask:        getMaskByResourceKey(s.mergedFieldPathMask, resourceKey),
+		fieldKeyMaskAPIForm:  getMaskByResourceKey(s.mergedFieldKeyMaskAPIForm, resourceKey),
+		fieldPathMaskAPIForm: getMaskByResourceKey(s.mergedFieldPathMaskAPIFrom, resourceKey),
+		blockingCh:           blockingCh,
 	}
 	log.Printf("%s: send ObjectUpdateNotification\n", handlerName)
 	s.stateNotificationCh <- notification

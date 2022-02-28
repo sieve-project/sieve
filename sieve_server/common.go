@@ -53,6 +53,8 @@ const (
 	reconnectController string = "reconnectController"
 )
 
+var mergedMaskLock sync.Mutex
+
 type ActionContext struct {
 	namespace          string
 	leadingAPIServer   string

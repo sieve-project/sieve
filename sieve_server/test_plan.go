@@ -86,14 +86,15 @@ func (t *ObjectDeleteTrigger) satisfy(triggerNotification TriggerNotification) b
 }
 
 type ObjectUpdateTrigger struct {
-	name          string
-	resourceKey   string
-	prevStateDiff map[string]interface{}
-	curStateDiff  map[string]interface{}
-	desiredRepeat int
-	currentRepeat int
-	observedWhen  string
-	observedBy    string
+	name                  string
+	resourceKey           string
+	prevStateDiff         map[string]interface{}
+	curStateDiff          map[string]interface{}
+	convertStateToAPIForm bool
+	desiredRepeat         int
+	currentRepeat         int
+	observedWhen          string
+	observedBy            string
 }
 
 func (t *ObjectUpdateTrigger) getTriggerName() string {
@@ -108,9 +109,18 @@ func (t *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) b
 			if notification.observedWhen == beforeAPIServerRecv || notification.observedWhen == afterAPIServerRecv {
 				exactMatch = false
 			}
-			log.Println(notification.fieldKeyMask)
-			log.Println(notification.fieldPathMask)
-			if isDesiredUpdate(notification.prevState, notification.curState, t.prevStateDiff, t.curStateDiff, notification.fieldKeyMask, notification.fieldPathMask, exactMatch) {
+			var fieldKeyMaskToUse map[string]struct{}
+			var fieldPathMaskToUse map[string]struct{}
+			if t.convertStateToAPIForm {
+				fieldKeyMaskToUse = notification.fieldKeyMaskAPIForm
+				fieldPathMaskToUse = notification.fieldPathMaskAPIForm
+			} else {
+				fieldKeyMaskToUse = notification.fieldKeyMask
+				fieldPathMaskToUse = notification.fieldPathMask
+			}
+			log.Println(fieldKeyMaskToUse)
+			log.Println(fieldPathMaskToUse)
+			if isDesiredUpdate(notification.prevState, notification.curState, t.prevStateDiff, t.curStateDiff, fieldKeyMaskToUse, fieldPathMaskToUse, exactMatch) {
 				t.currentRepeat += 1
 				if t.currentRepeat == t.desiredRepeat {
 					return true
@@ -349,16 +359,30 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 			observedBy:    observationPoint["by"].(string),
 		}
 	case onObjectUpdate:
+		convertStateToAPIForm := false
+		if val, ok := condition["convertStateToAPIForm"]; ok {
+			convertStateToAPIForm = val.(bool)
+		}
+		var prevStateDiff map[string]interface{}
+		var curStateDiff map[string]interface{}
+		if convertStateToAPIForm {
+			prevStateDiff = convertObjectStateToAPIForm(strToMap(condition["prevStateDiff"].(string)))
+			curStateDiff = convertObjectStateToAPIForm(strToMap(condition["curStateDiff"].(string)))
+		} else {
+			prevStateDiff = strToMap(condition["prevStateDiff"].(string))
+			curStateDiff = strToMap(condition["curStateDiff"].(string))
+		}
 		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
 		return &ObjectUpdateTrigger{
-			name:          raw["triggerName"].(string),
-			resourceKey:   condition["resourceKey"].(string),
-			prevStateDiff: strToMap(condition["prevStateDiff"].(string)),
-			curStateDiff:  strToMap(condition["curStateDiff"].(string)),
-			desiredRepeat: condition["repeat"].(int),
-			currentRepeat: 0,
-			observedWhen:  observationPoint["when"].(string),
-			observedBy:    observationPoint["by"].(string),
+			name:                  raw["triggerName"].(string),
+			resourceKey:           condition["resourceKey"].(string),
+			prevStateDiff:         prevStateDiff,
+			curStateDiff:          curStateDiff,
+			convertStateToAPIForm: convertStateToAPIForm,
+			desiredRepeat:         condition["repeat"].(int),
+			currentRepeat:         0,
+			observedWhen:          observationPoint["when"].(string),
+			observedBy:            observationPoint["by"].(string),
 		}
 	case onTimeout:
 		return &TimeoutTrigger{

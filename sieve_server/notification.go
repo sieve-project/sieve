@@ -35,14 +35,16 @@ func (n *ObjectDeleteNotification) getBlockingCh() chan string {
 }
 
 type ObjectUpdateNotification struct {
-	resourceKey   string
-	observedWhen  string
-	observedBy    string
-	prevState     map[string]interface{}
-	curState      map[string]interface{}
-	fieldKeyMask  map[string]struct{}
-	fieldPathMask map[string]struct{}
-	blockingCh    chan string
+	resourceKey          string
+	observedWhen         string
+	observedBy           string
+	prevState            map[string]interface{}
+	curState             map[string]interface{}
+	fieldKeyMask         map[string]struct{}
+	fieldPathMask        map[string]struct{}
+	fieldKeyMaskAPIForm  map[string]struct{}
+	fieldPathMaskAPIForm map[string]struct{}
+	blockingCh           chan string
 }
 
 func (n *ObjectUpdateNotification) getBlockingCh() chan string {

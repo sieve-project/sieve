@@ -405,7 +405,7 @@ func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
 	return capitalizedEvent
 }
 
-func conformToAPIEvent(event map[string]interface{}) map[string]interface{} {
+func convertObjectStateToAPIForm(event map[string]interface{}) map[string]interface{} {
 	// The event object representation is different between the API side and the operator side if it is not CR
 	// There are mainly two difference:
 	// 1. `metadata` is missing at the API side but the inner fields still exist
@@ -430,29 +430,35 @@ func conformToAPIEvent(event map[string]interface{}) map[string]interface{} {
 	return conformedEvent
 }
 
-func conformToAPIPaths(fieldPathMask map[string]struct{}) map[string]struct{} {
-	conformedPathsSet := make(map[string]struct{})
-	for key := range fieldPathMask {
-		if strings.HasPrefix(key, "metadata/") {
-			conformedPathsSet[strings.TrimPrefix(key, "metadata/")] = exists
-		} else {
-			tokens := strings.Split(key, "/")
-			for i := 0; i < len(tokens); i++ {
-				tokens[i] = strings.ToUpper(tokens[i][0:1]) + tokens[i][1:]
+func convertFieldPathMaskToAPIForm(fieldPathMask map[string]map[string]struct{}) map[string]map[string]struct{} {
+	convertedMask := make(map[string]map[string]struct{})
+	for resourceKey := range fieldPathMask {
+		convertedMask[resourceKey] = make(map[string]struct{})
+		for maskedPath := range fieldPathMask[resourceKey] {
+			if strings.HasPrefix(maskedPath, "metadata/") {
+				convertedMask[resourceKey][strings.TrimPrefix(maskedPath, "metadata/")] = exists
+			} else {
+				tokens := strings.Split(maskedPath, "/")
+				for i := 0; i < len(tokens); i++ {
+					tokens[i] = strings.ToUpper(tokens[i][0:1]) + tokens[i][1:]
+				}
+				convertedMask[resourceKey][strings.Join(tokens, "/")] = exists
 			}
-			conformedPathsSet[strings.Join(tokens, "/")] = exists
 		}
 	}
-	return conformedPathsSet
+	return convertedMask
 }
 
-func conformToAPIKeys(fieldKeyMask map[string]struct{}) map[string]struct{} {
-	conformedKeysSet := make(map[string]struct{})
-	for key := range fieldKeyMask {
-		conformedKeysSet[key] = exists
-		conformedKeysSet[strings.ToUpper(key[0:1])+key[1:]] = exists
+func convertFieldKeyMaskToAPIForm(fieldKeyMask map[string]map[string]struct{}) map[string]map[string]struct{} {
+	convertedMask := make(map[string]map[string]struct{})
+	for resourceKey := range fieldKeyMask {
+		convertedMask[resourceKey] = make(map[string]struct{})
+		for key := range fieldKeyMask[resourceKey] {
+			convertedMask[resourceKey][key] = exists
+			convertedMask[resourceKey][strings.ToUpper(key[0:1])+key[1:]] = exists
+		}
 	}
-	return conformedKeysSet
+	return convertedMask
 }
 
 // trim kind and apiVersion for intermediate-state testing

@@ -125,3 +125,31 @@ func handleWildcardsForMask(mask map[string]map[string]struct{}) {
 		}
 	}
 }
+
+func getMaskByResourceKey(mask map[string]map[string]struct{}, resourceKey string) map[string]struct{} {
+	if val, ok := mask[resourceKey]; ok {
+		return val
+	} else {
+		mergedMaskLock.Lock()
+		defer mergedMaskLock.Unlock()
+		if val, ok := mask[resourceKey]; ok {
+			return val
+		}
+		mask[resourceKey] = make(map[string]struct{})
+		for existingResourceKey := range mask {
+			if strings.Contains(existingResourceKey, "*") {
+				pattern := wildCardToRegexp(existingResourceKey)
+				matched, err := regexp.MatchString(pattern, resourceKey)
+				if err != nil {
+					log.Fatalf("error when matching %s with %s: %v", resourceKey, pattern, err)
+				}
+				if matched {
+					for k := range mask[existingResourceKey] {
+						mask[resourceKey][k] = exists
+					}
+				}
+			}
+		}
+		return mask[resourceKey]
+	}
+}
