@@ -31,7 +31,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"31b05259-8366-4730-9b49-cc55f91c6bbf\"}"
+            "k:{\"uid\":\"c76fa43a-21c3-42fa-a31a-f063bc963adf\"}"
         ],
         [
             "metadata",
@@ -72,7 +72,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2500091b-ea45-4c05-a9bf-8544f2954c55\"}"
+            "k:{\"uid\":\"70eb141f-f3b8-4636-a529-b4309db9ccae\"}"
         ],
         [
             "metadata",
@@ -107,7 +107,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7adb5caf-6527-4db2-8149-6004412e511b\"}"
+            "k:{\"uid\":\"894a2199-2645-4cac-8ea1-6112d330486e\"}"
         ],
         [
             "metadata",
@@ -338,13 +338,6 @@
             "*",
             "addresses",
             "*",
-            "nodeName"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
-            "*",
             "targetRef",
             "name"
         ],
@@ -388,6 +381,13 @@
         [
             "metadata",
             "uid"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "iP"
         ],
         [
             "subsets",
@@ -482,6 +482,11 @@
     "persistentvolumeclaim/default/datadir0-yb-master-2": [
         [
             "metadata",
+            "annotations",
+            "volume.kubernetes.io/selected-node"
+        ],
+        [
+            "metadata",
             "creationTimestamp"
         ],
         [
@@ -489,6 +494,10 @@
             "managedFields",
             "*",
             "time"
+        ],
+        [
+            "metadata",
+            "resourceVersion"
         ],
         [
             "metadata",
@@ -500,6 +509,11 @@
         ]
     ],
     "persistentvolumeclaim/default/datadir0-yb-tserver-0": [
+        [
+            "metadata",
+            "annotations",
+            "volume.kubernetes.io/selected-node"
+        ],
         [
             "metadata",
             "creationTimestamp"
@@ -526,6 +540,11 @@
     "persistentvolumeclaim/default/datadir0-yb-tserver-1": [
         [
             "metadata",
+            "annotations",
+            "volume.kubernetes.io/selected-node"
+        ],
+        [
+            "metadata",
             "creationTimestamp"
         ],
         [
@@ -548,11 +567,6 @@
         ]
     ],
     "persistentvolumeclaim/default/datadir0-yb-tserver-2": [
-        [
-            "metadata",
-            "annotations",
-            "volume.kubernetes.io/selected-node"
-        ],
         [
             "metadata",
             "creationTimestamp"
@@ -588,7 +602,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2500091b-ea45-4c05-a9bf-8544f2954c55\"}"
+            "k:{\"uid\":\"70eb141f-f3b8-4636-a529-b4309db9ccae\"}"
         ],
         [
             "metadata",
@@ -597,7 +611,7 @@
             "fieldsV1",
             "f:status",
             "f:podIPs",
-            "k:{\"ip\":\"10.244.2.12\"}"
+            "k:{\"ip\":\"10.244.1.12\"}"
         ],
         [
             "metadata",
@@ -663,10 +677,6 @@
             "state",
             "running",
             "startedAt"
-        ],
-        [
-            "status",
-            "hostIP"
         ],
         [
             "status",
@@ -691,7 +701,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2500091b-ea45-4c05-a9bf-8544f2954c55\"}"
+            "k:{\"uid\":\"70eb141f-f3b8-4636-a529-b4309db9ccae\"}"
         ],
         [
             "metadata",
@@ -700,7 +710,7 @@
             "fieldsV1",
             "f:status",
             "f:podIPs",
-            "k:{\"ip\":\"10.244.1.7\"}"
+            "k:{\"ip\":\"10.244.2.7\"}"
         ],
         [
             "metadata",
@@ -755,24 +765,6 @@
         ],
         [
             "status",
-            "conditions",
-            "*",
-            "message"
-        ],
-        [
-            "status",
-            "conditions",
-            "*",
-            "reason"
-        ],
-        [
-            "status",
-            "conditions",
-            "*",
-            "status"
-        ],
-        [
-            "status",
             "containerStatuses",
             "*",
             "containerID"
@@ -781,23 +773,9 @@
             "status",
             "containerStatuses",
             "*",
-            "ready"
-        ],
-        [
-            "status",
-            "containerStatuses",
-            "*",
-            "restartCount"
-        ],
-        [
-            "status",
-            "containerStatuses",
-            "*",
-            "started"
-        ],
-        [
-            "status",
-            "hostIP"
+            "state",
+            "running",
+            "startedAt"
         ],
         [
             "status",
@@ -822,7 +800,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2500091b-ea45-4c05-a9bf-8544f2954c55\"}"
+            "k:{\"uid\":\"70eb141f-f3b8-4636-a529-b4309db9ccae\"}"
         ],
         [
             "metadata",
@@ -831,7 +809,7 @@
             "fieldsV1",
             "f:status",
             "f:podIPs",
-            "k:{\"ip\":\"10.244.2.13\"}"
+            "k:{\"ip\":\"10.244.1.10\"}"
         ],
         [
             "metadata",
@@ -860,6 +838,10 @@
             "volumeMounts",
             "*",
             "name"
+        ],
+        [
+            "spec",
+            "nodeName"
         ],
         [
             "spec",
@@ -896,10 +878,6 @@
         ],
         [
             "status",
-            "hostIP"
-        ],
-        [
-            "status",
             "podIPs",
             "*",
             "iP"
@@ -921,7 +899,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7adb5caf-6527-4db2-8149-6004412e511b\"}"
+            "k:{\"uid\":\"894a2199-2645-4cac-8ea1-6112d330486e\"}"
         ],
         [
             "metadata",
@@ -930,7 +908,7 @@
             "fieldsV1",
             "f:status",
             "f:podIPs",
-            "k:{\"ip\":\"10.244.1.8\"}"
+            "k:{\"ip\":\"10.244.1.11\"}"
         ],
         [
             "metadata",
@@ -959,6 +937,10 @@
             "volumeMounts",
             "*",
             "name"
+        ],
+        [
+            "spec",
+            "nodeName"
         ],
         [
             "spec",
@@ -1016,7 +998,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7adb5caf-6527-4db2-8149-6004412e511b\"}"
+            "k:{\"uid\":\"894a2199-2645-4cac-8ea1-6112d330486e\"}"
         ],
         [
             "metadata",
@@ -1025,7 +1007,7 @@
             "fieldsV1",
             "f:status",
             "f:podIPs",
-            "k:{\"ip\":\"10.244.2.10\"}"
+            "k:{\"ip\":\"10.244.2.8\"}"
         ],
         [
             "metadata",
@@ -1054,6 +1036,10 @@
             "volumeMounts",
             "*",
             "name"
+        ],
+        [
+            "spec",
+            "nodeName"
         ],
         [
             "spec",
@@ -1090,10 +1076,6 @@
         ],
         [
             "status",
-            "hostIP"
-        ],
-        [
-            "status",
             "podIPs",
             "*",
             "iP"
@@ -1115,7 +1097,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7adb5caf-6527-4db2-8149-6004412e511b\"}"
+            "k:{\"uid\":\"894a2199-2645-4cac-8ea1-6112d330486e\"}"
         ],
         [
             "metadata",
@@ -1124,7 +1106,7 @@
             "fieldsV1",
             "f:status",
             "f:podIPs",
-            "k:{\"ip\":\"10.244.2.11\"}"
+            "k:{\"ip\":\"10.244.1.13\"}"
         ],
         [
             "metadata",
@@ -1153,10 +1135,6 @@
             "volumeMounts",
             "*",
             "name"
-        ],
-        [
-            "spec",
-            "nodeName"
         ],
         [
             "spec",
@@ -1218,7 +1196,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"0263d6f5-f5da-4c07-9ace-b18fc342e9f0\"}"
+            "k:{\"uid\":\"3d45d53d-5f7f-4520-b84e-909bc0433f29\"}"
         ],
         [
             "metadata",
@@ -1253,7 +1231,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"4b41f557-c5ab-446c-87f7-9789e1d9ac1a\"}"
+            "k:{\"uid\":\"e09b33a8-9dbc-44dc-83b6-e25b87b6fa88\"}"
         ],
         [
             "metadata",
@@ -1292,7 +1270,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"4b41f557-c5ab-446c-87f7-9789e1d9ac1a\"}"
+            "k:{\"uid\":\"e09b33a8-9dbc-44dc-83b6-e25b87b6fa88\"}"
         ],
         [
             "metadata",
@@ -1327,7 +1305,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"4b41f557-c5ab-446c-87f7-9789e1d9ac1a\"}"
+            "k:{\"uid\":\"e09b33a8-9dbc-44dc-83b6-e25b87b6fa88\"}"
         ],
         [
             "metadata",
@@ -1362,7 +1340,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"0263d6f5-f5da-4c07-9ace-b18fc342e9f0\"}"
+            "k:{\"uid\":\"3d45d53d-5f7f-4520-b84e-909bc0433f29\"}"
         ],
         [
             "metadata",
@@ -1420,7 +1398,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"4b41f557-c5ab-446c-87f7-9789e1d9ac1a\"}"
+            "k:{\"uid\":\"e09b33a8-9dbc-44dc-83b6-e25b87b6fa88\"}"
         ],
         [
             "metadata",
@@ -1441,10 +1419,6 @@
         [
             "metadata",
             "uid"
-        ],
-        [
-            "status",
-            "readyReplicas"
         ]
     ],
     "statefulset/default/yb-tserver": [
@@ -1459,7 +1433,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"4b41f557-c5ab-446c-87f7-9789e1d9ac1a\"}"
+            "k:{\"uid\":\"e09b33a8-9dbc-44dc-83b6-e25b87b6fa88\"}"
         ],
         [
             "metadata",
