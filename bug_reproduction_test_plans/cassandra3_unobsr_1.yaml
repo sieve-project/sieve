@@ -1,11 +1,38 @@
-project: casskop-operator
-stage: test
-mode: unobserved-state
-ce-name: cassandra-cluster
-ce-namespace: default
-ce-rtype: cassandracluster
-ce-etype-previous: Updated
-ce-etype-current: Updated
-ce-diff-previous: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 2}]}}}'
-ce-diff-current: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 1}]}}}'
-ce-counter: '1'
+actions:
+- actionType: pauseControllerRead
+  pauseWhenReading: cassandracluster/default/cassandra-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: cassandracluster/default/cassandra-cluster
+        prevStateDiff: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 2}]}}}'
+        curStateDiff: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 1}]}}}'
+        repeat: 1
+      observationPoint:
+        when: beforeControllerRecv
+        by: informer
+    expression: trigger1
+- actionType: resumeControllerRead
+  pauseWhenReading: cassandracluster/default/cassandra-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onAnyFieldModification
+        resourceKey: cassandracluster/default/cassandra-cluster
+        prevStateDiff: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 1}]}}}'
+        repeat: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: cassandracluster/default/cassandra-cluster
+        repeat: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    expression: trigger2|trigger3

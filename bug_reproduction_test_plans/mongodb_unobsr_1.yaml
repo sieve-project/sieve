@@ -1,11 +1,38 @@
-project: mongodb-operator
-stage: test
-mode: unobserved-state
-ce-name: mongodb-cluster
-ce-namespace: default
-ce-rtype: perconaservermongodb
-ce-etype-previous: Updated
-ce-etype-current: Updated
-ce-diff-previous: '{"spec": {"replsets": [{"arbiter": {"enabled": true}}]}}'
-ce-diff-current: '{"spec": {"replsets": [{"arbiter": {"enabled": false}}]}}'
-ce-counter: '1'
+actions:
+- actionType: pauseControllerRead
+  pauseWhenReading: perconaservermongodb/default/mongodb-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: perconaservermongodb/default/mongodb-cluster
+        prevStateDiff: '{"spec": {"replsets": [{"arbiter": {"enabled": true}}]}}'
+        curStateDiff: '{"spec": {"replsets": [{"arbiter": {"enabled": false}}]}}'
+        repeat: 1
+      observationPoint:
+        when: beforeControllerRecv
+        by: informer
+    expression: trigger1
+- actionType: resumeControllerRead
+  pauseWhenReading: perconaservermongodb/default/mongodb-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onAnyFieldModification
+        resourceKey: perconaservermongodb/default/mongodb-cluster
+        prevStateDiff: '{"spec": {"replsets": [{"arbiter": {"enabled": false}}]}}'
+        repeat: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: perconaservermongodb/default/mongodb-cluster
+        repeat: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    expression: trigger2|trigger3
