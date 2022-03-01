@@ -45,25 +45,25 @@ const (
 
 // actionType
 const (
-	pauseAPIServer      string = "pauseAPIServer"
-	resumeAPIServer     string = "resumeAPIServer"
-	pauseController     string = "pauseController"
-	resumeController    string = "resumeController"
-	restartController   string = "restartController"
-	reconnectController string = "reconnectController"
+	pauseAPIServer       string = "pauseAPIServer"
+	resumeAPIServer      string = "resumeAPIServer"
+	pauseControllerRead  string = "pauseControllerRead"
+	resumeControllerRead string = "resumeControllerRead"
+	restartController    string = "restartController"
+	reconnectController  string = "reconnectController"
 )
 
 var mergedMaskLock sync.Mutex
 
 type ActionContext struct {
-	namespace          string
-	leadingAPIServer   string
-	followingAPIServer string
-	controllerLock     *sync.Mutex
-	controllerLocked   bool
-	apiserverLocks     map[string]map[string]chan string
-	apiserverLockedMap map[string]map[string]bool
-	asyncDoneCh        chan *AsyncDoneNotification
+	namespace                 string
+	leadingAPIServer          string
+	followingAPIServer        string
+	apiserverLocks            map[string]map[string]chan string
+	apiserverLockedMap        map[string]map[string]bool
+	controllerOngoingReadLock *sync.Mutex
+	controllerReadPausedMap   map[string]bool
+	asyncDoneCh               chan *AsyncDoneNotification
 }
 
 func checkError(err error) {

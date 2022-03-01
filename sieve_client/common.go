@@ -43,13 +43,16 @@ var rpcClient *rpc.Client = nil
 
 // var taintMap sync.Map = sync.Map{}
 
-func checkKVPairInAction(actionType, key, val string) bool {
+func checkKVPairInAction(actionType, key, val string, matchPrefix bool) bool {
 	for actionKey, actionsOfTheSameType := range actions {
 		if actionKey == actionType {
 			for _, action := range actionsOfTheSameType {
 				if valInTestPlan, ok := action[key]; ok {
 					if valInTestPlanStr, ok := valInTestPlan.(string); ok {
 						if val == valInTestPlanStr {
+							return true
+						}
+						if matchPrefix && strings.HasPrefix(valInTestPlanStr, val) {
 							return true
 						}
 					}

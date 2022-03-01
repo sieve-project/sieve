@@ -116,3 +116,15 @@ type NotifyTestAfterControllerWriteRequest struct {
 	ReconcilerType string
 	Object         string
 }
+
+type NotifyTestBeforeControllerReadPauseRequest struct {
+	UseResourceKey bool
+	ResourceKey    string
+	ResourceType   string
+}
+
+type NotifyTestAfterControllerReadPauseRequest struct {
+	UseResourceKey bool
+	ResourceKey    string
+	ResourceType   string
+}

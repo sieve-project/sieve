@@ -18,6 +18,8 @@ type testCoordinator struct {
 	apiServerPauseNotificationCh chan *APIServerPauseNotification
 	objectStates                 map[string]map[string]map[string]string
 	objectStatesLock             sync.RWMutex
+	controllerOngoingReadLock    *sync.Mutex
+	controllerReadPausedMap      map[string]bool
 	mergedFieldPathMask          map[string]map[string]struct{}
 	mergedFieldKeyMask           map[string]map[string]struct{}
 	mergedFieldPathMaskAPIFrom   map[string]map[string]struct{}
@@ -29,15 +31,17 @@ func NewTestCoordinator() *TestCoordinator {
 	config := getConfig()
 	testPlan := parseTestPlan(config)
 	asyncDoneCh := make(chan *AsyncDoneNotification)
+	controllerOngoingReadLock := &sync.Mutex{}
+	controllerReadPausedMap := make(map[string]bool)
 	actionConext := &ActionContext{
-		namespace:          "default",
-		leadingAPIServer:   "kind-control-plane",
-		followingAPIServer: "kind-control-plane3",
-		controllerLock:     &sync.Mutex{},
-		controllerLocked:   false,
-		apiserverLocks:     map[string]map[string]chan string{},
-		apiserverLockedMap: map[string]map[string]bool{},
-		asyncDoneCh:        asyncDoneCh,
+		namespace:                 "default",
+		leadingAPIServer:          "kind-control-plane",
+		followingAPIServer:        "kind-control-plane3",
+		apiserverLocks:            map[string]map[string]chan string{},
+		apiserverLockedMap:        map[string]map[string]bool{},
+		controllerOngoingReadLock: controllerOngoingReadLock,
+		controllerReadPausedMap:   controllerReadPausedMap,
+		asyncDoneCh:               asyncDoneCh,
 	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)
@@ -48,6 +52,8 @@ func NewTestCoordinator() *TestCoordinator {
 		stateNotificationCh:          stateNotificationCh,
 		apiServerPauseNotificationCh: apiServerPauseNotificationCh,
 		objectStates:                 map[string]map[string]map[string]string{},
+		controllerOngoingReadLock:    controllerOngoingReadLock,
+		controllerReadPausedMap:      controllerReadPausedMap,
 		mergedFieldPathMask:          mergedFieldPathMask,
 		mergedFieldKeyMask:           mergedFieldKeyMask,
 		mergedFieldPathMaskAPIFrom:   convertFieldPathMaskToAPIForm(mergedFieldPathMask),
@@ -87,6 +93,14 @@ func (l *TestCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTes
 
 func (l *TestCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyTestAfterControllerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyTestAfterControllerWrite(request, response)
+}
+
+func (l *TestCoordinator) NotifyTestBeforeControllerReadPause(request *sieve.NotifyTestBeforeControllerReadPauseRequest, response *sieve.Response) error {
+	return l.Server.NotifyTestBeforeControllerReadPause(request, response)
+}
+
+func (l *TestCoordinator) NotifyTestAfterControllerReadPause(request *sieve.NotifyTestAfterControllerReadPauseRequest, response *sieve.Response) error {
+	return l.Server.NotifyTestAfterControllerReadPause(request, response)
 }
 
 func (s *testCoordinator) Start() {
@@ -144,6 +158,14 @@ func (s *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, reso
 	s.stateNotificationCh <- notification
 	<-blockingCh
 	log.Printf("%s: block over for ObjectUpdateNotification\n", handlerName)
+}
+
+func (s *testCoordinator) ProcessReadStartNotification() {
+	s.controllerOngoingReadLock.Lock()
+}
+
+func (s *testCoordinator) ProcessReadEndNotification() {
+	s.controllerOngoingReadLock.Unlock()
 }
 
 func (s *testCoordinator) InitializeObjectStatesEntry(observedBy, observedWhen, resourceKey string) {
@@ -248,14 +270,19 @@ func (s *testCoordinator) NotifyTestAfterAPIServerRecv(request *sieve.NotifyTest
 func (s *testCoordinator) NotifyTestBeforeControllerRecv(request *sieve.NotifyTestBeforeControllerRecvRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestBeforeControllerRecv"
 	log.Printf("%s\t%s\t%s\t%s", handlerName, request.OperationType, request.ResourceKey, request.Object)
+	s.InitializeObjectStatesEntry("informer", beforeControllerRecv, request.ResourceKey)
 	switch request.OperationType {
 	case HEAR_ADDED:
-		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerRecv, "")
+		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerRecv, "informer")
+	case HEAR_UPDATED, HEAR_REPLACED, HEAR_SYNC:
+		prevObjectStateStr := s.ReadFromObjectStates("informer", beforeControllerRecv, request.ResourceKey)
+		s.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerRecv, "informer", strToMap(prevObjectStateStr), strToMap(request.Object))
 	case HEAR_DELETED:
-		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerRecv, "")
+		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerRecv, "informer")
 	default:
 		log.Printf("do not support %s\n", request.OperationType)
 	}
+	s.WriteToObjectStates("informer", beforeControllerRecv, request.ResourceKey, request.Object)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
@@ -263,14 +290,19 @@ func (s *testCoordinator) NotifyTestBeforeControllerRecv(request *sieve.NotifyTe
 func (s *testCoordinator) NotifyTestAfterControllerRecv(request *sieve.NotifyTestAfterControllerRecvRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestAfterControllerRecv"
 	log.Printf("%s\t%s\t%s\t%s", handlerName, request.OperationType, request.ResourceKey, request.Object)
+	s.InitializeObjectStatesEntry("informer", afterControllerRecv, request.ResourceKey)
 	switch request.OperationType {
 	case HEAR_ADDED:
-		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerRecv, "")
+		s.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerRecv, "informer")
+	case HEAR_UPDATED, HEAR_REPLACED, HEAR_SYNC:
+		prevObjectStateStr := s.ReadFromObjectStates("informer", afterControllerRecv, request.ResourceKey)
+		s.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerRecv, "informer", strToMap(prevObjectStateStr), strToMap(request.Object))
 	case HEAR_DELETED:
-		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterControllerRecv, "")
+		s.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterControllerRecv, "informer")
 	default:
 		log.Printf("do not support %s\n", request.OperationType)
 	}
+	s.WriteToObjectStates("informer", beforeControllerRecv, request.ResourceKey, request.Object)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
@@ -316,6 +348,22 @@ func (s *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyTe
 	default:
 		log.Printf("do not support %s\n", request.WriteType)
 	}
+	*response = sieve.Response{Message: "", Ok: true}
+	return nil
+}
+
+func (s *testCoordinator) NotifyTestBeforeControllerReadPause(request *sieve.NotifyTestBeforeControllerReadPauseRequest, response *sieve.Response) error {
+	handlerName := "NotifyTestBeforeControllerReadPause"
+	log.Printf("%s\t%t\t%s\t%s", handlerName, request.UseResourceKey, request.ResourceKey, request.ResourceType)
+	s.ProcessReadStartNotification()
+	*response = sieve.Response{Message: "", Ok: true}
+	return nil
+}
+
+func (s *testCoordinator) NotifyTestAfterControllerReadPause(request *sieve.NotifyTestAfterControllerReadPauseRequest, response *sieve.Response) error {
+	handlerName := "NotifyTestAfterControllerReadPause"
+	log.Printf("%s\t%t\t%s\t%s", handlerName, request.UseResourceKey, request.ResourceKey, request.ResourceType)
+	s.ProcessReadEndNotification()
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }

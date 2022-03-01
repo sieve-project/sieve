@@ -482,3 +482,9 @@ func isDesiredUpdate(prevState, curState, desiredPrevStateDiff, desiredCurStateD
 	}
 	return false
 }
+
+func isAnyFieldModified(curState, prevStateDiffToModify map[string]interface{}, fieldKeyMask, fieldPathMask map[string]struct{}) bool {
+	canonicalizeEvent(prevStateDiffToModify, fieldKeyMask, fieldPathMask)
+	canonicalizeEvent(curState, fieldKeyMask, fieldPathMask)
+	return !partOfEventAsMap(prevStateDiffToModify, curState)
+}

@@ -6,10 +6,11 @@ import (
 )
 
 const (
-	onObjectCreate string = "onObjectCreate"
-	onObjectDelete string = "onObjectDelete"
-	onObjectUpdate string = "onObjectUpdate"
-	onTimeout      string = "onTimeout"
+	onObjectCreate         string = "onObjectCreate"
+	onObjectDelete         string = "onObjectDelete"
+	onObjectUpdate         string = "onObjectUpdate"
+	onAnyFieldModification string = "onAnyFieldModification"
+	onTimeout              string = "onTimeout"
 )
 
 type TriggerDefinition interface {
@@ -131,6 +132,46 @@ func (t *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) b
 	return false
 }
 
+type AnyFieldModificationTrigger struct {
+	name                  string
+	resourceKey           string
+	prevStateDiff         map[string]interface{}
+	convertStateToAPIForm bool
+	desiredRepeat         int
+	currentRepeat         int
+	observedWhen          string
+	observedBy            string
+}
+
+func (t *AnyFieldModificationTrigger) getTriggerName() string {
+	return t.name
+}
+
+func (t *AnyFieldModificationTrigger) satisfy(triggerNotification TriggerNotification) bool {
+	if notification, ok := triggerNotification.(*ObjectUpdateNotification); ok {
+		if notification.resourceKey == t.resourceKey && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
+			var fieldKeyMaskToUse map[string]struct{}
+			var fieldPathMaskToUse map[string]struct{}
+			if t.convertStateToAPIForm {
+				fieldKeyMaskToUse = notification.fieldKeyMaskAPIForm
+				fieldPathMaskToUse = notification.fieldPathMaskAPIForm
+			} else {
+				fieldKeyMaskToUse = notification.fieldKeyMask
+				fieldPathMaskToUse = notification.fieldPathMask
+			}
+			log.Println(fieldKeyMaskToUse)
+			log.Println(fieldPathMaskToUse)
+			if isAnyFieldModified(notification.curState, t.prevStateDiff, fieldKeyMaskToUse, fieldPathMaskToUse) {
+				t.currentRepeat += 1
+				if t.currentRepeat == t.desiredRepeat {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 type Action interface {
 	getTriggerGraph() *TriggerGraph
 	getTriggerDefinitions() map[string]TriggerDefinition
@@ -234,6 +275,94 @@ func (a *ResumeAPIServerAction) runInternal(actionContext *ActionContext, async 
 }
 
 func (a *ResumeAPIServerAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
+}
+
+type PauseControllerReadAction struct {
+	pauseWhenReading   string
+	async              bool
+	waitBefore         int
+	waitAfter          int
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *PauseControllerReadAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *PauseControllerReadAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *PauseControllerReadAction) isAsync() bool {
+	return a.async
+}
+
+func (a *PauseControllerReadAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the PauseControllerReadAction")
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+	actionContext.controllerOngoingReadLock.Lock()
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
+	log.Println("PauseControllerReadAction done")
+}
+
+func (a *PauseControllerReadAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
+}
+
+type ResumeControllerReadAction struct {
+	pauseWhenReading   string
+	async              bool
+	waitBefore         int
+	waitAfter          int
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *ResumeControllerReadAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *ResumeControllerReadAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *ResumeControllerReadAction) isAsync() bool {
+	return a.async
+}
+
+func (a *ResumeControllerReadAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the ResumeControllerReadAction")
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+	actionContext.controllerOngoingReadLock.Unlock()
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
+	log.Println("ResumeControllerReadAction done")
+}
+
+func (a *ResumeControllerReadAction) run(actionContext *ActionContext) {
 	if a.async {
 		go a.runInternal(actionContext, true)
 	} else {
@@ -384,6 +513,28 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 			observedWhen:          observationPoint["when"].(string),
 			observedBy:            observationPoint["by"].(string),
 		}
+	case onAnyFieldModification:
+		convertStateToAPIForm := false
+		if val, ok := condition["convertStateToAPIForm"]; ok {
+			convertStateToAPIForm = val.(bool)
+		}
+		var prevStateDiff map[string]interface{}
+		if convertStateToAPIForm {
+			prevStateDiff = convertObjectStateToAPIForm(strToMap(condition["prevStateDiff"].(string)))
+		} else {
+			prevStateDiff = strToMap(condition["prevStateDiff"].(string))
+		}
+		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
+		return &AnyFieldModificationTrigger{
+			name:                  raw["triggerName"].(string),
+			resourceKey:           condition["resourceKey"].(string),
+			prevStateDiff:         prevStateDiff,
+			convertStateToAPIForm: convertStateToAPIForm,
+			desiredRepeat:         condition["repeat"].(int),
+			currentRepeat:         0,
+			observedWhen:          observationPoint["when"].(string),
+			observedBy:            observationPoint["by"].(string),
+		}
 	case onTimeout:
 		return &TimeoutTrigger{
 			name:         raw["triggerName"].(string),
@@ -441,6 +592,24 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		return &ResumeAPIServerAction{
 			apiServerName:      raw["apiServerName"].(string),
 			pauseScope:         raw["pauseScope"].(string),
+			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
+	case pauseControllerRead:
+		return &PauseControllerReadAction{
+			pauseWhenReading:   raw["pauseWhenReading"].(string),
+			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
+	case resumeControllerRead:
+		return &ResumeControllerReadAction{
+			pauseWhenReading:   raw["pauseWhenReading"].(string),
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
