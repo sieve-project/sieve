@@ -89,23 +89,6 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 	}
 }
 
-// func (sm *StateMachine) processAPIServerPause(notification *APIServerPauseNotification) {
-// 	go func() {
-// 		if notification.pausedByAll {
-// 			log.Printf("Start to pause API server for %s\n", notification.apiServerName)
-// 			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName]["all"]
-// 			<-pausingCh
-// 		} else {
-// 			log.Printf("Start to pause API server for %s %s\n", notification.apiServerName, notification.resourceKey)
-// 			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName][notification.resourceKey]
-// 			<-pausingCh
-// 		}
-// 		log.Printf("Pause API server done")
-// 		blockingCh := notification.getBlockingCh()
-// 		blockingCh <- "release"
-// 	}()
-// }
-
 func (sm *StateMachine) processAsyncDone(notification *AsyncDoneNotification) {
 	sm.nextState += 1
 	sm.asyncActionInExecution = false
@@ -123,8 +106,6 @@ func (sm *StateMachine) run() {
 			sm.processNotification(stateNotification)
 		case timeoutNotification := <-sm.timeoutNotificationCh:
 			sm.processNotification(timeoutNotification)
-		// case apiServerNotification := <-sm.apiServerPauseNotificationCh:
-		// 	sm.processAPIServerPause(apiServerNotification)
 		case asyncDoneNotification := <-sm.asyncDoneCh:
 			sm.processAsyncDone(asyncDoneNotification)
 		}
