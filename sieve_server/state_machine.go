@@ -6,26 +6,24 @@ import (
 )
 
 type StateMachine struct {
-	states                       []Action
-	nextState                    int
-	stateNotificationCh          chan TriggerNotification
-	timeoutNotificationCh        chan TriggerNotification
-	apiServerPauseNotificationCh chan *APIServerPauseNotification
-	asyncDoneCh                  chan *AsyncDoneNotification
-	asyncActionInExecution       bool
-	actionConext                 *ActionContext
+	states                 []Action
+	nextState              int
+	stateNotificationCh    chan TriggerNotification
+	timeoutNotificationCh  chan TriggerNotification
+	asyncDoneCh            chan *AsyncDoneNotification
+	asyncActionInExecution bool
+	actionConext           *ActionContext
 }
 
-func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification, apiServerPauseNotificationCh chan *APIServerPauseNotification, asyncDoneCh chan *AsyncDoneNotification, actionContext *ActionContext) *StateMachine {
+func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotification, asyncDoneCh chan *AsyncDoneNotification, actionContext *ActionContext) *StateMachine {
 	return &StateMachine{
-		states:                       testPlan.actions,
-		nextState:                    0,
-		stateNotificationCh:          stateNotificationCh,
-		timeoutNotificationCh:        make(chan TriggerNotification, 500),
-		apiServerPauseNotificationCh: apiServerPauseNotificationCh,
-		asyncDoneCh:                  asyncDoneCh,
-		asyncActionInExecution:       false,
-		actionConext:                 actionContext,
+		states:                 testPlan.actions,
+		nextState:              0,
+		stateNotificationCh:    stateNotificationCh,
+		timeoutNotificationCh:  make(chan TriggerNotification, 500),
+		asyncDoneCh:            asyncDoneCh,
+		asyncActionInExecution: false,
+		actionConext:           actionContext,
 	}
 }
 
@@ -91,22 +89,22 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 	}
 }
 
-func (sm *StateMachine) processAPIServerPause(notification *APIServerPauseNotification) {
-	go func() {
-		if notification.pausedByAll {
-			log.Printf("Start to pause API server for %s\n", notification.apiServerName)
-			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName]["all"]
-			<-pausingCh
-		} else {
-			log.Printf("Start to pause API server for %s %s\n", notification.apiServerName, notification.resourceKey)
-			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName][notification.resourceKey]
-			<-pausingCh
-		}
-		log.Printf("Pause API server done")
-		blockingCh := notification.getBlockingCh()
-		blockingCh <- "release"
-	}()
-}
+// func (sm *StateMachine) processAPIServerPause(notification *APIServerPauseNotification) {
+// 	go func() {
+// 		if notification.pausedByAll {
+// 			log.Printf("Start to pause API server for %s\n", notification.apiServerName)
+// 			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName]["all"]
+// 			<-pausingCh
+// 		} else {
+// 			log.Printf("Start to pause API server for %s %s\n", notification.apiServerName, notification.resourceKey)
+// 			pausingCh := sm.actionConext.apiserverLocks[notification.apiServerName][notification.resourceKey]
+// 			<-pausingCh
+// 		}
+// 		log.Printf("Pause API server done")
+// 		blockingCh := notification.getBlockingCh()
+// 		blockingCh <- "release"
+// 	}()
+// }
 
 func (sm *StateMachine) processAsyncDone(notification *AsyncDoneNotification) {
 	sm.nextState += 1
@@ -125,8 +123,8 @@ func (sm *StateMachine) run() {
 			sm.processNotification(stateNotification)
 		case timeoutNotification := <-sm.timeoutNotificationCh:
 			sm.processNotification(timeoutNotification)
-		case apiServerNotification := <-sm.apiServerPauseNotificationCh:
-			sm.processAPIServerPause(apiServerNotification)
+		// case apiServerNotification := <-sm.apiServerPauseNotificationCh:
+		// 	sm.processAPIServerPause(apiServerNotification)
 		case asyncDoneNotification := <-sm.asyncDoneCh:
 			sm.processAsyncDone(asyncDoneNotification)
 		}

@@ -11,20 +11,30 @@ type TestCoordinator struct {
 	Server *testCoordinator
 }
 
+type ActionContext struct {
+	namespace                 string
+	leadingAPIServer          string
+	followingAPIServer        string
+	apiserverLocks            map[string]map[string]chan string
+	apiserverLockedMap        map[string]map[string]bool
+	controllerOngoingReadLock *sync.Mutex
+	asyncDoneCh               chan *AsyncDoneNotification
+}
+
 type testCoordinator struct {
-	testPlan                     *TestPlan
-	actionConext                 *ActionContext
-	stateNotificationCh          chan TriggerNotification
-	apiServerPauseNotificationCh chan *APIServerPauseNotification
-	objectStates                 map[string]map[string]map[string]string
-	objectStatesLock             sync.RWMutex
-	controllerOngoingReadLock    *sync.Mutex
-	controllerReadPausedMap      map[string]bool
-	mergedFieldPathMask          map[string]map[string]struct{}
-	mergedFieldKeyMask           map[string]map[string]struct{}
-	mergedFieldPathMaskAPIFrom   map[string]map[string]struct{}
-	mergedFieldKeyMaskAPIForm    map[string]map[string]struct{}
-	stateMachine                 *StateMachine
+	testPlan                   *TestPlan
+	actionConext               *ActionContext
+	stateNotificationCh        chan TriggerNotification
+	objectStates               map[string]map[string]map[string]string
+	objectStatesLock           sync.RWMutex
+	controllerOngoingReadLock  *sync.Mutex
+	apiserverLocks             map[string]map[string]chan string
+	apiserverLockedMap         map[string]map[string]bool
+	mergedFieldPathMask        map[string]map[string]struct{}
+	mergedFieldKeyMask         map[string]map[string]struct{}
+	mergedFieldPathMaskAPIFrom map[string]map[string]struct{}
+	mergedFieldKeyMaskAPIForm  map[string]map[string]struct{}
+	stateMachine               *StateMachine
 }
 
 func NewTestCoordinator() *TestCoordinator {
@@ -32,33 +42,32 @@ func NewTestCoordinator() *TestCoordinator {
 	testPlan := parseTestPlan(config)
 	asyncDoneCh := make(chan *AsyncDoneNotification)
 	controllerOngoingReadLock := &sync.Mutex{}
-	controllerReadPausedMap := make(map[string]bool)
+	apiserverLocks := make(map[string]map[string]chan string)
+	apiserverLockedMap := make(map[string]map[string]bool)
 	actionConext := &ActionContext{
 		namespace:                 "default",
 		leadingAPIServer:          "kind-control-plane",
 		followingAPIServer:        "kind-control-plane3",
-		apiserverLocks:            map[string]map[string]chan string{},
-		apiserverLockedMap:        map[string]map[string]bool{},
+		apiserverLocks:            apiserverLocks,
+		apiserverLockedMap:        apiserverLockedMap,
 		controllerOngoingReadLock: controllerOngoingReadLock,
-		controllerReadPausedMap:   controllerReadPausedMap,
 		asyncDoneCh:               asyncDoneCh,
 	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)
-	apiServerPauseNotificationCh := make(chan *APIServerPauseNotification, 100)
 	server := &testCoordinator{
-		testPlan:                     testPlan,
-		actionConext:                 actionConext,
-		stateNotificationCh:          stateNotificationCh,
-		apiServerPauseNotificationCh: apiServerPauseNotificationCh,
-		objectStates:                 map[string]map[string]map[string]string{},
-		controllerOngoingReadLock:    controllerOngoingReadLock,
-		controllerReadPausedMap:      controllerReadPausedMap,
-		mergedFieldPathMask:          mergedFieldPathMask,
-		mergedFieldKeyMask:           mergedFieldKeyMask,
-		mergedFieldPathMaskAPIFrom:   convertFieldPathMaskToAPIForm(mergedFieldPathMask),
-		mergedFieldKeyMaskAPIForm:    convertFieldKeyMaskToAPIForm(mergedFieldKeyMask),
-		stateMachine:                 NewStateMachine(testPlan, stateNotificationCh, apiServerPauseNotificationCh, asyncDoneCh, actionConext),
+		testPlan:                   testPlan,
+		actionConext:               actionConext,
+		stateNotificationCh:        stateNotificationCh,
+		objectStates:               map[string]map[string]map[string]string{},
+		controllerOngoingReadLock:  controllerOngoingReadLock,
+		apiserverLocks:             apiserverLocks,
+		apiserverLockedMap:         apiserverLockedMap,
+		mergedFieldPathMask:        mergedFieldPathMask,
+		mergedFieldKeyMask:         mergedFieldKeyMask,
+		mergedFieldPathMaskAPIFrom: convertFieldPathMaskToAPIForm(mergedFieldPathMask),
+		mergedFieldKeyMaskAPIForm:  convertFieldKeyMaskToAPIForm(mergedFieldKeyMask),
+		stateMachine:               NewStateMachine(testPlan, stateNotificationCh, asyncDoneCh, actionConext),
 	}
 	listener := &TestCoordinator{
 		Server: server,
@@ -194,31 +203,21 @@ func (s *testCoordinator) WriteToObjectStates(observedBy, observedWhen, resource
 	s.objectStates[observedBy][observedWhen][resourceKey] = value
 }
 
-func (s *testCoordinator) SendAPIServerPauseNotificationAndBlock(handlerName, apiserverName, resourceKey string, pausedByAll bool) {
-	pausingCh := make(chan string)
-	notification := &APIServerPauseNotification{
-		apiServerName: apiserverName,
-		resourceKey:   resourceKey,
-		pausedByAll:   pausedByAll,
-		blockingCh:    pausingCh,
-	}
-	log.Printf("%s: send APIServerPauseNotification\n", handlerName)
-	s.apiServerPauseNotificationCh <- notification
-	<-pausingCh
-	log.Printf("%s: block over for APIServerPauseNotification\n", handlerName)
-}
-
 func (s *testCoordinator) APIServerPauseOrReturn(handlerName, apiServerHostname, pauseScope string) {
-	if _, ok := s.actionConext.apiserverLockedMap[apiServerHostname]; ok {
-		if val, ok := s.actionConext.apiserverLockedMap[apiServerHostname][pauseScope]; ok {
+	if _, ok := s.apiserverLockedMap[apiServerHostname]; ok {
+		if val, ok := s.apiserverLockedMap[apiServerHostname][pauseScope]; ok {
 			if val {
-				s.SendAPIServerPauseNotificationAndBlock(handlerName, apiServerHostname, pauseScope, false)
+				log.Printf("Start to pause API server for %s\n", apiServerHostname)
+				pausingCh := s.apiserverLocks[apiServerHostname][pauseScope]
+				<-pausingCh
 				return
 			}
 		}
-		if val, ok := s.actionConext.apiserverLockedMap[apiServerHostname]["all"]; ok {
+		if val, ok := s.apiserverLockedMap[apiServerHostname]["all"]; ok {
 			if val {
-				s.SendAPIServerPauseNotificationAndBlock(handlerName, apiServerHostname, pauseScope, true)
+				log.Printf("Start to pause API server for %s, %s\n", apiServerHostname, pauseScope)
+				pausingCh := s.apiserverLocks[apiServerHostname]["all"]
+				<-pausingCh
 				return
 			}
 		}

@@ -55,17 +55,6 @@ const (
 
 var mergedMaskLock sync.Mutex
 
-type ActionContext struct {
-	namespace                 string
-	leadingAPIServer          string
-	followingAPIServer        string
-	apiserverLocks            map[string]map[string]chan string
-	apiserverLockedMap        map[string]map[string]bool
-	controllerOngoingReadLock *sync.Mutex
-	controllerReadPausedMap   map[string]bool
-	asyncDoneCh               chan *AsyncDoneNotification
-}
-
 func checkError(err error) {
 	if err != nil {
 		log.Fatalf("Fail due to error: %v\n", err)

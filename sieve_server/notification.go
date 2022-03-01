@@ -51,16 +51,16 @@ func (n *ObjectUpdateNotification) getBlockingCh() chan string {
 	return n.blockingCh
 }
 
-type APIServerPauseNotification struct {
-	apiServerName string
-	resourceKey   string
-	pausedByAll   bool
-	blockingCh    chan string
-}
+// type APIServerPauseNotification struct {
+// 	apiServerName string
+// 	resourceKey   string
+// 	pausedByAll   bool
+// 	blockingCh    chan string
+// }
 
-func (n *APIServerPauseNotification) getBlockingCh() chan string {
-	return n.blockingCh
-}
+// func (n *APIServerPauseNotification) getBlockingCh() chan string {
+// 	return n.blockingCh
+// }
 
 type AsyncDoneNotification struct {
 }
