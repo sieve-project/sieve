@@ -49,8 +49,8 @@ func instrumentInformerCacheGoForTest(ifilepath, ofilepath string) {
 }
 
 func instrumentInformerCacheRead(f *dst.File, etype, mode string) {
-	funNameBefore := "Notify" + mode + "BeforeInformerCache" + etype
-	funNameAfter := "Notify" + mode + "AfterInformerCache" + etype
+	funNameBefore := "Notify" + mode + "BeforeController" + etype + "Pause"
+	funNameAfter := "Notify" + mode + "AfterController" + etype + "Pause"
 	_, funcDecl := findFuncDecl(f, etype, "*informerCache")
 	if funcDecl != nil {
 		if _, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
