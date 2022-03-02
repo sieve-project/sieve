@@ -18,6 +18,9 @@ type ActionContext struct {
 	apiserverLocks            map[string]map[string]chan string
 	apiserverLockedMap        map[string]map[string]bool
 	controllerOngoingReadLock *sync.Mutex
+	controllerLocks           map[string]map[string]chan string
+	controllerLockedMap       map[string]map[string]bool
+	controllerLockedMapLock   *sync.Mutex
 	asyncDoneCh               chan *AsyncDoneNotification
 }
 
@@ -28,6 +31,9 @@ type testCoordinator struct {
 	objectStates               map[string]map[string]map[string]string
 	objectStatesLock           sync.RWMutex
 	controllerOngoingReadLock  *sync.Mutex
+	controllerLocks            map[string]map[string]chan string
+	controllerLockedMap        map[string]map[string]bool
+	controllerLockedMapLock    *sync.Mutex
 	apiserverLocks             map[string]map[string]chan string
 	apiserverLockedMap         map[string]map[string]bool
 	mergedFieldPathMask        map[string]map[string]struct{}
@@ -42,12 +48,18 @@ func NewTestCoordinator() *TestCoordinator {
 	testPlan := parseTestPlan(config)
 	asyncDoneCh := make(chan *AsyncDoneNotification)
 	controllerOngoingReadLock := &sync.Mutex{}
+	controllerLockedMapLock := &sync.Mutex{}
+	controllerLocks := make(map[string]map[string]chan string)
+	controllerLockedMap := make(map[string]map[string]bool)
 	apiserverLocks := make(map[string]map[string]chan string)
 	apiserverLockedMap := make(map[string]map[string]bool)
 	actionConext := &ActionContext{
 		namespace:                 "default",
 		leadingAPIServer:          "kind-control-plane",
 		followingAPIServer:        "kind-control-plane3",
+		controllerLocks:           controllerLocks,
+		controllerLockedMap:       controllerLockedMap,
+		controllerLockedMapLock:   controllerLockedMapLock,
 		apiserverLocks:            apiserverLocks,
 		apiserverLockedMap:        apiserverLockedMap,
 		controllerOngoingReadLock: controllerOngoingReadLock,
@@ -61,6 +73,9 @@ func NewTestCoordinator() *TestCoordinator {
 		stateNotificationCh:        stateNotificationCh,
 		objectStates:               map[string]map[string]map[string]string{},
 		controllerOngoingReadLock:  controllerOngoingReadLock,
+		controllerLocks:            controllerLocks,
+		controllerLockedMap:        controllerLockedMap,
+		controllerLockedMapLock:    controllerLockedMapLock,
 		apiserverLocks:             apiserverLocks,
 		apiserverLockedMap:         apiserverLockedMap,
 		mergedFieldPathMask:        mergedFieldPathMask,
@@ -197,10 +212,40 @@ func (tc *testCoordinator) WriteToObjectStates(observedBy, observedWhen, resourc
 
 func (tc *testCoordinator) ProcessControllerReadStartNotification() {
 	tc.controllerOngoingReadLock.Lock()
+	shouldPause := false
+	tc.controllerLockedMapLock.Lock()
+	var pausingCh chan string
+	if _, ok := tc.controllerLockedMap[beforeControllerRead]; ok {
+		if val, ok := tc.controllerLockedMap[beforeControllerRead]["all"]; ok {
+			shouldPause = val
+			pausingCh = tc.controllerLocks[beforeControllerRead]["all"]
+		}
+	}
+	tc.controllerLockedMapLock.Unlock()
+	if shouldPause {
+		log.Printf("Pause controller at %s %s\n", beforeControllerRead, "all")
+		<-pausingCh
+		log.Printf("End pause controller at %s %s\n", beforeControllerRead, "all")
+	}
 }
 
 func (tc *testCoordinator) ProcessControllerReadEndNotification() {
 	tc.controllerOngoingReadLock.Unlock()
+	shouldPause := false
+	tc.controllerLockedMapLock.Lock()
+	var pausingCh chan string
+	if _, ok := tc.controllerLockedMap[afterControllerRead]; ok {
+		if val, ok := tc.controllerLockedMap[afterControllerRead]["all"]; ok {
+			shouldPause = val
+			pausingCh = tc.controllerLocks[afterControllerRead]["all"]
+		}
+	}
+	tc.controllerLockedMapLock.Unlock()
+	if shouldPause {
+		log.Printf("Start to pause controller at %s %s\n", afterControllerRead, "all")
+		<-pausingCh
+		log.Printf("End pause controller at %s %s\n", afterControllerRead, "all")
+	}
 }
 
 func (tc *testCoordinator) ProcessAPIServerRecvNotification(handlerName, apiServerHostname, pauseScope string) {

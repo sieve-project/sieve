@@ -287,6 +287,7 @@ func (a *ResumeAPIServerAction) run(actionContext *ActionContext) {
 
 type PauseControllerReadAction struct {
 	pauseWhenReading   string
+	avoidOngoingRead   bool
 	async              bool
 	waitBefore         int
 	waitAfter          int
@@ -311,12 +312,32 @@ func (a *PauseControllerReadAction) runInternal(actionContext *ActionContext, as
 	if a.waitBefore > 0 {
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
-	actionContext.controllerOngoingReadLock.Lock()
+
+	actionContext.controllerLockedMapLock.Lock()
+	if _, ok := actionContext.controllerLocks[beforeControllerRead]; !ok {
+		actionContext.controllerLocks[beforeControllerRead] = map[string]chan string{}
+	}
+	log.Printf("Create channel for %s %s\n", beforeControllerRead, "all")
+	if _, ok := actionContext.controllerLocks[beforeControllerRead]["all"]; !ok {
+		actionContext.controllerLocks[beforeControllerRead]["all"] = make(chan string)
+	}
+
+	if _, ok := actionContext.controllerLockedMap[beforeControllerRead]; !ok {
+		actionContext.controllerLockedMap[beforeControllerRead] = map[string]bool{}
+	}
+	actionContext.controllerLockedMap[beforeControllerRead]["all"] = true
+	actionContext.controllerLockedMapLock.Unlock()
+
 	if a.waitAfter > 0 {
 		time.Sleep(time.Duration(a.waitAfter) * time.Second)
 	}
 	if async {
 		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
+	if a.avoidOngoingRead {
+		actionContext.controllerOngoingReadLock.Lock()
+		log.Println("there is no ongoing read now; PauseControllerReadAction can return safely")
+		actionContext.controllerOngoingReadLock.Unlock()
 	}
 	log.Println("PauseControllerReadAction done")
 }
@@ -355,7 +376,15 @@ func (a *ResumeControllerReadAction) runInternal(actionContext *ActionContext, a
 	if a.waitBefore > 0 {
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
-	actionContext.controllerOngoingReadLock.Unlock()
+	// actionContext.controllerOngoingReadLock.Unlock()
+	log.Printf("Close channel for %s %s\n", afterControllerRead, "all")
+
+	actionContext.controllerLockedMapLock.Lock()
+	actionContext.controllerLocks[afterControllerRead]["all"] <- "release"
+	close(actionContext.controllerLocks[afterControllerRead]["all"])
+	actionContext.controllerLockedMap[afterControllerRead]["all"] = false
+	actionContext.controllerLockedMapLock.Unlock()
+
 	if a.waitAfter > 0 {
 		time.Sleep(time.Duration(a.waitAfter) * time.Second)
 	}
@@ -697,6 +726,7 @@ func parseAction(raw map[interface{}]interface{}) Action {
 	case pauseControllerRead:
 		return &PauseControllerReadAction{
 			pauseWhenReading:   raw["pauseWhenReading"].(string),
+			avoidOngoingRead:   true,
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,

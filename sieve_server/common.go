@@ -36,11 +36,14 @@ const (
 
 // observedWhen
 const (
-	beforeAPIServerRecv  string = "beforeAPIServerRecv"
-	afterAPIServerRecv   string = "afterAPIServerRecv"
-	beforeControllerRecv string = "beforeControllerRecv"
-	afterControllerRecv  string = "afterControllerRecv"
-	afterControllerWrite string = "afterControllerWrite"
+	beforeAPIServerRecv   string = "beforeAPIServerRecv"
+	afterAPIServerRecv    string = "afterAPIServerRecv"
+	beforeControllerRecv  string = "beforeControllerRecv"
+	afterControllerRecv   string = "afterControllerRecv"
+	beforeControllerWrite string = "beforeControllerWrite"
+	afterControllerWrite  string = "afterControllerWrite"
+	beforeControllerRead  string = "beforeControllerRead"
+	afterControllerRead   string = "afterControllerRead"
 )
 
 // actionType
