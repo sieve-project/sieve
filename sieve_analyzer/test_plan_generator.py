@@ -251,14 +251,106 @@ def decide_stale_state_timing(
             assert False
 
 
-def stale_state_template(test_context: TestContext):
+def generate_stale_state_test_plan(
+    test_context: TestContext,
+    operator_hear: OperatorHear,
+    operator_write: OperatorWrite,
+    pause_timing,
+):
+    resource_key1 = generate_key(
+        operator_hear.rtype, operator_hear.namespace, operator_hear.name
+    )
+    resource_key2 = generate_key(
+        operator_write.rtype, operator_write.namespace, operator_write.name
+    )
+    condition_for_trigger1 = {}
+    if operator_hear.etype == OperatorHearTypes.ADDED:
+        condition_for_trigger1["conditionType"] = "onObjectCreate"
+        condition_for_trigger1["resourceKey"] = resource_key1
+        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+    elif operator_hear.etype == OperatorHearTypes.DELETED:
+        condition_for_trigger1["conditionType"] = "onObjectDelete"
+        condition_for_trigger1["resourceKey"] = resource_key1
+        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+    else:
+        condition_for_trigger1["conditionType"] = "onObjectUpdate"
+        condition_for_trigger1["resourceKey"] = resource_key1
+        condition_for_trigger1["prevStateDiff"] = json.dumps(
+            operator_hear.slim_prev_obj_map, sort_keys=True
+        )
+        condition_for_trigger1["curStateDiff"] = json.dumps(
+            operator_hear.slim_cur_obj_map, sort_keys=True
+        )
+        if (
+            operator_hear.rtype
+            not in test_context.controller_config.custom_resource_definitions
+        ):
+            condition_for_trigger1["convertStateToAPIForm"] = True
+        condition_for_trigger1["repeat"] = operator_hear.signature_counter
     return {
-        "project": test_context.project,
-        "stage": sieve_stages.TEST,
-        "mode": sieve_modes.STALE_STATE,
-        "straggler": test_context.common_config.following_api,
-        "front-runner": test_context.common_config.leading_api,
-        "operator-pod-label": test_context.controller_config.controller_pod_label,
+        "actions": [
+            {
+                "actionType": "pauseAPIServer",
+                "apiServerName": test_context.common_config.following_api,
+                "pauseScope": resource_key1,
+                "trigger": {
+                    "definitions": [
+                        {
+                            "triggerName": "trigger1",
+                            "condition": condition_for_trigger1,
+                            "observationPoint": {
+                                "when": "afterAPIServerRecv"
+                                if pause_timing == "after"
+                                else "beforeAPIServerRecv",
+                                "by": test_context.common_config.following_api,
+                            },
+                        }
+                    ],
+                    "expression": "trigger1",
+                },
+            },
+            {
+                "actionType": "reconnectController",
+                "controllerLabel": test_context.controller_config.controller_pod_label,
+                "reconnectAPIServer": test_context.common_config.following_api,
+                "async": True,
+                "waitBefore": 10,
+                "trigger": {
+                    "definitions": [
+                        {
+                            "triggerName": "trigger2",
+                            "condition": {
+                                "conditionType": "onObjectCreate",
+                                "resourceKey": resource_key2,
+                                "repeat": 1,
+                            },
+                            "observationPoint": {
+                                "when": "afterAPIServerRecv",
+                                "by": test_context.common_config.leading_api,
+                            },
+                        }
+                    ],
+                    "expression": "trigger2",
+                },
+            },
+            {
+                "actionType": "resumeAPIServer",
+                "apiServerName": test_context.common_config.following_api,
+                "pauseScope": resource_key1,
+                "trigger": {
+                    "definitions": [
+                        {
+                            "triggerName": "trigger3",
+                            "condition": {
+                                "conditionType": "onTimeout",
+                                "timeoutValue": 20,
+                            },
+                        }
+                    ],
+                    "expression": "trigger3",
+                },
+            },
+        ]
     }
 
 
@@ -302,48 +394,38 @@ def stale_state_analysis(
 
         timing = decide_stale_state_timing(source, sink)
 
-        stale_state_config = stale_state_template(test_context)
-        stale_state_config["ce-name"] = operator_hear.name
-        stale_state_config["ce-namespace"] = operator_hear.namespace
-        stale_state_config["ce-rtype"] = operator_hear.rtype
-        stale_state_config["ce-etype-previous"] = convert_deltafifo_etype_to_API_etype(
-            operator_hear.prev_etype
-        )
-        stale_state_config["ce-etype-current"] = convert_deltafifo_etype_to_API_etype(
-            operator_hear.etype
-        )
-        prev_diff, cur_diff = state_diff_or_empty(operator_hear)
-        stale_state_config["ce-diff-previous"] = json.dumps(prev_diff, sort_keys=True)
-        stale_state_config["ce-diff-current"] = json.dumps(cur_diff, sort_keys=True)
-        stale_state_config["ce-counter"] = str(operator_hear.signature_counter)
-        stale_state_config["ce-is-cr"] = str(
-            operator_hear.rtype
-            in test_context.controller_config.custom_resource_definitions
-        )
-        stale_state_config["se-name"] = operator_write.name
-        stale_state_config["se-namespace"] = operator_write.namespace
-        stale_state_config["se-rtype"] = operator_write.rtype
-        assert operator_write.etype == OperatorWriteTypes.DELETE
-        stale_state_config["se-etype"] = "ADDED"
-
-        if timing == "after" or timing == "before":
-            stale_state_config["timing"] = timing
+        if timing == "after":
+            stale_state_test_plan = generate_stale_state_test_plan(
+                test_context, operator_hear, operator_write, timing
+            )
             i += 1
             file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if test_context.common_config.persist_test_plans_enabled:
-                dump_to_yaml(stale_state_config, file_name)
+                dump_to_yaml(stale_state_test_plan, file_name)
+        elif timing == "before":
+            stale_state_test_plan = generate_stale_state_test_plan(
+                test_context, operator_hear, operator_write, timing
+            )
+            i += 1
+            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
+            if test_context.common_config.persist_test_plans_enabled:
+                dump_to_yaml(stale_state_test_plan, file_name)
         else:
-            stale_state_config["timing"] = "after"
+            stale_state_test_plan = generate_stale_state_test_plan(
+                test_context, operator_hear, operator_write, "after"
+            )
             i += 1
             file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if test_context.common_config.persist_test_plans_enabled:
-                dump_to_yaml(stale_state_config, file_name)
+                dump_to_yaml(stale_state_test_plan, file_name)
 
-            stale_state_config["timing"] = "before"
+            stale_state_test_plan = generate_stale_state_test_plan(
+                test_context, operator_hear, operator_write, "before"
+            )
             i += 1
             file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
             if test_context.common_config.persist_test_plans_enabled:
-                dump_to_yaml(stale_state_config, file_name)
+                dump_to_yaml(stale_state_test_plan, file_name)
             baseline_spec_number += 1
             after_p1_spec_number += 1
             after_p2_spec_number += 1
@@ -418,11 +500,145 @@ def overwrite_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
-def unobserved_state_template(test_context: TestContext):
+def generate_unobserved_state_test_plan(
+    test_context: TestContext,
+    operator_hear: OperatorHear,
+):
+    resource_key = generate_key(
+        operator_hear.rtype, operator_hear.namespace, operator_hear.name
+    )
+    condition_for_trigger1 = {}
+    trigger_for_action2 = {
+        "definitions": None,
+        "expression": None,
+    }
+    if operator_hear.etype == OperatorHearTypes.ADDED:
+        condition_for_trigger1["conditionType"] = "onObjectCreate"
+        condition_for_trigger1["resourceKey"] = resource_key
+        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        trigger_for_action2["definitions"] = [
+            {
+                "triggerName": "trigger2",
+                "condition": {
+                    "conditionType": "onObjectUpdate",
+                    "resourceKey": resource_key,
+                    "repeat": 1,
+                },
+                "observationPoint": {
+                    "when": "afterControllerRecv",
+                    "by": "informer",
+                },
+            },
+            {
+                "triggerName": "trigger3",
+                "condition": {
+                    "conditionType": "onObjectDelete",
+                    "resourceKey": resource_key,
+                    "repeat": 1,
+                },
+                "observationPoint": {
+                    "when": "afterControllerRecv",
+                    "by": "informer",
+                },
+            },
+        ]
+        trigger_for_action2["expression"] = "trigger2|trigger3"
+    elif operator_hear.etype == OperatorHearTypes.DELETED:
+        condition_for_trigger1["conditionType"] = "onObjectDelete"
+        condition_for_trigger1["resourceKey"] = resource_key
+        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        trigger_for_action2["definitions"] = [
+            {
+                "triggerName": "trigger2",
+                "condition": {
+                    "conditionType": "onObjectCreate",
+                    "resourceKey": resource_key,
+                    "repeat": 1,
+                },
+                "observationPoint": {
+                    "when": "afterControllerRecv",
+                    "by": "informer",
+                },
+            },
+            {
+                "triggerName": "trigger3",
+                "condition": {
+                    "conditionType": "onObjectUpdate",
+                    "resourceKey": resource_key,
+                    "repeat": 1,
+                },
+                "observationPoint": {
+                    "when": "afterControllerRecv",
+                    "by": "informer",
+                },
+            },
+        ]
+        trigger_for_action2["expression"] = "trigger2|trigger3"
+    else:
+        condition_for_trigger1["conditionType"] = "onObjectUpdate"
+        condition_for_trigger1["resourceKey"] = resource_key
+        condition_for_trigger1["prevStateDiff"] = json.dumps(
+            operator_hear.slim_prev_obj_map, sort_keys=True
+        )
+        condition_for_trigger1["curStateDiff"] = json.dumps(
+            operator_hear.slim_cur_obj_map, sort_keys=True
+        )
+        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        trigger_for_action2["definitions"] = [
+            {
+                "triggerName": "trigger2",
+                "condition": {
+                    "conditionType": "onAnyFieldModification",
+                    "resourceKey": resource_key,
+                    "prevStateDiff": json.dumps(
+                        operator_hear.slim_cur_obj_map, sort_keys=True
+                    ),
+                    "repeat": 1,
+                },
+                "observationPoint": {
+                    "when": "afterControllerRecv",
+                    "by": "informer",
+                },
+            },
+            {
+                "triggerName": "trigger3",
+                "condition": {
+                    "conditionType": "onObjectDelete",
+                    "resourceKey": resource_key,
+                    "repeat": 1,
+                },
+                "observationPoint": {
+                    "when": "afterControllerRecv",
+                    "by": "informer",
+                },
+            },
+        ]
+        trigger_for_action2["expression"] = "trigger2|trigger3"
     return {
-        "project": test_context.project,
-        "stage": sieve_stages.TEST,
-        "mode": sieve_modes.UNOBSR_STATE,
+        "actions": [
+            {
+                "actionType": "pauseControllerRead",
+                "pauseWhenReading": resource_key,
+                "trigger": {
+                    "definitions": [
+                        {
+                            "triggerName": "trigger1",
+                            "condition": condition_for_trigger1,
+                            "observationPoint": {
+                                "when": "beforeControllerRecv",
+                                "by": "informer",
+                            },
+                        }
+                    ],
+                    "expression": "trigger1",
+                },
+            },
+            {
+                "actionType": "resumeControllerRead",
+                "pauseWhenReading": resource_key,
+                "trigger": trigger_for_action2,
+            },
+        ]
     }
 
 
@@ -449,25 +665,14 @@ def unobserved_state_analysis(
         operator_hear = vertex.content
         assert isinstance(operator_hear, OperatorHear)
 
-        unobserved_state_config = unobserved_state_template(test_context)
-        unobserved_state_config["ce-name"] = operator_hear.name
-        unobserved_state_config["ce-namespace"] = operator_hear.namespace
-        unobserved_state_config["ce-rtype"] = operator_hear.rtype
-        unobserved_state_config["ce-etype-previous"] = operator_hear.prev_etype
-        unobserved_state_config["ce-etype-current"] = operator_hear.etype
-        prev_diff, cur_diff = state_diff_or_empty(operator_hear)
-        unobserved_state_config["ce-diff-previous"] = json.dumps(
-            prev_diff, sort_keys=True
+        unobserved_state_test_plan = generate_unobserved_state_test_plan(
+            test_context, operator_hear
         )
-        unobserved_state_config["ce-diff-current"] = json.dumps(
-            cur_diff, sort_keys=True
-        )
-        unobserved_state_config["ce-counter"] = str(operator_hear.signature_counter)
 
         i += 1
         file_name = os.path.join(path, "unobserved-state-test-plan-%s.yaml" % (str(i)))
         if test_context.common_config.persist_test_plans_enabled:
-            dump_to_yaml(unobserved_state_config, file_name)
+            dump_to_yaml(unobserved_state_test_plan, file_name)
 
     cprint(
         "Generated %d unobserved-state test plan(s) in %s" % (i, path), bcolors.OKGREEN
@@ -564,13 +769,51 @@ def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
     return candidate_vertices
 
 
-def intermediate_state_template(test_context: TestContext):
+def generate_intermediate_state_test_plan(
+    test_context: TestContext, operator_write: OperatorWrite
+):
+    resource_key = generate_key(
+        operator_write.rtype, operator_write.namespace, operator_write.name
+    )
+    condition = {}
+    if operator_write.etype == OperatorWriteTypes.CREATE:
+        condition["conditionType"] = "onObjectCreate"
+        condition["resourceKey"] = resource_key
+        condition["repeat"] = operator_write.signature_counter
+    elif operator_write.etype == OperatorWriteTypes.DELETE:
+        condition["conditionType"] = "onObjectDelete"
+        condition["resourceKey"] = resource_key
+        condition["repeat"] = operator_write.signature_counter
+    else:
+        condition["conditionType"] = "onObjectUpdate"
+        condition["resourceKey"] = resource_key
+        condition["prevStateDiff"] = json.dumps(
+            operator_write.slim_prev_obj_map, sort_keys=True
+        )
+        condition["curStateDiff"] = json.dumps(
+            operator_write.slim_cur_obj_map, sort_keys=True
+        )
+        condition["repeat"] = operator_write.signature_counter
     return {
-        "project": test_context.project,
-        "stage": sieve_stages.TEST,
-        "mode": sieve_modes.INTERMEDIATE_STATE,
-        "front-runner": test_context.common_config.leading_api,
-        "operator-pod-label": test_context.controller_config.controller_pod_label,
+        "actions": [
+            {
+                "actionType": "restartController",
+                "controllerLabel": test_context.controller_config.controller_pod_label,
+                "trigger": {
+                    "definitions": [
+                        {
+                            "triggerName": "trigger1",
+                            "condition": condition,
+                            "observationPoint": {
+                                "when": "afterControllerWrite",
+                                "by": operator_write.reconciler_type,
+                            },
+                        }
+                    ],
+                    "expression": "trigger1",
+                },
+            }
+        ]
     }
 
 
@@ -599,49 +842,33 @@ def intermediate_state_analysis(
     for vertex in candidate_vertices:
         operator_write = vertex.content
 
-        intermediate_state_config = intermediate_state_template(test_context)
         if isinstance(operator_write, OperatorWrite):
-            intermediate_state_config["se-name"] = operator_write.name
-            intermediate_state_config["se-namespace"] = operator_write.namespace
-            intermediate_state_config["se-rtype"] = operator_write.rtype
-            intermediate_state_config[
-                "se-reconciler-type"
-            ] = operator_write.reconciler_type
-            intermediate_state_config["se-etype-previous"] = operator_write.prev_etype
-            intermediate_state_config["se-etype-current"] = operator_write.etype
-            prev_diff, cur_diff = state_diff_or_empty(operator_write)
-            intermediate_state_config["se-diff-previous"] = json.dumps(
-                prev_diff, sort_keys=True
+            intermediate_state_test_plan = generate_intermediate_state_test_plan(
+                test_context, operator_write
             )
-            intermediate_state_config["se-diff-current"] = json.dumps(
-                cur_diff, sort_keys=True
+            i += 1
+            file_name = os.path.join(
+                path, "intermediate-state-test-plan-%s.yaml" % (str(i))
             )
-            intermediate_state_config["se-counter"] = str(
-                operator_write.signature_counter
-            )
+            if test_context.common_config.persist_test_plans_enabled:
+                dump_to_yaml(intermediate_state_test_plan, file_name)
         else:
-            assert isinstance(operator_write, OperatorNonK8sWrite)
-            # TODO: We need a better handling for non k8s event
-            intermediate_state_config["se-name"] = operator_write.fun_name
-            intermediate_state_config["se-namespace"] = "default"
-            intermediate_state_config["se-rtype"] = operator_write.recv_type
-            intermediate_state_config[
-                "se-reconciler-type"
-            ] = operator_write.reconciler_type
-            intermediate_state_config["se-etype-previous"] = ""
-            intermediate_state_config["se-etype-current"] = NON_K8S_WRITE
-            intermediate_state_config["se-diff-previous"] = json.dumps({})
-            intermediate_state_config["se-diff-current"] = json.dumps({})
-            intermediate_state_config["se-counter"] = str(
-                operator_write.signature_counter
-            )
-
-        i += 1
-        file_name = os.path.join(
-            path, "intermediate-state-test-plan-%s.yaml" % (str(i))
-        )
-        if test_context.common_config.persist_test_plans_enabled:
-            dump_to_yaml(intermediate_state_config, file_name)
+            print("skip nk write for now")
+            # assert isinstance(operator_write, OperatorNonK8sWrite)
+            # # TODO: We need a better handling for non k8s event
+            # intermediate_state_config["se-name"] = operator_write.fun_name
+            # intermediate_state_config["se-namespace"] = "default"
+            # intermediate_state_config["se-rtype"] = operator_write.recv_type
+            # intermediate_state_config[
+            #     "se-reconciler-type"
+            # ] = operator_write.reconciler_type
+            # intermediate_state_config["se-etype-previous"] = ""
+            # intermediate_state_config["se-etype-current"] = NON_K8S_WRITE
+            # intermediate_state_config["se-diff-previous"] = json.dumps({})
+            # intermediate_state_config["se-diff-current"] = json.dumps({})
+            # intermediate_state_config["se-counter"] = str(
+            #     operator_write.signature_counter
+            # )
 
     cprint(
         "Generated %d intermediate-state test plan(s) in %s" % (i, path),
