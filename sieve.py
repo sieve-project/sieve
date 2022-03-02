@@ -409,11 +409,15 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
+    hacked_mode = test_context.mode
+    if "pauseControllerRead" in test_context.action_types:
+        hacked_mode = sieve_modes.UNOBSR_STATE
+
     cprint("Running test workload...", bcolors.OKGREEN)
     test_command = "%s %s %s %s" % (
         test_context.controller_config.test_command,
         test_context.test_name,
-        test_context.mode,
+        hacked_mode,
         os.path.join(test_context.result_dir, "workload.log"),
     )
     process = subprocess.Popen(test_command, shell=True)
@@ -509,18 +513,16 @@ def generate_learn_config(
     namespace, learn_config, mode, rate_limiter_enabled, crd_list
 ):
     learn_config_map = {}
-    learn_config_map["stage"] = sieve_stages.LEARN
-    learn_config_map["mode"] = mode
-    learn_config_map["namespace"] = namespace
-    learn_config_map["crd-list"] = crd_list
+    # learn_config_map["namespace"] = namespace
+    learn_config_map["crdList"] = crd_list
     if rate_limiter_enabled:
-        learn_config_map["rate-limiter-enabled"] = "true"
+        learn_config_map["rateLimiterEnabled"] = True
         print("Turn on rate limiter")
     else:
-        learn_config_map["rate-limiter-enabled"] = "false"
+        learn_config_map["rateLimiterEnabled"] = False
         print("Turn off rate limiter")
     # hardcode the interval to 3 seconds for now
-    learn_config_map["rate-limiter-interval"] = "3"
+    learn_config_map["rateLimiterInterval"] = 3
     yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
 
 
