@@ -10,13 +10,13 @@ type EchoRequest struct {
 	Text string
 }
 
-type NotifyLearnBeforeIndexerWriteRequest struct {
+type NotifyLearnBeforeControllerRecvRequest struct {
 	OperationType string
 	Object        string
 	ResourceType  string
 }
 
-type NotifyLearnAfterIndexerWriteRequest struct {
+type NotifyLearnAfterControllerRecvRequest struct {
 	EventID int
 }
 
@@ -28,11 +28,11 @@ type NotifyLearnAfterReconcileRequest struct {
 	ReconcilerName string
 }
 
-type NotifyLearnBeforeSideEffectsRequest struct {
+type NotifyLearnBeforeControllerWriteRequest struct {
 	SideEffectType string
 }
 
-type NotifyLearnAfterSideEffectsRequest struct {
+type NotifyLearnAfterControllerWriteRequest struct {
 	SideEffectID   int
 	SideEffectType string
 	Object         string
@@ -41,19 +41,19 @@ type NotifyLearnAfterSideEffectsRequest struct {
 	Error          string
 }
 
-type NotifyLearnBeforeNonK8sSideEffectsRequest struct {
+type NotifyLearnBeforeNKWriteRequest struct {
 	RecvTypeName string
 	FunName      string
 }
 
-type NotifyLearnAfterNonK8sSideEffectsRequest struct {
+type NotifyLearnAfterNKWriteRequest struct {
 	SideEffectID   int
 	RecvTypeName   string
 	FunName        string
 	ReconcilerType string
 }
 
-type NotifyLearnAfterOperatorGetRequest struct {
+type NotifyLearnAfterControllerGetRequest struct {
 	FromCache      bool
 	ResourceType   string
 	Namespace      string
@@ -63,7 +63,7 @@ type NotifyLearnAfterOperatorGetRequest struct {
 	Error          string
 }
 
-type NotifyLearnAfterOperatorListRequest struct {
+type NotifyLearnAfterControllerListRequest struct {
 	FromCache      bool
 	ResourceType   string
 	ObjectList     string

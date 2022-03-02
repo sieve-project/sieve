@@ -9,7 +9,7 @@ import (
 )
 
 func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
@@ -42,7 +42,7 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
 }
 
 func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
@@ -75,7 +75,7 @@ func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
 }
 
 func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if k8sErr != nil {
@@ -114,7 +114,7 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 }
 
 func NotifyTestAfterControllerList(readType string, fromCache bool, object interface{}, k8sErr error) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if k8sErr != nil {
@@ -153,7 +153,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 }
 
 func NotifyTestAfterControllerWrite(writeID int, writeType string, object interface{}, k8sErr error) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if k8sErr != nil {
@@ -195,7 +195,7 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 }
 
 func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.NamespacedName, object interface{}) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
@@ -221,7 +221,7 @@ func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.Na
 }
 
 func NotifyTestAfterControllerGetPause(readType string, namespacedName types.NamespacedName, object interface{}) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
@@ -247,7 +247,7 @@ func NotifyTestAfterControllerGetPause(readType string, namespacedName types.Nam
 }
 
 func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
@@ -273,7 +273,7 @@ func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
 }
 
 func NotifyTestAfterControllerListPause(readType string, object interface{}) {
-	if err := loadSieveConfigFromEnv(); err != nil {
+	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
@@ -299,7 +299,7 @@ func NotifyTestAfterControllerListPause(readType string, object interface{}) {
 }
 
 func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
-	if err := loadSieveConfigFromConfigMap(eventType, key, object); err != nil {
+	if err := loadSieveConfigFromConfigMap(eventType, key, object, true); err != nil {
 		return
 	}
 	// we should log the API event before initializing the client
@@ -341,7 +341,7 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 }
 
 func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
-	if err := loadSieveConfigFromConfigMap(eventType, key, object); err != nil {
+	if err := loadSieveConfigFromConfigMap(eventType, key, object, true); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {

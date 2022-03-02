@@ -39,9 +39,8 @@ var actions map[string][]map[interface{}]interface{} = make(map[string][]map[int
 var apiserverHostname string = ""
 var rpcClient *rpc.Client = nil
 
-// var exists = struct{}{}
-
-// var taintMap sync.Map = sync.Map{}
+var exists = struct{}{}
+var taintMap sync.Map = sync.Map{}
 
 func checkKVPairInAction(actionType, key, val string, matchPrefix bool) bool {
 	for actionKey, actionsOfTheSameType := range actions {
@@ -182,7 +181,7 @@ func loadActionsAndTriggers(testPlan map[string]interface{}) error {
 	return nil
 }
 
-func loadSieveConfigFromEnv() error {
+func loadSieveConfigFromEnv(testMode bool) error {
 	if config != nil {
 		return nil
 	}
@@ -201,10 +200,12 @@ func loadSieveConfigFromEnv() error {
 		}
 		log.Printf("config from env:\n%v\n", configFromEnv)
 		config = configFromEnv
-		err = loadActionsAndTriggers(configFromEnv)
-		if err != nil {
-			printError(err, SIEVE_CONFIG_ERR)
-			return fmt.Errorf("fail to load from env")
+		if testMode {
+			err = loadActionsAndTriggers(configFromEnv)
+			if err != nil {
+				printError(err, SIEVE_CONFIG_ERR)
+				return fmt.Errorf("fail to load from env")
+			}
 		}
 	} else {
 		return fmt.Errorf("fail to load from env")
@@ -212,7 +213,7 @@ func loadSieveConfigFromEnv() error {
 	return nil
 }
 
-func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) error {
+func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, testMode bool) error {
 	if config != nil {
 		return nil
 	}
@@ -252,10 +253,12 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}) err
 					}
 					log.Printf("config from configMap:\n%v\n", configFromConfigMapData)
 					config = configFromConfigMapData
-					err = loadActionsAndTriggers(configFromConfigMapData)
-					if err != nil {
-						printError(err, SIEVE_CONFIG_ERR)
-						return fmt.Errorf("fail to load from configmap")
+					if testMode {
+						err = loadActionsAndTriggers(configFromConfigMapData)
+						if err != nil {
+							printError(err, SIEVE_CONFIG_ERR)
+							return fmt.Errorf("fail to load from configmap")
+						}
 					}
 				} else {
 					log.Printf("cannot convert %v to string", configMapData["sieveTestPlan"])
@@ -311,7 +314,7 @@ func initRPCClient() error {
 
 func getCRDs() []string {
 	crds := []string{}
-	if cs, ok := config["CRDList"]; ok {
+	if cs, ok := config["crdList"]; ok {
 		switch v := cs.(type) {
 		case []interface{}:
 			for _, c := range v {
@@ -322,10 +325,10 @@ func getCRDs() []string {
 				crds = append(crds, c)
 			}
 		default:
-			log.Println("crd-list wrong type")
+			log.Println("crdList wrong type")
 		}
 	} else {
-		log.Println("do not find CRDList from config")
+		log.Println("do not find crdList from config")
 	}
 	return crds
 }

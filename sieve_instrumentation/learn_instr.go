@@ -13,25 +13,25 @@ func instrumentSharedInformerGoForLearn(ifilepath, ofilepath string) {
 	if funcDecl != nil {
 		for _, stmt := range funcDecl.Body.List {
 			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
-				instrNotifyLearnBeforeIndexerWrite := &dst.AssignStmt{
+				instrNotifyLearnBeforeControllerRecv := &dst.AssignStmt{
 					Lhs: []dst.Expr{&dst.Ident{Name: "sieveEventID"}},
 					Rhs: []dst.Expr{&dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnBeforeIndexerWrite", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnBeforeControllerRecv", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
 					}},
 					Tok: token.DEFINE,
 				}
-				instrNotifyLearnBeforeIndexerWrite.Decs.End.Append("//sieve")
-				insertStmt(&rangeStmt.Body.List, 0, instrNotifyLearnBeforeIndexerWrite)
+				instrNotifyLearnBeforeControllerRecv.Decs.End.Append("//sieve")
+				insertStmt(&rangeStmt.Body.List, 0, instrNotifyLearnBeforeControllerRecv)
 
-				instrNotifyLearnAfterIndexerWrite := &dst.ExprStmt{
+				instrNotifyLearnAfterControllerRecv := &dst.ExprStmt{
 					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyLearnAfterIndexerWrite", Path: "sieve.client"},
+						Fun:  &dst.Ident{Name: "NotifyLearnAfterControllerRecv", Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: "sieveEventID"}, &dst.Ident{Name: "d.Object"}},
 					},
 				}
-				instrNotifyLearnAfterIndexerWrite.Decs.End.Append("//sieve")
-				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyLearnAfterIndexerWrite)
+				instrNotifyLearnAfterControllerRecv.Decs.End.Append("//sieve")
+				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyLearnAfterControllerRecv)
 				break
 			}
 		}

@@ -1,386 +1,327 @@
 package sieve
 
-// import (
-// 	"encoding/json"
-// 	"fmt"
-// 	"log"
-// 	"reflect"
-// 	"strings"
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"strings"
 
-// 	"k8s.io/apimachinery/pkg/api/errors"
-// 	"k8s.io/apimachinery/pkg/api/meta"
-// 	"k8s.io/apimachinery/pkg/types"
-// )
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/types"
+)
 
-// func isCRD(rType string, crds []string) bool {
-// 	for _, crd := range crds {
-// 		if rType == crd {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
+func isCRD(rType string, crds []string) bool {
+	for _, crd := range crds {
+		if rType == crd {
+			return true
+		}
+	}
+	return false
+}
 
-// func triggerReconcile(object interface{}) bool {
-// 	crds := getCRDs()
-// 	rType := regularizeType(object)
-// 	if isCRD(rType, crds) {
-// 		return true
-// 	}
-// 	if o, err := meta.Accessor(object); err == nil {
-// 		for _, ref := range o.GetOwnerReferences() {
-// 			if isCRD(strings.ToLower(ref.Kind), crds) {
-// 				taintMap.Store(o.GetNamespace()+"-"+rType+"-"+o.GetName(), "")
-// 				return true
-// 			} else if _, ok := taintMap.Load(o.GetNamespace() + "-" + strings.ToLower(ref.Kind) + "-" + ref.Name); ok {
-// 				taintMap.Store(o.GetNamespace()+"-"+rType+"-"+o.GetName(), "")
-// 				return true
-// 			}
-// 		}
-// 	}
-// 	return false
-// }
+func triggerReconcile(object interface{}) bool {
+	crds := getCRDs()
+	rType := regularizeType(object)
+	if isCRD(rType, crds) {
+		return true
+	}
+	if o, err := meta.Accessor(object); err == nil {
+		for _, ref := range o.GetOwnerReferences() {
+			if isCRD(strings.ToLower(ref.Kind), crds) {
+				taintMap.Store(o.GetNamespace()+"-"+rType+"-"+o.GetName(), "")
+				return true
+			} else if _, ok := taintMap.Load(o.GetNamespace() + "-" + strings.ToLower(ref.Kind) + "-" + ref.Name); ok {
+				taintMap.Store(o.GetNamespace()+"-"+rType+"-"+o.GetName(), "")
+				return true
+			}
+		}
+	}
+	return false
+}
 
-// func NotifyLearnBeforeIndexerWrite(operationType string, object interface{}) int {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return -1
-// 	}
-// 	if !triggerReconcile(object) {
-// 		return -1
-// 	}
-// 	// log.Printf("[sieve][NotifyLearnBeforeIndexerWrite] operationType: %s\n", operationType)
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return -1
-// 	}
-// 	jsonObject, err := json.Marshal(object)
-// 	if err != nil {
-// 		printError(err, SIEVE_JSON_ERR)
-// 		return -1
-// 	}
-// 	request := &NotifyLearnBeforeIndexerWriteRequest{
-// 		OperationType: operationType,
-// 		Object:        string(jsonObject),
-// 		ResourceType:  regularizeType(object),
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnBeforeIndexerWrite", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return -1
-// 	}
-// 	checkResponse(response, "NotifyLearnBeforeIndexerWrite")
-// 	client.Close()
-// 	return response.Number
-// }
+func NotifyLearnBeforeControllerRecv(operationType string, object interface{}) int {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return -1
+	}
+	if !triggerReconcile(object) {
+		return -1
+	}
+	if err := initRPCClient(); err != nil {
+		return -1
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return -1
+	}
+	request := &NotifyLearnBeforeControllerRecvRequest{
+		OperationType: operationType,
+		Object:        string(jsonObject),
+		ResourceType:  regularizeType(object),
+	}
+	var response Response
+	err = rpcClient.Call("LearnListener.NotifyLearnBeforeControllerRecv", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return -1
+	}
+	checkResponse(response, "NotifyLearnBeforeControllerRecv")
+	return response.Number
+}
 
-// func NotifyLearnAfterIndexerWrite(eventID int, object interface{}) {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
-// 	if !triggerReconcile(object) {
-// 		return
-// 	}
-// 	if eventID == -1 {
-// 		return
-// 	}
-// 	// log.Printf("[sieve][NotifyLearnAfterIndexerWrite]\n")
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return
-// 	}
-// 	request := &NotifyLearnAfterIndexerWriteRequest{
-// 		EventID: eventID,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnAfterIndexerWrite", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnAfterIndexerWrite")
-// 	client.Close()
-// }
+func NotifyLearnAfterControllerRecv(eventID int, object interface{}) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if !triggerReconcile(object) {
+		return
+	}
+	if eventID == -1 {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	request := &NotifyLearnAfterControllerRecvRequest{
+		EventID: eventID,
+	}
+	var response Response
+	err := rpcClient.Call("LearnListener.NotifyLearnAfterControllerRecv", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterControllerRecv")
+}
 
-// func NotifyLearnBeforeReconcile(reconciler interface{}) {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
+func NotifyLearnBeforeReconcile(reconciler interface{}) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerName := fmt.Sprintf("%s.(*%s)", reflect.TypeOf(reconciler).Elem().PkgPath(), reflect.TypeOf(reconciler).Elem().Name())
+	request := &NotifyLearnBeforeReconcileRequest{
+		ReconcilerName: reconcilerName,
+	}
+	var response Response
+	err := rpcClient.Call("LearnListener.NotifyLearnBeforeReconcile", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnBeforeReconcile")
+}
 
-// 	// log.Printf("[sieve][NotifyLearnBeforeReconcile]\n")
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return
-// 	}
-// 	reconcilerName := fmt.Sprintf("%s.(*%s)", reflect.TypeOf(reconciler).Elem().PkgPath(), reflect.TypeOf(reconciler).Elem().Name())
-// 	request := &NotifyLearnBeforeReconcileRequest{
-// 		ReconcilerName: reconcilerName,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnBeforeReconcile", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnBeforeReconcile")
-// 	client.Close()
-// }
+func NotifyLearnAfterReconcile(reconciler interface{}) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerName := fmt.Sprintf("%s.(*%s)", reflect.TypeOf(reconciler).Elem().PkgPath(), reflect.TypeOf(reconciler).Elem().Name())
+	request := &NotifyLearnBeforeReconcileRequest{
+		ReconcilerName: reconcilerName,
+	}
+	var response Response
+	err := rpcClient.Call("LearnListener.NotifyLearnAfterReconcile", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterReconcile")
+}
 
-// func NotifyLearnAfterReconcile(reconciler interface{}) {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
-// 	// log.Printf("[sieve][NotifyLearnAfterReconcile]\n")
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return
-// 	}
-// 	reconcilerName := fmt.Sprintf("%s.(*%s)", reflect.TypeOf(reconciler).Elem().PkgPath(), reflect.TypeOf(reconciler).Elem().Name())
-// 	request := &NotifyLearnBeforeReconcileRequest{
-// 		ReconcilerName: reconcilerName,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnAfterReconcile", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnAfterReconcile")
-// 	client.Close()
-// }
+func NotifyLearnBeforeControllerWrite(sideEffectType string, object interface{}) int {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return -1
+	}
+	if err := initRPCClient(); err != nil {
+		return -1
+	}
+	request := &NotifyLearnBeforeControllerWriteRequest{
+		SideEffectType: sideEffectType,
+	}
+	var response Response
+	err := rpcClient.Call("LearnListener.NotifyLearnBeforeControllerWrite", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return -1
+	}
+	checkResponse(response, "NotifyLearnBeforeControllerWrite")
+	return response.Number
+}
 
-// func NotifyLearnBeforeSideEffects(sideEffectType string, object interface{}) int {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return -1
-// 	}
-// 	// log.Printf("[sieve][NotifyLearnBeforeSideEffects] %v\n", reflect.TypeOf(object))
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return -1
-// 	}
-// 	request := &NotifyLearnBeforeSideEffectsRequest{
-// 		SideEffectType: sideEffectType,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnBeforeSideEffects", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return -1
-// 	}
-// 	checkResponse(response, "NotifyLearnBeforeSideEffects")
-// 	client.Close()
-// 	return response.Number
-// }
+func NotifyLearnAfterControllerWrite(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if sideEffectID == -1 {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	request := &NotifyLearnAfterControllerWriteRequest{
+		SideEffectID:   sideEffectID,
+		SideEffectType: sideEffectType,
+		Object:         string(jsonObject),
+		ResourceType:   regularizeType(object),
+		ReconcilerType: reconcilerType,
+		Error:          errorString,
+	}
+	var response Response
+	err = rpcClient.Call("LearnListener.NotifyLearnAfterControllerWrite", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterControllerWrite")
+}
 
-// func NotifyLearnAfterSideEffects(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
+func NotifyLearnBeforeNKWrite(typeName, funName string) int {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return -1
+	}
+	if err := initRPCClient(); err != nil {
+		return -1
+	}
+	request := &NotifyLearnBeforeNKWriteRequest{
+		RecvTypeName: typeName,
+		FunName:      funName,
+	}
+	var response Response
+	err := rpcClient.Call("LearnListener.NotifyLearnBeforeNKWrite", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return -1
+	}
+	checkResponse(response, "NotifyLearnBeforeNKWrite")
+	return response.Number
+}
 
-// 	if sideEffectID == -1 {
-// 		return
-// 	}
-// 	reconcilerType := getReconcilerFromStackTrace()
-// 	if reconcilerType == "" {
-// 		reconcilerType = UNKNOWN_RECONCILER_TYPE
-// 	}
-// 	// log.Printf("[sieve][NotifyLearnAfterSideEffects] %v\n", reflect.TypeOf(object))
-// 	jsonObject, err := json.Marshal(object)
-// 	if err != nil {
-// 		printError(err, SIEVE_JSON_ERR)
-// 		return
-// 	}
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return
-// 	}
-// 	errorString := "NoError"
-// 	if k8sErr != nil {
-// 		errorString = string(errors.ReasonForError(k8sErr))
-// 	}
-// 	request := &NotifyLearnAfterSideEffectsRequest{
-// 		SideEffectID:   sideEffectID,
-// 		SideEffectType: sideEffectType,
-// 		Object:         string(jsonObject),
-// 		ResourceType:   regularizeType(object),
-// 		ReconcilerType: reconcilerType,
-// 		Error:          errorString,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnAfterSideEffects", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnAfterSideEffects")
-// 	client.Close()
-// }
+func NotifyLearnAfterNKWrite(sideEffectID int, typeName, funName string) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if sideEffectID == -1 {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
+	request := &NotifyLearnAfterNKWriteRequest{
+		SideEffectID:   sideEffectID,
+		RecvTypeName:   typeName,
+		FunName:        funName,
+		ReconcilerType: reconcilerType,
+	}
+	var response Response
+	err := rpcClient.Call("LearnListener.NotifyLearnAfterNKWrite", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterNKWrite")
+}
 
-// func NotifyLearnBeforeNonK8sSideEffects(typeName, funName string) int {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return -1
-// 	}
+func NotifyLearnAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	request := &NotifyLearnAfterControllerGetRequest{
+		FromCache:      fromCache,
+		ResourceType:   regularizeType(object),
+		Namespace:      namespacedName.Namespace,
+		Name:           namespacedName.Name,
+		Object:         string(jsonObject),
+		ReconcilerType: reconcilerType,
+		Error:          errorString,
+	}
+	var response Response
+	err = rpcClient.Call("LearnListener.NotifyLearnAfterControllerGet", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterControllerGet")
+}
 
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return -1
-// 	}
-// 	request := &NotifyLearnBeforeNonK8sSideEffectsRequest{
-// 		RecvTypeName: typeName,
-// 		FunName:      funName,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnBeforeNonK8sSideEffects", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return -1
-// 	}
-// 	checkResponse(response, "NotifyLearnBeforeNonK8sSideEffects")
-// 	client.Close()
-// 	return response.Number
-// }
+func NotifyLearnAfterControllerList(readType string, fromCache bool, object interface{}, k8sErr error) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+	errorString := "NoError"
+	if k8sErr != nil {
+		errorString = string(errors.ReasonForError(k8sErr))
+	}
+	request := &NotifyLearnAfterControllerListRequest{
+		FromCache:      fromCache,
+		ResourceType:   regularizeType(object),
+		ObjectList:     string(jsonObject),
+		ReconcilerType: reconcilerType,
+		Error:          errorString,
+	}
+	var response Response
+	err = rpcClient.Call("LearnListener.NotifyLearnAfterControllerList", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyLearnAfterControllerList")
+}
 
-// func NotifyLearnAfterNonK8sSideEffects(sideEffectID int, typeName, funName string) {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
-
-// 	reconcilerType := getReconcilerFromStackTrace()
-// 	if reconcilerType == "" {
-// 		reconcilerType = UNKNOWN_RECONCILER_TYPE
-// 	}
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return
-// 	}
-// 	request := &NotifyLearnAfterNonK8sSideEffectsRequest{
-// 		SideEffectID:   sideEffectID,
-// 		RecvTypeName:   typeName,
-// 		FunName:        funName,
-// 		ReconcilerType: reconcilerType,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnAfterNonK8sSideEffects", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnAfterNonK8sSideEffects")
-// 	client.Close()
-// }
-
-// func NotifyLearnAfterOperatorGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
-
-// 	reconcilerType := getReconcilerFromStackTrace()
-// 	if reconcilerType == "" {
-// 		reconcilerType = UNKNOWN_RECONCILER_TYPE
-// 	}
-// 	jsonObject, err := json.Marshal(object)
-// 	if err != nil {
-// 		printError(err, SIEVE_JSON_ERR)
-// 		return
-// 	}
-// 	// log.Printf("[SIEVE] GET %s\n", string(jsonObject))
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return
-// 	}
-// 	errorString := "NoError"
-// 	if k8sErr != nil {
-// 		errorString = string(errors.ReasonForError(k8sErr))
-// 	}
-// 	request := &NotifyLearnAfterOperatorGetRequest{
-// 		FromCache:      fromCache,
-// 		ResourceType:   regularizeType(object),
-// 		Namespace:      namespacedName.Namespace,
-// 		Name:           namespacedName.Name,
-// 		Object:         string(jsonObject),
-// 		ReconcilerType: reconcilerType,
-// 		Error:          errorString,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnAfterOperatorGet", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnAfterOperatorGet")
-// 	client.Close()
-// }
-
-// func NotifyLearnAfterOperatorList(readType string, fromCache bool, object interface{}, k8sErr error) {
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
-
-// 	reconcilerType := getReconcilerFromStackTrace()
-// 	if reconcilerType == "" {
-// 		reconcilerType = UNKNOWN_RECONCILER_TYPE
-// 	}
-// 	jsonObject, err := json.Marshal(object)
-// 	if err != nil {
-// 		printError(err, SIEVE_JSON_ERR)
-// 		return
-// 	}
-// 	// log.Printf("[SIEVE] LIST %s\n", string(jsonObject))
-// 	client, err := newClient()
-// 	if err != nil {
-// 		printError(err, SIEVE_CONN_ERR)
-// 		return
-// 	}
-// 	errorString := "NoError"
-// 	if k8sErr != nil {
-// 		errorString = string(errors.ReasonForError(k8sErr))
-// 	}
-// 	request := &NotifyLearnAfterOperatorListRequest{
-// 		FromCache:      fromCache,
-// 		ResourceType:   regularizeType(object),
-// 		ObjectList:     string(jsonObject),
-// 		ReconcilerType: reconcilerType,
-// 		Error:          errorString,
-// 	}
-// 	var response Response
-// 	err = client.Call("LearnListener.NotifyLearnAfterOperatorList", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyLearnAfterOperatorList")
-// 	client.Close()
-// }
-
-// func NotifyLearnBeforeProcessEvent(eventType, key string, object interface{}) {
-// 	loadSieveConfigFromConfigMap(eventType, key, object)
-// 	if err := loadSieveConfig(); err != nil {
-// 		return
-// 	}
-// 	tokens := strings.Split(key, "/")
-// 	namespace := tokens[len(tokens)-2]
-// 	if namespace == config["namespace"].(string) {
-// 		jsonObject, err := json.Marshal(object)
-// 		if err != nil {
-// 			printError(err, SIEVE_JSON_ERR)
-// 			return
-// 		}
-// 		if len(tokens) < 4 {
-// 			log.Printf("unrecognizable key %s\n", key)
-// 			return
-// 		}
-// 		resourceType := regularizeType(object)
-// 		namespace := tokens[len(tokens)-2]
-// 		name := tokens[len(tokens)-1]
-// 		log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
-// 	}
-// }
+func NotifyLearnBeforeAPIServerRecv(eventType, key string, object interface{}) {
+	if err := loadSieveConfigFromConfigMap(eventType, key, object, false); err != nil {
+		return
+	}
+	LogAPIEvent(eventType, key, object)
+}
