@@ -105,6 +105,9 @@ func (t *ObjectUpdateTrigger) getTriggerName() string {
 func (t *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*ObjectUpdateNotification); ok {
 		if notification.resourceKey == t.resourceKey && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
+			if t.prevStateDiff == nil && t.curStateDiff == nil {
+				return true
+			}
 			// compute state diff
 			exactMatch := true
 			if notification.observedWhen == beforeAPIServerRecv || notification.observedWhen == afterAPIServerRecv {
@@ -492,14 +495,18 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 		if val, ok := condition["convertStateToAPIForm"]; ok {
 			convertStateToAPIForm = val.(bool)
 		}
-		var prevStateDiff map[string]interface{}
-		var curStateDiff map[string]interface{}
-		if convertStateToAPIForm {
-			prevStateDiff = convertObjectStateToAPIForm(strToMap(condition["prevStateDiff"].(string)))
-			curStateDiff = convertObjectStateToAPIForm(strToMap(condition["curStateDiff"].(string)))
-		} else {
-			prevStateDiff = strToMap(condition["prevStateDiff"].(string))
-			curStateDiff = strToMap(condition["curStateDiff"].(string))
+		var prevStateDiff map[string]interface{} = nil
+		var curStateDiff map[string]interface{} = nil
+		_, ok1 := condition["prevStateDiff"]
+		_, ok2 := condition["curStateDiff"]
+		if ok1 && ok2 {
+			if convertStateToAPIForm {
+				prevStateDiff = convertObjectStateToAPIForm(strToMap(condition["prevStateDiff"].(string)))
+				curStateDiff = convertObjectStateToAPIForm(strToMap(condition["curStateDiff"].(string)))
+			} else {
+				prevStateDiff = strToMap(condition["prevStateDiff"].(string))
+				curStateDiff = strToMap(condition["curStateDiff"].(string))
+			}
 		}
 		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
 		return &ObjectUpdateTrigger{
