@@ -45,12 +45,14 @@ const (
 
 // actionType
 const (
-	pauseAPIServer       string = "pauseAPIServer"
-	resumeAPIServer      string = "resumeAPIServer"
-	pauseControllerRead  string = "pauseControllerRead"
-	resumeControllerRead string = "resumeControllerRead"
-	restartController    string = "restartController"
-	reconnectController  string = "reconnectController"
+	pauseAPIServer        string = "pauseAPIServer"
+	resumeAPIServer       string = "resumeAPIServer"
+	pauseControllerRead   string = "pauseControllerRead"
+	resumeControllerRead  string = "resumeControllerRead"
+	pauseControllerWrite  string = "pauseControllerWrite"
+	resumeControllerWrite string = "resumeControllerWrite"
+	restartController     string = "restartController"
+	reconnectController   string = "reconnectController"
 )
 
 var mergedMaskLock sync.Mutex

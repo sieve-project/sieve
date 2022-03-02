@@ -373,6 +373,95 @@ func (a *ResumeControllerReadAction) run(actionContext *ActionContext) {
 	}
 }
 
+type PauseControllerWriteAction struct {
+	pauseWhenWriting   string
+	async              bool
+	waitBefore         int
+	waitAfter          int
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *PauseControllerWriteAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *PauseControllerWriteAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *PauseControllerWriteAction) isAsync() bool {
+	return a.async
+}
+
+func (a *PauseControllerWriteAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the PauseControllerWriteAction")
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+	// TODO: implement runInternal
+	time.Sleep(5 * time.Second)
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
+	log.Println("PauseControllerWriteAction done")
+}
+
+func (a *PauseControllerWriteAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
+}
+
+type ResumeControllerWriteAction struct {
+	pauseWhenWriting   string
+	async              bool
+	waitBefore         int
+	waitAfter          int
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *ResumeControllerWriteAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *ResumeControllerWriteAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *ResumeControllerWriteAction) isAsync() bool {
+	return a.async
+}
+
+func (a *ResumeControllerWriteAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the ResumeControllerWriteAction")
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+	// TODO: implement runInternal
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
+	log.Println("ResumeControllerWriteAction done")
+}
+
+func (a *ResumeControllerWriteAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
+}
+
 type RestartControllerAction struct {
 	controllerLabel    string
 	async              bool
@@ -617,6 +706,24 @@ func parseAction(raw map[interface{}]interface{}) Action {
 	case resumeControllerRead:
 		return &ResumeControllerReadAction{
 			pauseWhenReading:   raw["pauseWhenReading"].(string),
+			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
+	case pauseControllerWrite:
+		return &PauseControllerWriteAction{
+			pauseWhenWriting:   raw["pauseWhenWriting"].(string),
+			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
+	case resumeControllerWrite:
+		return &ResumeControllerWriteAction{
+			pauseWhenWriting:   raw["pauseWhenWriting"].(string),
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
