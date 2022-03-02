@@ -301,7 +301,7 @@ func (tc *testCoordinator) NotifyTestAfterControllerRecv(request *sieve.NotifyTe
 	default:
 		log.Printf("do not support %s\n", request.OperationType)
 	}
-	tc.WriteToObjectStates("informer", beforeControllerRecv, request.ResourceKey, request.Object)
+	tc.WriteToObjectStates("informer", afterControllerRecv, request.ResourceKey, request.Object)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
