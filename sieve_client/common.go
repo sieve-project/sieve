@@ -264,7 +264,11 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 					log.Printf("cannot convert %v to string", configMapData["sieveTestPlan"])
 					return fmt.Errorf("fail to load from configmap")
 				}
+			} else {
+				return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
 			}
+		} else {
+			return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
 		}
 	} else {
 		return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
