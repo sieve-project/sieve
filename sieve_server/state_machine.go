@@ -64,7 +64,11 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 	triggerGraph := sm.states[sm.nextState].getTriggerGraph()
 	triggerDefinitions := sm.states[sm.nextState].getTriggerDefinitions()
 	for triggerName := range triggerGraph.toSatisfy {
-		triggerDefinition := triggerDefinitions[triggerName]
+		triggerDefinition, foundTrigger := triggerDefinitions[triggerName]
+		if !foundTrigger {
+			log.Printf("trigger %s is not in the definition table; skip it\n", triggerName)
+			continue
+		}
 		if triggerDefinition.satisfy(notification) {
 			triggerGraph.trigger(triggerName)
 			log.Printf("trigger %s is satisfied\n", triggerName)
