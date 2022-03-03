@@ -51,7 +51,7 @@ actions:
             resourceKey: xxx
             prevState: xxx
             curState: xxx
-            repeat: 1
+            occurrence: 1
           observationPoint:
             timing: afterControllerWrite
             observeBy: xxx
@@ -68,7 +68,7 @@ actions:
 - `resourceKey`: it should be `resource_type/namespace/name` (e.g., `pod/default/mypod`) and used to identify a resource
 - `prevState`: only applicable for `onObjectUpdate` and used to indicate the particular update to an object
 - `curState`: only applicable for `onObjectUpdate` and used to indicate the particular update to an object
-- `repeat`: how many times this condition needs to be satisfied
+- `occurrence`: how many times this condition needs to be satisfied
 - `observePoint`: only applicable for `onObjectUpdate`, `onAnyFieldModified`, `onAllFieldsModified`, `onObjectCreation`, `onObjectDeletion` and used to decide where the change is observed
 - `observeBy`: who makes the observation; it can be some API server or some controller
 - `expression`: express the boolean relationship between all the defined triggers as discussed [here](#Proposed-condition-triggers-topology-implementation)
