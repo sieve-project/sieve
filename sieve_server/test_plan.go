@@ -726,7 +726,7 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
-	case pauseControllerRead:
+	case pauseController:
 		pauseScope := "all"
 		if val, ok := raw["pauseScope"]; ok {
 			pauseScope = val.(string)
@@ -745,7 +745,7 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
-	case resumeControllerRead:
+	case resumeController:
 		pauseScope := "all"
 		if val, ok := raw["pauseScope"]; ok {
 			pauseScope = val.(string)

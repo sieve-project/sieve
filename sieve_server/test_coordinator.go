@@ -265,6 +265,40 @@ func (tc *testCoordinator) ProcessPauseControllerRead(beforeRead bool, operation
 	}
 }
 
+func (tc *testCoordinator) ProcessPauseControllerWrite(beforeWrite bool, resourceKey string) {
+	pauseAt := ""
+	if beforeWrite {
+		pauseAt = beforeControllerWrite
+	} else {
+		pauseAt = afterControllerWrite
+	}
+	shouldPause := false
+	pauseScope := "all"
+
+	tc.pauseControllerSharedDataLock.Lock()
+	var pausingCh chan string
+	if _, ok := tc.controllerShouldPauseMap[pauseAt]; ok {
+		if val, ok := tc.controllerShouldPauseMap[pauseAt]["all"]; ok {
+			shouldPause = val
+			pausingCh = tc.controllerPausingChs[pauseAt]["all"]
+		}
+		if !shouldPause {
+			if val, ok := tc.controllerShouldPauseMap[pauseAt][resourceKey]; ok {
+				shouldPause = val
+				pausingCh = tc.controllerPausingChs[pauseAt][resourceKey]
+				pauseScope = resourceKey
+			}
+		}
+	}
+	tc.pauseControllerSharedDataLock.Unlock()
+
+	if shouldPause {
+		log.Printf("Pause controller at %s %s\n", pauseAt, pauseScope)
+		<-pausingCh
+		log.Printf("End pause controller at %s %s\n", pauseAt, pauseScope)
+	}
+}
+
 func (tc *testCoordinator) ProcessPauseAPIServerRecv(handlerName, apiServerHostname, pauseScope string) {
 	if _, ok := tc.apiserverLockedMap[apiServerHostname]; ok {
 		if val, ok := tc.apiserverLockedMap[apiServerHostname][pauseScope]; ok {
@@ -409,6 +443,7 @@ func (tc *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyT
 	default:
 		log.Printf("do not support %s\n", request.WriteType)
 	}
+	tc.ProcessPauseControllerWrite(false, request.ResourceKey)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }

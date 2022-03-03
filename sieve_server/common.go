@@ -50,8 +50,8 @@ const (
 const (
 	pauseAPIServer        string = "pauseAPIServer"
 	resumeAPIServer       string = "resumeAPIServer"
-	pauseControllerRead   string = "pauseControllerRead"
-	resumeControllerRead  string = "resumeControllerRead"
+	pauseController       string = "pauseController"
+	resumeController      string = "resumeController"
 	pauseControllerWrite  string = "pauseControllerWrite"
 	resumeControllerWrite string = "resumeControllerWrite"
 	restartController     string = "restartController"
