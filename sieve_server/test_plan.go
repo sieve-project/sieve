@@ -377,12 +377,12 @@ func (a *ResumeControllerReadAction) runInternal(actionContext *ActionContext, a
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
 	// actionContext.controllerOngoingReadLock.Unlock()
-	log.Printf("Close channel for %s %s\n", afterControllerRead, "all")
+	log.Printf("Close channel for %s %s\n", beforeControllerRead, "all")
 
 	actionContext.controllerLockedMapLock.Lock()
-	actionContext.controllerLocks[afterControllerRead]["all"] <- "release"
-	close(actionContext.controllerLocks[afterControllerRead]["all"])
-	actionContext.controllerLockedMap[afterControllerRead]["all"] = false
+	actionContext.controllerLocks[beforeControllerRead]["all"] <- "release"
+	close(actionContext.controllerLocks[beforeControllerRead]["all"])
+	actionContext.controllerLockedMap[beforeControllerRead]["all"] = false
 	actionContext.controllerLockedMapLock.Unlock()
 
 	if a.waitAfter > 0 {
