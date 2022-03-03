@@ -37,12 +37,12 @@ func (t *TimeoutTrigger) satisfy(triggerNotification TriggerNotification) bool {
 }
 
 type ObjectCreateTrigger struct {
-	name          string
-	resourceKey   string
-	desiredRepeat int
-	currentRepeat int
-	observedWhen  string
-	observedBy    string
+	name              string
+	resourceKey       string
+	desiredOccurrence int
+	actualOccurrence  int
+	observedWhen      string
+	observedBy        string
 }
 
 func (t *ObjectCreateTrigger) getTriggerName() string {
@@ -52,8 +52,8 @@ func (t *ObjectCreateTrigger) getTriggerName() string {
 func (t *ObjectCreateTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*ObjectCreateNotification); ok {
 		if notification.resourceKey == t.resourceKey && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
-			t.currentRepeat += 1
-			if t.currentRepeat == t.desiredRepeat {
+			t.actualOccurrence += 1
+			if t.actualOccurrence == t.desiredOccurrence {
 				return true
 			}
 		}
@@ -62,12 +62,12 @@ func (t *ObjectCreateTrigger) satisfy(triggerNotification TriggerNotification) b
 }
 
 type ObjectDeleteTrigger struct {
-	name          string
-	resourceKey   string
-	desiredRepeat int
-	currentRepeat int
-	observedWhen  string
-	observedBy    string
+	name              string
+	resourceKey       string
+	desiredOccurrence int
+	actualOccurrence  int
+	observedWhen      string
+	observedBy        string
 }
 
 func (t *ObjectDeleteTrigger) getTriggerName() string {
@@ -77,8 +77,8 @@ func (t *ObjectDeleteTrigger) getTriggerName() string {
 func (t *ObjectDeleteTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*ObjectDeleteNotification); ok {
 		if notification.resourceKey == t.resourceKey && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
-			t.currentRepeat += 1
-			if t.currentRepeat == t.desiredRepeat {
+			t.actualOccurrence += 1
+			if t.actualOccurrence == t.desiredOccurrence {
 				return true
 			}
 		}
@@ -92,8 +92,8 @@ type ObjectUpdateTrigger struct {
 	prevStateDiff         map[string]interface{}
 	curStateDiff          map[string]interface{}
 	convertStateToAPIForm bool
-	desiredRepeat         int
-	currentRepeat         int
+	desiredOccurrence     int
+	actualOccurrence      int
 	observedWhen          string
 	observedBy            string
 }
@@ -125,8 +125,8 @@ func (t *ObjectUpdateTrigger) satisfy(triggerNotification TriggerNotification) b
 			log.Println(fieldKeyMaskToUse)
 			log.Println(fieldPathMaskToUse)
 			if isDesiredUpdate(notification.prevState, notification.curState, t.prevStateDiff, t.curStateDiff, fieldKeyMaskToUse, fieldPathMaskToUse, exactMatch) {
-				t.currentRepeat += 1
-				if t.currentRepeat == t.desiredRepeat {
+				t.actualOccurrence += 1
+				if t.actualOccurrence == t.desiredOccurrence {
 					return true
 				}
 			}
@@ -140,8 +140,8 @@ type AnyFieldModificationTrigger struct {
 	resourceKey           string
 	prevStateDiff         map[string]interface{}
 	convertStateToAPIForm bool
-	desiredRepeat         int
-	currentRepeat         int
+	desiredOccurrence     int
+	actualOccurrence      int
 	observedWhen          string
 	observedBy            string
 }
@@ -165,8 +165,8 @@ func (t *AnyFieldModificationTrigger) satisfy(triggerNotification TriggerNotific
 			log.Println(fieldKeyMaskToUse)
 			log.Println(fieldPathMaskToUse)
 			if isAnyFieldModified(notification.curState, t.prevStateDiff, fieldKeyMaskToUse, fieldPathMaskToUse) {
-				t.currentRepeat += 1
-				if t.currentRepeat == t.desiredRepeat {
+				t.actualOccurrence += 1
+				if t.actualOccurrence == t.desiredOccurrence {
 					return true
 				}
 			}
@@ -503,22 +503,22 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 	case onObjectCreate:
 		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
 		return &ObjectCreateTrigger{
-			name:          raw["triggerName"].(string),
-			resourceKey:   condition["resourceKey"].(string),
-			desiredRepeat: condition["repeat"].(int),
-			currentRepeat: 0,
-			observedWhen:  observationPoint["when"].(string),
-			observedBy:    observationPoint["by"].(string),
+			name:              raw["triggerName"].(string),
+			resourceKey:       condition["resourceKey"].(string),
+			desiredOccurrence: condition["occurrence"].(int),
+			actualOccurrence:  0,
+			observedWhen:      observationPoint["when"].(string),
+			observedBy:        observationPoint["by"].(string),
 		}
 	case onObjectDelete:
 		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
 		return &ObjectDeleteTrigger{
-			name:          raw["triggerName"].(string),
-			resourceKey:   condition["resourceKey"].(string),
-			desiredRepeat: condition["repeat"].(int),
-			currentRepeat: 0,
-			observedWhen:  observationPoint["when"].(string),
-			observedBy:    observationPoint["by"].(string),
+			name:              raw["triggerName"].(string),
+			resourceKey:       condition["resourceKey"].(string),
+			desiredOccurrence: condition["occurrence"].(int),
+			actualOccurrence:  0,
+			observedWhen:      observationPoint["when"].(string),
+			observedBy:        observationPoint["by"].(string),
 		}
 	case onObjectUpdate:
 		convertStateToAPIForm := false
@@ -545,8 +545,8 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 			prevStateDiff:         prevStateDiff,
 			curStateDiff:          curStateDiff,
 			convertStateToAPIForm: convertStateToAPIForm,
-			desiredRepeat:         condition["repeat"].(int),
-			currentRepeat:         0,
+			desiredOccurrence:     condition["occurrence"].(int),
+			actualOccurrence:      0,
 			observedWhen:          observationPoint["when"].(string),
 			observedBy:            observationPoint["by"].(string),
 		}
@@ -567,8 +567,8 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 			resourceKey:           condition["resourceKey"].(string),
 			prevStateDiff:         prevStateDiff,
 			convertStateToAPIForm: convertStateToAPIForm,
-			desiredRepeat:         condition["repeat"].(int),
-			currentRepeat:         0,
+			desiredOccurrence:     condition["occurrence"].(int),
+			actualOccurrence:      0,
 			observedWhen:          observationPoint["when"].(string),
 			observedBy:            observationPoint["by"].(string),
 		}
