@@ -285,7 +285,7 @@ func (a *ResumeAPIServerAction) run(actionContext *ActionContext) {
 	}
 }
 
-type PauseControllerReadAction struct {
+type PauseControllerAction struct {
 	pauseScope         string
 	pauseAt            string
 	avoidOngoingRead   bool
@@ -296,20 +296,20 @@ type PauseControllerReadAction struct {
 	triggerDefinitions map[string]TriggerDefinition
 }
 
-func (a *PauseControllerReadAction) getTriggerGraph() *TriggerGraph {
+func (a *PauseControllerAction) getTriggerGraph() *TriggerGraph {
 	return a.triggerGraph
 }
 
-func (a *PauseControllerReadAction) getTriggerDefinitions() map[string]TriggerDefinition {
+func (a *PauseControllerAction) getTriggerDefinitions() map[string]TriggerDefinition {
 	return a.triggerDefinitions
 }
 
-func (a *PauseControllerReadAction) isAsync() bool {
+func (a *PauseControllerAction) isAsync() bool {
 	return a.async
 }
 
-func (a *PauseControllerReadAction) runInternal(actionContext *ActionContext, async bool) {
-	log.Println("run the PauseControllerReadAction")
+func (a *PauseControllerAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the PauseControllerAction")
 	if a.waitBefore > 0 {
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
@@ -337,13 +337,13 @@ func (a *PauseControllerReadAction) runInternal(actionContext *ActionContext, as
 	}
 	if a.avoidOngoingRead {
 		actionContext.controllerOngoingReadLock.Lock()
-		log.Println("there is no ongoing read now; PauseControllerReadAction can return safely")
+		log.Println("there is no ongoing read now; PauseControllerAction can return safely")
 		actionContext.controllerOngoingReadLock.Unlock()
 	}
-	log.Println("PauseControllerReadAction done")
+	log.Println("PauseControllerAction done")
 }
 
-func (a *PauseControllerReadAction) run(actionContext *ActionContext) {
+func (a *PauseControllerAction) run(actionContext *ActionContext) {
 	if a.async {
 		go a.runInternal(actionContext, true)
 	} else {
@@ -351,7 +351,7 @@ func (a *PauseControllerReadAction) run(actionContext *ActionContext) {
 	}
 }
 
-type ResumeControllerReadAction struct {
+type ResumeControllerAction struct {
 	pauseScope         string
 	pauseAt            string
 	async              bool
@@ -361,20 +361,20 @@ type ResumeControllerReadAction struct {
 	triggerDefinitions map[string]TriggerDefinition
 }
 
-func (a *ResumeControllerReadAction) getTriggerGraph() *TriggerGraph {
+func (a *ResumeControllerAction) getTriggerGraph() *TriggerGraph {
 	return a.triggerGraph
 }
 
-func (a *ResumeControllerReadAction) getTriggerDefinitions() map[string]TriggerDefinition {
+func (a *ResumeControllerAction) getTriggerDefinitions() map[string]TriggerDefinition {
 	return a.triggerDefinitions
 }
 
-func (a *ResumeControllerReadAction) isAsync() bool {
+func (a *ResumeControllerAction) isAsync() bool {
 	return a.async
 }
 
-func (a *ResumeControllerReadAction) runInternal(actionContext *ActionContext, async bool) {
-	log.Println("run the ResumeControllerReadAction")
+func (a *ResumeControllerAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the ResumeControllerAction")
 	if a.waitBefore > 0 {
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
@@ -392,101 +392,10 @@ func (a *ResumeControllerReadAction) runInternal(actionContext *ActionContext, a
 	if async {
 		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
 	}
-	log.Println("ResumeControllerReadAction done")
+	log.Println("ResumeControllerAction done")
 }
 
-func (a *ResumeControllerReadAction) run(actionContext *ActionContext) {
-	if a.async {
-		go a.runInternal(actionContext, true)
-	} else {
-		a.runInternal(actionContext, false)
-	}
-}
-
-type PauseControllerWriteAction struct {
-	writeTarget        string
-	pauseAt            string
-	async              bool
-	waitBefore         int
-	waitAfter          int
-	triggerGraph       *TriggerGraph
-	triggerDefinitions map[string]TriggerDefinition
-}
-
-func (a *PauseControllerWriteAction) getTriggerGraph() *TriggerGraph {
-	return a.triggerGraph
-}
-
-func (a *PauseControllerWriteAction) getTriggerDefinitions() map[string]TriggerDefinition {
-	return a.triggerDefinitions
-}
-
-func (a *PauseControllerWriteAction) isAsync() bool {
-	return a.async
-}
-
-func (a *PauseControllerWriteAction) runInternal(actionContext *ActionContext, async bool) {
-	log.Println("run the PauseControllerWriteAction")
-	if a.waitBefore > 0 {
-		time.Sleep(time.Duration(a.waitBefore) * time.Second)
-	}
-	// TODO: implement runInternal
-	// time.Sleep(5 * time.Second)
-	if a.waitAfter > 0 {
-		time.Sleep(time.Duration(a.waitAfter) * time.Second)
-	}
-	if async {
-		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
-	}
-	log.Println("PauseControllerWriteAction done")
-}
-
-func (a *PauseControllerWriteAction) run(actionContext *ActionContext) {
-	if a.async {
-		go a.runInternal(actionContext, true)
-	} else {
-		a.runInternal(actionContext, false)
-	}
-}
-
-type ResumeControllerWriteAction struct {
-	writeTarget        string
-	pauseAt            string
-	async              bool
-	waitBefore         int
-	waitAfter          int
-	triggerGraph       *TriggerGraph
-	triggerDefinitions map[string]TriggerDefinition
-}
-
-func (a *ResumeControllerWriteAction) getTriggerGraph() *TriggerGraph {
-	return a.triggerGraph
-}
-
-func (a *ResumeControllerWriteAction) getTriggerDefinitions() map[string]TriggerDefinition {
-	return a.triggerDefinitions
-}
-
-func (a *ResumeControllerWriteAction) isAsync() bool {
-	return a.async
-}
-
-func (a *ResumeControllerWriteAction) runInternal(actionContext *ActionContext, async bool) {
-	log.Println("run the ResumeControllerWriteAction")
-	if a.waitBefore > 0 {
-		time.Sleep(time.Duration(a.waitBefore) * time.Second)
-	}
-	// TODO: implement runInternal
-	if a.waitAfter > 0 {
-		time.Sleep(time.Duration(a.waitAfter) * time.Second)
-	}
-	if async {
-		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
-	}
-	log.Println("ResumeControllerWriteAction done")
-}
-
-func (a *ResumeControllerWriteAction) run(actionContext *ActionContext) {
+func (a *ResumeControllerAction) run(actionContext *ActionContext) {
 	if a.async {
 		go a.runInternal(actionContext, true)
 	} else {
@@ -735,7 +644,7 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		if val, ok := raw["avoidOngoingRead"]; ok {
 			avoidOngoingRead = val.(bool)
 		}
-		return &PauseControllerReadAction{
+		return &PauseControllerAction{
 			pauseScope:         pauseScope,
 			pauseAt:            raw["pauseAt"].(string),
 			avoidOngoingRead:   avoidOngoingRead,
@@ -750,36 +659,8 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		if val, ok := raw["pauseScope"]; ok {
 			pauseScope = val.(string)
 		}
-		return &ResumeControllerReadAction{
+		return &ResumeControllerAction{
 			pauseScope:         pauseScope,
-			pauseAt:            raw["pauseAt"].(string),
-			async:              async,
-			waitBefore:         waitBefore,
-			waitAfter:          waitAfter,
-			triggerGraph:       triggerGraph,
-			triggerDefinitions: triggerDefinitions,
-		}
-	case pauseControllerWrite:
-		writeTarget := "all"
-		if val, ok := raw["writeTarget"]; ok {
-			writeTarget = val.(string)
-		}
-		return &PauseControllerWriteAction{
-			writeTarget:        writeTarget,
-			pauseAt:            raw["pauseAt"].(string),
-			async:              async,
-			waitBefore:         waitBefore,
-			waitAfter:          waitAfter,
-			triggerGraph:       triggerGraph,
-			triggerDefinitions: triggerDefinitions,
-		}
-	case resumeControllerWrite:
-		writeTarget := "all"
-		if val, ok := raw["writeTarget"]; ok {
-			writeTarget = val.(string)
-		}
-		return &ResumeControllerWriteAction{
-			writeTarget:        writeTarget,
 			pauseAt:            raw["pauseAt"].(string),
 			async:              async,
 			waitBefore:         waitBefore,
