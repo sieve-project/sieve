@@ -1,6 +1,8 @@
 actions:
-- actionType: pauseControllerRead
-  pauseWhenReading: rabbitmqcluster/default/rabbitmq-cluster
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: rabbitmqcluster/default/rabbitmq-cluster
+  avoidOngoingRead: true
   trigger:
     definitions:
     - triggerName: trigger1
@@ -14,8 +16,9 @@ actions:
         when: beforeControllerRecv
         by: informer
     expression: trigger1
-- actionType: resumeControllerRead
-  pauseWhenReading: rabbitmqcluster/default/rabbitmq-cluster
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: rabbitmqcluster/default/rabbitmq-cluster
   trigger:
     definitions:
     - triggerName: trigger2

@@ -1,6 +1,8 @@
 actions:
-- actionType: pauseControllerRead
-  pauseWhenReading: cassandracluster/default/cassandra-cluster
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: cassandracluster/default/cassandra-cluster
+  avoidOngoingRead: true
   trigger:
     definitions:
     - triggerName: trigger1
@@ -14,8 +16,9 @@ actions:
         when: beforeControllerRecv
         by: informer
     expression: trigger1
-- actionType: resumeControllerRead
-  pauseWhenReading: cassandracluster/default/cassandra-cluster
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: cassandracluster/default/cassandra-cluster
   trigger:
     definitions:
     - triggerName: trigger2

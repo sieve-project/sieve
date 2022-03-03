@@ -1,6 +1,8 @@
 actions:
-- actionType: pauseControllerRead
-  pauseWhenReading: perconaxtradbcluster/default/xtradb-cluster
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: perconaxtradbcluster/default/xtradb-cluster
+  avoidOngoingRead: true
   trigger:
     definitions:
     - triggerName: trigger1
@@ -14,8 +16,9 @@ actions:
         when: beforeControllerRecv
         by: informer
     expression: trigger1
-- actionType: resumeControllerRead
-  pauseWhenReading: perconaxtradbcluster/default/xtradb-cluster
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: perconaxtradbcluster/default/xtradb-cluster
   trigger:
     definitions:
     - triggerName: trigger2

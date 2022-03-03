@@ -1,6 +1,8 @@
 actions:
-- actionType: pauseControllerRead
-  pauseWhenReading: ybcluster/default/example-ybcluster
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: ybcluster/default/example-ybcluster
+  avoidOngoingRead: true
   trigger:
     definitions:
     - triggerName: trigger1
@@ -15,8 +17,9 @@ actions:
         when: beforeControllerRecv
         by: informer
     expression: trigger1
-- actionType: resumeControllerRead
-  pauseWhenReading: ybcluster/default/example-ybcluster
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: ybcluster/default/example-ybcluster
   trigger:
     definitions:
     - triggerName: trigger2

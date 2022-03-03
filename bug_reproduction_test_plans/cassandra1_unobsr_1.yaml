@@ -1,6 +1,8 @@
 actions:
-- actionType: pauseControllerRead
-  pauseWhenReading: pod/default/cassandra-test-cluster-dc1-rack1-1
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: pod/default/cassandra-test-cluster-dc1-rack1-1
+  avoidOngoingRead: true
   trigger:
     definitions:
     - triggerName: trigger1
@@ -15,8 +17,9 @@ actions:
         when: beforeControllerRecv
         by: informer
     expression: trigger1
-- actionType: resumeControllerRead
-  pauseWhenReading: pod/default/cassandra-test-cluster-dc1-rack1-1
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: pod/default/cassandra-test-cluster-dc1-rack1-1
   trigger:
     definitions:
     - triggerName: trigger2

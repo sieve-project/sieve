@@ -1,6 +1,8 @@
 actions:
-- actionType: pauseControllerRead
-  pauseWhenReading: perconaservermongodb/default/mongodb-cluster
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: perconaservermongodb/default/mongodb-cluster
+  avoidOngoingRead: true
   trigger:
     definitions:
     - triggerName: trigger1
@@ -14,8 +16,9 @@ actions:
         when: beforeControllerRecv
         by: informer
     expression: trigger1
-- actionType: resumeControllerRead
-  pauseWhenReading: perconaservermongodb/default/mongodb-cluster
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: perconaservermongodb/default/mongodb-cluster
   trigger:
     definitions:
     - triggerName: trigger2
