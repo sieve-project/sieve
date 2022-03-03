@@ -203,7 +203,10 @@ func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.Na
 	}
 	resourceType := regularizeType(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceKey, false) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
 		return
 	}
 	log.Printf("NotifyTestBeforeControllerGetPause %s %s\n", readType, resourceKey)
@@ -229,7 +232,10 @@ func NotifyTestAfterControllerGetPause(readType string, namespacedName types.Nam
 	}
 	resourceType := regularizeType(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceKey, false) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGetPause %s %s\n", readType, resourceKey)
@@ -255,7 +261,10 @@ func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
 	}
 	unTrimmedResourceType := regularizeType(object)
 	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
-	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceType, true) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
 		return
 	}
 	log.Printf("NotifyTestBeforeControllerListPause %s %s\n", readType, resourceType)
@@ -281,7 +290,10 @@ func NotifyTestAfterControllerListPause(readType string, object interface{}) {
 	}
 	unTrimmedResourceType := regularizeType(object)
 	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
-	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceType, true) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
 		return
 	}
 	log.Printf("NotifyTestAfterControllerListPause %s %s\n", readType, resourceType)
