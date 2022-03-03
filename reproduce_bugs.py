@@ -61,16 +61,17 @@ reprod_map = {
 
 
 def reproduce_single_bug(operator, bug, docker, phase):
-    mode = bug[:-2]
     test = reprod_map[operator][bug][0]
     config = os.path.join("bug_reproduction_test_plans", reprod_map[operator][bug][1])
-    sieve_cmd = "python3 sieve.py -p %s -s test -m %s -t %s -c %s -d %s --phase=%s" % (
-        operator,
-        mode,
-        test,
-        config,
-        docker,
-        phase,
+    sieve_cmd = (
+        "python3 sieve.py -p %s -s test -m test -t %s -c %s -d %s --phase=%s"
+        % (
+            operator,
+            test,
+            config,
+            docker,
+            phase,
+        )
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
     os.system(sieve_cmd)
