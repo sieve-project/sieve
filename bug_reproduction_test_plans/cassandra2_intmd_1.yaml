@@ -7,7 +7,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: secret/default/cassandra-datacenter-ca-keystore
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerWrite
         by: github.com/datastax/cass-operator/operator/pkg/reconciliation.(*ReconcileCassandraDatacenter)

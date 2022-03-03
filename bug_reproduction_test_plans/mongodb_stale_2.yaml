@@ -10,7 +10,7 @@ actions:
         resourceKey: perconaservermongodb/default/mongodb-cluster
         prevStateDiff: '{"spec": {"sharding": {"enabled": true}}}'
         curStateDiff: '{"spec": {"sharding": {"enabled": false}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: statefulset/default/mongodb-cluster-cfg
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

@@ -10,7 +10,7 @@ actions:
         resourceKey: cassandracluster/default/cassandra-cluster
         prevStateDiff: '{"spec": {"maxPodUnavailable": 4}}'
         curStateDiff: '{"spec": {"maxPodUnavailable": 1}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: beforeAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: poddisruptionbudget/default/cassandra-cluster
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

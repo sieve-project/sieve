@@ -7,7 +7,7 @@ actions:
       condition:
         conditionType: onObjectDelete
         resourceKey: statefulset/default/rabbitmq-cluster-server
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerWrite
         by: github.com/rabbitmq/cluster-operator/controllers.(*RabbitmqClusterReconciler)

@@ -12,7 +12,7 @@ actions:
         prevStateDiff: '{"spec": {"replicationFactor": 3, "tserver": {"replicas":
           3}}}'
         curStateDiff: '{"spec": {"replicationFactor": 4, "tserver": {"replicas": 4}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: beforeControllerRecv
         by: informer
@@ -28,7 +28,7 @@ actions:
         resourceKey: ybcluster/default/example-ybcluster
         prevStateDiff: '{"spec": {"replicationFactor": 4, "tserver": {"replicas":
           4}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerRecv
         by: informer
@@ -36,7 +36,7 @@ actions:
       condition:
         conditionType: onObjectDelete
         resourceKey: ybcluster/default/example-ybcluster
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerRecv
         by: informer

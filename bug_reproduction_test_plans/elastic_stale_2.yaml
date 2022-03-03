@@ -10,7 +10,7 @@ actions:
         resourceKey: elasticsearch/default/elasticsearch-cluster
         prevStateDiff: '{"spec": {"nodeSets": [{"count": 1}]}}'
         curStateDiff: '{"spec": {"nodeSets": [{"count": 2}]}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: beforeAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: poddisruptionbudget/default/elasticsearch-cluster-es-default
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

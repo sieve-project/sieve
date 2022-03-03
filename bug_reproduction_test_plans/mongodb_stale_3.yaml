@@ -10,7 +10,7 @@ actions:
         resourceKey: perconaservermongodb/default/mongodb-cluster
         prevStateDiff: '{"spec": {"replsets": [{"arbiter": {"enabled": true}}]}}'
         curStateDiff: '{"spec": {"replsets": [{"arbiter": {"enabled": false}}]}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: statefulset/default/mongodb-cluster-rs0-arbiter
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

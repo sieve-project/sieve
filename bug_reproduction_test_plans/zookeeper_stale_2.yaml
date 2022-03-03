@@ -10,7 +10,7 @@ actions:
         resourceKey: zookeepercluster/default/zookeeper-cluster
         prevStateDiff: '{"status": {"readyReplicas": 2}}'
         curStateDiff: '{"status": {"readyReplicas": 1}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: persistentvolumeclaim/default/data-zookeeper-cluster-1
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

@@ -8,7 +8,7 @@ actions:
       condition:
         conditionType: onObjectDelete
         resourceKey: elasticsearch/default/elasticsearch-cluster
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane3
@@ -24,7 +24,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: secret/default/elasticsearch-cluster-es-transport-certs-public
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

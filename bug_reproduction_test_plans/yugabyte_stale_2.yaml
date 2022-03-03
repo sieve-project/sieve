@@ -10,7 +10,7 @@ actions:
         resourceKey: ybcluster/default/example-ybcluster
         prevStateDiff: '{"spec": {"tserver": {"tserverUIPort": 9000}}}'
         curStateDiff: '{"spec": {"tserver": {}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: service/default/yb-tserver-ui
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

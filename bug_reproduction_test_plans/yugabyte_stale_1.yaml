@@ -10,7 +10,7 @@ actions:
         resourceKey: ybcluster/default/example-ybcluster
         prevStateDiff: '{"spec": {"tls": {"enabled": true}}}'
         curStateDiff: '{"spec": {"tls": {}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: secret/default/yb-tserver-yugabyte-tls-cert
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

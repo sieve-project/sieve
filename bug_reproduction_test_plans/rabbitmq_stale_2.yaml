@@ -10,7 +10,7 @@ actions:
         resourceKey: rabbitmqcluster/default/rabbitmq-cluster
         prevStateDiff: '{"spec": {"persistence": {"storage": "10Gi"}}}'
         curStateDiff: '{"spec": {"persistence": {"storage": "15Gi"}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: beforeAPIServerRecv
         by: kind-control-plane3
@@ -26,7 +26,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: statefulset/default/rabbitmq-cluster-server
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

@@ -7,7 +7,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: certificate/default/xtradb-cluster-ssl
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerWrite
         by: github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc.(*ReconcilePerconaXtraDBCluster)

@@ -11,7 +11,7 @@ actions:
         resourceKey: cassandracluster/default/cassandra-cluster
         prevStateDiff: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 2}]}}}'
         curStateDiff: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 1}]}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: beforeControllerRecv
         by: informer
@@ -26,7 +26,7 @@ actions:
         conditionType: onAnyFieldModification
         resourceKey: cassandracluster/default/cassandra-cluster
         prevStateDiff: '{"spec": {"topology": {"dc": [{"nodesPerRacks": 1}]}}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerRecv
         by: informer
@@ -34,7 +34,7 @@ actions:
       condition:
         conditionType: onObjectDelete
         resourceKey: cassandracluster/default/cassandra-cluster
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerRecv
         by: informer

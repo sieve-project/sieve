@@ -11,7 +11,7 @@ actions:
         prevStateDiff: '{"metadata": {}}'
         curStateDiff: '{"metadata": {"deletionGracePeriodSeconds": "SIEVE-NON-NIL",
           "deletionTimestamp": "SIEVE-NON-NIL"}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane3
@@ -27,7 +27,7 @@ actions:
       condition:
         conditionType: onObjectCreate
         resourceKey: persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-2
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterAPIServerRecv
         by: kind-control-plane

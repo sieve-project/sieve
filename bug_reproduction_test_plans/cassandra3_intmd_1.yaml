@@ -9,7 +9,7 @@ actions:
         resourceKey: statefulset/default/cassandra-cluster-dc1-rack1
         prevStateDiff: '{"spec": {"replicas": 2}}'
         curStateDiff: '{"spec": {"replicas": 1}}'
-        repeat: 1
+        occurrence: 1
       observationPoint:
         when: afterControllerWrite
         by: github.com/Orange-OpenSource/casskop/pkg/controller/cassandracluster.(*ReconcileCassandraCluster)
