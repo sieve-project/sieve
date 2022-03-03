@@ -118,13 +118,13 @@ type NotifyTestAfterControllerWriteRequest struct {
 }
 
 type NotifyTestBeforeControllerReadPauseRequest struct {
-	UseResourceKey bool
-	ResourceKey    string
-	ResourceType   string
+	OperationType string
+	ResourceKey   string
+	ResourceType  string
 }
 
 type NotifyTestAfterControllerReadPauseRequest struct {
-	UseResourceKey bool
-	ResourceKey    string
-	ResourceType   string
+	OperationType string
+	ResourceKey   string
+	ResourceType  string
 }

@@ -203,13 +203,13 @@ func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.Na
 	}
 	resourceType := regularizeType(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	if !checkKVPairInAction("pauseControllerRead", "pauseWhenReading", resourceKey, false) {
+	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceKey, false) {
 		return
 	}
 	log.Printf("NotifyTestBeforeControllerGetPause %s %s\n", readType, resourceKey)
 	request := &NotifyTestBeforeControllerReadPauseRequest{
-		UseResourceKey: true,
-		ResourceKey:    resourceKey,
+		OperationType: "Get",
+		ResourceKey:   resourceKey,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
@@ -229,13 +229,13 @@ func NotifyTestAfterControllerGetPause(readType string, namespacedName types.Nam
 	}
 	resourceType := regularizeType(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	if !checkKVPairInAction("pauseControllerRead", "pauseWhenReading", resourceKey, false) {
+	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceKey, false) {
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGetPause %s %s\n", readType, resourceKey)
 	request := &NotifyTestAfterControllerReadPauseRequest{
-		UseResourceKey: true,
-		ResourceKey:    resourceKey,
+		OperationType: "Get",
+		ResourceKey:   resourceKey,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)
@@ -255,13 +255,13 @@ func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
 	}
 	unTrimmedResourceType := regularizeType(object)
 	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
-	if !checkKVPairInAction("pauseControllerRead", "pauseWhenReading", resourceType, true) {
+	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceType, true) {
 		return
 	}
 	log.Printf("NotifyTestBeforeControllerListPause %s %s\n", readType, resourceType)
 	request := &NotifyTestBeforeControllerReadPauseRequest{
-		UseResourceKey: false,
-		ResourceType:   resourceType,
+		OperationType: "List",
+		ResourceType:  resourceType,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
@@ -281,13 +281,13 @@ func NotifyTestAfterControllerListPause(readType string, object interface{}) {
 	}
 	unTrimmedResourceType := regularizeType(object)
 	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
-	if !checkKVPairInAction("pauseControllerRead", "pauseWhenReading", resourceType, true) {
+	if !checkKVPairInAction("pauseControllerRead", "pauseScope", resourceType, true) {
 		return
 	}
 	log.Printf("NotifyTestAfterControllerListPause %s %s\n", readType, resourceType)
 	request := &NotifyTestAfterControllerReadPauseRequest{
-		UseResourceKey: false,
-		ResourceType:   resourceType,
+		OperationType: "List",
+		ResourceType:  resourceType,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)

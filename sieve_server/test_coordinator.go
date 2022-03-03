@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 	"sync"
 
 	sieve "sieve.client"
@@ -12,35 +13,35 @@ type TestCoordinator struct {
 }
 
 type ActionContext struct {
-	namespace                 string
-	leadingAPIServer          string
-	followingAPIServer        string
-	apiserverLocks            map[string]map[string]chan string
-	apiserverLockedMap        map[string]map[string]bool
-	controllerOngoingReadLock *sync.Mutex
-	controllerLocks           map[string]map[string]chan string
-	controllerLockedMap       map[string]map[string]bool
-	controllerLockedMapLock   *sync.Mutex
-	asyncDoneCh               chan *AsyncDoneNotification
+	namespace                     string
+	leadingAPIServer              string
+	followingAPIServer            string
+	apiserverLocks                map[string]map[string]chan string
+	apiserverLockedMap            map[string]map[string]bool
+	controllerOngoingReadLock     *sync.Mutex
+	controllerPausingChs          map[string]map[string]chan string
+	controllerShouldPauseMap      map[string]map[string]bool
+	pauseControllerSharedDataLock *sync.Mutex
+	asyncDoneCh                   chan *AsyncDoneNotification
 }
 
 type testCoordinator struct {
-	testPlan                   *TestPlan
-	actionConext               *ActionContext
-	stateNotificationCh        chan TriggerNotification
-	objectStates               map[string]map[string]map[string]string
-	objectStatesLock           sync.RWMutex
-	controllerOngoingReadLock  *sync.Mutex
-	controllerLocks            map[string]map[string]chan string
-	controllerLockedMap        map[string]map[string]bool
-	controllerLockedMapLock    *sync.Mutex
-	apiserverLocks             map[string]map[string]chan string
-	apiserverLockedMap         map[string]map[string]bool
-	mergedFieldPathMask        map[string]map[string]struct{}
-	mergedFieldKeyMask         map[string]map[string]struct{}
-	mergedFieldPathMaskAPIFrom map[string]map[string]struct{}
-	mergedFieldKeyMaskAPIForm  map[string]map[string]struct{}
-	stateMachine               *StateMachine
+	testPlan                      *TestPlan
+	actionConext                  *ActionContext
+	stateNotificationCh           chan TriggerNotification
+	objectStates                  map[string]map[string]map[string]string
+	objectStatesLock              sync.RWMutex
+	controllerOngoingReadLock     *sync.Mutex
+	controllerPausingChs          map[string]map[string]chan string
+	controllerShouldPauseMap      map[string]map[string]bool
+	pauseControllerSharedDataLock *sync.Mutex
+	apiserverLocks                map[string]map[string]chan string
+	apiserverLockedMap            map[string]map[string]bool
+	mergedFieldPathMask           map[string]map[string]struct{}
+	mergedFieldKeyMask            map[string]map[string]struct{}
+	mergedFieldPathMaskAPIFrom    map[string]map[string]struct{}
+	mergedFieldKeyMaskAPIForm     map[string]map[string]struct{}
+	stateMachine                  *StateMachine
 }
 
 func NewTestCoordinator() *TestCoordinator {
@@ -48,41 +49,41 @@ func NewTestCoordinator() *TestCoordinator {
 	testPlan := parseTestPlan(config)
 	asyncDoneCh := make(chan *AsyncDoneNotification)
 	controllerOngoingReadLock := &sync.Mutex{}
-	controllerLockedMapLock := &sync.Mutex{}
-	controllerLocks := make(map[string]map[string]chan string)
-	controllerLockedMap := make(map[string]map[string]bool)
+	pauseControllerSharedDataLock := &sync.Mutex{}
+	controllerPausingChs := make(map[string]map[string]chan string)
+	controllerShouldPauseMap := make(map[string]map[string]bool)
 	apiserverLocks := make(map[string]map[string]chan string)
 	apiserverLockedMap := make(map[string]map[string]bool)
 	actionConext := &ActionContext{
-		namespace:                 "default",
-		leadingAPIServer:          "kind-control-plane",
-		followingAPIServer:        "kind-control-plane3",
-		controllerLocks:           controllerLocks,
-		controllerLockedMap:       controllerLockedMap,
-		controllerLockedMapLock:   controllerLockedMapLock,
-		apiserverLocks:            apiserverLocks,
-		apiserverLockedMap:        apiserverLockedMap,
-		controllerOngoingReadLock: controllerOngoingReadLock,
-		asyncDoneCh:               asyncDoneCh,
+		namespace:                     "default",
+		leadingAPIServer:              "kind-control-plane",
+		followingAPIServer:            "kind-control-plane3",
+		controllerPausingChs:          controllerPausingChs,
+		controllerShouldPauseMap:      controllerShouldPauseMap,
+		pauseControllerSharedDataLock: pauseControllerSharedDataLock,
+		apiserverLocks:                apiserverLocks,
+		apiserverLockedMap:            apiserverLockedMap,
+		controllerOngoingReadLock:     controllerOngoingReadLock,
+		asyncDoneCh:                   asyncDoneCh,
 	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)
 	server := &testCoordinator{
-		testPlan:                   testPlan,
-		actionConext:               actionConext,
-		stateNotificationCh:        stateNotificationCh,
-		objectStates:               map[string]map[string]map[string]string{},
-		controllerOngoingReadLock:  controllerOngoingReadLock,
-		controllerLocks:            controllerLocks,
-		controllerLockedMap:        controllerLockedMap,
-		controllerLockedMapLock:    controllerLockedMapLock,
-		apiserverLocks:             apiserverLocks,
-		apiserverLockedMap:         apiserverLockedMap,
-		mergedFieldPathMask:        mergedFieldPathMask,
-		mergedFieldKeyMask:         mergedFieldKeyMask,
-		mergedFieldPathMaskAPIFrom: convertFieldPathMaskToAPIForm(mergedFieldPathMask),
-		mergedFieldKeyMaskAPIForm:  convertFieldKeyMaskToAPIForm(mergedFieldKeyMask),
-		stateMachine:               NewStateMachine(testPlan, stateNotificationCh, asyncDoneCh, actionConext),
+		testPlan:                      testPlan,
+		actionConext:                  actionConext,
+		stateNotificationCh:           stateNotificationCh,
+		objectStates:                  map[string]map[string]map[string]string{},
+		controllerOngoingReadLock:     controllerOngoingReadLock,
+		controllerPausingChs:          controllerPausingChs,
+		controllerShouldPauseMap:      controllerShouldPauseMap,
+		pauseControllerSharedDataLock: pauseControllerSharedDataLock,
+		apiserverLocks:                apiserverLocks,
+		apiserverLockedMap:            apiserverLockedMap,
+		mergedFieldPathMask:           mergedFieldPathMask,
+		mergedFieldKeyMask:            mergedFieldKeyMask,
+		mergedFieldPathMaskAPIFrom:    convertFieldPathMaskToAPIForm(mergedFieldPathMask),
+		mergedFieldKeyMaskAPIForm:     convertFieldKeyMaskToAPIForm(mergedFieldKeyMask),
+		stateMachine:                  NewStateMachine(testPlan, stateNotificationCh, asyncDoneCh, actionConext),
 	}
 	listener := &TestCoordinator{
 		Server: server,
@@ -210,45 +211,61 @@ func (tc *testCoordinator) WriteToObjectStates(observedBy, observedWhen, resourc
 	tc.objectStates[observedBy][observedWhen][resourceKey] = value
 }
 
-func (tc *testCoordinator) ProcessControllerReadStartNotification() {
-	tc.controllerOngoingReadLock.Lock()
+func (tc *testCoordinator) ProcessPauseControllerRead(beforeRead bool, operationType, resourceKey, resourceType string) {
+	if beforeRead {
+		tc.controllerOngoingReadLock.Lock()
+	} else {
+		tc.controllerOngoingReadLock.Unlock()
+	}
+	pauseAt := ""
+	if beforeRead {
+		pauseAt = beforeControllerRead
+	} else {
+		pauseAt = afterControllerRead
+	}
 	shouldPause := false
-	tc.controllerLockedMapLock.Lock()
+	pauseScope := "all"
+
+	tc.pauseControllerSharedDataLock.Lock()
 	var pausingCh chan string
-	if _, ok := tc.controllerLockedMap[beforeControllerRead]; ok {
-		if val, ok := tc.controllerLockedMap[beforeControllerRead]["all"]; ok {
+	if _, ok := tc.controllerShouldPauseMap[pauseAt]; ok {
+		if val, ok := tc.controllerShouldPauseMap[pauseAt]["all"]; ok {
 			shouldPause = val
-			pausingCh = tc.controllerLocks[beforeControllerRead]["all"]
+			pausingCh = tc.controllerPausingChs[pauseAt]["all"]
+		}
+		if !shouldPause {
+			if operationType == "Get" {
+				if val, ok := tc.controllerShouldPauseMap[pauseAt][resourceKey]; ok {
+					shouldPause = val
+					pausingCh = tc.controllerPausingChs[pauseAt][resourceKey]
+					pauseScope = resourceKey
+				}
+			} else {
+				for resourceKeyToPause := range tc.controllerShouldPauseMap[pauseAt] {
+					if strings.HasPrefix(resourceKeyToPause, resourceType+"/") {
+						if val, ok := tc.controllerShouldPauseMap[pauseAt][resourceKeyToPause]; ok {
+							shouldPause = val
+							pausingCh = tc.controllerPausingChs[pauseAt][resourceKeyToPause]
+							pauseScope = resourceKeyToPause
+							if shouldPause {
+								break
+							}
+						}
+					}
+				}
+			}
 		}
 	}
-	tc.controllerLockedMapLock.Unlock()
+	tc.pauseControllerSharedDataLock.Unlock()
+
 	if shouldPause {
-		log.Printf("Pause controller at %s %s\n", beforeControllerRead, "all")
+		log.Printf("Pause controller at %s %s\n", pauseAt, pauseScope)
 		<-pausingCh
-		log.Printf("End pause controller at %s %s\n", beforeControllerRead, "all")
+		log.Printf("End pause controller at %s %s\n", pauseAt, pauseScope)
 	}
 }
 
-func (tc *testCoordinator) ProcessControllerReadEndNotification() {
-	tc.controllerOngoingReadLock.Unlock()
-	shouldPause := false
-	tc.controllerLockedMapLock.Lock()
-	var pausingCh chan string
-	if _, ok := tc.controllerLockedMap[afterControllerRead]; ok {
-		if val, ok := tc.controllerLockedMap[afterControllerRead]["all"]; ok {
-			shouldPause = val
-			pausingCh = tc.controllerLocks[afterControllerRead]["all"]
-		}
-	}
-	tc.controllerLockedMapLock.Unlock()
-	if shouldPause {
-		log.Printf("Start to pause controller at %s %s\n", afterControllerRead, "all")
-		<-pausingCh
-		log.Printf("End pause controller at %s %s\n", afterControllerRead, "all")
-	}
-}
-
-func (tc *testCoordinator) ProcessAPIServerRecvNotification(handlerName, apiServerHostname, pauseScope string) {
+func (tc *testCoordinator) ProcessPauseAPIServerRecv(handlerName, apiServerHostname, pauseScope string) {
 	if _, ok := tc.apiserverLockedMap[apiServerHostname]; ok {
 		if val, ok := tc.apiserverLockedMap[apiServerHostname][pauseScope]; ok {
 			if val {
@@ -285,7 +302,7 @@ func (tc *testCoordinator) NotifyTestBeforeAPIServerRecv(request *sieve.NotifyTe
 		log.Printf("do not support %s\n", request.OperationType)
 	}
 	tc.WriteToObjectStates(request.APIServerHostname, beforeAPIServerRecv, request.ResourceKey, request.Object)
-	tc.ProcessAPIServerRecvNotification(handlerName, request.APIServerHostname, request.ResourceKey)
+	tc.ProcessPauseAPIServerRecv(handlerName, request.APIServerHostname, request.ResourceKey)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
@@ -306,7 +323,7 @@ func (tc *testCoordinator) NotifyTestAfterAPIServerRecv(request *sieve.NotifyTes
 		log.Printf("do not support %s\n", request.OperationType)
 	}
 	tc.WriteToObjectStates(request.APIServerHostname, afterAPIServerRecv, request.ResourceKey, request.Object)
-	tc.ProcessAPIServerRecvNotification(handlerName, request.APIServerHostname, request.ResourceKey)
+	tc.ProcessPauseAPIServerRecv(handlerName, request.APIServerHostname, request.ResourceKey)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
@@ -398,16 +415,16 @@ func (tc *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyT
 
 func (tc *testCoordinator) NotifyTestBeforeControllerReadPause(request *sieve.NotifyTestBeforeControllerReadPauseRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestBeforeControllerReadPause"
-	log.Printf("%s\t%t\t%s\t%s", handlerName, request.UseResourceKey, request.ResourceKey, request.ResourceType)
-	tc.ProcessControllerReadStartNotification()
+	log.Printf("%s\t%s\t%s\t%s", handlerName, request.OperationType, request.ResourceKey, request.ResourceType)
+	tc.ProcessPauseControllerRead(true, request.OperationType, request.ResourceKey, request.ResourceType)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
 
 func (tc *testCoordinator) NotifyTestAfterControllerReadPause(request *sieve.NotifyTestAfterControllerReadPauseRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestAfterControllerReadPause"
-	log.Printf("%s\t%t\t%s\t%s", handlerName, request.UseResourceKey, request.ResourceKey, request.ResourceType)
-	tc.ProcessControllerReadEndNotification()
+	log.Printf("%s\t%s\t%s\t%s", handlerName, request.OperationType, request.ResourceKey, request.ResourceType)
+	tc.ProcessPauseControllerRead(false, request.OperationType, request.ResourceKey, request.ResourceType)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }

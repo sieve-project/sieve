@@ -286,7 +286,8 @@ func (a *ResumeAPIServerAction) run(actionContext *ActionContext) {
 }
 
 type PauseControllerReadAction struct {
-	pauseWhenReading   string
+	pauseScope         string
+	pauseAt            string
 	avoidOngoingRead   bool
 	async              bool
 	waitBefore         int
@@ -313,20 +314,20 @@ func (a *PauseControllerReadAction) runInternal(actionContext *ActionContext, as
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
 
-	actionContext.controllerLockedMapLock.Lock()
-	if _, ok := actionContext.controllerLocks[beforeControllerRead]; !ok {
-		actionContext.controllerLocks[beforeControllerRead] = map[string]chan string{}
+	actionContext.pauseControllerSharedDataLock.Lock()
+	if _, ok := actionContext.controllerPausingChs[a.pauseAt]; !ok {
+		actionContext.controllerPausingChs[a.pauseAt] = map[string]chan string{}
 	}
-	log.Printf("Create channel for %s %s\n", beforeControllerRead, "all")
-	if _, ok := actionContext.controllerLocks[beforeControllerRead]["all"]; !ok {
-		actionContext.controllerLocks[beforeControllerRead]["all"] = make(chan string)
+	log.Printf("Create channel for %s %s\n", a.pauseAt, a.pauseScope)
+	if _, ok := actionContext.controllerPausingChs[a.pauseAt][a.pauseScope]; !ok {
+		actionContext.controllerPausingChs[a.pauseAt][a.pauseScope] = make(chan string)
 	}
 
-	if _, ok := actionContext.controllerLockedMap[beforeControllerRead]; !ok {
-		actionContext.controllerLockedMap[beforeControllerRead] = map[string]bool{}
+	if _, ok := actionContext.controllerShouldPauseMap[a.pauseAt]; !ok {
+		actionContext.controllerShouldPauseMap[a.pauseAt] = map[string]bool{}
 	}
-	actionContext.controllerLockedMap[beforeControllerRead]["all"] = true
-	actionContext.controllerLockedMapLock.Unlock()
+	actionContext.controllerShouldPauseMap[a.pauseAt][a.pauseScope] = true
+	actionContext.pauseControllerSharedDataLock.Unlock()
 
 	if a.waitAfter > 0 {
 		time.Sleep(time.Duration(a.waitAfter) * time.Second)
@@ -351,7 +352,8 @@ func (a *PauseControllerReadAction) run(actionContext *ActionContext) {
 }
 
 type ResumeControllerReadAction struct {
-	pauseWhenReading   string
+	pauseScope         string
+	pauseAt            string
 	async              bool
 	waitBefore         int
 	waitAfter          int
@@ -376,14 +378,13 @@ func (a *ResumeControllerReadAction) runInternal(actionContext *ActionContext, a
 	if a.waitBefore > 0 {
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
-	// actionContext.controllerOngoingReadLock.Unlock()
-	log.Printf("Close channel for %s %s\n", beforeControllerRead, "all")
+	log.Printf("Close channel for %s %s\n", a.pauseAt, a.pauseScope)
 
-	actionContext.controllerLockedMapLock.Lock()
-	actionContext.controllerLocks[beforeControllerRead]["all"] <- "release"
-	close(actionContext.controllerLocks[beforeControllerRead]["all"])
-	actionContext.controllerLockedMap[beforeControllerRead]["all"] = false
-	actionContext.controllerLockedMapLock.Unlock()
+	actionContext.pauseControllerSharedDataLock.Lock()
+	// actionContext.controllerPausingChs[a.pauseAt][a.pauseScope] <- "release"
+	close(actionContext.controllerPausingChs[a.pauseAt][a.pauseScope])
+	actionContext.controllerShouldPauseMap[a.pauseAt][a.pauseScope] = false
+	actionContext.pauseControllerSharedDataLock.Unlock()
 
 	if a.waitAfter > 0 {
 		time.Sleep(time.Duration(a.waitAfter) * time.Second)
@@ -403,7 +404,8 @@ func (a *ResumeControllerReadAction) run(actionContext *ActionContext) {
 }
 
 type PauseControllerWriteAction struct {
-	pauseWhenWriting   string
+	writeTarget        string
+	pauseAt            string
 	async              bool
 	waitBefore         int
 	waitAfter          int
@@ -429,7 +431,7 @@ func (a *PauseControllerWriteAction) runInternal(actionContext *ActionContext, a
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
 	// TODO: implement runInternal
-	time.Sleep(5 * time.Second)
+	// time.Sleep(5 * time.Second)
 	if a.waitAfter > 0 {
 		time.Sleep(time.Duration(a.waitAfter) * time.Second)
 	}
@@ -448,7 +450,8 @@ func (a *PauseControllerWriteAction) run(actionContext *ActionContext) {
 }
 
 type ResumeControllerWriteAction struct {
-	pauseWhenWriting   string
+	writeTarget        string
+	pauseAt            string
 	async              bool
 	waitBefore         int
 	waitAfter          int
@@ -724,9 +727,22 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerDefinitions: triggerDefinitions,
 		}
 	case pauseControllerRead:
+		pauseScope := "all"
+		if val, ok := raw["pauseScope"]; ok {
+			pauseScope = val.(string)
+		}
+		pauseAt := beforeControllerRead
+		if val, ok := raw["pauseAt"]; ok {
+			pauseAt = val.(string)
+		}
+		avoidOngoingRead := false
+		if val, ok := raw["avoidOngoingRead"]; ok {
+			avoidOngoingRead = val.(bool)
+		}
 		return &PauseControllerReadAction{
-			pauseWhenReading:   raw["pauseWhenReading"].(string),
-			avoidOngoingRead:   true,
+			pauseScope:         pauseScope,
+			pauseAt:            pauseAt,
+			avoidOngoingRead:   avoidOngoingRead,
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
@@ -734,8 +750,17 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerDefinitions: triggerDefinitions,
 		}
 	case resumeControllerRead:
+		pauseScope := "all"
+		if val, ok := raw["pauseScope"]; ok {
+			pauseScope = val.(string)
+		}
+		pauseAt := beforeControllerRead
+		if val, ok := raw["pauseAt"]; ok {
+			pauseAt = val.(string)
+		}
 		return &ResumeControllerReadAction{
-			pauseWhenReading:   raw["pauseWhenReading"].(string),
+			pauseScope:         pauseScope,
+			pauseAt:            pauseAt,
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
@@ -743,8 +768,17 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerDefinitions: triggerDefinitions,
 		}
 	case pauseControllerWrite:
+		writeTarget := "all"
+		if val, ok := raw["writeTarget"]; ok {
+			writeTarget = val.(string)
+		}
+		pauseAt := beforeControllerWrite
+		if val, ok := raw["pauseAt"]; ok {
+			pauseAt = val.(string)
+		}
 		return &PauseControllerWriteAction{
-			pauseWhenWriting:   raw["pauseWhenWriting"].(string),
+			writeTarget:        writeTarget,
+			pauseAt:            pauseAt,
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
@@ -752,8 +786,17 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerDefinitions: triggerDefinitions,
 		}
 	case resumeControllerWrite:
+		writeTarget := "all"
+		if val, ok := raw["writeTarget"]; ok {
+			writeTarget = val.(string)
+		}
+		pauseAt := beforeControllerWrite
+		if val, ok := raw["pauseAt"]; ok {
+			pauseAt = val.(string)
+		}
 		return &ResumeControllerWriteAction{
-			pauseWhenWriting:   raw["pauseWhenWriting"].(string),
+			writeTarget:        writeTarget,
+			pauseAt:            pauseAt,
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
