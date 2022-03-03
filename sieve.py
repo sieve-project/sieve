@@ -410,7 +410,7 @@ def run_workload(
     )
 
     hacked_mode = test_context.mode
-    if "pauseControllerRead" in test_context.action_types:
+    if "pauseController" in test_context.action_types:
         hacked_mode = sieve_modes.UNOBSR_STATE
 
     cprint("Running test workload...", bcolors.OKGREEN)
