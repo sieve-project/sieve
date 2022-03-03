@@ -731,17 +731,13 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		if val, ok := raw["pauseScope"]; ok {
 			pauseScope = val.(string)
 		}
-		pauseAt := beforeControllerRead
-		if val, ok := raw["pauseAt"]; ok {
-			pauseAt = val.(string)
-		}
 		avoidOngoingRead := false
 		if val, ok := raw["avoidOngoingRead"]; ok {
 			avoidOngoingRead = val.(bool)
 		}
 		return &PauseControllerReadAction{
 			pauseScope:         pauseScope,
-			pauseAt:            pauseAt,
+			pauseAt:            raw["pauseAt"].(string),
 			avoidOngoingRead:   avoidOngoingRead,
 			async:              async,
 			waitBefore:         waitBefore,
@@ -754,13 +750,9 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		if val, ok := raw["pauseScope"]; ok {
 			pauseScope = val.(string)
 		}
-		pauseAt := beforeControllerRead
-		if val, ok := raw["pauseAt"]; ok {
-			pauseAt = val.(string)
-		}
 		return &ResumeControllerReadAction{
 			pauseScope:         pauseScope,
-			pauseAt:            pauseAt,
+			pauseAt:            raw["pauseAt"].(string),
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
@@ -772,13 +764,9 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		if val, ok := raw["writeTarget"]; ok {
 			writeTarget = val.(string)
 		}
-		pauseAt := beforeControllerWrite
-		if val, ok := raw["pauseAt"]; ok {
-			pauseAt = val.(string)
-		}
 		return &PauseControllerWriteAction{
 			writeTarget:        writeTarget,
-			pauseAt:            pauseAt,
+			pauseAt:            raw["pauseAt"].(string),
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
@@ -790,13 +778,9 @@ func parseAction(raw map[interface{}]interface{}) Action {
 		if val, ok := raw["writeTarget"]; ok {
 			writeTarget = val.(string)
 		}
-		pauseAt := beforeControllerWrite
-		if val, ok := raw["pauseAt"]; ok {
-			pauseAt = val.(string)
-		}
 		return &ResumeControllerWriteAction{
 			writeTarget:        writeTarget,
-			pauseAt:            pauseAt,
+			pauseAt:            raw["pauseAt"].(string),
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
