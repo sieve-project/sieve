@@ -267,11 +267,11 @@ def generate_stale_state_test_plan(
     if operator_hear.etype == OperatorHearTypes.ADDED:
         condition_for_trigger1["conditionType"] = "onObjectCreate"
         condition_for_trigger1["resourceKey"] = resource_key1
-        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
     elif operator_hear.etype == OperatorHearTypes.DELETED:
         condition_for_trigger1["conditionType"] = "onObjectDelete"
         condition_for_trigger1["resourceKey"] = resource_key1
-        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
     else:
         condition_for_trigger1["conditionType"] = "onObjectUpdate"
         condition_for_trigger1["resourceKey"] = resource_key1
@@ -286,7 +286,7 @@ def generate_stale_state_test_plan(
             not in test_context.controller_config.custom_resource_definitions
         ):
             condition_for_trigger1["convertStateToAPIForm"] = True
-        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
     return {
         "actions": [
             {
@@ -322,7 +322,7 @@ def generate_stale_state_test_plan(
                             "condition": {
                                 "conditionType": "onObjectCreate",
                                 "resourceKey": resource_key2,
-                                "repeat": 1,
+                                "occurrence": 1,
                             },
                             "observationPoint": {
                                 "when": "afterAPIServerRecv",
@@ -515,14 +515,14 @@ def generate_unobserved_state_test_plan(
     if operator_hear.etype == OperatorHearTypes.ADDED:
         condition_for_trigger1["conditionType"] = "onObjectCreate"
         condition_for_trigger1["resourceKey"] = resource_key
-        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
         trigger_for_action2["definitions"] = [
             {
                 "triggerName": "trigger2",
                 "condition": {
                     "conditionType": "onObjectUpdate",
                     "resourceKey": resource_key,
-                    "repeat": 1,
+                    "occurrence": 1,
                 },
                 "observationPoint": {
                     "when": "afterControllerRecv",
@@ -534,7 +534,7 @@ def generate_unobserved_state_test_plan(
                 "condition": {
                     "conditionType": "onObjectDelete",
                     "resourceKey": resource_key,
-                    "repeat": 1,
+                    "occurrence": 1,
                 },
                 "observationPoint": {
                     "when": "afterControllerRecv",
@@ -546,14 +546,14 @@ def generate_unobserved_state_test_plan(
     elif operator_hear.etype == OperatorHearTypes.DELETED:
         condition_for_trigger1["conditionType"] = "onObjectDelete"
         condition_for_trigger1["resourceKey"] = resource_key
-        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
         trigger_for_action2["definitions"] = [
             {
                 "triggerName": "trigger2",
                 "condition": {
                     "conditionType": "onObjectCreate",
                     "resourceKey": resource_key,
-                    "repeat": 1,
+                    "occurrence": 1,
                 },
                 "observationPoint": {
                     "when": "afterControllerRecv",
@@ -565,7 +565,7 @@ def generate_unobserved_state_test_plan(
                 "condition": {
                     "conditionType": "onObjectUpdate",
                     "resourceKey": resource_key,
-                    "repeat": 1,
+                    "occurrence": 1,
                 },
                 "observationPoint": {
                     "when": "afterControllerRecv",
@@ -583,7 +583,7 @@ def generate_unobserved_state_test_plan(
         condition_for_trigger1["curStateDiff"] = json.dumps(
             operator_hear.slim_cur_obj_map, sort_keys=True
         )
-        condition_for_trigger1["repeat"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
         trigger_for_action2["definitions"] = [
             {
                 "triggerName": "trigger2",
@@ -593,7 +593,7 @@ def generate_unobserved_state_test_plan(
                     "prevStateDiff": json.dumps(
                         operator_hear.slim_cur_obj_map, sort_keys=True
                     ),
-                    "repeat": 1,
+                    "occurrence": 1,
                 },
                 "observationPoint": {
                     "when": "afterControllerRecv",
@@ -605,7 +605,7 @@ def generate_unobserved_state_test_plan(
                 "condition": {
                     "conditionType": "onObjectDelete",
                     "resourceKey": resource_key,
-                    "repeat": 1,
+                    "occurrence": 1,
                 },
                 "observationPoint": {
                     "when": "afterControllerRecv",
@@ -617,8 +617,10 @@ def generate_unobserved_state_test_plan(
     return {
         "actions": [
             {
-                "actionType": "pauseControllerRead",
-                "pauseWhenReading": resource_key,
+                "actionType": "pauseController",
+                "pauseAt": "beforeControllerRead",
+                "pauseScope": resource_key,
+                "avoidOngoingRead": True,
                 "trigger": {
                     "definitions": [
                         {
@@ -634,8 +636,9 @@ def generate_unobserved_state_test_plan(
                 },
             },
             {
-                "actionType": "resumeControllerRead",
-                "pauseWhenReading": resource_key,
+                "actionType": "resumeController",
+                "pauseAt": "beforeControllerRead",
+                "pauseScope": resource_key,
                 "trigger": trigger_for_action2,
             },
         ]
@@ -779,11 +782,11 @@ def generate_intermediate_state_test_plan(
     if operator_write.etype == OperatorWriteTypes.CREATE:
         condition["conditionType"] = "onObjectCreate"
         condition["resourceKey"] = resource_key
-        condition["repeat"] = operator_write.signature_counter
+        condition["occurrence"] = operator_write.signature_counter
     elif operator_write.etype == OperatorWriteTypes.DELETE:
         condition["conditionType"] = "onObjectDelete"
         condition["resourceKey"] = resource_key
-        condition["repeat"] = operator_write.signature_counter
+        condition["occurrence"] = operator_write.signature_counter
     else:
         condition["conditionType"] = "onObjectUpdate"
         condition["resourceKey"] = resource_key
@@ -793,7 +796,7 @@ def generate_intermediate_state_test_plan(
         condition["curStateDiff"] = json.dumps(
             operator_write.slim_cur_obj_map, sort_keys=True
         )
-        condition["repeat"] = operator_write.signature_counter
+        condition["occurrence"] = operator_write.signature_counter
     return {
         "actions": [
             {
