@@ -17,9 +17,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-const STALE_STATE string = "stale-state"
-const UNOBSERVED_STATE string = "unobserved-state"
-const INTERMEDIATE_STATE string = "intermediate-state"
 const LEARN string = "learn"
 const TEST string = "test"
 const UNKNOWN_RECONCILER_TYPE = "unknown"
