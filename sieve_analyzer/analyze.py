@@ -2,17 +2,14 @@ import copy
 import os
 import shutil
 from typing import List
-
 from sieve_common.common import (
     TestContext,
     fail,
     sieve_built_in_test_patterns,
 )
-from sieve_analyzer.test_plan_generator import (
-    intermediate_state_analysis,
-    unobserved_state_analysis,
-    stale_state_analysis,
-)
+from sieve_perturbation_policies.intermediate_state import intermediate_state_analysis
+from sieve_perturbation_policies.stale_state import stale_state_analysis
+from sieve_perturbation_policies.unobserved_state import unobserved_state_analysis
 from sieve_common.k8s_event import *
 from sieve_analyzer.causality_graph import (
     CausalityGraph,
