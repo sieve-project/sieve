@@ -100,7 +100,11 @@ def safety_checker(test_context: TestContext):
     ret_val = 0
     messages = []
     if test_context.common_config.state_update_summary_check_enabled:
-        if not test_context.mode == sieve_modes.UNOBSR_STATE:
+        if not (
+            test_context.test_plan["actions"][0]["actionType"] == "pauseController"
+            and test_context.test_plan["actions"][0]["pauseAt"]
+            == "beforeControllerRead"
+        ):
             (
                 compare_history_digests_ret_val,
                 compare_history_digests_messages,
@@ -114,8 +118,9 @@ def liveness_checker(test_context: TestContext):
     ret_val = 0
     messages = []
     if test_context.common_config.end_state_check_enabled:
+        # TODO: this is overkill; we should exclude the csi related objects only
         if not (
-            test_context.mode == sieve_modes.STALE_STATE and test_context.use_csi_driver
+            test_context.use_csi_driver_for_ref and not test_context.use_csi_driver
         ):
             compare_states_ret_val, compare_states_messages = compare_states(
                 test_context
@@ -129,7 +134,7 @@ def check(test_context: TestContext):
     ret_val = 0
     messages = []
 
-    validation_ret_val, validation_messages = injection_validation(test_context)
+    validation_ret_val, validation_messages = test_run_validation(test_context)
     if validation_ret_val < 0:
         messages.extend(validation_messages)
 
