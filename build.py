@@ -486,6 +486,7 @@ if __name__ == "__main__":
         parser.error("parameter mode required")
 
     if options.mode not in [
+        sieve_modes.VANILLA,
         sieve_stages.TEST,
         sieve_stages.LEARN,
         sieve_modes.ALL,
