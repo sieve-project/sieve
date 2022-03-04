@@ -362,7 +362,7 @@ def generate_test_config(
     os.makedirs(generated_config_dir, exist_ok=True)
     if analysis_mode == sieve_built_in_test_patterns.STALE_STATE:
         return stale_state_analysis(causality_graph, generated_config_dir, test_context)
-    elif analysis_mode == sieve_built_in_test_patterns.UNOBSR_STATE:
+    elif analysis_mode == sieve_built_in_test_patterns.UNOBSERVED_STATE:
         return unobserved_state_analysis(
             causality_graph, generated_config_dir, test_context
         )
@@ -392,7 +392,7 @@ def analyze_trace(
     }
     for analysis_mode in [
         sieve_built_in_test_patterns.STALE_STATE,
-        sieve_built_in_test_patterns.UNOBSR_STATE,
+        sieve_built_in_test_patterns.UNOBSERVED_STATE,
         sieve_built_in_test_patterns.INTERMEDIATE_STATE,
     ]:
         (

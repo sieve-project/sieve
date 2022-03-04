@@ -68,7 +68,7 @@ class sieve_modes:
 
 class sieve_built_in_test_patterns:
     STALE_STATE = "stale-state"
-    UNOBSR_STATE = "unobserved-state"
+    UNOBSERVED_STATE = "unobserved-state"
     INTERMEDIATE_STATE = "intermediate-state"
 
 
