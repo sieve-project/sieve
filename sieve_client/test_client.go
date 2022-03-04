@@ -166,11 +166,13 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
-	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
-		return
-	}
-	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
-		return
+	if !checkKVPairInAction("pauseController", "pauseAt", "afterControllerWrite", false) {
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
+			return
+		}
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+			return
+		}
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
