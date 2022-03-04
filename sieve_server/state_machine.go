@@ -78,7 +78,7 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 				if !action.isAsync() {
 					sm.nextState += 1
 					if sm.nextState >= len(sm.states) {
-						log.Println("all actions are done")
+						log.Println("Sieve test coordinator finishes all actions")
 					} else {
 						sm.setTimeoutForTimeoutTriggers()
 					}
@@ -97,7 +97,7 @@ func (sm *StateMachine) processAsyncDone(notification *AsyncDoneNotification) {
 	sm.nextState += 1
 	sm.asyncActionInExecution = false
 	if sm.nextState >= len(sm.states) {
-		log.Println("all actions are done")
+		log.Println("Sieve test coordinator finishes all actions")
 	} else {
 		sm.setTimeoutForTimeoutTriggers()
 	}
