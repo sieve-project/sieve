@@ -6,7 +6,7 @@ from typing import List
 from sieve_common.common import (
     TestContext,
     fail,
-    sieve_modes,
+    sieve_built_in_test_patterns,
 )
 from sieve_analyzer.test_plan_generator import (
     intermediate_state_analysis,
@@ -363,13 +363,13 @@ def generate_test_config(
     if os.path.isdir(generated_config_dir):
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
-    if analysis_mode == sieve_modes.STALE_STATE:
+    if analysis_mode == sieve_built_in_test_patterns.STALE_STATE:
         return stale_state_analysis(causality_graph, generated_config_dir, test_context)
-    elif analysis_mode == sieve_modes.UNOBSR_STATE:
+    elif analysis_mode == sieve_built_in_test_patterns.UNOBSR_STATE:
         return unobserved_state_analysis(
             causality_graph, generated_config_dir, test_context
         )
-    elif analysis_mode == sieve_modes.INTERMEDIATE_STATE:
+    elif analysis_mode == sieve_built_in_test_patterns.INTERMEDIATE_STATE:
         return intermediate_state_analysis(
             causality_graph, generated_config_dir, test_context
         )
@@ -394,9 +394,9 @@ def analyze_trace(
         "test": test_context.test_name,
     }
     for analysis_mode in [
-        sieve_modes.STALE_STATE,
-        sieve_modes.UNOBSR_STATE,
-        sieve_modes.INTERMEDIATE_STATE,
+        sieve_built_in_test_patterns.STALE_STATE,
+        sieve_built_in_test_patterns.UNOBSR_STATE,
+        sieve_built_in_test_patterns.INTERMEDIATE_STATE,
     ]:
         (
             baseline_spec_number,

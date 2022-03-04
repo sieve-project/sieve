@@ -7,7 +7,6 @@ from sieve_common.common import (
     STS,
     SECRET,
     SERVICE,
-    sieve_modes,
     NO_ERROR_MESSAGE,
     TERMINATED,
     RUNNING,
@@ -132,7 +131,7 @@ class TestCmd:
     def __init__(self, cmd):
         self.cmd = cmd
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, use_soft_timeout) -> Tuple[int, str]:
         print()
         print(self.cmd)
         # TODO: need to check the return code of the cmd
@@ -154,7 +153,7 @@ class TestWait:
     def __init__(self, time_out):
         self.hard_time_out = time_out
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, use_soft_timeout) -> Tuple[int, str]:
         print("wait for %s seconds" % str(self.hard_time_out))
         time.sleep(self.hard_time_out)
         return 0, NO_ERROR_MESSAGE
@@ -216,7 +215,7 @@ class TestWaitForStatus:
             assert False, "status not supported yet"
         return False
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, use_soft_timeout) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s becomes %s..."
@@ -224,7 +223,7 @@ class TestWaitForStatus:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
+            if use_soft_timeout and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not become %s within %d seconds; we will continue"
                     % (self.resource_name, self.status, self.soft_time_out)
@@ -282,7 +281,7 @@ class TestWaitForNumber:
                 running_pods.append(pod)
         return len(running_pods) == self.number
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, use_soft_timeout) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until the number of running %s %s becomes %s..."
@@ -290,7 +289,7 @@ class TestWaitForNumber:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
+            if use_soft_timeout and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not become %s within %d seconds; we will continue"
                     % (self.resource_name_prefix, self.number, self.soft_time_out)
@@ -344,7 +343,7 @@ class TestWaitForStorage:
                 return True
         return False
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, use_soft_timeout) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s has storage size %s..."
@@ -352,7 +351,7 @@ class TestWaitForStorage:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
+            if use_soft_timeout and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not have storage size %s within %d seconds; we will continue"
                     % (self.resource_name, self.storage_size, self.soft_time_out)
@@ -434,7 +433,7 @@ class TestWaitForExistence:
                 return True
         return False
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, use_soft_timeout) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s %s..."
@@ -446,7 +445,7 @@ class TestWaitForExistence:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
+            if use_soft_timeout and duration > self.soft_time_out:
                 error_message = "soft timeout: %s does not become %s within %d seconds; we will continue" % (
                     self.resource_name,
                     "exist" if self.exist else "non-exist",
@@ -513,7 +512,7 @@ class TestWaitForCRConditions:
                 return False
         return True
 
-    def run(self, mode) -> Tuple[int, str]:
+    def run(self, use_soft_timeout) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s %s..."
@@ -525,7 +524,7 @@ class TestWaitForCRConditions:
         )
         while True:
             duration = time.time() - s
-            if mode == sieve_modes.UNOBSR_STATE and duration > self.soft_time_out:
+            if use_soft_timeout and duration > self.soft_time_out:
                 error_message = (
                     "soft timeout: %s does not achieve %s within %d seconds; we will continue"
                     % (self.resource_name, self.conditions, self.soft_time_out)
@@ -696,10 +695,13 @@ class BuiltInWorkLoad:
         self.work_list.append(test_wait)
         return self
 
-    def run(self, mode, output_file):
+    def run(self, use_soft_timeout_str, output_file):
+        use_soft_timeout = False
+        if int(use_soft_timeout_str) == 1:
+            use_soft_timeout = True
         with open(output_file, "w") as f:
             for work in self.work_list:
-                return_code, error_message = work.run(mode)
+                return_code, error_message = work.run(use_soft_timeout)
                 print(datetime.datetime.now())
                 if return_code != 0:
                     print("error: " + error_message)
@@ -720,18 +722,18 @@ def new_built_in_workload(final_grace_period=50):
     return workload
 
 
-class ExtendedWorkload:
-    def __init__(self, test_dir, test_cmd, check_mode=False):
-        self.test_dir = test_dir
-        self.test_cmd = test_cmd
-        self.check_mode = check_mode
+# class ExtendedWorkload:
+#     def __init__(self, test_dir, test_cmd, check_mode=False):
+#         self.test_dir = test_dir
+#         self.test_cmd = test_cmd
+#         self.check_mode = check_mode
 
-    def run(self, mode):
-        org_dir = os.getcwd()
-        os.chdir(self.test_dir)
-        # TODO: need to check the return code of the os.system
-        if self.check_mode:
-            os.system(self.test_cmd + " " + mode)
-        else:
-            os.system(self.test_cmd)
-        os.chdir(org_dir)
+#     def run(self, mode):
+#         org_dir = os.getcwd()
+#         os.chdir(self.test_dir)
+#         # TODO: need to check the return code of the os.system
+#         if self.check_mode:
+#             os.system(self.test_cmd + " " + mode)
+#         else:
+#             os.system(self.test_cmd)
+#         os.chdir(org_dir)

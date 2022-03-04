@@ -59,14 +59,17 @@ class sieve_stages:
 
 class sieve_modes:
     TEST = "test"
-    STALE_STATE = "stale-state"
-    UNOBSR_STATE = "unobserved-state"
-    INTERMEDIATE_STATE = "intermediate-state"
     VANILLA = "vanilla"
     LEARN_ONCE = "learn-once"
     LEARN_TWICE = "learn-twice"
     ALL = "all"
     NONE = "none"
+
+
+class sieve_built_in_test_patterns:
+    STALE_STATE = "stale-state"
+    UNOBSR_STATE = "unobserved-state"
+    INTERMEDIATE_STATE = "intermediate-state"
 
 
 class TestContext:
@@ -100,6 +103,7 @@ class TestContext:
         self.docker_tag = docker_tag
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
+        self.use_csi_driver_for_ref = use_csi_driver
         self.use_csi_driver = use_csi_driver
         self.common_config = common_config
         self.controller_config = controller_config

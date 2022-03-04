@@ -36,6 +36,7 @@ from sieve_common.common import (
     ok,
     fail,
     sieve_modes,
+    sieve_built_in_test_patterns,
     cmd_early_exit,
     NO_ERROR_MESSAGE,
     sieve_stages,
@@ -409,15 +410,15 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
-    hacked_mode = test_context.mode
+    use_soft_timeout = "0"
     if "pauseController" in test_context.action_types:
-        hacked_mode = sieve_modes.UNOBSR_STATE
+        use_soft_timeout = "1"
 
     cprint("Running test workload...", bcolors.OKGREEN)
     test_command = "%s %s %s %s" % (
         test_context.controller_config.test_command,
         test_context.test_name,
-        hacked_mode,
+        use_soft_timeout,
         os.path.join(test_context.result_dir, "workload.log"),
     )
     process = subprocess.Popen(test_command, shell=True)

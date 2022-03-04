@@ -46,7 +46,7 @@ def event_diff_validation_check(prev_etype: str, cur_etype: str):
 
 
 def detectable_event_diff(
-    mode: str,
+    recv_event: bool,
     diff_prev_obj: Optional[Dict],
     diff_cur_obj: Optional[Dict],
     prev_etype: str,
@@ -55,7 +55,7 @@ def detectable_event_diff(
 ) -> bool:
     if signature_counter > 3:
         return False
-    if mode == sieve_modes.STALE_STATE or mode == sieve_modes.UNOBSR_STATE:
+    if recv_event:
         event_diff_validation_check(prev_etype, cur_etype)
         # undetectable if the first event is not ADDED
         if prev_etype == EVENT_NONE_TYPE and cur_etype != OperatorHearTypes.ADDED:
@@ -133,7 +133,7 @@ def stale_state_detectable_pass(
         ):
             continue
         if detectable_event_diff(
-            sieve_modes.STALE_STATE,
+            True,
             operator_hear.slim_prev_obj_map,
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
@@ -453,7 +453,7 @@ def unobserved_state_detectable_pass(
         ):
             continue
         if detectable_event_diff(
-            sieve_modes.UNOBSR_STATE,
+            True,
             operator_hear.slim_prev_obj_map,
             operator_hear.slim_cur_obj_map,
             operator_hear.prev_etype,
@@ -704,7 +704,7 @@ def intermediate_state_detectable_pass(
             ):
                 continue
             if detectable_event_diff(
-                sieve_modes.INTERMEDIATE_STATE,
+                False,
                 operator_write.slim_prev_obj_map,
                 operator_write.slim_cur_obj_map,
                 operator_write.prev_etype,
