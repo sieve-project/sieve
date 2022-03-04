@@ -109,7 +109,7 @@ class TestContext:
         self.controller_config = controller_config
         self.test_plan = None
         self.action_types = []
-        if self.stage == sieve_stages.TEST:
+        if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
             self.test_plan = yaml.safe_load(open(test_config))
             for action in self.test_plan["actions"]:
                 self.action_types.append(action["actionType"])

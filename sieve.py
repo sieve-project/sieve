@@ -738,7 +738,7 @@ if __name__ == "__main__":
     if options.stage == sieve_stages.TEST:
         if options.mode is None:
             parser.error("parameter mode required in test stage")
-        elif options.mode not in [sieve_modes.TEST]:
+        elif options.mode not in [sieve_modes.TEST, sieve_modes.VANILLA]:
             parser.error("invalid test mode option: %s" % options.mode)
         if options.mode == sieve_modes.VANILLA:
             options.config = "vanilla.yaml"
