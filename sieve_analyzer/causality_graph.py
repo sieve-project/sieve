@@ -19,7 +19,7 @@ INTER_RECONCILER_EDGE = "INTER-RECONCILER"
 INTRA_RECONCILER_EDGE = "INTRA-RECONCILER"
 
 
-class CausalityVertex:
+class EventVertex:
     def __init__(
         self,
         gid: int,
@@ -78,8 +78,8 @@ class CausalityVertex:
         return isinstance(self.content, ReconcileEnd)
 
 
-class CausalityEdge:
-    def __init__(self, source: CausalityVertex, sink: CausalityVertex, type: str):
+class EventEdge:
+    def __init__(self, source: EventVertex, sink: EventVertex, type: str):
         self.__source = source
         self.__sink = sink
         self.__type = type
@@ -97,7 +97,7 @@ class CausalityEdge:
         return self.__type
 
 
-class CausalityGraph:
+class EventGraph:
     def __init__(
         self,
         learned_masked_paths: Dict,
@@ -135,63 +135,63 @@ class CausalityGraph:
         return self.__configured_masked_keys
 
     @property
-    def operator_hear_vertices(self) -> List[CausalityVertex]:
+    def operator_hear_vertices(self) -> List[EventVertex]:
         return self.__operator_hear_vertices
 
     @property
-    def operator_write_vertices(self) -> List[CausalityVertex]:
+    def operator_write_vertices(self) -> List[EventVertex]:
         return self.__operator_write_vertices
 
     @property
-    def operator_non_k8s_write_vertices(self) -> List[CausalityVertex]:
+    def operator_non_k8s_write_vertices(self) -> List[EventVertex]:
         return self.__operator_non_k8s_write_vertices
 
     @property
-    def operator_read_vertices(self) -> List[CausalityVertex]:
+    def operator_read_vertices(self) -> List[EventVertex]:
         return self.__operator_read_vertices
 
     @property
-    def reconcile_begin_vertices(self) -> List[CausalityVertex]:
+    def reconcile_begin_vertices(self) -> List[EventVertex]:
         return self.__reconcile_begin_vertices
 
     @property
-    def reconcile_end_vertices(self) -> List[CausalityVertex]:
+    def reconcile_end_vertices(self) -> List[EventVertex]:
         return self.__reconcile_end_vertices
 
     @property
     def operator_read_key_to_vertices(
         self,
-    ) -> Dict[str, List[CausalityVertex]]:
+    ) -> Dict[str, List[EventVertex]]:
         return self.__operator_read_key_to_vertices
 
     @property
     def operator_write_key_to_vertices(
         self,
-    ) -> Dict[str, List[CausalityVertex]]:
+    ) -> Dict[str, List[EventVertex]]:
         return self.__operator_write_key_to_vertices
 
     @property
     def operator_hear_key_to_vertices(
         self,
-    ) -> Dict[str, List[CausalityVertex]]:
+    ) -> Dict[str, List[EventVertex]]:
         return self.__operator_hear_key_to_vertices
 
     @property
     def operator_hear_id_to_vertices(
         self,
-    ) -> Dict[int, List[CausalityVertex]]:
+    ) -> Dict[int, List[EventVertex]]:
         return self.__operator_hear_id_to_vertices
 
     @property
-    def operator_hear_operator_write_edges(self) -> List[CausalityEdge]:
+    def operator_hear_operator_write_edges(self) -> List[EventEdge]:
         return self.__operator_hear_operator_write_edges
 
     @property
-    def operator_write_operator_hear_edges(self) -> List[CausalityEdge]:
+    def operator_write_operator_hear_edges(self) -> List[EventEdge]:
         return self.__operator_write_operator_hear_edges
 
     @property
-    def intra_reconciler_edges(self) -> List[CausalityEdge]:
+    def intra_reconciler_edges(self) -> List[EventEdge]:
         return self.__intra_reconciler_edges
 
     def retrieve_masked(self, rtype, namespace, name):
@@ -208,7 +208,7 @@ class CausalityGraph:
         )
         return (masked_keys, masked_paths)
 
-    def get_operator_hear_with_id(self, operator_hear_id) -> Optional[CausalityVertex]:
+    def get_operator_hear_with_id(self, operator_hear_id) -> Optional[EventVertex]:
         if operator_hear_id in self.operator_hear_id_to_vertices:
             return self.operator_hear_id_to_vertices[operator_hear_id]
         else:
@@ -216,7 +216,7 @@ class CausalityGraph:
 
     def get_prev_operator_hear_with_key(
         self, key, cur_operator_hear_id
-    ) -> Optional[CausalityVertex]:
+    ) -> Optional[EventVertex]:
         for i in range(len(self.operator_hear_key_to_vertices[key])):
             operator_hear_vertex = self.operator_hear_key_to_vertices[key][i]
             if operator_hear_vertex.content.id == cur_operator_hear_id:
@@ -278,15 +278,15 @@ class CausalityGraph:
                     == self.operator_write_vertices[i].content.range_end_timestamp
                 )
         for edge in self.operator_hear_operator_write_edges:
-            assert isinstance(edge.source, CausalityVertex)
-            assert isinstance(edge.sink, CausalityVertex)
+            assert isinstance(edge.source, EventVertex)
+            assert isinstance(edge.sink, EventVertex)
             assert edge.source.is_operator_hear() and edge.sink.is_operator_write()
             assert (
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
             )
         for edge in self.operator_write_operator_hear_edges:
-            assert isinstance(edge.source, CausalityVertex)
-            assert isinstance(edge.sink, CausalityVertex)
+            assert isinstance(edge.source, EventVertex)
+            assert isinstance(edge.sink, EventVertex)
             assert edge.sink.is_operator_hear() and edge.source.is_operator_write()
             assert (
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
@@ -295,7 +295,7 @@ class CausalityGraph:
     def add_sorted_operator_hears(self, operator_hear_list: List[OperatorHear]):
         for i in range(len(operator_hear_list)):
             operator_hear = operator_hear_list[i]
-            operator_hear_vertex = CausalityVertex(self.__vertex_cnt, operator_hear)
+            operator_hear_vertex = EventVertex(self.__vertex_cnt, operator_hear)
             self.__vertex_cnt += 1
             self.operator_hear_vertices.append(operator_hear_vertex)
             if (
@@ -329,7 +329,7 @@ class CausalityGraph:
     ):
         event_vertex_list = []
         for event in reconciler_event_list:
-            event_vertex = CausalityVertex(self.__vertex_cnt, event)
+            event_vertex = EventVertex(self.__vertex_cnt, event)
             self.__vertex_cnt += 1
             if event_vertex.is_operator_write():
                 self.operator_write_vertices.append(event_vertex)
@@ -355,14 +355,14 @@ class CausalityGraph:
         for i in range(1, len(event_vertex_list)):
             prev_vertex = event_vertex_list[i - 1]
             cur_vertex = event_vertex_list[i]
-            edge = CausalityEdge(prev_vertex, cur_vertex, INTRA_RECONCILER_EDGE)
+            edge = EventEdge(prev_vertex, cur_vertex, INTRA_RECONCILER_EDGE)
             prev_vertex.add_out_intra_reconciler_edge(edge)
             self.intra_reconciler_edges.append(edge)
 
     def connect_hear_to_write(
         self,
-        operator_hear_vertex: CausalityVertex,
-        operator_write_vertex: CausalityVertex,
+        operator_hear_vertex: EventVertex,
+        operator_write_vertex: EventVertex,
     ):
         assert operator_hear_vertex.is_operator_hear()
         assert (
@@ -373,7 +373,7 @@ class CausalityGraph:
             operator_hear_vertex.content.start_timestamp
             < operator_write_vertex.content.start_timestamp
         )
-        edge = CausalityEdge(
+        edge = EventEdge(
             operator_hear_vertex, operator_write_vertex, INTER_RECONCILER_EDGE
         )
         operator_hear_vertex.add_out_inter_reconciler_edge(edge)
@@ -381,8 +381,8 @@ class CausalityGraph:
 
     def connect_write_to_hear(
         self,
-        operator_write_vertex: CausalityVertex,
-        operator_hear_vertex: CausalityVertex,
+        operator_write_vertex: EventVertex,
+        operator_hear_vertex: EventVertex,
     ):
         assert operator_hear_vertex.is_operator_hear()
         assert operator_write_vertex.is_operator_write()
@@ -390,7 +390,7 @@ class CausalityGraph:
             operator_write_vertex.content.start_timestamp
             < operator_hear_vertex.content.start_timestamp
         )
-        edge = CausalityEdge(
+        edge = EventEdge(
             operator_write_vertex, operator_hear_vertex, INTER_RECONCILER_EDGE
         )
         operator_write_vertex.add_out_inter_reconciler_edge(edge)
@@ -526,7 +526,7 @@ class CausalityGraph:
         self.compute_event_cancel()
 
 
-def causality_vertices_reachable(source: CausalityVertex, sink: CausalityVertex):
+def event_vertices_reachable(source: EventVertex, sink: EventVertex):
     # there should be no cycles in the casuality graph
     queue = []
     visited = set()
@@ -550,7 +550,7 @@ def causality_vertices_reachable(source: CausalityVertex, sink: CausalityVertex)
     return False
 
 
-def causality_vertices_connected(source: CausalityVertex, sink: CausalityVertex):
+def event_vertices_connected(source: EventVertex, sink: EventVertex):
     for edge in source.out_inter_reconciler_edges:
         if edge.sink.gid == sink.gid:
             return True

@@ -5,9 +5,9 @@ from sieve_common.event_delta import *
 from sieve_common.common import *
 from sieve_common.k8s_event import *
 from sieve_analyzer.causality_graph import (
-    CausalityGraph,
-    CausalityVertex,
-    causality_vertices_connected,
+    EventGraph,
+    EventVertex,
+    event_vertices_connected,
 )
 from sieve_perturbation_policies.common import (
     nondeterministic_key,
@@ -17,11 +17,11 @@ from sieve_perturbation_policies.common import (
 
 def stale_state_detectable_pass(
     test_context: TestContext,
-    causality_pairs: List[Tuple[CausalityVertex, CausalityVertex]],
+    event_pairs: List[Tuple[EventVertex, EventVertex]],
 ):
     print("Running stale state detectable pass...")
     candidate_pairs = []
-    for pair in causality_pairs:
+    for pair in event_pairs:
         operator_hear = pair[0].content
         operator_write = pair[1].content
         if nondeterministic_key(test_context, operator_hear) or nondeterministic_key(
@@ -37,13 +37,13 @@ def stale_state_detectable_pass(
             operator_hear.signature_counter,
         ):
             candidate_pairs.append(pair)
-    print("%d -> %d edges" % (len(causality_pairs), len(candidate_pairs)))
+    print("%d -> %d edges" % (len(event_pairs), len(candidate_pairs)))
     return candidate_pairs
 
 
-def get_stale_state_baseline(causality_graph: CausalityGraph):
-    operator_hear_vertices = causality_graph.operator_hear_vertices
-    operator_write_vertices = causality_graph.operator_write_vertices
+def get_stale_state_baseline(event_graph: EventGraph):
+    operator_hear_vertices = event_graph.operator_hear_vertices
+    operator_write_vertices = event_graph.operator_write_vertices
     candidate_pairs = []
     for operator_write_vertex in operator_write_vertices:
         for operator_hear_vertex in operator_hear_vertices:
@@ -62,27 +62,27 @@ def get_stale_state_baseline(causality_graph: CausalityGraph):
 
 
 def causality_pair_filtering_pass(
-    causality_pairs: List[Tuple[CausalityVertex, CausalityVertex]],
+    event_pairs: List[Tuple[EventVertex, EventVertex]],
 ):
     print("Running optional pass: causality-filtering...")
     candidate_pairs = []
-    for pair in causality_pairs:
+    for pair in event_pairs:
         source = pair[0]
         sink = pair[1]
-        if causality_vertices_connected(source, sink):
+        if event_vertices_connected(source, sink):
             candidate_pairs.append(pair)
-    print("%d -> %d edges" % (len(causality_pairs), len(candidate_pairs)))
+    print("%d -> %d edges" % (len(event_pairs), len(candidate_pairs)))
     return candidate_pairs
 
 
 def reversed_effect_filtering_pass(
-    causality_pairs: List[Tuple[CausalityVertex, CausalityVertex]],
-    causality_graph: CausalityGraph,
+    event_pairs: List[Tuple[EventVertex, EventVertex]],
+    event_graph: EventGraph,
 ):
     print("Running optional pass: reversed-effect-filtering...")
     candidate_pairs = []
-    hear_key_to_vertices = causality_graph.operator_hear_key_to_vertices
-    for pair in causality_pairs:
+    hear_key_to_vertices = event_graph.operator_hear_key_to_vertices
+    for pair in event_pairs:
         operator_write = pair[1].content
         assert operator_write.etype == OperatorWriteTypes.DELETE
         if operator_write.error not in ALLOWED_ERROR_TYPE:
@@ -104,13 +104,11 @@ def reversed_effect_filtering_pass(
             reversed_effect = True
         if reversed_effect:
             candidate_pairs.append(pair)
-    print("%d -> %d edges" % (len(causality_pairs), len(candidate_pairs)))
+    print("%d -> %d edges" % (len(event_pairs), len(candidate_pairs)))
     return candidate_pairs
 
 
-def decide_stale_state_timing(
-    source_vertex: CausalityVertex, sink_vertex: CausalityVertex
-):
+def decide_stale_state_timing(source_vertex: EventVertex, sink_vertex: EventVertex):
     assert source_vertex.is_operator_hear()
     assert sink_vertex.is_operator_write()
     assert sink_vertex.content.etype == OperatorWriteTypes.DELETE
@@ -250,10 +248,8 @@ def generate_stale_state_test_plan(
     }
 
 
-def stale_state_analysis(
-    causality_graph: CausalityGraph, path: str, test_context: TestContext
-):
-    candidate_pairs = get_stale_state_baseline(causality_graph)
+def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestContext):
+    candidate_pairs = get_stale_state_baseline(event_graph)
     baseline_spec_number = len(candidate_pairs)
     after_p1_spec_number = -1
     after_p2_spec_number = -1
@@ -262,9 +258,7 @@ def stale_state_analysis(
         candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
         after_p1_spec_number = len(candidate_pairs)
     if test_context.common_config.effective_updates_pruning_enabled:
-        candidate_pairs = reversed_effect_filtering_pass(
-            candidate_pairs, causality_graph
-        )
+        candidate_pairs = reversed_effect_filtering_pass(candidate_pairs, event_graph)
         after_p2_spec_number = len(candidate_pairs)
     if test_context.common_config.nondeterministic_pruning_enabled:
         candidate_pairs = stale_state_detectable_pass(test_context, candidate_pairs)

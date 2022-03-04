@@ -5,8 +5,8 @@ from sieve_common.event_delta import *
 from sieve_common.common import *
 from sieve_common.k8s_event import *
 from sieve_analyzer.causality_graph import (
-    CausalityGraph,
-    CausalityVertex,
+    EventGraph,
+    EventVertex,
 )
 from sieve_perturbation_policies.common import (
     nondeterministic_key,
@@ -15,11 +15,11 @@ from sieve_perturbation_policies.common import (
 
 
 def intermediate_state_detectable_pass(
-    test_context: TestContext, causality_vertices: List[CausalityVertex]
+    test_context: TestContext, event_vertices: List[EventVertex]
 ):
     print("Running intermediate state detectable pass...")
     candidate_vertices = []
-    for vertex in causality_vertices:
+    for vertex in event_vertices:
         if vertex.is_operator_non_k8s_write():
             candidate_vertices.append(vertex)
         else:
@@ -38,14 +38,14 @@ def intermediate_state_detectable_pass(
                 operator_write.signature_counter,
             ):
                 candidate_vertices.append(vertex)
-    print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def effective_write_filtering_pass(causality_vertices: List[CausalityVertex]):
+def effective_write_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass:  effective-write-filtering...")
     candidate_vertices = []
-    for vertex in causality_vertices:
+    for vertex in event_vertices:
         if vertex.is_operator_non_k8s_write():
             candidate_vertices.append(vertex)
         else:
@@ -82,19 +82,19 @@ def effective_write_filtering_pass(causality_vertices: List[CausalityVertex]):
                     empty_write = True
                 if not empty_write:
                     candidate_vertices.append(vertex)
-    print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def no_error_write_filtering_pass(causality_vertices: List[CausalityVertex]):
+def no_error_write_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass:  no-error-write-filtering...")
     candidate_vertices = []
-    for vertex in causality_vertices:
+    for vertex in event_vertices:
         if vertex.is_operator_non_k8s_write():
             candidate_vertices.append(vertex)
         elif vertex.content.error in ALLOWED_ERROR_TYPE:
             candidate_vertices.append(vertex)
-    print("%d -> %d writes" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -147,11 +147,11 @@ def generate_intermediate_state_test_plan(
 
 
 def intermediate_state_analysis(
-    causality_graph: CausalityGraph, path: str, test_context: TestContext
+    event_graph: EventGraph, path: str, test_context: TestContext
 ):
     candidate_vertices = (
-        causality_graph.operator_write_vertices
-        + causality_graph.operator_non_k8s_write_vertices
+        event_graph.operator_write_vertices
+        + event_graph.operator_non_k8s_write_vertices
     )
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1

@@ -5,8 +5,8 @@ from sieve_common.event_delta import *
 from sieve_common.common import *
 from sieve_common.k8s_event import *
 from sieve_analyzer.causality_graph import (
-    CausalityGraph,
-    CausalityVertex,
+    EventGraph,
+    EventVertex,
 )
 from sieve_perturbation_policies.common import (
     nondeterministic_key,
@@ -15,11 +15,11 @@ from sieve_perturbation_policies.common import (
 
 
 def unobserved_state_detectable_pass(
-    test_context: TestContext, causality_vertices: List[CausalityVertex]
+    test_context: TestContext, event_vertices: List[EventVertex]
 ):
     print("Running unobserved state detectable pass...")
     candidate_vertices = []
-    for vertex in causality_vertices:
+    for vertex in event_vertices:
         operator_hear = vertex.content
         if nondeterministic_key(
             test_context,
@@ -35,24 +35,24 @@ def unobserved_state_detectable_pass(
             operator_hear.signature_counter,
         ):
             candidate_vertices.append(vertex)
-    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d receipts" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def causality_hear_filtering_pass(causality_vertices: List[CausalityVertex]):
+def causality_hear_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass: causality-filtering...")
     candidate_vertices = []
-    for vertex in causality_vertices:
+    for vertex in event_vertices:
         if len(vertex.out_inter_reconciler_edges) > 0:
             candidate_vertices.append(vertex)
-    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d receipts" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def impact_filtering_pass(causality_vertices: List[CausalityVertex]):
+def impact_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass: impact-filtering...")
     candidate_vertices = []
-    for vertex in causality_vertices:
+    for vertex in event_vertices:
         at_least_one_successful_write = False
         for out_inter_edge in vertex.out_inter_reconciler_edges:
             resulted_write = out_inter_edge.sink.content
@@ -60,17 +60,17 @@ def impact_filtering_pass(causality_vertices: List[CausalityVertex]):
                 at_least_one_successful_write = True
         if at_least_one_successful_write:
             candidate_vertices.append(vertex)
-    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d receipts" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def overwrite_filtering_pass(causality_vertices: List[CausalityVertex]):
+def overwrite_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass: overwrite-filtering...")
     candidate_vertices = []
-    for vertex in causality_vertices:
+    for vertex in event_vertices:
         if len(vertex.content.cancelled_by) > 0:
             candidate_vertices.append(vertex)
-    print("%d -> %d receipts" % (len(causality_vertices), len(candidate_vertices)))
+    print("%d -> %d receipts" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -220,9 +220,9 @@ def generate_unobserved_state_test_plan(
 
 
 def unobserved_state_analysis(
-    causality_graph: CausalityGraph, path: str, test_context: TestContext
+    event_graph: EventGraph, path: str, test_context: TestContext
 ):
-    candidate_vertices = causality_graph.operator_hear_vertices
+    candidate_vertices = event_graph.operator_hear_vertices
     candidate_vertices = overwrite_filtering_pass(candidate_vertices)
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
