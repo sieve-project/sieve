@@ -15,9 +15,6 @@ import (
 	"github.com/dave/dst/decorator/resolver/guess"
 )
 
-// const STALE_STATE string = "stale-state"
-// const UNOBSERVED_STATE string = "unobserved-state"
-// const INTERMEDIATE_STATE string = "intermediate-state"
 const TEST string = "test"
 const LEARN string = "learn"
 const VANILLA string = "vanilla"
