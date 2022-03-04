@@ -4,7 +4,7 @@ from typing import List
 from sieve_common.event_delta import *
 from sieve_common.common import *
 from sieve_common.k8s_event import *
-from sieve_analyzer.causality_graph import (
+from sieve_analyzer.event_graph import (
     EventGraph,
     EventVertex,
 )

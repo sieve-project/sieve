@@ -11,7 +11,7 @@ from sieve_perturbation_policies.intermediate_state import intermediate_state_an
 from sieve_perturbation_policies.stale_state import stale_state_analysis
 from sieve_perturbation_policies.unobserved_state import unobserved_state_analysis
 from sieve_common.k8s_event import *
-from sieve_analyzer.causality_graph import (
+from sieve_analyzer.event_graph import (
     EventGraph,
     EventVertex,
 )
