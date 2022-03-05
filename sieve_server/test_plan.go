@@ -6,11 +6,12 @@ import (
 )
 
 const (
-	onObjectCreate         string = "onObjectCreate"
-	onObjectDelete         string = "onObjectDelete"
-	onObjectUpdate         string = "onObjectUpdate"
-	onAnyFieldModification string = "onAnyFieldModification"
-	onTimeout              string = "onTimeout"
+	onObjectCreate           string = "onObjectCreate"
+	onObjectDelete           string = "onObjectDelete"
+	onObjectUpdate           string = "onObjectUpdate"
+	onAnyFieldModification   string = "onAnyFieldModification"
+	onTimeout                string = "onTimeout"
+	onAnnotatedAPICall string = "onAnnotatedAPICall"
 )
 
 type TriggerDefinition interface {
@@ -31,6 +32,34 @@ func (t *TimeoutTrigger) satisfy(triggerNotification TriggerNotification) bool {
 	if notification, ok := triggerNotification.(*TimeoutNotification); ok {
 		if notification.conditionName == t.name {
 			return true
+		}
+	}
+	return false
+}
+
+type AnnotatedAPICallTrigger struct {
+	name              string
+	module            string
+	filePath          string
+	receiverType      string
+	funName           string
+	desiredOccurrence int
+	actualOccurrence  int
+	observedWhen      string
+	observedBy        string
+}
+
+func (t *AnnotatedAPICallTrigger) getTriggerName() string {
+	return t.name
+}
+
+func (t *AnnotatedAPICallTrigger) satisfy(triggerNotification TriggerNotification) bool {
+	if notification, ok := triggerNotification.(*AnnotatedAPICallNotification); ok {
+		if notification.module == t.module && notification.filePath == t.filePath && notification.receiverType == t.receiverType && notification.funName == t.funName && notification.observedWhen == t.observedWhen && notification.observedBy == t.observedBy {
+			t.actualOccurrence += 1
+			if t.actualOccurrence == t.desiredOccurrence {
+				return true
+			}
 		}
 	}
 	return false
@@ -576,6 +605,19 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 		return &TimeoutTrigger{
 			name:         raw["triggerName"].(string),
 			timeoutValue: condition["timeoutValue"].(int),
+		}
+	case onAnnotatedAPICall:
+		observationPoint := raw["observationPoint"].(map[interface{}]interface{})
+		return &AnnotatedAPICallTrigger{
+			name:              raw["triggerName"].(string),
+			module:            condition["module"].(string),
+			filePath:          condition["filePath"].(string),
+			receiverType:      condition["receiverType"].(string),
+			funName:           condition["funName"].(string),
+			desiredOccurrence: condition["occurrence"].(int),
+			actualOccurrence:  0,
+			observedWhen:      observationPoint["when"].(string),
+			observedBy:        observationPoint["by"].(string),
 		}
 	default:
 		log.Fatalf("invalid trigger type %v", conditionType)

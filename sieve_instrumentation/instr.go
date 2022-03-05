@@ -47,10 +47,10 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 	for _, api_to_instrument := range apis_to_instrument {
 		entry := api_to_instrument.(map[string]interface{})
 		module := entry["module"].(string)
-		file_path := entry["file_path"].(string)
+		filePath := entry["file_path"].(string)
 		pkg := entry["package"].(string)
 		funName := entry["func_name"].(string)
-		typeName := entry["type_name"].(string)
+		recvType := entry["receiver_type"].(string)
 		customizedImportMap := map[string]string{}
 		if val, ok := entry["import_map"]; ok {
 			tempMap := val.(map[string]interface{})
@@ -58,16 +58,16 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 				customizedImportMap[key] = val.(string)
 			}
 		}
-		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, file_path)
-		instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "Learn", customizedImportMap, true)
+		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, filePath)
+		instrumentAnnotatedAPI(source_file_to_instrument, source_file_to_instrument, module, filePath, pkg, funName, recvType, "Learn", customizedImportMap, true)
 	}
 }
 
 func instrumentControllerForTest(configMap map[string]interface{}) {
 	controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
 	client_go_filepath := configMap["client_go_filepath"].(string)
-	// application_file_path := configMap["app_file_path"].(string)
-	// apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
+	application_file_path := configMap["app_file_path"].(string)
+	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
@@ -85,23 +85,23 @@ func instrumentControllerForTest(configMap map[string]interface{}) {
 	fmt.Printf("instrumenting %s\n", informerCacheGoFile)
 	instrumentInformerCacheGoForTest(informerCacheGoFile, informerCacheGoFile)
 
-	// for _, api_to_instrument := range apis_to_instrument {
-	// 	entry := api_to_instrument.(map[string]interface{})
-	// 	module := entry["module"].(string)
-	// 	file_path := entry["file_path"].(string)
-	// 	pkg := entry["package"].(string)
-	// 	funName := entry["func_name"].(string)
-	// 	typeName := entry["type_name"].(string)
-	// 	customizedImportMap := map[string]string{}
-	// 	if val, ok := entry["import_map"]; ok {
-	// 		tempMap := val.(map[string]interface{})
-	// 		for key, val := range tempMap {
-	// 			customizedImportMap[key] = val.(string)
-	// 		}
-	// 	}
-	// 	source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, file_path)
-	// 	instrumentNonK8sAPI(source_file_to_instrument, source_file_to_instrument, pkg, funName, typeName, "Test", customizedImportMap, true)
-	// }
+	for _, api_to_instrument := range apis_to_instrument {
+		entry := api_to_instrument.(map[string]interface{})
+		module := entry["module"].(string)
+		filePath := entry["file_path"].(string)
+		pkg := entry["package"].(string)
+		funName := entry["func_name"].(string)
+		recvType := entry["receiver_type"].(string)
+		customizedImportMap := map[string]string{}
+		if val, ok := entry["import_map"]; ok {
+			tempMap := val.(map[string]interface{})
+			for key, val := range tempMap {
+				customizedImportMap[key] = val.(string)
+			}
+		}
+		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, filePath)
+		instrumentAnnotatedAPI(source_file_to_instrument, source_file_to_instrument, module, filePath, pkg, funName, recvType, "Test", customizedImportMap, true)
+	}
 }
 
 func readConfig(configPath string) map[string]interface{} {

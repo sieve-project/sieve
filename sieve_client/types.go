@@ -41,14 +41,31 @@ type NotifyLearnAfterControllerWriteRequest struct {
 	Error          string
 }
 
-type NotifyLearnBeforeNKWriteRequest struct {
-	RecvTypeName string
-	FunName      string
+// type NotifyLearnBeforeNKWriteRequest struct {
+// 	RecvTypeName string
+// 	FunName      string
+// }
+
+// type NotifyLearnAfterNKWriteRequest struct {
+// 	SideEffectID   int
+// 	RecvTypeName   string
+// 	FunName        string
+// 	ReconcilerType string
+// }
+
+type NotifyLearnBeforeAnnotatedAPICallRequest struct {
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
+	FunName        string
+	ReconcilerType string
 }
 
-type NotifyLearnAfterNKWriteRequest struct {
-	SideEffectID   int
-	RecvTypeName   string
+type NotifyLearnAfterAnnotatedAPICallRequest struct {
+	InvocationID   int
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
 	FunName        string
 	ReconcilerType string
 }
@@ -127,4 +144,20 @@ type NotifyTestAfterControllerReadPauseRequest struct {
 	OperationType string
 	ResourceKey   string
 	ResourceType  string
+}
+
+type NotifyTestBeforeAnnotatedAPICallRequest struct {
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
+	FunName        string
+	ReconcilerType string
+}
+
+type NotifyTestAfterAnnotatedAPICallRequest struct {
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
+	FunName        string
+	ReconcilerType string
 }

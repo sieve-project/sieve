@@ -312,6 +312,63 @@ func NotifyTestAfterControllerListPause(readType string, object interface{}) {
 	checkResponse(response, "NotifyTestAfterControllerListPause")
 }
 
+func NotifyTestBeforeAnnotatedAPICall(moduleName string, filePath string, receiverType string, funName string) int {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return -1
+	}
+	if err := initRPCClient(); err != nil {
+		return -1
+	}
+	if !checkKVPairInAnnotatedAPICallTriggerCondition(receiverType + funName) {
+		return -1
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	log.Printf("NotifyTestBeforeAnnotatedAPICall %s %s %s %s\n", moduleName, filePath, receiverType, funName)
+	request := &NotifyTestBeforeAnnotatedAPICallRequest{
+		ModuleName:     moduleName,
+		FilePath:       filePath,
+		ReceiverType:   receiverType,
+		FunName:        funName,
+		ReconcilerType: reconcilerType,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeAnnotatedAPICall", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return -1
+	}
+	checkResponse(response, "NotifyTestBeforeAnnotatedAPICall")
+	return 1
+}
+
+func NotifyTestAfterAnnotatedAPICall(invocationID int, moduleName string, filePath string, receiverType string, funName string) {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	if !checkKVPairInAnnotatedAPICallTriggerCondition(receiverType + funName) {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	log.Printf("NotifyTestAfterAnnotatedAPICall %s %s %s %s\n", moduleName, filePath, receiverType, funName)
+	request := &NotifyTestAfterAnnotatedAPICallRequest{
+		ModuleName:     moduleName,
+		FilePath:       filePath,
+		ReceiverType:   receiverType,
+		FunName:        funName,
+		ReconcilerType: reconcilerType,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestAfterAnnotatedAPICall", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestAfterAnnotatedAPICall")
+}
+
 func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 	if err := loadSieveConfigFromConfigMap(eventType, key, object, true); err != nil {
 		return

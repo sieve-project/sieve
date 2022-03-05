@@ -108,21 +108,21 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportM
 	autoInstrFile.Write(buf.Bytes())
 }
 
-func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string, instrumentBefore bool) {
+func instrumentAnnotatedAPI(ifilepath, ofilepath, module, filePath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, pkg, customizedImportMap)
 	_, funcDecl := findFuncDecl(f, funName, recvTypeName)
-	toCallAfter := "Notify" + mode + "AfterNonK8sControllerWrite"
+	toCallAfter := "Notify" + mode + "AfterAnnotatedAPICall"
 
-	sideEffectIDVar := "-1"
+	invocationIDVar := "-1"
 	if instrumentBefore {
-		sideEffectIDVar = "sieveSideEffectID"
+		invocationIDVar = "invocationIDVar"
 	}
 
 	// Instrument after side effect
 	instrAfterSideEffect := &dst.DeferStmt{
 		Call: &dst.CallExpr{
 			Fun:  &dst.Ident{Name: toCallAfter, Path: "sieve.client"},
-			Args: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
+			Args: []dst.Expr{&dst.Ident{Name: invocationIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", module)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", filePath)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 		},
 	}
 	instrAfterSideEffect.Decs.End.Append("//sieve")
@@ -130,12 +130,12 @@ func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode 
 
 	// Instrument before side effect
 	if instrumentBefore {
-		toCallBefore := "Notify" + mode + "BeforeNonK8sControllerWrite"
+		toCallBefore := "Notify" + mode + "BeforeAnnotatedAPICall"
 		instrBeforeSideEffect := &dst.AssignStmt{
-			Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
+			Lhs: []dst.Expr{&dst.Ident{Name: invocationIDVar}},
 			Rhs: []dst.Expr{&dst.CallExpr{
 				Fun:  &dst.Ident{Name: toCallBefore, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
+				Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", module)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", filePath)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 			}},
 			Tok: token.DEFINE,
 		}

@@ -128,6 +128,14 @@ func (tc *TestCoordinator) NotifyTestAfterControllerReadPause(request *sieve.Not
 	return tc.Server.NotifyTestAfterControllerReadPause(request, response)
 }
 
+func (tc *TestCoordinator) NotifyTestBeforeAnnotatedAPICall(request *sieve.NotifyTestBeforeAnnotatedAPICallRequest, response *sieve.Response) error {
+	return tc.Server.NotifyTestBeforeAnnotatedAPICall(request, response)
+}
+
+func (tc *TestCoordinator) NotifyTestAfterAnnotatedAPICall(request *sieve.NotifyTestAfterAnnotatedAPICallRequest, response *sieve.Response) error {
+	return tc.Server.NotifyTestAfterAnnotatedAPICall(request, response)
+}
+
 func (tc *testCoordinator) Start() {
 	log.Println("start testCoordinator...")
 	log.Printf("mergedFieldPathMask:\n%v\n", tc.mergedFieldPathMask)
@@ -183,6 +191,23 @@ func (tc *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, res
 	tc.stateNotificationCh <- notification
 	<-blockingCh
 	log.Printf("%s: block over for ObjectUpdateNotification\n", handlerName)
+}
+
+func (tc *testCoordinator) SendAnnotatedAPICallNotificationAndBlock(handlerName, module, filePath, receiverType, funName, observedWhen, observedBy string) {
+	blockingCh := make(chan string)
+	notification := &AnnotatedAPICallNotification{
+		module:       module,
+		filePath:     filePath,
+		receiverType: receiverType,
+		funName:      funName,
+		observedWhen: observedWhen,
+		observedBy:   observedBy,
+		blockingCh:   blockingCh,
+	}
+	log.Printf("%s: send AnnotatedAPICallNotification\n", handlerName)
+	tc.stateNotificationCh <- notification
+	<-blockingCh
+	log.Printf("%s: block over for AnnotatedAPICallNotification\n", handlerName)
 }
 
 func (tc *testCoordinator) InitializeObjectStatesEntry(observedBy, observedWhen, resourceKey string) {
@@ -460,6 +485,22 @@ func (tc *testCoordinator) NotifyTestAfterControllerReadPause(request *sieve.Not
 	handlerName := "NotifyTestAfterControllerReadPause"
 	log.Printf("%s\t%s\t%s\t%s", handlerName, request.OperationType, request.ResourceKey, request.ResourceType)
 	tc.ProcessPauseControllerRead(false, request.OperationType, request.ResourceKey, request.ResourceType)
+	*response = sieve.Response{Message: "", Ok: true}
+	return nil
+}
+
+func (tc *testCoordinator) NotifyTestBeforeAnnotatedAPICall(request *sieve.NotifyTestBeforeAnnotatedAPICallRequest, response *sieve.Response) error {
+	handlerName := "NotifyTestBeforeAnnotatedAPICall"
+	log.Printf("%s\t%s\t%s\t%s\t%s\t%s", handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, request.ReconcilerType)
+	tc.SendAnnotatedAPICallNotificationAndBlock(handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, beforeAnnotatedAPICall, request.ReconcilerType)
+	*response = sieve.Response{Message: "", Ok: true}
+	return nil
+}
+
+func (tc *testCoordinator) NotifyTestAfterAnnotatedAPICall(request *sieve.NotifyTestAfterAnnotatedAPICallRequest, response *sieve.Response) error {
+	handlerName := "NotifyTestAfterAnnotatedAPICall"
+	log.Printf("%s\t%s\t%s\t%s\t%s\t%s", handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, request.ReconcilerType)
+	tc.SendAnnotatedAPICallNotificationAndBlock(handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, afterAnnotatedAPICall, request.ReconcilerType)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }

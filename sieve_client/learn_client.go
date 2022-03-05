@@ -166,9 +166,6 @@ func NotifyLearnAfterControllerWrite(sideEffectID int, sideEffectType string, ob
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
-		reconcilerType = UNKNOWN_RECONCILER_TYPE
-	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
@@ -195,54 +192,57 @@ func NotifyLearnAfterControllerWrite(sideEffectID int, sideEffectType string, ob
 	checkResponse(response, "NotifyLearnAfterControllerWrite")
 }
 
-func NotifyLearnBeforeNKWrite(typeName, funName string) int {
+func NotifyLearnBeforeAnnotatedAPICall(moduleName string, filePath string, receiverType string, funName string) int {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return -1
 	}
 	if err := initRPCClient(); err != nil {
 		return -1
 	}
-	request := &NotifyLearnBeforeNKWriteRequest{
-		RecvTypeName: typeName,
-		FunName:      funName,
+	reconcilerType := getReconcilerFromStackTrace()
+	request := &NotifyLearnBeforeAnnotatedAPICallRequest{
+		ModuleName:     moduleName,
+		FilePath:       filePath,
+		ReceiverType:   receiverType,
+		FunName:        funName,
+		ReconcilerType: reconcilerType,
 	}
 	var response Response
-	err := rpcClient.Call("LearnListener.NotifyLearnBeforeNKWrite", request, &response)
+	err := rpcClient.Call("LearnListener.NotifyLearnBeforeAnnotatedAPICall", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return -1
 	}
-	checkResponse(response, "NotifyLearnBeforeNKWrite")
+	checkResponse(response, "NotifyLearnBeforeAnnotatedAPICall")
 	return response.Number
 }
 
-func NotifyLearnAfterNKWrite(sideEffectID int, typeName, funName string) {
+func NotifyLearnAfterAnnotatedAPICall(invocationID int, moduleName string, filePath string, receiverType string, funName string) {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return
 	}
-	if sideEffectID == -1 {
+	if invocationID == -1 {
 		return
 	}
 	if err := initRPCClient(); err != nil {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
-		reconcilerType = UNKNOWN_RECONCILER_TYPE
-	}
-	request := &NotifyLearnAfterNKWriteRequest{
-		SideEffectID:   sideEffectID,
-		RecvTypeName:   typeName,
+	request := &NotifyLearnAfterAnnotatedAPICallRequest{
+		InvocationID:   invocationID,
+		ModuleName:     moduleName,
+		FilePath:       filePath,
+		ReceiverType:   receiverType,
 		FunName:        funName,
 		ReconcilerType: reconcilerType,
 	}
 	var response Response
-	err := rpcClient.Call("LearnListener.NotifyLearnAfterNKWrite", request, &response)
+	err := rpcClient.Call("LearnListener.NotifyLearnAfterAnnotatedAPICall", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
 		return
 	}
-	checkResponse(response, "NotifyLearnAfterNKWrite")
+	checkResponse(response, "NotifyLearnAfterAnnotatedAPICall")
 }
 
 func NotifyLearnAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
@@ -253,9 +253,6 @@ func NotifyLearnAfterControllerGet(readType string, fromCache bool, namespacedNa
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
-		reconcilerType = UNKNOWN_RECONCILER_TYPE
-	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
@@ -291,9 +288,6 @@ func NotifyLearnAfterControllerList(readType string, fromCache bool, object inte
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "" {
-		reconcilerType = UNKNOWN_RECONCILER_TYPE
-	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)

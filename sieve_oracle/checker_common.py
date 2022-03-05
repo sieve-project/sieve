@@ -219,19 +219,43 @@ def generate_perturbation_description(test_context: TestContext):
                 action_desc += "by a {}-second timeout.\n".format(
                     trigger["condition"]["timeoutValue"]
                 )
+            elif cond_type == "onAnnotatedAPICall":
+                module = trigger["condition"]["module"]
+                file_path = trigger["condition"]["filePath"]
+                receiver_type = trigger["condition"]["receiverType"]
+                fun_name = trigger["condition"]["funName"]
+                occurrence = trigger["condition"]["occurrence"]
+                observed_when = trigger["observationPoint"]["when"]
+                if observed_when == "beforeAnnotatedAPICall":
+                    action_desc += (
+                        "before the annotated API {}.{} (in {} from module {})".format(
+                            receiver_type, fun_name, file_path, module
+                        )
+                    )
+                elif observed_when == "afterAnnotatedAPICall":
+                    action_desc += (
+                        "after the annotated API {}.{} (in {} from module {})".format(
+                            receiver_type, fun_name, file_path, module
+                        )
+                    )
+                else:
+                    assert False
+                action_desc += " is called with the {} occurrence.\n".format(
+                    convert_occurrence(str(occurrence))
+                )
             else:
                 observed_when = trigger["observationPoint"]["when"]
                 resource_key = trigger["condition"]["resourceKey"]
                 occurrence = trigger["condition"]["occurrence"]
-                if observed_when == "afterAPIServerRecv":
+                if observed_when == "beforeAPIServerRecv":
                     action_desc += (
-                        "after the API server {} receives the event:\n".format(
+                        "before the API server {} receives the event:\n".format(
                             trigger["observationPoint"]["by"]
                         )
                     )
-                elif observed_when == "beforeAPIServerRecv":
+                elif observed_when == "afterAPIServerRecv":
                     action_desc += (
-                        "before the API server {} receives the event:\n".format(
+                        "after the API server {} receives the event:\n".format(
                             trigger["observationPoint"]["by"]
                         )
                     )

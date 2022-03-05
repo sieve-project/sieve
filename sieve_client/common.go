@@ -31,7 +31,8 @@ const SIEVE_CONFIG_ERR string = "[SIEVE CONFIG ERR]"
 
 var config map[string]interface{} = nil
 var configLoadingLock sync.Mutex
-var triggerDefinitions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
+var triggerDefinitionsByResourceKey map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
+var triggerDefinitionsByAnnotatedAPI map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
 var actions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
 var apiserverHostname string = ""
 var rpcClient *rpc.Client = nil
@@ -59,6 +60,14 @@ func checkKVPairInAction(actionType, key, val string, matchPrefix bool) bool {
 	return false
 }
 
+func checkKVPairInAnnotatedAPICallTriggerCondition(apiKey string) bool {
+	if _, ok := triggerDefinitionsByAnnotatedAPI[apiKey]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
 func checkKVPairInTriggerContent(content map[interface{}]interface{}, key, val string) bool {
 	if valInTestPlan, ok := content[key]; ok {
 		if valInTestPlanStr, ok := valInTestPlan.(string); ok {
@@ -71,7 +80,7 @@ func checkKVPairInTriggerContent(content map[interface{}]interface{}, key, val s
 }
 
 func checkKVPairInTriggerCondition(resourceKey, key, val string, onlyMatchType bool) bool {
-	for triggerResourceKey, triggers := range triggerDefinitions {
+	for triggerResourceKey, triggers := range triggerDefinitionsByResourceKey {
 		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
 			for _, trigger := range triggers {
 				if triggerCondition, ok := trigger["condition"]; ok {
@@ -88,7 +97,7 @@ func checkKVPairInTriggerCondition(resourceKey, key, val string, onlyMatchType b
 }
 
 func checkKVPairInTriggerObservationPoint(resourceKey, key, val string, onlyMatchType bool) bool {
-	for triggerResourceKey, triggers := range triggerDefinitions {
+	for triggerResourceKey, triggers := range triggerDefinitionsByResourceKey {
 		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
 			for _, trigger := range triggers {
 				if triggerObservationPoint, ok := trigger["observationPoint"]; ok {
@@ -122,19 +131,52 @@ func loadTriggerDefinitions(trigger map[interface{}]interface{}) error {
 		if !ok {
 			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"] to map[interface{}]interface{}", idx)
 		}
-		resourceKeyRaw, ok := condition["resourceKey"]
+		conditionTypeRaw, ok := condition["conditionType"]
 		if !ok {
-			// return fmt.Errorf("cannot find resourceKey in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			return fmt.Errorf("cannot find conditionType in trigger[\"definitions\"][%d][\"condition\"]", idx)
+		}
+		conditionType, ok := conditionTypeRaw.(string)
+		if !ok {
+			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"] to string", idx)
+		}
+		if conditionType == "onTimeout" {
 			continue
+		} else if conditionType == "onAnnotatedAPICall" {
+			receiverTypeRaw, ok := condition["receiverType"]
+			if !ok {
+				return fmt.Errorf("cannot find receiverType in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			}
+			receiverType, ok := receiverTypeRaw.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"receiverType\"] to string", idx)
+			}
+			funNameRaw, ok := condition["funName"]
+			if !ok {
+				return fmt.Errorf("cannot find funName in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			}
+			funName, ok := funNameRaw.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"funName\"] to string", idx)
+			}
+			apiKey := receiverType + funName
+			if _, ok := triggerDefinitionsByAnnotatedAPI[apiKey]; !ok {
+				triggerDefinitionsByAnnotatedAPI[apiKey] = []map[interface{}]interface{}{}
+			}
+			triggerDefinitionsByAnnotatedAPI[apiKey] = append(triggerDefinitionsByAnnotatedAPI[apiKey], definition)
+		} else {
+			resourceKeyRaw, ok := condition["resourceKey"]
+			if !ok {
+				return fmt.Errorf("cannot find resourceKey in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			}
+			resourceKey, ok := resourceKeyRaw.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"resourceKey\"] to string", idx)
+			}
+			if _, ok := triggerDefinitionsByResourceKey[resourceKey]; !ok {
+				triggerDefinitionsByResourceKey[resourceKey] = []map[interface{}]interface{}{}
+			}
+			triggerDefinitionsByResourceKey[resourceKey] = append(triggerDefinitionsByResourceKey[resourceKey], definition)
 		}
-		resourceKey, ok := resourceKeyRaw.(string)
-		if !ok {
-			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"resourcekey\"] to string", idx)
-		}
-		if _, ok := triggerDefinitions[resourceKey]; !ok {
-			triggerDefinitions[resourceKey] = []map[interface{}]interface{}{}
-		}
-		triggerDefinitions[resourceKey] = append(triggerDefinitions[resourceKey], definition)
 	}
 	return nil
 }
@@ -174,7 +216,7 @@ func loadActionsAndTriggers(testPlan map[string]interface{}) error {
 			return err
 		}
 	}
-	log.Printf("triggerDefinitions:\n%v\n", triggerDefinitions)
+	log.Printf("triggerDefinitionsByResourceKey:\n%v\n", triggerDefinitionsByResourceKey)
 	return nil
 }
 
@@ -410,6 +452,9 @@ func getReconcilerFromStackTrace() string {
 				}
 			}
 		}
+	}
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
 	}
 	return reconcilerType
 }

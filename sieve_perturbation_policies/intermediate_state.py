@@ -20,24 +20,22 @@ def intermediate_state_detectable_pass(
     print("Running intermediate state detectable pass...")
     candidate_vertices = []
     for vertex in event_vertices:
-        if vertex.is_operator_non_k8s_write():
+        assert vertex.is_operator_write()
+        operator_write = vertex.content
+        if nondeterministic_key(
+            test_context,
+            operator_write,
+        ):
+            continue
+        if detectable_event_diff(
+            False,
+            operator_write.slim_prev_obj_map,
+            operator_write.slim_cur_obj_map,
+            operator_write.prev_etype,
+            operator_write.etype,
+            operator_write.signature_counter,
+        ):
             candidate_vertices.append(vertex)
-        else:
-            operator_write = vertex.content
-            if nondeterministic_key(
-                test_context,
-                operator_write,
-            ):
-                continue
-            if detectable_event_diff(
-                False,
-                operator_write.slim_prev_obj_map,
-                operator_write.slim_cur_obj_map,
-                operator_write.prev_etype,
-                operator_write.etype,
-                operator_write.signature_counter,
-            ):
-                candidate_vertices.append(vertex)
     print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
@@ -46,42 +44,40 @@ def effective_write_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass:  effective-write-filtering...")
     candidate_vertices = []
     for vertex in event_vertices:
-        if vertex.is_operator_non_k8s_write():
+        assert vertex.is_operator_write()
+        if is_creation_or_deletion(vertex.content.etype):
             candidate_vertices.append(vertex)
         else:
-            if is_creation_or_deletion(vertex.content.etype):
-                candidate_vertices.append(vertex)
-            else:
-                unmasked_prev_object, unmasked_cur_object = diff_event(
-                    vertex.content.prev_obj_map,
-                    vertex.content.obj_map,
-                    None,
-                    None,
-                    True,
-                    False,
-                )
-                cur_etype = vertex.content.etype
-                empty_write = False
-                if unmasked_prev_object == unmasked_cur_object and (
-                    cur_etype == OperatorWriteTypes.UPDATE
-                    or cur_etype == OperatorWriteTypes.PATCH
-                    or cur_etype == OperatorWriteTypes.STATUS_UPDATE
+            unmasked_prev_object, unmasked_cur_object = diff_event(
+                vertex.content.prev_obj_map,
+                vertex.content.obj_map,
+                None,
+                None,
+                True,
+                False,
+            )
+            cur_etype = vertex.content.etype
+            empty_write = False
+            if unmasked_prev_object == unmasked_cur_object and (
+                cur_etype == OperatorWriteTypes.UPDATE
+                or cur_etype == OperatorWriteTypes.PATCH
+                or cur_etype == OperatorWriteTypes.STATUS_UPDATE
+                or cur_etype == OperatorWriteTypes.STATUS_PATCH
+            ):
+                empty_write = True
+            elif (
+                unmasked_prev_object is not None
+                and "status" not in unmasked_prev_object
+                and unmasked_cur_object is not None
+                and "status" not in unmasked_cur_object
+                and (
+                    cur_etype == OperatorWriteTypes.STATUS_UPDATE
                     or cur_etype == OperatorWriteTypes.STATUS_PATCH
-                ):
-                    empty_write = True
-                elif (
-                    unmasked_prev_object is not None
-                    and "status" not in unmasked_prev_object
-                    and unmasked_cur_object is not None
-                    and "status" not in unmasked_cur_object
-                    and (
-                        cur_etype == OperatorWriteTypes.STATUS_UPDATE
-                        or cur_etype == OperatorWriteTypes.STATUS_PATCH
-                    )
-                ):
-                    empty_write = True
-                if not empty_write:
-                    candidate_vertices.append(vertex)
+                )
+            ):
+                empty_write = True
+            if not empty_write:
+                candidate_vertices.append(vertex)
     print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
@@ -90,15 +86,14 @@ def no_error_write_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass:  no-error-write-filtering...")
     candidate_vertices = []
     for vertex in event_vertices:
-        if vertex.is_operator_non_k8s_write():
-            candidate_vertices.append(vertex)
-        elif vertex.content.error in ALLOWED_ERROR_TYPE:
+        assert vertex.is_operator_write()
+        if vertex.content.error in ALLOWED_ERROR_TYPE:
             candidate_vertices.append(vertex)
     print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
-def generate_intermediate_state_test_plan(
+def generate_intermediate_state_test_plan_for_controller_write(
     test_context: TestContext, operator_write: OperatorWrite
 ):
     resource_key = generate_key(
@@ -146,59 +141,100 @@ def generate_intermediate_state_test_plan(
     }
 
 
+def generate_intermediate_state_test_plan_for_annotated_api_invocation(
+    test_context: TestContext, api_invocation: OperatorNonK8sWrite
+):
+    return {
+        "actions": [
+            {
+                "actionType": "restartController",
+                "controllerLabel": test_context.controller_config.controller_pod_label,
+                "trigger": {
+                    "definitions": [
+                        {
+                            "triggerName": "trigger1",
+                            "condition": {
+                                "conditionType": "onAnnotatedAPICall",
+                                "module": api_invocation.module,
+                                "filePath": api_invocation.file_path,
+                                "receiverType": api_invocation.recv_type,
+                                "funName": api_invocation.fun_name,
+                                "occurrence": api_invocation.signature_counter,
+                            },
+                            "observationPoint": {
+                                "when": "afterAnnotatedAPICall",
+                                "by": api_invocation.reconciler_type,
+                            },
+                        }
+                    ],
+                    "expression": "trigger1",
+                },
+            }
+        ]
+    }
+
+
 def intermediate_state_analysis(
     event_graph: EventGraph, path: str, test_context: TestContext
 ):
-    candidate_vertices = (
-        event_graph.operator_write_vertices
-        + event_graph.operator_non_k8s_write_vertices
+    candidate_write_vertices = event_graph.operator_write_vertices
+    candidate_annotated_api_invocation_vertices = (
+        event_graph.operator_non_k8s_write_vertices
     )
-    baseline_spec_number = len(candidate_vertices)
+    baseline_spec_number = len(candidate_write_vertices) + len(
+        candidate_annotated_api_invocation_vertices
+    )
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
-    after_p1_spec_number = len(candidate_vertices)
+    after_p1_spec_number = len(candidate_write_vertices) + len(
+        candidate_annotated_api_invocation_vertices
+    )
     if test_context.common_config.effective_updates_pruning_enabled:
-        candidate_vertices = effective_write_filtering_pass(candidate_vertices)
-        candidate_vertices = no_error_write_filtering_pass(candidate_vertices)
-        after_p2_spec_number = len(candidate_vertices)
-    if test_context.common_config.nondeterministic_pruning_enabled:
-        candidate_vertices = intermediate_state_detectable_pass(
-            test_context, candidate_vertices
+        candidate_write_vertices = effective_write_filtering_pass(
+            candidate_write_vertices
         )
-    final_spec_number = len(candidate_vertices)
+        candidate_write_vertices = no_error_write_filtering_pass(
+            candidate_write_vertices
+        )
+        after_p2_spec_number = len(candidate_write_vertices) + len(
+            candidate_annotated_api_invocation_vertices
+        )
+    if test_context.common_config.nondeterministic_pruning_enabled:
+        candidate_write_vertices = intermediate_state_detectable_pass(
+            test_context, candidate_write_vertices
+        )
+    final_spec_number = len(candidate_write_vertices) + len(
+        candidate_annotated_api_invocation_vertices
+    )
     i = 0
-    for vertex in candidate_vertices:
+    for vertex in candidate_write_vertices:
         operator_write = vertex.content
-
-        if isinstance(operator_write, OperatorWrite):
-            intermediate_state_test_plan = generate_intermediate_state_test_plan(
+        intermediate_state_test_plan = (
+            generate_intermediate_state_test_plan_for_controller_write(
                 test_context, operator_write
             )
-            i += 1
-            file_name = os.path.join(
-                path, "intermediate-state-test-plan-%s.yaml" % (str(i))
-            )
-            if test_context.common_config.persist_test_plans_enabled:
-                dump_to_yaml(intermediate_state_test_plan, file_name)
-        else:
-            print("skip nk write for now")
-            # assert isinstance(operator_write, OperatorNonK8sWrite)
-            # # TODO: We need a better handling for non k8s event
-            # intermediate_state_config["se-name"] = operator_write.fun_name
-            # intermediate_state_config["se-namespace"] = "default"
-            # intermediate_state_config["se-rtype"] = operator_write.recv_type
-            # intermediate_state_config[
-            #     "se-reconciler-type"
-            # ] = operator_write.reconciler_type
-            # intermediate_state_config["se-etype-previous"] = ""
-            # intermediate_state_config["se-etype-current"] = NON_K8S_WRITE
-            # intermediate_state_config["se-diff-previous"] = json.dumps({})
-            # intermediate_state_config["se-diff-current"] = json.dumps({})
-            # intermediate_state_config["se-counter"] = str(
-            #     operator_write.signature_counter
-            # )
+        )
+        i += 1
+        file_name = os.path.join(
+            path, "intermediate-state-test-plan-%s.yaml" % (str(i))
+        )
+        if test_context.common_config.persist_test_plans_enabled:
+            dump_to_yaml(intermediate_state_test_plan, file_name)
 
+    for vertex in candidate_annotated_api_invocation_vertices:
+        annotated_api_invocation = vertex.content
+        intermediate_state_test_plan = (
+            generate_intermediate_state_test_plan_for_annotated_api_invocation(
+                test_context, annotated_api_invocation
+            )
+        )
+        i += 1
+        file_name = os.path.join(
+            path, "intermediate-state-test-plan-%s.yaml" % (str(i))
+        )
+        if test_context.common_config.persist_test_plans_enabled:
+            dump_to_yaml(intermediate_state_test_plan, file_name)
     cprint(
         "Generated %d intermediate-state test plan(s) in %s" % (i, path),
         bcolors.OKGREEN,

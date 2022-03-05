@@ -139,10 +139,10 @@ def parse_reconciler_events(test_context: TestContext, path):
                 operator_write.set_range(earliest_timestamp, i)
                 operator_write.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[operator_write.start_timestamp] = operator_write
-        elif SIEVE_BEFORE_NON_K8S_WRITE_MARK in line:
+        elif SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK in line:
             id_only = parse_operator_non_k8s_write_id_only(line)
             operator_nk_write_start_timestamp_map[id_only.id] = i
-        elif SIEVE_AFTER_NON_K8S_WRITE_MARK in line:
+        elif SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             operator_nk_write = parse_operator_non_k8s_write(line)

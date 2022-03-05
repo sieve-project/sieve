@@ -12,6 +12,20 @@ func (n *TimeoutNotification) getBlockingCh() chan string {
 	return nil
 }
 
+type AnnotatedAPICallNotification struct {
+	module       string
+	filePath     string
+	receiverType string
+	funName      string
+	observedWhen string
+	observedBy   string
+	blockingCh   chan string
+}
+
+func (n *AnnotatedAPICallNotification) getBlockingCh() chan string {
+	return n.blockingCh
+}
+
 type ObjectCreateNotification struct {
 	resourceKey  string
 	observedWhen string
@@ -50,17 +64,6 @@ type ObjectUpdateNotification struct {
 func (n *ObjectUpdateNotification) getBlockingCh() chan string {
 	return n.blockingCh
 }
-
-// type APIServerPauseNotification struct {
-// 	apiServerName string
-// 	resourceKey   string
-// 	pausedByAll   bool
-// 	blockingCh    chan string
-// }
-
-// func (n *APIServerPauseNotification) getBlockingCh() chan string {
-// 	return n.blockingCh
-// }
 
 type AsyncDoneNotification struct {
 }
