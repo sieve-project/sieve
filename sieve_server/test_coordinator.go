@@ -124,6 +124,14 @@ func (tc *TestCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyT
 	return tc.Server.NotifyTestAfterControllerWrite(request, response)
 }
 
+func (tc *TestCoordinator) NotifyTestBeforeControllerWritePause(request *sieve.NotifyTestBeforeControllerWritePauseRequest, response *sieve.Response) error {
+	return tc.Server.NotifyTestBeforeControllerWritePause(request, response)
+}
+
+func (tc *TestCoordinator) NotifyTestAfterControllerWritePause(request *sieve.NotifyTestAfterControllerWritePauseRequest, response *sieve.Response) error {
+	return tc.Server.NotifyTestAfterControllerWritePause(request, response)
+}
+
 func (tc *TestCoordinator) NotifyTestBeforeControllerReadPause(request *sieve.NotifyTestBeforeControllerReadPauseRequest, response *sieve.Response) error {
 	return tc.Server.NotifyTestBeforeControllerReadPause(request, response)
 }
@@ -457,6 +465,22 @@ func (tc *testCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTe
 	return nil
 }
 
+func (tc *testCoordinator) NotifyTestBeforeControllerWritePause(request *sieve.NotifyTestBeforeControllerWritePauseRequest, response *sieve.Response) error {
+	handlerName := "NotifyTestBeforeControllerWritePause"
+	log.Printf("%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey)
+	tc.ProcessPauseControllerWrite(true, request.ResourceKey)
+	*response = sieve.Response{Message: "", Ok: true}
+	return nil
+}
+
+func (tc *testCoordinator) NotifyTestAfterControllerWritePause(request *sieve.NotifyTestAfterControllerWritePauseRequest, response *sieve.Response) error {
+	handlerName := "NotifyTestAfterControllerWritePause"
+	log.Printf("%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey)
+	tc.ProcessPauseControllerWrite(false, request.ResourceKey)
+	*response = sieve.Response{Message: "", Ok: true}
+	return nil
+}
+
 func (tc *testCoordinator) NotifyTestBeforeControllerWrite(request *sieve.NotifyTestBeforeControllerWriteRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestBeforeControllerWrite"
 	log.Printf("%s\t%s\t%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey, request.ReconcilerType, request.Object)
@@ -476,7 +500,7 @@ func (tc *testCoordinator) NotifyTestBeforeControllerWrite(request *sieve.Notify
 	default:
 		log.Printf("do not support %s\n", request.WriteType)
 	}
-	tc.ProcessPauseControllerWrite(true, request.ResourceKey)
+	// tc.ProcessPauseControllerWrite(true, request.ResourceKey)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
@@ -500,7 +524,7 @@ func (tc *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyT
 	default:
 		log.Printf("do not support %s\n", request.WriteType)
 	}
-	tc.ProcessPauseControllerWrite(false, request.ResourceKey)
+	// tc.ProcessPauseControllerWrite(false, request.ResourceKey)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }

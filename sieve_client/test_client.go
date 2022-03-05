@@ -164,13 +164,12 @@ func NotifyTestBeforeControllerWrite(writeType string, object interface{}) int {
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
-	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerWrite", false) {
-		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
-			return -1
-		}
-		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
-			return -1
-		}
+	defer NotifyTestBeforeControllerWritePause(writeType, resourceKey)
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
+		return -1
+	}
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+		return -1
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
@@ -208,13 +207,12 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
-	if !checkKVPairInAction("pauseController", "pauseAt", "afterControllerWrite", false) {
-		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
-			return
-		}
-		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
-			return
-		}
+	defer NotifyTestAfterControllerWritePause(writeType, resourceKey)
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
+		return
+	}
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+		return
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
@@ -235,6 +233,50 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerWrite")
+}
+
+func NotifyTestBeforeControllerWritePause(writeType string, resourceKey string) {
+	// NOTE: assume the caller has checked the config and created the client
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerWrite", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerWrite", false) {
+		return
+	}
+	log.Printf("NotifyTestBeforeControllerWritePause %s %s\n", writeType, resourceKey)
+	request := &NotifyTestBeforeControllerWritePauseRequest{
+		WriteType:   writeType,
+		ResourceKey: resourceKey,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerWritePause", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestBeforeControllerWritePause")
+}
+
+func NotifyTestAfterControllerWritePause(writeType string, resourceKey string) {
+	// NOTE: assume the caller has checked the config and created the client
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerWrite", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerWrite", false) {
+		return
+	}
+	log.Printf("NotifyTestAfterControllerWritePause %s %s\n", writeType, resourceKey)
+	request := &NotifyTestAfterControllerWritePauseRequest{
+		WriteType:   writeType,
+		ResourceKey: resourceKey,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWritePause", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return
+	}
+	checkResponse(response, "NotifyTestAfterControllerWritePause")
 }
 
 func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.NamespacedName, object interface{}) {

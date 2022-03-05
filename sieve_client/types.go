@@ -140,6 +140,16 @@ type NotifyTestAfterControllerWriteRequest struct {
 	Object         string
 }
 
+type NotifyTestBeforeControllerWritePauseRequest struct {
+	WriteType   string
+	ResourceKey string
+}
+
+type NotifyTestAfterControllerWritePauseRequest struct {
+	WriteType   string
+	ResourceKey string
+}
+
 type NotifyTestBeforeControllerReadPauseRequest struct {
 	OperationType string
 	ResourceKey   string
