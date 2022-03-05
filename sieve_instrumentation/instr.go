@@ -30,7 +30,7 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
-	instrumentSharedInformerGoForLearn(sharedInformerGoFile, sharedInformerGoFile)
+	instrumentSharedInformerGoForAll(sharedInformerGoFile, sharedInformerGoFile, "Learn")
 
 	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
 	fmt.Printf("instrumenting %s\n", controllerGoFile)
@@ -79,7 +79,7 @@ func instrumentControllerForTest(configMap map[string]interface{}) {
 
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
 	fmt.Printf("instrumenting %s\n", sharedInformerGoFile)
-	instrumentSharedInformerGoForTest(sharedInformerGoFile, sharedInformerGoFile)
+	instrumentSharedInformerGoForAll(sharedInformerGoFile, sharedInformerGoFile, "Test")
 
 	informerCacheGoFile := path.Join(controller_runtime_filepath, "pkg", "cache", "informer_cache.go")
 	fmt.Printf("instrumenting %s\n", informerCacheGoFile)

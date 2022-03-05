@@ -146,6 +146,43 @@ func instrumentAnnotatedAPI(ifilepath, ofilepath, module, filePath, pkg, funName
 	writeInstrumentedFile(ofilepath, pkg, f, customizedImportMap)
 }
 
+func instrumentSharedInformerGoForAll(ifilepath, ofilepath, mode string) {
+	funNameBefore := "Notify" + mode + "BeforeControllerRecv"
+	funNameAfter := "Notify" + mode + "AfterControllerRecv"
+	f := parseSourceFile(ifilepath, "cache", map[string]string{})
+	_, funcDecl := findFuncDecl(f, "HandleDeltas", "*sharedIndexInformer")
+	if funcDecl != nil {
+		for _, stmt := range funcDecl.Body.List {
+			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
+				instrBeforeControllerRecv := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "recvID"}},
+					Rhs: []dst.Expr{&dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
+					}},
+					Tok: token.DEFINE,
+				}
+				instrBeforeControllerRecv.Decs.End.Append("//sieve")
+				insertStmt(&rangeStmt.Body.List, 0, instrBeforeControllerRecv)
+
+				instrAfterControllerRecv := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "recvID"}, &dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
+					},
+				}
+				instrAfterControllerRecv.Decs.End.Append("//sieve")
+				rangeStmt.Body.List = append(rangeStmt.Body.List, instrAfterControllerRecv)
+				break
+			}
+		}
+	} else {
+		panic(fmt.Errorf("Cannot find function HandleDeltas"))
+	}
+
+	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
+}
+
 func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, "client", map[string]string{})
 

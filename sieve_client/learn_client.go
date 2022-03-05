@@ -70,21 +70,21 @@ func NotifyLearnBeforeControllerRecv(operationType string, object interface{}) i
 	return response.Number
 }
 
-func NotifyLearnAfterControllerRecv(eventID int, object interface{}) {
+func NotifyLearnAfterControllerRecv(recvID int, operationType string, object interface{}) {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return
 	}
 	if !triggerReconcile(object) {
 		return
 	}
-	if eventID == -1 {
+	if recvID == -1 {
 		return
 	}
 	if err := initRPCClient(); err != nil {
 		return
 	}
 	request := &NotifyLearnAfterControllerRecvRequest{
-		EventID: eventID,
+		EventID: recvID,
 	}
 	var response Response
 	err := rpcClient.Call("LearnListener.NotifyLearnAfterControllerRecv", request, &response)

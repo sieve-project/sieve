@@ -8,23 +8,23 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
+func NotifyTestBeforeControllerRecv(operationType string, object interface{}) int {
 	if err := loadSieveConfigFromEnv(true); err != nil {
-		return
+		return -1
 	}
 	if err := initRPCClient(); err != nil {
-		return
+		return -1
 	}
 	resourceType := regularizeType(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerRecv", false) {
-		return
+		return -1
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
-		return
+		return -1
 	}
 	log.Printf("NotifyTestBeforeControllerRecv %s %s %s\n", operationType, resourceKey, string(jsonObject))
 	request := &NotifyTestBeforeControllerRecvRequest{
@@ -36,12 +36,13 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) {
 	err = rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerRecv", request, &response)
 	if err != nil {
 		printError(err, SIEVE_REPLY_ERR)
-		return
+		return -1
 	}
 	checkResponse(response, "NotifyTestBeforeControllerRecv")
+	return 1
 }
 
-func NotifyTestAfterControllerRecv(operationType string, object interface{}) {
+func NotifyTestAfterControllerRecv(recvID int, operationType string, object interface{}) {
 	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
