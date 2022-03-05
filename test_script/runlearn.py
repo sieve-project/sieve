@@ -53,6 +53,7 @@ if __name__ == "__main__":
     else:
         operators = args.operators
 
+    os.system("docker pull %s/node:learn" % "ghcr.io/sieve-project/action")
     for operator in operators:
         os.system(
             "docker pull %s/%s:learn" % ("ghcr.io/sieve-project/action", operator)

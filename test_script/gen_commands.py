@@ -33,36 +33,23 @@ if __name__ == "__main__":
         "pull-commands.txt", "w"
     ) as pull_command_file:
         # pull all k8s images
-        pull_command_file.write("docker pull {}/node:{}\n".format(args.docker, "learn"))
-        pull_command_file.write(
-            "docker pull {}/node:{}\n".format(args.docker, "stale-state")
-        )
-        pull_command_file.write(
-            "docker pull {}/node:{}\n".format(args.docker, "unobserved-state")
-        )
-        pull_command_file.write(
-            "docker pull {}/node:{}\n".format(args.docker, "intermediate-state")
-        )
+        pull_command_file.write("docker pull {}/node:{}\n".format(args.docker, "test"))
         pull_command_file.write(
             "docker pull {}/node:{}\n".format(args.docker, "vanilla")
         )
-
         for operator in operators:
+            pull_command_file.write(
+                "docker pull {}/{}:test\n".format(args.docker, operator)
+            )
             for mode in modes:
-                # for each operator X mode, pull the corresponding image
-                pull_command_file.write(
-                    "docker pull {}/{}:{}\n".format(args.docker, operator, mode)
-                )
-
-                if mode == "vanilla":
-                    command_file.write(
-                        "python3 sieve.py -s test -p {} -m {} -t {} -d {}\n".format(
-                            operator, mode, testcase, args.docker
+                for testcase in os.listdir(os.path.join("../log", operator)):
+                    if mode == "vanilla":
+                        command_file.write(
+                            "python3 sieve.py -s test -p {} -m {} -t {} -d {}\n".format(
+                                operator, mode, testcase, args.docker
+                            )
                         )
-                    )
-                else:
-                    # write commands for each test case
-                    for testcase in os.listdir(os.path.join("../log", operator)):
+                    else:
                         configs = glob.glob(
                             os.path.join(
                                 os.path.abspath("../log"),
