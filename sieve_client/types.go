@@ -126,8 +126,14 @@ type NotifyTestAfterControllerListRequest struct {
 	ObjectList     string
 }
 
+type NotifyTestBeforeControllerWriteRequest struct {
+	WriteType      string
+	ResourceKey    string
+	ReconcilerType string
+	Object         string
+}
+
 type NotifyTestAfterControllerWriteRequest struct {
-	WriteID        int
 	WriteType      string
 	ResourceKey    string
 	ReconcilerType string

@@ -71,7 +71,7 @@ func instrumentControllerForTest(configMap map[string]interface{}) {
 
 	clientGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "client.go")
 	fmt.Printf("instrumenting %s\n", clientGoFile)
-	instrumentClientGoForAll(clientGoFile, clientGoFile, "Test", false)
+	instrumentClientGoForAll(clientGoFile, clientGoFile, "Test", true)
 
 	splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
 	fmt.Printf("instrumenting %s\n", splitGoFile)

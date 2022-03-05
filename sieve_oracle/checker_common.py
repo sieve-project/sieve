@@ -271,6 +271,10 @@ def generate_perturbation_description(test_context: TestContext):
                             controller_pod_label
                         )
                     )
+                elif observed_when == "beforeControllerWrite":
+                    action_desc += "before the controller {} issues:\n".format(
+                        controller_pod_label
+                    )
                 elif observed_when == "afterControllerWrite":
                     action_desc += "after the controller {} issues:\n".format(
                         controller_pod_label

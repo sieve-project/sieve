@@ -153,6 +153,47 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	checkResponse(response, "NotifyTestAfterControllerList")
 }
 
+func NotifyTestBeforeControllerWrite(writeType string, object interface{}) int {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return -1
+	}
+	if err := initRPCClient(); err != nil {
+		return -1
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	resourceType := regularizeType(object)
+	name, namespace := extractNameNamespaceFromObj(object)
+	resourceKey := generateResourceKey(resourceType, namespace, name)
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerWrite", false) {
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
+			return -1
+		}
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+			return -1
+		}
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return -1
+	}
+	log.Printf("NotifyTestBeforeControllerWrite %s %s %s\n", writeType, resourceKey, string(jsonObject))
+	request := &NotifyTestBeforeControllerWriteRequest{
+		WriteType:      writeType,
+		ResourceKey:    resourceKey,
+		ReconcilerType: reconcilerType,
+		Object:         string(jsonObject),
+	}
+	var response Response
+	err = rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerWrite", request, &response)
+	if err != nil {
+		printError(err, SIEVE_REPLY_ERR)
+		return -1
+	}
+	checkResponse(response, "NotifyTestBeforeControllerWrite")
+	return 1
+}
+
 func NotifyTestAfterControllerWrite(writeID int, writeType string, object interface{}, k8sErr error) {
 	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
@@ -182,7 +223,6 @@ func NotifyTestAfterControllerWrite(writeID int, writeType string, object interf
 	}
 	log.Printf("NotifyTestAfterControllerWrite %s %s %s\n", writeType, resourceKey, string(jsonObject))
 	request := &NotifyTestAfterControllerWriteRequest{
-		WriteID:        writeID,
 		WriteType:      writeType,
 		ResourceKey:    resourceKey,
 		ReconcilerType: reconcilerType,
