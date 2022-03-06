@@ -10,7 +10,7 @@ from sieve_common.k8s_event import (
     generate_key,
     get_event_signature,
     conflicting_event,
-    get_mask_by_key,
+    get_mask_by_resource_key,
     parse_key,
 )
 from sieve_common.event_delta import diff_event
@@ -197,14 +197,26 @@ class EventGraph:
     def retrieve_masked(self, rtype, namespace, name):
         masked_keys = set()
         masked_keys.update(
-            set(get_mask_by_key(self.configured_masked_keys, rtype, namespace, name))
+            set(
+                get_mask_by_resource_key(
+                    self.configured_masked_keys, rtype, namespace, name
+                )
+            )
         )
         masked_paths = set()
         masked_paths.update(
-            set(get_mask_by_key(self.configured_masked_paths, rtype, namespace, name))
+            set(
+                get_mask_by_resource_key(
+                    self.configured_masked_paths, rtype, namespace, name
+                )
+            )
         )
         masked_paths.update(
-            set(get_mask_by_key(self.learned_masked_paths, rtype, namespace, name))
+            set(
+                get_mask_by_resource_key(
+                    self.learned_masked_paths, rtype, namespace, name
+                )
+            )
         )
         return (masked_keys, masked_paths)
 

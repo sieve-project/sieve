@@ -1,7 +1,7 @@
 from sieve_common.common import *
 import json
 from sieve_oracle.checker_common import *
-from sieve_common.k8s_event import get_mask_by_key, parse_key
+from sieve_common.k8s_event import get_mask_by_resource_key, parse_key
 from deepdiff import DeepDiff
 
 
@@ -372,7 +372,7 @@ def compare_states(test_context: TestContext):
             ):
                 path = tranlate_apiserver_shape_to_controller_shape(untranslated_path)
             mask_keys = set(
-                get_mask_by_key(
+                get_mask_by_resource_key(
                     test_context.common_config.field_key_mask,
                     resource_type,
                     namespace,
@@ -380,7 +380,7 @@ def compare_states(test_context: TestContext):
                 )
             )
             mask_paths = set(
-                get_mask_by_key(
+                get_mask_by_resource_key(
                     test_context.common_config.field_path_mask,
                     resource_type,
                     namespace,
