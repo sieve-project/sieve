@@ -1,21 +1,44 @@
-project: xtradb-operator
-stage: test
-mode: stale-state
-straggler: kind-control-plane3
-front-runner: kind-control-plane
-operator-pod-label: xtradb-operator
-ce-name: xtradb-cluster
-ce-namespace: default
-ce-rtype: perconaxtradbcluster
-ce-etype-previous: MODIFIED
-ce-etype-current: MODIFIED
-ce-diff-previous: '{"metadata": {}}'
-ce-diff-current: '{"metadata": {"deletionGracePeriodSeconds": "SIEVE-NON-NIL", "deletionTimestamp":
-  "SIEVE-NON-NIL"}}'
-ce-counter: '1'
-ce-is-cr: 'True'
-se-name: datadir-xtradb-cluster-pxc-2
-se-namespace: default
-se-rtype: persistentvolumeclaim
-se-etype: ADDED
-timing: after
+actions:
+- actionType: pauseAPIServer
+  apiServerName: kind-control-plane3
+  pauseScope: perconaxtradbcluster/default/xtradb-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: perconaxtradbcluster/default/xtradb-cluster
+        prevStateDiff: '{"metadata": {}}'
+        curStateDiff: '{"metadata": {"deletionGracePeriodSeconds": "SIEVE-NON-NIL",
+          "deletionTimestamp": "SIEVE-NON-NIL"}}'
+        occurrence: 1
+      observationPoint:
+        when: afterAPIServerRecv
+        by: kind-control-plane3
+    expression: trigger1
+- actionType: reconnectController
+  controllerLabel: xtradb-operator
+  reconnectAPIServer: kind-control-plane3
+  async: true
+  waitBefore: 10
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onObjectCreate
+        resourceKey: persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-2
+        occurrence: 1
+      observationPoint:
+        when: afterAPIServerRecv
+        by: kind-control-plane
+    expression: trigger2
+- actionType: resumeAPIServer
+  apiServerName: kind-control-plane3
+  pauseScope: perconaxtradbcluster/default/xtradb-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger3
+      condition:
+        conditionType: onTimeout
+        timeoutValue: 20
+    expression: trigger3

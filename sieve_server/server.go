@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"os"
 
 	sieve "sieve.client"
 )
@@ -14,34 +15,16 @@ import (
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("registering rpc server...")
-	config := getConfig()
-
-	switch config["stage"] {
+	args := os.Args
+	phase := args[1]
+	switch phase {
 	case sieve.LEARN:
-		log.Println(sieve.LEARN)
-		rpc.Register(NewLearnListener(config))
-
+		rpc.Register(NewLearnListener())
 	case sieve.TEST:
-		learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask := getMask()
-		switch config["mode"] {
-		case sieve.STALE_STATE:
-			log.Println(sieve.STALE_STATE)
-			rpc.Register(NewStaleStateListener(config, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask))
-		case sieve.UNOBSERVED_STATE:
-			log.Println(sieve.UNOBSERVED_STATE)
-			rpc.Register(NewUnobsrStateListener(config, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask))
-		case sieve.INTERMEDIATE_STATE:
-			log.Println(sieve.INTERMEDIATE_STATE)
-			rpc.Register(NewIntmdStateListener(config, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask))
-
-		default:
-			log.Fatalf("Cannot recognize mode: %s\n", config["mode"])
-		}
-
+		rpc.Register(NewTestCoordinator())
 	default:
-		log.Fatalf("Cannot recognize stage: %s\n", config["stage"])
+		log.Fatalf("Cannot recognize stage: %s\n", phase)
 	}
-
 	log.Println("setting up connection...")
 	addr, err := net.ResolveTCPAddr("tcp", ":12345")
 	checkError(err)

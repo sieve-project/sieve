@@ -1,11 +1,41 @@
-project: xtradb-operator
-stage: test
-mode: unobserved-state
-ce-name: xtradb-cluster
-ce-namespace: default
-ce-rtype: perconaxtradbcluster
-ce-etype-previous: Updated
-ce-etype-current: Updated
-ce-diff-previous: '{"spec": {"pxc": {"size": 3}}}'
-ce-diff-current: '{"spec": {"pxc": {"size": 5}}}'
-ce-counter: '1'
+actions:
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: perconaxtradbcluster/default/xtradb-cluster
+  avoidOngoingRead: true
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: perconaxtradbcluster/default/xtradb-cluster
+        prevStateDiff: '{"spec": {"pxc": {"size": 3}}}'
+        curStateDiff: '{"spec": {"pxc": {"size": 5}}}'
+        occurrence: 1
+      observationPoint:
+        when: beforeControllerRecv
+        by: informer
+    expression: trigger1
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: perconaxtradbcluster/default/xtradb-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onAnyFieldModification
+        resourceKey: perconaxtradbcluster/default/xtradb-cluster
+        prevStateDiff: '{"spec": {"pxc": {"size": 5}}}'
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: perconaxtradbcluster/default/xtradb-cluster
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    expression: trigger2|trigger3

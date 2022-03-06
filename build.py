@@ -379,9 +379,7 @@ def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
-            sieve_modes.INTERMEDIATE_STATE,
-            sieve_modes.UNOBSR_STATE,
-            sieve_modes.STALE_STATE,
+            sieve_stages.TEST,
         ]:
             img_tag = version + "-" + this_mode
             setup_kubernetes(version, this_mode, img_repo, img_tag, push_to_remote)
@@ -402,9 +400,7 @@ def setup_controller_wrapper(
     if mode == "all":
         for this_mode in [
             sieve_stages.LEARN,
-            sieve_modes.INTERMEDIATE_STATE,
-            sieve_modes.UNOBSR_STATE,
-            sieve_modes.STALE_STATE,
+            sieve_stages.TEST,
         ]:
             img_tag = this_mode
             setup_controller(
@@ -491,9 +487,7 @@ if __name__ == "__main__":
 
     if options.mode not in [
         sieve_modes.VANILLA,
-        sieve_modes.STALE_STATE,
-        sieve_modes.UNOBSR_STATE,
-        sieve_modes.INTERMEDIATE_STATE,
+        sieve_stages.TEST,
         sieve_stages.LEARN,
         sieve_modes.ALL,
     ]:

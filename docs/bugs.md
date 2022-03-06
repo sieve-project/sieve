@@ -40,7 +40,7 @@ https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by 
 
 https://github.com/pravega/zookeeper-operator/issues/314 confirmed and fixed by us (stale state)
 
-https://github.com/pravega/zookeeper-operator/issues/410 confirmed (by-product, stale-state)
+https://github.com/pravega/zookeeper-operator/issues/410 confirmed (by-product, new pattern)
 
 ## [rabbitmq/cluster-operator](https://github.com/rabbitmq/cluster-operator)
 https://github.com/rabbitmq/cluster-operator/issues/648 confirmed and fixed by us (stale state)
@@ -68,7 +68,7 @@ https://jira.percona.com/browse/K8SPSMDB-579 confirmed (intermediate state)
 
 https://jira.percona.com/browse/K8SPSMDB-585 confirmed (unobserved state)
 
-https://jira.percona.com/browse/K8SPSMDB-590 confirmed (by-product, stale-state)
+https://jira.percona.com/browse/K8SPSMDB-590 confirmed (by-product, new pattern)
 
 https://jira.percona.com/browse/K8SPSMDB-591 pending (by-product, application-specific)
 

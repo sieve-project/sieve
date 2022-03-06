@@ -2,21 +2,18 @@ import copy
 import os
 import shutil
 from typing import List
-
 from sieve_common.common import (
     TestContext,
     fail,
-    sieve_modes,
+    sieve_built_in_test_patterns,
 )
-from sieve_analyzer.test_plan_generator import (
-    intermediate_state_analysis,
-    unobserved_state_analysis,
-    stale_state_analysis,
-)
+from sieve_perturbation_policies.intermediate_state import intermediate_state_analysis
+from sieve_perturbation_policies.stale_state import stale_state_analysis
+from sieve_perturbation_policies.unobserved_state import unobserved_state_analysis
 from sieve_common.k8s_event import *
-from sieve_analyzer.causality_graph import (
-    CausalityGraph,
-    CausalityVertex,
+from sieve_analyzer.event_graph import (
+    EventGraph,
+    EventVertex,
 )
 
 
@@ -142,10 +139,10 @@ def parse_reconciler_events(test_context: TestContext, path):
                 operator_write.set_range(earliest_timestamp, i)
                 operator_write.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[operator_write.start_timestamp] = operator_write
-        elif SIEVE_BEFORE_NON_K8S_WRITE_MARK in line:
+        elif SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK in line:
             id_only = parse_operator_non_k8s_write_id_only(line)
             operator_nk_write_start_timestamp_map[id_only.id] = i
-        elif SIEVE_AFTER_NON_K8S_WRITE_MARK in line:
+        elif SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             operator_nk_write = parse_operator_non_k8s_write(line)
@@ -229,9 +226,9 @@ def parse_reconciler_events(test_context: TestContext, path):
 
 
 def base_pass(
-    operator_hear_vertices: List[CausalityVertex],
-    operator_write_vertices: List[CausalityVertex],
-    operator_non_k8s_write_vertices: List[CausalityVertex],
+    operator_hear_vertices: List[EventVertex],
+    operator_write_vertices: List[EventVertex],
+    operator_non_k8s_write_vertices: List[EventVertex],
 ):
     print("Running base pass...")
     vertex_pairs = []
@@ -254,7 +251,7 @@ def base_pass(
     return vertex_pairs
 
 
-def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
+def hear_read_overlap_filtering_pass(vertex_pairs: List[List[EventVertex]]):
     print("Running optional pass: hear-read-overlap-filtering...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
@@ -277,7 +274,7 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     return pruned_vertex_pairs
 
 
-def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
+def error_msg_filtering_pass(vertex_pairs: List[List[EventVertex]]):
     print("Running optional pass: error-message-filtering...")
     pruned_vertex_pairs = []
     for pair in vertex_pairs:
@@ -291,10 +288,10 @@ def error_msg_filtering_pass(vertex_pairs: List[List[CausalityVertex]]):
     return pruned_vertex_pairs
 
 
-def generate_hear_write_pairs(causality_graph: CausalityGraph):
-    operator_hear_vertices = causality_graph.operator_hear_vertices
-    operator_write_vertices = causality_graph.operator_write_vertices
-    operator_non_k8s_write_vertices = causality_graph.operator_non_k8s_write_vertices
+def generate_hear_write_pairs(event_graph: EventGraph):
+    operator_hear_vertices = event_graph.operator_hear_vertices
+    operator_write_vertices = event_graph.operator_write_vertices
+    operator_non_k8s_write_vertices = event_graph.operator_non_k8s_write_vertices
     vertex_pairs = base_pass(
         operator_hear_vertices, operator_write_vertices, operator_non_k8s_write_vertices
     )
@@ -303,11 +300,11 @@ def generate_hear_write_pairs(causality_graph: CausalityGraph):
     return vertex_pairs
 
 
-def generate_write_hear_pairs(causality_graph: CausalityGraph):
+def generate_write_hear_pairs(event_graph: EventGraph):
     vertex_pairs = []
-    operator_hear_vertices = causality_graph.operator_hear_vertices
-    operator_write_vertices = causality_graph.operator_write_vertices
-    operator_hear_key_map = causality_graph.operator_hear_key_to_vertices
+    operator_hear_vertices = event_graph.operator_hear_vertices
+    operator_write_vertices = event_graph.operator_write_vertices
+    operator_hear_key_map = event_graph.operator_hear_key_to_vertices
     for operator_write_vertex in operator_write_vertices:
         if operator_write_vertex.content.key in operator_hear_key_map:
             for operator_hear_vertex in operator_hear_vertices:
@@ -326,52 +323,52 @@ def generate_write_hear_pairs(causality_graph: CausalityGraph):
     return vertex_pairs
 
 
-def build_causality_graph(test_context: TestContext, log_path, oracle_dir):
+def build_event_graph(test_context: TestContext, log_path, oracle_dir):
     learned_masked_paths = json.load(open(os.path.join(oracle_dir, "mask.json")))
 
     operator_hear_list = parse_receiver_events(log_path)
     reconciler_event_list = parse_reconciler_events(test_context, log_path)
 
-    causality_graph = CausalityGraph(
+    event_graph = EventGraph(
         learned_masked_paths,
         test_context.common_config.field_key_mask,
         test_context.common_config.field_path_mask,
     )
-    causality_graph.add_sorted_operator_hears(operator_hear_list)
-    causality_graph.add_sorted_reconciler_events(reconciler_event_list)
+    event_graph.add_sorted_operator_hears(operator_hear_list)
+    event_graph.add_sorted_reconciler_events(reconciler_event_list)
 
-    hear_write_pairs = generate_hear_write_pairs(causality_graph)
-    # write_hear_pairs = generate_write_hear_pairs(causality_graph)
+    hear_write_pairs = generate_hear_write_pairs(event_graph)
+    # write_hear_pairs = generate_write_hear_pairs(event_graph)
 
     for pair in hear_write_pairs:
-        causality_graph.connect_hear_to_write(pair[0], pair[1])
+        event_graph.connect_hear_to_write(pair[0], pair[1])
 
     # for pair in write_hear_pairs:
-    #     causality_graph.connect_write_to_hear(pair[0], pair[1])
+    #     event_graph.connect_write_to_hear(pair[0], pair[1])
 
-    causality_graph.finalize()
-    causality_graph.sanity_check()
+    event_graph.finalize()
+    event_graph.sanity_check()
 
-    return causality_graph
+    return event_graph
 
 
 def generate_test_config(
-    test_context: TestContext, analysis_mode, causality_graph: CausalityGraph
+    test_context: TestContext, analysis_mode, event_graph: EventGraph
 ):
     log_dir = test_context.result_dir
     generated_config_dir = os.path.join(log_dir, analysis_mode)
     if os.path.isdir(generated_config_dir):
         shutil.rmtree(generated_config_dir)
     os.makedirs(generated_config_dir, exist_ok=True)
-    if analysis_mode == sieve_modes.STALE_STATE:
-        return stale_state_analysis(causality_graph, generated_config_dir, test_context)
-    elif analysis_mode == sieve_modes.UNOBSR_STATE:
+    if analysis_mode == sieve_built_in_test_patterns.STALE_STATE:
+        return stale_state_analysis(event_graph, generated_config_dir, test_context)
+    elif analysis_mode == sieve_built_in_test_patterns.UNOBSERVED_STATE:
         return unobserved_state_analysis(
-            causality_graph, generated_config_dir, test_context
+            event_graph, generated_config_dir, test_context
         )
-    elif analysis_mode == sieve_modes.INTERMEDIATE_STATE:
+    elif analysis_mode == sieve_built_in_test_patterns.INTERMEDIATE_STATE:
         return intermediate_state_analysis(
-            causality_graph, generated_config_dir, test_context
+            event_graph, generated_config_dir, test_context
         )
 
 
@@ -388,22 +385,22 @@ def analyze_trace(
     if not os.path.exists(os.path.join(oracle_dir, "mask.json")):
         fail("cannot find mask.json")
         return
-    causality_graph = build_causality_graph(test_context, log_path, oracle_dir)
+    event_graph = build_event_graph(test_context, log_path, oracle_dir)
     sieve_learn_result = {
         "project": test_context.project,
         "test": test_context.test_name,
     }
     for analysis_mode in [
-        sieve_modes.STALE_STATE,
-        sieve_modes.UNOBSR_STATE,
-        sieve_modes.INTERMEDIATE_STATE,
+        sieve_built_in_test_patterns.STALE_STATE,
+        sieve_built_in_test_patterns.UNOBSERVED_STATE,
+        sieve_built_in_test_patterns.INTERMEDIATE_STATE,
     ]:
         (
             baseline_spec_number,
             after_p1_spec_number,
             after_p2_spec_number,
             final_spec_number,
-        ) = generate_test_config(test_context, analysis_mode, causality_graph)
+        ) = generate_test_config(test_context, analysis_mode, event_graph)
         sieve_learn_result[analysis_mode] = {
             "baseline": baseline_spec_number,
             "after_p1": after_p1_spec_number,

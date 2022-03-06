@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/rpc"
 	"os"
+	"path"
 	"reflect"
 	"runtime/debug"
 	"strings"
@@ -16,9 +17,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-const STALE_STATE string = "stale-state"
-const UNOBSERVED_STATE string = "unobserved-state"
-const INTERMEDIATE_STATE string = "intermediate-state"
 const LEARN string = "learn"
 const TEST string = "test"
 const UNKNOWN_RECONCILER_TYPE = "unknown"
@@ -29,126 +27,337 @@ const SIEVE_CONN_ERR string = "[SIEVE CONN ERR]"
 const SIEVE_REPLY_ERR string = "[SIEVE REPLY ERR]"
 const SIEVE_HOST_ERR string = "[SIEVE HOST ERR]"
 const SIEVE_JSON_ERR string = "[SIEVE JSON ERR]"
+const SIEVE_CONFIG_ERR string = "[SIEVE CONFIG ERR]"
 
 var config map[string]interface{} = nil
-var configFromConfigMapData map[string]interface{} = nil
-var configMapReady = false
+var configLoadingLock sync.Mutex
+var triggerDefinitionsByResourceKey map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
+var triggerDefinitionsByAnnotatedAPI map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
+var actions map[string][]map[interface{}]interface{} = make(map[string][]map[interface{}]interface{})
+var apiserverHostname string = ""
+var rpcClient *rpc.Client = nil
 
+var exists = struct{}{}
 var taintMap sync.Map = sync.Map{}
 
-func loadSieveConfig() error {
-	if config == nil {
-		var err error = nil
-		config, err = getConfig()
-		if err == nil {
-			log.Println(config)
-		} else {
-			return err
-		}
-	}
-	return nil
-}
-
-func getConfigFromEnv() map[string]interface{} {
-	if _, ok := os.LookupEnv("SIEVE-MODE"); ok {
-		configFromEnv := make(map[string]interface{})
-		for _, e := range os.Environ() {
-			pair := strings.SplitN(e, "=", 2)
-			envKey := pair[0]
-			envVal := pair[1]
-			if strings.HasPrefix(envKey, "SIEVE-") {
-				newKey := strings.ToLower(strings.TrimPrefix(envKey, "SIEVE-"))
-				if strings.HasSuffix(newKey, "-list") {
-					configFromEnv[newKey] = strings.Split(envVal, ",")
-				} else {
-					configFromEnv[newKey] = envVal
+func checkKVPairInAction(actionType, key, val string, matchPrefix bool) bool {
+	for actionKey, actionsOfTheSameType := range actions {
+		if actionKey == actionType {
+			for _, action := range actionsOfTheSameType {
+				if valInTestPlan, ok := action[key]; ok {
+					if valInTestPlanStr, ok := valInTestPlan.(string); ok {
+						if val == valInTestPlanStr {
+							return true
+						}
+						if matchPrefix && strings.HasPrefix(valInTestPlanStr, val) {
+							return true
+						}
+					}
 				}
 			}
-		}
-		return configFromEnv
-	} else {
-		return nil
-	}
-}
-
-func loadSieveConfigMap(eventType, key string, object interface{}) {
-	tokens := strings.Split(key, "/")
-	name := tokens[len(tokens)-1]
-	rtype := regularizeType(object)
-	if name == "sieve-testing-global-config" {
-		log.Printf("[sieve] configmap map seen: %s, %s, %v\n", eventType, key, object)
-		if eventType == "ADDED" && rtype == "configmap" {
-			jsonObject, err := json.Marshal(object)
-			if err != nil {
-				printError(err, SIEVE_JSON_ERR)
-				return
-			}
-			configMapObject := make(map[string]interface{})
-			err = yaml.Unmarshal(jsonObject, &configMapObject)
-			if err != nil {
-				printError(err, SIEVE_JSON_ERR)
-				return
-			}
-			log.Printf("[sieve] config map is %v\n", configMapObject)
-			configFromConfigMapData = make(map[string]interface{})
-			configMapData, ok := configMapObject["Data"].(map[interface{}]interface{})
-			if !ok {
-				log.Printf("[sieve] cannot convert to map[interface{}]interface{}")
-				return
-			}
-			for k, v := range configMapData {
-				newKey := strings.ToLower(strings.TrimPrefix(k.(string), "SIEVE-"))
-				newVal := v
-				configFromConfigMapData[newKey] = newVal
-			}
-			configMapReady = true
-		}
-	}
-}
-
-func getConfig() (map[string]interface{}, error) {
-	if configMapReady {
-		return configFromConfigMapData, nil
-	}
-	configFromEnv := getConfigFromEnv()
-	if configFromEnv != nil {
-		return configFromEnv, nil
-	}
-	return nil, fmt.Errorf("config is not found")
-}
-
-func checkMode(mode string) bool {
-	if modeInConfig, ok := config["mode"]; ok {
-		return modeInConfig.(string) == mode
-	} else {
-		log.Println("[sieve] no mode field in config")
-		return false
-	}
-}
-
-func checkStage(stage string) bool {
-	if stageInConfig, ok := config["stage"]; ok {
-		return stageInConfig.(string) == stage
-	} else {
-		log.Println("[sieve] no stage field in config")
-		return false
-	}
-}
-
-func checkStaleStateTiming(timing string) bool {
-	if checkStage(TEST) && checkMode(STALE_STATE) {
-		if timingInConfig, ok := config["timing"]; ok {
-			return timingInConfig.(string) == timing
-		} else {
-			return timing == "after"
 		}
 	}
 	return false
 }
 
+func checkKVPairInAnnotatedAPICallTriggerCondition(apiKey string) bool {
+	if _, ok := triggerDefinitionsByAnnotatedAPI[apiKey]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
+func checkKVPairInTriggerContent(content map[interface{}]interface{}, key, val string) bool {
+	if valInTestPlan, ok := content[key]; ok {
+		if valInTestPlanStr, ok := valInTestPlan.(string); ok {
+			if val == valInTestPlanStr {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func checkKVPairInTriggerCondition(resourceKey, key, val string, onlyMatchType bool) bool {
+	for triggerResourceKey, triggers := range triggerDefinitionsByResourceKey {
+		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
+			for _, trigger := range triggers {
+				if triggerCondition, ok := trigger["condition"]; ok {
+					if triggerConditionMap, ok := triggerCondition.(map[interface{}]interface{}); ok {
+						if checkKVPairInTriggerContent(triggerConditionMap, key, val) {
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+func checkKVPairInTriggerObservationPoint(resourceKey, key, val string, onlyMatchType bool) bool {
+	for triggerResourceKey, triggers := range triggerDefinitionsByResourceKey {
+		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
+			for _, trigger := range triggers {
+				if triggerObservationPoint, ok := trigger["observationPoint"]; ok {
+					if triggerObservationPointMap, ok := triggerObservationPoint.(map[interface{}]interface{}); ok {
+						if checkKVPairInTriggerContent(triggerObservationPointMap, key, val) {
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+func loadTriggerDefinitions(trigger map[interface{}]interface{}) error {
+	definitions, ok := trigger["definitions"].([]interface{})
+	if !ok {
+		return fmt.Errorf("cannot convert trigger[\"definitions\"] to []interface{}")
+	}
+	for idx, definitionRaw := range definitions {
+		definition, ok := definitionRaw.(map[interface{}]interface{})
+		if !ok {
+			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d] to map[interface{}]interface{}", idx)
+		}
+		conditionRaw, ok := definition["condition"]
+		if !ok {
+			return fmt.Errorf("cannot find condition in trigger[\"definitions\"][%d]", idx)
+		}
+		condition, ok := conditionRaw.(map[interface{}]interface{})
+		if !ok {
+			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"] to map[interface{}]interface{}", idx)
+		}
+		conditionTypeRaw, ok := condition["conditionType"]
+		if !ok {
+			return fmt.Errorf("cannot find conditionType in trigger[\"definitions\"][%d][\"condition\"]", idx)
+		}
+		conditionType, ok := conditionTypeRaw.(string)
+		if !ok {
+			return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"] to string", idx)
+		}
+		if conditionType == "onTimeout" {
+			continue
+		} else if conditionType == "onAnnotatedAPICall" {
+			receiverTypeRaw, ok := condition["receiverType"]
+			if !ok {
+				return fmt.Errorf("cannot find receiverType in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			}
+			receiverType, ok := receiverTypeRaw.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"receiverType\"] to string", idx)
+			}
+			funNameRaw, ok := condition["funName"]
+			if !ok {
+				return fmt.Errorf("cannot find funName in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			}
+			funName, ok := funNameRaw.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"funName\"] to string", idx)
+			}
+			apiKey := receiverType + funName
+			if _, ok := triggerDefinitionsByAnnotatedAPI[apiKey]; !ok {
+				triggerDefinitionsByAnnotatedAPI[apiKey] = []map[interface{}]interface{}{}
+			}
+			triggerDefinitionsByAnnotatedAPI[apiKey] = append(triggerDefinitionsByAnnotatedAPI[apiKey], definition)
+		} else {
+			resourceKeyRaw, ok := condition["resourceKey"]
+			if !ok {
+				return fmt.Errorf("cannot find resourceKey in trigger[\"definitions\"][%d][\"condition\"]", idx)
+			}
+			resourceKey, ok := resourceKeyRaw.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert trigger[\"definitions\"][%d][\"condition\"][\"resourceKey\"] to string", idx)
+			}
+			if _, ok := triggerDefinitionsByResourceKey[resourceKey]; !ok {
+				triggerDefinitionsByResourceKey[resourceKey] = []map[interface{}]interface{}{}
+			}
+			triggerDefinitionsByResourceKey[resourceKey] = append(triggerDefinitionsByResourceKey[resourceKey], definition)
+		}
+	}
+	return nil
+}
+
+func loadActions(action map[interface{}]interface{}) error {
+	actionType, ok := action["actionType"].(string)
+	if !ok {
+		return fmt.Errorf("cannot convert action[\"actionType\"] to string")
+	}
+	if _, ok := actions[actionType]; !ok {
+		actions[actionType] = []map[interface{}]interface{}{}
+	}
+	actions[actionType] = append(actions[actionType], action)
+	return nil
+}
+
+func loadActionsAndTriggers(testPlan map[string]interface{}) error {
+	actions, ok := testPlan["actions"].([]interface{})
+	if !ok {
+		return fmt.Errorf("cannot convert testPlan[\"actions\"] to []interface{}")
+	}
+	for idx, val := range actions {
+		action, ok := val.(map[interface{}]interface{})
+		err := loadActions(action)
+		if err != nil {
+			return nil
+		}
+		if !ok {
+			return fmt.Errorf("cannot convert testPlan[\"actions\"][%d] to []interface{}", idx)
+		}
+		trigger, ok := action["trigger"].(map[interface{}]interface{})
+		if !ok {
+			return fmt.Errorf("cannot convert testPlan[\"actions\"][%d][\"trigger\"] to []interface{}", idx)
+		}
+		err = loadTriggerDefinitions(trigger)
+		if err != nil {
+			return err
+		}
+	}
+	log.Printf("triggerDefinitionsByResourceKey:\n%v\n", triggerDefinitionsByResourceKey)
+	return nil
+}
+
+func loadSieveConfigFromEnv(testMode bool) error {
+	if config != nil {
+		return nil
+	}
+	configLoadingLock.Lock()
+	defer configLoadingLock.Unlock()
+	if config != nil {
+		return nil
+	}
+	if _, ok := os.LookupEnv("sieveTestPlan"); ok {
+		configFromEnv := make(map[string]interface{})
+		data := os.Getenv("sieveTestPlan")
+		err := yaml.Unmarshal([]byte(data), &configFromEnv)
+		if err != nil {
+			printError(err, SIEVE_JSON_ERR)
+			return fmt.Errorf("fail to load from env")
+		}
+		log.Printf("config from env:\n%v\n", configFromEnv)
+		config = configFromEnv
+		if testMode {
+			err = loadActionsAndTriggers(configFromEnv)
+			if err != nil {
+				printError(err, SIEVE_CONFIG_ERR)
+				return fmt.Errorf("fail to load from env")
+			}
+		}
+	} else {
+		return fmt.Errorf("fail to load from env")
+	}
+	return nil
+}
+
+func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, testMode bool) error {
+	if config != nil {
+		return nil
+	}
+	if eventType == "ADDED" {
+		tokens := strings.Split(key, "/")
+		if len(tokens) < 4 {
+			return fmt.Errorf("tokens len should be >= 4")
+		}
+		namespace := tokens[len(tokens)-2]
+		name := tokens[len(tokens)-1]
+		if namespace == "default" && name == "sieve-testing-global-config" {
+			resourceType := regularizeType(object)
+			if resourceType == "configmap" {
+				log.Println("have seen ADDED configmap/default/sieve-testing-global-config")
+				jsonObject, err := json.Marshal(object)
+				if err != nil {
+					printError(err, SIEVE_JSON_ERR)
+					return fmt.Errorf("fail to load from configmap")
+				}
+				configMapObject := make(map[string]interface{})
+				err = yaml.Unmarshal(jsonObject, &configMapObject)
+				if err != nil {
+					printError(err, SIEVE_JSON_ERR)
+					return fmt.Errorf("fail to load from configmap")
+				}
+				configFromConfigMapData := make(map[string]interface{})
+				configMapData, ok := configMapObject["Data"].(map[interface{}]interface{})
+				if !ok {
+					log.Printf("cannot convert configMapObject[\"Data\"] to map[interface{}]interface{}")
+					return fmt.Errorf("fail to load from configmap")
+				}
+				if str, ok := configMapData["sieveTestPlan"].(string); ok {
+					err = yaml.Unmarshal([]byte(str), &configFromConfigMapData)
+					if err != nil {
+						printError(err, SIEVE_JSON_ERR)
+						return fmt.Errorf("fail to load from configmap")
+					}
+					log.Printf("config from configMap:\n%v\n", configFromConfigMapData)
+					config = configFromConfigMapData
+					if testMode {
+						err = loadActionsAndTriggers(configFromConfigMapData)
+						if err != nil {
+							printError(err, SIEVE_CONFIG_ERR)
+							return fmt.Errorf("fail to load from configmap")
+						}
+					}
+				} else {
+					log.Printf("cannot convert %v to string", configMapData["sieveTestPlan"])
+					return fmt.Errorf("fail to load from configmap")
+				}
+			} else {
+				return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
+			}
+		} else {
+			return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
+		}
+	} else {
+		return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
+	}
+	return nil
+}
+
+func initAPIServerHostName() error {
+	if apiserverHostname != "" {
+		return nil
+	}
+	configLoadingLock.Lock()
+	defer configLoadingLock.Unlock()
+	if apiserverHostname != "" {
+		return nil
+	}
+	var err error = nil
+	apiserverHostname, err = os.Hostname()
+	if err != nil {
+		log.Printf("error in getting host name\n")
+		return err
+	}
+	return nil
+}
+
+func initRPCClient() error {
+	if rpcClient != nil {
+		return nil
+	}
+	configLoadingLock.Lock()
+	defer configLoadingLock.Unlock()
+	if rpcClient != nil {
+		return nil
+	}
+	var err error
+	hostPort := SIEVE_SERVER_ADDR
+	if val, ok := config["serverEndpoint"]; ok {
+		hostPort = val.(string)
+	}
+	rpcClient, err = rpc.Dial("tcp", hostPort)
+	if err != nil {
+		log.Printf("error in setting up connection to %s due to %v\n", hostPort, err)
+		return err
+	}
+	return nil
+}
+
 func getCRDs() []string {
 	crds := []string{}
-	if cs, ok := config["crd-list"]; ok {
+	if cs, ok := config["crdList"]; ok {
 		switch v := cs.(type) {
 		case []interface{}:
 			for _, c := range v {
@@ -159,23 +368,12 @@ func getCRDs() []string {
 				crds = append(crds, c)
 			}
 		default:
-			log.Println("crd-list wrong type")
+			log.Println("crdList wrong type")
 		}
+	} else {
+		log.Println("do not find crdList from config")
 	}
 	return crds
-}
-
-func newClient() (*rpc.Client, error) {
-	hostPort := SIEVE_SERVER_ADDR
-	if val, ok := config["server-endpoint"]; ok {
-		hostPort = val.(string)
-	}
-	client, err := rpc.Dial("tcp", hostPort)
-	if err != nil {
-		log.Printf("[sieve] error in setting up connection to %s due to %v\n", hostPort, err)
-		return nil, err
-	}
-	return client, nil
 }
 
 func printError(err error, text string) {
@@ -190,27 +388,18 @@ func checkResponse(response Response, reqName string) {
 	}
 }
 
+func generateResourceKey(resourceType, namespace, name string) string {
+	return path.Join(resourceType, namespace, name)
+}
+
 func regularizeType(object interface{}) string {
 	objectUnstructured, ok := object.(*unstructured.Unstructured)
 	if ok {
 		return strings.ToLower(fmt.Sprint(objectUnstructured.Object["kind"]))
 	} else {
-		rtype := reflect.TypeOf(object).String()
-		tokens := strings.Split(rtype, ".")
+		resourceType := reflect.TypeOf(object).String()
+		tokens := strings.Split(resourceType, ".")
 		return strings.ToLower(tokens[len(tokens)-1])
-	}
-}
-
-func pluralToSingle(rtype string) string {
-	if rtype == "endpoints" {
-		return rtype
-	} else if strings.HasSuffix(rtype, "ches") {
-		// TODO: this is very dirty hack. We should have a systematic way to get resource type
-		return rtype[:len(rtype)-2]
-	} else if strings.HasSuffix(rtype, "s") {
-		return rtype[:len(rtype)-1]
-	} else {
-		return rtype
 	}
 }
 
@@ -264,5 +453,38 @@ func getReconcilerFromStackTrace() string {
 			}
 		}
 	}
+	if reconcilerType == "" {
+		reconcilerType = UNKNOWN_RECONCILER_TYPE
+	}
 	return reconcilerType
+}
+
+func getResourceNamespaceNameFromAPIKey(key string) (string, string, error) {
+	namespace := ""
+	name := ""
+	tokens := strings.Split(key, "/")
+	if len(tokens) < 4 {
+		// log.Printf("unrecognizable key %s\n", key)
+		return namespace, name, fmt.Errorf("tokens len should be >= 4")
+	}
+	namespace = tokens[len(tokens)-2]
+	name = tokens[len(tokens)-1]
+	return namespace, name, nil
+}
+
+func LogAPIEvent(eventType, key string, object interface{}) {
+	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
+	if err != nil {
+		return
+	}
+	if namespace != "default" {
+		return
+	}
+	jsonObject, err := json.Marshal(object)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+	resourceType := regularizeType(object)
+	log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
 }

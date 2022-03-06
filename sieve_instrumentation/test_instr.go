@@ -6,51 +6,18 @@ import (
 	"github.com/dave/dst"
 )
 
-func instrumentSharedInformerGoForUnobsrState(ifilepath, ofilepath string) {
-	f := parseSourceFile(ifilepath, "cache", map[string]string{})
-	_, funcDecl := findFuncDecl(f, "HandleDeltas", "*sharedIndexInformer")
-	if funcDecl != nil {
-		for _, stmt := range funcDecl.Body.List {
-			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
-				instrNotifyUnobsrStateBeforeIndexerWrite := &dst.ExprStmt{
-					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyUnobsrStateBeforeIndexerWrite", Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
-					},
-				}
-				instrNotifyUnobsrStateBeforeIndexerWrite.Decs.End.Append("//sieve")
-				insertStmt(&rangeStmt.Body.List, 0, instrNotifyUnobsrStateBeforeIndexerWrite)
-
-				instrNotifyUnobsrStateAfterIndexerWrite := &dst.ExprStmt{
-					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: "NotifyUnobsrStateAfterIndexerWrite", Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
-					},
-				}
-				instrNotifyUnobsrStateAfterIndexerWrite.Decs.End.Append("//sieve")
-				rangeStmt.Body.List = append(rangeStmt.Body.List, instrNotifyUnobsrStateAfterIndexerWrite)
-
-				break
-			}
-		}
-		writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
-	} else {
-		panic(fmt.Errorf("Cannot find function HandleDeltas"))
-	}
-}
-
-func instrumentInformerCacheGoForUnobsrState(ifilepath, ofilepath string) {
+func instrumentInformerCacheGoForTest(ifilepath, ofilepath string) {
 	f := parseSourceFile(ifilepath, "cache", map[string]string{})
 
-	instrumentInformerCacheRead(f, "Get", "UnobsrState")
-	instrumentInformerCacheRead(f, "List", "UnobsrState")
+	instrumentInformerCacheRead(f, "Get", "Test")
+	instrumentInformerCacheRead(f, "List", "Test")
 
 	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 }
 
 func instrumentInformerCacheRead(f *dst.File, etype, mode string) {
-	funNameBefore := "Notify" + mode + "BeforeInformerCache" + etype
-	funNameAfter := "Notify" + mode + "AfterInformerCache" + etype
+	funNameBefore := "Notify" + mode + "BeforeController" + etype + "Pause"
+	funNameAfter := "Notify" + mode + "AfterController" + etype + "Pause"
 	_, funcDecl := findFuncDecl(f, etype, "*informerCache")
 	if funcDecl != nil {
 		if _, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {

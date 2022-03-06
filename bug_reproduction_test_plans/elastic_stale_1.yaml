@@ -1,20 +1,41 @@
-project: elastic-operator
-stage: test
-mode: stale-state
-straggler: kind-control-plane3
-front-runner: kind-control-plane
-operator-pod-label: elastic-operator
-ce-name: elasticsearch-cluster
-ce-namespace: default
-ce-rtype: elasticsearch
-ce-etype-previous: MODIFIED
-ce-etype-current: DELETED
-ce-diff-previous: '{}'
-ce-diff-current: '{}'
-ce-counter: '1'
-ce-is-cr: 'True'
-se-name: elasticsearch-cluster-es-transport-certs-public
-se-namespace: default
-se-rtype: secret
-se-etype: ADDED
-timing: after
+actions:
+- actionType: pauseAPIServer
+  apiServerName: kind-control-plane3
+  pauseScope: elasticsearch/default/elasticsearch-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: elasticsearch/default/elasticsearch-cluster
+        occurrence: 1
+      observationPoint:
+        when: afterAPIServerRecv
+        by: kind-control-plane3
+    expression: trigger1
+- actionType: reconnectController
+  controllerLabel: elastic-operator
+  reconnectAPIServer: kind-control-plane3
+  async: true
+  waitBefore: 10
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onObjectCreate
+        resourceKey: secret/default/elasticsearch-cluster-es-transport-certs-public
+        occurrence: 1
+      observationPoint:
+        when: afterAPIServerRecv
+        by: kind-control-plane
+    expression: trigger2
+- actionType: resumeAPIServer
+  apiServerName: kind-control-plane3
+  pauseScope: elasticsearch/default/elasticsearch-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger3
+      condition:
+        conditionType: onTimeout
+        timeoutValue: 20
+    expression: trigger3

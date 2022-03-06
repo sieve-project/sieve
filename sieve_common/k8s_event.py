@@ -13,8 +13,8 @@ SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-HEAR]"
 SIEVE_AFTER_HEAR_MARK = "[SIEVE-AFTER-HEAR]"
 SIEVE_BEFORE_WRITE_MARK = "[SIEVE-BEFORE-WRITE]"
 SIEVE_AFTER_WRITE_MARK = "[SIEVE-AFTER-WRITE]"
-SIEVE_BEFORE_NON_K8S_WRITE_MARK = "[SIEVE-BEFORE-NON-K8S-WRITE]"
-SIEVE_AFTER_NON_K8S_WRITE_MARK = "[SIEVE-AFTER-NON-K8S-WRITE]"
+SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK = "[SIEVE-BEFORE-ANNOTATED-API-INVOCATION]"
+SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK = "[SIEVE-AFTER-ANNOTATED-API-INVOCATION]"
 SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
@@ -351,8 +351,18 @@ class OperatorHear:
 
 
 class OperatorNonK8sWrite:
-    def __init__(self, id: str, recv_type: str, fun_name: str, reconciler_type: str):
+    def __init__(
+        self,
+        id: str,
+        module: str,
+        file_path: str,
+        recv_type: str,
+        fun_name: str,
+        reconciler_type: str,
+    ):
         self.__id = int(id)
+        self.__module = module
+        self.__file_path = file_path
         self.__recv_type = recv_type
         self.__fun_name = fun_name
         self.__reconciler_type = reconciler_type
@@ -366,6 +376,14 @@ class OperatorNonK8sWrite:
     @property
     def id(self):
         return self.__id
+
+    @property
+    def module(self):
+        return self.__module
+
+    @property
+    def file_path(self):
+        return self.__file_path
 
     @property
     def recv_type(self):
@@ -778,9 +796,15 @@ def parse_operator_write(line: str) -> OperatorWrite:
 
 
 def parse_operator_non_k8s_write(line: str) -> OperatorNonK8sWrite:
-    assert SIEVE_AFTER_NON_K8S_WRITE_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_NON_K8S_WRITE_MARK) :].strip("\n").split("\t")
-    return OperatorNonK8sWrite(tokens[1], tokens[2], tokens[3], tokens[4])
+    assert SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line
+    tokens = (
+        line[line.find(SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK) :]
+        .strip("\n")
+        .split("\t")
+    )
+    return OperatorNonK8sWrite(
+        tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6]
+    )
 
 
 def parse_operator_read(line: str) -> OperatorRead:
@@ -836,17 +860,21 @@ def parse_operator_write_id_only(line: str) -> OperatorWriteIDOnly:
 
 def parse_operator_non_k8s_write_id_only(line: str) -> OperatorNonK8sWriteIDOnly:
     assert (
-        SIEVE_AFTER_NON_K8S_WRITE_MARK in line
-        or SIEVE_BEFORE_NON_K8S_WRITE_MARK in line
+        SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line
+        or SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK in line
     )
-    if SIEVE_AFTER_NON_K8S_WRITE_MARK in line:
+    if SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line:
         tokens = (
-            line[line.find(SIEVE_AFTER_NON_K8S_WRITE_MARK) :].strip("\n").split("\t")
+            line[line.find(SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK) :]
+            .strip("\n")
+            .split("\t")
         )
         return OperatorNonK8sWriteIDOnly(tokens[1])
     else:
         tokens = (
-            line[line.find(SIEVE_BEFORE_NON_K8S_WRITE_MARK) :].strip("\n").split("\t")
+            line[line.find(SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK) :]
+            .strip("\n")
+            .split("\t")
         )
         return OperatorNonK8sWriteIDOnly(tokens[1])
 

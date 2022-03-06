@@ -52,6 +52,26 @@ IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01
 MASK_REGS = [TIME_REG, IP_REG]
 
 
+class sieve_stages:
+    LEARN = "learn"
+    TEST = "test"
+
+
+class sieve_modes:
+    TEST = "test"
+    VANILLA = "vanilla"
+    LEARN_ONCE = "learn-once"
+    LEARN_TWICE = "learn-twice"
+    ALL = "all"
+    NONE = "none"
+
+
+class sieve_built_in_test_patterns:
+    STALE_STATE = "stale-state"
+    UNOBSERVED_STATE = "unobserved-state"
+    INTERMEDIATE_STATE = "intermediate-state"
+
+
 class TestContext:
     def __init__(
         self,
@@ -83,9 +103,25 @@ class TestContext:
         self.docker_tag = docker_tag
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
+        self.use_csi_driver_for_ref = use_csi_driver
         self.use_csi_driver = use_csi_driver
         self.common_config = common_config
         self.controller_config = controller_config
+        self.test_plan = None
+        self.action_types = []
+        if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
+            self.test_plan = yaml.safe_load(open(test_config))
+            for action in self.test_plan["actions"]:
+                self.action_types.append(action["actionType"])
+            if "reconnectController" in self.action_types:
+                if self.num_apiservers < 3:
+                    self.num_apiservers = 3
+            if self.num_apiservers > 1:
+                # csi driver can only work with one apiserver so it cannot be enabled here
+                self.use_csi_driver = False
+            elif self.use_csi_driver:
+                self.num_apiservers = 1
+                self.num_workers = 0
 
 
 def match_mask_regex(val):
@@ -137,22 +173,6 @@ def oracle_directory(test_context: TestContext):
     return os.path.join(
         test_context.common_config.controller_folder, test_context.project, "oracle"
     )
-
-
-class sieve_stages:
-    LEARN = "learn"
-    TEST = "test"
-
-
-class sieve_modes:
-    STALE_STATE = "stale-state"
-    UNOBSR_STATE = "unobserved-state"
-    INTERMEDIATE_STATE = "intermediate-state"
-    VANILLA = "vanilla"
-    LEARN_ONCE = "learn-once"
-    LEARN_TWICE = "learn-twice"
-    ALL = "all"
-    NONE = "none"
 
 
 class bcolors:

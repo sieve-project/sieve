@@ -10,91 +10,13 @@ type EchoRequest struct {
 	Text string
 }
 
-type NotifyStaleStateBeforeProcessEventRequest struct {
-	EventType    string
-	ResourceType string
-	Hostname     string
-}
-
-type NotifyStaleStateCrucialEventRequest struct {
-	Hostname  string
-	EventType string
-	Object    string
-}
-
-type NotifyStaleStateRestartPointRequest struct {
-	Hostname     string
-	EventType    string
-	ResourceType string
-	Name         string
-	Namespace    string
-}
-
-type NotifyStaleStateAfterSideEffectsRequest struct {
-	SideEffectID   int
-	SideEffectType string
-	Object         string
-	ResourceType   string
-	Error          string
-}
-
-type NotifyUnobsrStateAfterSideEffectsRequest struct {
-	SideEffectID   int
-	SideEffectType string
-	Object         string
-	ResourceType   string
-	Error          string
-}
-
-type NotifyUnobsrStateBeforeIndexerWriteRequest struct {
+type NotifyLearnBeforeControllerRecvRequest struct {
 	OperationType string
 	Object        string
 	ResourceType  string
 }
 
-type NotifyUnobsrStateBeforeInformerCacheReadRequest struct {
-	OperationType string
-	ResourceType  string
-	Name          string
-	Namespace     string
-}
-
-type NotifyUnobsrStateAfterInformerCacheReadRequest struct {
-	OperationType string
-	ResourceType  string
-	Name          string
-	Namespace     string
-}
-
-type NotifyUnobsrStateAfterIndexerWriteRequest struct {
-	OperationType string
-	Object        string
-	ResourceType  string
-}
-
-type NotifyIntmdStateAfterSideEffectsRequest struct {
-	SideEffectID   int
-	SideEffectType string
-	Object         string
-	ResourceType   string
-	ReconcilerType string
-	Error          string
-}
-
-type NotifyIntmdStateAfterNonK8sSideEffectsRequest struct {
-	SideEffectID   int
-	RecvTypeName   string
-	FunName        string
-	ReconcilerType string
-}
-
-type NotifyLearnBeforeIndexerWriteRequest struct {
-	OperationType string
-	Object        string
-	ResourceType  string
-}
-
-type NotifyLearnAfterIndexerWriteRequest struct {
+type NotifyLearnAfterControllerRecvRequest struct {
 	EventID int
 }
 
@@ -106,11 +28,11 @@ type NotifyLearnAfterReconcileRequest struct {
 	ReconcilerName string
 }
 
-type NotifyLearnBeforeSideEffectsRequest struct {
+type NotifyLearnBeforeControllerWriteRequest struct {
 	SideEffectType string
 }
 
-type NotifyLearnAfterSideEffectsRequest struct {
+type NotifyLearnAfterControllerWriteRequest struct {
 	SideEffectID   int
 	SideEffectType string
 	Object         string
@@ -119,19 +41,36 @@ type NotifyLearnAfterSideEffectsRequest struct {
 	Error          string
 }
 
-type NotifyLearnBeforeNonK8sSideEffectsRequest struct {
-	RecvTypeName string
-	FunName      string
-}
+// type NotifyLearnBeforeNKWriteRequest struct {
+// 	RecvTypeName string
+// 	FunName      string
+// }
 
-type NotifyLearnAfterNonK8sSideEffectsRequest struct {
-	SideEffectID   int
-	RecvTypeName   string
+// type NotifyLearnAfterNKWriteRequest struct {
+// 	SideEffectID   int
+// 	RecvTypeName   string
+// 	FunName        string
+// 	ReconcilerType string
+// }
+
+type NotifyLearnBeforeAnnotatedAPICallRequest struct {
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
 	FunName        string
 	ReconcilerType string
 }
 
-type NotifyLearnAfterOperatorGetRequest struct {
+type NotifyLearnAfterAnnotatedAPICallRequest struct {
+	InvocationID   int
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
+	FunName        string
+	ReconcilerType string
+}
+
+type NotifyLearnAfterControllerGetRequest struct {
 	FromCache      bool
 	ResourceType   string
 	Namespace      string
@@ -141,7 +80,7 @@ type NotifyLearnAfterOperatorGetRequest struct {
 	Error          string
 }
 
-type NotifyLearnAfterOperatorListRequest struct {
+type NotifyLearnAfterControllerListRequest struct {
 	FromCache      bool
 	ResourceType   string
 	ObjectList     string
@@ -149,18 +88,92 @@ type NotifyLearnAfterOperatorListRequest struct {
 	Error          string
 }
 
-type NotifyIntmdStateAfterOperatorGetRequest struct {
-	ResourceType   string
-	Namespace      string
-	Name           string
-	Object         string
-	ReconcilerType string
-	Error          string
+type NotifyTestBeforeAPIServerRecvRequest struct {
+	APIServerHostname string
+	OperationType     string
+	ResourceKey       string
+	Object            string
 }
 
-type NotifyIntmdStateAfterOperatorListRequest struct {
-	ResourceType   string
-	ObjectList     string
+type NotifyTestAfterAPIServerRecvRequest struct {
+	APIServerHostname string
+	OperationType     string
+	ResourceKey       string
+	Object            string
+}
+
+type NotifyTestBeforeControllerRecvRequest struct {
+	OperationType string
+	ResourceKey   string
+	Object        string
+}
+
+type NotifyTestAfterControllerRecvRequest struct {
+	OperationType string
+	ResourceKey   string
+	Object        string
+}
+
+type NotifyTestAfterControllerGetRequest struct {
+	ResourceKey    string
 	ReconcilerType string
-	Error          string
+	Object         string
+}
+
+type NotifyTestAfterControllerListRequest struct {
+	ResourceType   string
+	ReconcilerType string
+	ObjectList     string
+}
+
+type NotifyTestBeforeControllerWriteRequest struct {
+	WriteType      string
+	ResourceKey    string
+	ReconcilerType string
+	Object         string
+}
+
+type NotifyTestAfterControllerWriteRequest struct {
+	WriteType      string
+	ResourceKey    string
+	ReconcilerType string
+	Object         string
+}
+
+type NotifyTestBeforeControllerWritePauseRequest struct {
+	WriteType   string
+	ResourceKey string
+}
+
+type NotifyTestAfterControllerWritePauseRequest struct {
+	WriteType   string
+	ResourceKey string
+}
+
+type NotifyTestBeforeControllerReadPauseRequest struct {
+	OperationType string
+	ResourceKey   string
+	ResourceType  string
+}
+
+type NotifyTestAfterControllerReadPauseRequest struct {
+	OperationType string
+	ResourceKey   string
+	ResourceType  string
+}
+
+type NotifyTestBeforeAnnotatedAPICallRequest struct {
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
+	FunName        string
+	ReconcilerType string
+}
+
+type NotifyTestAfterAnnotatedAPICallRequest struct {
+	ModuleName     string
+	FilePath       string
+	ReceiverType   string
+	FunName        string
+	ReconcilerType string
 }

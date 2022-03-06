@@ -1,14 +1,14 @@
-project: mongodb-operator
-stage: test
-mode: intermediate-state
-front-runner: kind-control-plane
-operator-pod-label: mongodb-operator
-se-name: mongodb-cluster-ssl
-se-namespace: default
-se-rtype: secret
-se-reconciler-type: github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB)
-se-etype-previous: Get
-se-etype-current: Create
-se-diff-previous: '{}'
-se-diff-current: '{}'
-se-counter: '1'
+actions:
+- actionType: restartController
+  controllerLabel: mongodb-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectCreate
+        resourceKey: secret/default/mongodb-cluster-ssl
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB)
+    expression: trigger1

@@ -1,11 +1,43 @@
-project: yugabyte-operator
-stage: test
-mode: unobserved-state
-ce-name: example-ybcluster
-ce-namespace: default
-ce-rtype: ybcluster
-ce-etype-previous: Updated
-ce-etype-current: Updated
-ce-diff-previous: '{"spec": {"replicationFactor": 3, "tserver": {"replicas": 3}}}'
-ce-diff-current: '{"spec": {"replicationFactor": 4, "tserver": {"replicas": 4}}}'
-ce-counter: '1'
+actions:
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: ybcluster/default/example-ybcluster
+  avoidOngoingRead: true
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: ybcluster/default/example-ybcluster
+        prevStateDiff: '{"spec": {"replicationFactor": 3, "tserver": {"replicas":
+          3}}}'
+        curStateDiff: '{"spec": {"replicationFactor": 4, "tserver": {"replicas": 4}}}'
+        occurrence: 1
+      observationPoint:
+        when: beforeControllerRecv
+        by: informer
+    expression: trigger1
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: ybcluster/default/example-ybcluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onAnyFieldModification
+        resourceKey: ybcluster/default/example-ybcluster
+        prevStateDiff: '{"spec": {"replicationFactor": 4, "tserver": {"replicas":
+          4}}}'
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: ybcluster/default/example-ybcluster
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    expression: trigger2|trigger3

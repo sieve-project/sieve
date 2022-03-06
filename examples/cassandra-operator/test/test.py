@@ -26,12 +26,12 @@ test_cases = {
     .wait_for_pvc_status(
         "data-volume-cassandra-test-cluster-dc1-rack1-1",
         TERMINATED,
-        10,
+        20,
     )
     .cmd(
         'kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p=\'{"spec":{"nodes":2}}\''
     )
-    .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING),
+    .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING, 150),
 }
 
 test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])

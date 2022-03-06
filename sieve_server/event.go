@@ -26,23 +26,6 @@ const SIEVE_VALUE_MASK string = "SIEVE-NON-NIL"
 
 const SIEVE_CAN_MARKER string = "SIEVE-CAN"
 
-const (
-	HEAR_ADDED          string = "Added"
-	HEAR_UPDATED        string = "Updated"
-	HEAR_DELETED        string = "Deleted"
-	HEAR_REPLACED       string = "Replaced"
-	HEAR_SYNC           string = "Sync"
-	API_ADDED           string = "ADDED"
-	API_MODIFIED        string = "MODIFIED"
-	API_DELETED         string = "DELETED"
-	WRITE_CREATE        string = "Create"
-	WRITE_UPDATE        string = "Update"
-	WRITE_DELETE        string = "Delete"
-	WRITE_PATCH         string = "Patch"
-	WRITE_STATUS_UPDATE string = "StatusUpdate"
-	WRITE_STATUS_PATCH  string = "StatusPatch"
-)
-
 var exists = struct{}{}
 
 func inSet(key string, set map[string]struct{}) bool {
@@ -240,54 +223,54 @@ func canonicalizeValue(value string) string {
 	}
 }
 
-func canonicalizeEventAsList(event []interface{}, parentPath string, maskedKeysSet, maskedPathsSet map[string]struct{}) {
+func canonicalizeEventAsList(event []interface{}, parentPath string, fieldKeyMask, fieldPathMask map[string]struct{}) {
 	for i, val := range event {
 		currentPath := path.Join(parentPath, "*")
-		if inSet(currentPath, maskedPathsSet) {
+		if inSet(currentPath, fieldPathMask) {
 			event[i] = SIEVE_VALUE_MASK
 			continue
 		}
 		switch typedVal := val.(type) {
 		case map[string]interface{}:
-			canonicalizeEventAsMap(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
+			canonicalizeEventAsMap(typedVal, currentPath, fieldKeyMask, fieldPathMask)
 		case []interface{}:
-			canonicalizeEventAsList(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
+			canonicalizeEventAsList(typedVal, currentPath, fieldKeyMask, fieldPathMask)
 		case string:
 			event[i] = canonicalizeValue(typedVal)
 		}
 	}
 }
 
-func canonicalizeEventAsMap(event map[string]interface{}, parentPath string, maskedKeysSet, maskedPathsSet map[string]struct{}) {
+func canonicalizeEventAsMap(event map[string]interface{}, parentPath string, fieldKeyMask, fieldPathMask map[string]struct{}) {
 	for key, val := range event {
 		currentPath := path.Join(parentPath, key)
-		if inSet(key, maskedKeysSet) || inSet(currentPath, maskedPathsSet) {
+		if inSet(key, fieldKeyMask) || inSet(currentPath, fieldPathMask) {
 			event[key] = SIEVE_VALUE_MASK
 			continue
 		}
 		switch typedVal := val.(type) {
 		case map[string]interface{}:
-			canonicalizeEventAsMap(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
+			canonicalizeEventAsMap(typedVal, currentPath, fieldKeyMask, fieldPathMask)
 		case []interface{}:
-			canonicalizeEventAsList(typedVal, currentPath, maskedKeysSet, maskedPathsSet)
+			canonicalizeEventAsList(typedVal, currentPath, fieldKeyMask, fieldPathMask)
 		case string:
 			event[key] = canonicalizeValue(typedVal)
 		}
 	}
 }
 
-func canonicalizeEvent(event map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}) {
+func canonicalizeEvent(event map[string]interface{}, fieldKeyMask, fieldPathMask map[string]struct{}) {
 	if _, ok := event[SIEVE_CAN_MARKER]; ok {
 		return
 	} else {
-		canonicalizeEventAsMap(event, "", maskedKeysSet, maskedPathsSet)
+		canonicalizeEventAsMap(event, "", fieldKeyMask, fieldPathMask)
 		event[SIEVE_CAN_MARKER] = ""
 	}
 }
 
-func diffEvent(prevEvent, curEvent map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}) (map[string]interface{}, map[string]interface{}) {
-	canonicalizeEvent(prevEvent, maskedKeysSet, maskedPathsSet)
-	canonicalizeEvent(curEvent, maskedKeysSet, maskedPathsSet)
+func diffEvent(prevEvent, curEvent map[string]interface{}, fieldKeyMask, fieldPathMask map[string]struct{}) (map[string]interface{}, map[string]interface{}) {
+	canonicalizeEvent(prevEvent, fieldKeyMask, fieldPathMask)
+	canonicalizeEvent(curEvent, fieldKeyMask, fieldPathMask)
 	// After canonicalization some values are replaced by SIEVE_VALUE_MASK, we compute diff again
 	diffPrevEvent, diffCurEvent := diffEventAsMap(prevEvent, curEvent)
 	// Note that we do not perform canonicalization at the beginning as it is more expensive to do so
@@ -367,7 +350,7 @@ func partOfEventAsMap(eventA, eventB map[string]interface{}) bool {
 	return true
 }
 
-func conflictingEvent(eventAType, eventBType string, eventA, eventB map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}) bool {
+func conflictingEvent(eventAType, eventBType string, eventA, eventB map[string]interface{}, fieldKeyMask, fieldPathMask map[string]struct{}) bool {
 	if eventAType == HEAR_DELETED {
 		return eventBType != HEAR_DELETED
 	} else {
@@ -375,7 +358,7 @@ func conflictingEvent(eventAType, eventBType string, eventA, eventB map[string]i
 			return true
 		} else {
 			// assume eventA is already canonicalized
-			canonicalizeEvent(eventB, maskedKeysSet, maskedPathsSet)
+			canonicalizeEvent(eventB, fieldKeyMask, fieldPathMask)
 			return !partOfEventAsMap(eventA, eventB)
 		}
 	}
@@ -386,40 +369,6 @@ func isCreationOrDeletion(eventType string) bool {
 	isHearCreationOrDeletion := eventType == HEAR_ADDED || eventType == HEAR_DELETED
 	isWriteCreationOrDeletion := eventType == WRITE_CREATE || eventType == WRITE_DELETE
 	return isAPICreationOrDeletion || isHearCreationOrDeletion || isWriteCreationOrDeletion
-}
-
-func findTargetDiff(eventCounter int, onlineCurEventType, targetCurEventType string, onlinePrevEvent, onlineCurEvent, targetDiffPrevEvent, targetDiffCurEvent map[string]interface{}, maskedKeysSet, maskedPathsSet map[string]struct{}, forgiving bool) bool {
-	findTargetDiffMutex.Lock()
-	defer findTargetDiffMutex.Unlock()
-	if seenTargetCounter >= eventCounter {
-		return false
-	}
-	log.Printf("online type: cur: %s\n", onlineCurEventType)
-	if onlineCurEventType != targetCurEventType {
-		return false
-	} else {
-		if targetCurEventType == "NON_K8S_WRITE" {
-			seenTargetCounter += 1
-			log.Printf("Find the target non k8s write with counter: %d\n", seenTargetCounter)
-		} else if isCreationOrDeletion(targetCurEventType) {
-			seenTargetCounter += 1
-			log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
-		} else {
-			onlineDiffPrevEvent, onlineDiffCurEvent := diffEvent(onlinePrevEvent, onlineCurEvent, maskedKeysSet, maskedPathsSet)
-			log.Printf("online diff: prev: %s\n", mapToStr(onlineDiffPrevEvent))
-			log.Printf("online diff: cur: %s\n", mapToStr(onlineDiffCurEvent))
-			if equivalentEvent(onlineDiffPrevEvent, targetDiffPrevEvent) && equivalentEvent(onlineDiffCurEvent, targetDiffCurEvent) {
-				seenTargetCounter += 1
-				log.Printf("Find the target diff with counter: %d\n", seenTargetCounter)
-			} else if forgiving {
-				if partOfEventAsMap(targetDiffPrevEvent, onlineDiffPrevEvent) && partOfEventAsMap(targetDiffCurEvent, onlineDiffCurEvent) {
-					seenTargetCounter += 1
-					log.Printf("Find the target diff with counter: %d by being forgiving\n", seenTargetCounter)
-				}
-			}
-		}
-	}
-	return seenTargetCounter == eventCounter
 }
 
 func capitalizeKey(key string) string {
@@ -456,7 +405,7 @@ func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
 	return capitalizedEvent
 }
 
-func conformToAPIEvent(event map[string]interface{}) map[string]interface{} {
+func convertObjectStateToAPIForm(event map[string]interface{}) map[string]interface{} {
 	// The event object representation is different between the API side and the operator side if it is not CR
 	// There are mainly two difference:
 	// 1. `metadata` is missing at the API side but the inner fields still exist
@@ -481,33 +430,61 @@ func conformToAPIEvent(event map[string]interface{}) map[string]interface{} {
 	return conformedEvent
 }
 
-func conformToAPIPaths(maskedPathsSet map[string]struct{}) map[string]struct{} {
-	conformedPathsSet := make(map[string]struct{})
-	for key := range maskedPathsSet {
-		if strings.HasPrefix(key, "metadata/") {
-			conformedPathsSet[strings.TrimPrefix(key, "metadata/")] = exists
-		} else {
-			tokens := strings.Split(key, "/")
-			for i := 0; i < len(tokens); i++ {
-				tokens[i] = strings.ToUpper(tokens[i][0:1]) + tokens[i][1:]
+func convertFieldPathMaskToAPIForm(fieldPathMask map[string]map[string]struct{}) map[string]map[string]struct{} {
+	convertedMask := make(map[string]map[string]struct{})
+	for resourceKey := range fieldPathMask {
+		convertedMask[resourceKey] = make(map[string]struct{})
+		for maskedPath := range fieldPathMask[resourceKey] {
+			if strings.HasPrefix(maskedPath, "metadata/") {
+				convertedMask[resourceKey][strings.TrimPrefix(maskedPath, "metadata/")] = exists
+			} else {
+				tokens := strings.Split(maskedPath, "/")
+				for i := 0; i < len(tokens); i++ {
+					tokens[i] = strings.ToUpper(tokens[i][0:1]) + tokens[i][1:]
+				}
+				convertedMask[resourceKey][strings.Join(tokens, "/")] = exists
 			}
-			conformedPathsSet[strings.Join(tokens, "/")] = exists
 		}
 	}
-	return conformedPathsSet
+	return convertedMask
 }
 
-func conformToAPIKeys(maskedKeysSet map[string]struct{}) map[string]struct{} {
-	conformedKeysSet := make(map[string]struct{})
-	for key := range maskedKeysSet {
-		conformedKeysSet[key] = exists
-		conformedKeysSet[strings.ToUpper(key[0:1])+key[1:]] = exists
+func convertFieldKeyMaskToAPIForm(fieldKeyMask map[string]map[string]struct{}) map[string]map[string]struct{} {
+	convertedMask := make(map[string]map[string]struct{})
+	for resourceKey := range fieldKeyMask {
+		convertedMask[resourceKey] = make(map[string]struct{})
+		for key := range fieldKeyMask[resourceKey] {
+			convertedMask[resourceKey][key] = exists
+			convertedMask[resourceKey][strings.ToUpper(key[0:1])+key[1:]] = exists
+		}
 	}
-	return conformedKeysSet
+	return convertedMask
 }
 
 // trim kind and apiVersion for intermediate-state testing
 func trimKindApiversion(event map[string]interface{}) {
 	delete(event, "kind")
 	delete(event, "apiVersion")
+}
+
+func isDesiredUpdate(prevState, curState, desiredPrevStateDiff, desiredCurStateDiff map[string]interface{}, fieldKeyMask, fieldPathMask map[string]struct{}, exactMatch bool) bool {
+	actualPrevStateDiff, actualCurStateDiff := diffEvent(prevState, curState, fieldKeyMask, fieldPathMask)
+	log.Printf("actualPrevStateDiff: %s\n", mapToStr(actualPrevStateDiff))
+	log.Printf("actualCurStateDiff: %s\n", mapToStr(actualCurStateDiff))
+	if exactMatch {
+		if equivalentEvent(actualPrevStateDiff, desiredPrevStateDiff) && equivalentEvent(actualCurStateDiff, desiredCurStateDiff) {
+			return true
+		}
+	} else {
+		if partOfEventAsMap(desiredPrevStateDiff, actualPrevStateDiff) && partOfEventAsMap(desiredCurStateDiff, actualCurStateDiff) {
+			return true
+		}
+	}
+	return false
+}
+
+func isAnyFieldModified(curState, prevStateDiffToModify map[string]interface{}, fieldKeyMask, fieldPathMask map[string]struct{}) bool {
+	canonicalizeEvent(prevStateDiffToModify, fieldKeyMask, fieldPathMask)
+	canonicalizeEvent(curState, fieldKeyMask, fieldPathMask)
+	return !partOfEventAsMap(prevStateDiffToModify, curState)
 }

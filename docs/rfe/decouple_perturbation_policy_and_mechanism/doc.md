@@ -47,11 +47,11 @@ actions:
       definitions:
         - triggerName: cond1
           condition:
-            triggerType: onObjectUpdate
+            conditionType: onObjectUpdate
             resourceKey: xxx
             prevState: xxx
             curState: xxx
-            repeat: 1
+            occurrence: 1
           observationPoint:
             timing: afterControllerWrite
             observeBy: xxx
@@ -63,12 +63,12 @@ actions:
 - `actionTarget`: which controller to restart
 - `trigger`: the triggers that should be satisfied before taking the action organized
 - `definitions`: definitions of the triggers
-- `triggerType`: we should support at least `onObjectUpdate`, `onAnyFieldModified`, `onAllFieldsModified`, `onObjectCreation`, `onObjectDeletion`, `onTimeout`, `none`
+- `conditionType`: we should support at least `onObjectUpdate`, `onAnyFieldModified`, `onAllFieldsModified`, `onObjectCreation`, `onObjectDeletion`, `onTimeout`, `none`
 - `conditionName`: mainly used in `expression`
 - `resourceKey`: it should be `resource_type/namespace/name` (e.g., `pod/default/mypod`) and used to identify a resource
 - `prevState`: only applicable for `onObjectUpdate` and used to indicate the particular update to an object
 - `curState`: only applicable for `onObjectUpdate` and used to indicate the particular update to an object
-- `repeat`: how many times this condition needs to be satisfied
+- `occurrence`: how many times this condition needs to be satisfied
 - `observePoint`: only applicable for `onObjectUpdate`, `onAnyFieldModified`, `onAllFieldsModified`, `onObjectCreation`, `onObjectDeletion` and used to decide where the change is observed
 - `observeBy`: who makes the observation; it can be some API server or some controller
 - `expression`: express the boolean relationship between all the defined triggers as discussed [here](#Proposed-condition-triggers-topology-implementation)

@@ -1,14 +1,14 @@
-project: cass-operator
-stage: test
-mode: intermediate-state
-front-runner: kind-control-plane
-operator-pod-label: cass-operator
-se-name: cassandra-datacenter-ca-keystore
-se-namespace: default
-se-rtype: secret
-se-reconciler-type: github.com/datastax/cass-operator/operator/pkg/reconciliation.(*ReconcileCassandraDatacenter)
-se-etype-previous: Get
-se-etype-current: Create
-se-diff-previous: '{}'
-se-diff-current: '{}'
-se-counter: '1'
+actions:
+- actionType: restartController
+  controllerLabel: cass-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectCreate
+        resourceKey: secret/default/cassandra-datacenter-ca-keystore
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/datastax/cass-operator/operator/pkg/reconciliation.(*ReconcileCassandraDatacenter)
+    expression: trigger1

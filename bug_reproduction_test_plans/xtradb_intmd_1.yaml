@@ -1,14 +1,14 @@
-project: xtradb-operator
-stage: test
-mode: intermediate-state
-front-runner: kind-control-plane
-operator-pod-label: xtradb-operator
-se-name: xtradb-cluster-ssl
-se-namespace: default
-se-rtype: secret
-se-reconciler-type: github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc.(*ReconcilePerconaXtraDBCluster)
-se-etype-previous: Get
-se-etype-current: Create
-se-diff-previous: '{}'
-se-diff-current: '{}'
-se-counter: '1'
+actions:
+- actionType: restartController
+  controllerLabel: xtradb-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectCreate
+        resourceKey: secret/default/xtradb-cluster-ssl
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc.(*ReconcilePerconaXtraDBCluster)
+    expression: trigger1

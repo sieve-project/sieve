@@ -1,14 +1,14 @@
-project: rabbitmq-operator
-stage: test
-mode: intermediate-state
-front-runner: kind-control-plane
-operator-pod-label: rabbitmq-operator
-se-name: rabbitmq-cluster-server
-se-namespace: default
-se-rtype: statefulset
-se-reconciler-type: github.com/rabbitmq/cluster-operator/controllers.(*RabbitmqClusterReconciler)
-se-etype-previous: Get
-se-etype-current: Delete
-se-diff-previous: '{}'
-se-diff-current: '{}'
-se-counter: '1'
+actions:
+- actionType: restartController
+  controllerLabel: rabbitmq-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: statefulset/default/rabbitmq-cluster-server
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/rabbitmq/cluster-operator/controllers.(*RabbitmqClusterReconciler)
+    expression: trigger1

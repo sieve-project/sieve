@@ -107,110 +107,6 @@ def learn_twice_trim(base_resources, twice_resources):
     return stored_learn
 
 
-def generate_stale_state_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller time travel back to the history to see the state just {} {} {}{}.".format(
-        test_config_content["timing"],
-        test_config_content["ce-etype-current"],
-        test_config_content["ce-rtype"]
-        + "/"
-        + test_config_content["ce-namespace"]
-        + "/"
-        + test_config_content["ce-name"],
-        readable_resource_diff(
-            test_config_content["ce-etype-current"],
-            test_config_content["ce-diff-current"],
-        ),
-    )
-    suggestion = "Please check how the controller reacts when seeing {} {}{}, the controller might issue {} to {} without proper checking.".format(
-        test_config_content["ce-etype-current"],
-        test_config_content["ce-rtype"]
-        + "/"
-        + test_config_content["ce-namespace"]
-        + "/"
-        + test_config_content["ce-name"],
-        readable_resource_diff(
-            test_config_content["ce-etype-current"],
-            test_config_content["ce-diff-current"],
-        ),
-        "deletion" if test_config_content["se-etype"] == "ADDED" else "creation",
-        test_config_content["se-rtype"]
-        + "/"
-        + test_config_content["se-namespace"]
-        + "/"
-        + test_config_content["se-name"],
-    )
-    return desc + "\n" + suggestion + "\n"
-
-
-def generate_unobserved_state_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller miss the event {} {}{}.".format(
-        test_config_content["ce-etype-current"],
-        test_config_content["ce-rtype"]
-        + "/"
-        + test_config_content["ce-namespace"]
-        + "/"
-        + test_config_content["ce-name"],
-        readable_resource_diff(
-            test_config_content["ce-etype-current"],
-            test_config_content["ce-diff-current"],
-        ),
-    )
-    suggestion = "Please check how the controller reacts when seeing {} {}{}, the event can trigger a controller side effect, and it might be cancelled by following events.".format(
-        test_config_content["ce-etype-current"],
-        test_config_content["ce-rtype"]
-        + "/"
-        + test_config_content["ce-namespace"]
-        + "/"
-        + test_config_content["ce-name"],
-        readable_resource_diff(
-            test_config_content["ce-etype-current"],
-            test_config_content["ce-diff-current"],
-        ),
-    )
-    return desc + "\n" + suggestion + "\n"
-
-
-def generate_intermediate_state_debugging_hint(test_config_content):
-    desc = "Sieve makes the controller crash after the controller issues {} {}{} for the {} time.".format(
-        test_config_content["se-etype-current"],
-        test_config_content["se-rtype"]
-        + "/"
-        + test_config_content["se-namespace"]
-        + "/"
-        + test_config_content["se-name"],
-        readable_resource_diff(
-            test_config_content["se-etype-current"],
-            test_config_content["se-diff-current"],
-        ),
-        convert_counter(test_config_content["se-counter"]),
-    )
-    suggestion = "Please check how the controller reacts when restarting right after issuing {} {}{} for the {} time, the controller might fail to recover from the intermediate state.".format(
-        test_config_content["se-etype-current"],
-        test_config_content["se-rtype"]
-        + "/"
-        + test_config_content["se-namespace"]
-        + "/"
-        + test_config_content["se-name"],
-        readable_resource_diff(
-            test_config_content["se-etype-current"],
-            test_config_content["se-diff-current"],
-        ),
-        convert_counter(test_config_content["se-counter"]),
-    )
-    return desc + "\n" + suggestion + "\n"
-
-
-def convert_counter(counter):
-    if counter.endswith("1"):
-        return counter + "st"
-    elif counter.endswith("2"):
-        return counter + "nd"
-    elif counter.endswith("3"):
-        return counter + "rd"
-    else:
-        return counter + "th"
-
-
 def readable_resource_diff(event_type, diff_content):
     if (
         event_type == OperatorWriteTypes.CREATE
@@ -221,19 +117,6 @@ def readable_resource_diff(event_type, diff_content):
         return ""
     else:
         return " : %s" % diff_content
-
-
-def generate_debugging_hint(test_config_content):
-    mode = test_config_content["mode"]
-    if mode == sieve_modes.STALE_STATE:
-        return generate_stale_state_debugging_hint(test_config_content)
-    elif mode == sieve_modes.UNOBSR_STATE:
-        return generate_unobserved_state_debugging_hint(test_config_content)
-    elif mode == sieve_modes.INTERMEDIATE_STATE:
-        return generate_intermediate_state_debugging_hint(test_config_content)
-    else:
-        print("mode wrong", mode, test_config_content)
-        return "WRONG MODE"
 
 
 def generate_alarm(sub_alarm, msg):
@@ -248,34 +131,9 @@ def generate_fatal(msg):
     return "[FATAL] " + msg
 
 
-def is_stale_state_started(server_log):
+def is_injection_finished(server_log):
     with open(server_log) as f:
-        return "START-SIEVE-STALE-STATE" in f.read()
-
-
-def is_unobserved_state_started(server_log):
-    with open(server_log) as f:
-        return "START-SIEVE-UNOBSERVED-STATE" in f.read()
-
-
-def is_intermediate_state_started(server_log):
-    with open(server_log) as f:
-        return "START-SIEVE-INTERMEDIATE-STATE" in f.read()
-
-
-def is_stale_state_finished(server_log):
-    with open(server_log) as f:
-        return "FINISH-SIEVE-STALE-STATE" in f.read()
-
-
-def is_unobserved_state_finished(server_log):
-    with open(server_log) as f:
-        return "FINISH-SIEVE-UNOBSERVED-STATE" in f.read()
-
-
-def is_intermediate_state_finished(server_log):
-    with open(server_log) as f:
-        return "FINISH-SIEVE-INTERMEDIATE-STATE" in f.read()
+        return "Sieve test coordinator finishes all actions" in f.read()
 
 
 def is_test_workload_finished(workload_log):
@@ -283,43 +141,14 @@ def is_test_workload_finished(workload_log):
         return "FINISH-SIEVE-TEST" in f.read()
 
 
-def injection_validation(test_context: TestContext):
-    test_config = test_context.test_config
+def test_run_validation(test_context: TestContext):
     server_log = os.path.join(test_context.result_dir, "sieve-server.log")
     workload_log = os.path.join(test_context.result_dir, "workload.log")
-    test_config_content = yaml.safe_load(open(test_config))
-    test_mode = test_config_content["mode"]
     validation_ret_val = 0
     validation_messages = []
-    if test_mode == sieve_modes.STALE_STATE:
-        if not is_stale_state_started(server_log):
-            validation_messages.append(generate_warn("stale state is not started yet"))
-            validation_ret_val = -1
-        elif not is_stale_state_finished(server_log):
-            validation_messages.append(generate_warn("stale state is not finished yet"))
-            validation_ret_val = -2
-    elif test_mode == sieve_modes.UNOBSR_STATE:
-        if not is_unobserved_state_started(server_log):
-            validation_messages.append(
-                generate_warn("unobserved state is not started yet")
-            )
-            validation_ret_val = -1
-        elif not is_unobserved_state_finished(server_log):
-            validation_messages.append(
-                generate_warn("unobserved state is not finished yet")
-            )
-            validation_ret_val = -2
-    elif test_mode == sieve_modes.INTERMEDIATE_STATE:
-        if not is_intermediate_state_started(server_log):
-            validation_messages.append(
-                generate_warn("intermediate state is not started yet")
-            )
-            validation_ret_val = -1
-        elif not is_intermediate_state_finished(server_log):
-            validation_messages.append(
-                generate_warn("intermediate state is not finished yet")
-            )
-            validation_ret_val = -2
+    if not is_injection_finished(server_log):
+        validation_messages.append(generate_warn("injection is not completed yet"))
+        validation_ret_val = -1
     if not is_test_workload_finished(workload_log):
         validation_messages.append(generate_warn("test workload is not finished yet"))
         validation_ret_val = -3
@@ -327,15 +156,162 @@ def injection_validation(test_context: TestContext):
     return validation_ret_val, validation_messages
 
 
+def convert_occurrence(occurrence):
+    if occurrence.endswith("1"):
+        return occurrence + "st"
+    elif occurrence.endswith("2"):
+        return occurrence + "nd"
+    elif occurrence.endswith("3"):
+        return occurrence + "rd"
+    else:
+        return occurrence + "th"
+
+
+def generate_perturbation_description(test_context: TestContext):
+    test_plan_content = yaml.safe_load(open(test_context.test_config))
+    desc = ""
+    controller_pod_label = test_context.controller_config.controller_pod_label
+    for action in test_plan_content["actions"]:
+        action_type = action["actionType"]
+        action_desc = "Sieve "
+        if action_type == "pauseAPIServer":
+            action_desc += "pauses the API server {}".format(action["apiServerName"])
+        elif action_type == "resumeAPIServer":
+            action_desc += "resumes the API server {}".format(action["apiServerName"])
+        elif action_type == "pauseController":
+            action_desc += "pauses the controller {} ".format(controller_pod_label)
+            pause_at = action["pauseAt"]
+            if pause_at == "beforeControllerRead":
+                action_desc += "before the controller reads "
+            elif pause_at == "afterControllerRead":
+                action_desc += "after the controller reads "
+            elif pause_at == "beforeControllerWrite":
+                action_desc += "before the controller writes "
+            elif pause_at == "afterControllerWrite":
+                action_desc += "after the controller writes "
+            else:
+                assert False
+            if "pauseScope" not in action:
+                action_desc += "any object"
+            elif action["pauseScope"] == "all":
+                action_desc += "any object"
+            else:
+                action_desc += action["pauseScope"]
+        elif action_type == "resumeController":
+            action_desc += "resumes the controller {}".format(controller_pod_label)
+        elif action_type == "restartController":
+            action_desc += "restarts the controller {}".format(controller_pod_label)
+        elif action_type == "reconnectController":
+            action_desc += "reconnects the controller {} from API server {} to API server {}".format(
+                controller_pod_label,
+                test_context.common_config.leading_api,
+                action["reconnectAPIServer"],
+            )
+        else:
+            assert False
+        action_desc += " when the trigger expression {} is satisfied, where\n".format(
+            action["trigger"]["expression"]
+        )
+        for trigger in action["trigger"]["definitions"]:
+            action_desc += "{} is satisfied ".format(trigger["triggerName"])
+            cond_type = trigger["condition"]["conditionType"]
+            if cond_type == "onTimeout":
+                action_desc += "by a {}-second timeout.\n".format(
+                    trigger["condition"]["timeoutValue"]
+                )
+            elif cond_type == "onAnnotatedAPICall":
+                module = trigger["condition"]["module"]
+                file_path = trigger["condition"]["filePath"]
+                receiver_type = trigger["condition"]["receiverType"]
+                fun_name = trigger["condition"]["funName"]
+                occurrence = trigger["condition"]["occurrence"]
+                observed_when = trigger["observationPoint"]["when"]
+                if observed_when == "beforeAnnotatedAPICall":
+                    action_desc += (
+                        "before the annotated API {}.{} (in {} from module {})".format(
+                            receiver_type, fun_name, file_path, module
+                        )
+                    )
+                elif observed_when == "afterAnnotatedAPICall":
+                    action_desc += (
+                        "after the annotated API {}.{} (in {} from module {})".format(
+                            receiver_type, fun_name, file_path, module
+                        )
+                    )
+                else:
+                    assert False
+                action_desc += " is called with the {} occurrence.\n".format(
+                    convert_occurrence(str(occurrence))
+                )
+            else:
+                observed_when = trigger["observationPoint"]["when"]
+                resource_key = trigger["condition"]["resourceKey"]
+                occurrence = trigger["condition"]["occurrence"]
+                if observed_when == "beforeAPIServerRecv":
+                    action_desc += (
+                        "before the API server {} receives the event:\n".format(
+                            trigger["observationPoint"]["by"]
+                        )
+                    )
+                elif observed_when == "afterAPIServerRecv":
+                    action_desc += (
+                        "after the API server {} receives the event:\n".format(
+                            trigger["observationPoint"]["by"]
+                        )
+                    )
+                elif observed_when == "beforeControllerRecv":
+                    action_desc += (
+                        "before the controller {} receives the event:\n".format(
+                            controller_pod_label
+                        )
+                    )
+                elif observed_when == "afterControllerRecv":
+                    action_desc += (
+                        "after the controller {} receives the event:\n".format(
+                            controller_pod_label
+                        )
+                    )
+                elif observed_when == "beforeControllerWrite":
+                    action_desc += "before the controller {} issues:\n".format(
+                        controller_pod_label
+                    )
+                elif observed_when == "afterControllerWrite":
+                    action_desc += "after the controller {} issues:\n".format(
+                        controller_pod_label
+                    )
+                if cond_type == "onObjectCreate":
+                    action_desc += "create {} ".format(resource_key)
+                elif cond_type == "onObjectDelete":
+                    action_desc += "delete {} ".format(resource_key)
+                elif cond_type == "onObjectUpdate":
+                    action_desc += "update {} ".format(resource_key)
+                    if "prevStateDiff" in trigger["condition"]:
+                        action_desc += "from\n{}\nto\n{}\n".format(
+                            trigger["condition"]["prevStateDiff"],
+                            trigger["condition"]["curStateDiff"],
+                        )
+                elif cond_type == "onAnyFieldModification":
+                    action_desc += (
+                        "update {} so that any field in\n{}\nis modified ".format(
+                            resource_key, trigger["condition"]["prevStateDiff"]
+                        )
+                    )
+                action_desc += "with the {} occurrence.\n".format(
+                    convert_occurrence(str(occurrence))
+                )
+        desc += action_desc
+    return desc
+
+
 def print_error_and_debugging_info(test_context: TestContext, ret_val, messages):
     if ret_val == 0:
         return
-    test_config_content = yaml.safe_load(open(test_context.test_config))
     report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
-    cprint(
-        "{} detected inconsistencies as follows:\n".format(ret_val) + messages,
-        report_color,
-    )
+    if ret_val > 0:
+        cprint("{} detected inconsistencies as follows".format(ret_val), bcolors.FAIL)
+    cprint(messages, report_color)
     if test_context.common_config.generate_debugging_information_enabled:
-        hint = "[DEBUGGING SUGGESTION]\n" + generate_debugging_hint(test_config_content)
-        cprint(hint, bcolors.WARNING)
+        desc = "[PERTURBATION DESCRIPTION]\n" + generate_perturbation_description(
+            test_context
+        )
+        print(desc)

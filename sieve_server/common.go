@@ -4,13 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"path"
 	"strconv"
-	"strings"
+	"sync"
 	"time"
 
-	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -18,102 +17,55 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+	HEAR_ADDED          string = "Added"
+	HEAR_UPDATED        string = "Updated"
+	HEAR_DELETED        string = "Deleted"
+	HEAR_REPLACED       string = "Replaced"
+	HEAR_SYNC           string = "Sync"
+	API_ADDED           string = "ADDED"
+	API_MODIFIED        string = "MODIFIED"
+	API_DELETED         string = "DELETED"
+	WRITE_CREATE        string = "Create"
+	WRITE_UPDATE        string = "Update"
+	WRITE_DELETE        string = "Delete"
+	WRITE_PATCH         string = "Patch"
+	WRITE_STATUS_UPDATE string = "StatusUpdate"
+	WRITE_STATUS_PATCH  string = "StatusPatch"
+)
+
+// observedWhen
+const (
+	beforeAPIServerRecv          string = "beforeAPIServerRecv"
+	afterAPIServerRecv           string = "afterAPIServerRecv"
+	beforeControllerRecv         string = "beforeControllerRecv"
+	afterControllerRecv          string = "afterControllerRecv"
+	beforeControllerWrite        string = "beforeControllerWrite"
+	afterControllerWrite         string = "afterControllerWrite"
+	beforeControllerRead         string = "beforeControllerRead"
+	afterControllerRead          string = "afterControllerRead"
+	beforeAnnotatedAPICall string = "beforeAnnotatedAPICall"
+	afterAnnotatedAPICall  string = "afterAnnotatedAPICall"
+)
+
+// actionType
+const (
+	pauseAPIServer        string = "pauseAPIServer"
+	resumeAPIServer       string = "resumeAPIServer"
+	pauseController       string = "pauseController"
+	resumeController      string = "resumeController"
+	pauseControllerWrite  string = "pauseControllerWrite"
+	resumeControllerWrite string = "resumeControllerWrite"
+	restartController     string = "restartController"
+	reconnectController   string = "reconnectController"
+)
+
+var mergedMaskLock sync.Mutex
+
 func checkError(err error) {
 	if err != nil {
 		log.Fatalf("Fail due to error: %v\n", err)
 	}
-}
-
-func getConfig() map[interface{}]interface{} {
-
-	data, err := ioutil.ReadFile("server.yaml")
-	checkError(err)
-	m := make(map[interface{}]interface{})
-
-	err = yaml.Unmarshal([]byte(data), &m)
-	checkError(err)
-	log.Printf("config:\n%v\n", m)
-
-	return m
-}
-
-func getMask() (map[string][][]string, map[string][][]string, map[string][][]string) {
-	data, err := ioutil.ReadFile("learned_field_path_mask.json")
-	checkError(err)
-	learnedFieldPathMask := make(map[string][][]string)
-
-	err = json.Unmarshal([]byte(data), &learnedFieldPathMask)
-	checkError(err)
-	log.Printf("learned mask:\n%v\n", learnedFieldPathMask)
-
-	data, err = ioutil.ReadFile("configured_field_path_mask.json")
-	checkError(err)
-	configuredFieldPathMask := make(map[string][][]string)
-
-	err = json.Unmarshal([]byte(data), &configuredFieldPathMask)
-	checkError(err)
-	log.Printf("configured mask:\n%v\n", configuredFieldPathMask)
-
-	data, err = ioutil.ReadFile("configured_field_key_mask.json")
-	checkError(err)
-	configuredFieldKeyMask := make(map[string][][]string)
-
-	err = json.Unmarshal([]byte(data), &configuredFieldKeyMask)
-	checkError(err)
-	log.Printf("configured mask:\n%v\n", configuredFieldKeyMask)
-
-	return learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask
-}
-
-func getMaskByKey(maskMap map[string][][]string, resourceType, namespace, name string) []string {
-	var maskList []string
-	for key := range maskMap {
-		tokens := strings.Split(key, "/")
-		thisResourceType := tokens[0]
-		thisNamespace := tokens[1]
-		thisName := tokens[2]
-		if (thisResourceType == resourceType || thisResourceType == "*") && (thisNamespace == namespace || thisNamespace == "*") && (thisName == name || thisName == "*") {
-			for idx := range maskMap[key] {
-				if len(maskMap[key][idx]) == 0 {
-					log.Fatal("mask list len cannot be zero")
-				}
-				if len(maskMap[key][idx]) == 1 {
-					maskList = append(maskList, maskMap[key][idx][0])
-				} else {
-					maskList = append(maskList, strings.Join(maskMap[key][idx], "/"))
-				}
-			}
-		}
-	}
-	return maskList
-}
-
-func mergeAndRefineMask(resourceType, resourceNamespace, resourceName string, learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask map[string][][]string) (map[string]struct{}, map[string]struct{}) {
-	maskedKeysSet := make(map[string]struct{})
-	maskedPathsSet := make(map[string]struct{})
-
-	learnedMaskedPathsList := getMaskByKey(learnedFieldPathMask, resourceType, resourceNamespace, resourceName)
-	for _, val := range learnedMaskedPathsList {
-		log.Printf("learned mask path: %s\n", val)
-		maskedPathsSet[val] = exists
-	}
-
-	configuredMaskedPathsList := getMaskByKey(configuredFieldPathMask, resourceType, resourceNamespace, resourceName)
-	for _, val := range configuredMaskedPathsList {
-		log.Printf("configured mask path: %s", val)
-		maskedPathsSet[val] = exists
-	}
-
-	configuredMaskedKeysList := getMaskByKey(configuredFieldKeyMask, resourceType, resourceNamespace, resourceName)
-	for _, val := range configuredMaskedKeysList {
-		log.Printf("learned mask key: %s\n", val)
-		maskedKeysSet[val] = exists
-	}
-
-	fmt.Printf("maskedKeysSet: %v\n", maskedKeysSet)
-	fmt.Printf("maskedPathsSet: %v\n", maskedPathsSet)
-
-	return maskedKeysSet, maskedPathsSet
 }
 
 func strToMap(str string) map[string]interface{} {
@@ -157,30 +109,6 @@ func deepCopyMap(src map[string]interface{}) map[string]interface{} {
 	return dest
 }
 
-func startStaleStateInjection() {
-	log.Println("START-SIEVE-STALE-STATE")
-}
-
-func startUnobsrStateInjection() {
-	log.Println("START-SIEVE-UNOBSERVED-STATE")
-}
-
-func startIntmdStateInjection() {
-	log.Println("START-SIEVE-INTERMEDIATE-STATE")
-}
-
-func finishStaleStateInjection() {
-	log.Println("FINISH-SIEVE-STALE-STATE")
-}
-
-func finishUnobsrStateInjection() {
-	log.Println("FINISH-SIEVE-UNOBSERVED-STATE")
-}
-
-func finishIntmdStateInjection() {
-	log.Println("FINISH-SIEVE-INTERMEDIATE-STATE")
-}
-
 func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, string) {
 	name := ""
 	namespace := ""
@@ -204,18 +132,22 @@ func extractNameNamespaceFromObjMap(objMap map[string]interface{}) (string, stri
 	return name, namespace
 }
 
+func generateResourceKey(resourceType, namespace, name string) string {
+	return path.Join(resourceType, namespace, name)
+}
+
 func isSameObjectServerSide(currentEvent map[string]interface{}, namespace string, name string) bool {
 	extractedName, extractedNamespace := extractNameNamespaceFromObjMap(currentEvent)
 	return extractedNamespace == namespace && extractedName == name
 }
 
-func waitForPodTermination(namespace, podLabel, leadingAPI string) {
+func waitForPodTermination(namespace, controllerLabel, leadingAPI string) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": controllerLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
@@ -232,13 +164,13 @@ func waitForPodTermination(namespace, podLabel, leadingAPI string) {
 	}
 }
 
-func waitForPodRunning(namespace, podLabel, leadingAPI string) {
+func waitForPodRunning(namespace, controllerLabel, leadingAPI string) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": controllerLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
@@ -265,14 +197,14 @@ func waitForPodRunning(namespace, podLabel, leadingAPI string) {
 	}
 }
 
-func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redirect bool) {
+func restartAndreconnectController(namespace, controllerLabel, leadingAPI, followingAPI string, redirect bool) {
 	masterUrl := "https://" + leadingAPI + ":6443"
 	config, err := clientcmd.BuildConfigFromFlags(masterUrl, "/root/.kube/config")
 	checkError(err)
 	clientset, err := kubernetes.NewForConfig(config)
 	checkError(err)
 
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": podLabel}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"sievetag": controllerLabel}}
 	listOptions := metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	}
@@ -310,7 +242,7 @@ func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redir
 		log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
 		clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
 
-		waitForPodTermination(namespace, podLabel, leadingAPI)
+		waitForPodTermination(namespace, controllerLabel, leadingAPI)
 
 		newDeployment := &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
@@ -337,14 +269,14 @@ func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redir
 		checkError(err)
 		log.Println(newDeployment.Spec.Template.Spec.Containers[0].Env)
 
-		waitForPodRunning(namespace, podLabel, leadingAPI)
+		waitForPodRunning(namespace, controllerLabel, leadingAPI)
 	} else {
 		statefulset, err := clientset.AppsV1().StatefulSets(namespace).Get(context.TODO(), operatorOwnerName, metav1.GetOptions{})
 		checkError(err)
 		log.Println(statefulset.Spec.Template.Spec.Containers[0].Env)
 		clientset.AppsV1().StatefulSets(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
 
-		waitForPodTermination(namespace, podLabel, leadingAPI)
+		waitForPodTermination(namespace, controllerLabel, leadingAPI)
 
 		newStatefulset := &appsv1.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
@@ -371,6 +303,6 @@ func restartOperator(namespace, podLabel, leadingAPI, followingAPI string, redir
 		checkError(err)
 		log.Println(newStatefulset.Spec.Template.Spec.Containers[0].Env)
 
-		waitForPodRunning(namespace, podLabel, leadingAPI)
+		waitForPodRunning(namespace, controllerLabel, leadingAPI)
 	}
 }

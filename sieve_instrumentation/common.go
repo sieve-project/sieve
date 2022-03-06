@@ -15,9 +15,7 @@ import (
 	"github.com/dave/dst/decorator/resolver/guess"
 )
 
-const STALE_STATE string = "stale-state"
-const UNOBSERVED_STATE string = "unobserved-state"
-const INTERMEDIATE_STATE string = "intermediate-state"
+const TEST string = "test"
 const LEARN string = "learn"
 const VANILLA string = "vanilla"
 
@@ -110,42 +108,79 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportM
 	autoInstrFile.Write(buf.Bytes())
 }
 
-func instrumentNonK8sAPI(ifilepath, ofilepath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string, instrumentBefore bool) {
+func instrumentAnnotatedAPI(ifilepath, ofilepath, module, filePath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, pkg, customizedImportMap)
 	_, funcDecl := findFuncDecl(f, funName, recvTypeName)
-	toCallAfter := "Notify" + mode + "AfterNonK8sSideEffects"
+	toCallAfter := "Notify" + mode + "AfterAnnotatedAPICall"
 
-	sideEffectIDVar := "-1"
+	invocationIDVar := "-1"
 	if instrumentBefore {
-		sideEffectIDVar = "sieveSideEffectID"
+		invocationIDVar = "invocationIDVar"
 	}
 
 	// Instrument after side effect
-	instrAfterSideEffect := &dst.DeferStmt{
+	instrAfterAPICall := &dst.DeferStmt{
 		Call: &dst.CallExpr{
 			Fun:  &dst.Ident{Name: toCallAfter, Path: "sieve.client"},
-			Args: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
+			Args: []dst.Expr{&dst.Ident{Name: invocationIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", module)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", filePath)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 		},
 	}
-	instrAfterSideEffect.Decs.End.Append("//sieve")
-	insertStmt(&funcDecl.Body.List, 0, instrAfterSideEffect)
+	instrAfterAPICall.Decs.End.Append("//sieve")
+	insertStmt(&funcDecl.Body.List, 0, instrAfterAPICall)
 
 	// Instrument before side effect
 	if instrumentBefore {
-		toCallBefore := "Notify" + mode + "BeforeNonK8sSideEffects"
-		instrBeforeSideEffect := &dst.AssignStmt{
-			Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
+		toCallBefore := "Notify" + mode + "BeforeAnnotatedAPICall"
+		instrBeforeAPICall := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: invocationIDVar}},
 			Rhs: []dst.Expr{&dst.CallExpr{
 				Fun:  &dst.Ident{Name: toCallBefore, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
+				Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", module)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", filePath)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", recvTypeName)}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", funName)}},
 			}},
 			Tok: token.DEFINE,
 		}
-		instrBeforeSideEffect.Decs.End.Append("//sieve")
-		insertStmt(&funcDecl.Body.List, 0, instrBeforeSideEffect)
+		instrBeforeAPICall.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, 0, instrBeforeAPICall)
 	}
 
 	writeInstrumentedFile(ofilepath, pkg, f, customizedImportMap)
+}
+
+func instrumentSharedInformerGoForAll(ifilepath, ofilepath, mode string) {
+	funNameBefore := "Notify" + mode + "BeforeControllerRecv"
+	funNameAfter := "Notify" + mode + "AfterControllerRecv"
+	f := parseSourceFile(ifilepath, "cache", map[string]string{})
+	_, funcDecl := findFuncDecl(f, "HandleDeltas", "*sharedIndexInformer")
+	if funcDecl != nil {
+		for _, stmt := range funcDecl.Body.List {
+			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
+				instrBeforeControllerRecv := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: "recvID"}},
+					Rhs: []dst.Expr{&dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
+					}},
+					Tok: token.DEFINE,
+				}
+				instrBeforeControllerRecv.Decs.End.Append("//sieve")
+				insertStmt(&rangeStmt.Body.List, 0, instrBeforeControllerRecv)
+
+				instrAfterControllerRecv := &dst.ExprStmt{
+					X: &dst.CallExpr{
+						Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+						Args: []dst.Expr{&dst.Ident{Name: "recvID"}, &dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
+					},
+				}
+				instrAfterControllerRecv.Decs.End.Append("//sieve")
+				rangeStmt.Body.List = append(rangeStmt.Body.List, instrAfterControllerRecv)
+				break
+			}
+		}
+	} else {
+		panic(fmt.Errorf("Cannot find function HandleDeltas"))
+	}
+
+	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 }
 
 func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefore bool) {
@@ -167,8 +202,8 @@ func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefor
 }
 
 func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool, recvTypeName string) {
-	funNameBefore := "Notify" + mode + "BeforeSideEffects"
-	funNameAfter := "Notify" + mode + "AfterSideEffects"
+	funNameBefore := "Notify" + mode + "BeforeControllerWrite"
+	funNameAfter := "Notify" + mode + "AfterControllerWrite"
 	_, funcDecl := findFuncDecl(f, etype, recvTypeName)
 	writeName := etype
 	if recvTypeName == "*statusWriter" {
@@ -177,19 +212,19 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 			// Instrument before side effect
-			sideEffectIDVar := "-1"
+			writeIDVar := "-1"
 			if instrumentBefore {
-				sideEffectIDVar = "sieveSideEffectID"
-				instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
-					Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
+				writeIDVar = "writeID"
+				instrNotifyLearnBeforeControllerWrite := &dst.AssignStmt{
+					Lhs: []dst.Expr{&dst.Ident{Name: writeIDVar}},
 					Rhs: []dst.Expr{&dst.CallExpr{
 						Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
 						Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", writeName)}, &dst.Ident{Name: "obj"}},
 					}},
 					Tok: token.DEFINE,
 				}
-				instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
-				insertStmt(&funcDecl.Body.List, len(funcDecl.Body.List)-1, instrNotifyLearnBeforeSideEffect)
+				instrNotifyLearnBeforeControllerWrite.Decs.End.Append("//sieve")
+				insertStmt(&funcDecl.Body.List, len(funcDecl.Body.List)-1, instrNotifyLearnBeforeControllerWrite)
 			}
 
 			// Change return to assign
@@ -202,14 +237,14 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 			funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
 
 			// Instrument after side effect
-			instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
+			instrNotifyLearnAfterControllerWrite := &dst.ExprStmt{
 				X: &dst.CallExpr{
 					Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-					Args: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", writeName)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+					Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", writeName)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 				},
 			}
-			instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
-			funcDecl.Body.List = append(funcDecl.Body.List, instrNotifyLearnAfterSideEffect)
+			instrNotifyLearnAfterControllerWrite.Decs.End.Append("//sieve")
+			funcDecl.Body.List = append(funcDecl.Body.List, instrNotifyLearnAfterControllerWrite)
 
 			// return the error of side effect
 			instrumentationReturn := &dst.ReturnStmt{
@@ -224,19 +259,19 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 			}
 			if innerReturnStmt, ok := defaultCaseClause.Body[len(defaultCaseClause.Body)-1].(*dst.ReturnStmt); ok {
 				// Instrument before side effect
-				sideEffectIDVar := "-1"
+				writeIDVar := "-1"
 				if instrumentBefore {
-					sideEffectIDVar = "sieveSideEffectID"
-					instrNotifyLearnBeforeSideEffect := &dst.AssignStmt{
-						Lhs: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}},
+					writeIDVar = "writeID"
+					instrNotifyLearnBeforeControllerWrite := &dst.AssignStmt{
+						Lhs: []dst.Expr{&dst.Ident{Name: writeIDVar}},
 						Rhs: []dst.Expr{&dst.CallExpr{
 							Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
 							Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", writeName)}, &dst.Ident{Name: "obj"}},
 						}},
 						Tok: token.DEFINE,
 					}
-					instrNotifyLearnBeforeSideEffect.Decs.End.Append("//sieve")
-					insertStmt(&defaultCaseClause.Body, len(defaultCaseClause.Body)-1, instrNotifyLearnBeforeSideEffect)
+					instrNotifyLearnBeforeControllerWrite.Decs.End.Append("//sieve")
+					insertStmt(&defaultCaseClause.Body, len(defaultCaseClause.Body)-1, instrNotifyLearnBeforeControllerWrite)
 				}
 
 				// Change return to assign
@@ -249,14 +284,14 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 				defaultCaseClause.Body[len(defaultCaseClause.Body)-1] = modifiedInstruction
 
 				// Instrument after side effect
-				instrNotifyLearnAfterSideEffect := &dst.ExprStmt{
+				instrNotifyLearnAfterControllerWrite := &dst.ExprStmt{
 					X: &dst.CallExpr{
 						Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: sideEffectIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", writeName)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
+						Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: fmt.Sprintf("\"%s\"", writeName)}, &dst.Ident{Name: "obj"}, &dst.Ident{Name: "err"}},
 					},
 				}
-				instrNotifyLearnAfterSideEffect.Decs.End.Append("//sieve")
-				defaultCaseClause.Body = append(defaultCaseClause.Body, instrNotifyLearnAfterSideEffect)
+				instrNotifyLearnAfterControllerWrite.Decs.End.Append("//sieve")
+				defaultCaseClause.Body = append(defaultCaseClause.Body, instrNotifyLearnAfterControllerWrite)
 
 				// return the error of side effect
 				instrumentationReturn := &dst.ReturnStmt{
@@ -276,7 +311,7 @@ func instrumentSideEffect(f *dst.File, etype, mode string, instrumentBefore bool
 }
 
 func instrumentClientRead(f *dst.File, etype, mode string) {
-	funName := "Notify" + mode + "AfterOperator" + etype
+	funName := "Notify" + mode + "AfterController" + etype
 	_, funcDecl := findFuncDecl(f, etype, "*client")
 	if funcDecl != nil {
 		if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
@@ -385,7 +420,7 @@ func instrumentSplitGoForAll(ifilepath, ofilepath, mode string) {
 }
 
 func instrumentCacheRead(f *dst.File, etype, mode string) {
-	funName := "Notify" + mode + "AfterOperator" + etype
+	funName := "Notify" + mode + "AfterController" + etype
 	_, funcDecl := findFuncDecl(f, etype, "*delegatingReader")
 	if funcDecl == nil {
 		// support older version controller-runtime
@@ -440,8 +475,8 @@ func instrumentCacheRead(f *dst.File, etype, mode string) {
 func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentBefore, instrumentAfter bool) {
 	f := parseSourceFile(ifilepath, "cacher", map[string]string{})
 
-	funNameBefore := "Notify" + mode + "BeforeProcessEvent"
-	funNameAfter := "Notify" + mode + "AfterProcessEvent"
+	funNameBefore := "Notify" + mode + "BeforeAPIServerRecv"
+	funNameAfter := "Notify" + mode + "AfterAPIServerRecv"
 
 	// TODO: do not hardcode the instrumentationIndex
 	instrumentationIndex := 5

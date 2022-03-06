@@ -36,6 +36,7 @@ from sieve_common.common import (
     ok,
     fail,
     sieve_modes,
+    sieve_built_in_test_patterns,
     cmd_early_exit,
     NO_ERROR_MESSAGE,
     sieve_stages,
@@ -93,18 +94,12 @@ def watch_crd(crds, addrs):
 
 
 def generate_configmap(test_config):
-    yaml_map = yaml.safe_load(open(test_config))
+    test_plan_content = open(test_config).read()
     configmap = {}
     configmap["apiVersion"] = "v1"
     configmap["kind"] = "ConfigMap"
     configmap["metadata"] = {"name": "sieve-testing-global-config"}
-    configmap["data"] = {}
-    for key in yaml_map:
-        if isinstance(yaml_map[key], list):
-            assert key.endswith("-list")
-            configmap["data"]["SIEVE-" + key.upper()] = ",".join(yaml_map[key])
-        else:
-            configmap["data"]["SIEVE-" + key.upper()] = yaml_map[key]
+    configmap["data"] = {"sieveTestPlan": test_plan_content}
     configmap_path = "%s-configmap.yaml" % test_config[:-5]
     yaml.dump(configmap, open(configmap_path, "w"), sort_keys=False)
     return configmap_path
@@ -216,9 +211,10 @@ def prepare_sieve_server(test_context: TestContext):
     cmd_early_exit("docker cp sieve_server kind-control-plane:/sieve_server")
 
 
-def start_sieve_server():
+def start_sieve_server(test_context: TestContext):
     cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server &> sieve-server.log &'"
+        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server %s &> sieve-server.log &'"
+        % test_context.stage
     )
 
 
@@ -253,14 +249,17 @@ def setup_cluster(test_context: TestContext):
     setup_kind_cluster(test_context)
     print("\n\n")
 
-    prepare_sieve_server(test_context)
-
     # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
     # so we need to redirect the workers to other apiservers
-    if test_context.mode == sieve_modes.STALE_STATE:
+    if "reconnectController" in test_context.action_types:
+        cprint(
+            "Redirecting workers and kubectl to the leading API server...",
+            bcolors.OKGREEN,
+        )
         redirect_workers(test_context)
         redirect_kubectl()
+        ok("Redirection done")
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
@@ -284,6 +283,12 @@ def setup_cluster(test_context: TestContext):
             break
         time.sleep(1)
 
+    if test_context.mode != sieve_modes.VANILLA:
+        prepare_sieve_server(test_context)
+        cprint("Setting up Sieve server...", bcolors.OKGREEN)
+        start_sieve_server(test_context)
+        ok("Sieve server set up")
+
     time.sleep(3)  # ensure that every apiserver will see the configmap is created
     configmap = generate_configmap(test_context.test_config)
     cmd_early_exit("kubectl apply -f %s" % configmap)
@@ -303,8 +308,7 @@ def setup_cluster(test_context: TestContext):
 
 
 def deploy_controller(test_context: TestContext):
-    # csi driver can only work with one apiserver so it cannot be enabled in stale state mode
-    if test_context.mode != sieve_modes.STALE_STATE and test_context.use_csi_driver:
+    if test_context.use_csi_driver:
         print("Installing csi provisioner...")
         cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
 
@@ -373,10 +377,6 @@ def start_operator(test_context: TestContext):
 def run_workload(
     test_context: TestContext,
 ) -> Tuple[int, str]:
-    if test_context.mode != sieve_modes.VANILLA:
-        cprint("Setting up Sieve server...", bcolors.OKGREEN)
-        start_sieve_server()
-        ok("Sieve server set up")
 
     cprint("Deploying operator...", bcolors.OKGREEN)
     start_operator(test_context)
@@ -410,11 +410,15 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
+    use_soft_timeout = "0"
+    if "pauseController" in test_context.action_types:
+        use_soft_timeout = "1"
+
     cprint("Running test workload...", bcolors.OKGREEN)
     test_command = "%s %s %s %s" % (
         test_context.controller_config.test_command,
         test_context.test_name,
-        test_context.mode,
+        use_soft_timeout,
         os.path.join(test_context.result_dir, "workload.log"),
     )
     process = subprocess.Popen(test_command, shell=True)
@@ -510,18 +514,16 @@ def generate_learn_config(
     namespace, learn_config, mode, rate_limiter_enabled, crd_list
 ):
     learn_config_map = {}
-    learn_config_map["stage"] = sieve_stages.LEARN
-    learn_config_map["mode"] = mode
-    learn_config_map["namespace"] = namespace
-    learn_config_map["crd-list"] = crd_list
+    # learn_config_map["namespace"] = namespace
+    learn_config_map["crdList"] = crd_list
     if rate_limiter_enabled:
-        learn_config_map["rate-limiter-enabled"] = "true"
+        learn_config_map["rateLimiterEnabled"] = True
         print("Turn on rate limiter")
     else:
-        learn_config_map["rate-limiter-enabled"] = "false"
+        learn_config_map["rateLimiterEnabled"] = False
         print("Turn off rate limiter")
     # hardcode the interval to 3 seconds for now
-    learn_config_map["rate-limiter-interval"] = "3"
+    learn_config_map["rateLimiterInterval"] = 3
     yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
 
 
@@ -555,11 +557,6 @@ def run(
             num_workers = controller_config.test_setting[test]["num_workers"]
         if "use_csi_driver" in controller_config.test_setting[test]:
             use_csi_driver = controller_config.test_setting[test]["use_csi_driver"]
-    if mode == sieve_modes.STALE_STATE and num_apiservers < 3:
-        num_apiservers = 3
-    elif use_csi_driver:
-        num_apiservers = 1
-        num_workers = 0
     oracle_dir = os.path.join(common_config.controller_folder, project, "oracle", test)
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
@@ -741,12 +738,7 @@ if __name__ == "__main__":
     if options.stage == sieve_stages.TEST:
         if options.mode is None:
             parser.error("parameter mode required in test stage")
-        elif options.mode not in [
-            sieve_modes.VANILLA,
-            sieve_modes.STALE_STATE,
-            sieve_modes.UNOBSR_STATE,
-            sieve_modes.INTERMEDIATE_STATE,
-        ]:
+        elif options.mode not in [sieve_modes.TEST, sieve_modes.VANILLA]:
             parser.error("invalid test mode option: %s" % options.mode)
         if options.mode == sieve_modes.VANILLA:
             options.config = "vanilla.yaml"

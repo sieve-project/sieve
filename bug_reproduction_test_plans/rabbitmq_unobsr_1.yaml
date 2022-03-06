@@ -1,11 +1,41 @@
-project: rabbitmq-operator
-stage: test
-mode: unobserved-state
-ce-name: rabbitmq-cluster
-ce-namespace: default
-ce-rtype: rabbitmqcluster
-ce-etype-previous: Updated
-ce-etype-current: Updated
-ce-diff-previous: '{"spec": {"replicas": 1}}'
-ce-diff-current: '{"spec": {"replicas": 3}}'
-ce-counter: '1'
+actions:
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: rabbitmqcluster/default/rabbitmq-cluster
+  avoidOngoingRead: true
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: rabbitmqcluster/default/rabbitmq-cluster
+        prevStateDiff: '{"spec": {"replicas": 1}}'
+        curStateDiff: '{"spec": {"replicas": 3}}'
+        occurrence: 1
+      observationPoint:
+        when: beforeControllerRecv
+        by: informer
+    expression: trigger1
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: rabbitmqcluster/default/rabbitmq-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onAnyFieldModification
+        resourceKey: rabbitmqcluster/default/rabbitmq-cluster
+        prevStateDiff: '{"spec": {"replicas": 3}}'
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: rabbitmqcluster/default/rabbitmq-cluster
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    expression: trigger2|trigger3
