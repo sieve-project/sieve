@@ -25,6 +25,7 @@ class CommonConfig:
         persist_test_plans_enabled,
         field_key_mask,
         field_path_mask,
+        state_update_summary_checker_mask,
     ):
         self.docker_registry = docker_registry
         self.controller_folder = controller_folder
@@ -50,6 +51,7 @@ class CommonConfig:
         self.persist_test_plans_enabled = persist_test_plans_enabled
         self.field_key_mask = field_key_mask
         self.field_path_mask = field_path_mask
+        self.state_update_summary_checker_mask = state_update_summary_checker_mask
 
 
 def get_common_config():
@@ -94,6 +96,9 @@ def get_common_config():
         persist_test_plans_enabled=common_config["persist_test_plans_enabled"],
         field_key_mask=common_config["field_key_mask"],
         field_path_mask=common_config["field_path_mask"],
+        state_update_summary_checker_mask=common_config[
+            "state_update_summary_checker_mask"
+        ],
     )
 
 

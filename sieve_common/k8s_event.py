@@ -1,6 +1,7 @@
 import json
+import resource
 from typing import Dict, List, Set, Union
-
+from pathlib import PurePath
 from sieve_common.event_delta import conflicting_event_payload
 
 HEAR_READ_FILTER_FLAG = True
@@ -166,18 +167,13 @@ def parse_key(key: str):
     return tokens[0], tokens[1], tokens[2]
 
 
-def get_mask_by_key(key_mask_map, rtype, namespace, name):
+def get_mask_by_resource_key(key_mask_map, resource_key):
     # TODO: converting the list to a string may lead to ambiguity
     # consider two lists: ["a", "b", "c"] and ["a/b", "c"]
     # after converting to string they look the same
     masked_keys = []
     for key in key_mask_map:
-        this_rtype, this_ns, this_name = parse_key(key)
-        if (
-            (this_rtype == rtype or this_rtype == "*")
-            and (this_ns == namespace or this_ns == "*")
-            and (this_name == name or this_name == "*")
-        ):
+        if key == resource_key or PurePath("/" + resource_key).match("/" + key):
             for field_path_list in key_mask_map[key]:
                 assert isinstance(field_path_list, List)
                 assert len(field_path_list) > 0

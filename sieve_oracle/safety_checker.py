@@ -1,5 +1,6 @@
 from sieve_common.common import *
 import json
+from pathlib import PurePath
 from sieve_oracle.checker_common import *
 from sieve_common.k8s_event import (
     APIEventTypes,
@@ -10,25 +11,26 @@ from sieve_common.k8s_event import (
 )
 
 
-# def is_unstable_api_event_key(key, value):
-#     if value["operator_related"]:
-#         return True
-#     if key.endswith("-metrics"):
-#         return True
-#     if key.startswith("/endpointslices"):
-#         return True
-#     return False
-
-
-def should_skip_api_event_key(api_event_key, test_name, masked):
-    for masked_test_name in masked:
+def masked_resource_key_for_state_update_summary_checker(
+    resource_key, test_context: TestContext
+):
+    test_name = test_context.test_name
+    controller_mask = test_context.controller_config.state_update_summary_checker_mask
+    common_mask = test_context.common_config.state_update_summary_checker_mask
+    for masked_test_name in controller_mask:
         if masked_test_name == "*" or masked_test_name == test_name:
-            for masked_key in masked[masked_test_name]:
-                if masked_key == api_event_key:
-                    print(
-                        "Skipping %s for state-update-summary checker" % api_event_key
-                    )
+            for masked_key in controller_mask[masked_test_name]:
+                if masked_key == resource_key or PurePath("/" + resource_key).match(
+                    "/" + masked_key
+                ):
+                    print("Skipping %s for state-update-summary checker" % resource_key)
                     return True
+    for masked_key in common_mask:
+        if masked_key == resource_key or PurePath("/" + resource_key).match(
+            "/" + masked_key
+        ):
+            print("Skipping %s for state-update-summary checker" % resource_key)
+            return True
     return False
 
 
@@ -225,7 +227,6 @@ def check_single_history(history, resource_keys, checker_name, customized_checke
 def compare_history_digests(test_context: TestContext):
     canonicalized_events = get_canonicalized_history_digest(test_context)
     testing_events = get_testing_history_digest(test_context)
-    event_mask = get_event_mask(test_context)
     controller_family = get_current_controller_related_list(test_context)
 
     ret_val = 0
@@ -237,12 +238,9 @@ def compare_history_digests(test_context: TestContext):
     for key in testing_keys.intersection(learning_keys):
         if canonicalized_events[key] == SIEVE_LEARN_VALUE_MASK:
             continue
-        # if is_unstable_api_event_key(key, canonicalized_events[key]):
-        #     continue
-        # TODO: we should check the unstable resources
-        if should_skip_api_event_key(key, test_context.test_name, event_mask):
-            continue
         if key in controller_family:
+            continue
+        if masked_resource_key_for_state_update_summary_checker(key, test_context):
             continue
         for etype in testing_events[key]:
             if (
