@@ -11,7 +11,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}"
+            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}"
         ],
         [
             "metadata",
@@ -46,7 +46,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"849eb9ed-6171-4bc6-978f-3769ca0d76fd\"}"
+            "k:{\"uid\":\"06cb42f1-3449-4799-a440-02ef5056e973\"}"
         ],
         [
             "metadata",
@@ -217,36 +217,14 @@
         [
             "subsets",
             "*",
-            "addresses",
-            "*",
-            "hostname"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
-            "*",
-            "iP"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
+            "notReadyAddresses",
             "*",
             "nodeName"
         ],
         [
             "subsets",
             "*",
-            "addresses",
-            "*",
-            "targetRef",
-            "name"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
+            "notReadyAddresses",
             "*",
             "targetRef",
             "resourceVersion"
@@ -254,7 +232,7 @@
         [
             "subsets",
             "*",
-            "addresses",
+            "notReadyAddresses",
             "*",
             "targetRef",
             "uID"
@@ -289,22 +267,7 @@
             "*",
             "addresses",
             "*",
-            "iP"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
-            "*",
             "nodeName"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
-            "*",
-            "targetRef",
-            "name"
         ],
         [
             "subsets",
@@ -378,64 +341,6 @@
             "volumeName"
         ]
     ],
-    "persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-1": [
-        [
-            "metadata",
-            "annotations",
-            "volume.kubernetes.io/selected-node"
-        ],
-        [
-            "metadata",
-            "creationTimestamp"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "time"
-        ],
-        [
-            "metadata",
-            "resourceVersion"
-        ],
-        [
-            "metadata",
-            "uid"
-        ],
-        [
-            "spec",
-            "volumeName"
-        ]
-    ],
-    "persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-2": [
-        [
-            "metadata",
-            "annotations",
-            "volume.kubernetes.io/selected-node"
-        ],
-        [
-            "metadata",
-            "creationTimestamp"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "time"
-        ],
-        [
-            "metadata",
-            "resourceVersion"
-        ],
-        [
-            "metadata",
-            "uid"
-        ],
-        [
-            "spec",
-            "volumeName"
-        ]
-    ],
     "pod/default/xtradb-cluster-pxc-0": [
         [
             "metadata",
@@ -463,16 +368,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:status",
-            "f:podIPs",
-            "k:{\"ip\":\"10.244.1.6\"}"
+            "k:{\"uid\":\"131e3d24-4356-4cda-8447-201c65c568f7\"}"
         ],
         [
             "metadata",
@@ -543,285 +439,25 @@
             "status",
             "containerStatuses",
             "*",
-            "state",
-            "running",
-            "startedAt"
-        ],
-        [
-            "status",
-            "hostIP"
-        ],
-        [
-            "status",
-            "initContainerStatuses",
-            "*",
-            "containerID"
-        ],
-        [
-            "status",
-            "initContainerStatuses",
-            "*",
-            "state",
+            "lastTerminationState",
             "terminated",
             "containerID"
         ],
         [
             "status",
-            "initContainerStatuses",
+            "containerStatuses",
             "*",
-            "state",
+            "lastTerminationState",
             "terminated",
             "finishedAt"
         ],
         [
             "status",
-            "initContainerStatuses",
-            "*",
-            "state",
-            "terminated",
-            "startedAt"
-        ],
-        [
-            "status",
-            "podIPs",
-            "*",
-            "iP"
-        ],
-        [
-            "status",
-            "startTime"
-        ]
-    ],
-    "pod/default/xtradb-cluster-pxc-1": [
-        [
-            "metadata",
-            "annotations",
-            "percona.com/ssl-hash"
-        ],
-        [
-            "metadata",
-            "annotations",
-            "percona.com/ssl-internal-hash"
-        ],
-        [
-            "metadata",
-            "creationTimestamp"
-        ],
-        [
-            "metadata",
-            "labels",
-            "controller-revision-hash"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:metadata",
-            "f:ownerReferences",
-            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "time"
-        ],
-        [
-            "metadata",
-            "ownerReferences",
-            "*",
-            "uid"
-        ],
-        [
-            "metadata",
-            "resourceVersion"
-        ],
-        [
-            "metadata",
-            "uid"
-        ],
-        [
-            "spec",
-            "containers",
-            "*",
-            "volumeMounts",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "initContainers",
-            "*",
-            "volumeMounts",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "nodeName"
-        ],
-        [
-            "spec",
-            "volumes",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "volumes",
-            "*",
-            "secret",
-            "secretName"
-        ],
-        [
-            "status",
-            "conditions",
-            "*",
-            "lastTransitionTime"
-        ],
-        [
-            "status",
             "containerStatuses",
             "*",
-            "containerID"
-        ],
-        [
-            "status",
-            "containerStatuses",
-            "*",
-            "state",
-            "running",
-            "startedAt"
-        ],
-        [
-            "status",
-            "initContainerStatuses",
-            "*",
-            "containerID"
-        ],
-        [
-            "status",
-            "initContainerStatuses",
-            "*",
-            "state",
-            "terminated",
-            "containerID"
-        ],
-        [
-            "status",
-            "initContainerStatuses",
-            "*",
-            "state",
-            "terminated",
-            "finishedAt"
-        ],
-        [
-            "status",
-            "initContainerStatuses",
-            "*",
-            "state",
+            "lastTerminationState",
             "terminated",
             "startedAt"
-        ],
-        [
-            "status",
-            "startTime"
-        ]
-    ],
-    "pod/default/xtradb-cluster-pxc-2": [
-        [
-            "metadata",
-            "annotations",
-            "percona.com/ssl-hash"
-        ],
-        [
-            "metadata",
-            "annotations",
-            "percona.com/ssl-internal-hash"
-        ],
-        [
-            "metadata",
-            "creationTimestamp"
-        ],
-        [
-            "metadata",
-            "labels",
-            "controller-revision-hash"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:metadata",
-            "f:ownerReferences",
-            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "time"
-        ],
-        [
-            "metadata",
-            "ownerReferences",
-            "*",
-            "uid"
-        ],
-        [
-            "metadata",
-            "resourceVersion"
-        ],
-        [
-            "metadata",
-            "uid"
-        ],
-        [
-            "spec",
-            "containers",
-            "*",
-            "volumeMounts",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "initContainers",
-            "*",
-            "volumeMounts",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "nodeName"
-        ],
-        [
-            "spec",
-            "volumes",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "volumes",
-            "*",
-            "secret",
-            "secretName"
-        ],
-        [
-            "status",
-            "conditions",
-            "*",
-            "lastTransitionTime"
-        ],
-        [
-            "status",
-            "containerStatuses",
-            "*",
-            "containerID"
         ],
         [
             "status",
@@ -882,7 +518,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}"
+            "k:{\"uid\":\"131e3d24-4356-4cda-8447-201c65c568f7\"}"
         ],
         [
             "metadata",
@@ -917,7 +553,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"150653b1-4771-4776-b67e-f29247b3b992\"}"
+            "k:{\"uid\":\"2522dd04-8cce-40ab-bb3d-5dd1cc9644b9\"}"
         ],
         [
             "metadata",
@@ -1092,7 +728,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}"
+            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}"
         ],
         [
             "metadata",
@@ -1139,7 +775,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}"
+            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}"
         ],
         [
             "metadata",
@@ -1174,7 +810,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"150653b1-4771-4776-b67e-f29247b3b992\"}"
+            "k:{\"uid\":\"2522dd04-8cce-40ab-bb3d-5dd1cc9644b9\"}"
         ],
         [
             "metadata",
@@ -1213,7 +849,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}"
+            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}"
         ],
         [
             "metadata",
@@ -1248,7 +884,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}"
+            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}"
         ],
         [
             "metadata",
@@ -1282,7 +918,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"percona-xtradb-cluster-operator-token-2nd7p\"}"
+            "k:{\"name\":\"percona-xtradb-cluster-operator-token-fmmv2\"}"
         ],
         [
             "metadata",
@@ -1316,7 +952,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}"
+            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}"
         ],
         [
             "metadata",

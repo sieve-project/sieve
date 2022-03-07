@@ -18,7 +18,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -54,7 +54,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"849eb9ed-6171-4bc6-978f-3769ca0d76fd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"06cb42f1-3449-4799-a440-02ef5056e973\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -79,16 +79,11 @@
     "configmap/default/sieve-testing-global-config": {
         "BinaryData": null,
         "Data": {
-            "SIEVE-CRD-LIST": "perconaxtradbcluster,perconaxtradbclusterbackup,perconaxtradbclusterrestore,perconaxtradbbackup",
-            "SIEVE-MODE": "learn",
-            "SIEVE-NAMESPACE": "default",
-            "SIEVE-RATE-LIMITER-ENABLED": "false",
-            "SIEVE-RATE-LIMITER-INTERVAL": "3",
-            "SIEVE-STAGE": "learn"
+            "sieveTestPlan": "crdList:\n- perconaxtradbcluster\n- perconaxtradbclusterbackup\n- perconaxtradbclusterrestore\n- perconaxtradbbackup\nrateLimiterEnabled: false\nrateLimiterInterval: 3\n"
         },
         "Immutable": null,
         "annotations": {
-            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"perconaxtradbcluster,perconaxtradbclusterbackup,perconaxtradbclusterrestore,perconaxtradbbackup\",\"SIEVE-MODE\":\"learn\",\"SIEVE-NAMESPACE\":\"default\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"sieveTestPlan\":\"crdList:\\n- perconaxtradbcluster\\n- perconaxtradbclusterbackup\\n- perconaxtradbclusterrestore\\n- perconaxtradbbackup\\nrateLimiterEnabled: false\\nrateLimiterInterval: 3\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
         },
         "creationTimestamp": "SIEVE-IGNORE",
         "managedFields": [
@@ -98,12 +93,7 @@
                 "fieldsV1": {
                     "f:data": {
                         ".": {},
-                        "f:SIEVE-CRD-LIST": {},
-                        "f:SIEVE-MODE": {},
-                        "f:SIEVE-NAMESPACE": {},
-                        "f:SIEVE-RATE-LIMITER-ENABLED": {},
-                        "f:SIEVE-RATE-LIMITER-INTERVAL": {},
-                        "f:SIEVE-STAGE": {}
+                        "f:sieveTestPlan": {}
                     },
                     "f:metadata": {
                         "f:annotations": {
@@ -122,7 +112,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "controllerrevision/default/xtradb-cluster-pxc-65b56d4fd4": "SIEVE-IGNORE",
+    "controllerrevision/default/xtradb-cluster-pxc-5698c98467": "SIEVE-IGNORE",
     "deployment/default/percona-xtradb-cluster-operator": {
         "Spec": {
             "MinReadySeconds": 0,
@@ -564,51 +554,23 @@
     "endpoints/default/xtradb-cluster-pxc": {
         "Subsets": [
             {
-                "Addresses": [
+                "Addresses": null,
+                "NotReadyAddresses": [
                     {
-                        "Hostname": "SIEVE-IGNORE",
-                        "IP": "SIEVE-IGNORE",
+                        "Hostname": "xtradb-cluster-pxc-0",
+                        "IP": "10.244.1.3",
                         "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
                             "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
-                            "Namespace": "default",
-                            "ResourceVersion": "SIEVE-IGNORE",
-                            "UID": "SIEVE-IGNORE"
-                        }
-                    },
-                    {
-                        "Hostname": "SIEVE-IGNORE",
-                        "IP": "SIEVE-IGNORE",
-                        "NodeName": "SIEVE-IGNORE",
-                        "TargetRef": {
-                            "APIVersion": "",
-                            "FieldPath": "",
-                            "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
-                            "Namespace": "default",
-                            "ResourceVersion": "SIEVE-IGNORE",
-                            "UID": "SIEVE-IGNORE"
-                        }
-                    },
-                    {
-                        "Hostname": "SIEVE-IGNORE",
-                        "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker",
-                        "TargetRef": {
-                            "APIVersion": "",
-                            "FieldPath": "",
-                            "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
+                            "Name": "xtradb-cluster-pxc-0",
                             "Namespace": "default",
                             "ResourceVersion": "SIEVE-IGNORE",
                             "UID": "SIEVE-IGNORE"
                         }
                     }
                 ],
-                "NotReadyAddresses": null,
                 "Ports": [
                     {
                         "AppProtocol": null,
@@ -669,41 +631,13 @@
                 "Addresses": [
                     {
                         "Hostname": "",
-                        "IP": "SIEVE-IGNORE",
+                        "IP": "10.244.1.3",
                         "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
                             "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
-                            "Namespace": "default",
-                            "ResourceVersion": "SIEVE-IGNORE",
-                            "UID": "SIEVE-IGNORE"
-                        }
-                    },
-                    {
-                        "Hostname": "",
-                        "IP": "SIEVE-IGNORE",
-                        "NodeName": "SIEVE-IGNORE",
-                        "TargetRef": {
-                            "APIVersion": "",
-                            "FieldPath": "",
-                            "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
-                            "Namespace": "default",
-                            "ResourceVersion": "SIEVE-IGNORE",
-                            "UID": "SIEVE-IGNORE"
-                        }
-                    },
-                    {
-                        "Hostname": "",
-                        "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker",
-                        "TargetRef": {
-                            "APIVersion": "",
-                            "FieldPath": "",
-                            "Kind": "Pod",
-                            "Name": "SIEVE-IGNORE",
+                            "Name": "xtradb-cluster-pxc-0",
                             "Namespace": "default",
                             "ResourceVersion": "SIEVE-IGNORE",
                             "UID": "SIEVE-IGNORE"
@@ -765,9 +699,9 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "endpointslice/default/percona-xtradb-cluster-operator-kv2px": "SIEVE-IGNORE",
-    "endpointslice/default/xtradb-cluster-pxc-jnqg2": "SIEVE-IGNORE",
-    "endpointslice/default/xtradb-cluster-pxc-unready-tbqq5": "SIEVE-IGNORE",
+    "endpointslice/default/percona-xtradb-cluster-operator-hdhk9": "SIEVE-IGNORE",
+    "endpointslice/default/xtradb-cluster-pxc-qjtzp": "SIEVE-IGNORE",
+    "endpointslice/default/xtradb-cluster-pxc-unready-4czdd": "SIEVE-IGNORE",
     "perconaxtradbcluster/default/xtradb-cluster": {
         "apiVersion": "pxc.percona.com/v1-7-0",
         "kind": "PerconaXtraDBCluster",
@@ -982,11 +916,8 @@
                             "f:proxysql": {},
                             "f:pxc": {
                                 ".": {},
-                                "f:image": {},
-                                "f:ready": {},
                                 "f:size": {},
-                                "f:status": {},
-                                "f:version": {}
+                                "f:status": {}
                             },
                             "f:state": {}
                         }
@@ -1134,11 +1065,6 @@
                     "lastTransitionTime": "SIEVE-IGNORE",
                     "status": "True",
                     "type": "Initializing"
-                },
-                {
-                    "lastTransitionTime": "SIEVE-IGNORE",
-                    "status": "True",
-                    "type": "Ready"
                 }
             ],
             "haproxy": {},
@@ -1148,13 +1074,10 @@
             "pmm": {},
             "proxysql": {},
             "pxc": {
-                "image": "percona/percona-xtradb-cluster:8.0.21-12.1",
-                "ready": 3,
                 "size": 3,
-                "status": "ready",
-                "version": "8.0.21-12.1"
+                "status": "initializing"
             },
-            "state": "ready"
+            "state": "initializing"
         }
     },
     "persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-0": {
@@ -1266,225 +1189,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-1": {
-        "Spec": {
-            "AccessModes": [
-                "ReadWriteOnce"
-            ],
-            "DataSource": null,
-            "Resources": {
-                "Limits": null,
-                "Requests": {
-                    "storage": "6Gi"
-                }
-            },
-            "Selector": null,
-            "StorageClassName": "standard",
-            "VolumeMode": "Filesystem",
-            "VolumeName": "SIEVE-IGNORE"
-        },
-        "Status": {
-            "AccessModes": [
-                "ReadWriteOnce"
-            ],
-            "Capacity": {
-                "storage": "6Gi"
-            },
-            "Conditions": null,
-            "Phase": "Bound"
-        },
-        "annotations": {
-            "pv.kubernetes.io/bind-completed": "yes",
-            "pv.kubernetes.io/bound-by-controller": "yes",
-            "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-            "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
-        },
-        "creationTimestamp": "SIEVE-IGNORE",
-        "finalizers": [
-            "kubernetes.io/pvc-protection"
-        ],
-        "labels": {
-            "app.kubernetes.io/component": "pxc",
-            "app.kubernetes.io/instance": "xtradb-cluster",
-            "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
-            "app.kubernetes.io/name": "percona-xtradb-cluster",
-            "app.kubernetes.io/part-of": "percona-xtradb-cluster"
-        },
-        "managedFields": [
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:metadata": {
-                        "f:annotations": {
-                            ".": {},
-                            "f:volume.kubernetes.io/selected-node": {}
-                        }
-                    }
-                },
-                "manager": "kube-scheduler",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            },
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:metadata": {
-                        "f:annotations": {
-                            "f:pv.kubernetes.io/bind-completed": {},
-                            "f:pv.kubernetes.io/bound-by-controller": {},
-                            "f:volume.beta.kubernetes.io/storage-provisioner": {}
-                        },
-                        "f:labels": {
-                            ".": {},
-                            "f:app.kubernetes.io/component": {},
-                            "f:app.kubernetes.io/instance": {},
-                            "f:app.kubernetes.io/managed-by": {},
-                            "f:app.kubernetes.io/name": {},
-                            "f:app.kubernetes.io/part-of": {}
-                        }
-                    },
-                    "f:spec": {
-                        "f:accessModes": {},
-                        "f:resources": {
-                            "f:requests": {
-                                ".": {},
-                                "f:storage": {}
-                            }
-                        },
-                        "f:volumeMode": {},
-                        "f:volumeName": {}
-                    },
-                    "f:status": {
-                        "f:accessModes": {},
-                        "f:capacity": {
-                            ".": {},
-                            "f:storage": {}
-                        },
-                        "f:phase": {}
-                    }
-                },
-                "manager": "kube-controller-manager",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            }
-        ],
-        "name": "datadir-xtradb-cluster-pxc-1",
-        "namespace": "default",
-        "resourceVersion": "SIEVE-IGNORE",
-        "uid": "SIEVE-IGNORE"
-    },
-    "persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-2": {
-        "Spec": {
-            "AccessModes": [
-                "ReadWriteOnce"
-            ],
-            "DataSource": null,
-            "Resources": {
-                "Limits": null,
-                "Requests": {
-                    "storage": "6Gi"
-                }
-            },
-            "Selector": null,
-            "StorageClassName": "standard",
-            "VolumeMode": "Filesystem",
-            "VolumeName": "SIEVE-IGNORE"
-        },
-        "Status": {
-            "AccessModes": [
-                "ReadWriteOnce"
-            ],
-            "Capacity": {
-                "storage": "6Gi"
-            },
-            "Conditions": null,
-            "Phase": "Bound"
-        },
-        "annotations": {
-            "pv.kubernetes.io/bind-completed": "yes",
-            "pv.kubernetes.io/bound-by-controller": "yes",
-            "volume.beta.kubernetes.io/storage-provisioner": "rancher.io/local-path",
-            "volume.kubernetes.io/selected-node": "SIEVE-IGNORE"
-        },
-        "creationTimestamp": "SIEVE-IGNORE",
-        "finalizers": [
-            "kubernetes.io/pvc-protection"
-        ],
-        "labels": {
-            "app.kubernetes.io/component": "pxc",
-            "app.kubernetes.io/instance": "xtradb-cluster",
-            "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
-            "app.kubernetes.io/name": "percona-xtradb-cluster",
-            "app.kubernetes.io/part-of": "percona-xtradb-cluster"
-        },
-        "managedFields": [
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:metadata": {
-                        "f:annotations": {
-                            ".": {},
-                            "f:volume.kubernetes.io/selected-node": {}
-                        }
-                    }
-                },
-                "manager": "kube-scheduler",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            },
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:metadata": {
-                        "f:annotations": {
-                            "f:pv.kubernetes.io/bind-completed": {},
-                            "f:pv.kubernetes.io/bound-by-controller": {},
-                            "f:volume.beta.kubernetes.io/storage-provisioner": {}
-                        },
-                        "f:labels": {
-                            ".": {},
-                            "f:app.kubernetes.io/component": {},
-                            "f:app.kubernetes.io/instance": {},
-                            "f:app.kubernetes.io/managed-by": {},
-                            "f:app.kubernetes.io/name": {},
-                            "f:app.kubernetes.io/part-of": {}
-                        }
-                    },
-                    "f:spec": {
-                        "f:accessModes": {},
-                        "f:resources": {
-                            "f:requests": {
-                                ".": {},
-                                "f:storage": {}
-                            }
-                        },
-                        "f:volumeMode": {},
-                        "f:volumeName": {}
-                    },
-                    "f:status": {
-                        "f:accessModes": {},
-                        "f:capacity": {
-                            ".": {},
-                            "f:storage": {}
-                        },
-                        "f:phase": {}
-                    }
-                },
-                "manager": "kube-controller-manager",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            }
-        ],
-        "name": "datadir-xtradb-cluster-pxc-2",
-        "namespace": "default",
-        "resourceVersion": "SIEVE-IGNORE",
-        "uid": "SIEVE-IGNORE"
-    },
-    "pod/default/percona-xtradb-cluster-operator-56c7bd8b98-4x4w6": "SIEVE-IGNORE",
+    "pod/default/percona-xtradb-cluster-operator-56c7bd8b98-cnkkw": "SIEVE-IGNORE",
     "pod/default/xtradb-cluster-pxc-0": {
         "Spec": {
             "ActiveDeadlineSeconds": null,
@@ -2190,17 +1895,17 @@
                 {
                     "LastProbeTime": null,
                     "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
+                    "Message": "containers with unready status: [pxc]",
+                    "Reason": "ContainersNotReady",
+                    "Status": "False",
                     "Type": "Ready"
                 },
                 {
                     "LastProbeTime": null,
                     "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
+                    "Message": "containers with unready status: [pxc]",
+                    "Reason": "ContainersNotReady",
+                    "Status": "False",
                     "Type": "ContainersReady"
                 },
                 {
@@ -2219,12 +1924,20 @@
                     "ImageID": "docker.io/percona/percona-xtradb-cluster@sha256:d95cf39a58f09759408a00b519fe0d0b19c1b28332ece94349dd5e9cdbda017e",
                     "LastTerminationState": {
                         "Running": null,
-                        "Terminated": null,
+                        "Terminated": {
+                            "ContainerID": "SIEVE-IGNORE",
+                            "ExitCode": 0,
+                            "FinishedAt": "SIEVE-IGNORE",
+                            "Message": "",
+                            "Reason": "Completed",
+                            "Signal": 0,
+                            "StartedAt": "SIEVE-IGNORE"
+                        },
                         "Waiting": null
                     },
                     "Name": "pxc",
-                    "Ready": true,
-                    "RestartCount": 0,
+                    "Ready": false,
+                    "RestartCount": 2,
                     "Started": true,
                     "State": {
                         "Running": {
@@ -2241,7 +1954,7 @@
                 {
                     "ContainerID": "SIEVE-IGNORE",
                     "Image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:5a8d1de5aaafdfdf9543061667fdec2660fa99de080ecd23a4364b98307f3661",
+                    "ImageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:1830030c222b26e76e0423d86c8650c771d6fc4f86f554063fda697e14ed35d3",
                     "LastTerminationState": {
                         "Running": null,
                         "Terminated": null,
@@ -2271,7 +1984,7 @@
             "Phase": "Running",
             "PodIPs": [
                 {
-                    "IP": "SIEVE-IGNORE"
+                    "IP": "10.244.1.3"
                 }
             ],
             "QOSClass": "Burstable",
@@ -2319,7 +2032,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"131e3d24-4356-4cda-8447-201c65c568f7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2645,6 +2358,8 @@
                                 ".": {},
                                 "f:lastProbeTime": {},
                                 "f:lastTransitionTime": {},
+                                "f:message": {},
+                                "f:reason": {},
                                 "f:status": {},
                                 "f:type": {}
                             },
@@ -2659,6 +2374,8 @@
                                 ".": {},
                                 "f:lastProbeTime": {},
                                 "f:lastTransitionTime": {},
+                                "f:message": {},
+                                "f:reason": {},
                                 "f:status": {},
                                 "f:type": {}
                             }
@@ -2670,7 +2387,10 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.1.6\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.1.3\"}": {
+                                ".": {},
+                                "f:ip": {}
+                            }
                         },
                         "f:startTime": {}
                     }
@@ -2681,2432 +2401,6 @@
             }
         ],
         "name": "xtradb-cluster-pxc-0",
-        "namespace": "default",
-        "ownerReferences": [
-            {
-                "apiVersion": "apps/v1",
-                "blockOwnerDeletion": true,
-                "controller": true,
-                "kind": "StatefulSet",
-                "name": "xtradb-cluster-pxc",
-                "uid": "SIEVE-IGNORE"
-            }
-        ],
-        "resourceVersion": "SIEVE-IGNORE",
-        "uid": "SIEVE-IGNORE"
-    },
-    "pod/default/xtradb-cluster-pxc-1": {
-        "Spec": {
-            "ActiveDeadlineSeconds": null,
-            "Affinity": {
-                "NodeAffinity": null,
-                "PodAffinity": null,
-                "PodAntiAffinity": {
-                    "PreferredDuringSchedulingIgnoredDuringExecution": null,
-                    "RequiredDuringSchedulingIgnoredDuringExecution": [
-                        {
-                            "LabelSelector": {
-                                "matchLabels": {
-                                    "app.kubernetes.io/component": "pxc",
-                                    "app.kubernetes.io/instance": "xtradb-cluster",
-                                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
-                                    "app.kubernetes.io/name": "percona-xtradb-cluster",
-                                    "app.kubernetes.io/part-of": "percona-xtradb-cluster"
-                                }
-                            },
-                            "Namespaces": null,
-                            "TopologyKey": "kubernetes.io/hostname"
-                        }
-                    ]
-                }
-            },
-            "AutomountServiceAccountToken": null,
-            "Containers": [
-                {
-                    "Args": [
-                        "mysqld"
-                    ],
-                    "Command": [
-                        "/var/lib/mysql/pxc-entrypoint.sh"
-                    ],
-                    "Env": [
-                        {
-                            "Name": "PXC_SERVICE",
-                            "Value": "xtradb-cluster-pxc-unready",
-                            "ValueFrom": null
-                        },
-                        {
-                            "Name": "MONITOR_HOST",
-                            "Value": "%",
-                            "ValueFrom": null
-                        },
-                        {
-                            "Name": "MYSQL_ROOT_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "root",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        },
-                        {
-                            "Name": "XTRABACKUP_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "xtrabackup",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        },
-                        {
-                            "Name": "MONITOR_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "monitor",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        },
-                        {
-                            "Name": "OPERATOR_ADMIN_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "operator",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        }
-                    ],
-                    "EnvFrom": null,
-                    "Image": "percona/percona-xtradb-cluster:8.0.21-12.1",
-                    "ImagePullPolicy": "Always",
-                    "Lifecycle": null,
-                    "LivenessProbe": {
-                        "Exec": {
-                            "Command": [
-                                "/var/lib/mysql/liveness-check.sh"
-                            ]
-                        },
-                        "FailureThreshold": 3,
-                        "HTTPGet": null,
-                        "InitialDelaySeconds": 300,
-                        "PeriodSeconds": 10,
-                        "SuccessThreshold": 1,
-                        "TCPSocket": null,
-                        "TimeoutSeconds": 5
-                    },
-                    "Name": "pxc",
-                    "Ports": [
-                        {
-                            "ContainerPort": 3306,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "mysql",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 4444,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "sst",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 4567,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "write-set",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 4568,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "ist",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 33062,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "mysql-admin",
-                            "Protocol": "TCP"
-                        }
-                    ],
-                    "ReadinessProbe": {
-                        "Exec": {
-                            "Command": [
-                                "/var/lib/mysql/readiness-check.sh"
-                            ]
-                        },
-                        "FailureThreshold": 5,
-                        "HTTPGet": null,
-                        "InitialDelaySeconds": 15,
-                        "PeriodSeconds": 30,
-                        "SuccessThreshold": 1,
-                        "TCPSocket": null,
-                        "TimeoutSeconds": 15
-                    },
-                    "Resources": {
-                        "Limits": null,
-                        "Requests": {
-                            "cpu": "600m",
-                            "memory": "1G"
-                        }
-                    },
-                    "SecurityContext": null,
-                    "StartupProbe": null,
-                    "Stdin": false,
-                    "StdinOnce": false,
-                    "TTY": false,
-                    "TerminationMessagePath": "/dev/termination-log",
-                    "TerminationMessagePolicy": "File",
-                    "VolumeDevices": null,
-                    "VolumeMounts": [
-                        {
-                            "MountPath": "/var/lib/mysql",
-                            "MountPropagation": null,
-                            "Name": "datadir",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/percona-xtradb-cluster.conf.d",
-                            "MountPropagation": null,
-                            "Name": "config",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/tmp",
-                            "MountPropagation": null,
-                            "Name": "tmp",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/ssl",
-                            "MountPropagation": null,
-                            "Name": "ssl",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/ssl-internal",
-                            "MountPropagation": null,
-                            "Name": "ssl-internal",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/mysql-users-secret",
-                            "MountPropagation": null,
-                            "Name": "mysql-users-secret-file",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/my.cnf.d",
-                            "MountPropagation": null,
-                            "Name": "auto-config",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/vault-keyring-secret",
-                            "MountPropagation": null,
-                            "Name": "vault-keyring-secret",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-                            "MountPropagation": null,
-                            "Name": "SIEVE-IGNORE",
-                            "ReadOnly": true,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        }
-                    ],
-                    "WorkingDir": ""
-                }
-            ],
-            "DNSConfig": null,
-            "DNSPolicy": "ClusterFirst",
-            "EnableServiceLinks": true,
-            "EphemeralContainers": null,
-            "HostAliases": null,
-            "Hostname": "xtradb-cluster-pxc-1",
-            "ImagePullSecrets": null,
-            "InitContainers": [
-                {
-                    "Args": null,
-                    "Command": [
-                        "/pxc-init-entrypoint.sh"
-                    ],
-                    "Env": null,
-                    "EnvFrom": null,
-                    "Image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                    "ImagePullPolicy": "Always",
-                    "Lifecycle": null,
-                    "LivenessProbe": null,
-                    "Name": "pxc-init",
-                    "Ports": null,
-                    "ReadinessProbe": null,
-                    "Resources": {
-                        "Limits": null,
-                        "Requests": {
-                            "cpu": "600m",
-                            "memory": "1G"
-                        }
-                    },
-                    "SecurityContext": null,
-                    "StartupProbe": null,
-                    "Stdin": false,
-                    "StdinOnce": false,
-                    "TTY": false,
-                    "TerminationMessagePath": "/dev/termination-log",
-                    "TerminationMessagePolicy": "File",
-                    "VolumeDevices": null,
-                    "VolumeMounts": [
-                        {
-                            "MountPath": "/var/lib/mysql",
-                            "MountPropagation": null,
-                            "Name": "datadir",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-                            "MountPropagation": null,
-                            "Name": "SIEVE-IGNORE",
-                            "ReadOnly": true,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        }
-                    ],
-                    "WorkingDir": ""
-                }
-            ],
-            "NodeName": "SIEVE-IGNORE",
-            "NodeSelector": null,
-            "Overhead": null,
-            "PreemptionPolicy": null,
-            "Priority": 0,
-            "PriorityClassName": "",
-            "ReadinessGates": null,
-            "RestartPolicy": "Always",
-            "RuntimeClassName": null,
-            "SchedulerName": "default-scheduler",
-            "SecurityContext": {
-                "FSGroup": 1001,
-                "FSGroupChangePolicy": null,
-                "HostIPC": false,
-                "HostNetwork": false,
-                "HostPID": false,
-                "RunAsGroup": null,
-                "RunAsNonRoot": null,
-                "RunAsUser": null,
-                "SELinuxOptions": null,
-                "ShareProcessNamespace": null,
-                "SupplementalGroups": [
-                    1001
-                ],
-                "Sysctls": null,
-                "WindowsOptions": null
-            },
-            "ServiceAccountName": "default",
-            "Subdomain": "xtradb-cluster-pxc",
-            "TerminationGracePeriodSeconds": 600,
-            "Tolerations": [
-                {
-                    "Effect": "NoExecute",
-                    "Key": "node.kubernetes.io/not-ready",
-                    "Operator": "Exists",
-                    "TolerationSeconds": 300,
-                    "Value": ""
-                },
-                {
-                    "Effect": "NoExecute",
-                    "Key": "node.kubernetes.io/unreachable",
-                    "Operator": "Exists",
-                    "TolerationSeconds": 300,
-                    "Value": ""
-                }
-            ],
-            "TopologySpreadConstraints": null,
-            "Volumes": [
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "datadir",
-                    "PersistentVolumeClaim": {
-                        "ClaimName": "datadir-xtradb-cluster-pxc-1",
-                        "ReadOnly": false
-                    },
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": {
-                        "Medium": "",
-                        "SizeLimit": null
-                    },
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "tmp",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Name": "xtradb-cluster-pxc",
-                        "Optional": true
-                    },
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "config",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "ssl-internal",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": true,
-                        "SecretName": "xtradb-cluster-ssl-internal"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "ssl",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": false,
-                        "SecretName": "xtradb-cluster-ssl"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Name": "auto-xtradb-cluster-pxc",
-                        "Optional": true
-                    },
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "auto-config",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "vault-keyring-secret",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": true,
-                        "SecretName": "keyring-secret-vault"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "mysql-users-secret-file",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": false,
-                        "SecretName": "internal-xtradb-cluster"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "SIEVE-IGNORE",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": null,
-                        "SecretName": "SIEVE-IGNORE"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                }
-            ]
-        },
-        "Status": {
-            "Conditions": [
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "Initialized"
-                },
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "Ready"
-                },
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "ContainersReady"
-                },
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "PodScheduled"
-                }
-            ],
-            "ContainerStatuses": [
-                {
-                    "ContainerID": "SIEVE-IGNORE",
-                    "Image": "docker.io/percona/percona-xtradb-cluster:8.0.21-12.1",
-                    "ImageID": "docker.io/percona/percona-xtradb-cluster@sha256:d95cf39a58f09759408a00b519fe0d0b19c1b28332ece94349dd5e9cdbda017e",
-                    "LastTerminationState": {
-                        "Running": null,
-                        "Terminated": null,
-                        "Waiting": null
-                    },
-                    "Name": "pxc",
-                    "Ready": true,
-                    "RestartCount": 0,
-                    "Started": true,
-                    "State": {
-                        "Running": {
-                            "StartedAt": "SIEVE-IGNORE"
-                        },
-                        "Terminated": null,
-                        "Waiting": null
-                    }
-                }
-            ],
-            "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.6",
-            "InitContainerStatuses": [
-                {
-                    "ContainerID": "SIEVE-IGNORE",
-                    "Image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:5a8d1de5aaafdfdf9543061667fdec2660fa99de080ecd23a4364b98307f3661",
-                    "LastTerminationState": {
-                        "Running": null,
-                        "Terminated": null,
-                        "Waiting": null
-                    },
-                    "Name": "pxc-init",
-                    "Ready": true,
-                    "RestartCount": 0,
-                    "Started": null,
-                    "State": {
-                        "Running": null,
-                        "Terminated": {
-                            "ContainerID": "SIEVE-IGNORE",
-                            "ExitCode": 0,
-                            "FinishedAt": "SIEVE-IGNORE",
-                            "Message": "",
-                            "Reason": "Completed",
-                            "Signal": 0,
-                            "StartedAt": "SIEVE-IGNORE"
-                        },
-                        "Waiting": null
-                    }
-                }
-            ],
-            "Message": "",
-            "NominatedNodeName": "",
-            "Phase": "Running",
-            "PodIPs": [
-                {
-                    "IP": "10.244.3.6"
-                }
-            ],
-            "QOSClass": "Burstable",
-            "Reason": "",
-            "StartTime": "SIEVE-IGNORE"
-        },
-        "annotations": {
-            "percona.com/configuration-hash": "d41d8cd98f00b204e9800998ecf8427e",
-            "percona.com/ssl-hash": "SIEVE-IGNORE",
-            "percona.com/ssl-internal-hash": "SIEVE-IGNORE"
-        },
-        "creationTimestamp": "SIEVE-IGNORE",
-        "generateName": "xtradb-cluster-pxc-",
-        "labels": {
-            "app.kubernetes.io/component": "pxc",
-            "app.kubernetes.io/instance": "xtradb-cluster",
-            "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
-            "app.kubernetes.io/name": "percona-xtradb-cluster",
-            "app.kubernetes.io/part-of": "percona-xtradb-cluster",
-            "controller-revision-hash": "SIEVE-IGNORE",
-            "statefulset.kubernetes.io/pod-name": "xtradb-cluster-pxc-1"
-        },
-        "managedFields": [
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:metadata": {
-                        "f:annotations": {
-                            ".": {},
-                            "f:percona.com/configuration-hash": {},
-                            "f:percona.com/ssl-hash": {},
-                            "f:percona.com/ssl-internal-hash": {}
-                        },
-                        "f:generateName": {},
-                        "f:labels": {
-                            ".": {},
-                            "f:app.kubernetes.io/component": {},
-                            "f:app.kubernetes.io/instance": {},
-                            "f:app.kubernetes.io/managed-by": {},
-                            "f:app.kubernetes.io/name": {},
-                            "f:app.kubernetes.io/part-of": {},
-                            "f:controller-revision-hash": {},
-                            "f:statefulset.kubernetes.io/pod-name": {}
-                        },
-                        "f:ownerReferences": {
-                            ".": {},
-                            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}": "SIEVE-IGNORE"
-                        }
-                    },
-                    "f:spec": {
-                        "f:affinity": {
-                            ".": {},
-                            "f:podAntiAffinity": {
-                                ".": {},
-                                "f:requiredDuringSchedulingIgnoredDuringExecution": {}
-                            }
-                        },
-                        "f:containers": {
-                            "k:{\"name\":\"pxc\"}": {
-                                ".": {},
-                                "f:args": {},
-                                "f:command": {},
-                                "f:env": {
-                                    ".": {},
-                                    "k:{\"name\":\"MONITOR_HOST\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:value": {}
-                                    },
-                                    "k:{\"name\":\"MONITOR_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    },
-                                    "k:{\"name\":\"MYSQL_ROOT_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    },
-                                    "k:{\"name\":\"OPERATOR_ADMIN_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    },
-                                    "k:{\"name\":\"PXC_SERVICE\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:value": {}
-                                    },
-                                    "k:{\"name\":\"XTRABACKUP_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    }
-                                },
-                                "f:image": {},
-                                "f:imagePullPolicy": {},
-                                "f:livenessProbe": {
-                                    ".": {},
-                                    "f:exec": {
-                                        ".": {},
-                                        "f:command": {}
-                                    },
-                                    "f:failureThreshold": {},
-                                    "f:initialDelaySeconds": {},
-                                    "f:periodSeconds": {},
-                                    "f:successThreshold": {},
-                                    "f:timeoutSeconds": {}
-                                },
-                                "f:name": {},
-                                "f:ports": {
-                                    ".": {},
-                                    "k:{\"containerPort\":3306,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":33062,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":4444,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":4567,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":4568,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    }
-                                },
-                                "f:readinessProbe": {
-                                    ".": {},
-                                    "f:exec": {
-                                        ".": {},
-                                        "f:command": {}
-                                    },
-                                    "f:failureThreshold": {},
-                                    "f:initialDelaySeconds": {},
-                                    "f:periodSeconds": {},
-                                    "f:successThreshold": {},
-                                    "f:timeoutSeconds": {}
-                                },
-                                "f:resources": {
-                                    ".": {},
-                                    "f:requests": {
-                                        ".": {},
-                                        "f:cpu": {},
-                                        "f:memory": {}
-                                    }
-                                },
-                                "f:terminationMessagePath": {},
-                                "f:terminationMessagePolicy": {},
-                                "f:volumeMounts": {
-                                    ".": {},
-                                    "k:{\"mountPath\":\"/etc/my.cnf.d\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/mysql-users-secret\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/ssl\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/ssl-internal\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/vault-keyring-secret\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/percona-xtradb-cluster.conf.d\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/tmp\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/var/lib/mysql\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    }
-                                }
-                            }
-                        },
-                        "f:dnsPolicy": {},
-                        "f:enableServiceLinks": {},
-                        "f:hostname": {},
-                        "f:initContainers": {
-                            ".": {},
-                            "k:{\"name\":\"pxc-init\"}": {
-                                ".": {},
-                                "f:command": {},
-                                "f:image": {},
-                                "f:imagePullPolicy": {},
-                                "f:name": {},
-                                "f:resources": {
-                                    ".": {},
-                                    "f:requests": {
-                                        ".": {},
-                                        "f:cpu": {},
-                                        "f:memory": {}
-                                    }
-                                },
-                                "f:terminationMessagePath": {},
-                                "f:terminationMessagePolicy": {},
-                                "f:volumeMounts": {
-                                    ".": {},
-                                    "k:{\"mountPath\":\"/var/lib/mysql\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    }
-                                }
-                            }
-                        },
-                        "f:restartPolicy": {},
-                        "f:schedulerName": {},
-                        "f:securityContext": {
-                            ".": {},
-                            "f:fsGroup": {},
-                            "f:supplementalGroups": {}
-                        },
-                        "f:serviceAccount": {},
-                        "f:serviceAccountName": {},
-                        "f:subdomain": {},
-                        "f:terminationGracePeriodSeconds": {},
-                        "f:volumes": {
-                            ".": {},
-                            "k:{\"name\":\"auto-config\"}": {
-                                ".": {},
-                                "f:configMap": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:name": {},
-                                    "f:optional": {}
-                                },
-                                "f:name": {}
-                            },
-                            "k:{\"name\":\"config\"}": {
-                                ".": {},
-                                "f:configMap": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:name": {},
-                                    "f:optional": {}
-                                },
-                                "f:name": {}
-                            },
-                            "k:{\"name\":\"datadir\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:persistentVolumeClaim": {
-                                    ".": {},
-                                    "f:claimName": {}
-                                }
-                            },
-                            "k:{\"name\":\"mysql-users-secret-file\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            },
-                            "k:{\"name\":\"ssl\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            },
-                            "k:{\"name\":\"ssl-internal\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            },
-                            "k:{\"name\":\"tmp\"}": {
-                                ".": {},
-                                "f:emptyDir": {},
-                                "f:name": {}
-                            },
-                            "k:{\"name\":\"vault-keyring-secret\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            }
-                        }
-                    }
-                },
-                "manager": "kube-controller-manager",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            },
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:status": {
-                        "f:conditions": {
-                            "k:{\"type\":\"ContainersReady\"}": {
-                                ".": {},
-                                "f:lastProbeTime": {},
-                                "f:lastTransitionTime": {},
-                                "f:status": {},
-                                "f:type": {}
-                            },
-                            "k:{\"type\":\"Initialized\"}": {
-                                ".": {},
-                                "f:lastProbeTime": {},
-                                "f:lastTransitionTime": {},
-                                "f:status": {},
-                                "f:type": {}
-                            },
-                            "k:{\"type\":\"Ready\"}": {
-                                ".": {},
-                                "f:lastProbeTime": {},
-                                "f:lastTransitionTime": {},
-                                "f:status": {},
-                                "f:type": {}
-                            }
-                        },
-                        "f:containerStatuses": {},
-                        "f:hostIP": {},
-                        "f:initContainerStatuses": {},
-                        "f:phase": {},
-                        "f:podIP": {},
-                        "f:podIPs": {
-                            ".": {},
-                            "k:{\"ip\":\"10.244.3.6\"}": {
-                                ".": {},
-                                "f:ip": {}
-                            }
-                        },
-                        "f:startTime": {}
-                    }
-                },
-                "manager": "kubelet",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            }
-        ],
-        "name": "xtradb-cluster-pxc-1",
-        "namespace": "default",
-        "ownerReferences": [
-            {
-                "apiVersion": "apps/v1",
-                "blockOwnerDeletion": true,
-                "controller": true,
-                "kind": "StatefulSet",
-                "name": "xtradb-cluster-pxc",
-                "uid": "SIEVE-IGNORE"
-            }
-        ],
-        "resourceVersion": "SIEVE-IGNORE",
-        "uid": "SIEVE-IGNORE"
-    },
-    "pod/default/xtradb-cluster-pxc-2": {
-        "Spec": {
-            "ActiveDeadlineSeconds": null,
-            "Affinity": {
-                "NodeAffinity": null,
-                "PodAffinity": null,
-                "PodAntiAffinity": {
-                    "PreferredDuringSchedulingIgnoredDuringExecution": null,
-                    "RequiredDuringSchedulingIgnoredDuringExecution": [
-                        {
-                            "LabelSelector": {
-                                "matchLabels": {
-                                    "app.kubernetes.io/component": "pxc",
-                                    "app.kubernetes.io/instance": "xtradb-cluster",
-                                    "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
-                                    "app.kubernetes.io/name": "percona-xtradb-cluster",
-                                    "app.kubernetes.io/part-of": "percona-xtradb-cluster"
-                                }
-                            },
-                            "Namespaces": null,
-                            "TopologyKey": "kubernetes.io/hostname"
-                        }
-                    ]
-                }
-            },
-            "AutomountServiceAccountToken": null,
-            "Containers": [
-                {
-                    "Args": [
-                        "mysqld"
-                    ],
-                    "Command": [
-                        "/var/lib/mysql/pxc-entrypoint.sh"
-                    ],
-                    "Env": [
-                        {
-                            "Name": "PXC_SERVICE",
-                            "Value": "xtradb-cluster-pxc-unready",
-                            "ValueFrom": null
-                        },
-                        {
-                            "Name": "MONITOR_HOST",
-                            "Value": "%",
-                            "ValueFrom": null
-                        },
-                        {
-                            "Name": "MYSQL_ROOT_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "root",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        },
-                        {
-                            "Name": "XTRABACKUP_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "xtrabackup",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        },
-                        {
-                            "Name": "MONITOR_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "monitor",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        },
-                        {
-                            "Name": "OPERATOR_ADMIN_PASSWORD",
-                            "Value": "",
-                            "ValueFrom": {
-                                "ConfigMapKeyRef": null,
-                                "FieldRef": null,
-                                "ResourceFieldRef": null,
-                                "SecretKeyRef": {
-                                    "Key": "operator",
-                                    "Name": "internal-xtradb-cluster",
-                                    "Optional": null
-                                }
-                            }
-                        }
-                    ],
-                    "EnvFrom": null,
-                    "Image": "percona/percona-xtradb-cluster:8.0.21-12.1",
-                    "ImagePullPolicy": "Always",
-                    "Lifecycle": null,
-                    "LivenessProbe": {
-                        "Exec": {
-                            "Command": [
-                                "/var/lib/mysql/liveness-check.sh"
-                            ]
-                        },
-                        "FailureThreshold": 3,
-                        "HTTPGet": null,
-                        "InitialDelaySeconds": 300,
-                        "PeriodSeconds": 10,
-                        "SuccessThreshold": 1,
-                        "TCPSocket": null,
-                        "TimeoutSeconds": 5
-                    },
-                    "Name": "pxc",
-                    "Ports": [
-                        {
-                            "ContainerPort": 3306,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "mysql",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 4444,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "sst",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 4567,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "write-set",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 4568,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "ist",
-                            "Protocol": "TCP"
-                        },
-                        {
-                            "ContainerPort": 33062,
-                            "HostIP": "",
-                            "HostPort": 0,
-                            "Name": "mysql-admin",
-                            "Protocol": "TCP"
-                        }
-                    ],
-                    "ReadinessProbe": {
-                        "Exec": {
-                            "Command": [
-                                "/var/lib/mysql/readiness-check.sh"
-                            ]
-                        },
-                        "FailureThreshold": 5,
-                        "HTTPGet": null,
-                        "InitialDelaySeconds": 15,
-                        "PeriodSeconds": 30,
-                        "SuccessThreshold": 1,
-                        "TCPSocket": null,
-                        "TimeoutSeconds": 15
-                    },
-                    "Resources": {
-                        "Limits": null,
-                        "Requests": {
-                            "cpu": "600m",
-                            "memory": "1G"
-                        }
-                    },
-                    "SecurityContext": null,
-                    "StartupProbe": null,
-                    "Stdin": false,
-                    "StdinOnce": false,
-                    "TTY": false,
-                    "TerminationMessagePath": "/dev/termination-log",
-                    "TerminationMessagePolicy": "File",
-                    "VolumeDevices": null,
-                    "VolumeMounts": [
-                        {
-                            "MountPath": "/var/lib/mysql",
-                            "MountPropagation": null,
-                            "Name": "datadir",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/percona-xtradb-cluster.conf.d",
-                            "MountPropagation": null,
-                            "Name": "config",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/tmp",
-                            "MountPropagation": null,
-                            "Name": "tmp",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/ssl",
-                            "MountPropagation": null,
-                            "Name": "ssl",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/ssl-internal",
-                            "MountPropagation": null,
-                            "Name": "ssl-internal",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/mysql-users-secret",
-                            "MountPropagation": null,
-                            "Name": "mysql-users-secret-file",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/my.cnf.d",
-                            "MountPropagation": null,
-                            "Name": "auto-config",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/etc/mysql/vault-keyring-secret",
-                            "MountPropagation": null,
-                            "Name": "vault-keyring-secret",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-                            "MountPropagation": null,
-                            "Name": "SIEVE-IGNORE",
-                            "ReadOnly": true,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        }
-                    ],
-                    "WorkingDir": ""
-                }
-            ],
-            "DNSConfig": null,
-            "DNSPolicy": "ClusterFirst",
-            "EnableServiceLinks": true,
-            "EphemeralContainers": null,
-            "HostAliases": null,
-            "Hostname": "xtradb-cluster-pxc-2",
-            "ImagePullSecrets": null,
-            "InitContainers": [
-                {
-                    "Args": null,
-                    "Command": [
-                        "/pxc-init-entrypoint.sh"
-                    ],
-                    "Env": null,
-                    "EnvFrom": null,
-                    "Image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                    "ImagePullPolicy": "Always",
-                    "Lifecycle": null,
-                    "LivenessProbe": null,
-                    "Name": "pxc-init",
-                    "Ports": null,
-                    "ReadinessProbe": null,
-                    "Resources": {
-                        "Limits": null,
-                        "Requests": {
-                            "cpu": "600m",
-                            "memory": "1G"
-                        }
-                    },
-                    "SecurityContext": null,
-                    "StartupProbe": null,
-                    "Stdin": false,
-                    "StdinOnce": false,
-                    "TTY": false,
-                    "TerminationMessagePath": "/dev/termination-log",
-                    "TerminationMessagePolicy": "File",
-                    "VolumeDevices": null,
-                    "VolumeMounts": [
-                        {
-                            "MountPath": "/var/lib/mysql",
-                            "MountPropagation": null,
-                            "Name": "datadir",
-                            "ReadOnly": false,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        },
-                        {
-                            "MountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-                            "MountPropagation": null,
-                            "Name": "SIEVE-IGNORE",
-                            "ReadOnly": true,
-                            "SubPath": "",
-                            "SubPathExpr": ""
-                        }
-                    ],
-                    "WorkingDir": ""
-                }
-            ],
-            "NodeName": "SIEVE-IGNORE",
-            "NodeSelector": null,
-            "Overhead": null,
-            "PreemptionPolicy": null,
-            "Priority": 0,
-            "PriorityClassName": "",
-            "ReadinessGates": null,
-            "RestartPolicy": "Always",
-            "RuntimeClassName": null,
-            "SchedulerName": "default-scheduler",
-            "SecurityContext": {
-                "FSGroup": 1001,
-                "FSGroupChangePolicy": null,
-                "HostIPC": false,
-                "HostNetwork": false,
-                "HostPID": false,
-                "RunAsGroup": null,
-                "RunAsNonRoot": null,
-                "RunAsUser": null,
-                "SELinuxOptions": null,
-                "ShareProcessNamespace": null,
-                "SupplementalGroups": [
-                    1001
-                ],
-                "Sysctls": null,
-                "WindowsOptions": null
-            },
-            "ServiceAccountName": "default",
-            "Subdomain": "xtradb-cluster-pxc",
-            "TerminationGracePeriodSeconds": 600,
-            "Tolerations": [
-                {
-                    "Effect": "NoExecute",
-                    "Key": "node.kubernetes.io/not-ready",
-                    "Operator": "Exists",
-                    "TolerationSeconds": 300,
-                    "Value": ""
-                },
-                {
-                    "Effect": "NoExecute",
-                    "Key": "node.kubernetes.io/unreachable",
-                    "Operator": "Exists",
-                    "TolerationSeconds": 300,
-                    "Value": ""
-                }
-            ],
-            "TopologySpreadConstraints": null,
-            "Volumes": [
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "datadir",
-                    "PersistentVolumeClaim": {
-                        "ClaimName": "datadir-xtradb-cluster-pxc-2",
-                        "ReadOnly": false
-                    },
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": {
-                        "Medium": "",
-                        "SizeLimit": null
-                    },
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "tmp",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Name": "xtradb-cluster-pxc",
-                        "Optional": true
-                    },
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "config",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "ssl-internal",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": true,
-                        "SecretName": "xtradb-cluster-ssl-internal"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "ssl",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": false,
-                        "SecretName": "xtradb-cluster-ssl"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Name": "auto-xtradb-cluster-pxc",
-                        "Optional": true
-                    },
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "auto-config",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": null,
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "vault-keyring-secret",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": true,
-                        "SecretName": "keyring-secret-vault"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "mysql-users-secret-file",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": false,
-                        "SecretName": "internal-xtradb-cluster"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                },
-                {
-                    "AWSElasticBlockStore": null,
-                    "AzureDisk": null,
-                    "AzureFile": null,
-                    "CSI": null,
-                    "CephFS": null,
-                    "Cinder": null,
-                    "ConfigMap": null,
-                    "DownwardAPI": null,
-                    "EmptyDir": null,
-                    "FC": null,
-                    "FlexVolume": null,
-                    "Flocker": null,
-                    "GCEPersistentDisk": null,
-                    "GitRepo": null,
-                    "Glusterfs": null,
-                    "HostPath": null,
-                    "ISCSI": null,
-                    "NFS": null,
-                    "Name": "SIEVE-IGNORE",
-                    "PersistentVolumeClaim": null,
-                    "PhotonPersistentDisk": null,
-                    "PortworxVolume": null,
-                    "Projected": null,
-                    "Quobyte": null,
-                    "RBD": null,
-                    "ScaleIO": null,
-                    "Secret": {
-                        "DefaultMode": 420,
-                        "Items": null,
-                        "Optional": null,
-                        "SecretName": "SIEVE-IGNORE"
-                    },
-                    "StorageOS": null,
-                    "VsphereVolume": null
-                }
-            ]
-        },
-        "Status": {
-            "Conditions": [
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "Initialized"
-                },
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "Ready"
-                },
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "ContainersReady"
-                },
-                {
-                    "LastProbeTime": null,
-                    "LastTransitionTime": "SIEVE-IGNORE",
-                    "Message": "",
-                    "Reason": "",
-                    "Status": "True",
-                    "Type": "PodScheduled"
-                }
-            ],
-            "ContainerStatuses": [
-                {
-                    "ContainerID": "SIEVE-IGNORE",
-                    "Image": "docker.io/percona/percona-xtradb-cluster:8.0.21-12.1",
-                    "ImageID": "docker.io/percona/percona-xtradb-cluster@sha256:d95cf39a58f09759408a00b519fe0d0b19c1b28332ece94349dd5e9cdbda017e",
-                    "LastTerminationState": {
-                        "Running": null,
-                        "Terminated": null,
-                        "Waiting": null
-                    },
-                    "Name": "pxc",
-                    "Ready": true,
-                    "RestartCount": 0,
-                    "Started": true,
-                    "State": {
-                        "Running": {
-                            "StartedAt": "SIEVE-IGNORE"
-                        },
-                        "Terminated": null,
-                        "Waiting": null
-                    }
-                }
-            ],
-            "EphemeralContainerStatuses": null,
-            "HostIP": "SIEVE-IGNORE",
-            "InitContainerStatuses": [
-                {
-                    "ContainerID": "SIEVE-IGNORE",
-                    "Image": "ghcr.io/sieve-project/action/xtradb-operator:learn",
-                    "ImageID": "ghcr.io/sieve-project/action/xtradb-operator@sha256:5a8d1de5aaafdfdf9543061667fdec2660fa99de080ecd23a4364b98307f3661",
-                    "LastTerminationState": {
-                        "Running": null,
-                        "Terminated": null,
-                        "Waiting": null
-                    },
-                    "Name": "pxc-init",
-                    "Ready": true,
-                    "RestartCount": 0,
-                    "Started": null,
-                    "State": {
-                        "Running": null,
-                        "Terminated": {
-                            "ContainerID": "SIEVE-IGNORE",
-                            "ExitCode": 0,
-                            "FinishedAt": "SIEVE-IGNORE",
-                            "Message": "",
-                            "Reason": "Completed",
-                            "Signal": 0,
-                            "StartedAt": "SIEVE-IGNORE"
-                        },
-                        "Waiting": null
-                    }
-                }
-            ],
-            "Message": "",
-            "NominatedNodeName": "",
-            "Phase": "Running",
-            "PodIPs": [
-                {
-                    "IP": "10.244.2.6"
-                }
-            ],
-            "QOSClass": "Burstable",
-            "Reason": "",
-            "StartTime": "SIEVE-IGNORE"
-        },
-        "annotations": {
-            "percona.com/configuration-hash": "d41d8cd98f00b204e9800998ecf8427e",
-            "percona.com/ssl-hash": "SIEVE-IGNORE",
-            "percona.com/ssl-internal-hash": "SIEVE-IGNORE"
-        },
-        "creationTimestamp": "SIEVE-IGNORE",
-        "generateName": "xtradb-cluster-pxc-",
-        "labels": {
-            "app.kubernetes.io/component": "pxc",
-            "app.kubernetes.io/instance": "xtradb-cluster",
-            "app.kubernetes.io/managed-by": "percona-xtradb-cluster-operator",
-            "app.kubernetes.io/name": "percona-xtradb-cluster",
-            "app.kubernetes.io/part-of": "percona-xtradb-cluster",
-            "controller-revision-hash": "SIEVE-IGNORE",
-            "statefulset.kubernetes.io/pod-name": "xtradb-cluster-pxc-2"
-        },
-        "managedFields": [
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:metadata": {
-                        "f:annotations": {
-                            ".": {},
-                            "f:percona.com/configuration-hash": {},
-                            "f:percona.com/ssl-hash": {},
-                            "f:percona.com/ssl-internal-hash": {}
-                        },
-                        "f:generateName": {},
-                        "f:labels": {
-                            ".": {},
-                            "f:app.kubernetes.io/component": {},
-                            "f:app.kubernetes.io/instance": {},
-                            "f:app.kubernetes.io/managed-by": {},
-                            "f:app.kubernetes.io/name": {},
-                            "f:app.kubernetes.io/part-of": {},
-                            "f:controller-revision-hash": {},
-                            "f:statefulset.kubernetes.io/pod-name": {}
-                        },
-                        "f:ownerReferences": {
-                            ".": {},
-                            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}": "SIEVE-IGNORE"
-                        }
-                    },
-                    "f:spec": {
-                        "f:affinity": {
-                            ".": {},
-                            "f:podAntiAffinity": {
-                                ".": {},
-                                "f:requiredDuringSchedulingIgnoredDuringExecution": {}
-                            }
-                        },
-                        "f:containers": {
-                            "k:{\"name\":\"pxc\"}": {
-                                ".": {},
-                                "f:args": {},
-                                "f:command": {},
-                                "f:env": {
-                                    ".": {},
-                                    "k:{\"name\":\"MONITOR_HOST\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:value": {}
-                                    },
-                                    "k:{\"name\":\"MONITOR_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    },
-                                    "k:{\"name\":\"MYSQL_ROOT_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    },
-                                    "k:{\"name\":\"OPERATOR_ADMIN_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    },
-                                    "k:{\"name\":\"PXC_SERVICE\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:value": {}
-                                    },
-                                    "k:{\"name\":\"XTRABACKUP_PASSWORD\"}": {
-                                        ".": {},
-                                        "f:name": {},
-                                        "f:valueFrom": {
-                                            ".": {},
-                                            "f:secretKeyRef": {
-                                                ".": {},
-                                                "f:key": {},
-                                                "f:name": {}
-                                            }
-                                        }
-                                    }
-                                },
-                                "f:image": {},
-                                "f:imagePullPolicy": {},
-                                "f:livenessProbe": {
-                                    ".": {},
-                                    "f:exec": {
-                                        ".": {},
-                                        "f:command": {}
-                                    },
-                                    "f:failureThreshold": {},
-                                    "f:initialDelaySeconds": {},
-                                    "f:periodSeconds": {},
-                                    "f:successThreshold": {},
-                                    "f:timeoutSeconds": {}
-                                },
-                                "f:name": {},
-                                "f:ports": {
-                                    ".": {},
-                                    "k:{\"containerPort\":3306,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":33062,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":4444,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":4567,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    },
-                                    "k:{\"containerPort\":4568,\"protocol\":\"TCP\"}": {
-                                        ".": {},
-                                        "f:containerPort": {},
-                                        "f:name": {},
-                                        "f:protocol": {}
-                                    }
-                                },
-                                "f:readinessProbe": {
-                                    ".": {},
-                                    "f:exec": {
-                                        ".": {},
-                                        "f:command": {}
-                                    },
-                                    "f:failureThreshold": {},
-                                    "f:initialDelaySeconds": {},
-                                    "f:periodSeconds": {},
-                                    "f:successThreshold": {},
-                                    "f:timeoutSeconds": {}
-                                },
-                                "f:resources": {
-                                    ".": {},
-                                    "f:requests": {
-                                        ".": {},
-                                        "f:cpu": {},
-                                        "f:memory": {}
-                                    }
-                                },
-                                "f:terminationMessagePath": {},
-                                "f:terminationMessagePolicy": {},
-                                "f:volumeMounts": {
-                                    ".": {},
-                                    "k:{\"mountPath\":\"/etc/my.cnf.d\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/mysql-users-secret\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/ssl\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/ssl-internal\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/mysql/vault-keyring-secret\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/etc/percona-xtradb-cluster.conf.d\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/tmp\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    },
-                                    "k:{\"mountPath\":\"/var/lib/mysql\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    }
-                                }
-                            }
-                        },
-                        "f:dnsPolicy": {},
-                        "f:enableServiceLinks": {},
-                        "f:hostname": {},
-                        "f:initContainers": {
-                            ".": {},
-                            "k:{\"name\":\"pxc-init\"}": {
-                                ".": {},
-                                "f:command": {},
-                                "f:image": {},
-                                "f:imagePullPolicy": {},
-                                "f:name": {},
-                                "f:resources": {
-                                    ".": {},
-                                    "f:requests": {
-                                        ".": {},
-                                        "f:cpu": {},
-                                        "f:memory": {}
-                                    }
-                                },
-                                "f:terminationMessagePath": {},
-                                "f:terminationMessagePolicy": {},
-                                "f:volumeMounts": {
-                                    ".": {},
-                                    "k:{\"mountPath\":\"/var/lib/mysql\"}": {
-                                        ".": {},
-                                        "f:mountPath": {},
-                                        "f:name": {}
-                                    }
-                                }
-                            }
-                        },
-                        "f:restartPolicy": {},
-                        "f:schedulerName": {},
-                        "f:securityContext": {
-                            ".": {},
-                            "f:fsGroup": {},
-                            "f:supplementalGroups": {}
-                        },
-                        "f:serviceAccount": {},
-                        "f:serviceAccountName": {},
-                        "f:subdomain": {},
-                        "f:terminationGracePeriodSeconds": {},
-                        "f:volumes": {
-                            ".": {},
-                            "k:{\"name\":\"auto-config\"}": {
-                                ".": {},
-                                "f:configMap": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:name": {},
-                                    "f:optional": {}
-                                },
-                                "f:name": {}
-                            },
-                            "k:{\"name\":\"config\"}": {
-                                ".": {},
-                                "f:configMap": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:name": {},
-                                    "f:optional": {}
-                                },
-                                "f:name": {}
-                            },
-                            "k:{\"name\":\"datadir\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:persistentVolumeClaim": {
-                                    ".": {},
-                                    "f:claimName": {}
-                                }
-                            },
-                            "k:{\"name\":\"mysql-users-secret-file\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            },
-                            "k:{\"name\":\"ssl\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            },
-                            "k:{\"name\":\"ssl-internal\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            },
-                            "k:{\"name\":\"tmp\"}": {
-                                ".": {},
-                                "f:emptyDir": {},
-                                "f:name": {}
-                            },
-                            "k:{\"name\":\"vault-keyring-secret\"}": {
-                                ".": {},
-                                "f:name": {},
-                                "f:secret": {
-                                    ".": {},
-                                    "f:defaultMode": {},
-                                    "f:optional": {},
-                                    "f:secretName": {}
-                                }
-                            }
-                        }
-                    }
-                },
-                "manager": "kube-controller-manager",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            },
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:status": {
-                        "f:conditions": {
-                            "k:{\"type\":\"ContainersReady\"}": {
-                                ".": {},
-                                "f:lastProbeTime": {},
-                                "f:lastTransitionTime": {},
-                                "f:status": {},
-                                "f:type": {}
-                            },
-                            "k:{\"type\":\"Initialized\"}": {
-                                ".": {},
-                                "f:lastProbeTime": {},
-                                "f:lastTransitionTime": {},
-                                "f:status": {},
-                                "f:type": {}
-                            },
-                            "k:{\"type\":\"Ready\"}": {
-                                ".": {},
-                                "f:lastProbeTime": {},
-                                "f:lastTransitionTime": {},
-                                "f:status": {},
-                                "f:type": {}
-                            }
-                        },
-                        "f:containerStatuses": {},
-                        "f:hostIP": {},
-                        "f:initContainerStatuses": {},
-                        "f:phase": {},
-                        "f:podIP": {},
-                        "f:podIPs": {
-                            ".": {},
-                            "k:{\"ip\":\"10.244.2.6\"}": {
-                                ".": {},
-                                "f:ip": {}
-                            }
-                        },
-                        "f:startTime": {}
-                    }
-                },
-                "manager": "kubelet",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            }
-        ],
-        "name": "xtradb-cluster-pxc-2",
         "namespace": "default",
         "ownerReferences": [
             {
@@ -5136,10 +2430,10 @@
             }
         },
         "Status": {
-            "CurrentHealthy": 3,
+            "CurrentHealthy": 0,
             "DesiredHealthy": 2,
             "DisruptedPods": null,
-            "DisruptionsAllowed": 1,
+            "DisruptionsAllowed": 0,
             "ExpectedPods": 3,
             "ObservedGeneration": 1
         },
@@ -5150,10 +2444,24 @@
                 "apiVersion": "policy/v1beta1",
                 "fieldsType": "FieldsV1",
                 "fieldsV1": {
+                    "f:status": {
+                        "f:desiredHealthy": {},
+                        "f:expectedPods": {},
+                        "f:observedGeneration": {}
+                    }
+                },
+                "manager": "kube-controller-manager",
+                "operation": "Update",
+                "time": "SIEVE-IGNORE"
+            },
+            {
+                "apiVersion": "policy/v1beta1",
+                "fieldsType": "FieldsV1",
+                "fieldsV1": {
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"ea9bf74f-2a1e-4574-a73e-16a396ae80ef\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"131e3d24-4356-4cda-8447-201c65c568f7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -5172,22 +2480,6 @@
                     }
                 },
                 "manager": "percona-xtradb-cluster-operator",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            },
-            {
-                "apiVersion": "policy/v1beta1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:status": {
-                        "f:currentHealthy": {},
-                        "f:desiredHealthy": {},
-                        "f:disruptionsAllowed": {},
-                        "f:expectedPods": {},
-                        "f:observedGeneration": {}
-                    }
-                },
-                "manager": "kube-controller-manager",
                 "operation": "Update",
                 "time": "SIEVE-IGNORE"
             }
@@ -5412,7 +2704,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"150653b1-4771-4776-b67e-f29247b3b992\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2522dd04-8cce-40ab-bb3d-5dd1cc9644b9\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -5761,10 +3053,6 @@
         },
         "Immutable": null,
         "Type": "Opaque",
-        "annotations": {
-            "grant-for-1.6.0-monitor-user": "done",
-            "grant-for-1.7.0-xtrabackup-user": "done"
-        },
         "creationTimestamp": "SIEVE-IGNORE",
         "managedFields": [
             {
@@ -5780,13 +3068,6 @@
                         "f:root": {},
                         "f:xtrabackup": {}
                     },
-                    "f:metadata": {
-                        "f:annotations": {
-                            ".": {},
-                            "f:grant-for-1.6.0-monitor-user": {},
-                            "f:grant-for-1.7.0-xtrabackup-user": {}
-                        }
-                    },
                     "f:type": {}
                 },
                 "manager": "percona-xtradb-cluster-operator",
@@ -5799,7 +3080,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "secret/default/percona-xtradb-cluster-operator-token-2nd7p": "SIEVE-IGNORE",
+    "secret/default/percona-xtradb-cluster-operator-token-fmmv2": "SIEVE-IGNORE",
     "secret/default/xtradb-cluster-secrets": {
         "Data": {
             "clustercheck": "SIEVE-IGNORE",
@@ -5861,7 +3142,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:type": {}
@@ -5908,7 +3189,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:type": {}
@@ -5987,7 +3268,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"150653b1-4771-4776-b67e-f29247b3b992\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2522dd04-8cce-40ab-bb3d-5dd1cc9644b9\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6094,7 +3375,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6214,7 +3495,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6290,7 +3571,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"percona-xtradb-cluster-operator-token-2nd7p\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"percona-xtradb-cluster-operator-token-fmmv2\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -6976,13 +4257,13 @@
         "Status": {
             "CollisionCount": 0,
             "Conditions": null,
-            "CurrentReplicas": 3,
+            "CurrentReplicas": 1,
             "CurrentRevision": "SIEVE-IGNORE",
             "ObservedGeneration": 1,
-            "ReadyReplicas": 3,
-            "Replicas": 3,
+            "ReadyReplicas": 0,
+            "Replicas": 1,
             "UpdateRevision": "SIEVE-IGNORE",
-            "UpdatedReplicas": 3
+            "UpdatedReplicas": 1
         },
         "creationTimestamp": "SIEVE-IGNORE",
         "generation": 1,
@@ -6991,10 +4272,28 @@
                 "apiVersion": "apps/v1",
                 "fieldsType": "FieldsV1",
                 "fieldsV1": {
+                    "f:status": {
+                        "f:collisionCount": {},
+                        "f:currentReplicas": {},
+                        "f:currentRevision": {},
+                        "f:observedGeneration": {},
+                        "f:replicas": {},
+                        "f:updateRevision": {},
+                        "f:updatedReplicas": {}
+                    }
+                },
+                "manager": "kube-controller-manager",
+                "operation": "Update",
+                "time": "SIEVE-IGNORE"
+            },
+            {
+                "apiVersion": "apps/v1",
+                "fieldsType": "FieldsV1",
+                "fieldsV1": {
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"16d6f520-ffeb-494d-a75c-012c99a42c1d\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"2085dc68-c634-4970-8953-b6fd6de50320\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -7338,25 +4637,6 @@
                     }
                 },
                 "manager": "percona-xtradb-cluster-operator",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            },
-            {
-                "apiVersion": "apps/v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:status": {
-                        "f:collisionCount": {},
-                        "f:currentReplicas": {},
-                        "f:currentRevision": {},
-                        "f:observedGeneration": {},
-                        "f:readyReplicas": {},
-                        "f:replicas": {},
-                        "f:updateRevision": {},
-                        "f:updatedReplicas": {}
-                    }
-                },
-                "manager": "kube-controller-manager",
                 "operation": "Update",
                 "time": "SIEVE-IGNORE"
             }
