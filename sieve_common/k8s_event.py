@@ -167,12 +167,11 @@ def parse_key(key: str):
     return tokens[0], tokens[1], tokens[2]
 
 
-def get_mask_by_resource_key(key_mask_map, rtype, namespace, name):
+def get_mask_by_resource_key(key_mask_map, resource_key):
     # TODO: converting the list to a string may lead to ambiguity
     # consider two lists: ["a", "b", "c"] and ["a/b", "c"]
     # after converting to string they look the same
     masked_keys = []
-    resource_key = generate_key(rtype, namespace, name)
     for key in key_mask_map:
         if key == resource_key or PurePath("/" + resource_key).match("/" + key):
             for field_path_list in key_mask_map[key]:

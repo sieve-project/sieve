@@ -194,29 +194,17 @@ class EventGraph:
     def intra_reconciler_edges(self) -> List[EventEdge]:
         return self.__intra_reconciler_edges
 
-    def retrieve_masked(self, rtype, namespace, name):
+    def retrieve_masked(self, resource_key):
         masked_keys = set()
         masked_keys.update(
-            set(
-                get_mask_by_resource_key(
-                    self.configured_masked_keys, rtype, namespace, name
-                )
-            )
+            set(get_mask_by_resource_key(self.configured_masked_keys, resource_key))
         )
         masked_paths = set()
         masked_paths.update(
-            set(
-                get_mask_by_resource_key(
-                    self.configured_masked_paths, rtype, namespace, name
-                )
-            )
+            set(get_mask_by_resource_key(self.configured_masked_paths, resource_key))
         )
         masked_paths.update(
-            set(
-                get_mask_by_resource_key(
-                    self.learned_masked_paths, rtype, namespace, name
-                )
-            )
+            set(get_mask_by_resource_key(self.learned_masked_paths, resource_key))
         )
         return (masked_keys, masked_paths)
 
@@ -420,11 +408,7 @@ class EventGraph:
                     prev_operator_hear = vertices[i - 1].content
                     prev_hear_obj_map = prev_operator_hear.obj_map
                     prev_hear_etype = prev_operator_hear.etype
-                masked_keys, masked_paths = self.retrieve_masked(
-                    cur_operator_hear.rtype,
-                    cur_operator_hear.namespace,
-                    cur_operator_hear.name,
-                )
+                masked_keys, masked_paths = self.retrieve_masked(cur_operator_hear.key)
                 slim_prev_object, slim_cur_object = diff_event(
                     prev_hear_obj_map,
                     cur_operator_hear.obj_map,
@@ -470,9 +454,7 @@ class EventGraph:
                             prev_read_obj_map = operator_read.key_to_obj[key]
                             prev_read_etype = operator_read.etype
 
-                masked_keys, masked_paths = self.retrieve_masked(
-                    operator_write.rtype, operator_write.namespace, operator_write.name
-                )
+                masked_keys, masked_paths = self.retrieve_masked(operator_write.key)
                 slim_prev_object, slim_cur_object = diff_event(
                     prev_read_obj_map,
                     operator_write.obj_map,
@@ -520,9 +502,7 @@ class EventGraph:
                         cancelled_by.add(future_operator_hear.id)
                         continue
                     masked_keys, masked_paths = self.retrieve_masked(
-                        cur_operator_hear.rtype,
-                        cur_operator_hear.namespace,
-                        cur_operator_hear.name,
+                        cur_operator_hear.key
                     )
                     if conflicting_event(
                         cur_operator_hear,

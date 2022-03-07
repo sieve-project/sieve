@@ -374,17 +374,13 @@ def compare_states(test_context: TestContext):
             mask_keys = set(
                 get_mask_by_resource_key(
                     test_context.common_config.field_key_mask,
-                    resource_type,
-                    namespace,
-                    name,
+                    resource_key,
                 )
             )
             mask_paths = set(
                 get_mask_by_resource_key(
                     test_context.common_config.field_path_mask,
-                    resource_type,
-                    namespace,
-                    name,
+                    resource_key,
                 )
             )
 
