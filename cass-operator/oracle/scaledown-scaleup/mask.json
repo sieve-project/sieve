@@ -26,6 +26,12 @@
         ],
         [
             "status",
+            "conditions",
+            "*",
+            "type"
+        ],
+        [
+            "status",
             "lastServerNodeStarted"
         ],
         [
@@ -65,7 +71,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"6fac7816-d5cd-46be-a0fe-1f54f62243a2\"}"
+            "k:{\"uid\":\"39eaaddd-8271-4711-acc2-488b51dd07a1\"}"
         ],
         [
             "metadata",
@@ -146,7 +152,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"e8232d07-17fe-42ba-9e76-e473d31a4135\"}"
+            "k:{\"uid\":\"61209f9f-a266-432b-850e-fab11504a719\"}"
         ],
         [
             "metadata",
@@ -269,7 +275,56 @@
             "*",
             "addresses",
             "*",
-            "nodeName"
+            "targetRef",
+            "name"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "targetRef",
+            "resourceVersion"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "targetRef",
+            "uID"
+        ]
+    ],
+    "endpoints/default/cassandradatacenter-webhook-service": [
+        [
+            "metadata",
+            "annotations",
+            "endpoints.kubernetes.io/last-change-trigger-time"
+        ],
+        [
+            "metadata",
+            "creationTimestamp"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "time"
+        ],
+        [
+            "metadata",
+            "resourceVersion"
+        ],
+        [
+            "metadata",
+            "uid"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "iP"
         ],
         [
             "subsets",
@@ -296,7 +351,7 @@
             "uID"
         ]
     ],
-    "endpoints/default/cassandradatacenter-webhook-service": [
+    "endpoints/default/cluster1-cassandra-datacenter-all-pods-service": [
         [
             "metadata",
             "annotations",
@@ -359,47 +414,6 @@
             "uID"
         ]
     ],
-    "endpoints/default/cluster1-cassandra-datacenter-all-pods-service": [
-        [
-            "metadata",
-            "annotations",
-            "endpoints.kubernetes.io/last-change-trigger-time"
-        ],
-        [
-            "metadata",
-            "creationTimestamp"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "time"
-        ],
-        [
-            "metadata",
-            "resourceVersion"
-        ],
-        [
-            "metadata",
-            "uid"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
-            "*",
-            "targetRef",
-            "resourceVersion"
-        ],
-        [
-            "subsets",
-            "*",
-            "addresses",
-            "*",
-            "targetRef",
-            "uID"
-        ]
-    ],
     "endpoints/default/cluster1-cassandra-datacenter-service": [
         [
             "metadata",
@@ -423,6 +437,35 @@
         [
             "metadata",
             "uid"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "hostname"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "iP"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "targetRef",
+            "name"
         ],
         [
             "subsets",
@@ -464,6 +507,28 @@
         [
             "metadata",
             "uid"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "iP"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "targetRef",
+            "name"
         ],
         [
             "subsets",
@@ -567,7 +632,16 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"e8232d07-17fe-42ba-9e76-e473d31a4135\"}"
+            "k:{\"uid\":\"61209f9f-a266-432b-850e-fab11504a719\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.2.5\"}"
         ],
         [
             "metadata",
@@ -671,6 +745,12 @@
             "state",
             "terminated",
             "startedAt"
+        ],
+        [
+            "status",
+            "podIPs",
+            "*",
+            "iP"
         ],
         [
             "status",
@@ -689,7 +769,16 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"e8232d07-17fe-42ba-9e76-e473d31a4135\"}"
+            "k:{\"uid\":\"61209f9f-a266-432b-850e-fab11504a719\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.1.6\"}"
         ],
         [
             "metadata",
@@ -796,6 +885,12 @@
         ],
         [
             "status",
+            "podIPs",
+            "*",
+            "iP"
+        ],
+        [
+            "status",
             "startTime"
         ]
     ],
@@ -811,7 +906,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"f5daae69-7c2a-4f85-8cf5-45e087ccf717\"}"
+            "k:{\"uid\":\"4fda8548-c82c-488e-bc91-b38390f04876\"}"
         ],
         [
             "metadata",
@@ -846,7 +941,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2e32a880-4ff7-48e4-899c-2a336dc7f78d\"}"
+            "k:{\"uid\":\"30c275e5-9d59-4297-8bd4-995c57288dde\"}"
         ],
         [
             "metadata",
@@ -881,7 +976,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"1dd4ae0c-05c3-429a-862d-52a371c884c2\"}"
+            "k:{\"uid\":\"8341f5b4-e172-4301-bcca-a33e4cca3135\"}"
         ],
         [
             "metadata",
@@ -1060,7 +1155,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2e32a880-4ff7-48e4-899c-2a336dc7f78d\"}"
+            "k:{\"uid\":\"30c275e5-9d59-4297-8bd4-995c57288dde\"}"
         ],
         [
             "metadata",
@@ -1123,7 +1218,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"f5daae69-7c2a-4f85-8cf5-45e087ccf717\"}"
+            "k:{\"uid\":\"4fda8548-c82c-488e-bc91-b38390f04876\"}"
         ],
         [
             "metadata",
@@ -1158,7 +1253,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"f5daae69-7c2a-4f85-8cf5-45e087ccf717\"}"
+            "k:{\"uid\":\"4fda8548-c82c-488e-bc91-b38390f04876\"}"
         ],
         [
             "metadata",
@@ -1193,7 +1288,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"f5daae69-7c2a-4f85-8cf5-45e087ccf717\"}"
+            "k:{\"uid\":\"4fda8548-c82c-488e-bc91-b38390f04876\"}"
         ],
         [
             "metadata",
@@ -1227,7 +1322,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"cass-operator-token-98psb\"}"
+            "k:{\"name\":\"cass-operator-token-l85j6\"}"
         ],
         [
             "metadata",
@@ -1260,7 +1355,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"local-path-provisioner-service-account-token-vr5qr\"}"
+            "k:{\"name\":\"local-path-provisioner-service-account-token-rddt9\"}"
         ],
         [
             "metadata",
@@ -1294,7 +1389,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"f5daae69-7c2a-4f85-8cf5-45e087ccf717\"}"
+            "k:{\"uid\":\"4fda8548-c82c-488e-bc91-b38390f04876\"}"
         ],
         [
             "metadata",
