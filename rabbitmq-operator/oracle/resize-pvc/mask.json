@@ -36,7 +36,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -71,7 +71,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -126,7 +126,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"11581ae2-cfa9-4e18-8bab-2309bea26b8a\"}"
+            "k:{\"uid\":\"a53686b2-45b4-4480-8b89-3375c4ebc719\"}"
         ],
         [
             "metadata",
@@ -161,7 +161,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2da7fc27-9f31-47e0-9626-f24037b5cdb1\"}"
+            "k:{\"uid\":\"4d7d6f53-b973-45cf-9335-985e1c894db6\"}"
         ],
         [
             "metadata",
@@ -196,7 +196,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"f1cb8790-1266-4381-995e-9114fde6fdf1\"}"
+            "k:{\"uid\":\"879390fc-2bbe-426f-8b5f-f1fbc8a8e402\"}"
         ],
         [
             "metadata",
@@ -223,6 +223,61 @@
         [
             "metadata",
             "creationTimestamp"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:metadata",
+            "f:annotations",
+            "."
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:metadata",
+            "f:annotations",
+            "f:deployment.kubernetes.io/revision"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:metadata",
+            "f:annotations",
+            "f:kubectl.kubernetes.io/last-applied-configuration"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:metadata",
+            "f:labels"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:spec"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "manager"
         ],
         [
             "metadata",
@@ -280,7 +335,7 @@
             "*",
             "addresses",
             "*",
-            "nodeName"
+            "iP"
         ],
         [
             "subsets",
@@ -328,7 +383,7 @@
             "*",
             "addresses",
             "*",
-            "nodeName"
+            "iP"
         ],
         [
             "subsets",
@@ -419,7 +474,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -458,7 +513,16 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"11581ae2-cfa9-4e18-8bab-2309bea26b8a\"}"
+            "k:{\"uid\":\"a53686b2-45b4-4480-8b89-3375c4ebc719\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.1.2\"}"
         ],
         [
             "metadata",
@@ -487,10 +551,6 @@
             "volumeMounts",
             "*",
             "name"
-        ],
-        [
-            "spec",
-            "nodeName"
         ],
         [
             "spec",
@@ -527,7 +587,9 @@
         ],
         [
             "status",
-            "hostIP"
+            "podIPs",
+            "*",
+            "iP"
         ],
         [
             "status",
@@ -546,7 +608,16 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"2da7fc27-9f31-47e0-9626-f24037b5cdb1\"}"
+            "k:{\"uid\":\"4d7d6f53-b973-45cf-9335-985e1c894db6\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.1.3\"}"
         ],
         [
             "metadata",
@@ -586,10 +657,6 @@
         ],
         [
             "spec",
-            "nodeName"
-        ],
-        [
-            "spec",
             "volumes",
             "*",
             "name"
@@ -620,10 +687,6 @@
             "state",
             "running",
             "startedAt"
-        ],
-        [
-            "status",
-            "hostIP"
         ],
         [
             "status",
@@ -657,6 +720,12 @@
         ],
         [
             "status",
+            "podIPs",
+            "*",
+            "iP"
+        ],
+        [
+            "status",
             "startTime"
         ]
     ],
@@ -672,7 +741,16 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"f1cb8790-1266-4381-995e-9114fde6fdf1\"}"
+            "k:{\"uid\":\"879390fc-2bbe-426f-8b5f-f1fbc8a8e402\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.2.2\"}"
         ],
         [
             "metadata",
@@ -701,10 +779,6 @@
             "volumeMounts",
             "*",
             "name"
-        ],
-        [
-            "spec",
-            "nodeName"
         ],
         [
             "spec",
@@ -741,7 +815,9 @@
         ],
         [
             "status",
-            "hostIP"
+            "podIPs",
+            "*",
+            "iP"
         ],
         [
             "status",
@@ -752,66 +828,6 @@
         [
             "metadata",
             "creationTimestamp"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:metadata"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:spec",
-            "f:override"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:spec",
-            "f:persistence"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:spec",
-            "f:rabbitmq"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:spec",
-            "f:resources"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:spec",
-            "f:tls"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "fieldsV1",
-            "f:status"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "manager"
         ],
         [
             "metadata",
@@ -846,7 +862,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"439b105a-a811-4f15-9652-7bfb822aed0d\"}"
+            "k:{\"uid\":\"d719fece-1f17-4a82-865f-ac092ecb79ec\"}"
         ],
         [
             "metadata",
@@ -1001,7 +1017,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -1276,7 +1292,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -1343,7 +1359,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -1382,7 +1398,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -1417,7 +1433,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -1442,6 +1458,24 @@
         [
             "spec",
             "clusterIP"
+        ],
+        [
+            "spec",
+            "ports",
+            "*",
+            "name"
+        ],
+        [
+            "spec",
+            "ports",
+            "*",
+            "port"
+        ],
+        [
+            "spec",
+            "ports",
+            "*",
+            "targetPort"
         ]
     ],
     "service/default/rabbitmq-cluster-nodes": [
@@ -1456,7 +1490,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -1490,7 +1524,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"csi-attacher-token-x9fff\"}"
+            "k:{\"name\":\"csi-attacher-token-p5mvl\"}"
         ],
         [
             "metadata",
@@ -1523,7 +1557,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"csi-external-health-monitor-controller-token-nvjvz\"}"
+            "k:{\"name\":\"csi-external-health-monitor-controller-token-4gb7x\"}"
         ],
         [
             "metadata",
@@ -1556,7 +1590,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"csi-hostpathplugin-sa-token-6gdtl\"}"
+            "k:{\"name\":\"csi-hostpathplugin-sa-token-mf9ww\"}"
         ],
         [
             "metadata",
@@ -1589,7 +1623,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"csi-provisioner-token-hhzlt\"}"
+            "k:{\"name\":\"csi-provisioner-token-cqbsl\"}"
         ],
         [
             "metadata",
@@ -1622,7 +1656,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"csi-resizer-token-74jl7\"}"
+            "k:{\"name\":\"csi-resizer-token-7hg7q\"}"
         ],
         [
             "metadata",
@@ -1655,7 +1689,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"csi-snapshotter-token-rwcl7\"}"
+            "k:{\"name\":\"csi-snapshotter-token-zgkdg\"}"
         ],
         [
             "metadata",
@@ -1688,7 +1722,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"rabbitmq-cluster-operator-token-2rmsr\"}"
+            "k:{\"name\":\"rabbitmq-cluster-operator-token-g4h4c\"}"
         ],
         [
             "metadata",
@@ -1722,7 +1756,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}"
         ],
         [
             "metadata",
@@ -1730,7 +1764,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"rabbitmq-cluster-server-token-nfjt8\"}"
+            "k:{\"name\":\"rabbitmq-cluster-server-token-2zn4l\"}"
         ],
         [
             "metadata",
@@ -1769,7 +1803,7 @@
             "*",
             "fieldsV1",
             "f:secrets",
-            "k:{\"name\":\"snapshot-controller-token-ddgjg\"}"
+            "k:{\"name\":\"snapshot-controller-token-l8nz2\"}"
         ],
         [
             "metadata",
@@ -1821,9 +1855,27 @@
             "managedFields",
             "*",
             "fieldsV1",
-            "f:metadata",
-            "f:ownerReferences",
-            "k:{\"uid\":\"7d8e6631-dda3-4118-bb45-c74f2dc33ab2\"}"
+            "f:metadata"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:spec"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "manager"
         ],
         [
             "metadata",
