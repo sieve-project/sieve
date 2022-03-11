@@ -33,6 +33,4 @@ jobs:
         run: |
           python3 build.py -p kind -m vanilla -d $IMAGE_NAMESPACE -r
           python3 build.py -p kind -m learn -d $IMAGE_NAMESPACE -r
-          python3 build.py -p kind -m stale-state -d $IMAGE_NAMESPACE -r
-          python3 build.py -p kind -m unobserved-state -d $IMAGE_NAMESPACE -r
-          python3 build.py -p kind -m intermediate-state -d $IMAGE_NAMESPACE -r
+          python3 build.py -p kind -m test -d $IMAGE_NAMESPACE -r
