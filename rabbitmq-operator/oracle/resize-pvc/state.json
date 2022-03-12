@@ -59,7 +59,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -115,7 +115,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -524,7 +524,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a53686b2-45b4-4480-8b89-3375c4ebc719\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"9e684bea-0356-43c4-8b7a-7d27e9cf2f88\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:revision": {}
@@ -896,7 +896,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"4d7d6f53-b973-45cf-9335-985e1c894db6\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"1af69647-f484-4064-b587-7439c1bcb0e3\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:revision": {}
@@ -985,7 +985,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"879390fc-2bbe-426f-8b5f-f1fbc8a8e402\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0c53bbd3-8d6e-42f7-bc72-e32c504b8817\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:revision": {}
@@ -1208,12 +1208,122 @@
                 "fieldsV1": {
                     "f:metadata": {
                         "f:annotations": {
-                            "f:deployment.kubernetes.io/revision": "SIEVE-IGNORE"
+                            ".": {},
+                            "f:kubectl.kubernetes.io/last-applied-configuration": {}
+                        },
+                        "f:labels": {
+                            ".": {},
+                            "f:app.kubernetes.io/component": {},
+                            "f:app.kubernetes.io/name": {},
+                            "f:app.kubernetes.io/part-of": {}
                         }
                     },
-                    "f:status": "SIEVE-IGNORE"
+                    "f:spec": {
+                        "f:progressDeadlineSeconds": {},
+                        "f:replicas": {},
+                        "f:revisionHistoryLimit": {},
+                        "f:selector": {
+                            "f:matchLabels": {
+                                ".": {},
+                                "f:app.kubernetes.io/name": {},
+                                "f:sievetag": {}
+                            }
+                        },
+                        "f:strategy": {
+                            "f:rollingUpdate": {
+                                ".": {},
+                                "f:maxSurge": {},
+                                "f:maxUnavailable": {}
+                            },
+                            "f:type": {}
+                        },
+                        "f:template": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/component": {},
+                                    "f:app.kubernetes.io/name": {},
+                                    "f:app.kubernetes.io/part-of": {},
+                                    "f:sievetag": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:containers": {
+                                    "k:{\"name\":\"operator\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"KUBERNETES_SERVICE_HOST\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"KUBERNETES_SERVICE_PORT\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"OPERATOR_NAMESPACE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "f:envFrom": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":9782,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {
+                                    ".": {},
+                                    "f:fsGroup": {},
+                                    "f:runAsGroup": {},
+                                    "f:runAsUser": {}
+                                },
+                                "f:serviceAccount": {},
+                                "f:serviceAccountName": {},
+                                "f:terminationGracePeriodSeconds": {}
+                            }
+                        }
+                    }
                 },
-                "manager": "SIEVE-IGNORE",
+                "manager": "kubectl-client-side-apply",
                 "operation": "Update",
                 "time": "SIEVE-IGNORE"
             },
@@ -1223,14 +1333,39 @@
                 "fieldsV1": {
                     "f:metadata": {
                         "f:annotations": {
-                            ".": "SIEVE-IGNORE",
-                            "f:kubectl.kubernetes.io/last-applied-configuration": "SIEVE-IGNORE"
-                        },
-                        "f:labels": "SIEVE-IGNORE"
+                            "f:deployment.kubernetes.io/revision": {}
+                        }
                     },
-                    "f:spec": "SIEVE-IGNORE"
+                    "f:status": {
+                        "f:availableReplicas": {},
+                        "f:conditions": {
+                            ".": {},
+                            "k:{\"type\":\"Available\"}": {
+                                ".": {},
+                                "f:lastTransitionTime": {},
+                                "f:lastUpdateTime": {},
+                                "f:message": {},
+                                "f:reason": {},
+                                "f:status": {},
+                                "f:type": {}
+                            },
+                            "k:{\"type\":\"Progressing\"}": {
+                                ".": {},
+                                "f:lastTransitionTime": {},
+                                "f:lastUpdateTime": {},
+                                "f:message": {},
+                                "f:reason": {},
+                                "f:status": {},
+                                "f:type": {}
+                            }
+                        },
+                        "f:observedGeneration": {},
+                        "f:readyReplicas": {},
+                        "f:replicas": {},
+                        "f:updatedReplicas": {}
+                    }
                 },
-                "manager": "SIEVE-IGNORE",
+                "manager": "kube-controller-manager",
                 "operation": "Update",
                 "time": "SIEVE-IGNORE"
             }
@@ -1246,8 +1381,8 @@
                 "Addresses": [
                     {
                         "Hostname": "",
-                        "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker2",
+                        "IP": "10.244.2.3",
+                        "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
@@ -1320,8 +1455,8 @@
                 "Addresses": [
                     {
                         "Hostname": "rabbitmq-cluster-server-0",
-                        "IP": "SIEVE-IGNORE",
-                        "NodeName": "kind-worker2",
+                        "IP": "10.244.2.3",
+                        "NodeName": "SIEVE-IGNORE",
                         "TargetRef": {
                             "APIVersion": "",
                             "FieldPath": "",
@@ -1390,8 +1525,8 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "endpointslice/default/rabbitmq-cluster-2g84c": "SIEVE-IGNORE",
-    "endpointslice/default/rabbitmq-cluster-nodes-vn4kg": "SIEVE-IGNORE",
+    "endpointslice/default/rabbitmq-cluster-kgm5n": "SIEVE-IGNORE",
+    "endpointslice/default/rabbitmq-cluster-nodes-fdfdj": "SIEVE-IGNORE",
     "lease/default/external-health-monitor-leader-hostpath-csi-k8s-io": {
         "Spec": {
             "AcquireTime": "SIEVE-IGNORE",
@@ -1517,7 +1652,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2156,7 +2291,7 @@
             "Hostname": "csi-hostpathplugin-0",
             "ImagePullSecrets": null,
             "InitContainers": null,
-            "NodeName": "kind-worker2",
+            "NodeName": "SIEVE-IGNORE",
             "NodeSelector": null,
             "Overhead": null,
             "PreemptionPolicy": null,
@@ -2650,14 +2785,14 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.4",
+            "HostIP": "172.18.0.2",
             "InitContainerStatuses": null,
             "Message": "",
             "NominatedNodeName": "",
             "Phase": "Running",
             "PodIPs": [
                 {
-                    "IP": "SIEVE-IGNORE"
+                    "IP": "10.244.2.2"
                 }
             ],
             "QOSClass": "BestEffort",
@@ -2692,7 +2827,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a53686b2-45b4-4480-8b89-3375c4ebc719\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"9e684bea-0356-43c4-8b7a-7d27e9cf2f88\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -3071,7 +3206,10 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.1.2\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.2.2\"}": {
+                                ".": {},
+                                "f:ip": {}
+                            }
                         },
                         "f:startTime": {}
                     }
@@ -3436,7 +3574,7 @@
                     "WorkingDir": ""
                 }
             ],
-            "NodeName": "kind-worker2",
+            "NodeName": "SIEVE-IGNORE",
             "NodeSelector": null,
             "Overhead": null,
             "PreemptionPolicy": null,
@@ -3880,7 +4018,7 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.4",
+            "HostIP": "172.18.0.2",
             "InitContainerStatuses": [
                 {
                     "ContainerID": "SIEVE-IGNORE",
@@ -3915,7 +4053,7 @@
             "Phase": "Running",
             "PodIPs": [
                 {
-                    "IP": "SIEVE-IGNORE"
+                    "IP": "10.244.2.3"
                 }
             ],
             "QOSClass": "Burstable",
@@ -3994,7 +4132,10 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.1.3\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.2.3\"}": {
+                                ".": {},
+                                "f:ip": {}
+                            }
                         },
                         "f:startTime": {}
                     }
@@ -4024,7 +4165,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"4d7d6f53-b973-45cf-9335-985e1c894db6\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"1af69647-f484-4064-b587-7439c1bcb0e3\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -4371,7 +4512,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "pod/default/rabbitmq-operator-b7d5945b-bfr5z": "SIEVE-IGNORE",
+    "pod/default/rabbitmq-operator-b7d5945b-ll2k5": "SIEVE-IGNORE",
     "pod/default/snapshot-controller-0": {
         "Spec": {
             "ActiveDeadlineSeconds": null,
@@ -4426,7 +4567,7 @@
             "Hostname": "snapshot-controller-0",
             "ImagePullSecrets": null,
             "InitContainers": null,
-            "NodeName": "kind-worker",
+            "NodeName": "SIEVE-IGNORE",
             "NodeSelector": null,
             "Overhead": null,
             "PreemptionPolicy": null,
@@ -4569,14 +4710,14 @@
                 }
             ],
             "EphemeralContainerStatuses": null,
-            "HostIP": "172.18.0.2",
+            "HostIP": "SIEVE-IGNORE",
             "InitContainerStatuses": null,
             "Message": "",
             "NominatedNodeName": "",
             "Phase": "Running",
             "PodIPs": [
                 {
-                    "IP": "SIEVE-IGNORE"
+                    "IP": "10.244.1.2"
                 }
             ],
             "QOSClass": "BestEffort",
@@ -4605,7 +4746,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"879390fc-2bbe-426f-8b5f-f1fbc8a8e402\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"0c53bbd3-8d6e-42f7-bc72-e32c504b8817\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -4671,7 +4812,10 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.2.2\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.1.2\"}": {
+                                ".": {},
+                                "f:ip": {}
+                            }
                         },
                         "f:startTime": {}
                     }
@@ -5069,7 +5213,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"d719fece-1f17-4a82-865f-ac092ecb79ec\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"bb5e54ce-3655-4c20-a0f6-484189d14fd5\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -5666,7 +5810,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:rules": {}
@@ -6400,7 +6544,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:roleRef": {
@@ -6476,12 +6620,12 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "secret/default/csi-attacher-token-p5mvl": "SIEVE-IGNORE",
-    "secret/default/csi-external-health-monitor-controller-token-4gb7x": "SIEVE-IGNORE",
-    "secret/default/csi-hostpathplugin-sa-token-mf9ww": "SIEVE-IGNORE",
-    "secret/default/csi-provisioner-token-cqbsl": "SIEVE-IGNORE",
-    "secret/default/csi-resizer-token-7hg7q": "SIEVE-IGNORE",
-    "secret/default/csi-snapshotter-token-zgkdg": "SIEVE-IGNORE",
+    "secret/default/csi-attacher-token-klvmw": "SIEVE-IGNORE",
+    "secret/default/csi-external-health-monitor-controller-token-8g7rn": "SIEVE-IGNORE",
+    "secret/default/csi-hostpathplugin-sa-token-n7lf5": "SIEVE-IGNORE",
+    "secret/default/csi-provisioner-token-8h7t8": "SIEVE-IGNORE",
+    "secret/default/csi-resizer-token-jwhht": "SIEVE-IGNORE",
+    "secret/default/csi-snapshotter-token-xf8kl": "SIEVE-IGNORE",
     "secret/default/rabbitmq-cluster-default-user": {
         "Data": {
             "default_user.conf": "SIEVE-IGNORE",
@@ -6520,7 +6664,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:type": {}
@@ -6575,7 +6719,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:type": {}
@@ -6600,9 +6744,9 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "secret/default/rabbitmq-cluster-operator-token-g4h4c": "SIEVE-IGNORE",
-    "secret/default/rabbitmq-cluster-server-token-2zn4l": "SIEVE-IGNORE",
-    "secret/default/snapshot-controller-token-l8nz2": "SIEVE-IGNORE",
+    "secret/default/rabbitmq-cluster-operator-token-6ch69": "SIEVE-IGNORE",
+    "secret/default/rabbitmq-cluster-server-token-25bxl": "SIEVE-IGNORE",
+    "secret/default/snapshot-controller-token-jrlzn": "SIEVE-IGNORE",
     "service/default/rabbitmq-cluster": {
         "Spec": {
             "ClusterIP": "SIEVE-IGNORE",
@@ -6616,19 +6760,19 @@
             "Ports": [
                 {
                     "AppProtocol": null,
-                    "Name": "SIEVE-IGNORE",
+                    "Name": "management",
                     "NodePort": 0,
-                    "Port": "SIEVE-IGNORE",
+                    "Port": 15672,
                     "Protocol": "TCP",
-                    "TargetPort": "SIEVE-IGNORE"
+                    "TargetPort": 15672
                 },
                 {
                     "AppProtocol": null,
-                    "Name": "SIEVE-IGNORE",
+                    "Name": "amqp",
                     "NodePort": 0,
-                    "Port": "SIEVE-IGNORE",
+                    "Port": 5672,
                     "Protocol": "TCP",
-                    "TargetPort": "SIEVE-IGNORE"
+                    "TargetPort": 5672
                 }
             ],
             "PublishNotReadyAddresses": false,
@@ -6665,7 +6809,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6776,7 +6920,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -6856,7 +7000,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"csi-attacher-token-p5mvl\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"csi-attacher-token-klvmw\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -6918,7 +7062,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"csi-external-health-monitor-controller-token-4gb7x\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"csi-external-health-monitor-controller-token-8g7rn\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -6982,7 +7126,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"csi-hostpathplugin-sa-token-mf9ww\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"csi-hostpathplugin-sa-token-n7lf5\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -7044,6 +7188,19 @@
                 "apiVersion": "v1",
                 "fieldsType": "FieldsV1",
                 "fieldsV1": {
+                    "f:secrets": {
+                        ".": {},
+                        "k:{\"name\":\"csi-provisioner-token-8h7t8\"}": "SIEVE-IGNORE"
+                    }
+                },
+                "manager": "kube-controller-manager",
+                "operation": "Update",
+                "time": "SIEVE-IGNORE"
+            },
+            {
+                "apiVersion": "v1",
+                "fieldsType": "FieldsV1",
+                "fieldsV1": {
                     "f:metadata": {
                         "f:annotations": {
                             ".": {},
@@ -7057,19 +7214,6 @@
                     }
                 },
                 "manager": "kubectl-client-side-apply",
-                "operation": "Update",
-                "time": "SIEVE-IGNORE"
-            },
-            {
-                "apiVersion": "v1",
-                "fieldsType": "FieldsV1",
-                "fieldsV1": {
-                    "f:secrets": {
-                        ".": {},
-                        "k:{\"name\":\"csi-provisioner-token-cqbsl\"}": "SIEVE-IGNORE"
-                    }
-                },
-                "manager": "kube-controller-manager",
                 "operation": "Update",
                 "time": "SIEVE-IGNORE"
             }
@@ -7108,7 +7252,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"csi-resizer-token-7hg7q\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"csi-resizer-token-jwhht\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -7170,7 +7314,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"csi-snapshotter-token-zgkdg\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"csi-snapshotter-token-xf8kl\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -7228,7 +7372,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"rabbitmq-cluster-operator-token-g4h4c\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"rabbitmq-cluster-operator-token-6ch69\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -7283,7 +7427,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"rabbitmq-cluster-server-token-2zn4l\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"rabbitmq-cluster-server-token-25bxl\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -7303,7 +7447,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"a1103931-962c-41b9-95aa-c535b38cf0cd\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -7352,7 +7496,7 @@
                 "fieldsV1": {
                     "f:secrets": {
                         ".": {},
-                        "k:{\"name\":\"snapshot-controller-token-l8nz2\"}": "SIEVE-IGNORE"
+                        "k:{\"name\":\"snapshot-controller-token-jrlzn\"}": "SIEVE-IGNORE"
                     }
                 },
                 "manager": "kube-controller-manager",
@@ -9312,10 +9456,18 @@
                 "apiVersion": "apps/v1",
                 "fieldsType": "FieldsV1",
                 "fieldsV1": {
-                    "f:metadata": "SIEVE-IGNORE",
-                    "f:spec": "SIEVE-IGNORE"
+                    "f:status": {
+                        "f:collisionCount": {},
+                        "f:currentReplicas": {},
+                        "f:currentRevision": {},
+                        "f:observedGeneration": {},
+                        "f:readyReplicas": {},
+                        "f:replicas": {},
+                        "f:updateRevision": {},
+                        "f:updatedReplicas": {}
+                    }
                 },
-                "manager": "SIEVE-IGNORE",
+                "manager": "kube-controller-manager",
                 "operation": "Update",
                 "time": "SIEVE-IGNORE"
             },
@@ -9323,9 +9475,367 @@
                 "apiVersion": "apps/v1",
                 "fieldsType": "FieldsV1",
                 "fieldsV1": {
-                    "f:status": "SIEVE-IGNORE"
+                    "f:metadata": {
+                        "f:labels": {
+                            ".": {},
+                            "f:app.kubernetes.io/component": {},
+                            "f:app.kubernetes.io/name": {},
+                            "f:app.kubernetes.io/part-of": {}
+                        },
+                        "f:ownerReferences": {
+                            ".": {},
+                            "k:{\"uid\":\"5e013629-908c-4f16-826b-402d6e5490a7\"}": "SIEVE-IGNORE"
+                        }
+                    },
+                    "f:spec": {
+                        "f:podManagementPolicy": {},
+                        "f:replicas": {},
+                        "f:revisionHistoryLimit": {},
+                        "f:selector": {
+                            "f:matchLabels": {
+                                ".": {},
+                                "f:app.kubernetes.io/name": {}
+                            }
+                        },
+                        "f:serviceName": {},
+                        "f:template": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:prometheus.io/port": {},
+                                    "f:prometheus.io/scrape": {}
+                                },
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app.kubernetes.io/component": {},
+                                    "f:app.kubernetes.io/name": {},
+                                    "f:app.kubernetes.io/part-of": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:automountServiceAccountToken": {},
+                                "f:containers": {
+                                    "k:{\"name\":\"rabbitmq\"}": {
+                                        ".": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"K8S_HOSTNAME_SUFFIX\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"K8S_SERVICE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"MY_POD_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"MY_POD_NAMESPACE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {
+                                                        ".": {},
+                                                        "f:apiVersion": {},
+                                                        "f:fieldPath": {}
+                                                    }
+                                                }
+                                            },
+                                            "k:{\"name\":\"RABBITMQ_ENABLED_PLUGINS_FILE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"RABBITMQ_NODENAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"RABBITMQ_USE_LONGNAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:lifecycle": {
+                                            ".": {},
+                                            "f:preStop": {
+                                                ".": {},
+                                                "f:exec": {
+                                                    ".": {},
+                                                    "f:command": {}
+                                                }
+                                            }
+                                        },
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":15672,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":15692,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":4369,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            },
+                                            "k:{\"containerPort\":5672,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:readinessProbe": {
+                                            ".": {},
+                                            "f:failureThreshold": {},
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:tcpSocket": {
+                                                ".": {},
+                                                "f:port": {}
+                                            },
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/etc/pod-info/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/etc/rabbitmq/conf.d/10-operatorDefaults.conf\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:subPath": {}
+                                            },
+                                            "k:{\"mountPath\":\"/etc/rabbitmq/conf.d/11-default_user.conf\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:subPath": {}
+                                            },
+                                            "k:{\"mountPath\":\"/etc/rabbitmq/conf.d/90-userDefinedConfiguration.conf\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:subPath": {}
+                                            },
+                                            "k:{\"mountPath\":\"/operator\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/var/lib/rabbitmq/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/var/lib/rabbitmq/mnesia/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:initContainers": {
+                                    ".": {},
+                                    "k:{\"name\":\"setup-container\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:capabilities": {
+                                                ".": {},
+                                                "f:drop": {}
+                                            },
+                                            "f:runAsUser": {}
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/operator\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/tmp/default_user.conf\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:subPath": {}
+                                            },
+                                            "k:{\"mountPath\":\"/tmp/erlang-cookie-secret/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/tmp/rabbitmq-plugins/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/var/lib/rabbitmq/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/var/lib/rabbitmq/mnesia/\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            }
+                                        }
+                                    }
+                                },
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {
+                                    ".": {},
+                                    "f:fsGroup": {},
+                                    "f:runAsGroup": {},
+                                    "f:runAsUser": {}
+                                },
+                                "f:serviceAccount": {},
+                                "f:serviceAccountName": {},
+                                "f:terminationGracePeriodSeconds": {},
+                                "f:topologySpreadConstraints": {
+                                    ".": {},
+                                    "k:{\"topologyKey\":\"topology.kubernetes.io/zone\",\"whenUnsatisfiable\":\"ScheduleAnyway\"}": {
+                                        ".": {},
+                                        "f:labelSelector": {
+                                            ".": {},
+                                            "f:matchLabels": {
+                                                ".": {},
+                                                "f:app.kubernetes.io/name": {}
+                                            }
+                                        },
+                                        "f:maxSkew": {},
+                                        "f:topologyKey": {},
+                                        "f:whenUnsatisfiable": {}
+                                    }
+                                },
+                                "f:volumes": {
+                                    ".": {},
+                                    "k:{\"name\":\"erlang-cookie-secret\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:secret": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:secretName": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"plugins-conf\"}": {
+                                        ".": {},
+                                        "f:configMap": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:name": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"pod-info\"}": {
+                                        ".": {},
+                                        "f:downwardAPI": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:items": {}
+                                        },
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"rabbitmq-confd\"}": {
+                                        ".": {},
+                                        "f:name": {},
+                                        "f:projected": {
+                                            ".": {},
+                                            "f:defaultMode": {},
+                                            "f:sources": {}
+                                        }
+                                    },
+                                    "k:{\"name\":\"rabbitmq-erlang-cookie\"}": {
+                                        ".": {},
+                                        "f:emptyDir": {},
+                                        "f:name": {}
+                                    },
+                                    "k:{\"name\":\"rabbitmq-plugins\"}": {
+                                        ".": {},
+                                        "f:emptyDir": {},
+                                        "f:name": {}
+                                    }
+                                }
+                            }
+                        },
+                        "f:updateStrategy": {
+                            "f:rollingUpdate": {
+                                ".": {},
+                                "f:partition": {}
+                            },
+                            "f:type": {}
+                        },
+                        "f:volumeClaimTemplates": {}
+                    }
                 },
-                "manager": "SIEVE-IGNORE",
+                "manager": "manager",
                 "operation": "Update",
                 "time": "SIEVE-IGNORE"
             }
