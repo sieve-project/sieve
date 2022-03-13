@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"path"
 	"regexp"
 	"strings"
 
@@ -108,10 +109,10 @@ func handleWildcardsForMask(mask map[string]map[string]struct{}) {
 	// handle keys that contain wildcard
 	for resourceKey1 := range mask {
 		if strings.Contains(resourceKey1, "*") {
-			pattern := wildCardToRegexp(resourceKey1)
+			pattern := resourceKey1
 			for resourceKey2 := range mask {
 				if !strings.Contains(resourceKey2, "*") {
-					matched, err := regexp.MatchString(pattern, resourceKey2)
+					matched, err := path.Match(pattern, resourceKey2)
 					if err != nil {
 						log.Fatalf("error when matching %s with %s: %v", resourceKey2, pattern, err)
 					}
@@ -138,13 +139,13 @@ func getMaskByResourceKey(mask map[string]map[string]struct{}, resourceKey strin
 		mask[resourceKey] = make(map[string]struct{})
 		for existingResourceKey := range mask {
 			if strings.Contains(existingResourceKey, "*") {
-				pattern := wildCardToRegexp(existingResourceKey)
-				matched, err := regexp.MatchString(pattern, resourceKey)
+				pattern := existingResourceKey
+				matched, err := path.Match(pattern, resourceKey)
 				if err != nil {
 					log.Fatalf("error when matching %s with %s: %v", resourceKey, pattern, err)
 				}
 				if matched {
-					for k := range mask[existingResourceKey] {
+					for k := range mask[pattern] {
 						mask[resourceKey][k] = exists
 					}
 				}
