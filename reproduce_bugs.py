@@ -30,6 +30,7 @@ reprod_map = {
         "stale-state-1": ["recreate", "mongodb-operator-stale-state-1.yaml"],
         "stale-state-2": ["disable-enable-shard", "mongodb-operator-stale-state-2.yaml"],
         "stale-state-3": ["disable-enable-arbiter", "mongodb-operator-stale-state-3.yaml"],
+        "indirect-1": ["recreate", "mongodb-operator-indirect-1.yaml"],
     },
     "nifikop-operator": {
         "intermediate-state-1": ["change-config", "nifikop-intermediate-state-1.yaml"],

@@ -36,4 +36,8 @@ actions:
       observationPoint:
         when: afterControllerRecv
         by: informer
-    expression: trigger2&trigger3
+    - triggerName: trigger4
+      condition:
+        conditionType: onTimeout
+        timeoutValue: 3
+    expression: trigger2&trigger3|trigger4
