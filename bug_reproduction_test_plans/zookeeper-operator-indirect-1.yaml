@@ -1,0 +1,39 @@
+actions:
+- actionType: pauseController
+  pauseAt: afterControllerWrite
+  pauseScope: zookeepercluster/default/zookeeper-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: zookeepercluster/default/zookeeper-cluster
+        prevStateDiff: '{"metadata": {"finalizers": ["cleanUpZookeeperPVC"]}}'
+        curStateDiff: '{"metadata": {}}'
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/pravega/zookeeper-operator/pkg/controller/zookeepercluster.(*ReconcileZookeeperCluster)
+    expression: trigger1
+- actionType: resumeController
+  pauseAt: afterControllerWrite
+  pauseScope: zookeepercluster/default/zookeeper-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: statefulset/default/zookeeper-cluster
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: configmap/default/zookeeper-cluster-configmap
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    expression: trigger2&trigger3
