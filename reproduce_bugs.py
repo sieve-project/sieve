@@ -9,12 +9,18 @@ reprod_map = {
         "stale-state-1": ["recreate", "cass-operator-stale-state-1.yaml"],
     },
     "cassandra-operator": {
-        "unobserved-state-1": ["scaledown-scaleup", "cassandra-operator-unobserved-state-1.yaml"],
+        "unobserved-state-1": [
+            "scaledown-scaleup",
+            "cassandra-operator-unobserved-state-1.yaml",
+        ],
         "stale-state-1": ["recreate", "cassandra-operator-stale-state-1.yaml"],
         "stale-state-2": ["scaledown-scaleup", "cassandra-operator-stale-state-2.yaml"],
     },
     "casskop-operator": {
-        "intermediate-state-1": ["scaledown-to-zero", "casskop-intermediate-state-1.yaml"],
+        "intermediate-state-1": [
+            "scaledown-to-zero",
+            "casskop-intermediate-state-1.yaml",
+        ],
         "unobserved-state-1": ["scaledown-to-zero", "casskop-unobserved-state-1.yaml"],
         "stale-state-1": ["recreate", "casskop-stale-state-1.yaml"],
         "stale-state-2": ["reducepdb", "casskop-stale-state-2.yaml"],
@@ -24,35 +30,79 @@ reprod_map = {
         "stale-state-2": ["scaledown-scaleup", "elastic-operator-stale-state-2.yaml"],
     },
     "mongodb-operator": {
-        "intermediate-state-1": ["disable-enable-shard", "mongodb-operator-intermediate-state-1.yaml"],
-        "intermediate-state-2": ["run-cert-manager", "mongodb-operator-intermediate-state-2.yaml"],
-        "unobserved-state-1": ["disable-enable-arbiter", "mongodb-operator-unobserved-state-1.yaml"],
+        "intermediate-state-1": [
+            "disable-enable-shard",
+            "mongodb-operator-intermediate-state-1.yaml",
+        ],
+        "intermediate-state-2": [
+            "run-cert-manager",
+            "mongodb-operator-intermediate-state-2.yaml",
+        ],
+        "unobserved-state-1": [
+            "disable-enable-arbiter",
+            "mongodb-operator-unobserved-state-1.yaml",
+        ],
         "stale-state-1": ["recreate", "mongodb-operator-stale-state-1.yaml"],
-        "stale-state-2": ["disable-enable-shard", "mongodb-operator-stale-state-2.yaml"],
-        "stale-state-3": ["disable-enable-arbiter", "mongodb-operator-stale-state-3.yaml"],
-        "indirect-1": ["recreate", "mongodb-operator-indirect-1.yaml"],
+        "stale-state-2": [
+            "disable-enable-shard",
+            "mongodb-operator-stale-state-2.yaml",
+        ],
+        "stale-state-3": [
+            "disable-enable-arbiter",
+            "mongodb-operator-stale-state-3.yaml",
+        ],
+        "indirect-1": ["disable-enable-shard", "mongodb-operator-indirect-1.yaml"],
+        "indirect-2": ["recreate", "mongodb-operator-indirect-2.yaml"],
+        "indirect-3": ["disable-enable-shard", "mongodb-operator-indirect-3.yaml"],
     },
     "nifikop-operator": {
         "intermediate-state-1": ["change-config", "nifikop-intermediate-state-1.yaml"],
     },
     "rabbitmq-operator": {
-        "intermediate-state-1": ["resize-pvc", "rabbitmq-operator-intermediate-state-1.yaml"],
-        "unobserved-state-1": ["scaleup-scaledown", "rabbitmq-operator-unobserved-state-1.yaml"],
+        "intermediate-state-1": [
+            "resize-pvc",
+            "rabbitmq-operator-intermediate-state-1.yaml",
+        ],
+        "unobserved-state-1": [
+            "scaleup-scaledown",
+            "rabbitmq-operator-unobserved-state-1.yaml",
+        ],
         "stale-state-1": ["recreate", "rabbitmq-operator-stale-state-1.yaml"],
         "stale-state-2": ["resize-pvc", "rabbitmq-operator-stale-state-2.yaml"],
     },
     "xtradb-operator": {
-        "intermediate-state-1": ["disable-enable-proxysql", "xtradb-operator-intermediate-state-1.yaml"],
-        "intermediate-state-2": ["run-cert-manager", "xtradb-operator-intermediate-state-2.yaml"],
-        "unobserved-state-1": ["scaleup-scaledown", "xtradb-operator-unobserved-state-1.yaml"],
+        "intermediate-state-1": [
+            "disable-enable-proxysql",
+            "xtradb-operator-intermediate-state-1.yaml",
+        ],
+        "intermediate-state-2": [
+            "run-cert-manager",
+            "xtradb-operator-intermediate-state-2.yaml",
+        ],
+        "unobserved-state-1": [
+            "scaleup-scaledown",
+            "xtradb-operator-unobserved-state-1.yaml",
+        ],
         "stale-state-1": ["recreate", "xtradb-operator-stale-state-1.yaml"],
-        "stale-state-2": ["disable-enable-haproxy", "xtradb-operator-stale-state-2.yaml"],
-        "stale-state-3": ["disable-enable-proxysql", "xtradb-operator-stale-state-3.yaml"],
+        "stale-state-2": [
+            "disable-enable-haproxy",
+            "xtradb-operator-stale-state-2.yaml",
+        ],
+        "stale-state-3": [
+            "disable-enable-proxysql",
+            "xtradb-operator-stale-state-3.yaml",
+        ],
     },
     "yugabyte-operator": {
-        "unobserved-state-1": ["scaleup-scaledown-tserver", "yugabyte-operator-unobserved-state-1.yaml"],
+        "unobserved-state-1": [
+            "scaleup-scaledown-tserver",
+            "yugabyte-operator-unobserved-state-1.yaml",
+        ],
         "stale-state-1": ["disable-enable-tls", "yugabyte-operator-stale-state-1.yaml"],
-        "stale-state-2": ["disable-enable-tuiport", "yugabyte-operator-stale-state-2.yaml"],
+        "stale-state-2": [
+            "disable-enable-tuiport",
+            "yugabyte-operator-stale-state-2.yaml",
+        ],
     },
     "zookeeper-operator": {
         "stale-state-1": ["recreate", "zookeeper-operator-stale-state-1.yaml"],
