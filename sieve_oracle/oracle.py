@@ -101,7 +101,8 @@ def safety_checker(test_context: TestContext):
     messages = []
     if test_context.common_config.state_update_summary_check_enabled:
         if not (
-            test_context.test_plan["actions"][0]["actionType"] == "pauseController"
+            test_context.test_plan["actions"] is not None
+            and test_context.test_plan["actions"][0]["actionType"] == "pauseController"
             and test_context.test_plan["actions"][0]["pauseAt"]
             == "beforeControllerRead"
         ):

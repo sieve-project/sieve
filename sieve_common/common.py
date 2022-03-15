@@ -111,8 +111,9 @@ class TestContext:
         self.action_types = []
         if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
             self.test_plan = yaml.safe_load(open(test_config))
-            for action in self.test_plan["actions"]:
-                self.action_types.append(action["actionType"])
+            if self.test_plan["actions"] is not None:
+                for action in self.test_plan["actions"]:
+                    self.action_types.append(action["actionType"])
             if "reconnectController" in self.action_types:
                 if self.num_apiservers < 3:
                     self.num_apiservers = 3
