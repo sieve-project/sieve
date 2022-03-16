@@ -1,7 +1,53 @@
 import optparse
 from sieve_common.default_config import get_common_config
 import os
+import json
 from sieve_common.common import cprint, bcolors
+
+
+def before_reproducing_yugabyte_operator_indirect_1():
+    current_crd = (
+        "examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
+    )
+    bkp_crd = (
+        "examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml.bkp"
+    )
+    os.system("cp {} {}".format(current_crd, bkp_crd))
+    fin = open(current_crd)
+    data = fin.read()
+    data = data.replace("# minimum: 1", "minimum: 1")
+    fin.close()
+    fout = open(current_crd, "w")
+    fout.write(data)
+    fout.close()
+
+
+def after_reproducing_yugabyte_operator_indirect_1():
+    current_crd = (
+        "examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml"
+    )
+    bkp_crd = (
+        "examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml.bkp"
+    )
+    os.system("mv {} {}".format(bkp_crd, current_crd))
+
+
+def before_reproducing_cassandra_operator_indirect_1():
+    current_cfg = "examples/cassandra-operator/config.json"
+    bkp_cfg = "examples/cassandra-operator/config.json.bkp"
+    os.system("cp {} {}".format(current_cfg, bkp_cfg))
+    data = json.load(open(current_cfg))
+    del data["cherry_pick_commits"]
+    json.dump(data, open(current_cfg, "w"), indent=4)
+    os.system("python3 build.py -p cassandra-operator -m test")
+
+
+def after_reproducing_cassandra_operator_indirect_1():
+    current_cfg = "examples/cassandra-operator/config.json"
+    bkp_cfg = "examples/cassandra-operator/config.json.bkp"
+    os.system("mv {} {}".format(bkp_cfg, current_cfg))
+    os.system("python3 build.py -p cassandra-operator -m test")
+
 
 reprod_map = {
     "cass-operator": {
@@ -15,6 +61,16 @@ reprod_map = {
         ],
         "stale-state-1": ["recreate", "cassandra-operator-stale-state-1.yaml"],
         "stale-state-2": ["scaledown-scaleup", "cassandra-operator-stale-state-2.yaml"],
+        "indirect-1": [
+            "scaledown-scaleup",
+            "cassandra-operator-indirect-1.yaml",
+            before_reproducing_cassandra_operator_indirect_1,
+            after_reproducing_cassandra_operator_indirect_1,
+        ],
+        "indirect-2": [
+            "scaledown-scaleup-brittle",
+            "cassandra-operator-indirect-2.yaml",
+        ],
     },
     "casskop-operator": {
         "intermediate-state-1": [
@@ -53,7 +109,10 @@ reprod_map = {
         ],
         "indirect-1": ["disable-enable-shard", "mongodb-operator-indirect-1.yaml"],
         "indirect-2": ["recreate", "mongodb-operator-indirect-2.yaml"],
-        "indirect-3": ["disable-enable-shard", "mongodb-operator-indirect-3.yaml"],
+        "indirect-3": [
+            "disable-enable-shard-brittle",
+            "mongodb-operator-indirect-3.yaml",
+        ],
     },
     "nifikop-operator": {
         "intermediate-state-1": ["change-config", "nifikop-intermediate-state-1.yaml"],
@@ -103,6 +162,13 @@ reprod_map = {
             "disable-enable-tuiport",
             "yugabyte-operator-stale-state-2.yaml",
         ],
+        "indirect-1": [
+            "disable-enable-tuiport",
+            "yugabyte-operator-indirect-1.yaml",
+            before_reproducing_yugabyte_operator_indirect_1,
+            after_reproducing_yugabyte_operator_indirect_1,
+        ],
+        "indirect-2": ["disable-enable-tls", "yugabyte-operator-indirect-2.yaml"],
     },
     "zookeeper-operator": {
         "stale-state-1": ["recreate", "zookeeper-operator-stale-state-1.yaml"],
@@ -113,6 +179,14 @@ reprod_map = {
 
 
 def reproduce_single_bug(operator, bug, docker, phase):
+    before_reproduce = None
+    after_reproduce = None
+    if len(reprod_map[operator][bug]) >= 3 and reprod_map[operator][bug][2] is not None:
+        before_reproduce = reprod_map[operator][bug][2]
+    if len(reprod_map[operator][bug]) == 4 and reprod_map[operator][bug][3] is not None:
+        after_reproduce = reprod_map[operator][bug][3]
+    if before_reproduce is not None:
+        before_reproduce()
     test = reprod_map[operator][bug][0]
     config = os.path.join("bug_reproduction_test_plans", reprod_map[operator][bug][1])
     sieve_cmd = (
@@ -127,6 +201,8 @@ def reproduce_single_bug(operator, bug, docker, phase):
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
     os.system(sieve_cmd)
+    if after_reproduce is not None:
+        after_reproduce()
 
 
 def reproduce_bug(operator, bug, docker, phase):
