@@ -31,6 +31,7 @@ import socket
 import traceback
 from sieve_common.common import (
     TestContext,
+    TestResult,
     cprint,
     bcolors,
     ok,
@@ -45,9 +46,12 @@ from sieve_common.common import (
 
 
 def save_run_result(
-    project, test, mode, stage, test_config, ret_val, messages, start_time
+    project, test, mode, stage, test_config, test_result: TestResult, start_time
 ):
     if stage != sieve_stages.TEST:
+        return
+
+    if test_result is None:
         return
 
     result_map = {
@@ -56,8 +60,16 @@ def save_run_result(
                 mode: {
                     test_config: {
                         "duration": time.time() - start_time,
-                        "ret_val": ret_val,
-                        "messages": messages,
+                        "injection_completed": test_result.injection_completed,
+                        "workload_completed": test_result.workload_completed,
+                        "number_errors": len(test_result.common_errors)
+                        + len(test_result.end_state_errors)
+                        + len(test_result.history_errors),
+                        "detected_errors": test_result.common_errors
+                        + test_result.end_state_errors
+                        + test_result.history_errors,
+                        "had_exception": test_result.had_exception,
+                        "exception_message": test_result.exception_message,
                         "test_config_content": open(test_config).read()
                         if mode != "vanilla"
                         else None,
@@ -463,7 +475,7 @@ def run_workload(
 
 def check_result(
     test_context: TestContext,
-) -> Tuple[int, str]:
+) -> TestResult:
     generate_controller_family(test_context)
     persist_history(test_context)
     persist_state(test_context)
@@ -471,18 +483,15 @@ def check_result(
         if test_context.mode == sieve_modes.LEARN_TWICE:
             canonicalize_history_and_state(test_context)
         analyze.analyze_trace(test_context)
-        return 0, NO_ERROR_MESSAGE
+        return None
     else:
         if test_context.mode == sieve_modes.VANILLA:
-            return 0, NO_ERROR_MESSAGE
-        ret_val, messages = check(test_context)
-        open(os.path.join(test_context.result_dir, "bug-report.txt"), "w").write(
-            messages
-        )
-        return ret_val, messages
+            return None
+        test_result = check(test_context)
+        return test_result
 
 
-def run_test(test_context: TestContext) -> Tuple[int, str]:
+def run_test(test_context: TestContext) -> TestResult:
     try:
         if (
             test_context.phase == "all"
@@ -502,12 +511,12 @@ def run_test(test_context: TestContext) -> Tuple[int, str]:
             or test_context.phase == "check"
             or test_context.phase == "workload_check"
         ):
-            ret_val, messages = check_result(test_context)
-            return ret_val, messages
-        return 0, NO_ERROR_MESSAGE
+            test_result = check_result(test_context)
+            return test_result
+        return None
     except Exception:
         print(traceback.format_exc())
-        return -4, generate_fatal(traceback.format_exc())
+        return TestResult(had_exception=True, exception_message=traceback.format_exc())
 
 
 def generate_learn_config(
@@ -600,10 +609,9 @@ def run(
         common_config=common_config,
         controller_config=controller_config,
     )
-    ret_val, messages = run_test(test_context)
-    if ret_val != -4:
-        print_error_and_debugging_info(test_context, ret_val, messages)
-    return ret_val, messages
+    test_result = run_test(test_context)
+    print_error_and_debugging_info(test_context, test_result)
+    return test_result
 
 
 def run_batch(project, test, dir, mode, stage, docker):
@@ -617,7 +625,7 @@ def run_batch(project, test, dir, mode, stage, docker):
     print("\n".join(configs))
     for config in configs:
         start_time = time.time()
-        ret_val, report = run(
+        test_result = run(
             project,
             test,
             dir,
@@ -632,8 +640,7 @@ def run_batch(project, test, dir, mode, stage, docker):
             mode,
             stage,
             config,
-            ret_val,
-            report,
+            test_result,
             start_time,
         )
 
@@ -782,7 +789,7 @@ if __name__ == "__main__":
                 options.phase,
             )
 
-        ret_val, report = run(
+        test_result = run(
             options.project,
             options.test,
             options.log,
@@ -800,8 +807,7 @@ if __name__ == "__main__":
             options.mode,
             options.stage,
             options.config,
-            ret_val,
-            report,
+            test_result,
             start_time,
         )
     print("Total time: {} seconds".format(time.time() - start_time))
