@@ -488,6 +488,7 @@ def check_result(
         if test_context.mode == sieve_modes.VANILLA:
             return None
         test_result = check(test_context)
+        print_error_and_debugging_info(test_context, test_result)
         return test_result
 
 
@@ -610,7 +611,6 @@ def run(
         controller_config=controller_config,
     )
     test_result = run_test(test_context)
-    print_error_and_debugging_info(test_context, test_result)
     return test_result
 
 
