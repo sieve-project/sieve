@@ -82,7 +82,7 @@ def generate_jobs(ci_mode):
                 },
                 {
                     "name": "Sieve CI config generate",
-                    "run": 'echo "{\\"workload_wait_hard_timeout\\": 1000}" > sieve_config.json\ncat sieve_config.json',
+                    "run": 'echo "{\\"workload_hard_timeout\\": 1000}" > sieve_config.json\ncat sieve_config.json',
                 },
             ],
         }
@@ -119,6 +119,8 @@ def generate_jobs(ci_mode):
         workload_set = set()
 
         for bug in reprod_map[operator]:
+            if "indirect" in bug:
+                continue
             workload = reprod_map[operator][bug][0]
             config_name = reprod_map[operator][bug][1]
             config = yaml.safe_load(
@@ -149,14 +151,17 @@ def generate_jobs(ci_mode):
                 }
                 for workload in sorted(workload_set)
             ]
-            sieve_test = [
-                {
-                    "name": "Sieve Test - %s %s" % (operator, bug),
-                    "run": "python3 reproduce_bugs.py -p %s -b %s -d $IMAGE_NAMESPACE"
-                    % (operator, bug),
-                }
-                for bug in sorted(reprod_map[operator].keys())
-            ]
+            sieve_test = []
+            for bug in sorted(reprod_map[operator].keys()):
+                if "indirect" in bug:
+                    continue
+                sieve_test.append(
+                    {
+                        "name": "Sieve Test - %s %s" % (operator, bug),
+                        "run": "python3 reproduce_bugs.py -p %s -b %s -d $IMAGE_NAMESPACE"
+                        % (operator, bug),
+                    }
+                )
             job["steps"].extend(sieve_learn)
             job["steps"].extend(sieve_test)
             job["steps"].append(collect_log)
