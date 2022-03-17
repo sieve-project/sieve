@@ -228,7 +228,7 @@ def unobserved_state_analysis(
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
-    if test_context.common_config.causality_prunning_enabled:
+    if test_context.common_config.causality_pruning_enabled:
         candidate_vertices = causality_hear_filtering_pass(candidate_vertices)
         after_p1_spec_number = len(candidate_vertices)
         after_p2_spec_number = len(candidate_vertices)

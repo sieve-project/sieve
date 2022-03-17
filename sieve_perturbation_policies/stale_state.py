@@ -254,7 +254,7 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
     after_p1_spec_number = -1
     after_p2_spec_number = -1
     final_spec_number = -1
-    if test_context.common_config.causality_prunning_enabled:
+    if test_context.common_config.causality_pruning_enabled:
         candidate_pairs = causality_pair_filtering_pass(candidate_pairs)
         after_p1_spec_number = len(candidate_pairs)
     if test_context.common_config.effective_updates_pruning_enabled:
