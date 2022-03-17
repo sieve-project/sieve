@@ -445,7 +445,7 @@ def compare_states(test_context: TestContext):
                         "{}{} {} {} {}".format(
                             resource_key,
                             field_path_for_print,
-                            "not seen after reference run, but seen as",
+                            "not seen after reference run, but is",
                             key.t2,
                             "after testing run",
                         ),
@@ -461,7 +461,7 @@ def compare_states(test_context: TestContext):
                         "{}{} {} {} {}".format(
                             resource_key,
                             field_path_for_print,
-                            "seen as",
+                            "is",
                             learned_value,
                             "after reference run, but not seen after testing run",
                         ),
