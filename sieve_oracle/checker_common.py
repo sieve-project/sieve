@@ -144,16 +144,13 @@ def is_test_workload_finished(workload_log):
 def test_run_validation(test_context: TestContext):
     server_log = os.path.join(test_context.result_dir, "sieve-server.log")
     workload_log = os.path.join(test_context.result_dir, "workload.log")
-    validation_ret_val = 0
-    validation_messages = []
+    injection_completed = True
+    workload_completed = True
     if not is_injection_finished(server_log):
-        validation_messages.append(generate_warn("injection is not completed yet"))
-        validation_ret_val = -1
+        injection_completed = False
     if not is_test_workload_finished(workload_log):
-        validation_messages.append(generate_warn("test workload is not finished yet"))
-        validation_ret_val = -3
-    validation_messages.sort()
-    return validation_ret_val, validation_messages
+        workload_completed = False
+    return injection_completed, workload_completed
 
 
 def convert_occurrence(occurrence):
@@ -169,6 +166,8 @@ def convert_occurrence(occurrence):
 
 def generate_perturbation_description(test_context: TestContext):
     test_plan_content = yaml.safe_load(open(test_context.test_config))
+    if test_plan_content["actions"] is None:
+        return "Sieve does not perform any actions."
     desc = ""
     controller_pod_label = test_context.controller_config.controller_pod_label
     for action in test_plan_content["actions"]:
@@ -303,13 +302,40 @@ def generate_perturbation_description(test_context: TestContext):
     return desc
 
 
-def print_error_and_debugging_info(test_context: TestContext, ret_val, messages):
-    if ret_val == 0:
-        return
-    report_color = bcolors.FAIL if ret_val > 0 else bcolors.WARNING
-    if ret_val > 0:
-        cprint("{} detected inconsistencies as follows".format(ret_val), bcolors.FAIL)
-    cprint(messages, report_color)
+def print_error_and_debugging_info(test_context: TestContext, test_result: TestResult):
+    if not test_result.injection_completed:
+        cprint("injection is not completed", bcolors.WARNING)
+
+    if not test_result.workload_completed:
+        cprint("workload is not completed", bcolors.WARNING)
+
+    if len(test_result.common_errors) > 0:
+        cprint(
+            "{} detected common errors as follows".format(
+                len(test_result.common_errors)
+            ),
+            bcolors.FAIL,
+        )
+        cprint("\n".join(test_result.common_errors) + "\n", bcolors.FAIL)
+
+    if len(test_result.end_state_errors) > 0:
+        cprint(
+            "{} detected end state inconsistencies as follows".format(
+                len(test_result.end_state_errors)
+            ),
+            bcolors.FAIL,
+        )
+        cprint("\n".join(test_result.end_state_errors) + "\n", bcolors.FAIL)
+
+    if len(test_result.history_errors) > 0:
+        cprint(
+            "{} detected history inconsistencies as follows".format(
+                len(test_result.history_errors)
+            ),
+            bcolors.FAIL,
+        )
+        cprint("\n".join(test_result.history_errors) + "\n", bcolors.FAIL)
+
     if test_context.common_config.generate_debugging_information_enabled:
         desc = "[PERTURBATION DESCRIPTION]\n" + generate_perturbation_description(
             test_context

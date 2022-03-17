@@ -111,8 +111,9 @@ class TestContext:
         self.action_types = []
         if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
             self.test_plan = yaml.safe_load(open(test_config))
-            for action in self.test_plan["actions"]:
-                self.action_types.append(action["actionType"])
+            if self.test_plan["actions"] is not None:
+                for action in self.test_plan["actions"]:
+                    self.action_types.append(action["actionType"])
             if "reconnectController" in self.action_types:
                 if self.num_apiservers < 3:
                     self.num_apiservers = 3
@@ -122,6 +123,26 @@ class TestContext:
             elif self.use_csi_driver:
                 self.num_apiservers = 1
                 self.num_workers = 0
+
+
+class TestResult:
+    def __init__(
+        self,
+        injection_completed,
+        workload_completed,
+        common_errors,
+        end_state_errors,
+        history_errors,
+        had_exception,
+        exception_message,
+    ):
+        self.injection_completed = injection_completed
+        self.workload_completed = workload_completed
+        self.common_errors = common_errors
+        self.end_state_errors = end_state_errors
+        self.history_errors = history_errors
+        self.had_exception = had_exception
+        self.exception_message = exception_message
 
 
 def match_mask_regex(val):

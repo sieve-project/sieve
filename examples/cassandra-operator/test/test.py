@@ -32,6 +32,17 @@ test_cases = {
         'kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p=\'{"spec":{"nodes":2}}\''
     )
     .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING, 150),
+    "scaledown-scaleup-brittle": new_built_in_workload()
+    .cmd("kubectl apply -f examples/cassandra-operator/test/cdc-2.yaml")
+    .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING, 200)
+    .cmd(
+        'kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p=\'{"spec":{"nodes":1}}\''
+    )
+    .wait(50)
+    .cmd(
+        'kubectl patch CassandraDataCenter cassandra-datacenter --type merge -p=\'{"spec":{"nodes":2}}\''
+    )
+    .wait_for_pod_status("cassandra-test-cluster-dc1-rack1-1", RUNNING, 150),
 }
 
 test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])

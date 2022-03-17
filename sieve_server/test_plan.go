@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	onObjectCreate           string = "onObjectCreate"
-	onObjectDelete           string = "onObjectDelete"
-	onObjectUpdate           string = "onObjectUpdate"
-	onAnyFieldModification   string = "onAnyFieldModification"
-	onTimeout                string = "onTimeout"
-	onAnnotatedAPICall string = "onAnnotatedAPICall"
+	onObjectCreate         string = "onObjectCreate"
+	onObjectDelete         string = "onObjectDelete"
+	onObjectUpdate         string = "onObjectUpdate"
+	onAnyFieldModification string = "onAnyFieldModification"
+	onTimeout              string = "onTimeout"
+	onAnnotatedAPICall     string = "onAnnotatedAPICall"
 )
 
 type TriggerDefinition interface {
@@ -736,15 +736,20 @@ func parseAction(raw map[interface{}]interface{}) Action {
 }
 
 func parseTestPlan(raw map[interface{}]interface{}) *TestPlan {
-	actionsInTestPlan := raw["actions"].([]interface{})
-	actions := []Action{}
-	for _, rawAction := range actionsInTestPlan {
-		actionInTestPlan := rawAction.(map[interface{}]interface{})
-		action := parseAction(actionInTestPlan)
-		actions = append(actions, action)
-	}
-	return &TestPlan{
-		actions: actions,
+	if actionsInTestPlan, ok := raw["actions"].([]interface{}); ok {
+		actions := []Action{}
+		for _, rawAction := range actionsInTestPlan {
+			actionInTestPlan := rawAction.(map[interface{}]interface{})
+			action := parseAction(actionInTestPlan)
+			actions = append(actions, action)
+		}
+		return &TestPlan{
+			actions: actions,
+		}
+	} else {
+		return &TestPlan{
+			actions: nil,
+		}
 	}
 }
 

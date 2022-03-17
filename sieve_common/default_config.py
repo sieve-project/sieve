@@ -19,7 +19,7 @@ class CommonConfig:
         workload_hard_timeout,
         workload_soft_timeout,
         generate_debugging_information_enabled,
-        causality_prunning_enabled,
+        causality_pruning_enabled,
         effective_updates_pruning_enabled,
         nondeterministic_pruning_enabled,
         persist_test_plans_enabled,
@@ -45,7 +45,7 @@ class CommonConfig:
         self.generate_debugging_information_enabled = (
             generate_debugging_information_enabled
         )
-        self.causality_prunning_enabled = causality_prunning_enabled
+        self.causality_pruning_enabled = causality_pruning_enabled
         self.effective_updates_pruning_enabled = effective_updates_pruning_enabled
         self.nondeterministic_pruning_enabled = nondeterministic_pruning_enabled
         self.persist_test_plans_enabled = persist_test_plans_enabled
@@ -86,7 +86,7 @@ def get_common_config():
         generate_debugging_information_enabled=[
             "generate_debugging_information_enabled"
         ],
-        causality_prunning_enabled=common_config["causality_prunning_enabled"],
+        causality_pruning_enabled=common_config["causality_pruning_enabled"],
         effective_updates_pruning_enabled=common_config[
             "effective_updates_pruning_enabled"
         ],

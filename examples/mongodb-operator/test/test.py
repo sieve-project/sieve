@@ -64,6 +64,18 @@ test_cases = {
         'kubectl patch PerconaServerMongoDB mongodb-cluster --type=\'json\' -p=\'[{"op": "replace", "path": "/spec/replsets/0/size", "value": 3}]\''
     )
     .wait_for_pod_status("mongodb-cluster-rs0-3", TERMINATED),
+    "disable-enable-shard-brittle": new_built_in_workload(70)
+    .cmd("kubectl apply -f examples/mongodb-operator/test/cr-shard.yaml")
+    .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
+    .wait_for_pod_status("mongodb-cluster-cfg-2", RUNNING)
+    .cmd(
+        'kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p=\'{"spec":{"sharding":{"enabled":false}}}\''
+    )
+    .wait_for_pod_status("mongodb-cluster-cfg-2", TERMINATED)
+    .cmd(
+        'kubectl patch PerconaServerMongoDB mongodb-cluster --type merge -p=\'{"spec":{"sharding":{"enabled":true}}}\''
+    )
+    .wait_for_pod_status("mongodb-cluster-cfg-2", RUNNING),
 }
 
 test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])

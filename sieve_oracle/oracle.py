@@ -101,7 +101,8 @@ def safety_checker(test_context: TestContext):
     messages = []
     if test_context.common_config.state_update_summary_check_enabled:
         if not (
-            test_context.test_plan["actions"][0]["actionType"] == "pauseController"
+            test_context.test_plan["actions"] is not None
+            and test_context.test_plan["actions"][0]["actionType"] == "pauseController"
             and test_context.test_plan["actions"][0]["pauseAt"]
             == "beforeControllerRead"
         ):
@@ -132,25 +133,32 @@ def liveness_checker(test_context: TestContext):
 
 def check(test_context: TestContext):
     ret_val = 0
-    messages = []
+    common_errors = []
+    end_state_errors = []
+    history_errors = []
+    injection_completed = True
+    workload_completed = True
 
-    validation_ret_val, validation_messages = test_run_validation(test_context)
-    if validation_ret_val < 0:
-        messages.extend(validation_messages)
+    injection_completed, workload_completed = test_run_validation(test_context)
 
     textbook_ret_val, textbook_messages = textbook_checker(test_context)
     ret_val += textbook_ret_val
-    messages.extend(textbook_messages)
+    common_errors.extend(textbook_messages)
 
     safety_ret_val, safety_messages = safety_checker(test_context)
     ret_val += safety_ret_val
-    messages.extend(safety_messages)
+    history_errors.extend(safety_messages)
 
     liveness_ret_val, liveness_messages = liveness_checker(test_context)
     ret_val += liveness_ret_val
-    messages.extend(liveness_messages)
+    end_state_errors.extend(liveness_messages)
 
-    if validation_ret_val < 0:
-        ret_val = validation_ret_val
-
-    return ret_val, "\n".join(messages)
+    return TestResult(
+        injection_completed=injection_completed,
+        workload_completed=workload_completed,
+        common_errors=common_errors,
+        end_state_errors=end_state_errors,
+        history_errors=history_errors,
+        had_exception=False,
+        exception_message="",
+    )

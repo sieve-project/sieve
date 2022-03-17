@@ -243,7 +243,8 @@ func loadSieveConfigFromEnv(testMode bool) error {
 			err = loadActionsAndTriggers(configFromEnv)
 			if err != nil {
 				printError(err, SIEVE_CONFIG_ERR)
-				return fmt.Errorf("fail to load from env")
+				log.Println("failure in loadActionsAndTriggers")
+				return nil
 			}
 		}
 	} else {
@@ -296,7 +297,8 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 						err = loadActionsAndTriggers(configFromConfigMapData)
 						if err != nil {
 							printError(err, SIEVE_CONFIG_ERR)
-							return fmt.Errorf("fail to load from configmap")
+							log.Println("failure in loadActionsAndTriggers")
+							return nil
 						}
 					}
 				} else {

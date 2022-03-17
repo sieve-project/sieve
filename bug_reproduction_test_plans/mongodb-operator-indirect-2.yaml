@@ -1,0 +1,59 @@
+actions:
+- actionType: pauseController
+  pauseAt: afterControllerWrite
+  pauseScope: perconaservermongodb/default/mongodb-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: perconaservermongodb/default/mongodb-cluster
+        prevStateDiff: '{"metadata": {"finalizers": ["delete-psmdb-pvc"]}, "spec":
+          {"replsets": [{"volumeSpec": {"persistentVolumeClaim": {}}}], "secrets":
+          {}}}'
+        curStateDiff: '{"metadata": {}, "spec": {"clusterServiceDNSSuffix": "svc.cluster.local",
+          "replsets": [{"containerSecurityContext": {"runAsNonRoot": true, "runAsUser":
+          1001}, "livenessProbe": {"exec": {"command": ["/data/db/mongodb-healthcheck",
+          "k8s", "liveness", "--ssl", "--sslInsecure", "--sslCAFile", "/etc/mongodb-ssl/ca.crt",
+          "--sslPEMKeyFile", "/tmp/tls.pem", "--startupDelaySeconds", "7200"]}, "failureThreshold":
+          4, "initialDelaySeconds": 60, "periodSeconds": 30, "startupDelaySeconds":
+          7200, "timeoutSeconds": 5}, "podSecurityContext": {"fsGroup": 1001}, "readinessProbe":
+          {"failureThreshold": 8, "initialDelaySeconds": 10, "periodSeconds": 3, "tcpSocket":
+          {"port": 27017}, "timeoutSeconds": 2}, "serviceAccountName": "default",
+          "storage": {"engine": "wiredTiger", "inMemory": {"engineConfig": {"inMemorySizeRatio":
+          0.9}}, "wiredTiger": {"collectionConfig": {"blockCompressor": "snappy"},
+          "engineConfig": {"cacheSizeRatio": 0.5, "journalCompressor": "snappy"},
+          "indexConfig": {"prefixCompression": true}}}, "volumeSpec": {"persistentVolumeClaim":
+          {"accessModes": ["ReadWriteOnce"]}}}], "runUid": 1001, "secrets": {"ssl":
+          "mongodb-cluster-ssl", "sslInternal": "mongodb-cluster-ssl-internal"}}}'
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB)
+    expression: trigger1
+- actionType: resumeController
+  pauseAt: afterControllerWrite
+  pauseScope: perconaservermongodb/default/mongodb-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: secrets/default/mongodb-cluster-ssl
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: secrets/default/mongodb-cluster-ssl-internal
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger4
+      condition:
+        conditionType: onTimeout
+        timeoutValue: 3
+    expression: trigger2&trigger3|trigger4

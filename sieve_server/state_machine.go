@@ -51,6 +51,9 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 			blockingCh <- "release"
 		}
 	}()
+	if sm.states == nil {
+		return
+	}
 	if sm.nextState >= len(sm.states) {
 		// all the actions are finished
 		return
