@@ -39,14 +39,20 @@ def before_reproducing_cassandra_operator_indirect_1():
     data = json.load(open(current_cfg))
     del data["cherry_pick_commits"]
     json.dump(data, open(current_cfg, "w"), indent=4)
-    os.system("python3 build.py -p cassandra-operator -m test")
+    print(
+        "building cassandra-operator image without the fix of https://github.com/instaclustr/cassandra-operator/issues/400"
+    )
+    os.system("python3 build.py -p cassandra-operator -m test > /dev/null 2>&1")
 
 
 def after_reproducing_cassandra_operator_indirect_1():
     current_cfg = "examples/cassandra-operator/config.json"
     bkp_cfg = "examples/cassandra-operator/config.json.bkp"
     os.system("mv {} {}".format(bkp_cfg, current_cfg))
-    os.system("python3 build.py -p cassandra-operator -m test")
+    print(
+        "building cassandra-operator image with the fix of https://github.com/instaclustr/cassandra-operator/issues/400"
+    )
+    os.system("python3 build.py -p cassandra-operator -m test > /dev/null 2>&1")
 
 
 reprod_map = {
