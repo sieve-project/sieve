@@ -33,8 +33,12 @@ if __name__ == "__main__":
         "pull-commands.txt", "w"
     ) as pull_command_file:
         # pull all k8s images
-        pull_command_file.write("docker pull {}/node:test\n".format(args.docker))
-        pull_command_file.write("docker pull {}/node:vanilla\n".format(args.docker))
+        pull_command_file.write(
+            "docker pull {}/node:v1.18.9-test\n".format(args.docker)
+        )
+        pull_command_file.write(
+            "docker pull {}/node:v1.18.9-vanilla\n".format(args.docker)
+        )
         for operator in operators:
             pull_command_file.write(
                 "docker pull {}/{}:test\n".format(args.docker, operator)
