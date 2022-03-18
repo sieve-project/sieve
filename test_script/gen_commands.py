@@ -45,8 +45,8 @@ if __name__ == "__main__":
                 for testcase in os.listdir(os.path.join("../log", operator)):
                     if mode == "vanilla":
                         command_file.write(
-                            "python3 sieve.py -s test -p {} -m {} -t {} -d {}\n".format(
-                                operator, mode, testcase, args.docker
+                            "python3 sieve.py -s test -m vanilla -p {} -t {} -d {}\n".format(
+                                operator, testcase, args.docker
                             )
                         )
                     else:
@@ -62,9 +62,8 @@ if __name__ == "__main__":
                         )
                         for config in configs:
                             command_file.write(
-                                "python3 sieve.py -s test -p {} -m {} -t {} -c {} -d {}\n".format(
+                                "python3 sieve.py -s test -m test -p {} -t {} -c {} -d {}\n".format(
                                     operator,
-                                    mode,
                                     testcase,
                                     config,
                                     args.docker,
