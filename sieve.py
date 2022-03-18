@@ -70,9 +70,7 @@ def save_run_result(
                         + test_result.history_errors,
                         "no_exception": test_result.no_exception,
                         "exception_message": test_result.exception_message,
-                        "test_config_content": open(test_config).read()
-                        if mode != "vanilla"
-                        else None,
+                        "test_config_content": open(test_config).read(),
                         "host": socket.gethostname(),
                     }
                 }
@@ -261,6 +259,8 @@ def setup_cluster(test_context: TestContext):
     setup_kind_cluster(test_context)
     print("\n\n")
 
+    cmd_early_exit("rm -rf %s" % test_context.result_dir)
+    os.makedirs(test_context.result_dir)
     if test_context.stage == sieve_stages.LEARN:
         print("Learning stage with config: %s" % test_context.test_config)
         generate_learn_config(
@@ -505,7 +505,15 @@ def check_result(
         return None
     else:
         if test_context.mode == sieve_modes.VANILLA:
-            return None
+            return TestResult(
+                injection_completed=True,
+                workload_completed=True,
+                common_errors=[],
+                end_state_errors=[],
+                history_errors=[],
+                no_exception=True,
+                exception_message="",
+            )
         test_result = check(test_context)
         print_error_and_debugging_info(test_context, test_result)
         return test_result
@@ -536,7 +544,15 @@ def run_test(test_context: TestContext) -> TestResult:
         return None
     except Exception:
         print(traceback.format_exc())
-        return TestResult(no_exception=False, exception_message=traceback.format_exc())
+        return TestResult(
+            injection_completed=False,
+            workload_completed=False,
+            common_errors=[],
+            end_state_errors=[],
+            history_errors=[],
+            no_exception=False,
+            exception_message=traceback.format_exc(),
+        )
 
 
 def generate_learn_config(
@@ -592,9 +608,6 @@ def run(
         log_dir, project, test, stage, mode, os.path.basename(config)
     )
     print("Log dir: %s" % result_dir)
-    if phase == "all" or phase == "setup" or phase == "setup_workload":
-        cmd_early_exit("rm -rf %s" % result_dir)
-        os.makedirs(result_dir, exist_ok=True)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
     config_to_use = os.path.join(result_dir, os.path.basename(config))
     test_context = TestContext(
