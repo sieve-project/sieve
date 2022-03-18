@@ -80,6 +80,7 @@ class TestContext:
         stage,
         mode,
         phase,
+        original_test_config,
         test_config,
         result_dir,
         oracle_dir,
@@ -90,12 +91,14 @@ class TestContext:
         use_csi_driver,
         common_config: CommonConfig,
         controller_config: ControllerConfig,
+        rate_limiter_enabled,
     ):
         self.project = project
         self.test_name = test_name
         self.stage = stage
         self.mode = mode
         self.phase = phase
+        self.original_test_config = original_test_config
         self.test_config = test_config
         self.result_dir = result_dir
         self.oracle_dir = oracle_dir
@@ -107,6 +110,7 @@ class TestContext:
         self.use_csi_driver = use_csi_driver
         self.common_config = common_config
         self.controller_config = controller_config
+        self.rate_limiter_enabled = rate_limiter_enabled
         self.test_plan = None
         self.action_types = []
         if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
@@ -133,7 +137,7 @@ class TestResult:
         common_errors,
         end_state_errors,
         history_errors,
-        had_exception,
+        no_exception,
         exception_message,
     ):
         self.injection_completed = injection_completed
@@ -141,7 +145,7 @@ class TestResult:
         self.common_errors = common_errors
         self.end_state_errors = end_state_errors
         self.history_errors = history_errors
-        self.had_exception = had_exception
+        self.no_exception = no_exception
         self.exception_message = exception_message
 
 

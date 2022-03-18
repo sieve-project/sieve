@@ -159,6 +159,6 @@ def check(test_context: TestContext):
         common_errors=common_errors,
         end_state_errors=end_state_errors,
         history_errors=history_errors,
-        had_exception=False,
+        no_exception=True,
         exception_message="",
     )

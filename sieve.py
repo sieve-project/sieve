@@ -68,7 +68,7 @@ def save_run_result(
                         "detected_errors": test_result.common_errors
                         + test_result.end_state_errors
                         + test_result.history_errors,
-                        "had_exception": test_result.had_exception,
+                        "no_exception": test_result.no_exception,
                         "exception_message": test_result.exception_message,
                         "test_config_content": open(test_config).read()
                         if mode != "vanilla"
@@ -260,6 +260,25 @@ def setup_cluster(test_context: TestContext):
     time.sleep(5)
     setup_kind_cluster(test_context)
     print("\n\n")
+
+    if test_context.stage == sieve_stages.LEARN:
+        print("Learning stage with config: %s" % test_context.test_config)
+        generate_learn_config(
+            test_context.common_config.namespace,
+            test_context.test_config,
+            sieve_stages.LEARN,
+            test_context.rate_limiter_enabled,
+            test_context.controller_config.custom_resource_definitions,
+        )
+    else:
+        print("Testing stage with config: %s" % test_context.test_config)
+        if test_context.mode == sieve_modes.VANILLA:
+            generate_vanilla_config(test_context.test_config)
+        else:
+            cmd_early_exit(
+                "cp %s %s"
+                % (test_context.original_test_config, test_context.test_config)
+            )
 
     # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
@@ -517,7 +536,7 @@ def run_test(test_context: TestContext) -> TestResult:
         return None
     except Exception:
         print(traceback.format_exc())
-        return TestResult(had_exception=True, exception_message=traceback.format_exc())
+        return TestResult(no_exception=False, exception_message=traceback.format_exc())
 
 
 def generate_learn_config(
@@ -578,27 +597,13 @@ def run(
         os.makedirs(result_dir, exist_ok=True)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
     config_to_use = os.path.join(result_dir, os.path.basename(config))
-    if stage == sieve_stages.LEARN:
-        print("Learning stage with config: %s" % config_to_use)
-        generate_learn_config(
-            common_config.namespace,
-            config_to_use,
-            sieve_stages.LEARN,
-            rate_limiter_enabled,
-            controller_config.custom_resource_definitions,
-        )
-    else:
-        print("Testing stage with config: %s" % config_to_use)
-        if mode == sieve_modes.VANILLA:
-            generate_vanilla_config(config_to_use)
-        else:
-            cmd_early_exit("cp %s %s" % (config, config_to_use))
     test_context = TestContext(
         project=project,
         test_name=test,
         stage=stage,
         mode=mode,
         phase=phase,
+        original_test_config=config,
         test_config=config_to_use,
         result_dir=result_dir,
         oracle_dir=oracle_dir,
@@ -609,6 +614,7 @@ def run(
         use_csi_driver=use_csi_driver,
         common_config=common_config,
         controller_config=controller_config,
+        rate_limiter_enabled=rate_limiter_enabled,
     )
     test_result = run_test(test_context)
     return test_result
