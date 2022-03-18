@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -ex
 
 # 0. Git pull sieve on all worker nodes
 parallel --workdir '/home/ubuntu/sieve' \
@@ -40,12 +40,6 @@ parallel --workdir '/home/ubuntu/sieve' \
          --onall \
          ::: 'rm -rf ./sieve_test_results'
 
-parallel --workdir '/home/ubuntu/sieve' \
-         --ssh 'ssh -i "~/.ssh/id_rsa" ' \
-         --sshloginfile hosts \
-         --onall \
-         ::: 'rm -rf ./log_save'
-
 # 6. Run all tests in parallel
 #
 # workdir      - work directory on remote
@@ -76,7 +70,8 @@ parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     < hosts
 
 now=$(date +"%Y-%m-%d")
-mv ../log ./log_save_${now}
+mkdir -p ./log_save_${now}
+cp -r ../log ./log_save_${now}/log
 
 # 8. combine test results in sieve_test_results and save it
 python3 combine_json.py
