@@ -71,7 +71,7 @@ parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 
 now=$(date +"%Y-%m-%d")
 mkdir -p ./log_save_${now}
-cp -r ../log ./log_save_${now}/log
+cp -r ../log ./log_save_${now}
 
 # 8. combine test results in sieve_test_results and save it
 python3 combine_json.py
