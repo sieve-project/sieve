@@ -16,6 +16,7 @@ parallel --workdir '/home/ubuntu/sieve' \
          ::: 'docker system prune -a'
 
 # 2. Generate test commands and docker pull commands
+rm -rf ../log
 python3 runlearn.py -p $1
 python3 gen_commands.py -p $1
 
@@ -70,8 +71,9 @@ parallel --ssh 'ssh -i "~/.ssh/id_rsa" ' \
 	     < hosts
 
 now=$(date +"%Y-%m-%d")
-mkdir -p ./log_save_${now}
-cp -r ../log ./log_save_${now}
+mkdir -p ./massive-testing-${now}
+cp -r ../sieve_test_results ./massive-testing-${now}
+cp -r ../log ./massive-testing-${now}
 
 # 8. combine test results in sieve_test_results and save it
 python3 combine_json.py
