@@ -9,6 +9,7 @@ operators_for_CI = {
     "cass-operator": ["recreate", "scaledown-scaleup"],
     "cassandra-operator": ["recreate", "scaledown-scaleup"],
     "casskop-operator": ["recreate", "scaledown-to-zero", "reducepdb"],
+    "elastic-operator": ["recreate", "scaledown-scaleup"],
     "mongodb-operator": [
         "recreate",
         "scaleup-scaledown",
