@@ -7,6 +7,8 @@ print(
     "controller\tworkload\tpattern\ttest plan\tduration\thost\tworkload complated\tinjection completed\tno exception\tnumber errors"
 )
 for operator in result_map:
+    if operator == "failed":
+        continue
     for test_case in result_map[operator]:
         for mode in result_map[operator][test_case]:
             for config in result_map[operator][test_case][mode]:
