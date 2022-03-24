@@ -1,7 +1,8 @@
 controllers_to_check = {
+    "cass-operator": ["recreate", "scaledown-scaleup"],
     "cassandra-operator": ["recreate", "scaledown-scaleup"],
-    "zookeeper-operator": ["recreate", "scaledown-scaleup"],
-    "rabbitmq-operator": ["recreate", "scaleup-scaledown", "resize-pvc"],
+    "casskop-operator": ["recreate", "scaledown-to-zero", "reducepdb"],
+    "elastic-operator": ["recreate", "scaledown-scaleup"],
     "mongodb-operator": [
         "recreate",
         "scaleup-scaledown",
@@ -9,8 +10,8 @@ controllers_to_check = {
         "disable-enable-arbiter",
         "run-cert-manager",
     ],
-    "cass-operator": ["recreate", "scaledown-scaleup"],
-    "casskop-operator": ["recreate", "scaledown-to-zero", "reducepdb"],
+    "nifikop-operator": ["recreate", "scaledown-scaleup", "change-config"],
+    "rabbitmq-operator": ["recreate", "scaleup-scaledown", "resize-pvc"],
     "xtradb-operator": [
         "recreate",
         "disable-enable-haproxy",
@@ -24,6 +25,5 @@ controllers_to_check = {
         "disable-enable-tls",
         "disable-enable-tuiport",
     ],
-    "nifikop-operator": ["recreate", "scaledown-scaleup", "change-config"],
-    "elastic-operator": ["recreate", "scaledown-scaleup"],
+    "zookeeper-operator": ["recreate", "scaledown-scaleup"],
 }

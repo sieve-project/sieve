@@ -2,21 +2,11 @@ import glob
 import os
 from evaluation_sanity_check import common
 
-mode_compability_map = {
-    "atomicity-violation": "intermediate-state",
-    "observability-gap": "unobserved-state",
-    "time-travel": "stale-state",
-}
-
 
 def specs_to_map(specs):
     m = {}
     for spec in specs:
         spec_content = open(spec).read()
-        for old_mode in mode_compability_map:
-            spec_content = spec_content.replace(
-                old_mode, mode_compability_map[old_mode]
-            )
         if spec_content in m:
             m[spec_content].append(spec)
             # print(m[spec_content])
@@ -29,15 +19,13 @@ def specs_to_map(specs):
 def check_massive_testing_results(current_dir, previous_dir):
     for operator in common.controllers_to_check:
         for test in common.controllers_to_check[operator]:
-            for mode in ["atomicity-violation", "observability-gap", "time-travel"]:
+            for mode in ["intermediate-state", "unobserved-state", "stale-state"]:
                 cur_specs = glob.glob(
                     os.path.join(
                         current_dir,
                         operator,
                         test,
-                        "learn/learn-once/learn.yaml/"
-                        + mode_compability_map[mode]
-                        + "/*.yaml",
+                        "learn/learn-once/learn.yaml/" + mode + "/*.yaml",
                     )
                 )
                 pre_specs = glob.glob(
@@ -71,6 +59,8 @@ def check_bug_reproduction_test_plans():
     reprod_configs = glob.glob("bug_reproduction_test_plans/*.yaml")
 
     for reprod_config in reprod_configs:
+        if "indirect" in reprod_config:
+            continue
         found = False
         for gen_config in gen_configs:
             if open(reprod_config).read() == open(gen_config).read():
