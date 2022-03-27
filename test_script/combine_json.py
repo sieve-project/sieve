@@ -2,6 +2,7 @@ import glob
 import json
 import time
 import os
+import sys
 
 
 def merge(result, patch):
@@ -21,7 +22,22 @@ def merge(result, patch):
 
 if __name__ == "__main__":
     t = time.localtime()
-    json_names = glob.glob("../sieve_test_results/*.json")
+    result_folder = sys.argv[1]
+    controller = sys.argv[2]
+    json_names = glob.glob(
+        os.path.join(result_folder, "sieve_test_results/{}-*.json".format(controller))
+    )
+    generated_test_plans = glob.glob(
+        os.path.join(
+            result_folder,
+            "log",
+            controller,
+            "*",
+            "learn/learn-once/learn.yaml",
+            "*",
+            "*-test-plan-*.yaml",
+        )
+    )
 
     result = {}
     result["failed"] = []
@@ -29,22 +45,22 @@ if __name__ == "__main__":
         with open(fname, "r") as in_json:
             patch = json.load(in_json)
             merge(result, patch)
-
-    with open("commands.txt", "r") as command_file:
-        commands = command_file.read().splitlines()
-        for command in commands:
-            args = command.split()
-            operator_name = args[7]
-            workload_name = args[9]
-            test_plan_name_without_ext = os.path.splitext(os.path.basename(args[11]))[0]
-            result_name = "%s-%s-%s" % (
-                operator_name,
-                workload_name,
-                test_plan_name_without_ext,
-            )
-            if not any(result_name in s for s in json_names):
-                print(result_name)
-                result["failed"].append(command)
+    for test_plan in generated_test_plans:
+        tokens = test_plan.split("/")
+        workload_name = tokens[-6]
+        expected_name = "{}-{}-{}.json".format(
+            controller,
+            workload_name,
+            os.path.basename(test_plan),
+        )
+        # print(test_plan)
+        # print(expected_name)
+        found = False
+        for json_name in json_names:
+            if json_name.endswith(expected_name):
+                found = True
+        if not found:
+            result["failed"].append(test_plan)
 
     with open(
         "test-summary-{}-{}-{}-{}-{}.json".format(

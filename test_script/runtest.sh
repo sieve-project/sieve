@@ -68,7 +68,7 @@ cp -r ../sieve_test_results ./massive-testing-${now}
 cp -r ../log ./massive-testing-${now}
 
 # 8. combine test results in sieve_test_results and save it
-python3 combine_json.py
+python3 combine_json.py ./massive-testing-${now} $1
 
 # 9. Clean up after massive testing
 parallel --workdir '/home/ubuntu/sieve' \
