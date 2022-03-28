@@ -70,7 +70,7 @@ def save_run_result(
                         + test_result.history_errors,
                         "no_exception": test_result.no_exception,
                         "exception_message": test_result.exception_message,
-                        "test_config_content": open(test_config).read(),
+                        "test_config_content": open(test_config).read() if mode == sieve_modes.TEST else "",
                         "host": socket.gethostname(),
                     }
                 }
@@ -441,6 +441,17 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
+    streamed_api_server_log_file = open(
+        os.path.join(test_context.result_dir, "apiserver1.log"), "w+"
+    )
+    streaming_api_server = subprocess.Popen(
+        "kubectl logs kube-apiserver-kind-control-plane -n kube-system -f",
+        stdout=streamed_api_server_log_file,
+        stderr=streamed_api_server_log_file,
+        shell=True,
+        preexec_fn=os.setsid,
+    )
+
     use_soft_timeout = "0"
     if "pauseController" in test_context.action_types:
         use_soft_timeout = "1"
@@ -466,7 +477,7 @@ def run_workload(
         .metadata.name
     )
 
-    for i in range(test_context.num_apiservers):
+    for i in range(1, test_context.num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + (
             "" if i == 0 else str(i + 1)
         )
@@ -488,6 +499,8 @@ def run_workload(
     )
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
+    os.killpg(streaming_api_server.pid, signal.SIGTERM)
+    streamed_api_server_log_file.close()
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
