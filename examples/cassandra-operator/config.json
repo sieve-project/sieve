@@ -16,5 +16,15 @@
         "cassandrabackup"
     ],
     "controller_pod_label": "cassandra-operator",
-    "controller_deployment_file_path": "examples/cassandra-operator/deploy/bundle.yaml"
+    "controller_deployment_file_path": "examples/cassandra-operator/deploy/bundle.yaml",
+    "end_state_checker_mask": {
+        "*": {
+            "configmap/default/cassandra-test-cluster-dc1-rack-config-rack1": [
+                [
+                    "data",
+                    "cassandra_rackdc_properties"
+                ]
+            ]
+        }
+    }
 }
