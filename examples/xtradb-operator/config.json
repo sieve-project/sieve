@@ -38,5 +38,67 @@
             "pod/default/xtradb-cluster-pxc-1",
             "pod/default/xtradb-cluster-pxc-2"
         ]
+    },
+    "end_state_checker_mask": {
+        "*": {
+            "pod/*/*": [
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "lastTerminationState"
+                ],
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "restartCount"
+                ]
+            ],
+            "controllerrevision/*/*": [],
+            "endpoints/*/*": [],
+            "endpointslice/*/*": [],
+            "certificate/default/xtradb-cluster-ssl": [
+                [
+                    "apiVersion"
+                ],
+                [
+                    "spec",
+                    "organization"
+                ],
+                [
+                    "spec",
+                    "subject"
+                ]
+            ],
+            "certificate/default/xtradb-cluster-ssl-internal": [
+                [
+                    "apiVersion"
+                ],
+                [
+                    "spec",
+                    "organization"
+                ],
+                [
+                    "spec",
+                    "subject"
+                ]
+            ],
+            "certificaterequest/default/xtradb-cluster-ssl-*": [
+                [
+                    "apiVersion"
+                ]
+            ],
+            "certificaterequest/default/xtradb-cluster-ssl-internal-*": [
+                [
+                    "apiVersion"
+                ]
+            ],
+            "issuer/default/xtradb-cluster-pxc-ca": [
+                [
+                    "apiVersion"
+                ]
+            ]
+        }
     }
 }

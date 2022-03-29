@@ -270,10 +270,19 @@ def resource_field_path_should_be_masked(
                     "/" + resource_key
                 ).match("/" + masked_resource_key):
                     for masked_path in state_mask[test_name][masked_resource_key]:
+                        masked_path_str = "/".join(masked_path)
                         field_path_list_prefix = []
                         for field in field_path_list:
                             field_path_list_prefix.append(field)
-                            if field_path_list_prefix == masked_path:
+                            field_path_list_prefix_str = "/".join(
+                                field_path_list_prefix
+                            )
+                            if (
+                                masked_path_str == field_path_list_prefix_str
+                                or PurePath("/" + field_path_list_prefix_str).match(
+                                    "/" + masked_path_str
+                                )
+                            ):
                                 return True
     return False
 

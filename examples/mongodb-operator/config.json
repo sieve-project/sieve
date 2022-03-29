@@ -40,5 +40,61 @@
             "pod/default/mongodb-cluster-rs0-1",
             "pod/default/mongodb-cluster-rs0-2"
         ]
+    },
+    "end_state_checker_mask": {
+        "*": {
+            "pod/*/*": [
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "lastTerminationState"
+                ],
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "restartCount"
+                ]
+            ],
+            "replicaset/*/*": [],
+            "controllerrevision/*/*": [],
+            "certificate/default/mongodb-cluster-ssl": [
+                [
+                    "apiVersion"
+                ],
+                [
+                    "spec",
+                    "organization"
+                ],
+                [
+                    "spec",
+                    "subject"
+                ]
+            ],
+            "certificate/default/mongodb-cluster-ssl-internal": [
+                [
+                    "apiVersion"
+                ],
+                [
+                    "spec",
+                    "organization"
+                ],
+                [
+                    "spec",
+                    "subject"
+                ]
+            ],
+            "certificaterequest/default/mongodb-cluster-ssl-*": [
+                [
+                    "apiVersion"
+                ]
+            ],
+            "certificaterequest/default/mongodb-cluster-ssl-internal-*": [
+                [
+                    "apiVersion"
+                ]
+            ]
+        }
     }
 }
