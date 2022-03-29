@@ -3,6 +3,7 @@ import json
 from sieve_oracle.checker_common import *
 from sieve_common.k8s_event import get_mask_by_resource_key, parse_key
 from deepdiff import DeepDiff
+from pathlib import PurePath
 
 
 def get_resource_helper(func, namespace):
@@ -229,6 +230,31 @@ def resource_key_should_be_masked(
             or resource_key in reference_controller_family
         ):
             return True
+        state_mask = test_context.controller_config.end_state_checker_mask
+        for test_name in state_mask:
+            if test_name == test_context.test_name or test_name == "*":
+                for masked_resource_key in state_mask[test_name]:
+                    if masked_resource_key == resource_key or PurePath(
+                        "/" + resource_key
+                    ).match("/" + masked_resource_key):
+                        if len(state_mask[test_name][masked_resource_key]) == 0:
+                            # print("skip", masked_resource_key)
+                            return True
+    return False
+
+
+def resource_type_should_be_masked_by_controller_config(
+    test_context: TestContext,
+    resource_type,
+):
+    state_mask = test_context.controller_config.end_state_checker_mask
+    for test_name in state_mask:
+        if test_name == test_context.test_name or test_name == "*":
+            for masked_resource_key in state_mask[test_name]:
+                if masked_resource_key == "{}/*/*".format(resource_type):
+                    if len(state_mask[test_name][masked_resource_key]) == 0:
+                        # print("skip", masked_resource_key)
+                        return True
     return False
 
 
@@ -239,13 +265,16 @@ def resource_field_path_should_be_masked(
     state_mask = test_context.controller_config.end_state_checker_mask
     for test_name in state_mask:
         if test_name == test_context.test_name or test_name == "*":
-            if resource_key in state_mask[test_name]:
-                for masked_path in state_mask[test_name][resource_key]:
-                    field_path_list_prefix = []
-                    for field in field_path_list:
-                        field_path_list_prefix.append(field)
-                        if field_path_list_prefix == masked_path:
-                            return True
+            for masked_resource_key in state_mask[test_name]:
+                if masked_resource_key == resource_key or PurePath(
+                    "/" + resource_key
+                ).match("/" + masked_resource_key):
+                    for masked_path in state_mask[test_name][masked_resource_key]:
+                        field_path_list_prefix = []
+                        for field in field_path_list:
+                            field_path_list_prefix.append(field)
+                            if field_path_list_prefix == masked_path:
+                                return True
     return False
 
 
@@ -262,6 +291,7 @@ def compare_states(test_context: TestContext):
     testing_resource_to_object_map = {}
     reference_resource_to_object_map = {}
     resource_type_with_random_names = set()
+    resource_type_masked_by_controller_config = set()
 
     keys_in_testing_state = set(testing_state.keys())
     keys_in_reference_state = set(reference_state.keys())
@@ -270,6 +300,10 @@ def compare_states(test_context: TestContext):
         if kind_native_objects(resource_key):
             continue
         resource_type, namespace, name = parse_key(resource_key)
+        if resource_type_should_be_masked_by_controller_config(
+            test_context, resource_type
+        ):
+            resource_type_masked_by_controller_config.add(resource_type)
         if resource_key in testing_state:
             if resource_type not in testing_resource_to_object_map:
                 testing_resource_to_object_map[resource_type] = []
@@ -323,6 +357,8 @@ def compare_states(test_context: TestContext):
                 )
             )
     for resource_type in resource_type_with_random_names:
+        if resource_type in resource_type_masked_by_controller_config:
+            continue
         if resource_type not in testing_resource_to_object_map:
             testing_resource_to_object_map[resource_type] = []
         if resource_type not in reference_resource_to_object_map:
