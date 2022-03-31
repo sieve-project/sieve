@@ -23,16 +23,26 @@
                     "status",
                     "prometheusReportingTask",
                     "version"
-                ],
-                [
-                    "status",
-                    "nodesState"
                 ]
             ],
             "lease/default/f1c5ece8.example.com": [
                 [
                     "spec",
                     "leaseTransitions"
+                ]
+            ],
+            "pod/default/zookeeper-0": [
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "lastTerminationState"
+                ],
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "restartCount"
                 ]
             ]
         }

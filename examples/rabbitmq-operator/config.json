@@ -24,6 +24,20 @@
                     "spec",
                     "ports"
                 ]
+            ],
+            "pod/*/*": [
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "lastTerminationState"
+                ],
+                [
+                    "status",
+                    "containerStatuses",
+                    "*",
+                    "restartCount"
+                ]
             ]
         }
     }
