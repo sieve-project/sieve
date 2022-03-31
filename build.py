@@ -380,6 +380,7 @@ def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
         for this_mode in [
             sieve_stages.LEARN,
             sieve_stages.TEST,
+            sieve_modes.VANILLA,
         ]:
             img_tag = version + "-" + this_mode
             setup_kubernetes(version, this_mode, img_repo, img_tag, push_to_remote)
@@ -401,6 +402,7 @@ def setup_controller_wrapper(
         for this_mode in [
             sieve_stages.LEARN,
             sieve_stages.TEST,
+            sieve_modes.VANILLA,
         ]:
             img_tag = this_mode
             setup_controller(
