@@ -2,16 +2,11 @@
     "configmap/default/sieve-testing-global-config": {
         "BinaryData": null,
         "Data": {
-            "SIEVE-CRD-LIST": "zookeepercluster",
-            "SIEVE-MODE": "learn",
-            "SIEVE-NAMESPACE": "default",
-            "SIEVE-RATE-LIMITER-ENABLED": "false",
-            "SIEVE-RATE-LIMITER-INTERVAL": "3",
-            "SIEVE-STAGE": "learn"
+            "sieveTestPlan": "crdList:\n- zookeepercluster\nrateLimiterEnabled: false\nrateLimiterInterval: 3\n"
         },
         "Immutable": null,
         "annotations": {
-            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"SIEVE-CRD-LIST\":\"zookeepercluster\",\"SIEVE-MODE\":\"learn\",\"SIEVE-NAMESPACE\":\"default\",\"SIEVE-RATE-LIMITER-ENABLED\":\"false\",\"SIEVE-RATE-LIMITER-INTERVAL\":\"3\",\"SIEVE-STAGE\":\"learn\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"sieveTestPlan\":\"crdList:\\n- zookeepercluster\\nrateLimiterEnabled: false\\nrateLimiterInterval: 3\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"sieve-testing-global-config\",\"namespace\":\"default\"}}\n"
         },
         "creationTimestamp": "SIEVE-IGNORE",
         "managedFields": [
@@ -21,12 +16,7 @@
                 "fieldsV1": {
                     "f:data": {
                         ".": {},
-                        "f:SIEVE-CRD-LIST": {},
-                        "f:SIEVE-MODE": {},
-                        "f:SIEVE-NAMESPACE": {},
-                        "f:SIEVE-RATE-LIMITER-ENABLED": {},
-                        "f:SIEVE-RATE-LIMITER-INTERVAL": {},
-                        "f:SIEVE-STAGE": {}
+                        "f:sieveTestPlan": {}
                     },
                     "f:metadata": {
                         "f:annotations": {
@@ -79,7 +69,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"d0f901ed-f33e-4d8a-8e0b-4017fab8b7f7\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"600376d9-e77c-4721-aa98-acf62fc72008\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -116,7 +106,7 @@
                     "f:metadata": {
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"7571169a-0a15-4f9f-9442-5f0ea2ee4a25\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"7cbfaf0d-9e26-4587-be54-055b8f47630d\"}": "SIEVE-IGNORE"
                         }
                     }
                 },
@@ -314,7 +304,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"f95c6d0f-5aab-4627-b40a-74ce932fd5fa\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"d1094b36-4617-463a-9f6b-cdeac7610c22\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:revision": {}
@@ -925,9 +915,9 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "endpointslice/default/zookeeper-cluster-admin-server-cpmh6": "SIEVE-IGNORE",
-    "endpointslice/default/zookeeper-cluster-client-blbxr": "SIEVE-IGNORE",
-    "endpointslice/default/zookeeper-cluster-headless-dkkjs": "SIEVE-IGNORE",
+    "endpointslice/default/zookeeper-cluster-admin-server-d4fcc": "SIEVE-IGNORE",
+    "endpointslice/default/zookeeper-cluster-client-8zrqf": "SIEVE-IGNORE",
+    "endpointslice/default/zookeeper-cluster-headless-jh5vs": "SIEVE-IGNORE",
     "persistentvolumeclaim/default/data-zookeeper-cluster-0": {
         "Spec": {
             "AccessModes": [
@@ -1466,7 +1456,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"f95c6d0f-5aab-4627-b40a-74ce932fd5fa\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"d1094b36-4617-463a-9f6b-cdeac7610c22\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -1654,7 +1644,7 @@
                         "f:podIP": {},
                         "f:podIPs": {
                             ".": {},
-                            "k:{\"ip\":\"10.244.1.6\"}": "SIEVE-IGNORE"
+                            "k:{\"ip\":\"10.244.2.6\"}": "SIEVE-IGNORE"
                         },
                         "f:startTime": {}
                     }
@@ -1679,7 +1669,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "pod/default/zookeeper-operator-5fc77867c7-mzhd7": "SIEVE-IGNORE",
+    "pod/default/zookeeper-operator-5fc77867c7-cvllv": "SIEVE-IGNORE",
     "poddisruptionbudget/default/zookeeper-cluster": {
         "Spec": {
             "MaxUnavailable": 1,
@@ -1717,7 +1707,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"d0f901ed-f33e-4d8a-8e0b-4017fab8b7f7\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"600376d9-e77c-4721-aa98-acf62fc72008\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -1960,7 +1950,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"019d1a0d-b59a-4190-b98c-d5ca9784ce04\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"af23d80c-7e36-4427-950e-7b5a927c1cdf\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2204,7 +2194,7 @@
         "resourceVersion": "SIEVE-IGNORE",
         "uid": "SIEVE-IGNORE"
     },
-    "secret/default/zookeeper-operator-token-cqn5s": "SIEVE-IGNORE",
+    "secret/default/zookeeper-operator-token-bjd9r": "SIEVE-IGNORE",
     "service/default/zookeeper-cluster-admin-server": {
         "Spec": {
             "ClusterIP": "SIEVE-IGNORE",
@@ -2259,7 +2249,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"d0f901ed-f33e-4d8a-8e0b-4017fab8b7f7\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"600376d9-e77c-4721-aa98-acf62fc72008\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2356,7 +2346,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"d0f901ed-f33e-4d8a-8e0b-4017fab8b7f7\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"600376d9-e77c-4721-aa98-acf62fc72008\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2484,7 +2474,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"d0f901ed-f33e-4d8a-8e0b-4017fab8b7f7\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"600376d9-e77c-4721-aa98-acf62fc72008\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {
@@ -2904,7 +2894,7 @@
                         },
                         "f:ownerReferences": {
                             ".": {},
-                            "k:{\"uid\":\"d0f901ed-f33e-4d8a-8e0b-4017fab8b7f7\"}": "SIEVE-IGNORE"
+                            "k:{\"uid\":\"600376d9-e77c-4721-aa98-acf62fc72008\"}": "SIEVE-IGNORE"
                         }
                     },
                     "f:spec": {

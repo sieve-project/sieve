@@ -31,7 +31,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"57d2509f-73f3-4797-9acd-7bd7afea196b\"}"
+            "k:{\"uid\":\"c523666c-6ce8-44f7-8b85-db5117e20bcd\"}"
         ],
         [
             "metadata",
@@ -66,7 +66,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"102f2244-705b-44b8-a924-34481b0735ac\"}"
+            "k:{\"uid\":\"ebdf1929-cc9f-4dd8-a271-05ca16d7734f\"}"
         ],
         [
             "metadata",
@@ -107,7 +107,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"017a79e2-658d-446a-9fcf-872e6192a6de\"}"
+            "k:{\"uid\":\"5d1d514d-c338-4074-99c2-d74f826d6e49\"}"
         ],
         [
             "metadata",
@@ -191,7 +191,22 @@
             "*",
             "addresses",
             "*",
+            "iP"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
             "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "targetRef",
+            "name"
         ],
         [
             "subsets",
@@ -239,7 +254,22 @@
             "*",
             "addresses",
             "*",
+            "iP"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
             "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "targetRef",
+            "name"
         ],
         [
             "subsets",
@@ -287,7 +317,29 @@
             "*",
             "addresses",
             "*",
+            "hostname"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "iP"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
             "nodeName"
+        ],
+        [
+            "subsets",
+            "*",
+            "addresses",
+            "*",
+            "targetRef",
+            "name"
         ],
         [
             "subsets",
@@ -307,11 +359,6 @@
         ]
     ],
     "persistentvolumeclaim/default/data-zookeeper-cluster-0": [
-        [
-            "metadata",
-            "annotations",
-            "volume.kubernetes.io/selected-node"
-        ],
         [
             "metadata",
             "creationTimestamp"
@@ -336,11 +383,6 @@
         ]
     ],
     "persistentvolumeclaim/default/data-zookeeper-cluster-1": [
-        [
-            "metadata",
-            "annotations",
-            "volume.kubernetes.io/selected-node"
-        ],
         [
             "metadata",
             "creationTimestamp"
@@ -376,91 +418,16 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"017a79e2-658d-446a-9fcf-872e6192a6de\"}"
-        ],
-        [
-            "metadata",
-            "managedFields",
-            "*",
-            "time"
-        ],
-        [
-            "metadata",
-            "ownerReferences",
-            "*",
-            "uid"
-        ],
-        [
-            "metadata",
-            "resourceVersion"
-        ],
-        [
-            "metadata",
-            "uid"
-        ],
-        [
-            "spec",
-            "containers",
-            "*",
-            "volumeMounts",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "nodeName"
-        ],
-        [
-            "spec",
-            "volumes",
-            "*",
-            "name"
-        ],
-        [
-            "spec",
-            "volumes",
-            "*",
-            "secret",
-            "secretName"
-        ],
-        [
-            "status",
-            "conditions",
-            "*",
-            "lastTransitionTime"
-        ],
-        [
-            "status",
-            "containerStatuses",
-            "*",
-            "containerID"
-        ],
-        [
-            "status",
-            "containerStatuses",
-            "*",
-            "state",
-            "running",
-            "startedAt"
-        ],
-        [
-            "status",
-            "startTime"
-        ]
-    ],
-    "pod/default/zookeeper-cluster-1": [
-        [
-            "metadata",
-            "creationTimestamp"
+            "k:{\"uid\":\"5d1d514d-c338-4074-99c2-d74f826d6e49\"}"
         ],
         [
             "metadata",
             "managedFields",
             "*",
             "fieldsV1",
-            "f:metadata",
-            "f:ownerReferences",
-            "k:{\"uid\":\"017a79e2-658d-446a-9fcf-872e6192a6de\"}"
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.2.3\"}"
         ],
         [
             "metadata",
@@ -489,10 +456,6 @@
             "volumeMounts",
             "*",
             "name"
-        ],
-        [
-            "spec",
-            "nodeName"
         ],
         [
             "spec",
@@ -533,6 +496,107 @@
         ],
         [
             "status",
+            "podIPs",
+            "*",
+            "iP"
+        ],
+        [
+            "status",
+            "startTime"
+        ]
+    ],
+    "pod/default/zookeeper-cluster-1": [
+        [
+            "metadata",
+            "creationTimestamp"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:metadata",
+            "f:ownerReferences",
+            "k:{\"uid\":\"5d1d514d-c338-4074-99c2-d74f826d6e49\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "fieldsV1",
+            "f:status",
+            "f:podIPs",
+            "k:{\"ip\":\"10.244.1.7\"}"
+        ],
+        [
+            "metadata",
+            "managedFields",
+            "*",
+            "time"
+        ],
+        [
+            "metadata",
+            "ownerReferences",
+            "*",
+            "uid"
+        ],
+        [
+            "metadata",
+            "resourceVersion"
+        ],
+        [
+            "metadata",
+            "uid"
+        ],
+        [
+            "spec",
+            "containers",
+            "*",
+            "volumeMounts",
+            "*",
+            "name"
+        ],
+        [
+            "spec",
+            "volumes",
+            "*",
+            "name"
+        ],
+        [
+            "spec",
+            "volumes",
+            "*",
+            "secret",
+            "secretName"
+        ],
+        [
+            "status",
+            "conditions",
+            "*",
+            "lastTransitionTime"
+        ],
+        [
+            "status",
+            "containerStatuses",
+            "*",
+            "containerID"
+        ],
+        [
+            "status",
+            "containerStatuses",
+            "*",
+            "state",
+            "running",
+            "startedAt"
+        ],
+        [
+            "status",
+            "podIPs",
+            "*",
+            "iP"
+        ],
+        [
+            "status",
             "startTime"
         ]
     ],
@@ -548,7 +612,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"57d2509f-73f3-4797-9acd-7bd7afea196b\"}"
+            "k:{\"uid\":\"c523666c-6ce8-44f7-8b85-db5117e20bcd\"}"
         ],
         [
             "metadata",
@@ -583,7 +647,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"4cf11f1a-32d2-4b79-a91e-9b04cd423805\"}"
+            "k:{\"uid\":\"a28b71e5-1987-45f2-8e28-bfb46250ae22\"}"
         ],
         [
             "metadata",
@@ -658,7 +722,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"57d2509f-73f3-4797-9acd-7bd7afea196b\"}"
+            "k:{\"uid\":\"c523666c-6ce8-44f7-8b85-db5117e20bcd\"}"
         ],
         [
             "metadata",
@@ -703,7 +767,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"57d2509f-73f3-4797-9acd-7bd7afea196b\"}"
+            "k:{\"uid\":\"c523666c-6ce8-44f7-8b85-db5117e20bcd\"}"
         ],
         [
             "metadata",
@@ -742,7 +806,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"57d2509f-73f3-4797-9acd-7bd7afea196b\"}"
+            "k:{\"uid\":\"c523666c-6ce8-44f7-8b85-db5117e20bcd\"}"
         ],
         [
             "metadata",
@@ -796,7 +860,7 @@
             "fieldsV1",
             "f:metadata",
             "f:ownerReferences",
-            "k:{\"uid\":\"57d2509f-73f3-4797-9acd-7bd7afea196b\"}"
+            "k:{\"uid\":\"c523666c-6ce8-44f7-8b85-db5117e20bcd\"}"
         ],
         [
             "metadata",
