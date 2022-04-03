@@ -70,7 +70,9 @@ def save_run_result(
                         + test_result.history_errors,
                         "no_exception": test_result.no_exception,
                         "exception_message": test_result.exception_message,
-                        "test_config_content": open(test_config).read() if mode == sieve_modes.TEST else "",
+                        "test_config_content": open(test_config).read()
+                        if mode == sieve_modes.TEST
+                        else "",
                         "host": socket.gethostname(),
                     }
                 }
@@ -592,6 +594,11 @@ def generate_vanilla_config(vanilla_config):
     yaml.dump(vanilla_config_map, open(vanilla_config, "w"), sort_keys=False)
 
 
+def get_test_workload_from_test_plan(test_plan_file):
+    test_plan = yaml.safe_load(open(test_plan_file))
+    return test_plan["workload"]
+
+
 def run(
     project,
     test,
@@ -608,6 +615,10 @@ def run(
     num_apiservers = 1
     num_workers = 2
     use_csi_driver = False
+    if test is None:
+        assert stage == sieve_stages.TEST and mode == sieve_modes.TEST
+        test = get_test_workload_from_test_plan(config)
+        print("get test workload {} from test plan".format(test))
     if test in controller_config.test_setting:
         if "num_apiservers" in controller_config.test_setting[test]:
             num_apiservers = controller_config.test_setting[test]["num_apiservers"]
@@ -708,10 +719,17 @@ if __name__ == "__main__":
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"
     )
     parser.add_option(
+        "-s",
+        "--stage",
+        dest="stage",
+        help="STAGE: learn, test",
+        default=sieve_stages.TEST,
+    )
+    parser.add_option(
         "-m",
         "--mode",
         dest="mode",
-        help="test MODE: vanilla, stale-state, unobserved-state, intermediate-state",
+        help="MODE: vanilla, test, learn-once, learn-twice",
         metavar="MODE",
     )
     parser.add_option(
@@ -737,12 +755,6 @@ if __name__ == "__main__":
         default="all",
     )
     parser.add_option(
-        "-s",
-        "--stage",
-        dest="stage",
-        help="STAGE: learn, test",
-    )
-    parser.add_option(
         "-r",
         "--rate_limiter",
         dest="rate_limiter",
@@ -756,12 +768,7 @@ if __name__ == "__main__":
     if options.project is None:
         parser.error("parameter project required")
 
-    if options.test is None:
-        parser.error("parameter test required")
-
-    if options.stage is None:
-        parser.error("parameter stage required")
-    elif options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
+    if options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
         parser.error("invalid stage option: %s" % options.stage)
 
     if options.stage == sieve_stages.LEARN:
@@ -776,7 +783,7 @@ if __name__ == "__main__":
 
     if options.stage == sieve_stages.TEST:
         if options.mode is None:
-            parser.error("parameter mode required in test stage")
+            options.mode = sieve_modes.TEST
         elif options.mode not in [sieve_modes.TEST, sieve_modes.VANILLA]:
             parser.error("invalid test mode option: %s" % options.mode)
         if options.mode == sieve_modes.VANILLA:
@@ -784,6 +791,10 @@ if __name__ == "__main__":
         else:
             if options.config is None:
                 parser.error("parameter config required in test stage")
+
+    if options.test is None:
+        if options.stage != sieve_stages.TEST or options.mode != sieve_stages.TEST:
+            parser.error("parameter test required")
 
     if options.phase not in [
         "all",
