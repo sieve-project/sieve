@@ -100,31 +100,38 @@ def generate_test_plan_stat():
         ss = sub_map[operator]["ss"]
         ms = sub_map[operator]["ms"]
 
-        table += "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+        # table += "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+        #     operator,
+        #     baseline_ds,
+        #     after_p1_ds,
+        #     after_p2_ds,
+        #     ds,
+        #     baseline_ss,
+        #     after_p1_ss,
+        #     after_p2_ss,
+        #     ss,
+        #     baseline_ms,
+        #     after_p1_ms,
+        #     after_p2_ms,
+        #     ms,
+        #     baseline_ds + baseline_ss + baseline_ms,
+        #     after_p1_ds + after_p1_ss + after_p1_ms,
+        #     after_p2_ds + after_p2_ss + after_p2_ms,
+        #     ds + ss + ms,
+        # )
+        table += "{}\t{}\t{}\t{}\t{}\n".format(
             operator,
-            baseline_ds,
-            after_p1_ds,
-            after_p2_ds,
-            ds,
-            baseline_ss,
-            after_p1_ss,
-            after_p2_ss,
-            ss,
-            baseline_ms,
-            after_p1_ms,
-            after_p2_ms,
-            ms,
             baseline_ds + baseline_ss + baseline_ms,
             after_p1_ds + after_p1_ss + after_p1_ms,
             after_p2_ds + after_p2_ss + after_p2_ms,
             ds + ss + ms,
         )
-        short_table += "{}\t{}\t{}\t{}\t{}\n".format(
-            operator,
-            ds,
-            ss,
-            ms,
-            ds + ss + ms,
-        )
-    print(short_table)
+    #     short_table += "{}\t{}\t{}\t{}\t{}\n".format(
+    #         operator,
+    #         ds,
+    #         ss,
+    #         ms,
+    #         ds + ss + ms,
+    #     )
+    # print(short_table)
     open("test_plan_stats.tsv", "w").write(table)
