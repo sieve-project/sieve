@@ -34,17 +34,23 @@ controllers_to_check = {
 }
 
 
-def generate_test_plan_stat(log, controller, docker, phase):
+def generate_test_plan_stat(log, controller, docker, phase, times):
+    mode = ""
+    if times == "once":
+        mode = "learn-once"
+    else:
+        mode = "learn-twice"
     if controller == "all":
         for selected_controller in controllers_to_check:
             for test_suite in controllers_to_check[selected_controller]:
                 sieve_cmd = (
-                    "python3 sieve.py -l %s -p %s -t %s -d %s -s learn --phase=%s"
+                    "python3 sieve.py -l %s -p %s -t %s -d %s -s learn -m %s --phase=%s"
                     % (
                         log,
                         selected_controller,
                         test_suite,
                         docker,
+                        mode,
                         phase,
                     )
                 )
@@ -53,12 +59,13 @@ def generate_test_plan_stat(log, controller, docker, phase):
     else:
         for test_suite in controllers_to_check[controller]:
             sieve_cmd = (
-                "python3 sieve.py -l %s -p %s -t %s -d %s -s learn --phase=%s"
+                "python3 sieve.py -l %s -p %s -t %s -d %s -s learn -m %s --phase=%s"
                 % (
                     log,
                     controller,
                     test_suite,
                     docker,
+                    mode,
                     phase,
                 )
             )
@@ -100,7 +107,7 @@ def generate_test_plan_stat(log, controller, docker, phase):
             stats_map[controller]["final"] += result_map["stale-state"]["final"]
             stats_map[controller]["final"] += result_map["unobserved-state"]["final"]
 
-    table = "controller\tbaseline\tafter_p1\tafter_p2\tfinal\n"
+    table = "controller\tbaseline\tprune-by-causality\tprune-updates\tdeterministic-timing\n"
     for controller in controllers_to_check:
         table += "{}\t{}\t{}\t{}\t{}\n".format(
             controller,
@@ -144,6 +151,14 @@ if __name__ == "__main__":
     )
 
     parser.add_option(
+        "--times",
+        dest="times",
+        help="how many TIMES to run the workloads: once, twice",
+        metavar="TIMES",
+        default="once",
+    )
+
+    parser.add_option(
         "-d",
         "--docker",
         dest="docker",
@@ -157,4 +172,6 @@ if __name__ == "__main__":
     if options.project is None:
         parser.error("parameter project required")
 
-    generate_test_plan_stat(options.log, options.project, options.docker, options.phase)
+    generate_test_plan_stat(
+        options.log, options.project, options.docker, options.phase, options.times
+    )

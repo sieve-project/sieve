@@ -193,7 +193,6 @@ def reproduce_single_bug(operator, bug, docker, phase):
         after_reproduce = reprod_map[operator][bug][3]
     if before_reproduce is not None:
         before_reproduce()
-    test = reprod_map[operator][bug][0]
     config = os.path.join("bug_reproduction_test_plans", reprod_map[operator][bug][1])
     sieve_cmd = "python3 sieve.py -p %s -c %s -d %s --phase=%s" % (
         operator,
@@ -210,9 +209,13 @@ def reproduce_single_bug(operator, bug, docker, phase):
 def reproduce_bug(operator, bug, docker, phase):
     if bug == "all":
         for b in reprod_map[operator]:
-            reproduce_single_bug(operator, b, docker, phase)
+            if "indirect" not in b:
+                reproduce_single_bug(operator, b, docker, phase)
     elif (
-        bug == "intermediate-state" or bug == "unobserved-state" or bug == "stale-state"
+        bug == "intermediate-state"
+        or bug == "unobserved-state"
+        or bug == "stale-state"
+        or bug == "indirect"
     ):
         for b in reprod_map[operator]:
             if b.startswith(bug):
