@@ -231,6 +231,7 @@ if __name__ == "__main__":
         dest="project",
         help="specify PROJECT to test",
         metavar="PROJECT",
+        default="all",
     )
 
     parser.add_option(
@@ -239,6 +240,7 @@ if __name__ == "__main__":
         dest="bug",
         help="BUG that you want to reproduce",
         metavar="BUG",
+        default="all",
     )
 
     parser.add_option(
