@@ -1,0 +1,467 @@
+{"level":"info","ts":1647819659.488598,"logger":"cmd","msg":"Operator Version: 0.0.1"}
+{"level":"info","ts":1647819659.4886377,"logger":"cmd","msg":"Go Version: go1.13.9"}
+{"level":"info","ts":1647819659.4886446,"logger":"cmd","msg":"Go OS/Arch: linux/amd64"}
+{"level":"info","ts":1647819659.488651,"logger":"cmd","msg":"Version of operator-sdk: v0.17.1"}
+{"level":"info","ts":1647819659.4888635,"logger":"leader","msg":"Trying to become the leader."}
+2022-03-20 23:40:59.809781 I | config from env:
+map[crdList:[ybcluster] rateLimiterEnabled:false rateLimiterInterval:3]
+{"level":"info","ts":1647819659.8254433,"logger":"leader","msg":"No pre-existing lock was found."}
+{"level":"info","ts":1647819659.8292758,"logger":"leader","msg":"Became the leader."}
+{"level":"info","ts":1647819660.1379194,"logger":"controller-runtime.metrics","msg":"metrics server is starting to listen","addr":"0.0.0.0:8383"}
+{"level":"info","ts":1647819660.1400864,"logger":"cmd","msg":"Registering Components."}
+{"level":"info","ts":1647819660.7954981,"logger":"metrics","msg":"Metrics Service object created","Service.Name":"yugabyte-operator-metrics","Service.Namespace":"default"}
+{"level":"info","ts":1647819661.0976312,"logger":"cmd","msg":"Could not create ServiceMonitor object","error":"no ServiceMonitor registered with the API"}
+{"level":"info","ts":1647819661.0976663,"logger":"cmd","msg":"Install prometheus-operator in your cluster to create ServiceMonitor objects","error":"no ServiceMonitor registered with the API"}
+{"level":"info","ts":1647819661.09767,"logger":"cmd","msg":"Starting the Cmd."}
+{"level":"info","ts":1647819661.0980299,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"ybcluster-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647819661.0987282,"logger":"controller-runtime.manager","msg":"starting metrics server","path":"/metrics"}
+{"level":"info","ts":1647819661.1985757,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"ybcluster-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647819661.2990057,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"ybcluster-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647819661.4013717,"logger":"controller-runtime.controller","msg":"Starting Controller","controller":"ybcluster-controller"}
+{"level":"info","ts":1647819661.4015145,"logger":"controller-runtime.controller","msg":"Starting workers","controller":"ybcluster-controller","worker count":1}
+2022-03-20 23:41:01.614931 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:01.817464 I | yugabyte-k8s-operator: creating a new Headless Service yb-masters for YBMasters in namespace default
+2022-03-20 23:41:01.823073 I | yugabyte-k8s-operator: creating a new Headless Service yb-tservers for YBTServers in namespace default
+2022-03-20 23:41:01.827558 I | yugabyte-k8s-operator: creating a new UI Service yb-master-ui for YBMasters in namespace default
+2022-03-20 23:41:01.857841 I | yugabyte-k8s-operator: creating a new ui service yb-tserver-ui for YBTServers in namespace default
+2022-03-20 23:41:01.883049 I | yugabyte-k8s-operator: creating a new Statefulset yb-master for YBMasters in namespace default
+2022-03-20 23:41:01.924644 I | yugabyte-k8s-operator: creating a new Statefulset yb-tserver for YBTServers in namespace default
+2022-03-20 23:41:02.005351 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819662.0556278,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"pod yb-master-0 does not have a host assigned","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:03.064372 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:03.065739 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:03.074162 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:03.083676 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:03.091886 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:03.144614 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:03.178638 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:03.188562 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:03.213639 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819663.2329798,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"pod yb-master-0 does not have a host assigned","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:04.234195 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:04.235897 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:04.244180 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:04.258682 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:04.264792 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:04.269674 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:04.289706 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:04.294613 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:04.302403 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819664.3216014,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"pod yb-master-0 does not have a host assigned","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:05.324145 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:05.325525 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:05.330122 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:05.334396 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:05.338461 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:05.343057 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:05.356635 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:05.360956 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:05.368825 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819665.377314,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"pod yb-master-0 does not have a host assigned","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:06.378439 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:06.380078 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:06.384747 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:06.389725 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:06.393717 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:06.397977 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:06.409213 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:06.413529 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:06.420384 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819666.429881,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"pod yb-master-0 does not have a host assigned","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:07.430864 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:07.432425 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:07.442635 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:07.447322 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:07.451172 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:07.456905 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:07.468383 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:07.473318 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:07.480207 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819667.4895427,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"pod yb-master-0 does not have a host assigned","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:08.490366 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:08.491757 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:08.498751 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:08.504677 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:08.509403 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:08.546292 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:08.576976 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:08.585591 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:08.598933 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819668.608661,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"pod yb-master-0 does not have a host assigned","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:09.609803 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:09.611326 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:09.779430 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:09.850468 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:09.998542 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:10.004332 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:10.020862 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:10.041139 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:10.147608 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819670.6102173,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:11.611175 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:11.612768 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:11.618556 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:11.623824 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:11.628559 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:11.633480 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:11.646710 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:11.785547 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:11.794525 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819671.820654,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:13.101094 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:13.102638 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:13.114797 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:13.119446 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:13.123497 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:13.128312 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:13.141869 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:13.147217 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:13.155583 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819673.179033,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:14.180343 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:14.181921 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:14.238511 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:14.505591 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:14.512083 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:14.517517 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:14.528290 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:14.589963 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:14.597624 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819674.7413223,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:15.743059 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:15.744584 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:15.753913 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:15.762308 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:15.766567 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:15.772781 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:15.822263 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:15.904344 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:15.912701 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819675.9366426,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:18.122470 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:18.123829 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:18.133305 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:18.144188 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:18.148407 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:18.152855 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:18.167487 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:18.172409 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:18.178430 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819678.1987803,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:19.199759 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:19.201531 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:19.207290 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:19.212770 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:19.216911 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:19.221249 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:19.232415 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:19.237566 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:19.244329 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819679.2628138,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:26.177329 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:26.178890 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:26.185949 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:26.190698 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:26.195202 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:26.199986 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:26.213641 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:26.218414 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:26.224900 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819686.2435925,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"unable to upgrade connection: container not found (\"yb-master\")","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:41:39.072028 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:41:39.074636 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:41:39.098974 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:41:39.114389 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:41:39.137669 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:41:39.144911 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:41:39.159020 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:41:39.164555 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:41:39.174855 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+{"level":"error","ts":1647819759.4471388,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"command terminated with exit code 1","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:42:40.448076 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:42:40.449627 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:42:40.455720 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:42:40.462103 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:42:40.466217 I | yugabyte-k8s-operator: deleting tserver ui service
+2022-03-20 23:42:40.497829 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:42:40.513937 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:42:40.518646 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:42:40.525767 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:42:57.036346 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:42:57.036376 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:57.036380 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:57.036384 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:57.036425 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:42:57.203191 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:42:57.203235 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+{"level":"error","ts":1647819777.209064,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"Operation cannot be fulfilled on ybclusters.yugabyte.com \"example-ybcluster\": the object has been modified; please apply your changes to the latest version and try again","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:42:58.210109 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:42:58.211952 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:42:58.216527 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:42:58.221709 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:42:58.227437 I | yugabyte-k8s-operator: creating a new ui service yb-tserver-ui for YBTServers in namespace default
+2022-03-20 23:42:58.234762 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:42:58.268192 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:42:58.273339 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:42:58.283102 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:42:58.515150 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:42:58.515177 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:58.515181 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:58.515186 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:58.515209 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:42:58.680703 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:42:58.680735 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:42:58.688826 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:42:58.690203 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:42:58.694894 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:42:58.698703 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:42:58.702279 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:42:58.705766 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:42:58.716443 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:42:58.721084 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:42:58.728309 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:42:58.917568 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:42:58.917614 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:58.917620 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:58.917626 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:58.917649 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:42:59.088356 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:42:59.088385 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:42:59.223750 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:42:59.225824 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:42:59.230931 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:42:59.235817 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:42:59.240136 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:42:59.244630 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:42:59.255776 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:42:59.259992 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:42:59.266819 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:42:59.438022 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:42:59.438052 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:59.438057 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:59.438061 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:59.438088 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:42:59.607950 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:42:59.607974 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:42:59.615361 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:42:59.616778 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:42:59.621508 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:42:59.625568 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:42:59.629056 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:42:59.632863 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:42:59.643728 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:42:59.649897 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:42:59.657633 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:42:59.838949 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:42:59.838978 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:59.838983 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:59.838987 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:42:59.839011 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:00.018563 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:00.018592 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:10.839680 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:10.841626 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:10.849888 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:10.856217 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:10.864049 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:10.868891 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:10.882193 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:10.887254 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:10.895178 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:11.055844 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:11.056024 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:11.056044 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:11.056051 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:11.056097 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:11.260592 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:11.260617 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:11.268361 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:11.270068 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:11.274634 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:11.278953 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:11.282758 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:11.286912 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:11.297539 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:11.304059 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:11.311162 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:11.484822 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:11.484889 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:11.484898 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:11.484903 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:11.484949 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:11.668253 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:11.668278 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:12.242772 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:12.251571 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:12.281486 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:12.290408 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:12.298360 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:12.304409 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:12.316108 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:12.322332 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:12.330323 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:12.501981 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:12.502021 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:12.502028 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:12.502033 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:12.502059 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:12.679763 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:12.679799 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:12.687173 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:12.688660 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:12.693574 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:12.697728 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:12.701739 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:12.705740 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:12.715877 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:12.720212 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:12.726881 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:12.890568 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:12.890600 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:12.890606 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:12.890610 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:12.890629 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:13.059628 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:13.059651 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:13.245432 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:13.247014 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:13.252820 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:13.257390 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:13.261789 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:13.265557 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:13.276031 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:13.280444 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:13.287155 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:13.458641 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:13.458674 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:13.458679 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:13.458683 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:13.458700 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:13.626983 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:13.627010 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:13.633985 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:13.635348 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:13.640065 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:13.644200 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:13.648269 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:13.652509 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:13.662983 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:13.667550 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:13.673822 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:13.846551 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:13.846578 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:13.846582 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:13.846586 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:13.846604 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:14.008507 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:14.008587 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:20.842075 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:20.845851 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:20.856770 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:20.867369 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:20.871169 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:20.879352 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:20.891371 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:20.905910 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:20.914337 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:21.100809 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:21.100832 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:21.100837 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:21.100840 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:21.100859 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:21.300736 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:21.300760 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:21.308269 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:21.311170 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:21.316705 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:21.320725 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:21.324742 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:21.328854 I | yugabyte-k8s-operator: updating master statefulset
+{"level":"error","ts":1647819801.3407638,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"Operation cannot be fulfilled on ybclusters.yugabyte.com \"example-ybcluster\": the object has been modified; please apply your changes to the latest version and try again","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:43:22.343493 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:22.344975 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:22.350130 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:22.354773 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:22.361321 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:22.366393 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:22.381788 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:22.387633 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:22.396293 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:22.588382 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:22.588415 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:22.588420 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:22.588424 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:22.588440 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:22.757916 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:22.758016 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:23.261325 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:23.263168 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:23.271322 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:23.275841 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:23.280316 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:23.285793 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:23.296252 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:23.300516 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:23.307369 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:23.476678 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:23.476761 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:23.476769 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:23.476830 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:23.476848 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:23.649404 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:23.649433 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:23.657887 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:23.659090 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:23.663676 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:23.668786 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:23.672915 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:23.677042 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:23.688582 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:23.693463 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:23.701333 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:23.876008 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:23.876046 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:23.876052 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:23.876058 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:23.876082 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:24.042956 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:24.043131 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:30.841543 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:30.843340 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:30.851253 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:30.865244 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:30.870559 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:30.879848 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:30.892410 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:30.898079 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:30.907575 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:31.077080 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:31.077255 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:31.077263 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:31.077267 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:31.077287 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:31.273158 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:31.273217 I | yugabyte-k8s-operator: updating Status condition MovingData: False
+2022-03-20 23:43:31.285155 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:31.287619 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:31.293012 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:31.297689 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:31.301626 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:31.306958 I | yugabyte-k8s-operator: updating master statefulset
+{"level":"error","ts":1647819811.3170204,"logger":"controller-runtime.controller","msg":"Reconciler error","controller":"ybcluster-controller","request":"default/example-ybcluster","error":"Operation cannot be fulfilled on ybclusters.yugabyte.com \"example-ybcluster\": the object has been modified; please apply your changes to the latest version and try again","stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:261\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:233\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/src/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.5.2/pkg/internal/controller/controller.go:212\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.17.4/pkg/util/wait/wait.go:88"}
+2022-03-20 23:43:32.317894 I | yugabyte-k8s-operator: Reconciling YBCluster
+2022-03-20 23:43:32.319688 I | yugabyte-k8s-operator: updating master headless service
+2022-03-20 23:43:32.324708 I | yugabyte-k8s-operator: updating tserver headless service
+2022-03-20 23:43:32.329461 I | yugabyte-k8s-operator: updating master ui service
+2022-03-20 23:43:32.333670 I | yugabyte-k8s-operator: updating tserver ui service
+2022-03-20 23:43:32.340210 I | yugabyte-k8s-operator: updating master statefulset
+2022-03-20 23:43:32.351360 I | yugabyte-k8s-operator: updating tserver statefulset
+2022-03-20 23:43:32.356026 I | yugabyte-k8s-operator: updating Status condition ScalingDownTServers: False
+2022-03-20 23:43:32.363085 I | yugabyte-k8s-operator: running command 'yb-admin get_universe_config' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_universe_config"]
+2022-03-20 23:43:32.544437 I | yugabyte-k8s-operator: current blacklist from YB-Master: []
+2022-03-20 23:43:32.544466 I | yugabyte-k8s-operator: pod yb-tserver-1.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:32.544473 I | yugabyte-k8s-operator: pod yb-tserver-2.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:32.544478 I | yugabyte-k8s-operator: pod yb-tserver-0.yb-tservers.default.svc.cluster.local:9100 is not in YB-Master blacklist, skipping.
+2022-03-20 23:43:32.544500 I | yugabyte-k8s-operator: running command 'yb-admin get_load_move_completion' in YB-Master pod: yb-master-0, command: ["bash" "-c" "/home/yugabyte/bin/yb-admin --master_addresses yb-master-0.yb-masters.default.svc.cluster.local:7100,yb-master-1.yb-masters.default.svc.cluster.local:7100,yb-master-2.yb-masters.default.svc.cluster.local:7100 get_load_move_completion"]
+2022-03-20 23:43:32.719799 I | yugabyte-k8s-operator: current data move progress: 100
+2022-03-20 23:43:32.719989 I | yugabyte-k8s-operator: updating Status condition MovingData: False

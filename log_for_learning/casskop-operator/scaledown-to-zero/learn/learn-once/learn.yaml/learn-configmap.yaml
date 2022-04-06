@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sieve-testing-global-config
+data:
+  sieveTestPlan: 'crdList:
+
+    - cassandracluster
+
+    - cassandrarestore
+
+    - cassandrabackup
+
+    rateLimiterEnabled: false
+
+    rateLimiterInterval: 3
+
+    '

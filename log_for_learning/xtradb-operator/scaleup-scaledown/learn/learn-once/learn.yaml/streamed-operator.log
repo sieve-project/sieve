@@ -1,0 +1,30 @@
+{"level":"info","ts":1647659300.8921125,"logger":"cmd","msg":"Runs on","platform":"kubernetes","version":"v1.18.9-sieve-94f372e501c973a7fa9eb40ec9ebd2fe7ca69848-dirty"}
+{"level":"info","ts":1647659300.8921826,"logger":"cmd","msg":"Git commit:  Git branch: "}
+{"level":"info","ts":1647659300.8921907,"logger":"cmd","msg":"Go Version: go1.14.15"}
+{"level":"info","ts":1647659300.8921998,"logger":"cmd","msg":"Go OS/Arch: linux/amd64"}
+{"level":"info","ts":1647659300.8922064,"logger":"cmd","msg":"operator-sdk Version: v0.17.1"}
+{"level":"info","ts":1647659300.8923752,"logger":"leader","msg":"Trying to become the leader."}
+2022/03/19 03:08:21 config from env:
+map[crdList:[perconaxtradbcluster perconaxtradbclusterbackup perconaxtradbclusterrestore perconaxtradbbackup] rateLimiterEnabled:false rateLimiterInterval:3]
+{"level":"info","ts":1647659301.316959,"logger":"leader","msg":"No pre-existing lock was found."}
+{"level":"info","ts":1647659301.3220413,"logger":"leader","msg":"Became the leader."}
+{"level":"info","ts":1647659301.725729,"logger":"controller-runtime.metrics","msg":"metrics server is starting to listen","addr":":8080"}
+{"level":"info","ts":1647659301.7259233,"logger":"cmd","msg":"Registering Components."}
+{"level":"info","ts":1647659302.1611142,"logger":"controller-runtime.webhook","msg":"registering webhook","path":"/validate-percona-xtradbcluster"}
+{"level":"info","ts":1647659302.1611679,"logger":"cmd","msg":"Starting the Cmd."}
+{"level":"info","ts":1647659302.1612642,"logger":"controller-runtime.webhook.webhooks","msg":"starting webhook server"}
+{"level":"info","ts":1647659302.1614907,"logger":"controller-runtime.certwatcher","msg":"Updated current TLS certificate"}
+{"level":"info","ts":1647659302.161588,"logger":"controller-runtime.webhook","msg":"serving webhook server","host":"","port":9443}
+{"level":"info","ts":1647659302.1616354,"logger":"controller","msg":"Starting EventSource","controller":"perconaxtradbclusterrestore-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647659302.1615815,"logger":"controller","msg":"Starting EventSource","controller":"perconaxtradbclusterbackup-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647659302.1617906,"logger":"controller","msg":"Starting EventSource","controller":"perconaxtradbcluster-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647659302.161915,"logger":"controller-runtime.certwatcher","msg":"Starting certificate watcher"}
+{"level":"info","ts":1647659302.1618729,"logger":"controller-runtime.manager","msg":"starting metrics server","path":"/metrics"}
+{"level":"info","ts":1647659302.2620337,"logger":"controller","msg":"Starting Controller","controller":"perconaxtradbclusterrestore-controller"}
+{"level":"info","ts":1647659302.262037,"logger":"controller","msg":"Starting Controller","controller":"perconaxtradbcluster-controller"}
+{"level":"info","ts":1647659302.2620857,"logger":"controller","msg":"Starting workers","controller":"perconaxtradbclusterrestore-controller","worker count":1}
+{"level":"info","ts":1647659302.262091,"logger":"controller","msg":"Starting workers","controller":"perconaxtradbcluster-controller","worker count":1}
+{"level":"info","ts":1647659302.2622504,"logger":"controller","msg":"Starting Controller","controller":"perconaxtradbclusterbackup-controller"}
+{"level":"info","ts":1647659302.2622678,"logger":"controller","msg":"Starting workers","controller":"perconaxtradbclusterbackup-controller","worker count":1}
+{"level":"error","ts":1647659304.986594,"logger":"controller_perconaxtradbcluster","msg":"Update status","error":"send update: Operation cannot be fulfilled on perconaxtradbclusters.pxc.percona.com \"xtradb-cluster\": the object has been modified; please apply your changes to the latest version and try again","stacktrace":"github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc.(*ReconcilePerconaXtraDBCluster).Reconcile.func1\n\t/go/src/github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc/controller.go:217\ngithub.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc.(*ReconcilePerconaXtraDBCluster).Reconcile\n\t/go/src/github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc/controller.go:557\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/go/src/github.com/percona/percona-xtradb-cluster-operator/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.6.2/pkg/internal/controller/controller.go:238\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/go/src/github.com/percona/percona-xtradb-cluster-operator/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.6.2/pkg/internal/controller/controller.go:210\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/go/src/github.com/percona/percona-xtradb-cluster-operator/sieve-dependency/src/sigs.k8s.io/controller-runtime@v0.6.2/pkg/internal/controller/controller.go:189\nk8s.io/apimachinery/pkg/util/wait.BackoffUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.18.6/pkg/util/wait/wait.go:155\nk8s.io/apimachinery/pkg/util/wait.BackoffUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.18.6/pkg/util/wait/wait.go:156\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.18.6/pkg/util/wait/wait.go:133\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.18.6/pkg/util/wait/wait.go:90"}
+{"level":"info","ts":1647659518.7206635,"logger":"controller_perconaxtradbcluster","msg":"update PXC version to 8.0.21-12.1 (fetched from db)"}

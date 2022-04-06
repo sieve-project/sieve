@@ -1,0 +1,61 @@
+{"level":"info","ts":1647826526.499218,"logger":"cmd","msg":"Version: v7.1.0-5-gd126834-dirty"}
+{"level":"info","ts":1647826526.4992564,"logger":"cmd","msg":"Go Version: go1.13.8"}
+{"level":"info","ts":1647826526.4992654,"logger":"cmd","msg":"Go OS/Arch: linux/amd64"}
+{"level":"info","ts":1647826526.4992757,"logger":"cmd","msg":"Version of operator-sdk: v0.16.0"}
+{"level":"info","ts":1647826526.499541,"logger":"leader","msg":"Trying to become the leader."}
+2022/03/21 01:35:26 config from env:
+map[crdList:[cassandradatacenter cassandracluster cassandrabackup] rateLimiterEnabled:false rateLimiterInterval:3]
+{"level":"info","ts":1647826526.8242357,"logger":"leader","msg":"No pre-existing lock was found."}
+{"level":"info","ts":1647826526.8284073,"logger":"leader","msg":"Became the leader."}
+{"level":"info","ts":1647826527.1316736,"logger":"controller-runtime.metrics","msg":"metrics server is starting to listen","addr":"0.0.0.0:8383"}
+{"level":"info","ts":1647826527.1320317,"logger":"cmd","msg":"Registering Components."}
+{"level":"info","ts":1647826528.3732316,"logger":"metrics","msg":"Metrics Service object created","Service.Name":"cassandra-operator-metrics","Service.Namespace":"default"}
+{"level":"info","ts":1647826528.6758485,"logger":"cmd","msg":"Could not create ServiceMonitor object","error":"no ServiceMonitor registered with the API"}
+{"level":"info","ts":1647826528.675952,"logger":"cmd","msg":"Install prometheus-operator in your cluster to create ServiceMonitor objects","error":"no ServiceMonitor registered with the API"}
+{"level":"info","ts":1647826528.6760042,"logger":"cmd","msg":"Starting the Cmd."}
+{"level":"info","ts":1647826528.676382,"logger":"controller-runtime.manager","msg":"starting metrics server","path":"/metrics"}
+{"level":"info","ts":1647826528.7767217,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"cassandradatacenter-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647826528.7767806,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"cassandrabackup-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647826528.8774273,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"cassandradatacenter-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647826528.8775694,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"cassandrabackup-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647826528.9778674,"logger":"controller-runtime.controller","msg":"Starting EventSource","controller":"cassandradatacenter-controller","source":"kind source: /, Kind="}
+{"level":"info","ts":1647826528.9788547,"logger":"controller-runtime.controller","msg":"Starting Controller","controller":"cassandrabackup-controller"}
+{"level":"info","ts":1647826529.0784624,"logger":"controller-runtime.controller","msg":"Starting Controller","controller":"cassandradatacenter-controller"}
+{"level":"info","ts":1647826529.0790386,"logger":"controller-runtime.controller","msg":"Starting workers","controller":"cassandrabackup-controller","worker count":1}
+{"level":"info","ts":1647826529.1786792,"logger":"controller-runtime.controller","msg":"Starting workers","controller":"cassandradatacenter-controller","worker count":1}
+{"level":"info","ts":1647826529.1793315,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826529.179983,"logger":"controller_cassandradatacenter","msg":"Adding Finalizer for the CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826529.3114574,"logger":"controller_cassandradatacenter","msg":"ConfigMap cassandra-test-cluster-dc1-operator-config created.","Request.Namespace":"default","Request.Name":"cassandra-datacenter","ConfigMap.Name":"cassandra-test-cluster-dc1-operator-config"}
+{"level":"info","ts":1647826529.319087,"logger":"controller_cassandradatacenter","msg":"ConfigMap cassandra-test-cluster-dc1-rack-config-rack1 created.","Request.Namespace":"default","Request.Name":"cassandra-datacenter","ConfigMap.Name":"cassandra-test-cluster-dc1-rack-config-rack1"}
+{"level":"info","ts":1647826529.335061,"logger":"controller_cassandradatacenter","msg":"StatefulSet created","Request.Namespace":"default","Request.Name":"cassandra-datacenter","StatefulSet.Name":"cassandra-test-cluster-dc1-rack1"}
+{"level":"info","ts":1647826529.3350928,"logger":"controller_cassandradatacenter","msg":"CassandraDataCenter reconciliation complete.","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826529.335612,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826529.3408716,"logger":"controller_cassandradatacenter","msg":"skipping StatefulSet reconciliation as it is undergoing scaling operations","current":0,"expected":1}
+{"level":"info","ts":1647826529.3415868,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826529.345473,"logger":"controller_cassandradatacenter","msg":"skipping StatefulSet reconciliation as it is undergoing scaling operations","current":0,"expected":1}
+{"level":"info","ts":1647826529.3654616,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826529.369158,"logger":"controller_cassandradatacenter","msg":"Skipping reconciliation as some pods are not running yet: cassandra-test-cluster-dc1-rack1-0"}
+{"level":"info","ts":1647826589.3417158,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826590.7076113,"logger":"controller_cassandradatacenter","msg":"CassandraDataCenter reconciliation complete.","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826621.7268252,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826622.7721503,"logger":"controller_cassandradatacenter","msg":"CassandraDataCenter reconciliation complete.","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826629.7188818,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826629.8250146,"logger":"controller_cassandradatacenter","msg":"Successfully submitted deletion of pvc data-volume-cassandra-test-cluster-dc1-rack1-0.","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826629.849424,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826630.1545577,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826630.1560814,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826630.1587515,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826645.1323829,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826645.132818,"logger":"controller_cassandradatacenter","msg":"Adding Finalizer for the CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826645.15869,"logger":"controller_cassandradatacenter","msg":"ConfigMap cassandra-test-cluster-dc1-operator-config created.","Request.Namespace":"default","Request.Name":"cassandra-datacenter","ConfigMap.Name":"cassandra-test-cluster-dc1-operator-config"}
+{"level":"info","ts":1647826645.163641,"logger":"controller_cassandradatacenter","msg":"ConfigMap cassandra-test-cluster-dc1-rack-config-rack1 created.","Request.Namespace":"default","Request.Name":"cassandra-datacenter","ConfigMap.Name":"cassandra-test-cluster-dc1-rack-config-rack1"}
+{"level":"info","ts":1647826645.1729324,"logger":"controller_cassandradatacenter","msg":"StatefulSet created","Request.Namespace":"default","Request.Name":"cassandra-datacenter","StatefulSet.Name":"cassandra-test-cluster-dc1-rack1"}
+{"level":"info","ts":1647826645.1729534,"logger":"controller_cassandradatacenter","msg":"CassandraDataCenter reconciliation complete.","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826645.1733973,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826645.176501,"logger":"controller_cassandradatacenter","msg":"skipping StatefulSet reconciliation as it is undergoing scaling operations","current":0,"expected":1}
+{"level":"info","ts":1647826645.2010033,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826645.2046607,"logger":"controller_cassandradatacenter","msg":"Skipping reconciliation as some pods are not running yet: cassandra-test-cluster-dc1-rack1-0"}
+{"level":"info","ts":1647826705.1772494,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826706.469463,"logger":"controller_cassandradatacenter","msg":"CassandraDataCenter reconciliation complete.","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826727.9332302,"logger":"controller_cassandradatacenter","msg":"Reconciling CassandraDataCenter","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
+{"level":"info","ts":1647826728.9707408,"logger":"controller_cassandradatacenter","msg":"CassandraDataCenter reconciliation complete.","Request.Namespace":"default","Request.Name":"cassandra-datacenter"}
