@@ -1,0 +1,27 @@
+{
+    "rabbitmq-operator": {
+        "scaleup-scaledown": {
+            "test": {
+                "bug_reproduction_test_plans/rabbitmq-operator-unobserved-state-1.yaml": {
+                    "duration": 311.0346188545227,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 7,
+                    "detected_errors": [
+                        "End state inconsistency - fewer objects than reference: 4 pod object(s) seen after reference run ['pod/default/rabbitmq-cluster-server-0', 'pod/default/rabbitmq-cluster-server-1', 'pod/default/rabbitmq-cluster-server-2', 'pod/default/rabbitmq-operator-b7d5945b-tsbpq'] but 3 pod object(s) seen after testing run ['pod/default/rabbitmq-cluster-server-0', 'pod/default/rabbitmq-cluster-server-1', 'pod/default/rabbitmq-operator-757bbb7678-hmcs8']",
+                        "End state inconsistency - fewer objects than reference: persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-2 is seen after reference run, but not seen after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server[\"spec\"][\"replicas\"] is 3 after reference run, but 2 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server[\"status\"][\"currentReplicas\"] is 3 after reference run, but 2 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server[\"status\"][\"readyReplicas\"] is 3 after reference run, but 2 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server[\"status\"][\"replicas\"] is 3 after reference run, but 2 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/rabbitmq-cluster-server[\"status\"][\"updatedReplicas\"] is 3 after reference run, but 2 after testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: scaleup-scaledown\nactions:\n- actionType: pauseController\n  pauseAt: beforeControllerRead\n  pauseScope: rabbitmqcluster/default/rabbitmq-cluster\n  avoidOngoingRead: true\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectUpdate\n        resourceKey: rabbitmqcluster/default/rabbitmq-cluster\n        prevStateDiff: '{\"spec\": {\"replicas\": 1}}'\n        curStateDiff: '{\"spec\": {\"replicas\": 3}}'\n        occurrence: 1\n      observationPoint:\n        when: beforeControllerRecv\n        by: informer\n    expression: trigger1\n- actionType: resumeController\n  pauseAt: beforeControllerRead\n  pauseScope: rabbitmqcluster/default/rabbitmq-cluster\n  trigger:\n    definitions:\n    - triggerName: trigger2\n      condition:\n        conditionType: onAnyFieldModification\n        resourceKey: rabbitmqcluster/default/rabbitmq-cluster\n        prevStateDiff: '{\"spec\": {\"replicas\": 3}}'\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    - triggerName: trigger3\n      condition:\n        conditionType: onObjectDelete\n        resourceKey: rabbitmqcluster/default/rabbitmq-cluster\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    expression: trigger2|trigger3\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

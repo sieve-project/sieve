@@ -1,0 +1,24 @@
+{
+    "xtradb-operator": {
+        "run-cert-manager": {
+            "test": {
+                "bug_reproduction_test_plans/xtradb-operator-intermediate-state-2.yaml": {
+                    "duration": 450.38388204574585,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 4,
+                    "detected_errors": [
+                        "End state inconsistency - fewer objects than reference: 5 secret object(s) seen after reference run ['secret/default/internal-xtradb-cluster', 'secret/default/percona-xtradb-cluster-operator-token-gqhsf', 'secret/default/xtradb-cluster-secrets', 'secret/default/xtradb-cluster-ssl', 'secret/default/xtradb-cluster-ssl-internal'] but 4 secret object(s) seen after testing run ['secret/default/internal-xtradb-cluster', 'secret/default/percona-xtradb-cluster-operator-token-452rl', 'secret/default/xtradb-cluster-secrets', 'secret/default/xtradb-cluster-ssl']",
+                        "End state inconsistency - fewer objects than reference: certificate/default/xtradb-cluster-ssl-internal is seen after reference run, but not seen after testing run",
+                        "End state inconsistency - fewer objects than reference: certificaterequest/default/xtradb-cluster-ssl-internal-4197621709 is seen after reference run, but not seen after testing run",
+                        "End state inconsistency - fewer object fields than reference: statefulset/default/xtradb-cluster-pxc[\"spec\"][\"template\"][\"annotations\"][\"percona.com/ssl-internal-hash\"] is a nondeterministic value after reference run, but not seen after testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: run-cert-manager\nactions:\n- actionType: restartController\n  controllerLabel: xtradb-operator\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectCreate\n        resourceKey: certificate/default/xtradb-cluster-ssl\n        occurrence: 1\n      observationPoint:\n        when: afterControllerWrite\n        by: github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc.(*ReconcilePerconaXtraDBCluster)\n    expression: trigger1\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

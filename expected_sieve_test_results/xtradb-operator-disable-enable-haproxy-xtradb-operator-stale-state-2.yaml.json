@@ -1,0 +1,39 @@
+{
+    "xtradb-operator": {
+        "disable-enable-haproxy": {
+            "test": {
+                "bug_reproduction_test_plans/xtradb-operator-stale-state-2.yaml": {
+                    "duration": 661.4996490478516,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 19,
+                    "detected_errors": [
+                        "End state inconsistency - object field has a different value: perconaxtradbcluster/default/xtradb-cluster[\"status\"][\"haproxy\"][\"status\"] is ready after reference run, but initializing after testing run",
+                        "End state inconsistency - object field has a different value: perconaxtradbcluster/default/xtradb-cluster[\"status\"][\"state\"] is ready after reference run, but initializing after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/xtradb-cluster-haproxy-0[\"status\"][\"containerStatuses\"][0][\"ready\"] is True after reference run, but False after testing run",
+                        "End state inconsistency - object field has a different value: poddisruptionbudget/default/xtradb-cluster-haproxy[\"status\"][\"currentHealthy\"] is 1 after reference run, but 0 after testing run",
+                        "End state inconsistency - object field has a different value: poddisruptionbudget/default/xtradb-cluster-haproxy[\"status\"][\"disruptionsAllowed\"] is 1 after reference run, but 0 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/xtradb-cluster-haproxy[\"status\"][\"readyReplicas\"] is 1 after reference run, but 0 after testing run",
+                        "End state inconsistency - fewer object fields than reference: perconaxtradbcluster/default/xtradb-cluster[\"status\"][\"haproxy\"][\"ready\"] is 1 after reference run, but not seen after testing run",
+                        "State-update summaries inconsistency: controllerrevision/default/xtradb-cluster-haproxy-85cbdfc459 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run",
+                        "State-update summaries inconsistency: controllerrevision/default/xtradb-cluster-haproxy-85cbdfc459 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run",
+                        "State-update summaries inconsistency: pod/default/xtradb-cluster-haproxy-0 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run",
+                        "State-update summaries inconsistency: pod/default/xtradb-cluster-haproxy-0 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run",
+                        "State-update summaries inconsistency: poddisruptionbudget/default/xtradb-cluster-haproxy ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run",
+                        "State-update summaries inconsistency: poddisruptionbudget/default/xtradb-cluster-haproxy DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run",
+                        "State-update summaries inconsistency: service/default/xtradb-cluster-haproxy ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run",
+                        "State-update summaries inconsistency: service/default/xtradb-cluster-haproxy DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run",
+                        "State-update summaries inconsistency: service/default/xtradb-cluster-haproxy-replicas ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run",
+                        "State-update summaries inconsistency: service/default/xtradb-cluster-haproxy-replicas DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run",
+                        "State-update summaries inconsistency: statefulset/default/xtradb-cluster-haproxy ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run",
+                        "State-update summaries inconsistency: statefulset/default/xtradb-cluster-haproxy DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: disable-enable-haproxy\nactions:\n- actionType: pauseAPIServer\n  apiServerName: kind-control-plane3\n  pauseScope: perconaxtradbcluster/default/xtradb-cluster\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectUpdate\n        resourceKey: perconaxtradbcluster/default/xtradb-cluster\n        prevStateDiff: '{\"spec\": {\"haproxy\": {\"enabled\": true}}}'\n        curStateDiff: '{\"spec\": {\"haproxy\": {}}}'\n        occurrence: 1\n      observationPoint:\n        when: afterAPIServerRecv\n        by: kind-control-plane3\n    expression: trigger1\n- actionType: reconnectController\n  controllerLabel: xtradb-operator\n  reconnectAPIServer: kind-control-plane3\n  async: true\n  waitBefore: 10\n  trigger:\n    definitions:\n    - triggerName: trigger2\n      condition:\n        conditionType: onObjectCreate\n        resourceKey: statefulset/default/xtradb-cluster-haproxy\n        occurrence: 1\n      observationPoint:\n        when: afterAPIServerRecv\n        by: kind-control-plane\n    expression: trigger2\n- actionType: resumeAPIServer\n  apiServerName: kind-control-plane3\n  pauseScope: perconaxtradbcluster/default/xtradb-cluster\n  trigger:\n    definitions:\n    - triggerName: trigger3\n      condition:\n        conditionType: onTimeout\n        timeoutValue: 20\n    expression: trigger3\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

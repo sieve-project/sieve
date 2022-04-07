@@ -1,0 +1,31 @@
+{
+    "casskop-operator": {
+        "scaledown-to-zero": {
+            "test": {
+                "bug_reproduction_test_plans/casskop-intermediate-state-1.yaml": {
+                    "duration": 375.63699173927307,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 11,
+                    "detected_errors": [
+                        "End state inconsistency - more objects than reference: persistentvolumeclaim/default/data-cassandra-cluster-dc1-rack1-1 is not seen after reference run, but seen after testing run",
+                        "End state inconsistency - object field has a different value: cassandracluster/default/cassandra-cluster[\"status\"][\"cassandraRackStatus\"][\"dc1-rack1\"][\"cassandraLastAction\"][\"status\"] is Done after reference run, but ToDo after testing run",
+                        "End state inconsistency - object field has a different value: cassandracluster/default/cassandra-cluster[\"status\"][\"cassandraRackStatus\"][\"dc1-rack1\"][\"podLastOperation\"][\"status\"] is Done after reference run, but Ongoing after testing run",
+                        "End state inconsistency - object field has a different value: cassandracluster/default/cassandra-cluster[\"status\"][\"lastClusterActionStatus\"] is Done after reference run, but ToDo after testing run",
+                        "End state inconsistency - object field has a different value: cassandracluster/default/cassandra-cluster[\"status\"][\"phase\"] is Running after reference run, but Pending after testing run",
+                        "End state inconsistency - fewer object fields than reference: cassandracluster/default/cassandra-cluster[\"status\"][\"cassandraRackStatus\"][\"dc1-rack1\"][\"cassandraLastAction\"][\"endTime\"] is a nondeterministic value after reference run, but not seen after testing run",
+                        "End state inconsistency - fewer object fields than reference: cassandracluster/default/cassandra-cluster[\"status\"][\"cassandraRackStatus\"][\"dc1-rack1\"][\"cassandraLastAction\"][\"startTime\"] is a nondeterministic value after reference run, but not seen after testing run",
+                        "End state inconsistency - fewer object fields than reference: cassandracluster/default/cassandra-cluster[\"status\"][\"cassandraRackStatus\"][\"dc1-rack1\"][\"podLastOperation\"][\"endTime\"] is a nondeterministic value after reference run, but not seen after testing run",
+                        "End state inconsistency - fewer object fields than reference: cassandracluster/default/cassandra-cluster[\"status\"][\"cassandraRackStatus\"][\"dc1-rack1\"][\"podLastOperation\"][\"podsOK\"] is ['cassandra-cluster-dc1-rack1-1'] after reference run, but not seen after testing run",
+                        "End state inconsistency - more object fields than reference: cassandracluster/default/cassandra-cluster[\"status\"][\"cassandraRackStatus\"][\"dc1-rack1\"][\"podLastOperation\"][\"pods\"] not seen after reference run, but is ['cassandra-cluster-dc1-rack1-1'] after testing run",
+                        "State-update summaries inconsistency: persistentvolumeclaim/default/data-cassandra-cluster-dc1-rack1-1 DELETED inconsistency: 1 event(s) seen during reference run, but 0 seen during testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: scaledown-to-zero\nactions:\n- actionType: restartController\n  controllerLabel: casskop-operator\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectUpdate\n        resourceKey: statefulset/default/cassandra-cluster-dc1-rack1\n        prevStateDiff: '{\"spec\": {\"replicas\": 2}}'\n        curStateDiff: '{\"spec\": {\"replicas\": 1}}'\n        occurrence: 1\n      observationPoint:\n        when: afterControllerWrite\n        by: github.com/Orange-OpenSource/casskop/pkg/controller/cassandracluster.(*ReconcileCassandraCluster)\n    expression: trigger1\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

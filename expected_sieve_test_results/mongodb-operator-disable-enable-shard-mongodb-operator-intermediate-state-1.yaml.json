@@ -1,0 +1,24 @@
+{
+    "mongodb-operator": {
+        "disable-enable-shard": {
+            "test": {
+                "bug_reproduction_test_plans/mongodb-operator-intermediate-state-1.yaml": {
+                    "duration": 462.9700176715851,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 4,
+                    "detected_errors": [
+                        "End state inconsistency - fewer objects than reference: 7 secret object(s) seen after reference run ['secret/default/internal-mongodb-cluster-users', 'secret/default/mongodb-cluster-mongodb-encryption-key', 'secret/default/mongodb-cluster-mongodb-keyfile', 'secret/default/mongodb-cluster-secrets', 'secret/default/mongodb-cluster-ssl', 'secret/default/mongodb-cluster-ssl-internal', 'secret/default/percona-server-mongodb-operator-token-4pbxq'] but 6 secret object(s) seen after testing run ['secret/default/internal-mongodb-cluster-users', 'secret/default/mongodb-cluster-mongodb-encryption-key', 'secret/default/mongodb-cluster-mongodb-keyfile', 'secret/default/mongodb-cluster-secrets', 'secret/default/mongodb-cluster-ssl', 'secret/default/percona-server-mongodb-operator-token-hjf96']",
+                        "End state inconsistency - fewer object fields than reference: deployment/default/mongodb-cluster-mongos[\"spec\"][\"template\"][\"annotations\"][\"percona.com/ssl-internal-hash\"] is a nondeterministic value after reference run, but not seen after testing run",
+                        "End state inconsistency - fewer object fields than reference: statefulset/default/mongodb-cluster-cfg[\"spec\"][\"template\"][\"annotations\"][\"percona.com/ssl-internal-hash\"] is a nondeterministic value after reference run, but not seen after testing run",
+                        "End state inconsistency - fewer object fields than reference: statefulset/default/mongodb-cluster-rs0[\"spec\"][\"template\"][\"annotations\"][\"percona.com/ssl-internal-hash\"] is a nondeterministic value after reference run, but not seen after testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: disable-enable-shard\nactions:\n- actionType: restartController\n  controllerLabel: mongodb-operator\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectCreate\n        resourceKey: secret/default/mongodb-cluster-ssl\n        occurrence: 1\n      observationPoint:\n        when: afterControllerWrite\n        by: github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB)\n    expression: trigger1\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

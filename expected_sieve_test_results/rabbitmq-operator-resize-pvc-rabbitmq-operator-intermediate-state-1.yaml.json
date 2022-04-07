@@ -1,0 +1,22 @@
+{
+    "rabbitmq-operator": {
+        "resize-pvc": {
+            "test": {
+                "bug_reproduction_test_plans/rabbitmq-operator-intermediate-state-1.yaml": {
+                    "duration": 296.30856466293335,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 2,
+                    "detected_errors": [
+                        "End state inconsistency - object field has a different value: persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0[\"spec\"][\"resources\"][\"requests\"][\"storage\"] is 15Gi after reference run, but 10Gi after testing run",
+                        "End state inconsistency - object field has a different value: persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0[\"status\"][\"capacity\"][\"storage\"] is 15Gi after reference run, but 10Gi after testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: resize-pvc\nactions:\n- actionType: restartController\n  controllerLabel: rabbitmq-operator\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectDelete\n        resourceKey: statefulset/default/rabbitmq-cluster-server\n        occurrence: 1\n      observationPoint:\n        when: afterControllerWrite\n        by: github.com/rabbitmq/cluster-operator/controllers.(*RabbitmqClusterReconciler)\n    expression: trigger1\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

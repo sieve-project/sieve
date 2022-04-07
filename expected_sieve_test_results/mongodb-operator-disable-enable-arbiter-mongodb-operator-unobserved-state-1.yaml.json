@@ -1,0 +1,21 @@
+{
+    "mongodb-operator": {
+        "disable-enable-arbiter": {
+            "test": {
+                "bug_reproduction_test_plans/mongodb-operator-unobserved-state-1.yaml": {
+                    "duration": 550.1066575050354,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 1,
+                    "detected_errors": [
+                        "End state inconsistency - fewer objects than reference: persistentvolumeclaim/default/mongod-data-mongodb-cluster-rs0-4 is seen after reference run, but not seen after testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: disable-enable-arbiter\nactions:\n- actionType: pauseController\n  pauseAt: beforeControllerRead\n  pauseScope: perconaservermongodb/default/mongodb-cluster\n  avoidOngoingRead: true\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectUpdate\n        resourceKey: perconaservermongodb/default/mongodb-cluster\n        prevStateDiff: '{\"spec\": {\"replsets\": [{\"arbiter\": {\"enabled\": true}}]}}'\n        curStateDiff: '{\"spec\": {\"replsets\": [{\"arbiter\": {\"enabled\": false}}]}}'\n        occurrence: 1\n      observationPoint:\n        when: beforeControllerRecv\n        by: informer\n    expression: trigger1\n- actionType: resumeController\n  pauseAt: beforeControllerRead\n  pauseScope: perconaservermongodb/default/mongodb-cluster\n  trigger:\n    definitions:\n    - triggerName: trigger2\n      condition:\n        conditionType: onAnyFieldModification\n        resourceKey: perconaservermongodb/default/mongodb-cluster\n        prevStateDiff: '{\"spec\": {\"replsets\": [{\"arbiter\": {\"enabled\": false}}]}}'\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    - triggerName: trigger3\n      condition:\n        conditionType: onObjectDelete\n        resourceKey: perconaservermongodb/default/mongodb-cluster\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    expression: trigger2|trigger3\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "rabbitmq-operator": {
+        "resize-pvc": {
+            "test": {
+                "bug_reproduction_test_plans/rabbitmq-operator-stale-state-2.yaml": {
+                    "duration": 388.5461187362671,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 2,
+                    "detected_errors": [
+                        "State-update summaries inconsistency: statefulset/default/rabbitmq-cluster-server ADDED inconsistency: 2 event(s) seen during reference run, but 4 seen during testing run",
+                        "State-update summaries inconsistency: statefulset/default/rabbitmq-cluster-server DELETED inconsistency: 1 event(s) seen during reference run, but 3 seen during testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: resize-pvc\nactions:\n- actionType: pauseAPIServer\n  apiServerName: kind-control-plane3\n  pauseScope: rabbitmqcluster/default/rabbitmq-cluster\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectUpdate\n        resourceKey: rabbitmqcluster/default/rabbitmq-cluster\n        prevStateDiff: '{\"spec\": {\"persistence\": {\"storage\": \"10Gi\"}}}'\n        curStateDiff: '{\"spec\": {\"persistence\": {\"storage\": \"15Gi\"}}}'\n        occurrence: 1\n      observationPoint:\n        when: beforeAPIServerRecv\n        by: kind-control-plane3\n    expression: trigger1\n- actionType: reconnectController\n  controllerLabel: rabbitmq-operator\n  reconnectAPIServer: kind-control-plane3\n  async: true\n  waitBefore: 10\n  trigger:\n    definitions:\n    - triggerName: trigger2\n      condition:\n        conditionType: onObjectCreate\n        resourceKey: statefulset/default/rabbitmq-cluster-server\n        occurrence: 1\n      observationPoint:\n        when: afterAPIServerRecv\n        by: kind-control-plane\n    expression: trigger2\n- actionType: resumeAPIServer\n  apiServerName: kind-control-plane3\n  pauseScope: rabbitmqcluster/default/rabbitmq-cluster\n  trigger:\n    definitions:\n    - triggerName: trigger3\n      condition:\n        conditionType: onTimeout\n        timeoutValue: 20\n    expression: trigger3\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

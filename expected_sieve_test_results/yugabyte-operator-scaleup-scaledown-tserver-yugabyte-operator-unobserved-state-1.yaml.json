@@ -1,0 +1,30 @@
+{
+    "yugabyte-operator": {
+        "scaleup-scaledown-tserver": {
+            "test": {
+                "bug_reproduction_test_plans/yugabyte-operator-unobserved-state-1.yaml": {
+                    "duration": 252.306880235672,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 10,
+                    "detected_errors": [
+                        "End state inconsistency - fewer objects than reference: 8 pod object(s) seen after reference run ['pod/default/yb-master-0', 'pod/default/yb-master-1', 'pod/default/yb-master-2', 'pod/default/yb-tserver-0', 'pod/default/yb-tserver-1', 'pod/default/yb-tserver-2', 'pod/default/yb-tserver-3', 'pod/default/yugabyte-operator-86f6465d9b-7vpz2'] but 7 pod object(s) seen after testing run ['pod/default/yb-master-0', 'pod/default/yb-master-1', 'pod/default/yb-master-2', 'pod/default/yb-tserver-0', 'pod/default/yb-tserver-1', 'pod/default/yb-tserver-2', 'pod/default/yugabyte-operator-649c78d854-nlsqg']",
+                        "End state inconsistency - fewer objects than reference: persistentvolumeclaim/default/datadir0-yb-tserver-3 is seen after reference run, but not seen after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/yb-master-0[\"status\"][\"containerStatuses\"][0][\"state\"][\"running\"] is None after reference run, but {'StartedAt': '2022-04-07T07:20:48Z'} after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/yb-master-0[\"status\"][\"containerStatuses\"][0][\"state\"][\"terminated\"] is {'ContainerID': 'containerd://0b7f55d078fd0f633628073fae2b437b92358da76bbb13abf6b6a7f0326e4361', 'ExitCode': 139, 'FinishedAt': '2022-02-04T08:40:26Z', 'Message': '', 'Reason': 'Error', 'Signal': 0, 'StartedAt': '2022-02-04T08:40:25Z'} after reference run, but None after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/yb-tserver[\"spec\"][\"replicas\"] is 4 after reference run, but 3 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/yb-tserver[\"status\"][\"currentReplicas\"] is 4 after reference run, but 3 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/yb-tserver[\"status\"][\"readyReplicas\"] is 4 after reference run, but 3 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/yb-tserver[\"status\"][\"replicas\"] is 4 after reference run, but 3 after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/yb-tserver[\"status\"][\"updatedReplicas\"] is 4 after reference run, but 3 after testing run",
+                        "End state inconsistency - object field has a different value: ybcluster/default/example-ybcluster[\"status\"][\"targetedTServerReplicas\"] is 4 after reference run, but 3 after testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: scaleup-scaledown-tserver\nactions:\n- actionType: pauseController\n  pauseAt: beforeControllerRead\n  pauseScope: ybcluster/default/example-ybcluster\n  avoidOngoingRead: true\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectUpdate\n        resourceKey: ybcluster/default/example-ybcluster\n        prevStateDiff: '{\"spec\": {\"replicationFactor\": 3, \"tserver\": {\"replicas\":\n          3}}}'\n        curStateDiff: '{\"spec\": {\"replicationFactor\": 4, \"tserver\": {\"replicas\": 4}}}'\n        occurrence: 1\n      observationPoint:\n        when: beforeControllerRecv\n        by: informer\n    expression: trigger1\n- actionType: resumeController\n  pauseAt: beforeControllerRead\n  pauseScope: ybcluster/default/example-ybcluster\n  trigger:\n    definitions:\n    - triggerName: trigger2\n      condition:\n        conditionType: onAnyFieldModification\n        resourceKey: ybcluster/default/example-ybcluster\n        prevStateDiff: '{\"spec\": {\"replicationFactor\": 4, \"tserver\": {\"replicas\":\n          4}}}'\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    - triggerName: trigger3\n      condition:\n        conditionType: onObjectDelete\n        resourceKey: ybcluster/default/example-ybcluster\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    expression: trigger2|trigger3\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}

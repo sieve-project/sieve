@@ -1,0 +1,27 @@
+{
+    "cassandra-operator": {
+        "scaledown-scaleup": {
+            "test": {
+                "bug_reproduction_test_plans/cassandra-operator-unobserved-state-1.yaml": {
+                    "duration": 591.1728863716125,
+                    "injection_completed": true,
+                    "workload_completed": true,
+                    "number_errors": 7,
+                    "detected_errors": [
+                        "End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1[\"status\"][\"containerStatuses\"][0][\"lastTerminationState\"][\"terminated\"] is None after reference run, but {'ContainerID': 'containerd://a989f4e0dcb264993df2ad0234dc9fc98a5cb3fc5ce70f38d78829f32046cfbf', 'ExitCode': 1, 'FinishedAt': '2022-04-07T03:58:54Z', 'Message': '', 'Reason': 'Error', 'Signal': 0, 'StartedAt': '2022-04-07T03:58:49Z'} after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1[\"status\"][\"containerStatuses\"][0][\"ready\"] is True after reference run, but False after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1[\"status\"][\"containerStatuses\"][0][\"restartCount\"] is 0 after reference run, but 4 after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1[\"status\"][\"containerStatuses\"][0][\"started\"] is True after reference run, but False after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1[\"status\"][\"containerStatuses\"][0][\"state\"][\"running\"] is {'StartedAt': 'SIEVE-IGNORE'} after reference run, but None after testing run",
+                        "End state inconsistency - object field has a different value: pod/default/cassandra-test-cluster-dc1-rack1-1[\"status\"][\"containerStatuses\"][0][\"state\"][\"waiting\"] is None after reference run, but {'Message': 'back-off 1m20s restarting failed container=cassandra pod=cassandra-test-cluster-dc1-rack1-1_default(c2cc087c-476e-4bf8-b468-d6e7beb3bb28)', 'Reason': 'CrashLoopBackOff'} after testing run",
+                        "End state inconsistency - object field has a different value: statefulset/default/cassandra-test-cluster-dc1-rack1[\"status\"][\"readyReplicas\"] is 2 after reference run, but 1 after testing run"
+                    ],
+                    "no_exception": true,
+                    "exception_message": "",
+                    "test_config_content": "workload: scaledown-scaleup\nactions:\n- actionType: pauseController\n  pauseAt: beforeControllerRead\n  pauseScope: pod/default/cassandra-test-cluster-dc1-rack1-1\n  avoidOngoingRead: true\n  trigger:\n    definitions:\n    - triggerName: trigger1\n      condition:\n        conditionType: onObjectUpdate\n        resourceKey: pod/default/cassandra-test-cluster-dc1-rack1-1\n        prevStateDiff: '{\"metadata\": {}}'\n        curStateDiff: '{\"metadata\": {\"deletionGracePeriodSeconds\": \"SIEVE-NON-NIL\",\n          \"deletionTimestamp\": \"SIEVE-NON-NIL\"}}'\n        occurrence: 1\n      observationPoint:\n        when: beforeControllerRecv\n        by: informer\n    expression: trigger1\n- actionType: resumeController\n  pauseAt: beforeControllerRead\n  pauseScope: pod/default/cassandra-test-cluster-dc1-rack1-1\n  trigger:\n    definitions:\n    - triggerName: trigger2\n      condition:\n        conditionType: onAnyFieldModification\n        resourceKey: pod/default/cassandra-test-cluster-dc1-rack1-1\n        prevStateDiff: '{\"metadata\": {\"deletionGracePeriodSeconds\": \"SIEVE-NON-NIL\",\n          \"deletionTimestamp\": \"SIEVE-NON-NIL\"}}'\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    - triggerName: trigger3\n      condition:\n        conditionType: onObjectDelete\n        resourceKey: pod/default/cassandra-test-cluster-dc1-rack1-1\n        occurrence: 1\n      observationPoint:\n        when: afterControllerRecv\n        by: informer\n    expression: trigger2|trigger3\n",
+                    "host": "ip-172-31-40-3"
+                }
+            }
+        }
+    }
+}
