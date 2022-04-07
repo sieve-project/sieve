@@ -15,7 +15,19 @@ This branch is for OSDI'2022 artifact evaluation only.
 
 **We strongly recommend you to use the VM provided by us. This is the VM we used for our evaluation. We have set up the environment and installed all the dependencies on the VM so you can just go ahead to reproduce the results.**
 
-### Pre-requisites:
+To use the VM, please run
+```
+ssh -i your_rsa_private_key ubuntu@vm_hostname
+```
+We provide the VM hostname in the README file submitted to hotcrp. Please contact us with your rsa public key.
+We will add your key to the VM so that you can successfully log in.
+After log in, please
+```
+cd /home/ubuntu/osdi-ae/sieve
+```
+and follow the instructions to evaluate the artifact.
+
+### Pre-requisites (Skip this if using the VM provided by us):
 * A Linux system with Docker support
 * [python3](https://www.python.org/downloads/) installed
 * [go](https://golang.org/doc/install) (preferably 1.13.9) installed and `$GOPATH` set
@@ -42,7 +54,6 @@ If all the requirements are met, you will see
 [WARN] mage is only required for certain controllers, please ignore the following failure if your controller does not need mage
 [OK] mage detected
 ```
-
 
 ### Run a simple example (reproduce a bug found by Sieve)
 To run a simple example and detect any obvious problem during the kick-the-tires phase, please run the following command in this `sieve` directory:
