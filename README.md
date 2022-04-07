@@ -17,10 +17,14 @@ This branch is for OSDI'2022 artifact evaluation only.
 
 To use the VM, please run
 ```
-ssh -i your_rsa_private_key ubuntu@vm_hostname
+ssh -i your_ssh_private_key ubuntu@vm_hostname
 ```
-We provide the VM hostname in the README file submitted to hotcrp. Please contact us with your rsa public key.
+We provide the VM hostname in the README file submitted to HotCRP. Please contact us with your ssh public key.
 We will add your key to the VM so that you can successfully log in.
+The ssh public key usually ends with your hostname.
+To be anonymous, you can generate a new ssh key-pair without the hostname by `ssh-keygen -C noname`
+or simply delete the hostname at the end of your public key.
+
 After log in, please
 ```
 cd /home/ubuntu/osdi-ae/sieve
