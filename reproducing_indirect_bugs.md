@@ -9,7 +9,6 @@ python3 reproduce_bugs.py -p all -b indirect
 After it finishes, you will find a `bug_reproduction_stats.tsv`:
 ```
 controller	bug	reproduced	test-result-file
-controller	bug	reproduced	test-result-file
 cassandra-operator	indirect-1	True	sieve_test_results/cassandra-operator-scaledown-scaleup-cassandra-operator-indirect-1.yaml.json
 cassandra-operator	indirect-2	True	sieve_test_results/cassandra-operator-scaledown-scaleup-brittle-cassandra-operator-indirect-2.yaml.json
 mongodb-operator	indirect-1	True	sieve_test_results/mongodb-operator-disable-enable-shard-mongodb-operator-indirect-1.yaml.json
