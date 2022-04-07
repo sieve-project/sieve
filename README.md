@@ -140,7 +140,8 @@ zookeeper-operator	stale-state-2	True	sieve_test_results/zookeeper-operator-scal
 ```
 </details>
 
-For more details about each reproduced bug, please refer to xxx.
+The last column of the tsv file points to the test result json file of each bug reproduction.
+For what you expect to see from each test result json file, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/bug_finding.md.
 
 ### Generating and reducing test plans
 Sieve automatically generates test plans from the controller trace.
