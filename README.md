@@ -7,6 +7,8 @@
 [![Bug Reproduction](https://github.com/sieve-project/sieve/actions/workflows/sieve-bug-reproduction.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-bug-reproduction.yml)
 [![Test](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml)
 
+**For artifact evaluation, please refer to this branch: https://github.com/sieve-project/sieve/tree/osdi-ae**
+
 ## Sieve
 1. [Overview](#overview)
 2. [Testing approaches](#testing-approaches)
