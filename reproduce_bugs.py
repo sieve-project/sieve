@@ -61,12 +61,12 @@ reprod_map = {
         "stale-state-1": ["recreate", "cass-operator-stale-state-1.yaml"],
     },
     "cassandra-operator": {
+        "stale-state-1": ["recreate", "cassandra-operator-stale-state-1.yaml"],
+        "stale-state-2": ["scaledown-scaleup", "cassandra-operator-stale-state-2.yaml"],
         "unobserved-state-1": [
             "scaledown-scaleup",
             "cassandra-operator-unobserved-state-1.yaml",
         ],
-        "stale-state-1": ["recreate", "cassandra-operator-stale-state-1.yaml"],
-        "stale-state-2": ["scaledown-scaleup", "cassandra-operator-stale-state-2.yaml"],
         "indirect-1": [
             "scaledown-scaleup",
             "cassandra-operator-indirect-1.yaml",
@@ -83,9 +83,9 @@ reprod_map = {
             "scaledown-to-zero",
             "casskop-intermediate-state-1.yaml",
         ],
-        "unobserved-state-1": ["scaledown-to-zero", "casskop-unobserved-state-1.yaml"],
         "stale-state-1": ["recreate", "casskop-stale-state-1.yaml"],
         "stale-state-2": ["reducepdb", "casskop-stale-state-2.yaml"],
+        "unobserved-state-1": ["scaledown-to-zero", "casskop-unobserved-state-1.yaml"],
     },
     "mongodb-operator": {
         "intermediate-state-1": [
@@ -96,10 +96,6 @@ reprod_map = {
             "run-cert-manager",
             "mongodb-operator-intermediate-state-2.yaml",
         ],
-        "unobserved-state-1": [
-            "disable-enable-arbiter",
-            "mongodb-operator-unobserved-state-1.yaml",
-        ],
         "stale-state-1": ["recreate", "mongodb-operator-stale-state-1.yaml"],
         "stale-state-2": [
             "disable-enable-shard",
@@ -108,6 +104,10 @@ reprod_map = {
         "stale-state-3": [
             "disable-enable-arbiter",
             "mongodb-operator-stale-state-3.yaml",
+        ],
+        "unobserved-state-1": [
+            "disable-enable-arbiter",
+            "mongodb-operator-unobserved-state-1.yaml",
         ],
         "indirect-1": ["disable-enable-shard", "mongodb-operator-indirect-1.yaml"],
         "indirect-2": ["recreate", "mongodb-operator-indirect-2.yaml"],
@@ -124,12 +124,12 @@ reprod_map = {
             "resize-pvc",
             "rabbitmq-operator-intermediate-state-1.yaml",
         ],
+        "stale-state-1": ["recreate", "rabbitmq-operator-stale-state-1.yaml"],
+        "stale-state-2": ["resize-pvc", "rabbitmq-operator-stale-state-2.yaml"],
         "unobserved-state-1": [
             "scaleup-scaledown",
             "rabbitmq-operator-unobserved-state-1.yaml",
         ],
-        "stale-state-1": ["recreate", "rabbitmq-operator-stale-state-1.yaml"],
-        "stale-state-2": ["resize-pvc", "rabbitmq-operator-stale-state-2.yaml"],
     },
     "xtradb-operator": {
         "intermediate-state-1": [
@@ -140,10 +140,6 @@ reprod_map = {
             "run-cert-manager",
             "xtradb-operator-intermediate-state-2.yaml",
         ],
-        "unobserved-state-1": [
-            "scaleup-scaledown",
-            "xtradb-operator-unobserved-state-1.yaml",
-        ],
         "stale-state-1": ["recreate", "xtradb-operator-stale-state-1.yaml"],
         "stale-state-2": [
             "disable-enable-haproxy",
@@ -153,16 +149,20 @@ reprod_map = {
             "disable-enable-proxysql",
             "xtradb-operator-stale-state-3.yaml",
         ],
+        "unobserved-state-1": [
+            "scaleup-scaledown",
+            "xtradb-operator-unobserved-state-1.yaml",
+        ],
     },
     "yugabyte-operator": {
-        "unobserved-state-1": [
-            "scaleup-scaledown-tserver",
-            "yugabyte-operator-unobserved-state-1.yaml",
-        ],
         "stale-state-1": ["disable-enable-tls", "yugabyte-operator-stale-state-1.yaml"],
         "stale-state-2": [
             "disable-enable-tuiport",
             "yugabyte-operator-stale-state-2.yaml",
+        ],
+        "unobserved-state-1": [
+            "scaleup-scaledown-tserver",
+            "yugabyte-operator-unobserved-state-1.yaml",
         ],
         "indirect-1": [
             "disable-enable-tuiport",

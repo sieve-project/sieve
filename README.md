@@ -108,40 +108,40 @@ After it finishes, you will find a `bug_reproduction_stats.tsv`:
 controller	bug	reproduced	test-result-file
 cass-operator	intermediate-state-1	True	sieve_test_results/cass-operator-recreate-cass-operator-intermediate-state-1.yaml.json
 cass-operator	stale-state-1	True	sieve_test_results/cass-operator-recreate-cass-operator-stale-state-1.yaml.json
-cassandra-operator	unobserved-state-1	True	sieve_test_results/cassandra-operator-scaledown-scaleup-cassandra-operator-unobserved-state-1.yaml.json
 cassandra-operator	stale-state-1	True	sieve_test_results/cassandra-operator-recreate-cassandra-operator-stale-state-1.yaml.json
 cassandra-operator	stale-state-2	True	sieve_test_results/cassandra-operator-scaledown-scaleup-cassandra-operator-stale-state-2.yaml.json
+cassandra-operator	unobserved-state-1	True	sieve_test_results/cassandra-operator-scaledown-scaleup-cassandra-operator-unobserved-state-1.yaml.json
 casskop-operator	intermediate-state-1	True	sieve_test_results/casskop-operator-scaledown-to-zero-casskop-intermediate-state-1.yaml.json
-casskop-operator	unobserved-state-1	True	sieve_test_results/casskop-operator-scaledown-to-zero-casskop-unobserved-state-1.yaml.json
 casskop-operator	stale-state-1	True	sieve_test_results/casskop-operator-recreate-casskop-stale-state-1.yaml.json
 casskop-operator	stale-state-2	True	sieve_test_results/casskop-operator-reducepdb-casskop-stale-state-2.yaml.json
+casskop-operator	unobserved-state-1	True	sieve_test_results/casskop-operator-scaledown-to-zero-casskop-unobserved-state-1.yaml.json
 mongodb-operator	intermediate-state-1	True	sieve_test_results/mongodb-operator-disable-enable-shard-mongodb-operator-intermediate-state-1.yaml.json
 mongodb-operator	intermediate-state-2	True	sieve_test_results/mongodb-operator-run-cert-manager-mongodb-operator-intermediate-state-2.yaml.json
-mongodb-operator	unobserved-state-1	True	sieve_test_results/mongodb-operator-disable-enable-arbiter-mongodb-operator-unobserved-state-1.yaml.json
 mongodb-operator	stale-state-1	True	sieve_test_results/mongodb-operator-recreate-mongodb-operator-stale-state-1.yaml.json
 mongodb-operator	stale-state-2	True	sieve_test_results/mongodb-operator-disable-enable-shard-mongodb-operator-stale-state-2.yaml.json
 mongodb-operator	stale-state-3	True	sieve_test_results/mongodb-operator-disable-enable-arbiter-mongodb-operator-stale-state-3.yaml.json
+mongodb-operator	unobserved-state-1	True	sieve_test_results/mongodb-operator-disable-enable-arbiter-mongodb-operator-unobserved-state-1.yaml.json
 nifikop-operator	intermediate-state-1	True	sieve_test_results/nifikop-operator-change-config-nifikop-intermediate-state-1.yaml.json
 rabbitmq-operator	intermediate-state-1	True	sieve_test_results/rabbitmq-operator-resize-pvc-rabbitmq-operator-intermediate-state-1.yaml.json
-rabbitmq-operator	unobserved-state-1	True	sieve_test_results/rabbitmq-operator-scaleup-scaledown-rabbitmq-operator-unobserved-state-1.yaml.json
 rabbitmq-operator	stale-state-1	True	sieve_test_results/rabbitmq-operator-recreate-rabbitmq-operator-stale-state-1.yaml.json
 rabbitmq-operator	stale-state-2	True	sieve_test_results/rabbitmq-operator-resize-pvc-rabbitmq-operator-stale-state-2.yaml.json
+rabbitmq-operator	unobserved-state-1	True	sieve_test_results/rabbitmq-operator-scaleup-scaledown-rabbitmq-operator-unobserved-state-1.yaml.json
 xtradb-operator	intermediate-state-1	True	sieve_test_results/xtradb-operator-disable-enable-proxysql-xtradb-operator-intermediate-state-1.yaml.json
 xtradb-operator	intermediate-state-2	True	sieve_test_results/xtradb-operator-run-cert-manager-xtradb-operator-intermediate-state-2.yaml.json
-xtradb-operator	unobserved-state-1	True	sieve_test_results/xtradb-operator-scaleup-scaledown-xtradb-operator-unobserved-state-1.yaml.json
 xtradb-operator	stale-state-1	True	sieve_test_results/xtradb-operator-recreate-xtradb-operator-stale-state-1.yaml.json
 xtradb-operator	stale-state-2	True	sieve_test_results/xtradb-operator-disable-enable-haproxy-xtradb-operator-stale-state-2.yaml.json
 xtradb-operator	stale-state-3	True	sieve_test_results/xtradb-operator-disable-enable-proxysql-xtradb-operator-stale-state-3.yaml.json
-yugabyte-operator	unobserved-state-1	True	sieve_test_results/yugabyte-operator-scaleup-scaledown-tserver-yugabyte-operator-unobserved-state-1.yaml.json
+xtradb-operator	unobserved-state-1	True	sieve_test_results/xtradb-operator-scaleup-scaledown-xtradb-operator-unobserved-state-1.yaml.json
 yugabyte-operator	stale-state-1	True	sieve_test_results/yugabyte-operator-disable-enable-tls-yugabyte-operator-stale-state-1.yaml.json
 yugabyte-operator	stale-state-2	True	sieve_test_results/yugabyte-operator-disable-enable-tuiport-yugabyte-operator-stale-state-2.yaml.json
+yugabyte-operator	unobserved-state-1	True	sieve_test_results/yugabyte-operator-scaleup-scaledown-tserver-yugabyte-operator-unobserved-state-1.yaml.json
 zookeeper-operator	stale-state-1	True	sieve_test_results/zookeeper-operator-recreate-zookeeper-operator-stale-state-1.yaml.json
 zookeeper-operator	stale-state-2	True	sieve_test_results/zookeeper-operator-scaledown-scaleup-zookeeper-operator-stale-state-2.yaml.json
 ```
 </details>
 
 The last column of the tsv file points to the test result json file of each bug reproduction.
-For what you expect to see from each test result json file, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/bug_finding.md.
+For what you expect to see from each test result json file, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_bugs.md.
 
 ### Generating and reducing test plans
 Sieve automatically generates test plans from the controller trace.

@@ -1,4 +1,4 @@
-# Bug Finding
+# Reproducing bugs
 
 For each reproduced bug, you will see a test result json file as shown in the last column of `bug_reproduction_stats.tsv`.
 This json file contains the errors detected by Sieve (see the `detected_errors` field).
