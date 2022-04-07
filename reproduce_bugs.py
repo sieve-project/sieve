@@ -87,10 +87,6 @@ reprod_map = {
         "stale-state-1": ["recreate", "casskop-stale-state-1.yaml"],
         "stale-state-2": ["reducepdb", "casskop-stale-state-2.yaml"],
     },
-    "elastic-operator": {
-        "stale-state-1": ["recreate", "elastic-operator-stale-state-1.yaml"],
-        "stale-state-2": ["scaledown-scaleup", "elastic-operator-stale-state-2.yaml"],
-    },
     "mongodb-operator": {
         "intermediate-state-1": [
             "disable-enable-shard",
