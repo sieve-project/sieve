@@ -172,6 +172,7 @@ if __name__ == "__main__":
     if options.project is None:
         parser.error("parameter project required")
 
+    os.system("rm -rf sieve_learn_results")
     generate_test_plan_stat(
         options.log, options.project, options.docker, options.phase, options.times
     )
