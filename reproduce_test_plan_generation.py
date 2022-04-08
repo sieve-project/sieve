@@ -40,29 +40,19 @@ def generate_test_plan_stat(log, controller, docker, phase, times):
         mode = "learn-once"
     else:
         mode = "learn-twice"
+    controllers = []
     if controller == "all":
         for selected_controller in controllers_to_check:
-            for test_suite in controllers_to_check[selected_controller]:
-                sieve_cmd = (
-                    "python3 sieve.py -l %s -p %s -t %s -d %s -s learn -m %s --phase=%s"
-                    % (
-                        log,
-                        selected_controller,
-                        test_suite,
-                        docker,
-                        mode,
-                        phase,
-                    )
-                )
-                cprint(sieve_cmd, bcolors.OKGREEN)
-                os.system(sieve_cmd)
+            controllers.append(selected_controller)
     else:
-        for test_suite in controllers_to_check[controller]:
+        controllers.append(controller)
+    for selected_controller in controllers:
+        for test_suite in controllers_to_check[selected_controller]:
             sieve_cmd = (
                 "python3 sieve.py -l %s -p %s -t %s -d %s -s learn -m %s --phase=%s"
                 % (
                     log,
-                    controller,
+                    selected_controller,
                     test_suite,
                     docker,
                     mode,
@@ -72,7 +62,7 @@ def generate_test_plan_stat(log, controller, docker, phase, times):
             cprint(sieve_cmd, bcolors.OKGREEN)
             os.system(sieve_cmd)
     stats_map = {}
-    for controller in controllers_to_check:
+    for controller in controllers:
         stats_map[controller] = {
             "baseline": 0,
             "after_p1": 0,
@@ -108,7 +98,7 @@ def generate_test_plan_stat(log, controller, docker, phase, times):
             stats_map[controller]["final"] += result_map["unobserved-state"]["final"]
 
     table = "controller\tbaseline\tprune-by-causality\tprune-updates\tdeterministic-timing\n"
-    for controller in controllers_to_check:
+    for controller in controllers:
         table += "{}\t{}\t{}\t{}\t{}\n".format(
             controller,
             stats_map[controller]["baseline"],
