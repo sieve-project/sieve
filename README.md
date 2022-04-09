@@ -104,9 +104,9 @@ The entire process of testing a controller with Sieve consists of two steps:
 1. generating test plans
 2. executing test plans
 
-For step 2, we provide instructions to evaluate it in [this section](#reproducing-all-the-31-intermediate--stale--and-unobservable-state-bugs-5-hours) by executing test plans to reproduce the 31  intermediate-, stale-, and unobservable-state bugs, which takes about 5 hours. This will reproduce the results in Table 3.
+For step 2, we provide instructions to evaluate it in [Reproducing all the 31 intermediate-, stale-, and unobservable-state bugs (~5 hours)](#reproducing-all-the-31-intermediate--stale--and-unobservable-state-bugs-5-hours) by executing test plans to reproduce the 31  intermediate-, stale-, and unobservable-state bugs. This will reproduce the results in Table 3.
 
-For step 1, we provide instructions to evaluate it in [this section](#generating-and-reducing-test-plans-15-minutes), which takes about 15 minutes. This will reproduce the results in Figure 8.
+For step 1, we provide instructions to evaluate it in [Generating and reducing test plans (~15 minutes)](#generating-and-reducing-test-plans-15-minutes). This will reproduce the results in Figure 8.
 
 ### Explanation of important files and folders
 We explain some important files and folders used in artifact evaluation
@@ -224,7 +224,7 @@ Traceback (most recent call last):
 Exception: Failed to execute kind create cluster --image ghcr.io/sieve-project/action/node:v1.18.9-test --config kind_configs/kind-3a-2w.yaml with return code 1
 ```
 If so, it means the [kind cluster](https://kind.sigs.k8s.io/) that Sieve relies on accidentally crashes.
-The failure is transient so you can just reproduce that particular bug again (please refer to [the instructions above](#what-if-i-want-to-reproduce-only-one-bug-at-a-time)).
+The failure is transient so you can just reproduce that particular bug again (please refer to [What if I want to reproduce only one bug at a time?](#what-if-i-want-to-reproduce-only-one-bug-at-a-time)).
 
 </details>
 
@@ -253,10 +253,25 @@ yugabyte-operator	1414	970	294	196
 zookeeper-operator	38028	14533	2712	164
 ```
 
+#### Why are the numbers slightly different from the ones presented in Figure 8 in paper?
+<details>
+  <summary>Click to expand!</summary>
+
+You might find the numbers above are slightly different from the ones we presented in Figure 8 in paper.
+The reason is that we are using the most recent code base and controller traces for this artifact evaluation,
+and Sieve has been improved a lot by adding features and fixing bugs since the OSDI submission.
+
+We will also use the most recent numbers in the camera-ready version.
+
+</details>
+
 ### Optional: Generating controller trace and test plans (~8 hours)
 Optionally, you can run the test workload to generate the trace and further generate and reduce the test plans by running
 ```
 python3 reproduce_test_plan_generation.py --log=log --phase=all --times=twice
 ```
 It will take about 8 hours.
-The `test_plan_stats.tsv` generated can be slightly different as the controller trace can be different.
+
+The `test_plan_stats.tsv` generated can be slightly different as the controller traces are naturally nondeterministic.
+For example, the number of events received by a controller can be different across different runs,
+which will affect the number of generated test plans slightly.
