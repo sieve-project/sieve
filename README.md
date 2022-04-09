@@ -38,6 +38,9 @@ cd /home/ubuntu/osdi-ae/sieve
 and follow the instructions to evaluate the artifact.
 
 ### Pre-requisites (skip this if using the VM provided by us):
+<details>
+  <summary>Click to expand!</summary>
+
 * A Linux system with Docker support
 * [python3](https://www.python.org/downloads/) installed
 * [go](https://golang.org/doc/install) (preferably 1.13.9) installed and `$GOPATH` set
@@ -64,9 +67,11 @@ If all the requirements are met, you will see
 [WARN] mage is only required for certain controllers, please ignore the following failure if your controller does not need mage
 [OK] mage detected
 ```
+</details>
 
-### Run a simple example (reproduce a bug found by Sieve)
-To run a simple example and detect any obvious problem during the kick-the-tires phase, please run the following command in this `sieve` directory:
+### Run a simple example (~5 minutes)
+We prepared a simple example (i.e., reproducing a bug found by Sieve) to help detect any obvious problem during the kick-the-tires phase.
+Please run the following command:
 ```
 python3 sieve.py -p rabbitmq-operator -c bug_reproduction_test_plans/rabbitmq-operator-intermediate-state-1.yaml
 ```
@@ -81,7 +86,7 @@ Sieve restarts the controller rabbitmq-operator when the trigger expression trig
 trigger1 is satisfied after the controller rabbitmq-operator issues:
 delete statefulset/default/rabbitmq-cluster-server with the 1st occurrence.
 ```
-Otherwise, please contact us.
+Otherwise please contact us.
 
 ## Detailed Instructions
 
