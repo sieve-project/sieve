@@ -2,6 +2,7 @@ import optparse
 from sieve_common.default_config import get_common_config
 import os
 import json
+import time
 from sieve_common.common import cprint, bcolors
 
 
@@ -206,6 +207,10 @@ def reproduce_single_bug(operator, bug, docker, phase):
         test_name,
         os.path.basename(config),
     )
+    cprint(
+        "Please refer to {} for more detailed information".format(test_result_file),
+        bcolors.OKGREEN,
+    )
     test_result = json.load(open(test_result_file))
     content = test_result[operator][test_name]["test"][config]
     if content["number_errors"] > 0:
@@ -221,6 +226,7 @@ def reproduce_bug(operator, bug, docker, phase):
             if "indirect" in b:
                 continue
             stats_map[b] = reproduce_single_bug(operator, b, docker, phase)
+            time.sleep(10)
     elif (
         bug == "intermediate-state"
         or bug == "unobserved-state"
@@ -230,6 +236,7 @@ def reproduce_bug(operator, bug, docker, phase):
         for b in reprod_map[operator]:
             if b.startswith(bug):
                 stats_map[b] = reproduce_single_bug(operator, b, docker, phase)
+                time.sleep(10)
     else:
         stats_map[bug] = reproduce_single_bug(operator, bug, docker, phase)
     return stats_map
@@ -282,7 +289,14 @@ if __name__ == "__main__":
     if options.bug is None and options.project != "all":
         parser.error("parameter bug required")
 
-    os.system("rm -rf sieve_test_results")
+    if options.bug in [
+        "all",
+        "intermediate-state",
+        "unobserved-state",
+        "stale-state",
+        "indirect",
+    ]:
+        os.system("rm -rf sieve_test_results")
     stats_map = {}
     if options.project == "all":
         for operator in reprod_map:
@@ -293,13 +307,20 @@ if __name__ == "__main__":
         stats_map[options.project] = reproduce_bug(
             options.project, options.bug, options.docker, options.phase
         )
-    table = "controller\tbug\treproduced\ttest-result-file\n"
-    for controller in stats_map:
-        for bug in stats_map[controller]:
-            table += "{}\t{}\t{}\t{}\n".format(
-                controller,
-                bug,
-                stats_map[controller][bug]["reproduced"],
-                stats_map[controller][bug]["test-result-file"],
-            )
-    open("bug_reproduction_stats.tsv", "w").write(table)
+    if options.bug in [
+        "all",
+        "intermediate-state",
+        "unobserved-state",
+        "stale-state",
+        "indirect",
+    ]:
+        table = "controller\tbug\treproduced\ttest-result-file\n"
+        for controller in stats_map:
+            for bug in stats_map[controller]:
+                table += "{}\t{}\t{}\t{}\n".format(
+                    controller,
+                    bug,
+                    stats_map[controller][bug]["reproduced"],
+                    stats_map[controller][bug]["test-result-file"],
+                )
+        open("bug_reproduction_stats.tsv", "w").write(table)
