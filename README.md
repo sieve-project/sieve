@@ -212,13 +212,18 @@ Please refer to XXX for more detailed information
 If you find some of the bug is not reproduced,
 please check whether the corresponding `test-result-file` contains a non-empty `exception_message` field similar as below:
 ```
-Traceback (most recent call last):\n  File \"sieve.py\", line 550, in run_test\n    setup_clus
-ter(test_context)\n  File \"sieve.py\", line 267, in setup_cluster\n    setup_kind_cluster(test_context)\n  File \"sieve.py\", line 254,
- in setup_kind_cluster\n    cmd_early_exit(\n  File \"/home/ubuntu/osdi-ae/sieve/sieve_common/common.py\", line 167, in cmd_early_exit\n
-    raise Exception(\nException: Failed to execute kind create cluster --image ghcr.io/sieve-project/action/node:v1.18.9-test --config k
-ind_configs/kind-3a-2w.yaml with return code 1\n
+Traceback (most recent call last):
+  File \"sieve.py\", line 550, in run_test
+      setup_cluster(test_context)
+  File \"sieve.py\", line 267, in setup_cluster
+      setup_kind_cluster(test_context)
+  File \"sieve.py\", line 254, in setup_kind_cluster
+      cmd_early_exit(
+  File \"/home/ubuntu/osdi-ae/sieve/sieve_common/common.py\", line 167, in cmd_early_exit
+    raise Exception(
+Exception: Failed to execute kind create cluster --image ghcr.io/sieve-project/action/node:v1.18.9-test --config kind_configs/kind-3a-2w.yaml with return code 1
 ```
-If so, it means the kind cluster that Sieve relies on crashes.
+If so, it means the [kind cluster](https://kind.sigs.k8s.io/) that Sieve relies on accidentally crashes.
 The failure is transient so you can just reproduce that particular bug again (please refer to [the instructions above](#what-if-i-want-to-reproduce-only-one-bug-at-a-time)).
 
 </details>

@@ -40,6 +40,7 @@ The `sieve_test_results/cassandra-operator-scaledown-scaleup-cassandra-operator-
 End state inconsistency - more object fields than reference: persistentvolumeclaim/default/data-volume-cassandra-test-cluster-dc1-rack1-1["metadata"]["deletionTimestamp"] not seen after reference run, but is 2022-04-01T04:34:00Z after testing run
 ```
 Note that the timestamp can be different in your run.
+
 What if I see different errors?
 <details>
   <summary>Click to expand!</summary>
@@ -257,6 +258,7 @@ State-update summaries inconsistency: persistentvolumeclaim/default/data-zookeep
 State-update summaries inconsistency: pod/default/zookeeper-cluster-1 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
 State-update summaries inconsistency: pod/default/zookeeper-cluster-1 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
 ```
+
 What if I see different errors?
 <details>
   <summary>Click to expand!</summary>
