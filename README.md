@@ -165,14 +165,63 @@ zookeeper-operator	stale-state-2	True	sieve_test_results/zookeeper-operator-scal
 The last column of the tsv file points to the test result json file of each bug reproduction.
 To verify whether each bug is correctly reproduced, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_bugs.md for more detailed information.
 
+#### What if I want to reproduce only one bug at a time?
+<details>
+  <summary>Click to expand!</summary>
+
 If you want to reproduce only one bug, run
 ```
 python3 reproduce_bugs.py -p controller_name -b bug_id
 ```
-For example
+For example, to reproduce the first intermediate-state bug of the rabbitmq-operator:
 ```
 python3 reproduce_bugs.py -p rabbitmq-operator -b intermediate-state-1
 ```
+Or, to reproduce the first stale-state bug of the casskop-operator (we called it casskop in the paper):
+```
+python3 reproduce_bugs.py -p casskop-operator -b stale-state-2
+```
+
+Reproducing a single bug can take from 5 to 30 minutes.
+
+Note that reproducing a single bug will not update `bug_reproduction_stats.tsv`.
+However, you can check the stdout to see whether the bug is successfully reproduced:
+If a bug is reproduced, Sieve will detect common errors/end state inconsistencies/history inconsistencies like:
+```
+XXX common errors as follows
+```
+or
+```
+XXX detected end state inconsistencies as follows
+```
+or
+```
+XXX detected history inconsistencies as follows
+```
+You can also refer to the newly generated `test-result-file` hinted by
+```
+Please refer to XXX for more detailed information
+```
+
+</details>
+
+#### What if I find some of the bugs is not reproduced (i.e., the `reproduced` column is `False`)?
+<details>
+  <summary>Click to expand!</summary>
+
+If you find some of the bug is not reproduced,
+please check whether the corresponding `test-result-file` contains a non-empty `exception_message` field similar as below:
+```
+Traceback (most recent call last):\n  File \"sieve.py\", line 550, in run_test\n    setup_clus
+ter(test_context)\n  File \"sieve.py\", line 267, in setup_cluster\n    setup_kind_cluster(test_context)\n  File \"sieve.py\", line 254,
+ in setup_kind_cluster\n    cmd_early_exit(\n  File \"/home/ubuntu/osdi-ae/sieve/sieve_common/common.py\", line 167, in cmd_early_exit\n
+    raise Exception(\nException: Failed to execute kind create cluster --image ghcr.io/sieve-project/action/node:v1.18.9-test --config k
+ind_configs/kind-3a-2w.yaml with return code 1\n
+```
+If so, it means the kind cluster that Sieve relies on crashes.
+The failure is transient so you can just reproduce that particular bug again (please refer to [the instructions above](#what-if-i-want-to-reproduce-only-one-bug-at-a-time)).
+
+</details>
 
 ### Optional: Reproducing indirect bugs (~1 hour)
 Optionally, if you also want to reproduce the 8 indirect bugs, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_indirect_bugs.md.
