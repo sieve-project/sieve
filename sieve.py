@@ -663,13 +663,13 @@ def run(
     return test_result, test_context
 
 
-def run_batch(project, test, dir, mode, stage, docker):
+def run_batch(project, test, dir, mode, stage, test_plan_folder, docker):
     assert stage == sieve_stages.TEST, "batch mode only allowed in test stage"
-    test_plan_dir = os.path.join(
-        "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE, mode
+    assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
+        test_plan_folder
     )
-    test_plans = glob.glob(os.path.join(test_plan_dir, "*.yaml"))
-    test_plans.sort(key=lambda test_plan: test_plan.split("-")[-1].split(".")[0])
+    test_plans = glob.glob(os.path.join(test_plan_folder, "*.yaml"))
+    # test_plans.sort(key=lambda test_plan: test_plan.split("-")[-1].split(".")[0])
     print("Test plans to run:")
     print("\n".join(test_plans))
     for test_plan in test_plans:
@@ -817,6 +817,7 @@ if __name__ == "__main__":
             options.log,
             options.mode,
             options.stage,
+            options.config,
             options.docker,
         )
     else:
