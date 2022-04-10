@@ -184,8 +184,8 @@ python3 reproduce_bugs.py -p casskop-operator -b stale-state-2
 
 Reproducing a single bug can take from 5 to 30 minutes.
 
-Note that reproducing a single bug will not update `bug_reproduction_stats.tsv`.
-However, you can check the stdout to see whether the bug is successfully reproduced:
+Note that `bug_reproduction_stats.tsv` will be updated once you run `reproduce_bugs.py` again.
+You can also check the stdout to see whether the bug is successfully reproduced:
 If a bug is reproduced, Sieve will detect common errors/end state inconsistencies/history inconsistencies like:
 ```
 XXX common errors as follows

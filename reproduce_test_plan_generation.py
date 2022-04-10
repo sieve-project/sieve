@@ -35,7 +35,7 @@ controllers_to_check = {
 }
 
 
-def generate_test_plan_stat(log, controller, docker, phase, times):
+def generate_test_plan_stat(log, controller, docker, phase, times, skip):
     mode = ""
     if times == "once":
         mode = "learn-once"
@@ -61,8 +61,11 @@ def generate_test_plan_stat(log, controller, docker, phase, times):
                 )
             )
             cprint(sieve_cmd, bcolors.OKGREEN)
-            os.system(sieve_cmd)
-            time.sleep(10)
+            if not skip:
+                os.system(sieve_cmd)
+                time.sleep(10)
+            else:
+                cprint("skip this command", bcolors.OKGREEN)
     stats_map = {}
     for controller in controllers:
         stats_map[controller] = {
@@ -159,12 +162,28 @@ if __name__ == "__main__":
         default=common_config.docker_registry,
     )
 
+    parser.add_option(
+        "-s",
+        "--skip",
+        dest="skip",
+        action="store_true",
+        help="SKIP running Sieve",
+        metavar="DOCKER",
+        default=False,
+    )
+
     (options, args) = parser.parse_args()
 
     if options.project is None:
         parser.error("parameter project required")
 
-    os.system("rm -rf sieve_learn_results")
+    if not options.skip:
+        os.system("rm -rf sieve_learn_results")
     generate_test_plan_stat(
-        options.log, options.project, options.docker, options.phase, options.times
+        options.log,
+        options.project,
+        options.docker,
+        options.phase,
+        options.times,
+        options.skip,
     )

@@ -181,7 +181,7 @@ reprod_map = {
 }
 
 
-def reproduce_single_bug(operator, bug, docker, phase):
+def reproduce_single_bug(operator, bug, docker, phase, skip):
     before_reproduce = None
     after_reproduce = None
     if len(reprod_map[operator][bug]) >= 3 and reprod_map[operator][bug][2] is not None:
@@ -199,7 +199,10 @@ def reproduce_single_bug(operator, bug, docker, phase):
         phase,
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
-    os.system(sieve_cmd)
+    if not skip:
+        os.system(sieve_cmd)
+    else:
+        cprint("skip this command", bcolors.OKGREEN)
     if after_reproduce is not None:
         after_reproduce()
     test_result_file = "sieve_test_results/{}-{}-{}.json".format(
@@ -219,14 +222,15 @@ def reproduce_single_bug(operator, bug, docker, phase):
         return {"reproduced": False, "test-result-file": test_result_file}
 
 
-def reproduce_bug(operator, bug, docker, phase):
+def reproduce_bug(operator, bug, docker, phase, skip):
     stats_map = {}
     if bug == "all":
         for b in reprod_map[operator]:
             if "indirect" in b:
                 continue
-            stats_map[b] = reproduce_single_bug(operator, b, docker, phase)
-            time.sleep(10)
+            stats_map[b] = reproduce_single_bug(operator, b, docker, phase, skip)
+            if not skip:
+                time.sleep(10)
     elif (
         bug == "intermediate-state"
         or bug == "unobserved-state"
@@ -235,10 +239,11 @@ def reproduce_bug(operator, bug, docker, phase):
     ):
         for b in reprod_map[operator]:
             if b.startswith(bug):
-                stats_map[b] = reproduce_single_bug(operator, b, docker, phase)
-                time.sleep(10)
+                stats_map[b] = reproduce_single_bug(operator, b, docker, phase, skip)
+                if not skip:
+                    time.sleep(10)
     else:
-        stats_map[bug] = reproduce_single_bug(operator, bug, docker, phase)
+        stats_map[bug] = reproduce_single_bug(operator, bug, docker, phase, skip)
     return stats_map
 
 
@@ -281,6 +286,16 @@ if __name__ == "__main__":
         default=common_config.docker_registry,
     )
 
+    parser.add_option(
+        "-s",
+        "--skip",
+        dest="skip",
+        action="store_true",
+        help="SKIP running Sieve",
+        metavar="DOCKER",
+        default=False,
+    )
+
     (options, args) = parser.parse_args()
 
     if options.project is None:
@@ -289,38 +304,27 @@ if __name__ == "__main__":
     if options.bug is None and options.project != "all":
         parser.error("parameter bug required")
 
-    if options.bug in [
-        "all",
-        "intermediate-state",
-        "unobserved-state",
-        "stale-state",
-        "indirect",
-    ]:
+    if not options.skip:
         os.system("rm -rf sieve_test_results")
+
     stats_map = {}
     if options.project == "all":
         for operator in reprod_map:
             stats_map[operator] = reproduce_bug(
-                operator, options.bug, options.docker, options.phase
+                operator, options.bug, options.docker, options.phase, options.skip
             )
     else:
         stats_map[options.project] = reproduce_bug(
-            options.project, options.bug, options.docker, options.phase
+            options.project, options.bug, options.docker, options.phase, options.skip
         )
-    if options.bug in [
-        "all",
-        "intermediate-state",
-        "unobserved-state",
-        "stale-state",
-        "indirect",
-    ]:
-        table = "controller\tbug\treproduced\ttest-result-file\n"
-        for controller in stats_map:
-            for bug in stats_map[controller]:
-                table += "{}\t{}\t{}\t{}\n".format(
-                    controller,
-                    bug,
-                    stats_map[controller][bug]["reproduced"],
-                    stats_map[controller][bug]["test-result-file"],
-                )
-        open("bug_reproduction_stats.tsv", "w").write(table)
+
+    table = "controller\tbug\treproduced\ttest-result-file\n"
+    for controller in stats_map:
+        for bug in stats_map[controller]:
+            table += "{}\t{}\t{}\t{}\n".format(
+                controller,
+                bug,
+                stats_map[controller][bug]["reproduced"],
+                stats_map[controller][bug]["test-result-file"],
+            )
+    open("bug_reproduction_stats.tsv", "w").write(table)
