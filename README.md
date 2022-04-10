@@ -257,9 +257,12 @@ zookeeper-operator	38028	14533	2712	164
 <details>
   <summary>Click to expand!</summary>
 
-You might find the numbers above are slightly different from the ones we presented in Figure 8 in paper.
-The reason is that we are using the most recent code base and controller traces for this artifact evaluation,
-and Sieve has been improved a lot by adding features and fixing bugs since the OSDI submission.
+You can find the numbers above are slightly different from the ones we presented in Figure 8 in paper.
+There are two reasons:
+(1) Controller traces are inherently nondeterministic (e.g., event order and number can change across different runs) and
+we use the most recently generated controller traces for the artifact evaluation,
+(2) We have been improving Sieve (including the component for generating/reducing test plans) since the OSDI submission and
+we use the most recent code base for the artifact evaluation.
 
 We will also use the most recent numbers in the camera-ready version.
 

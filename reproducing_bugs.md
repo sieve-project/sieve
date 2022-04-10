@@ -116,15 +116,15 @@ State-update summaries inconsistency: persistentvolumeclaim/default/mongod-data-
 #### stale-state-2: [percona-server-mongodb-operator-433](https://jira.percona.com/browse/K8SPSMDB-433)
 The `sieve_test_results/mongodb-operator-disable-enable-shard-mongodb-operator-stale-state-2.yaml.json` is supposed to contain the following error in its `detected_errors` field:
 ```
-State-update summaries inconsistency: pod/default/mongodb-cluster-cfg-0 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
-State-update summaries inconsistency: pod/default/mongodb-cluster-cfg-0 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
+State-update summaries inconsistency: statefulset/default/mongodb-cluster-cfg ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
+State-update summaries inconsistency: statefulset/default/mongodb-cluster-cfg DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
 ```
 
 #### stale-state-3: [percona-server-mongodb-operator-438](https://jira.percona.com/browse/K8SPSMDB-438)
 The `sieve_test_results/mongodb-operator-disable-enable-arbiter-mongodb-operator-stale-state-3.yaml.json` is supposed to contain the following error in its `detected_errors` field:
 ```
-State-update summaries inconsistency: pod/default/mongodb-cluster-rs0-arbiter-0 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
-State-update summaries inconsistency: pod/default/mongodb-cluster-rs0-arbiter-0 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
+State-update summaries inconsistency: statefulset/default/mongodb-cluster-rs0-arbiter ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
+State-update summaries inconsistency: statefulset/default/mongodb-cluster-rs0-arbiter DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
 ```
 
 #### unobserved-state-1: [percona-server-mongodb-operator-585](https://jira.percona.com/browse/K8SPSMDB-585)
@@ -154,8 +154,8 @@ End state inconsistency - object field has a different value: persistentvolumecl
 #### stale-state-1: [rabbitmq-cluster-operator-648](https://github.com/rabbitmq/cluster-operator/issues/648)
 The `sieve_test_results/rabbitmq-operator-recreate-rabbitmq-operator-stale-state-1.yaml.json` is supposed to contain the following error in its `detected_errors` field:
 ```
-State-update summaries inconsistency: pod/default/rabbitmq-cluster-server-0 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
-State-update summaries inconsistency: pod/default/rabbitmq-cluster-server-0 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
+State-update summaries inconsistency: statefulset/default/rabbitmq-cluster-server ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
+State-update summaries inconsistency: statefulset/default/rabbitmq-cluster-server DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
 ```
 
 #### stale-state-2: [rabbitmq-cluster-operator-653](https://github.com/rabbitmq/cluster-operator/issues/653)
@@ -191,22 +191,22 @@ Note that the randomly generated secret name (e.g., `secret/default/percona-xtra
 #### stale-state-1: [percona-xtradb-cluster-operator-716](https://jira.percona.com/browse/K8SPXC-716)
 The `sieve_test_results/xtradb-operator-recreate-xtradb-operator-stale-state-1.yaml.json` is supposed to contain the following error in its `detected_errors` field:
 ```
-State-update summaries inconsistency: persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-0 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
-State-update summaries inconsistency: persistentvolumeclaim/default/datadir-xtradb-cluster-pxc-0 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
+State-update summaries inconsistency: statefulset/default/xtradb-cluster-pxc ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
+State-update summaries inconsistency: statefulset/default/xtradb-cluster-pxc DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
 ```
 
 #### stale-state-2: [percona-xtradb-cluster-operator-725](https://jira.percona.com/browse/K8SPXC-725)
 The `sieve_test_results/xtradb-operator-disable-enable-haproxy-xtradb-operator-stale-state-2.yaml.json` is supposed to contain the following error in its `detected_errors` field:
 ```
-State-update summaries inconsistency: pod/default/xtradb-cluster-haproxy-0 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
-State-update summaries inconsistency: pod/default/xtradb-cluster-haproxy-0 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
+State-update summaries inconsistency: statefulset/default/xtradb-cluster-haproxy ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
+State-update summaries inconsistency: statefulset/default/xtradb-cluster-haproxy DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
 ```
 
 #### stale-state-3: [percona-xtradb-cluster-operator-763](https://jira.percona.com/browse/K8SPXC-763)
 The `sieve_test_results/xtradb-operator-disable-enable-proxysql-xtradb-operator-stale-state-3.yaml.json` is supposed to contain the following error in its `detected_errors` field:
 ```
-State-update summaries inconsistency: pod/default/xtradb-cluster-proxysql-0 ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
-State-update summaries inconsistency: pod/default/xtradb-cluster-proxysql-0 DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
+State-update summaries inconsistency: statefulset/default/xtradb-cluster-proxysql ADDED inconsistency: 2 event(s) seen during reference run, but 3 seen during testing run
+State-update summaries inconsistency: statefulset/default/xtradb-cluster-proxysql DELETED inconsistency: 1 event(s) seen during reference run, but 2 seen during testing run
 ```
 
 #### unobserved-state-1: [percona-xtradb-cluster-operator-918](https://jira.percona.com/browse/K8SPXC-918)
