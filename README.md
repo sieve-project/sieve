@@ -11,14 +11,20 @@ This is the source code repo for "Automatic Reliability Testing for Cluster Mana
 We used a different name (Sonar) for the tool in the paper to be anonymous.
 This branch is for OSDI'2022 artifact evaluation only.
 
-The entire artifact evaluation process can take about 6 hours if the evaluator runs all the basic instructions and inspects the results.
+### Artifact goals
+The instructions will reproduce the key results in Table 3 and Figure 8 in section 5.
+That is, the following instructions will lead you to (1) reproduce the bugs found by Sieve and (2) generate/reduce test plans.
+
+The entire artifact evaluation process can take about 6 hours.
+
 1. [Getting Started Instructions](#getting-started-instructions)
-2. [Detailed Instructions](#detailed-instructions)
+2. [Kick-the-tires Instructions](#kick-the-tires-instructions-5-minutes)
+3. [Full Evaluation Instructions](#full-evaluation-instructions-6-hours)
 
 
 ## Getting Started Instructions
 
-**We strongly recommend you to use the VM provided by us. This is the VM we used for our evaluation. We have set up the environment and installed all the dependencies on the VM so you can just go ahead to reproduce the results.**
+**We strongly encourage you to use the VMs provided by us. These are the VMs we used in our evaluation. We have set up the environment and installed all the dependencies on the VM so you can just go ahead to reproduce the results.**
 
 **Note that all the following instructions assume there is only one user running the commands on one machine. Please coordinate between each other to make sure you are not running the commands one the same machine at the same time.**
 
@@ -69,13 +75,14 @@ If all the requirements are met, you will see
 ```
 </details>
 
-### Run a simple example (~5 minutes)
+## Kick-the-tires Instructions (~5 minutes)
+
 We prepared a simple example (i.e., reproducing a bug found by Sieve) to help detect any obvious problem during the kick-the-tires phase.
 Please run the following command:
 ```
 python3 sieve.py -p rabbitmq-operator -c bug_reproduction_test_plans/rabbitmq-operator-intermediate-state-1.yaml
 ```
-It will take about 5 minutes to finish and you will see
+It will take about 5 minutes to finish and the expected output is
 ```
 2 detected end state inconsistencies as follows
 End state inconsistency - object field has a different value: persistentvolumeclaim/default/persistence-rabbitmq-cluster-server-0["spec"]["resources"]["requests"]["storage"] is 15Gi after reference run, but 10Gi after testing run
@@ -86,47 +93,29 @@ Sieve restarts the controller rabbitmq-operator when the trigger expression trig
 trigger1 is satisfied after the controller rabbitmq-operator issues:
 delete statefulset/default/rabbitmq-cluster-server with the 1st occurrence.
 ```
-Otherwise please contact us.
+If you do not see the expected output, please let us know.
 
-## Detailed Instructions
-
-### Artifact goals
-We will reproduce key results from evaluation in section 5.1 and 5.2.
-We will reproduce Table 3 and Figure 8 for Sieve.
-Given we have been improving Sieve since the OSDI submission,
-we will use the most recent code base for the artifact evaluation.
-Thus, some numbers obtained from the artifact evaluation (e.g., absolute number of test plans) 
-can be slightly different from the numbers in the paper we submitted.
-We will use the most recent numbers in the camera-ready version.
+## Full Evaluation Instructions (~6 hours)
 
 ### Overview
 The entire process of testing a controller with Sieve consists of two steps:
 1. generating test plans
 2. executing test plans
 
-For step 2, we provide instructions to evaluate it in [Reproducing all the 31 intermediate-, stale-, and unobservable-state bugs (~5 hours)](#reproducing-all-the-31-intermediate--stale--and-unobservable-state-bugs-5-hours) by executing test plans to reproduce the 31  intermediate-, stale-, and unobservable-state bugs. This will reproduce the results in Table 3.
+For step 2, we provide instructions to evaluate it in [Reproducing Table 3 (~5 hours)](#reproducing-table-3-5-hours) by executing test plans to reproduce the 31 intermediate-, stale-, and unobservable-state bugs.
 
-For step 1, we provide instructions to evaluate it in [Generating and reducing test plans (~15 minutes)](#generating-and-reducing-test-plans-15-minutes). This will reproduce the results in Figure 8.
+For step 1, we provide instructions to evaluate it in [Reproducing Figure 8 (~15 minutes)](#reproducing-figure-8-15-minutes) by generating test plans from the controller trace and further reduce the test plans.
 
-### Explanation of important files and folders
-We explain some important files and folders used in artifact evaluation
-* `sieve.py`: This is the script for running the entire testing process of a controller
-* `reproduce_bugs.py`: It calls `sieve.py` to reproduce bugs found by Sieve.
-* `reproduce_test_plan_generation.py`: It calls `sieve.py` to generate the test plans used for finding bugs.
-* `bug_reproduction_test_plans/`: It contains all the test plans used for reproducing the bugs found by Sieve; The test plans are used by `reproduce_bugs.py`
-* `log_for_learning/`: It contains all the controller trace files used for generating the test plans
+Optionally, you can also (1) reproduce the 8 indirect bugs and (2) generate controller trace by following the instructions we provide here: https://github.com/sieve-project/sieve/blob/osdi-ae/optional.md.
 
-### Reproducing all the 31 intermediate-, stale-, and unobservable-state bugs (~5 hours)
-We listed all the 31 intermediate-, stale-, and unobservable-state bugs and 8 indirect bugs (in total 39) here: https://github.com/sieve-project/sieve/blob/osdi-ae/bugs.md.
+### Reproducing Table 3 (~5 hours)
 
-We prepared all the test plans (generated by Sieve) that can consistently reproduce the 31 intermediate-, stale-, and unobservable-state bugs in the `bug_reproduction_test_plans` folder.
-We also prepared the `reproduce_bugs.py` script to make it convenient to reproduce all the bugs in one run.
-To reproduce all the bugs, run
+To reproduce the 31 intermediate-, stale-, and unobservable-state bugs in Table 3, please run
 ```
 python3 reproduce_bugs.py
 ```
 It will take about 5 hours to finish.
-After it finishes, you will find a `bug_reproduction_stats.tsv`:
+After it finishes, you will find a `bug_reproduction_stats.tsv` with the expected content as follows:
 ```
 controller	bug	reproduced	test-result-file
 cass-operator	intermediate-state-1	True	sieve_test_results/cass-operator-recreate-cass-operator-intermediate-state-1.yaml.json
@@ -228,18 +217,14 @@ The failure is transient so you can just reproduce that particular bug again (pl
 
 </details>
 
-### Optional: Reproducing indirect bugs (~1 hour)
-Optionally, if you also want to reproduce the 8 indirect bugs, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_indirect_bugs.md.
+### Reproducing Figure 8 (~15 minutes)
 
-### Generating and reducing test plans (~15 minutes)
-Sieve automatically generates test plans from the controller trace.
-We prepared all the controller trace generated in our most recent evaluation.
-To generate test plans from the controller trace, run
+To generate test plans from the controller trace and further reduce them as shown in Figure 8, please run
 ```
 python3 reproduce_test_plan_generation.py
 ```
 It will take about 15 minutes to finish.
-After it finishes, you will find a `test_plan_stats.tsv`:
+After it finishes, you will find a `test_plan_stats.tsv` with the expected content as follows:
 ```
 controller	baseline	prune-by-causality	prune-updates	deterministic-timing
 cass-operator	2664	415	415	218
@@ -267,14 +252,3 @@ we use the most recent code base for the artifact evaluation.
 We will also use the most recent numbers in the camera-ready version.
 
 </details>
-
-### Optional: Generating controller trace and test plans (~8 hours)
-Optionally, you can run the test workload to generate the trace and further generate and reduce the test plans by running
-```
-python3 reproduce_test_plan_generation.py --log=log --phase=all --times=twice
-```
-It will take about 8 hours.
-
-The `test_plan_stats.tsv` generated can be slightly different as the controller traces are naturally nondeterministic.
-For example, the number of events received by a controller can be different across different runs,
-which will affect the number of generated test plans slightly.
