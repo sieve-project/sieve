@@ -1,6 +1,6 @@
 # Reproducing indirect bugs
 
-For each reproduced bug, you will see a test result json file as shown in the last column of `bug_reproduction_stats.tsv`.
+For each reproduced bug, you will see a test result json file as shown in the last column of `bug_reproduction_stats.tsv` (e.g., `sieve_test_results/cassandra-operator-scaledown-scaleup-cassandra-operator-indirect-1.yaml.json`).
 This json file contains the errors detected by Sieve (see the `detected_errors` field).
 The errors can be common errors (like timeout) and inconsistencies detected by the differential oracles.
 We present the expected errors caused by each bug below to help you evaluate whether the bug is correctly reproduced.

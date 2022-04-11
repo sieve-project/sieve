@@ -151,8 +151,7 @@ zookeeper-operator	stale-state-1	True	sieve_test_results/zookeeper-operator-recr
 zookeeper-operator	stale-state-2	True	sieve_test_results/zookeeper-operator-scaledown-scaleup-zookeeper-operator-stale-state-2.yaml.json
 ```
 
-The last column of the tsv file points to the test result json file of each bug reproduction.
-To verify whether each bug is correctly reproduced, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_bugs.md for more detailed information.
+Optionally, you can refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_bugs.md for more detailed information about reproducing each bug.
 
 #### What if I want to reproduce only one bug at a time?
 <details>
