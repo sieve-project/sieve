@@ -45,7 +45,7 @@ and follow the instructions to evaluate the artifact.
 
 ### Pre-requisites (skip this if using the VM provided by us):
 <details>
-  <summary>Click to expand!</summary>
+  <summary>Click to expand</summary>
 
 * A Linux system with Docker support
 * [python3](https://www.python.org/downloads/) installed
@@ -156,7 +156,7 @@ To verify whether each bug is correctly reproduced, please refer to https://gith
 
 #### What if I want to reproduce only one bug at a time?
 <details>
-  <summary>Click to expand!</summary>
+  <summary>Click to expand</summary>
 
 If you want to reproduce only one bug, run
 ```
@@ -196,7 +196,7 @@ Please refer to XXX for more detailed information
 
 #### What if I find some of the bugs is not reproduced (i.e., the `reproduced` column is `False`)?
 <details>
-  <summary>Click to expand!</summary>
+  <summary>Click to expand</summary>
 
 If you find some of the bug is not reproduced,
 please check whether the corresponding `test-result-file` contains a non-empty `exception_message` field similar as below:
@@ -240,7 +240,7 @@ zookeeper-operator	38028	14533	2712	164
 
 #### Why are the numbers slightly different from the ones presented in Figure 8 in paper?
 <details>
-  <summary>Click to expand!</summary>
+  <summary>Click to expand</summary>
 
 You can find the numbers above are slightly different from the ones we presented in Figure 8 in paper.
 There are two reasons:
