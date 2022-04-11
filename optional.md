@@ -21,7 +21,7 @@ zookeeper-operator	indirect-1	True	sieve_test_results/zookeeper-operator-recreat
 
 Note that it is normal to see some of the bugs are not reproduced by a single run because Sieve does NOT guarantee to consistently reproduce the 8 indirect bugs as we claimed in the paper.
 
-To verify whether each bug is correctly reproduced, please refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_indirect_bugs.md for more detailed information.
+Optionally, you can refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_indirect_bugs.md for more detailed information about reproducing each bug.
 
 ### Optional: Generating controller trace and test plans (~8 hours)
 To generate the controller trace (by running the test workloads) and further generate and reduce the test plans from the trace, please run
