@@ -169,7 +169,7 @@ zookeeper-operator	0	2	0
 Total	8	17	6
 ```
 
-Note that you will not lose your previous `sieve_test_results/`, `bug_reproduction_stats.tsv` and `table3.tsv` when rerunning `python3 reproduce_bugs.py`: They will be backed up with a local timestamp. For example, `bug_reproduction_stats.tsv` to `bug_reproduction_stats.2022-04-14-16-26-06.tsv`.
+Note that you will not lose your previous `sieve_test_results/`, `bug_reproduction_stats.tsv` and `table3.tsv` if you rerun `python3 reproduce_bugs.py`: They will be backed up with a local timestamp. For example, `bug_reproduction_stats.tsv` to `bug_reproduction_stats.2022-04-14-16-26-06.tsv`.
 
 Optionally, you can refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_bugs.md for more detailed information about reproducing each bug.
 
@@ -260,7 +260,7 @@ zookeeper-operator	38028	14533	2712	164
 ```
 And the `fig8.pdf` should look like [this figure](https://github.com/sieve-project/sieve/blob/osdi-ae/expected_fig/fig8.pdf).
 
-Note that you will not lose your previous `test_plan_stats.tsv` and `fig8.pdf` when rerunning `python3 reproduce_test_plan_generation.py`: They will be backed up with a local timestamp. For example, `test_plan_stats.tsv` to `test_plan_stats.2022-04-14-16-26-06.tsv`.
+Note that you will not lose your previous `test_plan_stats.tsv` and `fig8.pdf` if you rerun `python3 reproduce_test_plan_generation.py`: They will be backed up with a local timestamp. For example, `test_plan_stats.tsv` to `test_plan_stats.2022-04-14-16-26-06.tsv`.
 
 #### Why are the numbers slightly different from the ones presented in Figure 8 in paper?
 <details>
