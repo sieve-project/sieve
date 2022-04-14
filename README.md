@@ -102,7 +102,7 @@ The entire process of testing a controller with Sieve consists of two steps:
 1. generating test plans
 2. executing test plans
 
-For step 2, we provide instructions to evaluate it in [Reproducing Table 3 (~5 hours)](#reproducing-table-3-5-hours) by executing test plans to reproduce the 31 intermediate-, stale-, and unobservable-state bugs.
+For step 2, we provide instructions to evaluate it in [Reproducing Table 3 (~5 hours)](#reproducing-table-3-5-hours) by executing test plans to reproduce the 31 intermediate-, stale-, and unobserved-state bugs.
 
 For step 1, we provide instructions to evaluate it in [Reproducing Figure 8 (~15 minutes)](#reproducing-figure-8-15-minutes) by generating test plans from the controller trace and further reduce the test plans.
 
@@ -112,7 +112,7 @@ We suggest starting the long-running experiments (that take hours to finish) in 
 
 ### Reproducing Table 3 (~5 hours)
 
-To reproduce the 31 intermediate-, stale-, and unobservable-state bugs in Table 3, please run
+To reproduce the 31 intermediate-, stale-, and unobserved-state bugs in Table 3, please execute the 31 test plans by running
 ```
 python3 reproduce_bugs.py
 ```
