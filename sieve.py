@@ -250,20 +250,27 @@ def setup_kind_cluster(test_context: TestContext):
         + "-"
         + test_context.docker_tag
     )
-
-    cmd_early_exit(
-        "kind create cluster --image %s/node:%s --config %s"
-        % (k8s_docker_repo, k8s_docker_tag, kind_config)
-    )
-    cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
-    )
+    retry_cnt = 0
+    while retry_cnt < 5:
+        try:
+            cmd_early_exit("kind delete cluster")
+            # sleep here in case if the machine is slow and kind cluster deletion is not done before creating a new cluster
+            time.sleep(5 + 10 * retry_cnt)
+            retry_cnt += 1
+            print("try to create kind cluster; retry count {}".format(retry_cnt))
+            cmd_early_exit(
+                "kind create cluster --image %s/node:%s --config %s"
+                % (k8s_docker_repo, k8s_docker_tag, kind_config)
+            )
+            cmd_early_exit(
+                "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
+            )
+            return
+        except Exception:
+            print(traceback.format_exc())
 
 
 def setup_cluster(test_context: TestContext):
-    cmd_early_exit("kind delete cluster")
-    # sleep here in case if the machine is slow and deletion is not done before creating a new cluster
-    time.sleep(5)
     setup_kind_cluster(test_context)
     print("\n\n")
 

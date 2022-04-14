@@ -153,6 +153,29 @@ zookeeper-operator	stale-state-2	True	sieve_test_results/zookeeper-operator-scal
 
 Optionally, you can refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_bugs.md for more detailed information about reproducing each bug.
 
+#### What if I find some of the bugs is not reproduced (i.e., the `reproduced` column is `False`)?
+<details>
+  <summary>Click to expand</summary>
+
+If you find some of the bug is not reproduced,
+please check whether the corresponding `test-result-file` contains a non-empty `exception_message` field similar as below:
+```
+Traceback (most recent call last):
+  File \"sieve.py\", line 557, in run_test
+      setup_cluster(test_context)
+  File \"sieve.py\", line 274, in setup_cluster
+      setup_kind_cluster(test_context)
+  File \"sieve.py\", line 261, in setup_kind_cluster
+      cmd_early_exit(
+  File \"/home/ubuntu/osdi-ae/sieve/sieve_common/common.py\", line 167, in cmd_early_exit
+    raise Exception(
+Exception: Failed to execute kind create cluster --image ghcr.io/sieve-project/action/node:v1.18.9-test --config kind_configs/kind-3a-2w.yaml with return code 1
+```
+If so, it means the [kind cluster](https://kind.sigs.k8s.io/) that Sieve relies on accidentally crashes.
+The failure is transient so you can just reproduce that particular bug again (please refer to [What if I want to reproduce only one bug at a time?](#what-if-i-want-to-reproduce-only-one-bug-at-a-time)).
+
+</details>
+
 #### What if I want to reproduce only one bug at a time?
 <details>
   <summary>Click to expand</summary>
@@ -190,29 +213,6 @@ You can also refer to the newly generated `test-result-file` hinted by
 ```
 Please refer to XXX for more detailed information
 ```
-
-</details>
-
-#### What if I find some of the bugs is not reproduced (i.e., the `reproduced` column is `False`)?
-<details>
-  <summary>Click to expand</summary>
-
-If you find some of the bug is not reproduced,
-please check whether the corresponding `test-result-file` contains a non-empty `exception_message` field similar as below:
-```
-Traceback (most recent call last):
-  File \"sieve.py\", line 550, in run_test
-      setup_cluster(test_context)
-  File \"sieve.py\", line 267, in setup_cluster
-      setup_kind_cluster(test_context)
-  File \"sieve.py\", line 254, in setup_kind_cluster
-      cmd_early_exit(
-  File \"/home/ubuntu/osdi-ae/sieve/sieve_common/common.py\", line 167, in cmd_early_exit
-    raise Exception(
-Exception: Failed to execute kind create cluster --image ghcr.io/sieve-project/action/node:v1.18.9-test --config kind_configs/kind-3a-2w.yaml with return code 1
-```
-If so, it means the [kind cluster](https://kind.sigs.k8s.io/) that Sieve relies on accidentally crashes.
-The failure is transient so you can just reproduce that particular bug again (please refer to [What if I want to reproduce only one bug at a time?](#what-if-i-want-to-reproduce-only-one-bug-at-a-time)).
 
 </details>
 

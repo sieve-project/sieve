@@ -2,7 +2,6 @@ import optparse
 from sieve_common.default_config import get_common_config
 import os
 import json
-import time
 from sieve_common.common import cprint, bcolors
 
 
@@ -229,8 +228,6 @@ def reproduce_bug(operator, bug, docker, phase, skip):
             if "indirect" in b:
                 continue
             stats_map[b] = reproduce_single_bug(operator, b, docker, phase, skip)
-            if not skip:
-                time.sleep(10)
     elif (
         bug == "intermediate-state"
         or bug == "unobserved-state"
@@ -240,8 +237,6 @@ def reproduce_bug(operator, bug, docker, phase, skip):
         for b in reprod_map[operator]:
             if b.startswith(bug):
                 stats_map[b] = reproduce_single_bug(operator, b, docker, phase, skip)
-                if not skip:
-                    time.sleep(10)
     else:
         stats_map[bug] = reproduce_single_bug(operator, bug, docker, phase, skip)
     return stats_map

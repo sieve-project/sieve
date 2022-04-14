@@ -1,7 +1,6 @@
 import os
 import json
 import optparse
-import time
 from sieve_common.default_config import get_common_config
 from sieve_common.common import cprint, bcolors
 
@@ -63,7 +62,6 @@ def generate_test_plan_stat(log, controller, docker, phase, times, skip):
             cprint(sieve_cmd, bcolors.OKGREEN)
             if not skip:
                 os.system(sieve_cmd)
-                time.sleep(10)
             else:
                 cprint("skip this command", bcolors.OKGREEN)
     stats_map = {}
