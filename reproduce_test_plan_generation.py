@@ -111,8 +111,15 @@ def generate_test_plan_stat(log, controller, docker, phase, times, skip):
             stats_map[controller]["final"],
         )
     open("test_plan_stats.tsv", "w").write(table)
-    os.system("cp test_plan_stats.tsv test_plan_stats.{}.tsv".format(time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())))
 
+def backup_old_results():
+    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+    if os.path.exists("sieve_learn_results"):
+        os.system("cp -r sieve_learn_results/ sieve_learn_results.{}/".format(timestamp))
+    if os.path.exists("test_plan_stats.tsv"):
+        os.system("cp test_plan_stats.tsv test_plan_stats.{}.tsv".format(timestamp))
+    if os.path.exists("fig8.pdf"):
+        os.system("cp fig8.pdf fig8.{}.pdf".format(timestamp))
 
 if __name__ == "__main__":
     common_config = get_common_config()
@@ -176,6 +183,8 @@ if __name__ == "__main__":
 
     if options.project is None:
         parser.error("parameter project required")
+
+    backup_old_results()
 
     if not options.skip:
         os.system("rm -rf sieve_learn_results")

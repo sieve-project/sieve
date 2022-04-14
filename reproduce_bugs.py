@@ -285,6 +285,14 @@ def generate_table3():
         table += "Total\t{}\t{}\t{}\n".format(is_cnt, ss_cnt, us_cnt)
         open("table3.tsv", "w").write(table)
 
+def backup_old_results():
+    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+    if os.path.exists("sieve_test_results"):
+        os.system("cp -r sieve_test_results/ sieve_test_results.{}/".format(timestamp))
+    if os.path.exists("bug_reproduction_stats.tsv"):
+        os.system("cp bug_reproduction_stats.tsv bug_reproduction_stats.{}.tsv".format(timestamp))
+    if os.path.exists("table3.tsv"):
+        os.system("cp table3.tsv table3.{}.tsv".format(timestamp))
 
 if __name__ == "__main__":
     common_config = get_common_config()
@@ -343,6 +351,8 @@ if __name__ == "__main__":
     if options.bug is None and options.project != "all":
         parser.error("parameter bug required")
 
+    backup_old_results()
+
     if not options.skip:
         os.system("rm -rf sieve_test_results")
 
@@ -367,6 +377,5 @@ if __name__ == "__main__":
                 stats_map[controller][bug]["test-result-file"],
             )
     open("bug_reproduction_stats.tsv", "w").write(table)
-    os.system("cp bug_reproduction_stats.tsv bug_reproduction_stats.{}.tsv".format(time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())))
     if options.project == "all" and options.bug == "all":
         generate_table3()
