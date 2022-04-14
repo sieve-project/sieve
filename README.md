@@ -254,9 +254,7 @@ zookeeper-operator	38028	14533	2712	164
 ```
 And the `fig8.pdf` should look like this:
 
-<p align="center">
-  <img src="https://github.com/sieve-project/sieve/blob/osdi-ae/expected_fig/fig8.pdf"  width="70%"/>
-</p>
+<embed src="https://github.com/sieve-project/sieve/blob/osdi-ae/expected_fig/fig8.pdf" type="application/pdf">
 
 #### Why are the numbers slightly different from the ones presented in Figure 8 in paper?
 <details>
