@@ -1,6 +1,7 @@
 import os
 import json
 import optparse
+import time
 from sieve_common.default_config import get_common_config
 from sieve_common.common import cprint, bcolors
 
@@ -110,6 +111,7 @@ def generate_test_plan_stat(log, controller, docker, phase, times, skip):
             stats_map[controller]["final"],
         )
     open("test_plan_stats.tsv", "w").write(table)
+    os.system("cp test_plan_stats.tsv test_plan_stats.{}.tsv".format(time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())))
 
 
 if __name__ == "__main__":
@@ -185,3 +187,5 @@ if __name__ == "__main__":
         options.times,
         options.skip,
     )
+    if options.project == "all":
+        os.system("python3 plot.py")

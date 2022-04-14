@@ -2,6 +2,7 @@ import optparse
 from sieve_common.default_config import get_common_config
 import os
 import json
+import time
 from sieve_common.common import cprint, bcolors
 
 
@@ -323,3 +324,4 @@ if __name__ == "__main__":
                 stats_map[controller][bug]["test-result-file"],
             )
     open("bug_reproduction_stats.tsv", "w").write(table)
+    os.system("cp bug_reproduction_stats.tsv bug_reproduction_stats.{}.tsv".format(time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())))
