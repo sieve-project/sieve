@@ -115,7 +115,8 @@ To reproduce the 31 intermediate-, stale-, and unobservable-state bugs in Table 
 python3 reproduce_bugs.py
 ```
 It will take about 5 hours to finish.
-After it finishes, you will find a `bug_reproduction_stats.tsv` with the expected content as follows:
+After it finishes, you will find a `bug_reproduction_stats.tsv` and a `table3.tsv`.
+The `bug_reproduction_stats.tsv` should look like this:
 ```
 controller	bug	reproduced	test-result-file
 cass-operator	intermediate-state-1	True	sieve_test_results/cass-operator-recreate-cass-operator-intermediate-state-1.yaml.json
@@ -149,6 +150,20 @@ yugabyte-operator	stale-state-2	True	sieve_test_results/yugabyte-operator-disabl
 yugabyte-operator	unobserved-state-1	True	sieve_test_results/yugabyte-operator-scaleup-scaledown-tserver-yugabyte-operator-unobserved-state-1.yaml.json
 zookeeper-operator	stale-state-1	True	sieve_test_results/zookeeper-operator-recreate-zookeeper-operator-stale-state-1.yaml.json
 zookeeper-operator	stale-state-2	True	sieve_test_results/zookeeper-operator-scaledown-scaleup-zookeeper-operator-stale-state-2.yaml.json
+```
+And the `table3.tsv` should look like this:
+```
+Controller	Intermediate-State	Stale-State	Unobserved-State
+cass-operator	1	1	0
+cassandra-operator	0	2	1
+casskop	1	2	1
+mongodb-operator	2	3	1
+nifikop	1	0	0
+rabbitmq-operator	1	2	1
+xtradb-operator	2	3	1
+yugabyte-operator	0	2	1
+zookeeper-operator	0	2	0
+Total	8	17	6
 ```
 
 Optionally, you can refer to https://github.com/sieve-project/sieve/blob/osdi-ae/reproducing_bugs.md for more detailed information about reproducing each bug.
@@ -223,7 +238,8 @@ To generate test plans from the controller trace and further reduce them as show
 python3 reproduce_test_plan_generation.py
 ```
 It will take about 15 minutes to finish.
-After it finishes, you will find a `test_plan_stats.tsv` with the expected content as follows:
+After it finishes, you will find a `test_plan_stats.tsv` and a `fig8.pdf`.
+The `test_plan_stats.tsv` should look like this:
 ```
 controller	baseline	prune-by-causality	prune-updates	deterministic-timing
 cass-operator	2664	415	415	218
@@ -236,6 +252,11 @@ xtradb-operator	3944	3404	416	395
 yugabyte-operator	1414	970	294	196
 zookeeper-operator	38028	14533	2712	164
 ```
+And the `fig8.pdf` should look like this:
+
+<p align="center">
+  <img src="https://github.com/sieve-project/sieve/blob/osdi-ae/expected_fig/fig8.pdf"  width="70%"/>
+</p>
 
 #### Why are the numbers slightly different from the ones presented in Figure 8 in paper?
 <details>
