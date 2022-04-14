@@ -242,6 +242,49 @@ def reproduce_bug(operator, bug, docker, phase, skip):
         stats_map[bug] = reproduce_single_bug(operator, bug, docker, phase, skip)
     return stats_map
 
+def generate_table3():
+    bug_stats = {}
+    f = open("bug_reproduction_stats.tsv")
+    f.readline()
+    is_cnt = 0
+    ss_cnt = 0
+    us_cnt = 0
+    for line in f.readlines():
+        tokens = line.strip().split("\t")
+        controller = tokens[0]
+        bug = tokens[1]
+        if controller not in bug_stats:
+            bug_stats[controller] = {
+                "intermediate-state" : 0,
+                "stale-state": 0,
+                "unobserved-state": 0,
+            }
+        if bug.startswith("intermediate-state"):
+            bug_stats[controller]["intermediate-state"] += 1
+            is_cnt += 1
+        elif bug.startswith("stale-state"):
+            bug_stats[controller]["stale-state"] += 1
+            ss_cnt += 1
+        elif bug.startswith("unobserved-state"):
+            bug_stats[controller]["unobserved-state"] += 1
+            us_cnt += 1
+        table = "Controller\tIntermediate-State\tStale-State\tUnobserved-State\n"
+        for controller in bug_stats:
+            controller_in_table = controller
+            # handle the naming incompability between script and the paper
+            # casskop-operator => casskop in paper
+            # nifikop-operator => nifikop in paper
+            if controller == "casskop-operator" or controller == "nifikop-operator":
+                controller_in_table = controller.split("-")[0]
+            table += "{}\t{}\t{}\t{}\n".format(
+                controller_in_table,
+                bug_stats[controller]["intermediate-state"],
+                bug_stats[controller]["stale-state"],
+                bug_stats[controller]["unobserved-state"],
+            )
+        table += "Total\t{}\t{}\t{}\n".format(is_cnt, ss_cnt, us_cnt)
+        open("table3.tsv", "w").write(table)
+
 
 if __name__ == "__main__":
     common_config = get_common_config()
@@ -325,3 +368,5 @@ if __name__ == "__main__":
             )
     open("bug_reproduction_stats.tsv", "w").write(table)
     os.system("cp bug_reproduction_stats.tsv bug_reproduction_stats.{}.tsv".format(time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())))
+    if options.project == "all" and options.bug == "all":
+        generate_table3()
