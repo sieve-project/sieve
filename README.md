@@ -28,14 +28,15 @@ The entire artifact evaluation process can take about 6 hours.
 
 **Note that all the following instructions assume there is only one user running the commands on one machine. Please coordinate between each other to make sure you are not running the commands one the same machine at the same time.**
 
-To use the VM, please run
-```
-ssh -i your_ssh_private_key ubuntu@vm_hostname
-```
-Please contact us with your ssh public key and we will add your key to the VM and provide the VM hostname to you.
+Please contact us with your ssh public key through HotCRP and we will add your key to the VM and provide the VM hostname to you.
 Note that the ssh public key usually ends with your local hostname.
 To be anonymous, you can generate a new ssh key-pair without the hostname by `ssh-keygen -C noname`
 or simply delete the hostname at the end of your public key.
+
+To start using the VM, please run
+```
+ssh -i your_ssh_private_key ubuntu@vm_hostname
+```
 
 After log in, please
 ```
