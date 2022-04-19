@@ -60,7 +60,7 @@ You can run `python3 check_env.py` to check whether your environment meets the r
 Users need to port the controller before testing it with Sieve. Basically, users need to provide the steps to build and deploy the controller and necessary configuration files (e.g., CRD yaml files). We list the detailed porting steps [here](docs/port.md). We are actively working on simplify the porting process.
 
 ### Bugs found by Sieve
-Sieve has found over 30 bugs in 9 different controllers, which are listed [here](docs/bugs.md). We also provide [steps](docs/reprod.md) to reproduce all the intermediate-state/unobserved-states/stale-state bugs found by Sieve. We would appreciate a lot if you mention Sieve and inform us when you report bugs found by Sieve.
+Sieve has found 46 bugs in 10 different controllers, which are listed [here](docs/bugs.md). We also provide [steps](docs/reprod.md) to reproduce all the intermediate-state/unobserved-states/stale-state bugs found by Sieve. We would appreciate a lot if you mention Sieve and inform us when you report bugs found by Sieve.
 
 ### Learn more
 You can learn more about Sieve from the following references:
