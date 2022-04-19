@@ -27,7 +27,7 @@ To use Sieve, developers need to port their controllers and provide end-to-end t
 The high-level architecture is shown as below.
 
 <p align="center">
-  <img src="https://github.com/sieve-project/sieve/blob/readme/docs/sieve-arch.png"  width="70%"/>
+  <img src="https://github.com/sieve-project/sieve/blob/main/docs/sieve-arch.png"  width="70%"/>
 </p>
 
 Note that Sieve is an early stage prototype. The tool might not be user-friendly enough due to potential bugs and lack of documentation. We are working hard to address these issues and add new features. Hopefully we will release Sieve as a production-quality software in the near future.
@@ -70,5 +70,7 @@ Talks:
 * [HotOS 2021](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB) (10 minutes)
 
 Research papers:
+* Automatic Reliability Testing For Cluster Management Controllers <br>
+Xudong Sun, Wenqing Luo, Tyler Gu, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lalith Suresh, and Tianyin Xu. In Proceedings of the 16th USENIX Symposium on Operating Systems Design and Implementation (OSDI'22), Carlsbad, CA, USA, Jul. 2022.
 * [Reasoning about modern datacenter infrastructures using partial histories](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
