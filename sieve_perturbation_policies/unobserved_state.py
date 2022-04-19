@@ -189,6 +189,7 @@ def generate_unobserved_state_test_plan(
         ]
         trigger_for_action2["expression"] = "trigger2|trigger3"
     return {
+        "workload": test_context.test_name,
         "actions": [
             {
                 "actionType": "pauseController",
@@ -215,7 +216,7 @@ def generate_unobserved_state_test_plan(
                 "pauseScope": resource_key,
                 "trigger": trigger_for_action2,
             },
-        ]
+        ],
     }
 
 

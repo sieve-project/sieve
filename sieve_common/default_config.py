@@ -26,6 +26,7 @@ class CommonConfig:
         field_key_mask,
         field_path_mask,
         state_update_summary_checker_mask,
+        update_oracle_file_enabled,
     ):
         self.docker_registry = docker_registry
         self.controller_folder = controller_folder
@@ -52,6 +53,7 @@ class CommonConfig:
         self.field_key_mask = field_key_mask
         self.field_path_mask = field_path_mask
         self.state_update_summary_checker_mask = state_update_summary_checker_mask
+        self.update_oracle_file_enabled = update_oracle_file_enabled
 
 
 def get_common_config():
@@ -99,6 +101,7 @@ def get_common_config():
         state_update_summary_checker_mask=common_config[
             "state_update_summary_checker_mask"
         ],
+        update_oracle_file_enabled=common_config["update_oracle_file_enabled"],
     )
 
 

@@ -46,19 +46,21 @@ from sieve_common.common import (
 
 
 def save_run_result(
-    project, test, mode, stage, test_config, test_result: TestResult, start_time
+    test_context: TestContext,
+    test_result: TestResult,
+    start_time,
 ):
-    if stage != sieve_stages.TEST:
+    if test_context.stage != sieve_stages.TEST:
         return
 
     if test_result is None:
         return
 
     result_map = {
-        project: {
-            test: {
-                mode: {
-                    test_config: {
+        test_context.project: {
+            test_context.test_name: {
+                test_context.mode: {
+                    test_context.original_test_config: {
                         "duration": time.time() - start_time,
                         "injection_completed": test_result.injection_completed,
                         "workload_completed": test_result.workload_completed,
@@ -70,8 +72,10 @@ def save_run_result(
                         + test_result.history_errors,
                         "no_exception": test_result.no_exception,
                         "exception_message": test_result.exception_message,
-                        "test_config_content": open(test_config).read()
-                        if mode == sieve_modes.TEST
+                        "test_config_content": open(
+                            test_context.original_test_config
+                        ).read()
+                        if test_context.mode == sieve_modes.TEST
                         else "",
                         "host": socket.gethostname(),
                     }
@@ -82,7 +86,9 @@ def save_run_result(
 
     # Testing mode, write test result under sieve_test_result directory
     result_filename = "sieve_test_results/{}-{}-{}.json".format(
-        project, test, os.path.basename(test_config)
+        test_context.project,
+        test_context.test_name,
+        os.path.basename(test_context.original_test_config),
     )
     if not os.path.exists(os.path.dirname(result_filename)):
         try:
@@ -244,20 +250,27 @@ def setup_kind_cluster(test_context: TestContext):
         + "-"
         + test_context.docker_tag
     )
-
-    cmd_early_exit(
-        "kind create cluster --image %s/node:%s --config %s"
-        % (k8s_docker_repo, k8s_docker_tag, kind_config)
-    )
-    cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
-    )
+    retry_cnt = 0
+    while retry_cnt < 5:
+        try:
+            cmd_early_exit("kind delete cluster")
+            # sleep here in case if the machine is slow and kind cluster deletion is not done before creating a new cluster
+            time.sleep(5 + 10 * retry_cnt)
+            retry_cnt += 1
+            print("try to create kind cluster; retry count {}".format(retry_cnt))
+            cmd_early_exit(
+                "kind create cluster --image %s/node:%s --config %s"
+                % (k8s_docker_repo, k8s_docker_tag, kind_config)
+            )
+            cmd_early_exit(
+                "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
+            )
+            return
+        except Exception:
+            print(traceback.format_exc())
 
 
 def setup_cluster(test_context: TestContext):
-    cmd_early_exit("kind delete cluster")
-    # sleep here in case if the machine is slow and deletion is not done before creating a new cluster
-    time.sleep(5)
     setup_kind_cluster(test_context)
     print("\n\n")
 
@@ -654,35 +667,31 @@ def run(
         rate_limiter_enabled=rate_limiter_enabled,
     )
     test_result = run_test(test_context)
-    return test_result
+    return test_result, test_context
 
 
-def run_batch(project, test, dir, mode, stage, docker):
-    assert stage == sieve_stages.TEST, "can only run batch mode in test stage"
-    config_dir = os.path.join(
-        "log", project, test, sieve_stages.LEARN, sieve_modes.LEARN_ONCE, mode
+def run_batch(project, test, dir, mode, stage, test_plan_folder, docker):
+    assert stage == sieve_stages.TEST, "batch mode only allowed in test stage"
+    assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
+        test_plan_folder
     )
-    configs = glob.glob(os.path.join(config_dir, "*.yaml"))
-    configs.sort(key=lambda config: config.split("-")[-1].split(".")[0])
-    print("Configs to test:")
-    print("\n".join(configs))
-    for config in configs:
+    test_plans = glob.glob(os.path.join(test_plan_folder, "*.yaml"))
+    # test_plans.sort(key=lambda test_plan: test_plan.split("-")[-1].split(".")[0])
+    print("Test plans to run:")
+    print("\n".join(test_plans))
+    for test_plan in test_plans:
         start_time = time.time()
-        test_result = run(
+        test_result, test_context = run(
             project,
             test,
             dir,
             mode,
             stage,
-            config,
+            test_plan,
             docker,
         )
         save_run_result(
-            project,
-            test,
-            mode,
-            stage,
-            config,
+            test_context,
             test_result,
             start_time,
         )
@@ -815,6 +824,7 @@ if __name__ == "__main__":
             options.log,
             options.mode,
             options.stage,
+            options.config,
             options.docker,
         )
     else:
@@ -832,7 +842,7 @@ if __name__ == "__main__":
                 options.phase,
             )
 
-        test_result = run(
+        test_result, test_context = run(
             options.project,
             options.test,
             options.log,
@@ -845,12 +855,9 @@ if __name__ == "__main__":
         )
 
         save_run_result(
-            options.project,
-            options.test,
-            options.mode,
-            options.stage,
-            options.config,
+            test_context,
             test_result,
             start_time,
         )
+    cmd_early_exit("kind delete cluster")
     print("Total time: {} seconds".format(time.time() - start_time))

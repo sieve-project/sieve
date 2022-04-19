@@ -29,6 +29,8 @@ def generate_controller_family(test_context: TestContext):
 
 
 def canonicalize_history_and_state(test_context: TestContext):
+    if not test_context.common_config.update_oracle_file_enabled:
+        return
     assert test_context.mode == sieve_modes.LEARN_TWICE
     cprint("Generating canonicalized state update summary...", bcolors.OKGREEN)
     can_history_digest = canonicalize_history_digest(test_context)
