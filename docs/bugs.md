@@ -60,6 +60,8 @@ https://github.com/konpyutaika/nifikop/issues/49 confirmed (intermediate state)
 
 https://github.com/konpyutaika/nifikop/issues/79 confirmed (intermediate state)
 
+https://github.com/konpyutaika/nifikop/issues/86 pending (indirect)
+
 ## [rabbitmq/cluster-operator](https://github.com/rabbitmq/cluster-operator)
 https://github.com/rabbitmq/cluster-operator/issues/648 confirmed and fixed by us (stale state)
 
@@ -101,3 +103,5 @@ https://github.com/pravega/zookeeper-operator/issues/312 confirmed and fixed by 
 https://github.com/pravega/zookeeper-operator/issues/314 confirmed and fixed by us (stale state)
 
 https://github.com/pravega/zookeeper-operator/issues/410 confirmed (indirect, potential new pattern)
+
+https://github.com/pravega/zookeeper-operator/issues/453 pending (indirect)
