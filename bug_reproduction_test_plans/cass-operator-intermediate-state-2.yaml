@@ -1,0 +1,19 @@
+workload: recreate
+actions:
+- actionType: restartController
+  controllerLabel: cass-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: pod/default/cluster1-cassandra-datacenter-default-sts-0
+        prevStateDiff: '{"metadata": {"labels": {"cassandra.datastax.com/node-state":
+          "Ready-to-Start"}}}'
+        curStateDiff: '{"metadata": {"labels": {"cassandra.datastax.com/node-state":
+          "Starting", "cassandra.datastax.com/seed-node": "true"}}}'
+        occurrence: 2
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/datastax/cass-operator/operator/pkg/reconciliation.(*ReconcileCassandraDatacenter)
+    expression: trigger1

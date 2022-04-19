@@ -1,0 +1,39 @@
+workload: scaledown-scaleup
+actions:
+- actionType: pauseController
+  pauseAt: beforeControllerRead
+  pauseScope: zookeepercluster/default/zookeeper-cluster
+  avoidOngoingRead: true
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectCreate
+        resourceKey: zookeepercluster/default/zookeeper-cluster
+        occurrence: 1
+      observationPoint:
+        when: beforeControllerRecv
+        by: informer
+    expression: trigger1
+- actionType: resumeController
+  pauseAt: beforeControllerRead
+  pauseScope: zookeepercluster/default/zookeeper-cluster
+  trigger:
+    definitions:
+    - triggerName: trigger2
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: zookeepercluster/default/zookeeper-cluster
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    - triggerName: trigger3
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: zookeepercluster/default/zookeeper-cluster
+        occurrence: 1
+      observationPoint:
+        when: afterControllerRecv
+        by: informer
+    expression: trigger2|trigger3

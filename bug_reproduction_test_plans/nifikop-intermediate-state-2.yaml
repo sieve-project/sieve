@@ -1,0 +1,21 @@
+workload: recreate
+actions:
+- actionType: restartController
+  controllerLabel: nifikop-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: nificluster/default/simplenifi
+        prevStateDiff: '{"metadata": {"selfLink": "/apis/nifi.orange.com/v1alpha1/namespaces/default/nificlusters/simplenifi"},
+          "status": {"state": ""}}'
+        curStateDiff: '{"metadata": {"selfLink": "/apis/nifi.orange.com/v1alpha1/namespaces/default/nificlusters/simplenifi/status"},
+          "status": {"nodesState": {"1": {"configurationState": "ConfigInSync", "gracefulActionState":
+          {"actionState": "", "errorMessage": ""}, "initClusterNode": true}}, "state":
+          "ClusterReconciling"}}'
+        occurrence: 2
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/Orange-OpenSource/nifikop/controllers.(*NifiClusterReconciler)
+    expression: trigger1

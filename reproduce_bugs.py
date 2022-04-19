@@ -59,6 +59,7 @@ def after_reproducing_cassandra_operator_indirect_1():
 reprod_map = {
     "cass-operator": {
         "intermediate-state-1": ["recreate", "cass-operator-intermediate-state-1.yaml"],
+        "intermediate-state-2": ["recreate", "cass-operator-intermediate-state-2.yaml"],
         "stale-state-1": ["recreate", "cass-operator-stale-state-1.yaml"],
     },
     "cassandra-operator": {
@@ -119,6 +120,8 @@ reprod_map = {
     },
     "nifikop-operator": {
         "intermediate-state-1": ["change-config", "nifikop-intermediate-state-1.yaml"],
+        "intermediate-state-2": ["recreate", "nifikop-intermediate-state-2.yaml"],
+        "indirect-1": ["scaledown-scaleup", "nifikop-indirect-1.yaml"],
     },
     "rabbitmq-operator": {
         "intermediate-state-1": [
@@ -140,6 +143,10 @@ reprod_map = {
         "intermediate-state-2": [
             "run-cert-manager",
             "xtradb-operator-intermediate-state-2.yaml",
+        ],
+        "intermediate-state-3": [
+            "recreate",
+            "xtradb-operator-intermediate-state-3.yaml",
         ],
         "stale-state-1": ["recreate", "xtradb-operator-stale-state-1.yaml"],
         "stale-state-2": [
@@ -177,6 +184,7 @@ reprod_map = {
         "stale-state-1": ["recreate", "zookeeper-operator-stale-state-1.yaml"],
         "stale-state-2": ["scaledown-scaleup", "zookeeper-operator-stale-state-2.yaml"],
         "indirect-1": ["recreate", "zookeeper-operator-indirect-1.yaml"],
+        "indirect-2": ["scaledown-scaleup", "zookeeper-operator-indirect-2.yaml"],
     },
 }
 

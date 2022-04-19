@@ -1,0 +1,15 @@
+workload: recreate
+actions:
+- actionType: restartController
+  controllerLabel: xtradb-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectDelete
+        resourceKey: statefulset/default/xtradb-cluster-pxc
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/percona/percona-xtradb-cluster-operator/pkg/controller/pxc.(*ReconcilePerconaXtraDBCluster)
+    expression: trigger1

@@ -1,0 +1,20 @@
+workload: scaledown-scaleup
+actions:
+- actionType: restartController
+  controllerLabel: nifikop-operator
+  trigger:
+    definitions:
+    - triggerName: trigger1
+      condition:
+        conditionType: onObjectUpdate
+        resourceKey: nificluster/default/simplenifi
+        prevStateDiff: '{"metadata": {}, "status": {"prometheusReportingTask": {"version":
+          0}}}'
+        curStateDiff: '{"metadata": {"finalizers": ["nificlusters.nifi.orange.com/finalizer"]},
+          "status": {"prometheusReportingTask": {"version": 2}, "rootProcessGroupId":
+          "SIEVE-NON-NIL"}}'
+        occurrence: 1
+      observationPoint:
+        when: afterControllerWrite
+        by: github.com/Orange-OpenSource/nifikop/controllers.(*NifiClusterReconciler)
+    expression: trigger1
