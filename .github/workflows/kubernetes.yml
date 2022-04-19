@@ -1,13 +1,10 @@
 name: Kubernetes Image Build
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 5 * * *'
-
+'on':
+  workflow_dispatch: null
+  # schedule:
+  #   - cron: '0 5 * * *'
 env:
   IMAGE_NAMESPACE: ghcr.io/sieve-project/action
-
 jobs:
   build:
     runs-on: ubuntu-latest
