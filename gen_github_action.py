@@ -274,7 +274,7 @@ open(".github/workflows/sieve-learning-phase.yml", "w").write(
     % (datetime.now())
     + yaml.dump(
         {
-            "name": "Sieve Oracle Build",
+            "name": "Sieve Learning Phase",
             "on": {"workflow_dispatch": None},
             "env": {"IMAGE_NAMESPACE": "ghcr.io/sieve-project/action"},
             "jobs": generate_oracle_build_jobs(True),
