@@ -89,6 +89,10 @@ reprod_map = {
         "stale-state-2": ["reducepdb", "casskop-stale-state-2.yaml"],
         "unobserved-state-1": ["scaledown-to-zero", "casskop-unobserved-state-1.yaml"],
     },
+    "elastic-operator": {
+        "stale-state-1": ["recreate", "elastic-operator-stale-state-1.yaml"],
+        "stale-state-2": ["scaledown-scaleup", "elastic-operator-stale-state-2.yaml"],
+    },
     "mongodb-operator": {
         "intermediate-state-1": [
             "disable-enable-shard",
@@ -183,8 +187,11 @@ reprod_map = {
     "zookeeper-operator": {
         "stale-state-1": ["recreate", "zookeeper-operator-stale-state-1.yaml"],
         "stale-state-2": ["scaledown-scaleup", "zookeeper-operator-stale-state-2.yaml"],
+        "unobserved-state-1": [
+            "scaledown-scaleup",
+            "zookeeper-operator-unobserved-state-1.yaml",
+        ],
         "indirect-1": ["recreate", "zookeeper-operator-indirect-1.yaml"],
-        "indirect-2": ["scaledown-scaleup", "zookeeper-operator-indirect-2.yaml"],
     },
 }
 
@@ -366,7 +373,7 @@ if __name__ == "__main__":
     if options.bug is None and options.project != "all":
         parser.error("parameter bug required")
 
-    backup_old_results()
+    # backup_old_results()
 
     if not options.skip:
         os.system("rm -rf sieve_test_results")

@@ -104,4 +104,4 @@ https://github.com/pravega/zookeeper-operator/issues/314 confirmed and fixed by 
 
 https://github.com/pravega/zookeeper-operator/issues/410 confirmed (indirect, potential new pattern)
 
-https://github.com/pravega/zookeeper-operator/issues/453 pending (indirect)
+https://github.com/pravega/zookeeper-operator/issues/453 pending (unobserved state)
