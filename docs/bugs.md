@@ -28,7 +28,7 @@ https://github.com/Orange-OpenSource/casskop/issues/321 confirmed (stale state)
 
 https://github.com/Orange-OpenSource/casskop/issues/342 confirmed (unobserved state)
 
-https://github.com/Orange-OpenSource/casskop/issues/370 confirmed (intermediate state)
+https://github.com/Orange-OpenSource/casskop/issues/370 confirmed and fixed by us (intermediate state)
 
 ## [elastic/cloud-on-k8s](https://github.com/elastic/cloud-on-k8s)
 https://github.com/elastic/cloud-on-k8s/issues/5249 confirmed and fixed by us (stale state)
