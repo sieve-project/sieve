@@ -18,7 +18,7 @@ spec:
   groupPriorityMinimum: 100
   service:
     name: packaging-api
-    namespace: kapp-controller
+    namespace: default
   version: v1alpha1
   versionPriority: 100
 ---
@@ -26,7 +26,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: packaging-api
-  namespace: kapp-controller
+  namespace: default
 spec:
   ports:
   - port: 443
@@ -1916,17 +1916,19 @@ metadata:
             - v0.36.1
         url: ghcr.io/vmware-tanzu/carvel-kapp-controller@sha256:e7e391c9640a5ec17c0b85e30c404819732944e50065c2d6bd46bd2fe9ae7d41
   name: kapp-controller
-  namespace: kapp-controller
+  namespace: default
 spec:
   replicas: 1
   revisionHistoryLimit: 0
   selector:
     matchLabels:
       app: kapp-controller
+      sievetag: kapp-controller
   template:
     metadata:
       labels:
         app: kapp-controller
+        sievetag: kapp-controller
     spec:
       containers:
       - args:
@@ -1941,7 +1943,15 @@ spec:
               fieldPath: metadata.namespace
         - name: KAPPCTRL_API_PORT
           value: "10350"
-        image: ghcr.io/vmware-tanzu/carvel-kapp-controller@sha256:e7e391c9640a5ec17c0b85e30c404819732944e50065c2d6bd46bd2fe9ae7d41
+        - name: KUBERNETES_SERVICE_HOST
+          value: "kind-control-plane"
+        - name: KUBERNETES_SERVICE_PORT
+          value: "6443"
+        envFrom:
+        - configMapRef:
+            name: sieve-testing-global-config
+        image: ${SIEVE-DR}/kapp-controller:${SIEVE-DT}
+        imagePullPolicy: IfNotPresent
         name: kapp-controller
         ports:
         - containerPort: 10350
@@ -1976,7 +1986,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kapp-controller-sa
-  namespace: kapp-controller
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -2108,7 +2118,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kapp-controller-sa
-  namespace: kapp-controller
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -2121,7 +2131,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kapp-controller-sa
-  namespace: kapp-controller
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -2135,4 +2145,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kapp-controller-sa
-  namespace: kapp-controller
+  namespace: default
