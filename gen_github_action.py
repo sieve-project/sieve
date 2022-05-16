@@ -67,7 +67,10 @@ def job_template(self_hosted):
                 "name": "Install Python Packages",
                 "run": "pip install -r requirements.txt",
             },
-            {"name": "Install Kind", "run": "go get sigs.k8s.io/kind\nkind"},
+            {
+                "name": "Install Kind",
+                "run": 'GO111MODULE="on" go get sigs.k8s.io/kind@v0.13.0\nkind',
+            },
             {
                 "name": "Install Mage",
                 "run": "go get -u github.com/magefile/mage\nmage -h",
