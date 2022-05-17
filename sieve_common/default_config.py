@@ -116,6 +116,10 @@ class ControllerConfig:
         controller_runtime_version,
         client_go_version,
         apimachinery_version,
+        go_mod,
+        vendored_controller_runtime_path,
+        vendored_client_go_path,
+        vendored_sieve_client_path,
         dockerfile_path,
         apis_to_instrument,
         controller_image_name,
@@ -137,6 +141,10 @@ class ControllerConfig:
         self.controller_runtime_version = controller_runtime_version
         self.client_go_version = client_go_version
         self.apimachinery_version = apimachinery_version
+        self.go_mod = go_mod
+        self.vendored_controller_runtime_path = vendored_controller_runtime_path
+        self.vendored_client_go_path = vendored_client_go_path
+        self.vendored_sieve_client_path = vendored_sieve_client_path
         self.dockerfile_path = dockerfile_path
         self.apis_to_instrument = apis_to_instrument
         self.controller_image_name = controller_image_name
@@ -168,6 +176,18 @@ def get_controller_config(controller_folder, controller_name):
         client_go_version=controller_config["client_go_version"],
         apimachinery_version=controller_config["apimachinery_version"]
         if "apimachinery_version" in controller_config
+        else None,
+        go_mod=controller_config["go_mod"] if "go_mod" in controller_config else "mod",
+        vendored_controller_runtime_path=controller_config[
+            "vendored_controller_runtime_path"
+        ]
+        if "vendored_controller_runtime_path" in controller_config
+        else None,
+        vendored_client_go_path=controller_config["vendored_client_go_path"]
+        if "vendored_client_go_path" in controller_config
+        else None,
+        vendored_sieve_client_path=controller_config["vendored_sieve_client_path"]
+        if "vendored_sieve_client_path" in controller_config
         else None,
         dockerfile_path=controller_config["dockerfile_path"],
         apis_to_instrument=controller_config["apis_to_instrument"]

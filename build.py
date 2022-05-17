@@ -223,9 +223,14 @@ def install_lib_for_controller(
 
     os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
-    cmd_early_exit('git commit -m "download the lib" >> /dev/null')
+    cmd_early_exit('git commit -m "install the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
+
+def update_go_mod_for_controller(
+    common_config: CommonConfig, controller_config: ControllerConfig
+):
+    application_dir = os.path.join("app", controller_config.controller_name)
     # modify the go.mod to import the libs
     remove_replacement_in_go_mod_file("%s/go.mod" % application_dir)
     with open("%s/go.mod" % application_dir, "a") as go_mod_file:
@@ -331,6 +336,113 @@ def instrument_controller(
     os.chdir(ORIGINAL_DIR)
 
 
+def install_lib_for_controller_with_vendor(
+    common_config: CommonConfig, controller_config: ControllerConfig
+):
+    application_dir = os.path.join("app", controller_config.controller_name)
+    cmd_early_exit(
+        "cp -r sieve_client %s"
+        % os.path.join(application_dir, controller_config.vendored_sieve_client_path)
+    )
+    if controller_config.kubernetes_version != DEFAULT_K8S_VERSION:
+        update_sieve_client_go_mod_with_version(
+            os.path.join(
+                application_dir, controller_config.vendored_sieve_client_path, "go.mod"
+            ),
+            K8S_VER_TO_APIMACHINERY_VER[controller_config.kubernetes_version],
+        )
+    elif controller_config.apimachinery_version is not None:
+        update_sieve_client_go_mod_with_version(
+            os.path.join(
+                application_dir, controller_config.vendored_sieve_client_path, "go.mod"
+            ),
+            controller_config.apimachinery_version,
+        )
+    os.chdir(application_dir)
+    cmd_early_exit("git add -A >> /dev/null")
+    cmd_early_exit('git commit -m "install the lib" >> /dev/null')
+    os.chdir(ORIGINAL_DIR)
+
+
+def update_go_mod_for_controller_with_vendor(
+    common_config: CommonConfig, controller_config: ControllerConfig
+):
+    application_dir = os.path.join("app", controller_config.controller_name)
+    with open(os.path.join(application_dir, "go.mod"), "a") as go_mod_file:
+        go_mod_file.write("require sieve.client v0.0.0\n")
+    with open(
+        os.path.join(
+            application_dir,
+            controller_config.vendored_controller_runtime_path,
+            "go.mod",
+        ),
+        "a",
+    ) as go_mod_file:
+        go_mod_file.write("require sieve.client v0.0.0\n")
+    with open(
+        os.path.join(
+            application_dir,
+            controller_config.vendored_client_go_path,
+            "go.mod",
+        ),
+        "a",
+    ) as go_mod_file:
+        go_mod_file.write("require sieve.client v0.0.0\n")
+
+    # copy the build.sh and Dockerfile
+    cmd_early_exit(
+        "cp %s/build/build.sh %s/build.sh"
+        % (
+            os.path.join(
+                common_config.controller_folder, controller_config.controller_name
+            ),
+            application_dir,
+        )
+    )
+    cmd_early_exit(
+        "cp %s/build/Dockerfile %s/%s"
+        % (
+            os.path.join(
+                common_config.controller_folder, controller_config.controller_name
+            ),
+            application_dir,
+            controller_config.dockerfile_path,
+        )
+    )
+    os.chdir(application_dir)
+    cmd_early_exit("git add -A >> /dev/null")
+    cmd_early_exit('git commit -m "import the lib" >> /dev/null')
+    os.chdir(ORIGINAL_DIR)
+
+
+def instrument_controller_with_vendor(
+    common_config: CommonConfig, controller_config: ControllerConfig, mode
+):
+    application_dir = os.path.join("app", controller_config.controller_name)
+    os.chdir("sieve_instrumentation")
+    instrumentation_config = {
+        "project": controller_config.controller_name,
+        "mode": mode,
+        "app_file_path": os.path.join(ORIGINAL_DIR, application_dir),
+        "controller_runtime_filepath": os.path.join(
+            ORIGINAL_DIR,
+            application_dir,
+            controller_config.vendored_controller_runtime_path,
+        ),
+        "client_go_filepath": os.path.join(
+            ORIGINAL_DIR,
+            application_dir,
+            controller_config.vendored_client_go_path,
+        ),
+        "apis_to_instrument": controller_config.apis_to_instrument,
+    }
+    json.dump(instrumentation_config, open("config.json", "w"), indent=4)
+    cmd_early_exit("go mod tidy")
+    cmd_early_exit("go build")
+    cmd_early_exit("./instrumentation config.json")
+    os.chdir(ORIGINAL_DIR)
+
+
 def build_controller(
     common_config: CommonConfig, controller_config: ControllerConfig, img_repo, img_tag
 ):
@@ -368,8 +480,14 @@ def setup_controller(
 ):
     if not build_only:
         download_controller(common_config, controller_config)
-        install_lib_for_controller(common_config, controller_config)
-        instrument_controller(common_config, controller_config, mode)
+        if controller_config.go_mod == "mod":
+            install_lib_for_controller(common_config, controller_config)
+            update_go_mod_for_controller(common_config, controller_config)
+            instrument_controller(common_config, controller_config, mode)
+        else:
+            install_lib_for_controller_with_vendor(common_config, controller_config)
+            update_go_mod_for_controller_with_vendor(common_config, controller_config)
+            instrument_controller_with_vendor(common_config, controller_config, mode)
     build_controller(common_config, controller_config, img_repo, img_tag)
     if push_to_remote:
         push_controller(common_config, controller_config, img_repo, img_tag)
