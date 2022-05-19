@@ -1,8 +1,12 @@
 package sieve
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"reflect"
 	"strings"
 
@@ -133,6 +137,46 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterReconcile")
+}
+
+func NotifyLearnBeforeRestCall(verbType string, body io.Reader) int {
+	return -1
+}
+
+func NotifyLearnAfterRestCall(sideEffectID int, verbType string, body io.Reader, k8sErr error) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if body == nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	if bytesReader, ok := body.(*bytes.Reader); ok {
+		bytes, err := ioutil.ReadAll(bytesReader)
+		if err != nil {
+			return
+		}
+		serializedBody := string(bytes)
+		log.Println("serializedBody: " + serializedBody)
+		bytesReader.Seek(0, io.SeekStart)
+	}
+	// if seeker, ok := body.(io.Seeker); ok && body != nil {
+	// 	_, err := seeker.Seek(0, io.SeekStart)
+	// 	if err != nil {
+	// 		log.Printf("can't Seek() back to beginning of body for %T\n", body)
+	// 		return
+	// 	}
+	// 	bytes, err := ioutil.ReadAll(body)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	serializedBody := string(bytes)
+	// 	log.Println("serializedBody: " + serializedBody)
+	// 	seeker.Seek(0, io.SeekStart)
+	// }
 }
 
 func NotifyLearnBeforeControllerWrite(sideEffectType string, object interface{}) int {

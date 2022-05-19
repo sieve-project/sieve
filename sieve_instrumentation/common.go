@@ -183,6 +183,54 @@ func instrumentSharedInformerGoForAll(ifilepath, ofilepath, mode string) {
 	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
 }
 
+func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
+	f := parseSourceFile(ifilepath, "rest", map[string]string{})
+	_, funcDecl := findFuncDecl(f, "Do", "*Request")
+	funNameBefore := "Notify" + mode + "BeforeRestCall"
+	funNameAfter := "Notify" + mode + "AfterRestCall"
+	if funcDecl != nil {
+		instruIndex := -1
+		for index, stmt := range funcDecl.Body.List {
+			log.Printf("%d %T\n", index, stmt)
+			if declStmt, ok := stmt.(*dst.DeclStmt); ok {
+				if genDecl, ok := declStmt.Decl.(*dst.GenDecl); ok {
+					if genDecl.Tok == token.VAR {
+						instruIndex = index + 1
+						break
+					}
+				}
+			}
+		}
+		if instruIndex == -1 {
+			panic(fmt.Errorf("cannot find definition of result"))
+		}
+
+		writeIDVar := "writeID"
+		instrNotifyLearnBeforeControllerWrite := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: writeIDVar}},
+			Rhs: []dst.Expr{&dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.body"}},
+			}},
+			Tok: token.DEFINE,
+		}
+		instrNotifyLearnBeforeControllerWrite.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, instruIndex, instrNotifyLearnBeforeControllerWrite)
+
+		instrNotifyLearnAfterControllerWrite := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.body"}, &dst.Ident{Name: "result.Error()"}},
+			},
+		}
+		instrNotifyLearnAfterControllerWrite.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, instruIndex+1, instrNotifyLearnAfterControllerWrite)
+	} else {
+		panic(fmt.Errorf("cannot find function Do"))
+	}
+	writeInstrumentedFile(ofilepath, "rest", f, map[string]string{})
+}
+
 func instrumentClientGoForAll(ifilepath, ofilepath, mode string, instrumentBefore bool) {
 	f := parseSourceFile(ifilepath, "client", map[string]string{})
 
