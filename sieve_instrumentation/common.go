@@ -210,21 +210,32 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 			Lhs: []dst.Expr{&dst.Ident{Name: writeIDVar}},
 			Rhs: []dst.Expr{&dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.body"}},
+				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}},
 			}},
 			Tok: token.DEFINE,
 		}
 		instrNotifyLearnBeforeControllerWrite.Decs.End.Append("//sieve")
-		insertStmt(&funcDecl.Body.List, instruIndex, instrNotifyLearnBeforeControllerWrite)
+		insertStmt(&funcDecl.Body.List, 0, instrNotifyLearnBeforeControllerWrite)
+
+		instrResultGet := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: "objForSieve"}, &dst.Ident{Name: "errForSieve"}},
+			Tok: token.DEFINE,
+			Rhs: []dst.Expr{&dst.CallExpr{
+				Fun:  &dst.Ident{Name: "result.Get"},
+				Args: []dst.Expr{},
+			}},
+		}
+		instrResultGet.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, instruIndex+2, instrResultGet)
 
 		instrNotifyLearnAfterControllerWrite := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.body"}, &dst.Ident{Name: "result.Error()"}},
+				Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "objForSieve"}, &dst.Ident{Name: "errForSieve"}, &dst.Ident{Name: "result.Error()"}},
 			},
 		}
 		instrNotifyLearnAfterControllerWrite.Decs.End.Append("//sieve")
-		insertStmt(&funcDecl.Body.List, instruIndex+1, instrNotifyLearnAfterControllerWrite)
+		insertStmt(&funcDecl.Body.List, instruIndex+3, instrNotifyLearnAfterControllerWrite)
 	} else {
 		panic(fmt.Errorf("cannot find function Do"))
 	}

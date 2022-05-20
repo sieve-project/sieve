@@ -1,11 +1,8 @@
 package sieve
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"reflect"
 	"strings"
@@ -139,30 +136,36 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 	checkResponse(response, "NotifyLearnAfterReconcile")
 }
 
-func NotifyLearnBeforeRestCall(verbType string, body io.Reader) int {
+func NotifyLearnBeforeRestCall(verbType string) int {
 	return -1
 }
 
-func NotifyLearnAfterRestCall(sideEffectID int, verbType string, body io.Reader, k8sErr error) {
+func NotifyLearnAfterRestCall(sideEffectID int, verb string, obj interface{}, serializationErr error, respErr error) {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return
 	}
-	if body == nil {
+	if serializationErr != nil {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+
+	serializedObj, err := json.Marshal(obj)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-	if bytesReader, ok := body.(*bytes.Reader); ok {
-		bytes, err := ioutil.ReadAll(bytesReader)
-		if err != nil {
-			return
-		}
-		serializedBody := string(bytes)
-		log.Println("serializedBody: " + serializedBody)
-		bytesReader.Seek(0, io.SeekStart)
-	}
+	log.Println("verb is" + verb)
+	log.Println("serializedBody: " + string(serializedObj))
+	// log.Println("error is " + respErr.Error())
+	// if bytesReader, ok := body.(*bytes.Reader); ok {
+	// 	bytes, err := ioutil.ReadAll(bytesReader)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	serializedBody := string(bytes)
+	// 	log.Println("serializedBody: " + serializedBody)
+	// 	log.Println("stacktrace:")
+	// 	bytesReader.Seek(0, io.SeekStart)
+	// }
 	// if seeker, ok := body.(io.Seeker); ok && body != nil {
 	// 	_, err := seeker.Seek(0, io.SeekStart)
 	// 	if err != nil {
