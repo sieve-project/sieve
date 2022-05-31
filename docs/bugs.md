@@ -50,12 +50,12 @@ https://jira.percona.com/browse/K8SPSMDB-579 confirmed and fixed by us (intermed
 
 https://jira.percona.com/browse/K8SPSMDB-585 confirmed (unobserved state)
 
-https://jira.percona.com/browse/K8SPSMDB-590 confirmed (indirect, potential new pattern)
+https://jira.percona.com/browse/K8SPSMDB-590 confirmed and fixed (indirect, potential new pattern)
 
 https://jira.percona.com/browse/K8SPSMDB-591 pending (indirect, application specific)
 
 ## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
-https://github.com/konpyutaika/nifikop/issues/49 confirmed (intermediate state)
+https://github.com/konpyutaika/nifikop/issues/49 confirmed and fixed (intermediate state)
 <!-- previously https://github.com/Orange-OpenSource/nifikop/issues/130 -->
 
 https://github.com/konpyutaika/nifikop/issues/79 confirmed (intermediate state)
