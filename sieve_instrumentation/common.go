@@ -189,14 +189,31 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 	funNameBefore := "Notify" + mode + "BeforeRestCall"
 	funNameAfter := "Notify" + mode + "AfterRestCall"
 	if funcDecl != nil {
+
+		writeIDVar := "writeID"
+		instrNotifyLearnBeforeControllerWrite := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: writeIDVar}},
+			Rhs: []dst.Expr{&dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+				Args: []dst.Expr{},
+			}},
+			Tok: token.DEFINE,
+		}
+		instrNotifyLearnBeforeControllerWrite.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, 0, instrNotifyLearnBeforeControllerWrite)
+
 		instruIndex := -1
 		for index, stmt := range funcDecl.Body.List {
-			log.Printf("%d %T\n", index, stmt)
-			if declStmt, ok := stmt.(*dst.DeclStmt); ok {
-				if genDecl, ok := declStmt.Decl.(*dst.GenDecl); ok {
-					if genDecl.Tok == token.VAR {
-						instruIndex = index + 1
-						break
+			// log.Printf("%d %T\n", index, stmt)
+			if assignStmt, ok := stmt.(*dst.AssignStmt); ok {
+				if callExpr, ok := assignStmt.Rhs[0].(*dst.CallExpr); ok {
+					if selectorExpr, ok := callExpr.Fun.(*dst.SelectorExpr); ok {
+						if xIdent, ok := selectorExpr.X.(*dst.Ident); ok {
+							if xIdent.Name == "r" && selectorExpr.Sel.Name == "request" {
+								instruIndex = index + 1
+								break
+							}
+						}
 					}
 				}
 			}
@@ -204,18 +221,6 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 		if instruIndex == -1 {
 			panic(fmt.Errorf("cannot find definition of result"))
 		}
-
-		writeIDVar := "writeID"
-		instrNotifyLearnBeforeControllerWrite := &dst.AssignStmt{
-			Lhs: []dst.Expr{&dst.Ident{Name: writeIDVar}},
-			Rhs: []dst.Expr{&dst.CallExpr{
-				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}},
-			}},
-			Tok: token.DEFINE,
-		}
-		instrNotifyLearnBeforeControllerWrite.Decs.End.Append("//sieve")
-		insertStmt(&funcDecl.Body.List, 0, instrNotifyLearnBeforeControllerWrite)
 
 		instrResultGet := &dst.AssignStmt{
 			Lhs: []dst.Expr{&dst.Ident{Name: "objForSieve"}, &dst.Ident{Name: "errForSieve"}},
@@ -226,16 +231,16 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 			}},
 		}
 		instrResultGet.Decs.End.Append("//sieve")
-		insertStmt(&funcDecl.Body.List, instruIndex+2, instrResultGet)
+		insertStmt(&funcDecl.Body.List, instruIndex, instrResultGet)
 
 		instrNotifyLearnAfterControllerWrite := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "objForSieve"}, &dst.Ident{Name: "errForSieve"}, &dst.Ident{Name: "result.Error()"}},
+				Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.resource"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "objForSieve"}, &dst.Ident{Name: "errForSieve"}, &dst.Ident{Name: "result.Error()"}},
 			},
 		}
 		instrNotifyLearnAfterControllerWrite.Decs.End.Append("//sieve")
-		insertStmt(&funcDecl.Body.List, instruIndex+3, instrNotifyLearnAfterControllerWrite)
+		insertStmt(&funcDecl.Body.List, instruIndex+1, instrNotifyLearnAfterControllerWrite)
 	} else {
 		panic(fmt.Errorf("cannot find function Do"))
 	}
