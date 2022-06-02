@@ -8,7 +8,7 @@ https://k8ssandra.atlassian.net/browse/K8SSAND-559 confirmed (stale state)
 
 https://k8ssandra.atlassian.net/browse/K8SSAND-1023 confirmed and fixed by us (intermediate state)
 
-https://k8ssandra.atlassian.net/browse/K8SSAND-1362 pending (intermediate-state)
+https://k8ssandra.atlassian.net/browse/K8SSAND-1362 pending (intermediate state)
 
 ## [instaclustr/cassandra-operator](https://github.com/instaclustr/cassandra-operator)
 https://github.com/instaclustr/cassandra-operator/issues/398 confirmed and fixed by us (unobserved state)
@@ -84,7 +84,7 @@ https://jira.percona.com/browse/K8SPXC-897 confirmed and fixed by us (intermedia
 
 https://jira.percona.com/browse/K8SPXC-918 confirmed (unobserved state)
 
-https://jira.percona.com/browse/K8SPXC-979 pending (intermediate-state)
+https://jira.percona.com/browse/K8SPXC-979 pending (intermediate state)
 
 ## [yugabyte/yugabyte-operator](https://github.com/yugabyte/yugabyte-operator)
 https://github.com/yugabyte/yugabyte-operator/issues/33 pending (indirect, crd error)
