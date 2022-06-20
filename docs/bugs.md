@@ -8,7 +8,7 @@ https://k8ssandra.atlassian.net/browse/K8SSAND-559 confirmed (stale state)
 
 https://k8ssandra.atlassian.net/browse/K8SSAND-1023 confirmed and fixed by us (intermediate state)
 
-https://k8ssandra.atlassian.net/browse/K8SSAND-1362 pending (intermediate-state)
+https://k8ssandra.atlassian.net/browse/K8SSAND-1362 pending (intermediate state)
 
 ## [instaclustr/cassandra-operator](https://github.com/instaclustr/cassandra-operator)
 https://github.com/instaclustr/cassandra-operator/issues/398 confirmed and fixed by us (unobserved state)
@@ -50,12 +50,12 @@ https://jira.percona.com/browse/K8SPSMDB-579 confirmed and fixed by us (intermed
 
 https://jira.percona.com/browse/K8SPSMDB-585 confirmed (unobserved state)
 
-https://jira.percona.com/browse/K8SPSMDB-590 confirmed (indirect, potential new pattern)
+https://jira.percona.com/browse/K8SPSMDB-590 confirmed and fixed (indirect, potential new pattern)
 
 https://jira.percona.com/browse/K8SPSMDB-591 pending (indirect, application specific)
 
 ## [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop)
-https://github.com/konpyutaika/nifikop/issues/49 confirmed (intermediate state)
+https://github.com/konpyutaika/nifikop/issues/49 confirmed and fixed (intermediate state)
 <!-- previously https://github.com/Orange-OpenSource/nifikop/issues/130 -->
 
 https://github.com/konpyutaika/nifikop/issues/79 confirmed (intermediate state)
@@ -84,7 +84,7 @@ https://jira.percona.com/browse/K8SPXC-897 confirmed and fixed by us (intermedia
 
 https://jira.percona.com/browse/K8SPXC-918 confirmed (unobserved state)
 
-https://jira.percona.com/browse/K8SPXC-979 pending (intermediate-state)
+https://jira.percona.com/browse/K8SPXC-979 pending (intermediate state)
 
 ## [yugabyte/yugabyte-operator](https://github.com/yugabyte/yugabyte-operator)
 https://github.com/yugabyte/yugabyte-operator/issues/33 pending (indirect, crd error)
