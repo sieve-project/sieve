@@ -48,6 +48,7 @@ def generate_history(test_context: TestContext):
             continue
         api_event = parse_api_event(line)
         api_event_dict = {}
+        api_event_dict["number"] = len(history)
         api_event_dict["etype"] = api_event.etype
         api_event_dict["key"] = api_event.key
         api_event_dict["state"] = api_event.obj_str
@@ -192,10 +193,13 @@ def get_event_mask(test_context: TestContext):
     return test_context.controller_config.state_update_summary_checker_mask
 
 
-def check_single_history(history, resource_keys, checker_name, customized_checker):
+def apply_safety_checker(
+    test_context: TestContext, resource_keys, checker_name, customized_checker
+):
     ret_val = 0
     messages = []
     current_state = {}
+    history = get_testing_history(test_context)
     for key in resource_keys:
         current_state[key] = None
     for event in history:
@@ -214,9 +218,9 @@ def check_single_history(history, resource_keys, checker_name, customized_checke
                     ret_val += 1
                     messages.append(
                         generate_alarm(
-                            "[CUSTOMIZED-SAFETY]",
-                            "safety violation {}: checker {} failed on {}".format(
-                                ret_val, checker_name, current_state
+                            "Safety violation:",
+                            "checker {} failed on state {} in history.json".format(
+                                checker_name, event["number"]
                             ),
                         )
                     )
