@@ -75,10 +75,11 @@ First run Sieve learning stage
 ```
 python3 sieve.py -p your-controller -t your-test-case-name -s learn -m learn-twice
 ```
-Sieve will generate the test plans for intermediate-states, unobserved-states and stale-stateing testing patterns in `log/your-controller/your-test-case-name/learn/learn-twice/{intermediate-state, unobserved-states, stale-state}`.
+Sieve will generate the test plans for intermediate-states, unobserved-states and stale-stateing testing patterns in `log/your-controller/your-test-case-name/learn/learn-twice/learn.yaml/{intermediate-state, unobserved-states, stale-state}`.
+
 If you want to run one of the test plans:
 ```
-python3 sieve.py -p your-controller -t your-test-case-name -s test -m intermediate-state -c path-to-the-test-plan
+python3 sieve.py -p your-controller -c path-to-the-test-plan
 ```
 Sieve will report any bugs it find after the test case is finished.
 
