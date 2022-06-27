@@ -75,10 +75,57 @@ First run Sieve learning stage
 ```
 python3 sieve.py -p your-controller -t your-test-case-name -s learn -m learn-twice
 ```
-Sieve will generate the test plans for intermediate-states, unobserved-states and stale-stateing testing patterns in `log/your-controller/your-test-case-name/learn/learn-twice/{intermediate-state, unobserved-states, stale-state}`.
+Sieve will generate the test plans for intermediate-states, unobserved-states and stale-stateing testing patterns in `log/your-controller/your-test-case-name/learn/learn-twice/learn.yaml/{intermediate-state, unobserved-states, stale-state}`.
+
 If you want to run one of the test plans:
 ```
-python3 sieve.py -p your-controller -t your-test-case-name -s test -m intermediate-state -c path-to-the-test-plan
+python3 sieve.py -p your-controller -c path-to-the-test-plan
 ```
 Sieve will report any bugs it find after the test case is finished.
 
+If you want to run all the test plans in a folder:
+```
+python3 sieve.py -p your-controller -c path-to-the-folder --batch
+```
+All the test results will appear in `sieve_test_results` as json files.
+You can focus on the test results that indicate potential bugs by
+```
+python3 report_bugs.py
+```
+and it will report
+```
+Please refer to the following test results for potential bugs found by Sieve
+test-result-1
+test-result-2
+test-result-3
+...
+```
+
+Each test result file contains information for debugging:
+```
+{
+    "your-controller": {
+        "your-test-case": {
+            "test": {
+                "path-to-the-test-plan": {
+                    "duration": xxx,
+                    "injection_completed": xxx,
+                    "workload_completed": xxx,
+                    "number_errors": xxx,
+                    "detected_errors": xxx,
+                    "no_exception": xxx,
+                    "exception_message": xxx,
+                    "test_config_content": xxx,
+                    "host": xxx
+                }
+            }
+        }
+    }
+}
+```
+and you might need to look into the controller to figure out the bug.
+
+To help diagnosis, you can reproduce the test failure by
+```
+python3 sieve.py -p your-controller -c path-to-the-test-plan
+```

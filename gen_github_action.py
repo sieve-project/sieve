@@ -35,6 +35,19 @@ operators_for_CI = {
     "zookeeper-operator": ["recreate", "scaledown-scaleup"],
 }
 
+operators_to_run_tests = [
+    "cass-operator",
+    # "cassandra-operator",
+    "casskop-operator",
+    "elastic-operator",
+    "mongodb-operator",
+    # "nifikop-operator",
+    "rabbitmq-operator",
+    # "xtradb-operator",
+    # "yugabyte-operator",
+    "zookeeper-operator",
+]
+
 
 def job_template(self_hosted):
     return {
@@ -211,7 +224,7 @@ def generate_test_jobs(self_hosted):
             for mode in build_modes
         ]
         job["steps"].extend(build_image)
-        if not (operator == "xtradb-operator"):
+        if operator in operators_to_run_tests:
             sieve_learn = [
                 {
                     "name": "Sieve Learn - %s %s" % (operator, workload),
