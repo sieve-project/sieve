@@ -4,6 +4,7 @@ from sieve_common.common import *
 from sieve_oracle.checker_common import *
 from sieve_oracle.safety_checker import *
 from sieve_oracle.liveness_checker import *
+from sieve_oracle.customized_safety_checker import *
 
 
 def persist_history(test_context: TestContext):
@@ -114,6 +115,15 @@ def safety_checker(test_context: TestContext):
             ) = compare_history_digests(test_context)
             ret_val += compare_history_digests_ret_val
             messages.extend(compare_history_digests_messages)
+    for checker_suite in customized_safety_checker_suites:
+        (safety_checker_ret_val, safety_checker_messages) = apply_safety_checker(
+            test_context,
+            checker_suite.resource_keys,
+            checker_suite.checker_name,
+            checker_suite.checker_function,
+        )
+        ret_val += safety_checker_ret_val
+        messages.extend(safety_checker_messages)
     return ret_val, messages
 
 
