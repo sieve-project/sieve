@@ -63,8 +63,13 @@ please specify following entries in `examples/your-controller/config.json`:
 - `controller_deployment_file_path`: the relative path from `sieve` to the YAML file that is modified by the user
 
 ### Test
-The last step is to prepare the test workloads. The user needs to provide a command for Sieve to run the test workload by filling `test_command` in `examples/your-controller/config.json`. The command should accept an argument to specify which test case to run. As an example, please refer to the [test command](../examples/zookeeper-operator/config.json#L9) we used for the zookeeper-operator which calls a Python script. The Python script implements two test cases.
+The last step is to prepare the end-to-end test workloads. The user needs to provide a command for Sieve to run the test workload by filling `test_command` in `examples/your-controller/config.json`. The command should accept an argument to specify which test case to run. As an example, please refer to the [test command](../examples/zookeeper-operator/config.json#L9) we used for the zookeeper-operator which calls a Python script. The Python script implements two test cases.
 
+One common challenge to implement end-to-end test workloads is to know when the cluster becomes stable after each test command. For example, a single `kubectl` command that creates/updates/deletes the custom resource object might trigger a lot of controller actions that create/update//delete secondary objects that are owned by the custom resource object. The best practice is to wait until the cluster is stable before issuing the next command or ending the test workload, since this generates a stable cluster state sequence. Sieve detects bugs by checking cluster state sequence, and unstable sequence can lead to false alarms. Sieve provides APIs (e.g., `wait_for_pod_status`) for users to specify the waiting condition like waiting for certain status (terminated, running) of certain resource (pod, statefulset).
+
+As an example, imagine that if the last command in the workload deletes the custom resource object, which will trigger a series of pod/statefulset deletions. If we do not end the test workload before all the objects are deleted, the end state might or might not contain the pod/statefulset objects depending on how fast Kubernetes GC is so in that particular run. And the inconsistency between the end states could make Sieve report many false alarms.
+
+Of course, if a bug gets triggered and prevents the controller's action forever, it is not a false alarm bug an exciting true alarm. The `wait_for_pod_status` has a default timeout (i.e., 10min) which should be more than enough for most controller actions. If the timeout is reached, Sieve will report it as an alarm.
 
 Now you are all set. To test your controllers, just build the images:
 ```
