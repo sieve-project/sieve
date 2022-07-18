@@ -3,6 +3,7 @@ package sieve
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
@@ -133,6 +134,33 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterReconcile")
+}
+
+func NotifyLearnBeforeRestCall() int {
+	return -1
+}
+
+func NotifyLearnAfterRestCall(sideEffectID int, verb string, resource string, subresource string, obj interface{}, serializationErr error, respErr error) {
+	if err := loadSieveConfigFromEnv(false); err != nil {
+		return
+	}
+	if serializationErr != nil {
+		return
+	}
+
+	serializedObj, err := json.Marshal(obj)
+	if err != nil {
+		printError(err, SIEVE_JSON_ERR)
+		return
+	}
+
+	reconcilerType := getReconcilerFromStackTrace()
+
+	log.Println("verb: " + verb)
+	log.Println("resource: " + resource)
+	log.Println("subresource: " + subresource)
+	log.Println("reconciler type: " + reconcilerType)
+	log.Println("serializedBody: " + string(serializedObj))
 }
 
 func NotifyLearnBeforeControllerWrite(sideEffectType string, object interface{}) int {
