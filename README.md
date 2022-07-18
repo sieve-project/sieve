@@ -70,7 +70,7 @@ Talks:
 * [HotOS 2021](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB) (10 minutes)
 
 Research papers:
-* Automatic Reliability Testing For Cluster Management Controllers <br>
-Xudong Sun, Wenqing Luo, Tyler Gu, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lalith Suresh, and Tianyin Xu. In Proceedings of the 16th USENIX Symposium on Operating Systems Design and Implementation (OSDI'22), Carlsbad, CA, USA, Jul. 2022.
+* [Automatic Reliability Testing for Cluster Management Controllers](https://www.usenix.org/conference/osdi22/presentation/sun) <br>
+Xudong Sun, Wenqing Luo, Jiawei Tyler Gu, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lalith Suresh, and Tianyin Xu. In Proceedings of the 16th USENIX Symposium on Operating Systems Design and Implementation (OSDI'22), Carlsbad, CA, USA, Jul. 2022.
 * [Reasoning about modern datacenter infrastructures using partial histories](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
