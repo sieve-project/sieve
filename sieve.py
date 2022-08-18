@@ -670,7 +670,7 @@ def run(
     return test_result, test_context
 
 
-def run_batch(project, test, dir, mode, stage, test_plan_folder, docker):
+def run_batch(project, test, dir, mode, stage, test_plan_folder, docker, rate_limiter, phase):
     assert stage == sieve_stages.TEST, "batch mode only allowed in test stage"
     assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
         test_plan_folder
@@ -689,6 +689,8 @@ def run_batch(project, test, dir, mode, stage, test_plan_folder, docker):
             stage,
             test_plan,
             docker,
+            rate_limiter,
+            phase,
         )
         save_run_result(
             test_context,
@@ -826,6 +828,8 @@ if __name__ == "__main__":
             options.stage,
             options.config,
             options.docker,
+            options.rate_limiter,
+            options.phase,
         )
     else:
         if options.mode == sieve_modes.LEARN_TWICE:
