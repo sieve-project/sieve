@@ -195,7 +195,7 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 			Lhs: []dst.Expr{&dst.Ident{Name: writeIDVar}},
 			Rhs: []dst.Expr{&dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
-				Args: []dst.Expr{},
+				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.subresource"}},
 			}},
 			Tok: token.DEFINE,
 		}
