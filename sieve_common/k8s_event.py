@@ -14,6 +14,8 @@ SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-HEAR]"
 SIEVE_AFTER_HEAR_MARK = "[SIEVE-AFTER-HEAR]"
 SIEVE_BEFORE_WRITE_MARK = "[SIEVE-BEFORE-WRITE]"
 SIEVE_AFTER_WRITE_MARK = "[SIEVE-AFTER-WRITE]"
+SIEVE_BEFORE_REST_CALL_MARK = "[SIEVE-BEFORE-REST-CALL]"
+SIEVE_AFTER_REST_CALL_MARK = "[SIEVE-AFTER-REST-CALL]"
 SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK = "[SIEVE-BEFORE-ANNOTATED-API-INVOCATION]"
 SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK = "[SIEVE-AFTER-ANNOTATED-API-INVOCATION]"
 SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
@@ -115,6 +117,13 @@ def extract_namespace_name(obj: Dict):
         obj["metadata"]["namespace"] if "namespace" in obj["metadata"] else "default"
     )
     return obj_namespace, obj_name
+
+
+def extract_name(obj: Dict):
+    assert "metadata" in obj, "missing metadata in: " + str(obj)
+    # TODO: we should allow namespace other than default here
+    obj_name = obj["metadata"]["name"]
+    return obj_name
 
 
 def extract_generate_name(obj: Dict):
@@ -451,9 +460,11 @@ class OperatorWrite:
         self,
         id: str,
         etype: str,
-        rtype: str,
         reconciler_type: str,
         error: str,
+        rtype: str,
+        namespace: str,
+        name: str,
         obj_str: str,
     ):
         self.__id = int(id)
@@ -466,7 +477,8 @@ class OperatorWrite:
         self.__error = error
         self.__obj_str = obj_str
         self.__obj_map = json.loads(obj_str)
-        self.__namespace, self.__name = extract_namespace_name(self.obj_map)
+        self.__namespace = namespace
+        self.__name = name if name != "" else extract_name(self.obj_map)
         self.__start_timestamp = -1
         self.__end_timestamp = -1
         self.__range_start_timestamp = -1
@@ -784,10 +796,17 @@ def parse_operator_hear(line: str) -> OperatorHear:
 
 
 def parse_operator_write(line: str) -> OperatorWrite:
-    assert SIEVE_AFTER_WRITE_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_WRITE_MARK) :].strip("\n").split("\t")
+    assert SIEVE_AFTER_REST_CALL_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_REST_CALL_MARK) :].strip("\n").split("\t")
     return OperatorWrite(
-        tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6]
+        tokens[1],
+        tokens[2],
+        tokens[3],
+        tokens[4],
+        tokens[5],
+        tokens[6],
+        tokens[7],
+        tokens[8],
     )
 
 
@@ -845,12 +864,12 @@ def parse_operator_hear_id_only(line: str) -> OperatorHearIDOnly:
 
 
 def parse_operator_write_id_only(line: str) -> OperatorWriteIDOnly:
-    assert SIEVE_AFTER_WRITE_MARK in line or SIEVE_BEFORE_WRITE_MARK in line
-    if SIEVE_AFTER_WRITE_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_WRITE_MARK) :].strip("\n").split("\t")
+    assert SIEVE_AFTER_REST_CALL_MARK in line or SIEVE_BEFORE_REST_CALL_MARK in line
+    if SIEVE_AFTER_REST_CALL_MARK in line:
+        tokens = line[line.find(SIEVE_AFTER_REST_CALL_MARK) :].strip("\n").split("\t")
         return OperatorWriteIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_WRITE_MARK) :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_REST_CALL_MARK) :].strip("\n").split("\t")
         return OperatorWriteIDOnly(tokens[1])
 
 
