@@ -236,7 +236,7 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 		instrNotifyLearnAfterControllerWrite := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.resource"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "objForSieve"}, &dst.Ident{Name: "errForSieve"}, &dst.Ident{Name: "result.Error()"}},
+				Args: []dst.Expr{&dst.Ident{Name: writeIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.pathPrefix"}, &dst.Ident{Name: "r.subpath"}, &dst.Ident{Name: "r.namespace"}, &dst.Ident{Name: "r.namespaceSet"}, &dst.Ident{Name: "r.resource"}, &dst.Ident{Name: "r.resourceName"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "objForSieve"}, &dst.Ident{Name: "errForSieve"}, &dst.Ident{Name: "result.Error()"}},
 			},
 		}
 		instrNotifyLearnAfterControllerWrite.Decs.End.Append("//sieve")
