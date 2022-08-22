@@ -167,7 +167,7 @@ def parse_reconciler_events(test_context: TestContext, path):
                 operator_nk_write.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[operator_nk_write.start_timestamp] = operator_nk_write
             print("nk write end")
-        elif SIEVE_AFTER_READ_MARK in line:
+        elif SIEVE_AFTER_CACHE_READ_MARK in line:
             # TODO: handle the reads that are not in any reconcile
             operator_read = parse_operator_read(line)
             if operator_read.reconciler_type not in cur_reconcile_per_type:

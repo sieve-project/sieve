@@ -298,7 +298,7 @@ func (s *learnServer) coordinatingEvents() {
 			case afterControllerRecvForLearn:
 				log.Printf("[SIEVE-AFTER-HEAR]\t%s\n", nw.payload)
 			case afterControllerReadForLearn:
-				log.Printf("[SIEVE-AFTER-READ]\t%s\n", nw.payload)
+				log.Printf("[SIEVE-AFTER-CACHE-READ]\t%s\n", nw.payload)
 			default:
 				log.Fatal("invalid notification type")
 			}
