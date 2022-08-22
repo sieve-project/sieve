@@ -41,6 +41,20 @@ type NotifyLearnAfterControllerWriteRequest struct {
 	Error          string
 }
 
+type NotifyLearnBeforeRestCallRequest struct {
+}
+
+type NotifyLearnAfterRestCallRequest struct {
+	SideEffectID   int
+	SideEffectType string
+	ReconcilerType string
+	ResourceType   string
+	Namespace      string
+	Name           string
+	ObjectBody     string
+	Error          string
+}
+
 // type NotifyLearnBeforeNKWriteRequest struct {
 // 	RecvTypeName string
 // 	FunName      string

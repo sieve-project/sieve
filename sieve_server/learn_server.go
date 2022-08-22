@@ -62,6 +62,14 @@ func (l *LearnListener) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfte
 	return l.Server.NotifyLearnAfterReconcile(request, response)
 }
 
+func (l *LearnListener) NotifyLearnBeforeRestCall(request *sieve.NotifyLearnBeforeRestCallRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnBeforeRestCall(request, response)
+}
+
+func (l *LearnListener) NotifyLearnAfterRestCall(request *sieve.NotifyLearnAfterRestCallRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterRestCall(request, response)
+}
+
 func (l *LearnListener) NotifyLearnBeforeControllerWrite(request *sieve.NotifyLearnBeforeControllerWriteRequest, response *sieve.Response) error {
 	return l.Server.NotifyLearnBeforeControllerWrite(request, response)
 }
@@ -93,6 +101,8 @@ const (
 	afterControllerReconcileForLearn
 	beforeControllerWriteForLearn
 	afterControllerWriteForLearn
+	beforeRestCallForLearn
+	afterRestCallForLearn
 	beforeAnnotatedAPICallForLearn
 	afterAnnotatedAPICallForLearn
 	afterControllerReadForLearn
@@ -190,6 +200,22 @@ func (s *learnServer) NotifyLearnAfterControllerWrite(request *sieve.NotifyLearn
 	return nil
 }
 
+func (s *learnServer) NotifyLearnBeforeRestCall(request *sieve.NotifyLearnBeforeRestCallRequest, response *sieve.Response) error {
+	sID := atomic.AddInt32(&s.sideEffectID, 1)
+	waitingCh := make(chan int32)
+	s.sideEffectChMap.Store(fmt.Sprint(sID), waitingCh)
+	s.notificationCh <- notificationWrapper{ntype: beforeRestCallForLearn, payload: fmt.Sprint(sID)}
+	<-waitingCh
+	*response = sieve.Response{Message: "OK", Ok: true, Number: int(sID)}
+	return nil
+}
+
+func (s *learnServer) NotifyLearnAfterRestCall(request *sieve.NotifyLearnAfterRestCallRequest, response *sieve.Response) error {
+	s.notificationCh <- notificationWrapper{ntype: afterRestCallForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
+	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
+	return nil
+}
+
 func (s *learnServer) NotifyLearnBeforeAnnotatedAPICall(request *sieve.NotifyLearnBeforeAnnotatedAPICallRequest, response *sieve.Response) error {
 	aID := atomic.AddInt32(&s.annotatedAPICallID, 1)
 	waitingCh := make(chan int32)
@@ -261,6 +287,16 @@ func (s *learnServer) coordinatingEvents() {
 				}
 			case afterControllerWriteForLearn:
 				log.Printf("[SIEVE-AFTER-WRITE]\t%s\n", nw.payload)
+			case beforeRestCallForLearn:
+				if obj, ok := s.sideEffectChMap.Load(nw.payload); ok {
+					log.Printf("[SIEVE-BEFORE-REST-CALL]\t%s\n", nw.payload)
+					ch := obj.(chan int32)
+					ch <- 0
+				} else {
+					log.Fatal("invalid object in eventChMap")
+				}
+			case afterRestCallForLearn:
+				log.Printf("[SIEVE-AFTER-REST-CALL]\t%s\n", nw.payload)
 			case beforeAnnotatedAPICallForLearn:
 				if obj, ok := s.nonK8sSideEffectChMap.Load(nw.payload); ok {
 					log.Printf("[SIEVE-BEFORE-ANNOTATED-API-INVOCATION]\t%s\n", nw.payload)
