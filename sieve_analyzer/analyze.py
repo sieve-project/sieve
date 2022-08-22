@@ -24,11 +24,11 @@ def sanity_check_sieve_log(path):
     operator_hear_status = {}
     for i in range(len(lines)):
         line = lines[i]
-        if SIEVE_BEFORE_WRITE_MARK in line:
+        if SIEVE_BEFORE_REST_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
             assert operator_write_id not in operator_write_status, line
             operator_write_status[operator_write_id] = 1
-        elif SIEVE_AFTER_WRITE_MARK in line:
+        elif SIEVE_AFTER_REST_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
             assert operator_write_id in operator_write_status, line
             operator_write_status[operator_write_id] += 1
@@ -108,10 +108,10 @@ def parse_reconciler_events(test_context: TestContext, path):
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
-        if SIEVE_BEFORE_REST_CALL_MARK in line:
+        if SIEVE_BEFORE_REST_WRITE_MARK in line:
             operator_write_id_only = parse_operator_write_id_only(line)
             operator_write_start_timestamp_map[operator_write_id_only.id] = i
-        elif SIEVE_AFTER_REST_CALL_MARK in line:
+        elif SIEVE_AFTER_REST_WRITE_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the operator_write since it is not caused by reconcile

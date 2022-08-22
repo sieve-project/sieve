@@ -164,7 +164,9 @@ func NotifyLearnBeforeRestCall(verb, subresource string) int {
 	if reconcilerType == "unknown" {
 		return -1
 	}
-	request := &NotifyLearnBeforeRestCallRequest{}
+	request := &NotifyLearnBeforeRestCallRequest{
+		SideEffectType: HttpVerbToControllerWrite(verb, subresource),
+	}
 	var response Response
 	err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestCall", request, &response)
 	if err != nil {
@@ -226,68 +228,6 @@ func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, 
 	log.Printf("controller rest call resourceName: %s\n", resourceName)
 	log.Printf("controller rest call subresource: %s\n", subresource)
 	log.Printf("controller rest call: %s %s %s %s %s\n", HttpVerbToControllerWrite(verb, subresource), regularizeType(obj), reconcilerType, errorString, string(serializedObj))
-}
-
-func NotifyLearnBeforeControllerWrite(sideEffectType string, object interface{}) int {
-	return 1
-	// if err := loadSieveConfigFromEnv(false); err != nil {
-	// 	return -1
-	// }
-	// if err := initRPCClient(); err != nil {
-	// 	return -1
-	// }
-	// request := &NotifyLearnBeforeControllerWriteRequest{
-	// 	SideEffectType: sideEffectType,
-	// }
-	// var response Response
-	// err := rpcClient.Call("LearnListener.NotifyLearnBeforeControllerWrite", request, &response)
-	// if err != nil {
-	// 	printError(err, SIEVE_REPLY_ERR)
-	// 	return -1
-	// }
-	// checkResponse(response, "NotifyLearnBeforeControllerWrite")
-	// return response.Number
-}
-
-func NotifyLearnAfterControllerWrite(sideEffectID int, sideEffectType string, object interface{}, k8sErr error) {
-	if err := loadSieveConfigFromEnv(false); err != nil {
-		return
-	}
-	if sideEffectID == -1 {
-		return
-	}
-	if err := initRPCClient(); err != nil {
-		return
-	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "unknown" {
-		return
-	}
-	jsonObject, err := json.Marshal(object)
-	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
-		return
-	}
-	errorString := "NoError"
-	if k8sErr != nil {
-		errorString = string(errors.ReasonForError(k8sErr))
-	}
-	// request := &NotifyLearnAfterControllerWriteRequest{
-	// 	SideEffectID:   sideEffectID,
-	// 	SideEffectType: sideEffectType,
-	// 	Object:         string(jsonObject),
-	// 	ResourceType:   regularizeType(object),
-	// 	ReconcilerType: reconcilerType,
-	// 	Error:          errorString,
-	// }
-	// var response Response
-	// err = rpcClient.Call("LearnListener.NotifyLearnAfterControllerWrite", request, &response)
-	// if err != nil {
-	// 	printError(err, SIEVE_REPLY_ERR)
-	// 	return
-	// }
-	// checkResponse(response, "NotifyLearnAfterControllerWrite")
-	log.Printf("controller write: %s %s %s %s %s\n", sideEffectType, regularizeType(object), reconcilerType, errorString, string(jsonObject))
 }
 
 func NotifyLearnBeforeAnnotatedAPICall(moduleName string, filePath string, receiverType string, funName string) int {

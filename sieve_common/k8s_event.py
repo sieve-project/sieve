@@ -12,10 +12,8 @@ ALLOWED_ERROR_TYPE = ["NoError"]
 
 SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-HEAR]"
 SIEVE_AFTER_HEAR_MARK = "[SIEVE-AFTER-HEAR]"
-SIEVE_BEFORE_WRITE_MARK = "[SIEVE-BEFORE-WRITE]"
-SIEVE_AFTER_WRITE_MARK = "[SIEVE-AFTER-WRITE]"
-SIEVE_BEFORE_REST_CALL_MARK = "[SIEVE-BEFORE-REST-CALL]"
-SIEVE_AFTER_REST_CALL_MARK = "[SIEVE-AFTER-REST-CALL]"
+SIEVE_BEFORE_REST_WRITE_MARK = "[SIEVE-BEFORE-REST-WRITE]"
+SIEVE_AFTER_REST_WRITE_MARK = "[SIEVE-AFTER-REST-WRITE]"
 SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK = "[SIEVE-BEFORE-ANNOTATED-API-INVOCATION]"
 SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK = "[SIEVE-AFTER-ANNOTATED-API-INVOCATION]"
 SIEVE_AFTER_READ_MARK = "[SIEVE-AFTER-READ]"
@@ -796,8 +794,8 @@ def parse_operator_hear(line: str) -> OperatorHear:
 
 
 def parse_operator_write(line: str) -> OperatorWrite:
-    assert SIEVE_AFTER_REST_CALL_MARK in line
-    tokens = line[line.find(SIEVE_AFTER_REST_CALL_MARK) :].strip("\n").split("\t")
+    assert SIEVE_AFTER_REST_WRITE_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_REST_WRITE_MARK) :].strip("\n").split("\t")
     return OperatorWrite(
         tokens[1],
         tokens[2],
@@ -864,12 +862,12 @@ def parse_operator_hear_id_only(line: str) -> OperatorHearIDOnly:
 
 
 def parse_operator_write_id_only(line: str) -> OperatorWriteIDOnly:
-    assert SIEVE_AFTER_REST_CALL_MARK in line or SIEVE_BEFORE_REST_CALL_MARK in line
-    if SIEVE_AFTER_REST_CALL_MARK in line:
-        tokens = line[line.find(SIEVE_AFTER_REST_CALL_MARK) :].strip("\n").split("\t")
+    assert SIEVE_AFTER_REST_WRITE_MARK in line or SIEVE_BEFORE_REST_WRITE_MARK in line
+    if SIEVE_AFTER_REST_WRITE_MARK in line:
+        tokens = line[line.find(SIEVE_AFTER_REST_WRITE_MARK) :].strip("\n").split("\t")
         return OperatorWriteIDOnly(tokens[1])
     else:
-        tokens = line[line.find(SIEVE_BEFORE_REST_CALL_MARK) :].strip("\n").split("\t")
+        tokens = line[line.find(SIEVE_BEFORE_REST_WRITE_MARK) :].strip("\n").split("\t")
         return OperatorWriteIDOnly(tokens[1])
 
 

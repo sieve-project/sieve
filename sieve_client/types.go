@@ -28,20 +28,8 @@ type NotifyLearnAfterReconcileRequest struct {
 	ReconcilerName string
 }
 
-type NotifyLearnBeforeControllerWriteRequest struct {
-	SideEffectType string
-}
-
-type NotifyLearnAfterControllerWriteRequest struct {
-	SideEffectID   int
-	SideEffectType string
-	Object         string
-	ResourceType   string
-	ReconcilerType string
-	Error          string
-}
-
 type NotifyLearnBeforeRestCallRequest struct {
+	SideEffectType string
 }
 
 type NotifyLearnAfterRestCallRequest struct {
