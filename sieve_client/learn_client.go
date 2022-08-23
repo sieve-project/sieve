@@ -3,6 +3,7 @@ package sieve
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
@@ -135,7 +136,7 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 	checkResponse(response, "NotifyLearnAfterReconcile")
 }
 
-func HttpVerbToControllerWrite(verb, subresource string) string {
+func HttpVerbToControllerOperation(verb, subresource string) string {
 	switch verb {
 	case "POST":
 		return "Create"
@@ -163,17 +164,26 @@ func NotifyLearnBeforeRestCall(verb string, subresource string) int {
 	if reconcilerType == "unknown" {
 		return -1
 	}
-	request := &NotifyLearnBeforeRestCallRequest{
-		SideEffectType: HttpVerbToControllerWrite(verb, subresource),
+	controllerOperation := HttpVerbToControllerOperation(verb, subresource)
+	if controllerOperation == "Unknown" {
+		log.Println("Unknown operation")
+		return 1
+	} else if controllerOperation == "Get" || controllerOperation == "List" {
+		log.Println("Get and List not supported yet")
+		return 1
+	} else {
+		request := &NotifyLearnBeforeRestWriteRequest{
+			SideEffectType: controllerOperation,
+		}
+		var response Response
+		err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestWrite", request, &response)
+		if err != nil {
+			printError(err, SIEVE_REPLY_ERR)
+			return -1
+		}
+		checkResponse(response, "NotifyLearnBeforeRestWrite")
+		return response.Number
 	}
-	var response Response
-	err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestCall", request, &response)
-	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
-		return -1
-	}
-	checkResponse(response, "NotifyLearnBeforeRestCall")
-	return response.Number
 }
 
 func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string, obj interface{}, serializationErr error, respErr error) {
@@ -202,31 +212,30 @@ func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, 
 	if respErr != nil {
 		errorString = string(errors.ReasonForError(respErr))
 	}
-	request := &NotifyLearnAfterRestCallRequest{
-		SideEffectID:   sideEffectID,
-		SideEffectType: HttpVerbToControllerWrite(verb, subresource),
-		ReconcilerType: reconcilerType,
-		ResourceType:   resource,
-		Namespace:      namespace,
-		Name:           resourceName,
-		ObjectBody:     string(serializedObj),
-		Error:          errorString,
+	controllerOperation := HttpVerbToControllerOperation(verb, subresource)
+	if controllerOperation == "Unknown" {
+		log.Println("Unknown operation")
+	} else if controllerOperation == "Get" || controllerOperation == "List" {
+		log.Println("Get and List not supported yet")
+	} else {
+		request := &NotifyLearnAfterRestWriteRequest{
+			SideEffectID:   sideEffectID,
+			SideEffectType: controllerOperation,
+			ReconcilerType: reconcilerType,
+			ResourceType:   resource,
+			Namespace:      namespace,
+			Name:           resourceName,
+			ObjectBody:     string(serializedObj),
+			Error:          errorString,
+		}
+		var response Response
+		err = rpcClient.Call("LearnListener.NotifyLearnAfterRestWrite", request, &response)
+		if err != nil {
+			printError(err, SIEVE_REPLY_ERR)
+			return
+		}
+		checkResponse(response, "NotifyLearnAfterRestWrite")
 	}
-	var response Response
-	err = rpcClient.Call("LearnListener.NotifyLearnAfterRestCall", request, &response)
-	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
-		return
-	}
-	checkResponse(response, "NotifyLearnAfterRestCall")
-	// log.Printf("controller rest call pathPrefix: %s\n", pathPrefix)
-	// log.Printf("controller rest call subpath: %s\n", subpath)
-	// log.Printf("controller rest call namespace: %s\n", namespace)
-	// log.Printf("controller rest call namespaceSet: %t\n", namespaceSet)
-	// log.Printf("controller rest call resource: %s\n", resource)
-	// log.Printf("controller rest call resourceName: %s\n", resourceName)
-	// log.Printf("controller rest call subresource: %s\n", subresource)
-	// log.Printf("controller rest call: %s %s %s %s %s\n", HttpVerbToControllerWrite(verb, subresource), regularizeType(obj), reconcilerType, errorString, string(serializedObj))
 }
 
 func NotifyLearnBeforeAnnotatedAPICall(moduleName string, filePath string, receiverType string, funName string) int {

@@ -206,20 +206,26 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
 		return
 	}
-	log.Printf("NotifyTestAfterRestCall %s %s send\n", verb, resourceKey)
-	request := &NotifyTestAfterControllerWriteRequest{
-		WriteType:      HttpVerbToControllerWrite(verb, subresource),
-		ReconcilerType: reconcilerType,
-		ResourceKey:    resourceKey,
-		Object:         string(serializedObj),
+	controllerOperation := HttpVerbToControllerOperation(verb, subresource)
+	if controllerOperation == "Unknown" {
+		log.Println("Unknown operation")
+	} else if controllerOperation == "Get" || controllerOperation == "List" {
+		log.Println("Get and List not supported yet")
+	} else {
+		request := &NotifyTestAfterControllerWriteRequest{
+			WriteType:      controllerOperation,
+			ReconcilerType: reconcilerType,
+			ResourceKey:    resourceKey,
+			Object:         string(serializedObj),
+		}
+		var response Response
+		err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
+		if err != nil {
+			printError(err, SIEVE_REPLY_ERR)
+			return
+		}
+		checkResponse(response, "NotifyTestAfterRestCall")
 	}
-	var response Response
-	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
-	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
-		return
-	}
-	checkResponse(response, "NotifyTestAfterRestCall")
 }
 
 // func NotifyTestBeforeControllerWrite(writeType string, object interface{}) int {

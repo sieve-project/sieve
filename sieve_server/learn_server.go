@@ -62,12 +62,12 @@ func (l *LearnListener) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfte
 	return l.Server.NotifyLearnAfterReconcile(request, response)
 }
 
-func (l *LearnListener) NotifyLearnBeforeRestCall(request *sieve.NotifyLearnBeforeRestCallRequest, response *sieve.Response) error {
-	return l.Server.NotifyLearnBeforeRestCall(request, response)
+func (l *LearnListener) NotifyLearnBeforeRestWrite(request *sieve.NotifyLearnBeforeRestWriteRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnBeforeRestWrite(request, response)
 }
 
-func (l *LearnListener) NotifyLearnAfterRestCall(request *sieve.NotifyLearnAfterRestCallRequest, response *sieve.Response) error {
-	return l.Server.NotifyLearnAfterRestCall(request, response)
+func (l *LearnListener) NotifyLearnAfterRestWrite(request *sieve.NotifyLearnAfterRestWriteRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterRestWrite(request, response)
 }
 
 func (l *LearnListener) NotifyLearnBeforeAnnotatedAPICall(request *sieve.NotifyLearnBeforeAnnotatedAPICallRequest, response *sieve.Response) error {
@@ -176,26 +176,18 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterR
 	return nil
 }
 
-func (s *learnServer) NotifyLearnBeforeRestCall(request *sieve.NotifyLearnBeforeRestCallRequest, response *sieve.Response) error {
+func (s *learnServer) NotifyLearnBeforeRestWrite(request *sieve.NotifyLearnBeforeRestWriteRequest, response *sieve.Response) error {
 	sID := atomic.AddInt32(&s.sideEffectID, 1)
 	waitingCh := make(chan int32)
 	s.sideEffectChMap.Store(fmt.Sprint(sID), waitingCh)
-	if request.SideEffectType == "Get" || request.SideEffectType == "List" {
-		s.notificationCh <- notificationWrapper{ntype: beforeRestReadForLearn, payload: fmt.Sprint(sID)}
-	} else {
-		s.notificationCh <- notificationWrapper{ntype: beforeRestWriteForLearn, payload: fmt.Sprint(sID)}
-	}
+	s.notificationCh <- notificationWrapper{ntype: beforeRestWriteForLearn, payload: fmt.Sprint(sID)}
 	<-waitingCh
 	*response = sieve.Response{Message: "OK", Ok: true, Number: int(sID)}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnAfterRestCall(request *sieve.NotifyLearnAfterRestCallRequest, response *sieve.Response) error {
-	if request.SideEffectType == "Get" || request.SideEffectType == "List" {
-		s.notificationCh <- notificationWrapper{ntype: afterRestReadForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
-	} else {
-		s.notificationCh <- notificationWrapper{ntype: afterRestWriteForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
-	}
+func (s *learnServer) NotifyLearnAfterRestWrite(request *sieve.NotifyLearnAfterRestWriteRequest, response *sieve.Response) error {
+	s.notificationCh <- notificationWrapper{ntype: afterRestWriteForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
 	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
 	return nil
 }
