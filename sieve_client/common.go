@@ -99,8 +99,10 @@ func checkKVPairInTriggerCondition(resourceKey, key, val string, onlyMatchType b
 func checkKVPairInTriggerObservationPoint(resourceKey, key, val string, onlyMatchType bool) bool {
 	for triggerResourceKey, triggers := range triggerDefinitionsByResourceKey {
 		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
+			log.Println("find the resource key!")
 			for _, trigger := range triggers {
 				if triggerObservationPoint, ok := trigger["observationPoint"]; ok {
+					log.Println("find the observationPoint!")
 					if triggerObservationPointMap, ok := triggerObservationPoint.(map[interface{}]interface{}); ok {
 						if checkKVPairInTriggerContent(triggerObservationPointMap, key, val) {
 							return true

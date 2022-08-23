@@ -3,7 +3,6 @@ package sieve
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -153,7 +152,7 @@ func HttpVerbToControllerWrite(verb, subresource string) string {
 	}
 }
 
-func NotifyLearnBeforeRestCall(verb, subresource string) int {
+func NotifyLearnBeforeRestCall(verb string, subresource string) int {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return -1
 	}
@@ -220,14 +219,14 @@ func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, 
 		return
 	}
 	checkResponse(response, "NotifyLearnAfterRestCall")
-	log.Printf("controller rest call pathPrefix: %s\n", pathPrefix)
-	log.Printf("controller rest call subpath: %s\n", subpath)
-	log.Printf("controller rest call namespace: %s\n", namespace)
-	log.Printf("controller rest call namespaceSet: %t\n", namespaceSet)
-	log.Printf("controller rest call resource: %s\n", resource)
-	log.Printf("controller rest call resourceName: %s\n", resourceName)
-	log.Printf("controller rest call subresource: %s\n", subresource)
-	log.Printf("controller rest call: %s %s %s %s %s\n", HttpVerbToControllerWrite(verb, subresource), regularizeType(obj), reconcilerType, errorString, string(serializedObj))
+	// log.Printf("controller rest call pathPrefix: %s\n", pathPrefix)
+	// log.Printf("controller rest call subpath: %s\n", subpath)
+	// log.Printf("controller rest call namespace: %s\n", namespace)
+	// log.Printf("controller rest call namespaceSet: %t\n", namespaceSet)
+	// log.Printf("controller rest call resource: %s\n", resource)
+	// log.Printf("controller rest call resourceName: %s\n", resourceName)
+	// log.Printf("controller rest call subresource: %s\n", subresource)
+	// log.Printf("controller rest call: %s %s %s %s %s\n", HttpVerbToControllerWrite(verb, subresource), regularizeType(obj), reconcilerType, errorString, string(serializedObj))
 }
 
 func NotifyLearnBeforeAnnotatedAPICall(moduleName string, filePath string, receiverType string, funName string) int {
