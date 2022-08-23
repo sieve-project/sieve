@@ -155,24 +155,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 
 // func NotifyTestBeforeRestCall(verb string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string) int {
 func NotifyTestBeforeRestCall(verb string, subresource string) int {
-	// if err := loadSieveConfigFromEnv(false); err != nil {
-	// 	return -1
-	// }
-	// if err := initRPCClient(); err != nil {
-	// 	return -1
-	// }
-	// reconcilerType := getReconcilerFromStackTrace()
-	// if reconcilerType == "unknown" {
-	// 	return -1
-	// }
-	// resourceKey := generateResourceKey(resource, namespace, resourceName)
-	// if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
-	// 	return -1
-	// }
-	// if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
-	// 	return -1
-	// }
-	// Need to call TestCoordinator.NotifyTestBeforeControllerWrite
+	// TODO: implement this!
 	return 1
 }
 
@@ -200,18 +183,19 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 	}
 	resourceKey := generateResourceKey(resource, namespace, resourceName)
 	log.Printf("NotifyTestAfterRestCall %s %s %s\n", verb, resourceKey, reconcilerType)
-	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
-		return
-	}
-	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
-		return
-	}
 	controllerOperation := HttpVerbToControllerOperation(verb, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
 	} else if controllerOperation == "Get" || controllerOperation == "List" {
 		log.Println("Get and List not supported yet")
 	} else {
+		defer NotifyTestAfterControllerWritePause(controllerOperation, resourceKey)
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
+			return
+		}
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+			return
+		}
 		request := &NotifyTestAfterControllerWriteRequest{
 			WriteType:      controllerOperation,
 			ReconcilerType: reconcilerType,
@@ -266,48 +250,6 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 // 	}
 // 	checkResponse(response, "NotifyTestBeforeControllerWrite")
 // 	return 1
-// }
-
-// func NotifyTestAfterControllerWrite(writeID int, writeType string, object interface{}, k8sErr error) {
-// 	if err := loadSieveConfigFromEnv(true); err != nil {
-// 		return
-// 	}
-// 	if k8sErr != nil {
-// 		return
-// 	}
-// 	if err := initRPCClient(); err != nil {
-// 		return
-// 	}
-// 	reconcilerType := getReconcilerFromStackTrace()
-// 	resourceType := regularizeType(object)
-// 	name, namespace := extractNameNamespaceFromObj(object)
-// 	resourceKey := generateResourceKey(resourceType, namespace, name)
-// 	defer NotifyTestAfterControllerWritePause(writeType, resourceKey)
-// 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
-// 		return
-// 	}
-// 	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
-// 		return
-// 	}
-// 	jsonObject, err := json.Marshal(object)
-// 	if err != nil {
-// 		printError(err, SIEVE_JSON_ERR)
-// 		return
-// 	}
-// 	log.Printf("NotifyTestAfterControllerWrite %s %s %s\n", writeType, resourceKey, string(jsonObject))
-// 	request := &NotifyTestAfterControllerWriteRequest{
-// 		WriteType:      writeType,
-// 		ResourceKey:    resourceKey,
-// 		ReconcilerType: reconcilerType,
-// 		Object:         string(jsonObject),
-// 	}
-// 	var response Response
-// 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
-// 	if err != nil {
-// 		printError(err, SIEVE_REPLY_ERR)
-// 		return
-// 	}
-// 	checkResponse(response, "NotifyTestAfterControllerWrite")
 // }
 
 func NotifyTestBeforeControllerWritePause(writeType string, resourceKey string) {
