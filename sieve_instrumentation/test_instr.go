@@ -58,12 +58,12 @@ func instrumentInformerCacheRead(f *dst.File, etype, mode string) {
 				afterListInstrumentation.Decs.End.Append("//sieve")
 				insertStmt(&funcDecl.Body.List, len(funcDecl.Body.List)-1, afterListInstrumentation)
 			} else {
-				panic(fmt.Errorf("Wrong type %s for operator read", etype))
+				panic(fmt.Errorf("wrong type %s for operator read", etype))
 			}
 		} else {
-			panic(fmt.Errorf("Last stmt of %s is not return", etype))
+			panic(fmt.Errorf("last stmt of %s is not return", etype))
 		}
 	} else {
-		panic(fmt.Errorf("Cannot find function %s", etype))
+		panic(fmt.Errorf("cannot find function %s", etype))
 	}
 }
