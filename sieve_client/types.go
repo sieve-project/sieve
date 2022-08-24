@@ -29,7 +29,6 @@ type NotifyLearnAfterReconcileRequest struct {
 }
 
 type NotifyLearnBeforeRestWriteRequest struct {
-	SideEffectType string
 }
 
 type NotifyLearnAfterRestWriteRequest struct {
@@ -43,17 +42,19 @@ type NotifyLearnAfterRestWriteRequest struct {
 	Error          string
 }
 
-// type NotifyLearnBeforeNKWriteRequest struct {
-// 	RecvTypeName string
-// 	FunName      string
-// }
+type NotifyLearnBeforeRestReadRequest struct {
+}
 
-// type NotifyLearnAfterNKWriteRequest struct {
-// 	SideEffectID   int
-// 	RecvTypeName   string
-// 	FunName        string
-// 	ReconcilerType string
-// }
+type NotifyLearnAfterRestReadRequest struct {
+	OperationID         int
+	ControllerOperation string
+	ReconcilerType      string
+	ResourceType        string
+	Namespace           string
+	Name                string
+	ObjectBody          string
+	Error               string
+}
 
 type NotifyLearnBeforeAnnotatedAPICallRequest struct {
 	ModuleName     string

@@ -181,12 +181,17 @@ func NotifyLearnBeforeRestCall(verb, resourceName, subresource string) int {
 		log.Println("Unknown operation")
 		return 1
 	} else if controllerOperation == "Get" || controllerOperation == "List" {
-		log.Println("Get and List not supported yet")
-		return 1
-	} else {
-		request := &NotifyLearnBeforeRestWriteRequest{
-			SideEffectType: controllerOperation,
+		request := &NotifyLearnBeforeRestReadRequest{}
+		var response Response
+		err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestRead", request, &response)
+		if err != nil {
+			printError(err, SIEVE_REPLY_ERR)
+			return -1
 		}
+		checkResponse(response, "NotifyLearnBeforeRestRead")
+		return response.Number
+	} else {
+		request := &NotifyLearnBeforeRestWriteRequest{}
 		var response Response
 		err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestWrite", request, &response)
 		if err != nil {
