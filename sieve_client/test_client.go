@@ -153,8 +153,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	checkResponse(response, "NotifyTestAfterControllerList")
 }
 
-// func NotifyTestBeforeRestCall(verb string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string) int {
-func NotifyTestBeforeRestCall(verb string, subresource string) int {
+func NotifyTestBeforeRestCall(verb, resourceName, subresource string) int {
 	// TODO: implement this!
 	return 1
 }
@@ -183,7 +182,7 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 	}
 	resourceKey := generateResourceKey(resource, namespace, resourceName)
 	log.Printf("NotifyTestAfterRestCall %s %s %s\n", verb, resourceKey, reconcilerType)
-	controllerOperation := HttpVerbToControllerOperation(verb, subresource)
+	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
 	} else if controllerOperation == "Get" || controllerOperation == "List" {

@@ -136,8 +136,14 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 	checkResponse(response, "NotifyLearnAfterReconcile")
 }
 
-func HttpVerbToControllerOperation(verb, subresource string) string {
+func HttpVerbToControllerOperation(verb, resourceName, subresource string) string {
 	switch verb {
+	case "GET":
+		if resourceName == "" {
+			return "List"
+		} else {
+			return "Get"
+		}
 	case "POST":
 		return "Create"
 	case "PUT":
@@ -146,14 +152,20 @@ func HttpVerbToControllerOperation(verb, subresource string) string {
 		} else {
 			return "Update"
 		}
+	case "PATCH":
+		return "Patch"
 	case "DELETE":
-		return "Delete"
+		if resourceName == "" {
+			return "DeleteAllOf"
+		} else {
+			return "Delete"
+		}
 	default:
 		return "Unknown"
 	}
 }
 
-func NotifyLearnBeforeRestCall(verb string, subresource string) int {
+func NotifyLearnBeforeRestCall(verb, resourceName, subresource string) int {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return -1
 	}
@@ -164,7 +176,7 @@ func NotifyLearnBeforeRestCall(verb string, subresource string) int {
 	if reconcilerType == "unknown" {
 		return -1
 	}
-	controllerOperation := HttpVerbToControllerOperation(verb, subresource)
+	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
 		return 1
@@ -212,7 +224,7 @@ func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, 
 	if respErr != nil {
 		errorString = string(errors.ReasonForError(respErr))
 	}
-	controllerOperation := HttpVerbToControllerOperation(verb, subresource)
+	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
 	} else if controllerOperation == "Get" || controllerOperation == "List" {
