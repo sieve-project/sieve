@@ -23,7 +23,7 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) in
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return -1
 	}
 	log.Printf("NotifyTestBeforeControllerRecv %s %s %s\n", operationType, resourceKey, string(jsonObject))
@@ -35,7 +35,7 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) in
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerRecv", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return -1
 	}
 	checkResponse(response, "NotifyTestBeforeControllerRecv")
@@ -57,7 +57,7 @@ func NotifyTestAfterControllerRecv(recvID int, operationType string, object inte
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return
 	}
 	log.Printf("NotifyTestAfterControllerRecv %s %s %s\n", operationType, resourceKey, string(jsonObject))
@@ -69,7 +69,7 @@ func NotifyTestAfterControllerRecv(recvID int, operationType string, object inte
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerRecv", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerRecv")
@@ -96,7 +96,7 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceKey, string(jsonObject))
@@ -108,7 +108,7 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerGet")
@@ -135,7 +135,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return
 	}
 	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceType, string(jsonObject))
@@ -147,7 +147,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerList")
@@ -161,19 +161,19 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		return 1
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "unknown" {
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return 1
 	}
 	serializedObj, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return 1
 	}
 	resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
-	if controllerOperationType == "Unknown" {
+	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
-	} else if controllerOperationType == "Get" || controllerOperationType == "List" {
+	} else if controllerOperationType == GET || controllerOperationType == LIST {
 		log.Println("Get and List not supported yet")
 	} else {
 		defer NotifyTestBeforeControllerWritePause(controllerOperationType, resourceKey)
@@ -193,7 +193,7 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		var response Response
 		err = rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerWrite", request, &response)
 		if err != nil {
-			printError(err, SIEVE_REPLY_ERR)
+			printRPCError(err)
 			return 1
 		}
 		checkResponse(response, "NotifyTestBeforeControllerWrite")
@@ -215,19 +215,19 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == "unknown" {
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return
 	}
 	serializedObj, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return
 	}
 	resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
-	if controllerOperationType == "Unknown" {
+	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
-	} else if controllerOperationType == "Get" || controllerOperationType == "List" {
+	} else if controllerOperationType == GET || controllerOperationType == LIST {
 		log.Println("Get and List not supported yet")
 	} else {
 		defer NotifyTestAfterControllerWritePause(controllerOperationType, resourceKey)
@@ -247,7 +247,7 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 		var response Response
 		err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
 		if err != nil {
-			printError(err, SIEVE_REPLY_ERR)
+			printRPCError(err)
 			return
 		}
 		checkResponse(response, "NotifyTestAfterRestCall")
@@ -270,7 +270,7 @@ func NotifyTestBeforeControllerWritePause(writeType string, resourceKey string) 
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerWritePause", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestBeforeControllerWritePause")
@@ -292,7 +292,7 @@ func NotifyTestAfterControllerWritePause(writeType string, resourceKey string) {
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWritePause", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerWritePause")
@@ -315,13 +315,13 @@ func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.Na
 	}
 	log.Printf("NotifyTestBeforeControllerGetPause %s %s\n", readType, resourceKey)
 	request := &NotifyTestBeforeControllerReadPauseRequest{
-		OperationType: "Get",
+		OperationType: GET,
 		ResourceKey:   resourceKey,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestBeforeControllerGetPause")
@@ -344,13 +344,13 @@ func NotifyTestAfterControllerGetPause(readType string, namespacedName types.Nam
 	}
 	log.Printf("NotifyTestAfterControllerGetPause %s %s\n", readType, resourceKey)
 	request := &NotifyTestAfterControllerReadPauseRequest{
-		OperationType: "Get",
+		OperationType: GET,
 		ResourceKey:   resourceKey,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerGetPause")
@@ -373,13 +373,13 @@ func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
 	}
 	log.Printf("NotifyTestBeforeControllerListPause %s %s\n", readType, resourceType)
 	request := &NotifyTestBeforeControllerReadPauseRequest{
-		OperationType: "List",
+		OperationType: LIST,
 		ResourceType:  resourceType,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestBeforeControllerListPause")
@@ -402,13 +402,13 @@ func NotifyTestAfterControllerListPause(readType string, object interface{}) {
 	}
 	log.Printf("NotifyTestAfterControllerListPause %s %s\n", readType, resourceType)
 	request := &NotifyTestAfterControllerReadPauseRequest{
-		OperationType: "List",
+		OperationType: LIST,
 		ResourceType:  resourceType,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterControllerListPause")
@@ -436,7 +436,7 @@ func NotifyTestBeforeAnnotatedAPICall(moduleName string, filePath string, receiv
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeAnnotatedAPICall", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return -1
 	}
 	checkResponse(response, "NotifyTestBeforeAnnotatedAPICall")
@@ -465,7 +465,7 @@ func NotifyTestAfterAnnotatedAPICall(invocationID int, moduleName string, filePa
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterAnnotatedAPICall", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterAnnotatedAPICall")
@@ -494,7 +494,7 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return
 	}
 	log.Printf("NotifyTestBeforeAPIServerRecv %s %s %s\n", eventType, resourceKey, string(jsonObject))
@@ -507,7 +507,7 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestBeforeAPIServerRecv", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestBeforeAPIServerRecv")
@@ -534,7 +534,7 @@ func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return
 	}
 	log.Printf("NotifyTestAfterAPIServerRecv %s %s %s\n", eventType, resourceKey, string(jsonObject))
@@ -547,7 +547,7 @@ func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterAPIServerRecv", request, &response)
 	if err != nil {
-		printError(err, SIEVE_REPLY_ERR)
+		printRPCError(err)
 		return
 	}
 	checkResponse(response, "NotifyTestAfterAPIServerRecv")

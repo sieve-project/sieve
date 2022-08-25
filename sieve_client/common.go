@@ -19,15 +19,29 @@ import (
 
 const LEARN string = "learn"
 const TEST string = "test"
-const UNKNOWN_RECONCILER_TYPE = "unknown"
+const UNKNOWN_RECONCILER_TYPE = "Unknown"
 
 // TODO(xudong): make SIEVE_SERVER_ADDR configurable
 const SIEVE_SERVER_ADDR string = "kind-control-plane:12345"
-const SIEVE_CONN_ERR string = "[SIEVE CONN ERR]"
-const SIEVE_REPLY_ERR string = "[SIEVE REPLY ERR]"
-const SIEVE_HOST_ERR string = "[SIEVE HOST ERR]"
-const SIEVE_JSON_ERR string = "[SIEVE JSON ERR]"
-const SIEVE_CONFIG_ERR string = "[SIEVE CONFIG ERR]"
+
+const HTTP_GET string = "GET"
+const HTTP_POST string = "POST"
+const HTTP_PUT string = "PUT"
+const HTTP_PATCH string = "PATCH"
+const HTTP_DELETE string = "DELETE"
+
+const GET string = "Get"
+const LIST string = "List"
+const CREATE string = "Create"
+const UPDATE string = "Update"
+const STATUSUPDATE string = "StatusUpdate"
+const PATCH string = "Patch"
+const DELETE string = "Delete"
+const DELETEALLOF string = "DeleteAllOf"
+
+const UNKNOWN string = "Unknown"
+
+const NO_ERROR string = "NoError"
 
 var config map[string]interface{} = nil
 var configLoadingLock sync.Mutex
@@ -39,6 +53,47 @@ var rpcClient *rpc.Client = nil
 
 var exists = struct{}{}
 var taintMap sync.Map = sync.Map{}
+
+func printSerializationError(err error) {
+	log.Printf("Sieve client serialization error: %v \n", err)
+}
+
+func printRPCError(err error) {
+	log.Printf("Sieve client RPC error: %v \n", err)
+}
+
+func printConfigError(err error) {
+	log.Printf("Sieve client configuration error: %v \n", err)
+}
+
+func HttpVerbToControllerOperation(verb, resourceName, subresource string) string {
+	switch verb {
+	case HTTP_GET:
+		if resourceName == "" {
+			return LIST
+		} else {
+			return GET
+		}
+	case HTTP_POST:
+		return CREATE
+	case HTTP_PUT:
+		if subresource == "status" {
+			return STATUSUPDATE
+		} else {
+			return UPDATE
+		}
+	case HTTP_PATCH:
+		return PATCH
+	case HTTP_DELETE:
+		if resourceName == "" {
+			return DELETEALLOF
+		} else {
+			return DELETE
+		}
+	default:
+		return UNKNOWN
+	}
+}
 
 func checkKVPairInAction(actionType, key, val string, matchPrefix bool) bool {
 	for actionKey, actionsOfTheSameType := range actions {
@@ -234,7 +289,7 @@ func loadSieveConfigFromEnv(testMode bool) error {
 		data := os.Getenv("sieveTestPlan")
 		err := yaml.Unmarshal([]byte(data), &configFromEnv)
 		if err != nil {
-			printError(err, SIEVE_JSON_ERR)
+			printSerializationError(err)
 			return fmt.Errorf("fail to load from env")
 		}
 		log.Printf("config from env:\n%v\n", configFromEnv)
@@ -242,7 +297,7 @@ func loadSieveConfigFromEnv(testMode bool) error {
 		if testMode {
 			err = loadActionsAndTriggers(configFromEnv)
 			if err != nil {
-				printError(err, SIEVE_CONFIG_ERR)
+				printConfigError(err)
 				log.Println("failure in loadActionsAndTriggers")
 				return nil
 			}
@@ -270,13 +325,13 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 				log.Println("have seen ADDED configmap/default/sieve-testing-global-config")
 				jsonObject, err := json.Marshal(object)
 				if err != nil {
-					printError(err, SIEVE_JSON_ERR)
+					printSerializationError(err)
 					return fmt.Errorf("fail to load from configmap")
 				}
 				configMapObject := make(map[string]interface{})
 				err = yaml.Unmarshal(jsonObject, &configMapObject)
 				if err != nil {
-					printError(err, SIEVE_JSON_ERR)
+					printSerializationError(err)
 					return fmt.Errorf("fail to load from configmap")
 				}
 				configFromConfigMapData := make(map[string]interface{})
@@ -288,7 +343,7 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 				if str, ok := configMapData["sieveTestPlan"].(string); ok {
 					err = yaml.Unmarshal([]byte(str), &configFromConfigMapData)
 					if err != nil {
-						printError(err, SIEVE_JSON_ERR)
+						printSerializationError(err)
 						return fmt.Errorf("fail to load from configmap")
 					}
 					log.Printf("config from configMap:\n%v\n", configFromConfigMapData)
@@ -296,7 +351,7 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 					if testMode {
 						err = loadActionsAndTriggers(configFromConfigMapData)
 						if err != nil {
-							printError(err, SIEVE_CONFIG_ERR)
+							printConfigError(err)
 							log.Println("failure in loadActionsAndTriggers")
 							return nil
 						}
@@ -378,10 +433,6 @@ func getCRDs() []string {
 	return crds
 }
 
-func printError(err error, text string) {
-	log.Printf("[sieve][error] %s due to: %v \n", text, err)
-}
-
 func checkResponse(response Response, reqName string) {
 	if response.Ok {
 		// log.Printf("[sieve][%s] receives good response: %s\n", reqName, response.Message)
@@ -400,7 +451,7 @@ func pluralToSingular(plural string) string {
 }
 
 func generateResourceKeyFromRestCall(verb, resourceType, namespace, name string, object interface{}) string {
-	if verb == "POST" {
+	if verb == HTTP_POST {
 		if o, err := meta.Accessor(object); err == nil {
 			return generateResourceKey(pluralToSingular(resourceType), namespace, o.GetName())
 		} else {
@@ -501,7 +552,7 @@ func LogAPIEvent(eventType, key string, object interface{}) {
 	}
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
-		printError(err, SIEVE_JSON_ERR)
+		printSerializationError(err)
 		return
 	}
 	resourceType := getResourceTypeFromObj(object)
