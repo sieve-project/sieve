@@ -18,7 +18,7 @@ func NewLearnListener() *LearnListener {
 	server := &learnServer{
 		rateLimitedEventCh:    make(chan notificationWrapper, 500),
 		eventID:               -1,
-		sideEffectID:          -1,
+		controllerOperationID: -1,
 		annotatedAPICallID:    -1,
 		eventChMap:            sync.Map{},
 		sideEffectChMap:       sync.Map{},
@@ -118,7 +118,7 @@ type notificationWrapper struct {
 type learnServer struct {
 	rateLimitedEventCh    chan notificationWrapper
 	eventID               int32
-	sideEffectID          int32
+	controllerOperationID int32
 	annotatedAPICallID    int32
 	eventChMap            sync.Map
 	sideEffectChMap       sync.Map
@@ -185,7 +185,7 @@ func (s *learnServer) NotifyLearnAfterReconcile(request *sieve.NotifyLearnAfterR
 }
 
 func (s *learnServer) NotifyLearnBeforeRestWrite(request *sieve.NotifyLearnBeforeRestWriteRequest, response *sieve.Response) error {
-	sID := atomic.AddInt32(&s.sideEffectID, 1)
+	sID := atomic.AddInt32(&s.controllerOperationID, 1)
 	waitingCh := make(chan int32)
 	s.sideEffectChMap.Store(fmt.Sprint(sID), waitingCh)
 	s.notificationCh <- notificationWrapper{ntype: beforeRestWriteForLearn, payload: fmt.Sprint(sID)}
@@ -195,13 +195,13 @@ func (s *learnServer) NotifyLearnBeforeRestWrite(request *sieve.NotifyLearnBefor
 }
 
 func (s *learnServer) NotifyLearnAfterRestWrite(request *sieve.NotifyLearnAfterRestWriteRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRestWriteForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.SideEffectID, request.SideEffectType, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
-	*response = sieve.Response{Message: request.SideEffectType, Ok: true}
+	s.notificationCh <- notificationWrapper{ntype: afterRestWriteForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.ControllerOperationID, request.ControllerOperationType, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
+	*response = sieve.Response{Message: request.ControllerOperationType, Ok: true}
 	return nil
 }
 
 func (s *learnServer) NotifyLearnBeforeRestRead(request *sieve.NotifyLearnBeforeRestReadRequest, response *sieve.Response) error {
-	sID := atomic.AddInt32(&s.sideEffectID, 1)
+	sID := atomic.AddInt32(&s.controllerOperationID, 1)
 	waitingCh := make(chan int32)
 	s.sideEffectChMap.Store(fmt.Sprint(sID), waitingCh)
 	s.notificationCh <- notificationWrapper{ntype: beforeRestReadForLearn, payload: fmt.Sprint(sID)}
@@ -211,7 +211,7 @@ func (s *learnServer) NotifyLearnBeforeRestRead(request *sieve.NotifyLearnBefore
 }
 
 func (s *learnServer) NotifyLearnAfterRestRead(request *sieve.NotifyLearnAfterRestReadRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterRestReadForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.OperationID, request.ControllerOperation, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
+	s.notificationCh <- notificationWrapper{ntype: afterRestReadForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.ControllerOperationID, request.ControllerOperationType, request.ReconcilerType, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
 	*response = sieve.Response{Message: "OK", Ok: true}
 	return nil
 }

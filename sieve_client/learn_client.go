@@ -165,7 +165,7 @@ func HttpVerbToControllerOperation(verb, resourceName, subresource string) strin
 	}
 }
 
-func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string, obj interface{}) int {
+func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}) int {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return -1
 	}
@@ -176,11 +176,11 @@ func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, n
 	if reconcilerType == "unknown" {
 		return -1
 	}
-	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
-	if controllerOperation == "Unknown" {
+	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
+	if controllerOperationType == "Unknown" {
 		log.Println("Unknown operation")
 		return 1
-	} else if controllerOperation == "Get" || controllerOperation == "List" {
+	} else if controllerOperationType == "Get" || controllerOperationType == "List" {
 		request := &NotifyLearnBeforeRestReadRequest{}
 		var response Response
 		err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestRead", request, &response)
@@ -203,11 +203,11 @@ func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, n
 	}
 }
 
-func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string, obj interface{}, serializationErr error, respErr error) {
+func NotifyLearnAfterRestCall(controllerOperationID int, verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}, serializationErr error, respErr error) {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return
 	}
-	if sideEffectID == -1 {
+	if controllerOperationID == -1 {
 		return
 	}
 	if serializationErr != nil {
@@ -220,7 +220,7 @@ func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, 
 	if reconcilerType == "unknown" {
 		return
 	}
-	serializedObj, err := json.Marshal(obj)
+	serializedObj, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
 		return
@@ -229,21 +229,21 @@ func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, 
 	if respErr != nil {
 		errorString = string(errors.ReasonForError(respErr))
 	}
-	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
-	if controllerOperation == "Unknown" {
+	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
+	if controllerOperationType == "Unknown" {
 		log.Println("Unknown operation")
-	} else if controllerOperation == "Get" || controllerOperation == "List" {
+	} else if controllerOperationType == "Get" || controllerOperationType == "List" {
 		log.Println("Get and List not supported yet")
 	} else {
 		request := &NotifyLearnAfterRestWriteRequest{
-			SideEffectID:   sideEffectID,
-			SideEffectType: controllerOperation,
-			ReconcilerType: reconcilerType,
-			ResourceType:   pluralToSingular(resource),
-			Namespace:      namespace,
-			Name:           resourceName,
-			ObjectBody:     string(serializedObj),
-			Error:          errorString,
+			ControllerOperationID:   controllerOperationID,
+			ControllerOperationType: controllerOperationType,
+			ReconcilerType:          reconcilerType,
+			ResourceType:            pluralToSingular(resourceName),
+			Namespace:               namespace,
+			Name:                    resourceName,
+			ObjectBody:              string(serializedObj),
+			Error:                   errorString,
 		}
 		var response Response
 		err = rpcClient.Call("LearnListener.NotifyLearnAfterRestWrite", request, &response)

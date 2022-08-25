@@ -32,28 +32,28 @@ type NotifyLearnBeforeRestWriteRequest struct {
 }
 
 type NotifyLearnAfterRestWriteRequest struct {
-	SideEffectID   int
-	SideEffectType string
-	ReconcilerType string
-	ResourceType   string
-	Namespace      string
-	Name           string
-	ObjectBody     string
-	Error          string
+	ControllerOperationID   int
+	ControllerOperationType string
+	ReconcilerType          string
+	ResourceType            string
+	Namespace               string
+	Name                    string
+	ObjectBody              string
+	Error                   string
 }
 
 type NotifyLearnBeforeRestReadRequest struct {
 }
 
 type NotifyLearnAfterRestReadRequest struct {
-	OperationID         int
-	ControllerOperation string
-	ReconcilerType      string
-	ResourceType        string
-	Namespace           string
-	Name                string
-	ObjectBody          string
-	Error               string
+	ControllerOperationID   int
+	ControllerOperationType string
+	ReconcilerType          string
+	ResourceType            string
+	Namespace               string
+	Name                    string
+	ObjectBody              string
+	Error                   string
 }
 
 type NotifyLearnBeforeAnnotatedAPICallRequest struct {

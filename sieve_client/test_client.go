@@ -153,7 +153,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	checkResponse(response, "NotifyTestAfterControllerList")
 }
 
-func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string, obj interface{}) int {
+func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}) int {
 	if err := loadSieveConfigFromEnv(true); err != nil {
 		return 1
 	}
@@ -164,19 +164,19 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 	if reconcilerType == "unknown" {
 		return 1
 	}
-	serializedObj, err := json.Marshal(obj)
+	serializedObj, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
 		return 1
 	}
-	resourceKey := generateResourceKeyFromRestCall(verb, resource, namespace, resourceName, obj)
-	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
-	if controllerOperation == "Unknown" {
+	resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
+	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
+	if controllerOperationType == "Unknown" {
 		log.Println("Unknown operation")
-	} else if controllerOperation == "Get" || controllerOperation == "List" {
+	} else if controllerOperationType == "Get" || controllerOperationType == "List" {
 		log.Println("Get and List not supported yet")
 	} else {
-		defer NotifyTestBeforeControllerWritePause(controllerOperation, resourceKey)
+		defer NotifyTestBeforeControllerWritePause(controllerOperationType, resourceKey)
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
 			return -1
 		}
@@ -185,7 +185,7 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		}
 		log.Printf("NotifyTestBeforeRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 		request := &NotifyTestBeforeControllerWriteRequest{
-			WriteType:      controllerOperation,
+			WriteType:      controllerOperationType,
 			ResourceKey:    resourceKey,
 			ReconcilerType: reconcilerType,
 			Object:         string(serializedObj),
@@ -201,7 +201,7 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 	return 1
 }
 
-func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string, obj interface{}, serializationErr error, respErr error) {
+func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}, serializationErr error, respErr error) {
 	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
 	}
@@ -218,19 +218,19 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 	if reconcilerType == "unknown" {
 		return
 	}
-	serializedObj, err := json.Marshal(obj)
+	serializedObj, err := json.Marshal(object)
 	if err != nil {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-	resourceKey := generateResourceKeyFromRestCall(verb, resource, namespace, resourceName, obj)
-	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
-	if controllerOperation == "Unknown" {
+	resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
+	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
+	if controllerOperationType == "Unknown" {
 		log.Println("Unknown operation")
-	} else if controllerOperation == "Get" || controllerOperation == "List" {
+	} else if controllerOperationType == "Get" || controllerOperationType == "List" {
 		log.Println("Get and List not supported yet")
 	} else {
-		defer NotifyTestAfterControllerWritePause(controllerOperation, resourceKey)
+		defer NotifyTestAfterControllerWritePause(controllerOperationType, resourceKey)
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
 			return
 		}
@@ -239,7 +239,7 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 		}
 		log.Printf("NotifyTestAfterRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 		request := &NotifyTestAfterControllerWriteRequest{
-			WriteType:      controllerOperation,
+			WriteType:      controllerOperationType,
 			ReconcilerType: reconcilerType,
 			ResourceKey:    resourceKey,
 			Object:         string(serializedObj),

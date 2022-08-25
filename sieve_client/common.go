@@ -399,9 +399,9 @@ func pluralToSingular(plural string) string {
 	return plural[:len(plural)-1]
 }
 
-func generateResourceKeyFromRestCall(verb, resourceType, namespace, name string, obj interface{}) string {
+func generateResourceKeyFromRestCall(verb, resourceType, namespace, name string, object interface{}) string {
 	if verb == "POST" {
-		if o, err := meta.Accessor(obj); err == nil {
+		if o, err := meta.Accessor(object); err == nil {
 			return generateResourceKey(pluralToSingular(resourceType), namespace, o.GetName())
 		} else {
 			return generateResourceKey(pluralToSingular(resourceType), namespace, name)
