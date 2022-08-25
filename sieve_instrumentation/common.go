@@ -201,7 +201,7 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 				Type:  &dst.Ident{Name: "interface{}"},
 			}
 			instrField.Decs.End.Append("//sieve")
-			insertField(&structType.Fields.List, len(structType.Fields.List), instrField)
+			insertField(&structType.Fields.List, len(structType.Fields.List)-1, instrField)
 		} else {
 			panic(fmt.Errorf("request is not struct"))
 		}
