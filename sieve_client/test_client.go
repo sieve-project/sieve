@@ -170,7 +170,6 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		return 1
 	}
 	resourceKey := generateResourceKeyFromRestCall(verb, resource, namespace, resourceName, obj)
-	log.Printf("NotifyTestBeforeRestCall %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
@@ -184,6 +183,7 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
 			return -1
 		}
+		log.Printf("NotifyTestBeforeRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 		request := &NotifyTestBeforeControllerWriteRequest{
 			WriteType:      controllerOperation,
 			ResourceKey:    resourceKey,
@@ -224,8 +224,6 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 		return
 	}
 	resourceKey := generateResourceKeyFromRestCall(verb, resource, namespace, resourceName, obj)
-	// log.Printf("NotifyTestAfterRestCall %s %s %s\n", verb, resourceKey, reconcilerType)
-	log.Printf("NotifyTestAfterRestCall %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
@@ -239,6 +237,7 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
 			return
 		}
+		log.Printf("NotifyTestAfterRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 		request := &NotifyTestAfterControllerWriteRequest{
 			WriteType:      controllerOperation,
 			ReconcilerType: reconcilerType,
