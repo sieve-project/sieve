@@ -15,7 +15,7 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) in
 	if err := initRPCClient(); err != nil {
 		return -1
 	}
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerRecv", false) {
@@ -49,7 +49,7 @@ func NotifyTestAfterControllerRecv(recvID int, operationType string, object inte
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	name, namespace := extractNameNamespaceFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespace, name)
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerRecv", false) {
@@ -86,7 +86,7 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
 		return
@@ -125,7 +125,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	unTrimmedResourceType := regularizeType(object)
+	unTrimmedResourceType := getResourceTypeFromObj(object)
 	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
 	if !checkKVPairInTriggerObservationPoint(resourceType, "when", "afterControllerWrite", true) {
 		return
@@ -169,8 +169,8 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		printError(err, SIEVE_JSON_ERR)
 		return 1
 	}
-	resourceKey := generateResourceKey(resource, namespace, resourceName)
-	log.Printf("NotifyTestBeforeRestCall %s %s %s\n", verb, resourceKey, reconcilerType)
+	resourceKey := generateResourceKeyFromRestCall(verb, resource, namespace, resourceName, obj)
+	log.Printf("NotifyTestBeforeRestCall %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
@@ -223,8 +223,9 @@ func NotifyTestAfterRestCall(sideEffectID int, verb string, pathPrefix string, s
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-	resourceKey := generateResourceKey(resource, namespace, resourceName)
-	log.Printf("NotifyTestAfterRestCall %s %s %s\n", verb, resourceKey, reconcilerType)
+	resourceKey := generateResourceKeyFromRestCall(verb, resource, namespace, resourceName, obj)
+	// log.Printf("NotifyTestAfterRestCall %s %s %s\n", verb, resourceKey, reconcilerType)
+	log.Printf("NotifyTestAfterRestCall %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
 	controllerOperation := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperation == "Unknown" {
 		log.Println("Unknown operation")
@@ -305,7 +306,7 @@ func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.Na
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
 	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
 		return
@@ -334,7 +335,7 @@ func NotifyTestAfterControllerGetPause(readType string, namespacedName types.Nam
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
 	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
 		return
@@ -363,7 +364,7 @@ func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	unTrimmedResourceType := regularizeType(object)
+	unTrimmedResourceType := getResourceTypeFromObj(object)
 	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
 	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
 		return
@@ -392,7 +393,7 @@ func NotifyTestAfterControllerListPause(readType string, object interface{}) {
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	unTrimmedResourceType := regularizeType(object)
+	unTrimmedResourceType := getResourceTypeFromObj(object)
 	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
 	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
 		return
@@ -483,7 +484,7 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 	if err := initAPIServerHostName(); err != nil {
 		return
 	}
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
 	if err != nil {
 		return
@@ -523,7 +524,7 @@ func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 	if err := initAPIServerHostName(); err != nil {
 		return
 	}
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
 	if err != nil {
 		return

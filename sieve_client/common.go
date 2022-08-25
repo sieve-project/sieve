@@ -99,10 +99,8 @@ func checkKVPairInTriggerCondition(resourceKey, key, val string, onlyMatchType b
 func checkKVPairInTriggerObservationPoint(resourceKey, key, val string, onlyMatchType bool) bool {
 	for triggerResourceKey, triggers := range triggerDefinitionsByResourceKey {
 		if triggerResourceKey == resourceKey || (onlyMatchType && strings.HasPrefix(triggerResourceKey, resourceKey+"/")) {
-			log.Println("find the resource key!")
 			for _, trigger := range triggers {
 				if triggerObservationPoint, ok := trigger["observationPoint"]; ok {
-					log.Println("find the observationPoint!")
 					if triggerObservationPointMap, ok := triggerObservationPoint.(map[interface{}]interface{}); ok {
 						if checkKVPairInTriggerContent(triggerObservationPointMap, key, val) {
 							return true
@@ -267,7 +265,7 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 		namespace := tokens[len(tokens)-2]
 		name := tokens[len(tokens)-1]
 		if namespace == "default" && name == "sieve-testing-global-config" {
-			resourceType := regularizeType(object)
+			resourceType := getResourceTypeFromObj(object)
 			if resourceType == "configmap" {
 				log.Println("have seen ADDED configmap/default/sieve-testing-global-config")
 				jsonObject, err := json.Marshal(object)
@@ -396,7 +394,24 @@ func generateResourceKey(resourceType, namespace, name string) string {
 	return path.Join(resourceType, namespace, name)
 }
 
-func regularizeType(object interface{}) string {
+// TODO: handle more complex plural cases
+func pluralToSingular(plural string) string {
+	return plural[:len(plural)-1]
+}
+
+func generateResourceKeyFromRestCall(verb, resourceType, namespace, name string, obj interface{}) string {
+	if verb == "POST" {
+		if o, err := meta.Accessor(obj); err == nil {
+			return generateResourceKey(pluralToSingular(resourceType), namespace, o.GetName())
+		} else {
+			return generateResourceKey(pluralToSingular(resourceType), namespace, name)
+		}
+	} else {
+		return generateResourceKey(pluralToSingular(resourceType), namespace, name)
+	}
+}
+
+func getResourceTypeFromObj(object interface{}) string {
 	objectUnstructured, ok := object.(*unstructured.Unstructured)
 	if ok {
 		return strings.ToLower(fmt.Sprint(objectUnstructured.Object["kind"]))
@@ -489,6 +504,6 @@ func LogAPIEvent(eventType, key string, object interface{}) {
 		printError(err, SIEVE_JSON_ERR)
 		return
 	}
-	resourceType := regularizeType(object)
+	resourceType := getResourceTypeFromObj(object)
 	log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
 }

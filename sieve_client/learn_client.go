@@ -23,7 +23,7 @@ func isCRD(rType string, crds []string) bool {
 
 func triggerReconcile(object interface{}) bool {
 	crds := getCRDs()
-	rType := regularizeType(object)
+	rType := getResourceTypeFromObj(object)
 	if isCRD(rType, crds) {
 		return true
 	}
@@ -59,7 +59,7 @@ func NotifyLearnBeforeControllerRecv(operationType string, object interface{}) i
 	request := &NotifyLearnBeforeControllerRecvRequest{
 		OperationType: operationType,
 		Object:        string(jsonObject),
-		ResourceType:  regularizeType(object),
+		ResourceType:  getResourceTypeFromObj(object),
 	}
 	var response Response
 	err = rpcClient.Call("LearnListener.NotifyLearnBeforeControllerRecv", request, &response)
@@ -239,7 +239,7 @@ func NotifyLearnAfterRestCall(sideEffectID int, verb string, pathPrefix string, 
 			SideEffectID:   sideEffectID,
 			SideEffectType: controllerOperation,
 			ReconcilerType: reconcilerType,
-			ResourceType:   resource,
+			ResourceType:   pluralToSingular(resource),
 			Namespace:      namespace,
 			Name:           resourceName,
 			ObjectBody:     string(serializedObj),
@@ -327,7 +327,7 @@ func NotifyLearnAfterControllerGet(readType string, fromCache bool, namespacedNa
 	}
 	request := &NotifyLearnAfterControllerGetRequest{
 		FromCache:      fromCache,
-		ResourceType:   regularizeType(object),
+		ResourceType:   getResourceTypeFromObj(object),
 		Namespace:      namespacedName.Namespace,
 		Name:           namespacedName.Name,
 		Object:         string(jsonObject),
@@ -362,7 +362,7 @@ func NotifyLearnAfterControllerList(readType string, fromCache bool, object inte
 	}
 	request := &NotifyLearnAfterControllerListRequest{
 		FromCache:      fromCache,
-		ResourceType:   regularizeType(object),
+		ResourceType:   getResourceTypeFromObj(object),
 		ObjectList:     string(jsonObject),
 		ReconcilerType: reconcilerType,
 		Error:          errorString,
