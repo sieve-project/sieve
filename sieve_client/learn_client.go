@@ -165,7 +165,7 @@ func HttpVerbToControllerOperation(verb, resourceName, subresource string) strin
 	}
 }
 
-func NotifyLearnBeforeRestCall(verb, resourceName, subresource string) int {
+func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resource string, resourceName string, subresource string, obj interface{}) int {
 	if err := loadSieveConfigFromEnv(false); err != nil {
 		return -1
 	}

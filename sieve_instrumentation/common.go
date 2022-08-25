@@ -230,7 +230,7 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 			Lhs: []dst.Expr{&dst.Ident{Name: operationIDVar}},
 			Rhs: []dst.Expr{&dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.resourceName"}, &dst.Ident{Name: "r.subresource"}},
+				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.pathPrefix"}, &dst.Ident{Name: "r.subpath"}, &dst.Ident{Name: "r.namespace"}, &dst.Ident{Name: "r.namespaceSet"}, &dst.Ident{Name: "r.resource"}, &dst.Ident{Name: "r.resourceName"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "r.obj"}},
 			}},
 			Tok: token.DEFINE,
 		}
