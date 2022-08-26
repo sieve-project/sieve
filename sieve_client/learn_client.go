@@ -212,7 +212,7 @@ func NotifyLearnAfterRestCall(controllerOperationID int, verb string, pathPrefix
 			ControllerOperationID:   controllerOperationID,
 			ControllerOperationType: controllerOperationType,
 			ReconcilerType:          reconcilerType,
-			ResourceType:            pluralToSingular(resourceName),
+			ResourceType:            pluralToSingular(resourceType),
 			Namespace:               namespace,
 			Name:                    resourceName,
 			ObjectBody:              string(serializedObj),
