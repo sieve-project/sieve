@@ -67,7 +67,7 @@ func NotifyLearnBeforeControllerRecv(operationType string, object interface{}) i
 		printRPCError(err)
 		return -1
 	}
-	checkResponse(response, "NotifyLearnBeforeControllerRecv")
+	checkResponse(response)
 	return response.Number
 }
 
@@ -93,7 +93,7 @@ func NotifyLearnAfterControllerRecv(recvID int, operationType string, object int
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyLearnAfterControllerRecv")
+	checkResponse(response)
 }
 
 func NotifyLearnBeforeReconcile(reconciler interface{}) {
@@ -113,7 +113,7 @@ func NotifyLearnBeforeReconcile(reconciler interface{}) {
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyLearnBeforeReconcile")
+	checkResponse(response)
 }
 
 func NotifyLearnAfterReconcile(reconciler interface{}) {
@@ -133,7 +133,7 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyLearnAfterReconcile")
+	checkResponse(response)
 }
 
 func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}) int {
@@ -150,17 +150,19 @@ func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, n
 	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
-		return 1
+		return -1
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
-		request := &NotifyLearnBeforeRestReadRequest{}
-		var response Response
-		err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestRead", request, &response)
-		if err != nil {
-			printRPCError(err)
-			return -1
-		}
-		checkResponse(response, "NotifyLearnBeforeRestRead")
-		return response.Number
+		log.Println("Get and List not supported yet")
+		return -1
+		// request := &NotifyLearnBeforeRestReadRequest{}
+		// var response Response
+		// err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestRead", request, &response)
+		// if err != nil {
+		// 	printRPCError(err)
+		// 	return -1
+		// }
+		// checkResponse(response)
+		// return response.Number
 	} else {
 		request := &NotifyLearnBeforeRestWriteRequest{}
 		var response Response
@@ -169,7 +171,7 @@ func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, n
 			printRPCError(err)
 			return -1
 		}
-		checkResponse(response, "NotifyLearnBeforeRestWrite")
+		checkResponse(response)
 		return response.Number
 	}
 }
@@ -222,7 +224,7 @@ func NotifyLearnAfterRestCall(controllerOperationID int, verb string, pathPrefix
 			printRPCError(err)
 			return
 		}
-		checkResponse(response, "NotifyLearnAfterRestWrite")
+		checkResponse(response)
 	}
 }
 
@@ -247,7 +249,7 @@ func NotifyLearnBeforeAnnotatedAPICall(moduleName string, filePath string, recei
 		printRPCError(err)
 		return -1
 	}
-	checkResponse(response, "NotifyLearnBeforeAnnotatedAPICall")
+	checkResponse(response)
 	return response.Number
 }
 
@@ -276,7 +278,7 @@ func NotifyLearnAfterAnnotatedAPICall(invocationID int, moduleName string, fileP
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyLearnAfterAnnotatedAPICall")
+	checkResponse(response)
 }
 
 func NotifyLearnAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
@@ -311,7 +313,7 @@ func NotifyLearnAfterControllerGet(readType string, fromCache bool, namespacedNa
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyLearnAfterControllerGet")
+	checkResponse(response)
 }
 
 func NotifyLearnAfterControllerList(readType string, fromCache bool, object interface{}, k8sErr error) {
@@ -344,7 +346,7 @@ func NotifyLearnAfterControllerList(readType string, fromCache bool, object inte
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyLearnAfterControllerList")
+	checkResponse(response)
 }
 
 func NotifyLearnBeforeAPIServerRecv(eventType, key string, object interface{}) {

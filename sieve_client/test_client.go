@@ -38,7 +38,7 @@ func NotifyTestBeforeControllerRecv(operationType string, object interface{}) in
 		printRPCError(err)
 		return -1
 	}
-	checkResponse(response, "NotifyTestBeforeControllerRecv")
+	checkResponse(response)
 	return 1
 }
 
@@ -72,7 +72,7 @@ func NotifyTestAfterControllerRecv(recvID int, operationType string, object inte
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterControllerRecv")
+	checkResponse(response)
 }
 
 func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
@@ -111,7 +111,7 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterControllerGet")
+	checkResponse(response)
 }
 
 func NotifyTestAfterControllerList(readType string, fromCache bool, object interface{}, k8sErr error) {
@@ -150,7 +150,7 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterControllerList")
+	checkResponse(response)
 }
 
 func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}) int {
@@ -169,13 +169,13 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		printSerializationError(err)
 		return 1
 	}
-	resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
 		log.Println("Get and List not supported yet")
 	} else {
+		resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 		defer NotifyTestBeforeControllerWritePause(controllerOperationType, resourceKey)
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
 			return -1
@@ -196,7 +196,7 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 			printRPCError(err)
 			return 1
 		}
-		checkResponse(response, "NotifyTestBeforeControllerWrite")
+		checkResponse(response)
 	}
 	return 1
 }
@@ -223,13 +223,13 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 		printSerializationError(err)
 		return
 	}
-	resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
 		log.Println("Get and List not supported yet")
 	} else {
+		resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 		defer NotifyTestAfterControllerWritePause(controllerOperationType, resourceKey)
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
 			return
@@ -250,7 +250,7 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 			printRPCError(err)
 			return
 		}
-		checkResponse(response, "NotifyTestAfterRestCall")
+		checkResponse(response)
 	}
 }
 
@@ -273,7 +273,7 @@ func NotifyTestBeforeControllerWritePause(writeType string, resourceKey string) 
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestBeforeControllerWritePause")
+	checkResponse(response)
 }
 
 func NotifyTestAfterControllerWritePause(writeType string, resourceKey string) {
@@ -295,7 +295,7 @@ func NotifyTestAfterControllerWritePause(writeType string, resourceKey string) {
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterControllerWritePause")
+	checkResponse(response)
 }
 
 func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.NamespacedName, object interface{}) {
@@ -324,7 +324,7 @@ func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.Na
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestBeforeControllerGetPause")
+	checkResponse(response)
 }
 
 func NotifyTestAfterControllerGetPause(readType string, namespacedName types.NamespacedName, object interface{}) {
@@ -353,7 +353,7 @@ func NotifyTestAfterControllerGetPause(readType string, namespacedName types.Nam
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterControllerGetPause")
+	checkResponse(response)
 }
 
 func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
@@ -382,7 +382,7 @@ func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestBeforeControllerListPause")
+	checkResponse(response)
 }
 
 func NotifyTestAfterControllerListPause(readType string, object interface{}) {
@@ -411,7 +411,7 @@ func NotifyTestAfterControllerListPause(readType string, object interface{}) {
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterControllerListPause")
+	checkResponse(response)
 }
 
 func NotifyTestBeforeAnnotatedAPICall(moduleName string, filePath string, receiverType string, funName string) int {
@@ -439,7 +439,7 @@ func NotifyTestBeforeAnnotatedAPICall(moduleName string, filePath string, receiv
 		printRPCError(err)
 		return -1
 	}
-	checkResponse(response, "NotifyTestBeforeAnnotatedAPICall")
+	checkResponse(response)
 	return 1
 }
 
@@ -468,7 +468,7 @@ func NotifyTestAfterAnnotatedAPICall(invocationID int, moduleName string, filePa
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterAnnotatedAPICall")
+	checkResponse(response)
 }
 
 func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
@@ -510,7 +510,7 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestBeforeAPIServerRecv")
+	checkResponse(response)
 }
 
 func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
@@ -550,5 +550,5 @@ func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
 		printRPCError(err)
 		return
 	}
-	checkResponse(response, "NotifyTestAfterAPIServerRecv")
+	checkResponse(response)
 }

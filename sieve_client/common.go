@@ -55,15 +55,15 @@ var exists = struct{}{}
 var taintMap sync.Map = sync.Map{}
 
 func printSerializationError(err error) {
-	log.Printf("Sieve client serialization error: %v \n", err)
+	log.Printf("Sieve client serialization error: %v\n", err)
 }
 
 func printRPCError(err error) {
-	log.Printf("Sieve client RPC error: %v \n", err)
+	log.Printf("Sieve client RPC error: %v\n", err)
 }
 
 func printConfigError(err error) {
-	log.Printf("Sieve client configuration error: %v \n", err)
+	log.Printf("Sieve client configuration error: %v\n", err)
 }
 
 func HttpVerbToControllerOperation(verb, resourceName, subresource string) string {
@@ -433,11 +433,9 @@ func getCRDs() []string {
 	return crds
 }
 
-func checkResponse(response Response, reqName string) {
-	if response.Ok {
-		// log.Printf("[sieve][%s] receives good response: %s\n", reqName, response.Message)
-	} else {
-		log.Printf("[sieve][error][%s] receives bad response: %s\n", reqName, response.Message)
+func checkResponse(response Response) {
+	if !response.Ok {
+		log.Printf("Sieve client receives bad response: %s\n", response.Message)
 	}
 }
 
