@@ -24,11 +24,11 @@ def sanity_check_sieve_log(path):
     operator_hear_status = {}
     for i in range(len(lines)):
         line = lines[i]
-        if SIEVE_BEFORE_WRITE_MARK in line:
+        if SIEVE_BEFORE_REST_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
             assert operator_write_id not in operator_write_status, line
             operator_write_status[operator_write_id] = 1
-        elif SIEVE_AFTER_WRITE_MARK in line:
+        elif SIEVE_AFTER_REST_WRITE_MARK in line:
             operator_write_id = parse_operator_write_id_only(line).id
             assert operator_write_id in operator_write_status, line
             operator_write_status[operator_write_id] += 1
@@ -108,10 +108,10 @@ def parse_reconciler_events(test_context: TestContext, path):
     lines = open(path).readlines()
     for i in range(len(lines)):
         line = lines[i]
-        if SIEVE_BEFORE_WRITE_MARK in line:
+        if SIEVE_BEFORE_REST_WRITE_MARK in line:
             operator_write_id_only = parse_operator_write_id_only(line)
             operator_write_start_timestamp_map[operator_write_id_only.id] = i
-        elif SIEVE_AFTER_WRITE_MARK in line:
+        elif SIEVE_AFTER_REST_WRITE_MARK in line:
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             # If we have not met any reconcile yet, skip the operator_write since it is not caused by reconcile
@@ -167,7 +167,7 @@ def parse_reconciler_events(test_context: TestContext, path):
                 operator_nk_write.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[operator_nk_write.start_timestamp] = operator_nk_write
             print("nk write end")
-        elif SIEVE_AFTER_READ_MARK in line:
+        elif SIEVE_AFTER_CACHE_READ_MARK in line:
             # TODO: handle the reads that are not in any reconcile
             operator_read = parse_operator_read(line)
             if operator_read.reconciler_type not in cur_reconcile_per_type:

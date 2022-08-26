@@ -30,7 +30,7 @@ func instrumentControllerGoForLearn(ifilepath, ofilepath string) {
 		afterReconcileInstrumentation.Decs.End.Append("//sieve")
 		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
 	} else {
-		panic(fmt.Errorf("Cannot find function reconcileHandler"))
+		panic(fmt.Errorf("cannot find function reconcileHandler"))
 	}
 
 	writeInstrumentedFile(ofilepath, "controller", f, map[string]string{})
