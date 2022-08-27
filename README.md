@@ -15,6 +15,7 @@
 4. [Getting started](#getting-started)
 5. [Bugs found by Sieve](#bugs-found-by-sieve)
 6. [Learn more](#learn-more)
+7. [Artifact evaluation](#artifact-evaluation)
 
 ### Overview
 The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, a controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety and liveness violations.
@@ -73,3 +74,6 @@ Research papers:
 Xudong Sun, Wenqing Luo, Jiawei Tyler Gu, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lalith Suresh, and Tianyin Xu. In Proceedings of the 16th USENIX Symposium on Operating Systems Design and Implementation (OSDI'22), Carlsbad, CA, USA, Jul. 2022.
 * [Reasoning about modern datacenter infrastructures using partial histories](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
+
+### Artifact evaluation
+If you are looking for how to reproduce the evaluation results in the paper [Automatic Reliability Testing for Cluster Management Controllers](https://www.usenix.org/conference/osdi22/presentation/sun), please follow the instructions [here](https://github.com/sieve-project/sieve/tree/osdi-ae#readme).
