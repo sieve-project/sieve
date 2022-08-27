@@ -85,9 +85,9 @@ def build_kubernetes(version, img_repo, img_tag):
         % (ORIGINAL_DIR, version)
     )
     os.chdir(ORIGINAL_DIR)
-    os.chdir("build_k8s")
-    cmd_early_exit("docker build --no-cache -t %s/node:%s ." % (img_repo, img_tag))
-    os.chdir(ORIGINAL_DIR)
+    cmd_early_exit(
+        "docker image tag kindest/node:latest %s/node:%s" % (img_repo, img_tag)
+    )
 
 
 def push_kubernetes(img_repo, img_tag):
