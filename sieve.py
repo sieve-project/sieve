@@ -60,7 +60,7 @@ def save_run_result(
         test_context.project: {
             test_context.test_name: {
                 test_context.mode: {
-                    test_context.original_test_config: {
+                    test_context.original_test_plan: {
                         "duration": time.time() - start_time,
                         "injection_completed": test_result.injection_completed,
                         "workload_completed": test_result.workload_completed,
@@ -72,8 +72,8 @@ def save_run_result(
                         + test_result.history_errors,
                         "no_exception": test_result.no_exception,
                         "exception_message": test_result.exception_message,
-                        "test_config_content": open(
-                            test_context.original_test_config
+                        "test_plan_content": open(
+                            test_context.original_test_plan
                         ).read()
                         if test_context.mode == sieve_modes.TEST
                         else "",
@@ -88,7 +88,7 @@ def save_run_result(
     result_filename = "sieve_test_results/{}-{}-{}.json".format(
         test_context.project,
         test_context.test_name,
-        os.path.basename(test_context.original_test_config),
+        os.path.basename(test_context.original_test_plan),
     )
     if not os.path.exists(os.path.dirname(result_filename)):
         try:
@@ -111,14 +111,14 @@ def watch_crd(crds, addrs):
             cmd_early_exit("kubectl get %s -s %s --ignore-not-found=true" % (crd, addr))
 
 
-def generate_configmap(test_config):
-    test_plan_content = open(test_config).read()
+def generate_configmap(test_plan):
+    test_plan_content = open(test_plan).read()
     configmap = {}
     configmap["apiVersion"] = "v1"
     configmap["kind"] = "ConfigMap"
     configmap["metadata"] = {"name": "sieve-testing-global-config"}
     configmap["data"] = {"sieveTestPlan": test_plan_content}
-    configmap_path = "%s-configmap.yaml" % test_config[:-5]
+    configmap_path = "%s-configmap.yaml" % test_plan[:-5]
     yaml.dump(configmap, open(configmap_path, "w"), sort_keys=False)
     return configmap_path
 
@@ -219,7 +219,7 @@ def prepare_sieve_server(test_context: TestContext):
             % (configured_field_path_mask_json, configured_field_path_mask_json)
         )
         cmd_early_exit("cp %s sieve_server/learned_field_path_mask.json" % learned_mask)
-    cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_config)
+    cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_plan)
     org_dir = os.getcwd()
     os.chdir("sieve_server")
     cmd_early_exit("go mod tidy")
@@ -244,7 +244,7 @@ def setup_kind_cluster(test_context: TestContext):
     kind_config = generate_kind_config(
         test_context.num_apiservers, test_context.num_workers
     )
-    k8s_docker_repo = test_context.docker_repo
+    k8s_container_registry = test_context.container_registry
     k8s_docker_tag = (
         test_context.controller_config.kubernetes_version
         + "-"
@@ -260,7 +260,7 @@ def setup_kind_cluster(test_context: TestContext):
             print("try to create kind cluster; retry count {}".format(retry_cnt))
             cmd_early_exit(
                 "kind create cluster --image %s/node:%s --config %s"
-                % (k8s_docker_repo, k8s_docker_tag, kind_config)
+                % (k8s_container_registry, k8s_docker_tag, kind_config)
             )
             cmd_early_exit(
                 "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
@@ -277,22 +277,21 @@ def setup_cluster(test_context: TestContext):
     cmd_early_exit("rm -rf %s" % test_context.result_dir)
     os.makedirs(test_context.result_dir)
     if test_context.stage == sieve_stages.LEARN:
-        print("Learning stage with config: %s" % test_context.test_config)
+        print("Learning stage with config: %s" % test_context.test_plan)
         generate_learn_config(
             test_context.common_config.namespace,
-            test_context.test_config,
+            test_context.test_plan,
             sieve_stages.LEARN,
             test_context.rate_limiter_enabled,
             test_context.controller_config.custom_resource_definitions,
         )
     else:
-        print("Testing stage with config: %s" % test_context.test_config)
+        print("Testing stage with test plan: %s" % test_context.test_plan)
         if test_context.mode == sieve_modes.VANILLA:
-            generate_vanilla_config(test_context.test_config)
+            generate_vanilla_config(test_context.test_plan)
         else:
             cmd_early_exit(
-                "cp %s %s"
-                % (test_context.original_test_config, test_context.test_config)
+                "cp %s %s" % (test_context.original_test_plan, test_context.test_plan)
             )
 
     # when testing stale-state, we need to pause the apiserver
@@ -336,12 +335,12 @@ def setup_cluster(test_context: TestContext):
         ok("Sieve server set up")
 
     time.sleep(3)  # ensure that every apiserver will see the configmap is created
-    configmap = generate_configmap(test_context.test_config)
+    configmap = generate_configmap(test_context.test_plan)
     cmd_early_exit("kubectl apply -f %s" % configmap)
 
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (
-        test_context.docker_repo,
+        test_context.container_registry,
         test_context.project,
         test_context.docker_tag,
     )
@@ -363,10 +362,10 @@ def deploy_controller(test_context: TestContext):
     backup_deployment_file = deployment_file + ".bkp"
     shutil.copyfile(deployment_file, backup_deployment_file)
 
-    # modify docker_repo and docker_tag
+    # modify container_registry and docker_tag
     fin = open(deployment_file)
     data = fin.read()
-    data = data.replace("${SIEVE-DR}", test_context.docker_repo)
+    data = data.replace("${SIEVE-DR}", test_context.container_registry)
     data = data.replace("${SIEVE-DT}", test_context.docker_tag)
     fin.close()
     fin = open(deployment_file, "w")
@@ -618,8 +617,8 @@ def run(
     log_dir,
     mode,
     stage,
-    config,
-    docker_repo,
+    test_plan,
+    container_registry,
     rate_limiter_enabled=False,
     phase="all",
 ):
@@ -630,7 +629,7 @@ def run(
     use_csi_driver = False
     if test is None:
         assert stage == sieve_stages.TEST and mode == sieve_modes.TEST
-        test = get_test_workload_from_test_plan(config)
+        test = get_test_workload_from_test_plan(test_plan)
         print("get test workload {} from test plan".format(test))
     if test in controller_config.test_setting:
         if "num_apiservers" in controller_config.test_setting[test]:
@@ -642,22 +641,22 @@ def run(
     oracle_dir = os.path.join(common_config.controller_folder, project, "oracle", test)
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
-        log_dir, project, test, stage, mode, os.path.basename(config)
+        log_dir, project, test, stage, mode, os.path.basename(test_plan)
     )
     print("Log dir: %s" % result_dir)
     docker_tag = stage if stage == sieve_stages.LEARN else mode
-    config_to_use = os.path.join(result_dir, os.path.basename(config))
+    test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
     test_context = TestContext(
         project=project,
         test_name=test,
         stage=stage,
         mode=mode,
         phase=phase,
-        original_test_config=config,
-        test_config=config_to_use,
+        original_test_plan=test_plan,
+        test_plan=test_plan_to_run,
         result_dir=result_dir,
         oracle_dir=oracle_dir,
-        docker_repo=docker_repo,
+        container_registry=container_registry,
         docker_tag=docker_tag,
         num_apiservers=num_apiservers,
         num_workers=num_workers,
@@ -707,11 +706,11 @@ if __name__ == "__main__":
     usage = "usage: python3 sieve.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
-        "-p",
-        "--project",
-        dest="project",
-        help="specify PROJECT to test",
-        metavar="PROJECT",
+        "-c",
+        "--controller",
+        dest="controller",
+        help="specify the CONTROLLER to test",
+        metavar="CONTROLLER",
     )
     parser.add_option(
         "-t",
@@ -719,14 +718,6 @@ if __name__ == "__main__":
         dest="test",
         help="specify TEST to run",
         metavar="TEST",
-    )
-    parser.add_option(
-        "-d",
-        "--docker",
-        dest="docker",
-        help="DOCKER repo that you have access",
-        metavar="DOCKER",
-        default=common_config.container_registry,
     )
     parser.add_option(
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"
@@ -746,11 +737,10 @@ if __name__ == "__main__":
         metavar="MODE",
     )
     parser.add_option(
-        "-c",
-        "--config",
-        dest="config",
-        help="test CONFIG",
-        metavar="CONFIG",
+        "--test_plan",
+        dest="test_plan",
+        help="TEST PLAN to execute",
+        metavar="TEST PLAN",
     )
     parser.add_option(
         "-b",
@@ -778,7 +768,7 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
-    if options.project is None:
+    if options.controller is None:
         parser.error("parameter project required")
 
     if options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
@@ -792,7 +782,7 @@ if __name__ == "__main__":
             sieve_modes.LEARN_TWICE,
         ]:
             parser.error("invalid learn mode option: %s" % options.mode)
-        options.config = "learn.yaml"
+        options.test_plan = "learn.yaml"
 
     if options.stage == sieve_stages.TEST:
         if options.mode is None:
@@ -800,9 +790,9 @@ if __name__ == "__main__":
         elif options.mode not in [sieve_modes.TEST, sieve_modes.VANILLA]:
             parser.error("invalid test mode option: %s" % options.mode)
         if options.mode == sieve_modes.VANILLA:
-            options.config = "vanilla.yaml"
+            options.test_plan = "vanilla.yaml"
         else:
-            if options.config is None:
+            if options.test_plan is None:
                 parser.error("parameter config required in test stage")
 
     if options.test is None:
@@ -823,13 +813,13 @@ if __name__ == "__main__":
 
     if options.batch:
         run_batch(
-            options.project,
+            options.controller,
             options.test,
             options.log,
             options.mode,
             options.stage,
-            options.config,
-            options.docker,
+            options.test_plan,
+            common_config.container_registry,
             options.rate_limiter,
             options.phase,
         )
@@ -837,25 +827,25 @@ if __name__ == "__main__":
         if options.mode == sieve_modes.LEARN_TWICE:
             # Run learn-once first
             run(
-                options.project,
+                options.controller,
                 options.test,
                 options.log,
                 sieve_modes.LEARN_ONCE,
                 options.stage,
-                options.config,
-                options.docker,
+                options.test_plan,
+                common_config.container_registry,
                 options.rate_limiter,
                 options.phase,
             )
 
         test_result, test_context = run(
-            options.project,
+            options.controller,
             options.test,
             options.log,
             options.mode,
             options.stage,
-            options.config,
-            options.docker,
+            options.test_plan,
+            common_config.container_registry,
             options.rate_limiter,
             options.phase,
         )

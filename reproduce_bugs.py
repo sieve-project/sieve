@@ -196,21 +196,28 @@ reprod_map = {
 }
 
 
-def reproduce_single_bug(operator, bug, docker, phase, skip):
+def reproduce_single_bug(controller, bug, phase, skip):
     before_reproduce = None
     after_reproduce = None
-    if len(reprod_map[operator][bug]) >= 3 and reprod_map[operator][bug][2] is not None:
-        before_reproduce = reprod_map[operator][bug][2]
-    if len(reprod_map[operator][bug]) == 4 and reprod_map[operator][bug][3] is not None:
-        after_reproduce = reprod_map[operator][bug][3]
+    if (
+        len(reprod_map[controller][bug]) >= 3
+        and reprod_map[controller][bug][2] is not None
+    ):
+        before_reproduce = reprod_map[controller][bug][2]
+    if (
+        len(reprod_map[controller][bug]) == 4
+        and reprod_map[controller][bug][3] is not None
+    ):
+        after_reproduce = reprod_map[controller][bug][3]
     if before_reproduce is not None:
         before_reproduce()
-    test_name = reprod_map[operator][bug][0]
-    config = os.path.join("bug_reproduction_test_plans", reprod_map[operator][bug][1])
-    sieve_cmd = "python3 sieve.py -p %s -c %s -d %s --phase=%s" % (
-        operator,
-        config,
-        docker,
+    test_name = reprod_map[controller][bug][0]
+    test_plan = os.path.join(
+        "bug_reproduction_test_plans", reprod_map[controller][bug][1]
+    )
+    sieve_cmd = "python3 sieve.py -c %s --test_plan=%s --phase=%s" % (
+        controller,
+        test_plan,
         phase,
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
@@ -221,40 +228,40 @@ def reproduce_single_bug(operator, bug, docker, phase, skip):
     if after_reproduce is not None:
         after_reproduce()
     test_result_file = "sieve_test_results/{}-{}-{}.json".format(
-        operator,
+        controller,
         test_name,
-        os.path.basename(config),
+        os.path.basename(test_plan),
     )
     cprint(
         "Please refer to {} for more detailed information".format(test_result_file),
         bcolors.OKGREEN,
     )
     test_result = json.load(open(test_result_file))
-    content = test_result[operator][test_name]["test"][config]
+    content = test_result[controller][test_name]["test"][test_plan]
     if content["number_errors"] > 0:
         return {"reproduced": True, "test-result-file": test_result_file}
     else:
         return {"reproduced": False, "test-result-file": test_result_file}
 
 
-def reproduce_bug(operator, bug, docker, phase, skip):
+def reproduce_bug(controller, bug, phase, skip):
     stats_map = {}
     if bug == "all":
-        for b in reprod_map[operator]:
+        for b in reprod_map[controller]:
             if "indirect" in b:
                 continue
-            stats_map[b] = reproduce_single_bug(operator, b, docker, phase, skip)
+            stats_map[b] = reproduce_single_bug(controller, b, phase, skip)
     elif (
         bug == "intermediate-state"
         or bug == "unobserved-state"
         or bug == "stale-state"
         or bug == "indirect"
     ):
-        for b in reprod_map[operator]:
+        for b in reprod_map[controller]:
             if b.startswith(bug):
-                stats_map[b] = reproduce_single_bug(operator, b, docker, phase, skip)
+                stats_map[b] = reproduce_single_bug(controller, b, phase, skip)
     else:
-        stats_map[bug] = reproduce_single_bug(operator, bug, docker, phase, skip)
+        stats_map[bug] = reproduce_single_bug(controller, bug, phase, skip)
     return stats_map
 
 
@@ -321,14 +328,12 @@ if __name__ == "__main__":
     usage = "usage: python3 sieve.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
-        "-p",
-        "--project",
-        dest="project",
-        help="specify PROJECT to test",
-        metavar="PROJECT",
-        default="all",
+        "-c",
+        "--controller",
+        dest="controller",
+        help="specify the CONTROLLER to test",
+        metavar="CONTROLLER",
     )
-
     parser.add_option(
         "-b",
         "--bug",
@@ -337,7 +342,6 @@ if __name__ == "__main__":
         metavar="BUG",
         default="all",
     )
-
     parser.add_option(
         "--phase",
         dest="phase",
@@ -345,48 +349,35 @@ if __name__ == "__main__":
         metavar="PHASE",
         default="all",
     )
-
-    parser.add_option(
-        "-d",
-        "--docker",
-        dest="docker",
-        help="DOCKER repo that you have access",
-        metavar="DOCKER",
-        default=common_config.container_registry,
-    )
-
     parser.add_option(
         "-s",
         "--skip",
         dest="skip",
         action="store_true",
         help="SKIP running Sieve",
-        metavar="DOCKER",
         default=False,
     )
 
     (options, args) = parser.parse_args()
 
-    if options.project is None:
-        parser.error("parameter project required")
+    if options.controller is None:
+        parser.error("parameter controller required")
 
-    if options.bug is None and options.project != "all":
+    if options.bug is None and options.controller != "all":
         parser.error("parameter bug required")
-
-    # backup_old_results()
 
     if not options.skip:
         os.system("rm -rf sieve_test_results")
 
     stats_map = {}
-    if options.project == "all":
-        for operator in reprod_map:
-            stats_map[operator] = reproduce_bug(
-                operator, options.bug, options.docker, options.phase, options.skip
+    if options.controller == "all":
+        for controller in reprod_map:
+            stats_map[controller] = reproduce_bug(
+                controller, options.bug, options.phase, options.skip
             )
     else:
-        stats_map[options.project] = reproduce_bug(
-            options.project, options.bug, options.docker, options.phase, options.skip
+        stats_map[options.controller] = reproduce_bug(
+            options.controller, options.bug, options.phase, options.skip
         )
 
     table = "controller\tbug\treproduced\ttest-result-file\n"
@@ -399,5 +390,5 @@ if __name__ == "__main__":
                 stats_map[controller][bug]["test-result-file"],
             )
     open("bug_reproduction_stats.tsv", "w").write(table)
-    if options.project == "all" and options.bug == "all":
+    if options.controller == "all" and options.bug == "all":
         generate_table3()

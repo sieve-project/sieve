@@ -80,11 +80,11 @@ class TestContext:
         stage,
         mode,
         phase,
-        original_test_config,
-        test_config,
+        original_test_plan,
+        test_plan,
         result_dir,
         oracle_dir,
-        docker_repo,
+        container_registry,
         docker_tag,
         num_apiservers,
         num_workers,
@@ -98,11 +98,11 @@ class TestContext:
         self.stage = stage
         self.mode = mode
         self.phase = phase
-        self.original_test_config = original_test_config
-        self.test_config = test_config
+        self.original_test_plan = original_test_plan
+        self.test_plan = test_plan
         self.result_dir = result_dir
         self.oracle_dir = oracle_dir
-        self.docker_repo = docker_repo
+        self.container_registry = container_registry
         self.docker_tag = docker_tag
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
@@ -111,12 +111,12 @@ class TestContext:
         self.common_config = common_config
         self.controller_config = controller_config
         self.rate_limiter_enabled = rate_limiter_enabled
-        self.test_plan = None
+        self.test_plan_content = None
         self.action_types = []
         if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
-            self.test_plan = yaml.safe_load(open(original_test_config))
-            if self.test_plan["actions"] is not None:
-                for action in self.test_plan["actions"]:
+            self.test_plan_content = yaml.safe_load(open(original_test_plan))
+            if self.test_plan_content["actions"] is not None:
+                for action in self.test_plan_content["actions"]:
                     self.action_types.append(action["actionType"])
             if "reconnectController" in self.action_types:
                 if self.num_apiservers < 3:
