@@ -670,7 +670,9 @@ def run(
     return test_result, test_context
 
 
-def run_batch(project, test, dir, mode, stage, test_plan_folder, docker, rate_limiter, phase):
+def run_batch(
+    project, test, dir, mode, stage, test_plan_folder, docker, rate_limiter, phase
+):
     assert stage == sieve_stages.TEST, "batch mode only allowed in test stage"
     assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
         test_plan_folder
@@ -724,7 +726,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=common_config.docker_registry,
+        default=common_config.container_registry,
     )
     parser.add_option(
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"

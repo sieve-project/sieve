@@ -352,7 +352,7 @@ if __name__ == "__main__":
         dest="docker",
         help="DOCKER repo that you have access",
         metavar="DOCKER",
-        default=common_config.docker_registry,
+        default=common_config.container_registry,
     )
 
     parser.add_option(

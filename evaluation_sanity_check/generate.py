@@ -70,7 +70,7 @@ def recover_config_json():
 def learn_all():
     for project in common.controllers_to_check:
         for test_suite in common.controllers_to_check[project]:
-            docker_repo_name = get_common_config().docker_registry
+            docker_repo_name = get_common_config().container_registry
             cmd = "python3 sieve.py -p %s -t %s -d %s -s learn --phase=check" % (
                 project,
                 test_suite,
