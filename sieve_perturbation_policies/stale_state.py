@@ -182,7 +182,7 @@ def generate_stale_state_test_plan(
             condition_for_trigger1["convertStateToAPIForm"] = True
         condition_for_trigger1["occurrence"] = operator_hear.signature_counter
     return {
-        "workload": test_context.test_name,
+        "workload": test_context.test_workload,
         "actions": [
             {
                 "actionType": "pauseAPIServer",

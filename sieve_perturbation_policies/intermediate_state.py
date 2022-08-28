@@ -119,7 +119,7 @@ def generate_intermediate_state_test_plan_for_controller_write(
         )
         condition["occurrence"] = operator_write.signature_counter
     return {
-        "workload": test_context.test_name,
+        "workload": test_context.test_workload,
         "actions": [
             {
                 "actionType": "restartController",
@@ -146,7 +146,7 @@ def generate_intermediate_state_test_plan_for_annotated_api_invocation(
     test_context: TestContext, api_invocation: OperatorNonK8sWrite
 ):
     return {
-        "workload": test_context.test_name,
+        "workload": test_context.test_workload,
         "actions": [
             {
                 "actionType": "restartController",

@@ -148,7 +148,7 @@ def generate_controller_image_build_jobs(self_hosted):
         build_image = [
             {
                 "name": "Build Image - %s" % (mode),
-                "run": "python3 build.py -p %s -m %s -d $IMAGE_NAMESPACE -r"
+                "run": "python3 build.py -c %s -m %s -p -r $IMAGE_NAMESPACE "
                 % (operator, mode),
             }
             for mode in build_modes
@@ -167,7 +167,7 @@ def generate_oracle_build_jobs(self_hosted):
         sieve_learn = [
             {
                 "name": "Sieve Learn - %s %s" % (operator, workload),
-                "run": "python3 sieve.py -p %s -t %s -s learn -m learn-twice -d $IMAGE_NAMESPACE"
+                "run": "python3 sieve.py -c %s -w %s -m learn-twice -r $IMAGE_NAMESPACE"
                 % (operator, workload),
             }
             for workload in sorted(workload_set)
@@ -192,7 +192,7 @@ def generate_bug_reproduction_jobs(self_hosted):
             sieve_test.append(
                 {
                     "name": "Sieve Test - %s %s" % (operator, bug),
-                    "run": "python3 reproduce_bugs.py -p %s -b %s -d $IMAGE_NAMESPACE"
+                    "run": "python3 reproduce_bugs.py -c %s -b %s -r $IMAGE_NAMESPACE"
                     % (operator, bug),
                 }
             )
@@ -218,7 +218,7 @@ def generate_test_jobs(self_hosted):
         build_image = [
             {
                 "name": "Build Image - %s" % (mode),
-                "run": "python3 build.py -p %s -m %s -d $IMAGE_NAMESPACE"
+                "run": "python3 build.py -c %s -m %s -r $IMAGE_NAMESPACE"
                 % (operator, mode),
             }
             for mode in build_modes
@@ -228,7 +228,7 @@ def generate_test_jobs(self_hosted):
             sieve_learn = [
                 {
                     "name": "Sieve Learn - %s %s" % (operator, workload),
-                    "run": "python3 sieve.py -p %s -t %s -s learn -m learn-twice -d $IMAGE_NAMESPACE"
+                    "run": "python3 sieve.py -c %s -w %s -m learn-twice -r $IMAGE_NAMESPACE"
                     % (operator, workload),
                 }
                 for workload in sorted(workload_set)
@@ -240,7 +240,7 @@ def generate_test_jobs(self_hosted):
                 sieve_test.append(
                     {
                         "name": "Sieve Test - %s %s" % (operator, bug),
-                        "run": "python3 reproduce_bugs.py -p %s -b %s -d $IMAGE_NAMESPACE"
+                        "run": "python3 reproduce_bugs.py -c %s -b %s -r $IMAGE_NAMESPACE"
                         % (operator, bug),
                     }
                 )

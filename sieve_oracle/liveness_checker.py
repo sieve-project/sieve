@@ -231,13 +231,13 @@ def resource_key_should_be_masked(
         ):
             return True
         state_mask = test_context.controller_config.end_state_checker_mask
-        for test_name in state_mask:
-            if test_name == test_context.test_name or test_name == "*":
-                for masked_resource_key in state_mask[test_name]:
+        for test_workload in state_mask:
+            if test_workload == test_context.test_workload or test_workload == "*":
+                for masked_resource_key in state_mask[test_workload]:
                     if masked_resource_key == resource_key or PurePath(
                         "/" + resource_key
                     ).match("/" + masked_resource_key):
-                        if len(state_mask[test_name][masked_resource_key]) == 0:
+                        if len(state_mask[test_workload][masked_resource_key]) == 0:
                             # print("skip", masked_resource_key)
                             return True
     return False
@@ -248,11 +248,11 @@ def resource_type_should_be_masked_by_controller_config(
     resource_type,
 ):
     state_mask = test_context.controller_config.end_state_checker_mask
-    for test_name in state_mask:
-        if test_name == test_context.test_name or test_name == "*":
-            for masked_resource_key in state_mask[test_name]:
+    for test_workload in state_mask:
+        if test_workload == test_context.test_workload or test_workload == "*":
+            for masked_resource_key in state_mask[test_workload]:
                 if masked_resource_key == "{}/*/*".format(resource_type):
-                    if len(state_mask[test_name][masked_resource_key]) == 0:
+                    if len(state_mask[test_workload][masked_resource_key]) == 0:
                         # print("skip", masked_resource_key)
                         return True
     return False
@@ -263,13 +263,13 @@ def resource_field_path_should_be_masked(
 ):
     # TODO: we should also mask fields as specified in the common_config
     state_mask = test_context.controller_config.end_state_checker_mask
-    for test_name in state_mask:
-        if test_name == test_context.test_name or test_name == "*":
-            for masked_resource_key in state_mask[test_name]:
+    for test_workload in state_mask:
+        if test_workload == test_context.test_workload or test_workload == "*":
+            for masked_resource_key in state_mask[test_workload]:
                 if masked_resource_key == resource_key or PurePath(
                     "/" + resource_key
                 ).match("/" + masked_resource_key):
-                    for masked_path in state_mask[test_name][masked_resource_key]:
+                    for masked_path in state_mask[test_workload][masked_resource_key]:
                         masked_path_str = "/".join(masked_path)
                         field_path_list_prefix = []
                         for field in field_path_list:

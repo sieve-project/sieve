@@ -53,8 +53,8 @@ def save_run_result(
         return
 
     result_map = {
-        test_context.project: {
-            test_context.test_name: {
+        test_context.controller: {
+            test_context.test_workload: {
                 test_context.mode: {
                     test_context.original_test_plan: {
                         "duration": time.time() - start_time,
@@ -82,8 +82,8 @@ def save_run_result(
 
     # Testing mode, write test result under sieve_test_result directory
     result_filename = "sieve_test_results/{}-{}-{}.json".format(
-        test_context.project,
-        test_context.test_name,
+        test_context.controller,
+        test_context.test_workload,
         os.path.basename(test_context.original_test_plan),
     )
     if not os.path.exists(os.path.dirname(result_filename)):
@@ -338,7 +338,7 @@ def setup_cluster(test_context: TestContext):
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (
         test_context.container_registry,
-        test_context.project,
+        test_context.controller,
         test_context.image_tag,
     )
     kind_load_cmd = "kind load docker-image %s" % (image)
@@ -381,24 +381,24 @@ def deploy_controller(test_context: TestContext):
 
 
 def start_operator(test_context: TestContext):
-    project = test_context.project
+    controller = test_context.controller
     num_apiservers = test_context.num_apiservers
     deploy_controller(test_context)
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
 
-    # Wait for project pod ready
+    # Wait for controller pod ready
     print("Wait for the operator pod to be ready...")
     pod_ready = False
     for tick in range(600):
-        project_pod = core_v1.list_namespaced_pod(
+        controller_pod = core_v1.list_namespaced_pod(
             test_context.common_config.namespace,
             watch=False,
-            label_selector="sievetag=" + project,
+            label_selector="sievetag=" + controller,
         ).items
-        if len(project_pod) >= 1:
-            if project_pod[0].status.phase == "Running":
+        if len(controller_pod) >= 1:
+            if controller_pod[0].status.phase == "Running":
                 pod_ready = True
                 break
         time.sleep(1)
@@ -436,7 +436,7 @@ def run_workload(
         .list_namespaced_pod(
             test_context.common_config.namespace,
             watch=False,
-            label_selector="sievetag=" + test_context.project,
+            label_selector="sievetag=" + test_context.controller,
         )
         .items[0]
         .metadata.name
@@ -470,7 +470,7 @@ def run_workload(
     cprint("Running test workload...", bcolors.OKGREEN)
     test_command = "%s %s %s %s" % (
         test_context.controller_config.test_command,
-        test_context.test_name,
+        test_context.test_workload,
         use_soft_timeout,
         os.path.join(test_context.result_dir, "workload.log"),
     )
@@ -482,7 +482,7 @@ def run_workload(
         .list_namespaced_pod(
             test_context.common_config.namespace,
             watch=False,
-            label_selector="sievetag=" + test_context.project,
+            label_selector="sievetag=" + test_context.controller,
         )
         .items[0]
         .metadata.name
@@ -596,8 +596,8 @@ def get_test_workload_from_test_plan(test_plan_file):
 
 
 def run(
-    project,
-    test,
+    controller,
+    test_workload,
     log_dir,
     mode,
     test_plan,
@@ -605,24 +605,34 @@ def run(
     phase="all",
 ):
     common_config = get_common_config()
-    controller_config = get_controller_config(common_config.controller_folder, project)
+    controller_config = get_controller_config(
+        common_config.controller_folder, controller
+    )
     num_apiservers = 1
     num_workers = 2
     use_csi_driver = False
-    if test is None:
+    if test_workload is None:
         assert mode == sieve_modes.TEST
-        test = get_test_workload_from_test_plan(test_plan)
-        print("get test workload {} from test plan".format(test))
-    if test in controller_config.test_setting:
-        if "num_apiservers" in controller_config.test_setting[test]:
-            num_apiservers = controller_config.test_setting[test]["num_apiservers"]
-        if "num_workers" in controller_config.test_setting[test]:
-            num_workers = controller_config.test_setting[test]["num_workers"]
-        if "use_csi_driver" in controller_config.test_setting[test]:
-            use_csi_driver = controller_config.test_setting[test]["use_csi_driver"]
-    oracle_dir = os.path.join(common_config.controller_folder, project, "oracle", test)
+        test_workload = get_test_workload_from_test_plan(test_plan)
+        print("get test workload {} from test plan".format(test_workload))
+    if test_workload in controller_config.test_setting:
+        if "num_apiservers" in controller_config.test_setting[test_workload]:
+            num_apiservers = controller_config.test_setting[test_workload][
+                "num_apiservers"
+            ]
+        if "num_workers" in controller_config.test_setting[test_workload]:
+            num_workers = controller_config.test_setting[test_workload]["num_workers"]
+        if "use_csi_driver" in controller_config.test_setting[test_workload]:
+            use_csi_driver = controller_config.test_setting[test_workload][
+                "use_csi_driver"
+            ]
+    oracle_dir = os.path.join(
+        common_config.controller_folder, controller, "oracle", test_workload
+    )
     os.makedirs(oracle_dir, exist_ok=True)
-    result_dir = os.path.join(log_dir, project, test, mode, os.path.basename(test_plan))
+    result_dir = os.path.join(
+        log_dir, controller, test_workload, mode, os.path.basename(test_plan)
+    )
     print("Log dir: %s" % result_dir)
     image_tag = (
         sieve_modes.LEARN
@@ -631,8 +641,8 @@ def run(
     )
     test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
     test_context = TestContext(
-        project=project,
-        test_name=test,
+        controller=controller,
+        test_workload=test_workload,
         mode=mode,
         phase=phase,
         original_test_plan=test_plan,
@@ -651,7 +661,7 @@ def run(
     return test_result, test_context
 
 
-def run_batch(project, test, dir, mode, test_plan_folder, docker, phase):
+def run_batch(controller, test_workload, dir, mode, test_plan_folder, docker, phase):
     assert mode == sieve_modes.TEST, "batch mode only allowed in test mode"
     assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
         test_plan_folder
@@ -663,8 +673,8 @@ def run_batch(project, test, dir, mode, test_plan_folder, docker, phase):
     for test_plan in test_plans:
         start_time = time.time()
         test_result, test_context = run(
-            project,
-            test,
+            controller,
+            test_workload,
             dir,
             mode,
             test_plan,
@@ -691,11 +701,11 @@ if __name__ == "__main__":
         metavar="CONTROLLER",
     )
     parser.add_option(
-        "-t",
-        "--test",
-        dest="test",
-        help="specify TEST to run",
-        metavar="TEST",
+        "-w",
+        "--test_workload",
+        dest="test_workload",
+        help="specify TEST_WORKLOAD to run",
+        metavar="TEST_WORKLOAD",
     )
     parser.add_option(
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"
@@ -708,10 +718,19 @@ if __name__ == "__main__":
         metavar="MODE",
     )
     parser.add_option(
+        "-p",
         "--test_plan",
         dest="test_plan",
-        help="TEST PLAN to execute",
-        metavar="TEST PLAN",
+        help="TEST_PLAN to execute",
+        metavar="TEST_PLAN",
+    )
+    parser.add_option(
+        "-r",
+        "--registry",
+        dest="registry",
+        help="the container REGISTRY to pull the images from",
+        metavar="REGISTRY",
+        default=common_config.container_registry,
     )
     parser.add_option(
         "-b",
@@ -732,7 +751,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
 
     if options.controller is None:
-        parser.error("parameter project required")
+        parser.error("parameter controller required")
 
     if (
         options.mode == sieve_modes.LEARN_ONCE
@@ -745,7 +764,7 @@ if __name__ == "__main__":
         if options.test_plan is None:
             parser.error("parameter test_plan required in test mode")
 
-    if options.test is None:
+    if options.test_workload is None:
         if options.mode != sieve_modes.TEST:
             parser.error("parameter test required in learn and vanilla mode")
 
@@ -764,11 +783,11 @@ if __name__ == "__main__":
     if options.batch:
         run_batch(
             options.controller,
-            options.test,
+            options.test_workload,
             options.log,
             options.mode,
             options.test_plan,
-            common_config.container_registry,
+            options.registry,
             options.phase,
         )
     else:
@@ -776,21 +795,21 @@ if __name__ == "__main__":
             # Run learn-once first
             run(
                 options.controller,
-                options.test,
+                options.test_workload,
                 options.log,
                 sieve_modes.LEARN_ONCE,
                 options.test_plan,
-                common_config.container_registry,
+                options.registry,
                 options.phase,
             )
 
         test_result, test_context = run(
             options.controller,
-            options.test,
+            options.test_workload,
             options.log,
             options.mode,
             options.test_plan,
-            common_config.container_registry,
+            options.registry,
             options.phase,
         )
 

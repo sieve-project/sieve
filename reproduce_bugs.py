@@ -43,7 +43,7 @@ def before_reproducing_cassandra_operator_indirect_1():
     print(
         "building cassandra-operator image without the fix of https://github.com/instaclustr/cassandra-operator/issues/400"
     )
-    os.system("python3 build.py -p cassandra-operator -m test > /dev/null 2>&1")
+    os.system("python3 build.py -c cassandra-operator -m test > /dev/null 2>&1")
 
 
 def after_reproducing_cassandra_operator_indirect_1():
@@ -53,7 +53,7 @@ def after_reproducing_cassandra_operator_indirect_1():
     print(
         "building cassandra-operator image with the fix of https://github.com/instaclustr/cassandra-operator/issues/400"
     )
-    os.system("python3 build.py -p cassandra-operator -m test > /dev/null 2>&1")
+    os.system("python3 build.py -c cassandra-operator -m test > /dev/null 2>&1")
 
 
 reprod_map = {
@@ -196,7 +196,7 @@ reprod_map = {
 }
 
 
-def reproduce_single_bug(controller, bug, phase, skip):
+def reproduce_single_bug(controller, bug, phase, registry, skip):
     before_reproduce = None
     after_reproduce = None
     if (
@@ -211,14 +211,15 @@ def reproduce_single_bug(controller, bug, phase, skip):
         after_reproduce = reprod_map[controller][bug][3]
     if before_reproduce is not None:
         before_reproduce()
-    test_name = reprod_map[controller][bug][0]
+    test_workload = reprod_map[controller][bug][0]
     test_plan = os.path.join(
         "bug_reproduction_test_plans", reprod_map[controller][bug][1]
     )
-    sieve_cmd = "python3 sieve.py -c %s -m test --test_plan=%s --phase=%s" % (
+    sieve_cmd = "python3 sieve.py -c %s -m test -p %s --phase=%s -r %s" % (
         controller,
         test_plan,
         phase,
+        registry,
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
     if not skip:
@@ -229,7 +230,7 @@ def reproduce_single_bug(controller, bug, phase, skip):
         after_reproduce()
     test_result_file = "sieve_test_results/{}-{}-{}.json".format(
         controller,
-        test_name,
+        test_workload,
         os.path.basename(test_plan),
     )
     cprint(
@@ -237,20 +238,20 @@ def reproduce_single_bug(controller, bug, phase, skip):
         bcolors.OKGREEN,
     )
     test_result = json.load(open(test_result_file))
-    content = test_result[controller][test_name]["test"][test_plan]
+    content = test_result[controller][test_workload]["test"][test_plan]
     if content["number_errors"] > 0:
         return {"reproduced": True, "test-result-file": test_result_file}
     else:
         return {"reproduced": False, "test-result-file": test_result_file}
 
 
-def reproduce_bug(controller, bug, phase, skip):
+def reproduce_bug(controller, bug, phase, registry, skip):
     stats_map = {}
     if bug == "all":
         for b in reprod_map[controller]:
             if "indirect" in b:
                 continue
-            stats_map[b] = reproduce_single_bug(controller, b, phase, skip)
+            stats_map[b] = reproduce_single_bug(controller, b, phase, registry, skip)
     elif (
         bug == "intermediate-state"
         or bug == "unobserved-state"
@@ -259,9 +260,11 @@ def reproduce_bug(controller, bug, phase, skip):
     ):
         for b in reprod_map[controller]:
             if b.startswith(bug):
-                stats_map[b] = reproduce_single_bug(controller, b, phase, skip)
+                stats_map[b] = reproduce_single_bug(
+                    controller, b, phase, registry, skip
+                )
     else:
-        stats_map[bug] = reproduce_single_bug(controller, bug, phase, skip)
+        stats_map[bug] = reproduce_single_bug(controller, bug, phase, registry, skip)
     return stats_map
 
 
@@ -350,6 +353,14 @@ if __name__ == "__main__":
         default="all",
     )
     parser.add_option(
+        "-r",
+        "--registry",
+        dest="registry",
+        help="the container REGISTRY to pull the images from",
+        metavar="REGISTRY",
+        default=common_config.container_registry,
+    )
+    parser.add_option(
         "-s",
         "--skip",
         dest="skip",
@@ -373,11 +384,15 @@ if __name__ == "__main__":
     if options.controller == "all":
         for controller in reprod_map:
             stats_map[controller] = reproduce_bug(
-                controller, options.bug, options.phase, options.skip
+                controller, options.bug, options.phase, options.registry, options.skip
             )
     else:
         stats_map[options.controller] = reproduce_bug(
-            options.controller, options.bug, options.phase, options.skip
+            options.controller,
+            options.bug,
+            options.phase,
+            options.registry,
+            options.skip,
         )
 
     table = "controller\tbug\treproduced\ttest-result-file\n"

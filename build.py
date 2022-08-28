@@ -444,17 +444,20 @@ def instrument_controller_with_vendor(
 
 
 def build_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig, image_tag
+    common_config: CommonConfig,
+    controller_config: ControllerConfig,
+    image_tag,
+    container_registry,
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir(application_dir)
-    cmd_early_exit("./build.sh %s %s" % (common_config.container_registry, image_tag))
+    cmd_early_exit("./build.sh %s %s" % (container_registry, image_tag))
     os.chdir(ORIGINAL_DIR)
     os.system(
         "docker tag %s %s/%s:%s"
         % (
             controller_config.controller_image_name,
-            common_config.container_registry,
+            container_registry,
             controller_config.controller_name,
             image_tag,
         )
@@ -462,12 +465,15 @@ def build_controller(
 
 
 def push_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig, image_tag
+    common_config: CommonConfig,
+    controller_config: ControllerConfig,
+    image_tag,
+    container_registry,
 ):
     cmd_early_exit(
         "docker push %s/%s:%s"
         % (
-            common_config.container_registry,
+            container_registry,
             controller_config.controller_name,
             image_tag,
         )
@@ -481,6 +487,7 @@ def setup_controller(
     image_tag,
     build_only,
     push_to_remote,
+    container_registry,
 ):
     if not build_only:
         download_controller(common_config, controller_config)
@@ -492,9 +499,9 @@ def setup_controller(
             install_lib_for_controller_with_vendor(common_config, controller_config)
             update_go_mod_for_controller_with_vendor(common_config, controller_config)
             instrument_controller_with_vendor(common_config, controller_config, mode)
-    build_controller(common_config, controller_config, image_tag)
+    build_controller(common_config, controller_config, image_tag, container_registry)
     if push_to_remote:
-        push_controller(common_config, controller_config, image_tag)
+        push_controller(common_config, controller_config, image_tag, container_registry)
 
 
 def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
@@ -523,6 +530,7 @@ def setup_controller_wrapper(
     mode,
     build_only,
     push_to_remote,
+    container_registry,
 ):
     image_tag = mode
     if mode == "all":
@@ -539,6 +547,7 @@ def setup_controller_wrapper(
                 image_tag,
                 build_only,
                 push_to_remote,
+                container_registry,
             )
     else:
         setup_controller(
@@ -548,6 +557,7 @@ def setup_controller_wrapper(
             image_tag,
             build_only,
             push_to_remote,
+            container_registry,
         )
 
 
@@ -595,11 +605,20 @@ if __name__ == "__main__":
         default=False,
     )
     parser.add_option(
+        "-p",
         "--push",
         action="store_true",
         dest="push_to_remote",
         help="push to the container registry",
         default=False,
+    )
+    parser.add_option(
+        "-r",
+        "--registry",
+        dest="registry",
+        help="the container REGISTRY to push the images to",
+        metavar="REGISTRY",
+        default=common_config.container_registry,
     )
     (options, args) = parser.parse_args()
 
@@ -621,7 +640,7 @@ if __name__ == "__main__":
         setup_kubernetes_wrapper(
             options.version,
             options.mode,
-            common_config.container_registry,
+            options.registry,
             options.push_to_remote,
         )
     elif options.controller == "all":
@@ -636,6 +655,7 @@ if __name__ == "__main__":
                 options.mode,
                 options.build_only,
                 options.push_to_remote,
+                options.registry,
             )
     else:
         controller_config = get_controller_config(
@@ -649,4 +669,5 @@ if __name__ == "__main__":
             options.mode,
             options.build_only,
             options.push_to_remote,
+            options.registry,
         )

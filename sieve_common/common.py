@@ -71,8 +71,8 @@ class sieve_built_in_test_patterns:
 class TestContext:
     def __init__(
         self,
-        project,
-        test_name,
+        controller,
+        test_workload,
         mode,
         phase,
         original_test_plan,
@@ -87,8 +87,8 @@ class TestContext:
         common_config: CommonConfig,
         controller_config: ControllerConfig,
     ):
-        self.project = project
-        self.test_name = test_name
+        self.controller = controller
+        self.test_workload = test_workload
         self.mode = mode
         self.phase = phase
         self.original_test_plan = original_test_plan
@@ -170,25 +170,25 @@ def dump_json_file(dir, data, json_file_name):
 
 def build_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "build"
+        test_context.common_config.controller_folder, test_context.controller, "build"
     )
 
 
 def deploy_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "deploy"
+        test_context.common_config.controller_folder, test_context.controller, "deploy"
     )
 
 
 def test_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "test"
+        test_context.common_config.controller_folder, test_context.controller, "test"
     )
 
 
 def oracle_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "oracle"
+        test_context.common_config.controller_folder, test_context.controller, "oracle"
     )
 
 
