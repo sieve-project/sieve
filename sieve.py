@@ -243,10 +243,8 @@ def setup_kind_cluster(test_context: TestContext):
         test_context.num_apiservers, test_context.num_workers
     )
     k8s_container_registry = test_context.container_registry
-    k8s_docker_tag = (
-        test_context.controller_config.kubernetes_version
-        + "-"
-        + test_context.docker_tag
+    k8s_image_tag = (
+        test_context.controller_config.kubernetes_version + "-" + test_context.image_tag
     )
     retry_cnt = 0
     while retry_cnt < 5:
@@ -258,7 +256,7 @@ def setup_kind_cluster(test_context: TestContext):
             print("try to create kind cluster; retry count {}".format(retry_cnt))
             cmd_early_exit(
                 "kind create cluster --image %s/node:%s --config %s"
-                % (k8s_container_registry, k8s_docker_tag, kind_config)
+                % (k8s_container_registry, k8s_image_tag, kind_config)
             )
             cmd_early_exit(
                 "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
@@ -281,7 +279,6 @@ def setup_cluster(test_context: TestContext):
         print("Learn with: %s" % test_context.test_plan)
         generate_learn_plan(
             test_context.test_plan,
-            test_context.rate_limiter_enabled,
             test_context.controller_config.custom_resource_definitions,
         )
     elif test_context.mode == sieve_modes.VANILLA:
@@ -342,7 +339,7 @@ def setup_cluster(test_context: TestContext):
     image = "%s/%s:%s" % (
         test_context.container_registry,
         test_context.project,
-        test_context.docker_tag,
+        test_context.image_tag,
     )
     kind_load_cmd = "kind load docker-image %s" % (image)
     print("Loading image %s to kind nodes..." % (image))
@@ -362,11 +359,11 @@ def deploy_controller(test_context: TestContext):
     backup_deployment_file = deployment_file + ".bkp"
     shutil.copyfile(deployment_file, backup_deployment_file)
 
-    # modify container_registry and docker_tag
+    # modify container_registry and image_tag
     fin = open(deployment_file)
     data = fin.read()
     data = data.replace("${SIEVE-DR}", test_context.container_registry)
-    data = data.replace("${SIEVE-DT}", test_context.docker_tag)
+    data = data.replace("${SIEVE-DT}", test_context.image_tag)
     fin.close()
     fin = open(deployment_file, "w")
     fin.write(data)
@@ -579,24 +576,18 @@ def run_test(test_context: TestContext) -> TestResult:
         )
 
 
-def generate_learn_plan(learn_config, rate_limiter_enabled, crd_list):
-    learn_config_map = {}
-    # learn_config_map["namespace"] = namespace
-    learn_config_map["crdList"] = crd_list
-    if rate_limiter_enabled:
-        learn_config_map["rateLimiterEnabled"] = True
-        print("Turn on rate limiter")
-    else:
-        learn_config_map["rateLimiterEnabled"] = False
-        print("Turn off rate limiter")
-    # hardcode the interval to 3 seconds for now
-    learn_config_map["rateLimiterInterval"] = 3
-    yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
+def generate_learn_plan(learn_plan, crd_list):
+    learn_plan_map = {}
+    learn_plan_map["crdList"] = crd_list
+    # hardcode rate limiter to disabled for now
+    learn_plan_map["rateLimiterEnabled"] = False
+    learn_plan_map["rateLimiterInterval"] = 3
+    yaml.dump(learn_plan_map, open(learn_plan, "w"), sort_keys=False)
 
 
-def generate_vanilla_plan(vanilla_config):
-    vanilla_config_map = {}
-    yaml.dump(vanilla_config_map, open(vanilla_config, "w"), sort_keys=False)
+def generate_vanilla_plan(vanilla_plan):
+    vanilla_plan_map = {}
+    yaml.dump(vanilla_plan_map, open(vanilla_plan, "w"), sort_keys=False)
 
 
 def get_test_workload_from_test_plan(test_plan_file):
@@ -611,7 +602,6 @@ def run(
     mode,
     test_plan,
     container_registry,
-    rate_limiter_enabled=False,
     phase="all",
 ):
     common_config = get_common_config()
@@ -634,7 +624,7 @@ def run(
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(log_dir, project, test, mode, os.path.basename(test_plan))
     print("Log dir: %s" % result_dir)
-    docker_tag = (
+    image_tag = (
         sieve_modes.LEARN
         if mode == sieve_modes.LEARN_ONCE or mode == sieve_modes.LEARN_TWICE
         else mode
@@ -650,19 +640,18 @@ def run(
         result_dir=result_dir,
         oracle_dir=oracle_dir,
         container_registry=container_registry,
-        docker_tag=docker_tag,
+        image_tag=image_tag,
         num_apiservers=num_apiservers,
         num_workers=num_workers,
         use_csi_driver=use_csi_driver,
         common_config=common_config,
         controller_config=controller_config,
-        rate_limiter_enabled=rate_limiter_enabled,
     )
     test_result = run_test(test_context)
     return test_result, test_context
 
 
-def run_batch(project, test, dir, mode, test_plan_folder, docker, rate_limiter, phase):
+def run_batch(project, test, dir, mode, test_plan_folder, docker, phase):
     assert mode == sieve_modes.TEST, "batch mode only allowed in test mode"
     assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
         test_plan_folder
@@ -680,7 +669,6 @@ def run_batch(project, test, dir, mode, test_plan_folder, docker, rate_limiter, 
             mode,
             test_plan,
             docker,
-            rate_limiter,
             phase,
         )
         save_run_result(
@@ -740,14 +728,6 @@ if __name__ == "__main__":
         metavar="PHASE",
         default="all",
     )
-    parser.add_option(
-        "-r",
-        "--rate_limiter",
-        dest="rate_limiter",
-        action="store_true",
-        help="use RATE LIMITER in learning mode or not",
-        default=False,
-    )
 
     (options, args) = parser.parse_args()
 
@@ -789,7 +769,6 @@ if __name__ == "__main__":
             options.mode,
             options.test_plan,
             common_config.container_registry,
-            options.rate_limiter,
             options.phase,
         )
     else:
@@ -802,7 +781,6 @@ if __name__ == "__main__":
                 sieve_modes.LEARN_ONCE,
                 options.test_plan,
                 common_config.container_registry,
-                options.rate_limiter,
                 options.phase,
             )
 
@@ -813,7 +791,6 @@ if __name__ == "__main__":
             options.mode,
             options.test_plan,
             common_config.container_registry,
-            options.rate_limiter,
             options.phase,
         )
 

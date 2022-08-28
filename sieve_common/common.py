@@ -80,13 +80,12 @@ class TestContext:
         result_dir,
         oracle_dir,
         container_registry,
-        docker_tag,
+        image_tag,
         num_apiservers,
         num_workers,
         use_csi_driver,
         common_config: CommonConfig,
         controller_config: ControllerConfig,
-        rate_limiter_enabled,
     ):
         self.project = project
         self.test_name = test_name
@@ -97,14 +96,13 @@ class TestContext:
         self.result_dir = result_dir
         self.oracle_dir = oracle_dir
         self.container_registry = container_registry
-        self.docker_tag = docker_tag
+        self.image_tag = image_tag
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.use_csi_driver_for_ref = use_csi_driver
         self.use_csi_driver = use_csi_driver
         self.common_config = common_config
         self.controller_config = controller_config
-        self.rate_limiter_enabled = rate_limiter_enabled
         self.test_plan_content = None
         self.action_types = []
         if self.mode == sieve_modes.TEST:

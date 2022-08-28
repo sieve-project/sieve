@@ -77,7 +77,7 @@ def instrument_kubernetes(mode):
     os.chdir(ORIGINAL_DIR)
 
 
-def build_kubernetes(version, container_registry, img_tag):
+def build_kubernetes(version, container_registry, image_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     cmd_early_exit(
         "GOPATH=%s/fakegopath KUBE_GIT_VERSION=%s-sieve-`git rev-parse HEAD` kind build node-image"
@@ -86,21 +86,21 @@ def build_kubernetes(version, container_registry, img_tag):
     os.chdir(ORIGINAL_DIR)
     cmd_early_exit(
         "docker image tag kindest/node:latest %s/node:%s"
-        % (container_registry, img_tag)
+        % (container_registry, image_tag)
     )
 
 
-def push_kubernetes(container_registry, img_tag):
-    cmd_early_exit("docker push %s/node:%s" % (container_registry, img_tag))
+def push_kubernetes(container_registry, image_tag):
+    cmd_early_exit("docker push %s/node:%s" % (container_registry, image_tag))
 
 
-def setup_kubernetes(version, mode, container_registry, img_tag, push_to_remote):
+def setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote):
     download_kubernetes(version)
     install_lib_for_kubernetes(version)
     instrument_kubernetes(mode)
-    build_kubernetes(version, container_registry, img_tag)
+    build_kubernetes(version, container_registry, image_tag)
     if push_to_remote:
-        push_kubernetes(container_registry, img_tag)
+        push_kubernetes(container_registry, image_tag)
 
 
 def download_controller(
@@ -444,11 +444,11 @@ def instrument_controller_with_vendor(
 
 
 def build_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig, img_tag
+    common_config: CommonConfig, controller_config: ControllerConfig, image_tag
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir(application_dir)
-    cmd_early_exit("./build.sh %s %s" % (common_config.container_registry, img_tag))
+    cmd_early_exit("./build.sh %s %s" % (common_config.container_registry, image_tag))
     os.chdir(ORIGINAL_DIR)
     os.system(
         "docker tag %s %s/%s:%s"
@@ -456,17 +456,21 @@ def build_controller(
             controller_config.controller_image_name,
             common_config.container_registry,
             controller_config.controller_name,
-            img_tag,
+            image_tag,
         )
     )
 
 
 def push_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig, img_tag
+    common_config: CommonConfig, controller_config: ControllerConfig, image_tag
 ):
     cmd_early_exit(
         "docker push %s/%s:%s"
-        % (common_config.container_registry, controller_config.controller_name, img_tag)
+        % (
+            common_config.container_registry,
+            controller_config.controller_name,
+            image_tag,
+        )
     )
 
 
@@ -474,7 +478,7 @@ def setup_controller(
     common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
-    img_tag,
+    image_tag,
     build_only,
     push_to_remote,
 ):
@@ -488,9 +492,9 @@ def setup_controller(
             install_lib_for_controller_with_vendor(common_config, controller_config)
             update_go_mod_for_controller_with_vendor(common_config, controller_config)
             instrument_controller_with_vendor(common_config, controller_config, mode)
-    build_controller(common_config, controller_config, img_tag)
+    build_controller(common_config, controller_config, image_tag)
     if push_to_remote:
-        push_controller(common_config, controller_config, img_tag)
+        push_controller(common_config, controller_config, image_tag)
 
 
 def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
@@ -500,17 +504,17 @@ def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
             sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]:
-            img_tag = version + "-" + this_mode
+            image_tag = version + "-" + this_mode
             setup_kubernetes(
                 version,
                 this_mode,
                 container_registry,
-                img_tag,
+                image_tag,
                 push_to_remote,
             )
     else:
-        img_tag = version + "-" + mode
-        setup_kubernetes(version, mode, container_registry, img_tag, push_to_remote)
+        image_tag = version + "-" + mode
+        setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote)
 
 
 def setup_controller_wrapper(
@@ -520,19 +524,19 @@ def setup_controller_wrapper(
     build_only,
     push_to_remote,
 ):
-    img_tag = mode
+    image_tag = mode
     if mode == "all":
         for this_mode in [
             sieve_modes.LEARN,
             sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]:
-            img_tag = this_mode
+            image_tag = this_mode
             setup_controller(
                 common_config,
                 controller_config,
                 this_mode,
-                img_tag,
+                image_tag,
                 build_only,
                 push_to_remote,
             )
@@ -541,7 +545,7 @@ def setup_controller_wrapper(
             common_config,
             controller_config,
             mode,
-            img_tag,
+            image_tag,
             build_only,
             push_to_remote,
         )
