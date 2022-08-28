@@ -52,14 +52,10 @@ IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01
 MASK_REGS = [TIME_REG, IP_REG]
 
 
-class sieve_stages:
-    LEARN = "learn"
-    TEST = "test"
-
-
 class sieve_modes:
     TEST = "test"
     VANILLA = "vanilla"
+    LEARN = "learn"
     LEARN_ONCE = "learn-once"
     LEARN_TWICE = "learn-twice"
     ALL = "all"
@@ -77,7 +73,6 @@ class TestContext:
         self,
         project,
         test_name,
-        stage,
         mode,
         phase,
         original_test_plan,
@@ -95,7 +90,6 @@ class TestContext:
     ):
         self.project = project
         self.test_name = test_name
-        self.stage = stage
         self.mode = mode
         self.phase = phase
         self.original_test_plan = original_test_plan
@@ -113,7 +107,7 @@ class TestContext:
         self.rate_limiter_enabled = rate_limiter_enabled
         self.test_plan_content = None
         self.action_types = []
-        if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
+        if self.mode == sieve_modes.TEST:
             self.test_plan_content = yaml.safe_load(open(original_test_plan))
             if self.test_plan_content["actions"] is not None:
                 for action in self.test_plan_content["actions"]:

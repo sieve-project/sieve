@@ -215,7 +215,7 @@ def reproduce_single_bug(controller, bug, phase, skip):
     test_plan = os.path.join(
         "bug_reproduction_test_plans", reprod_map[controller][bug][1]
     )
-    sieve_cmd = "python3 sieve.py -c %s --test_plan=%s --phase=%s" % (
+    sieve_cmd = "python3 sieve.py -c %s -m test --test_plan=%s --phase=%s" % (
         controller,
         test_plan,
         phase,

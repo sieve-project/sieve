@@ -1,7 +1,6 @@
 from sieve_common.common import (
     sieve_modes,
     cmd_early_exit,
-    sieve_stages,
     get_all_controllers,
 )
 import os
@@ -497,8 +496,8 @@ def setup_controller(
 def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
     if mode == "all":
         for this_mode in [
-            sieve_stages.LEARN,
-            sieve_stages.TEST,
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]:
             img_tag = version + "-" + this_mode
@@ -524,8 +523,8 @@ def setup_controller_wrapper(
     img_tag = mode
     if mode == "all":
         for this_mode in [
-            sieve_stages.LEARN,
-            sieve_stages.TEST,
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]:
             img_tag = this_mode
@@ -608,8 +607,8 @@ if __name__ == "__main__":
 
     if options.mode not in [
         sieve_modes.VANILLA,
-        sieve_stages.TEST,
-        sieve_stages.LEARN,
+        sieve_modes.TEST,
+        sieve_modes.LEARN,
         sieve_modes.ALL,
     ]:
         parser.error("invalid build mode option: %s" % options.mode)

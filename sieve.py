@@ -17,7 +17,6 @@ from sieve_oracle.oracle import (
     persist_history,
     generate_controller_family,
     canonicalize_history_and_state,
-    generate_fatal,
     check,
 )
 from sieve_oracle.checker_common import (
@@ -37,10 +36,7 @@ from sieve_common.common import (
     ok,
     fail,
     sieve_modes,
-    sieve_built_in_test_patterns,
     cmd_early_exit,
-    NO_ERROR_MESSAGE,
-    sieve_stages,
     deploy_directory,
 )
 
@@ -50,7 +46,7 @@ def save_run_result(
     test_result: TestResult,
     start_time,
 ):
-    if test_context.stage != sieve_stages.TEST:
+    if test_context.mode != sieve_modes.TEST:
         return
 
     if test_result is None:
@@ -191,10 +187,7 @@ def get_apiserver_ports(num_api):
 
 
 def prepare_sieve_server(test_context: TestContext):
-    if (
-        test_context.stage == sieve_stages.TEST
-        and test_context.mode != sieve_modes.VANILLA
-    ):
+    if test_context.mode == sieve_modes.TEST:
         configured_field_key_mask_json = "configured_field_key_mask.json"
         configured_field_path_mask_json = "configured_field_path_mask.json"
         json.dump(
@@ -230,9 +223,14 @@ def prepare_sieve_server(test_context: TestContext):
 
 
 def start_sieve_server(test_context: TestContext):
+    sieve_server_mode = (
+        test_context.mode
+        if test_context.mode == sieve_modes.TEST
+        else sieve_modes.LEARN
+    )
     cmd_early_exit(
         "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server %s &> sieve-server.log &'"
-        % test_context.stage
+        % sieve_server_mode
     )
 
 
@@ -276,23 +274,25 @@ def setup_cluster(test_context: TestContext):
 
     cmd_early_exit("rm -rf %s" % test_context.result_dir)
     os.makedirs(test_context.result_dir)
-    if test_context.stage == sieve_stages.LEARN:
-        print("Learning stage with config: %s" % test_context.test_plan)
-        generate_learn_config(
-            test_context.common_config.namespace,
+    if (
+        test_context.mode == sieve_modes.LEARN_ONCE
+        or test_context.mode == sieve_modes.LEARN_TWICE
+    ):
+        print("Learn with: %s" % test_context.test_plan)
+        generate_learn_plan(
             test_context.test_plan,
-            sieve_stages.LEARN,
             test_context.rate_limiter_enabled,
             test_context.controller_config.custom_resource_definitions,
         )
+    elif test_context.mode == sieve_modes.VANILLA:
+        print("Vanilla with: %s" % test_context.test_plan)
+        generate_vanilla_plan(test_context.test_plan)
     else:
-        print("Testing stage with test plan: %s" % test_context.test_plan)
-        if test_context.mode == sieve_modes.VANILLA:
-            generate_vanilla_config(test_context.test_plan)
-        else:
-            cmd_early_exit(
-                "cp %s %s" % (test_context.original_test_plan, test_context.test_plan)
-            )
+        assert test_context.mode == sieve_modes.TEST
+        print("Test with: %s" % test_context.test_plan)
+        cmd_early_exit(
+            "cp %s %s" % (test_context.original_test_plan, test_context.test_plan)
+        )
 
     # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
@@ -515,6 +515,7 @@ def run_workload(
     streamed_log_file.close()
     os.killpg(streaming_api_server.pid, signal.SIGTERM)
     streamed_api_server_log_file.close()
+
     if test_context.mode != sieve_modes.VANILLA:
         stop_sieve_server()
 
@@ -525,22 +526,18 @@ def check_result(
     generate_controller_family(test_context)
     persist_history(test_context)
     persist_state(test_context)
-    if test_context.stage == sieve_stages.LEARN:
+    if (
+        test_context.mode == sieve_modes.LEARN_ONCE
+        or test_context.mode == sieve_modes.LEARN_TWICE
+    ):
         if test_context.mode == sieve_modes.LEARN_TWICE:
             canonicalize_history_and_state(test_context)
         analyze.analyze_trace(test_context)
         return None
+    elif test_context.mode == sieve_modes.VANILLA:
+        return None
     else:
-        if test_context.mode == sieve_modes.VANILLA:
-            return TestResult(
-                injection_completed=True,
-                workload_completed=True,
-                common_errors=[],
-                end_state_errors=[],
-                history_errors=[],
-                no_exception=True,
-                exception_message="",
-            )
+        assert test_context.mode == sieve_modes.TEST
         test_result = check(test_context)
         print_error_and_debugging_info(test_context, test_result)
         return test_result
@@ -582,9 +579,7 @@ def run_test(test_context: TestContext) -> TestResult:
         )
 
 
-def generate_learn_config(
-    namespace, learn_config, mode, rate_limiter_enabled, crd_list
-):
+def generate_learn_plan(learn_config, rate_limiter_enabled, crd_list):
     learn_config_map = {}
     # learn_config_map["namespace"] = namespace
     learn_config_map["crdList"] = crd_list
@@ -599,10 +594,8 @@ def generate_learn_config(
     yaml.dump(learn_config_map, open(learn_config, "w"), sort_keys=False)
 
 
-def generate_vanilla_config(vanilla_config):
+def generate_vanilla_plan(vanilla_config):
     vanilla_config_map = {}
-    vanilla_config_map["stage"] = sieve_stages.TEST
-    vanilla_config_map["mode"] = sieve_modes.NONE
     yaml.dump(vanilla_config_map, open(vanilla_config, "w"), sort_keys=False)
 
 
@@ -616,7 +609,6 @@ def run(
     test,
     log_dir,
     mode,
-    stage,
     test_plan,
     container_registry,
     rate_limiter_enabled=False,
@@ -628,7 +620,7 @@ def run(
     num_workers = 2
     use_csi_driver = False
     if test is None:
-        assert stage == sieve_stages.TEST and mode == sieve_modes.TEST
+        assert mode == sieve_modes.TEST
         test = get_test_workload_from_test_plan(test_plan)
         print("get test workload {} from test plan".format(test))
     if test in controller_config.test_setting:
@@ -640,16 +632,17 @@ def run(
             use_csi_driver = controller_config.test_setting[test]["use_csi_driver"]
     oracle_dir = os.path.join(common_config.controller_folder, project, "oracle", test)
     os.makedirs(oracle_dir, exist_ok=True)
-    result_dir = os.path.join(
-        log_dir, project, test, stage, mode, os.path.basename(test_plan)
-    )
+    result_dir = os.path.join(log_dir, project, test, mode, os.path.basename(test_plan))
     print("Log dir: %s" % result_dir)
-    docker_tag = stage if stage == sieve_stages.LEARN else mode
+    docker_tag = (
+        sieve_modes.LEARN
+        if mode == sieve_modes.LEARN_ONCE or mode == sieve_modes.LEARN_TWICE
+        else mode
+    )
     test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
     test_context = TestContext(
         project=project,
         test_name=test,
-        stage=stage,
         mode=mode,
         phase=phase,
         original_test_plan=test_plan,
@@ -669,10 +662,8 @@ def run(
     return test_result, test_context
 
 
-def run_batch(
-    project, test, dir, mode, stage, test_plan_folder, docker, rate_limiter, phase
-):
-    assert stage == sieve_stages.TEST, "batch mode only allowed in test stage"
+def run_batch(project, test, dir, mode, test_plan_folder, docker, rate_limiter, phase):
+    assert mode == sieve_modes.TEST, "batch mode only allowed in test mode"
     assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
         test_plan_folder
     )
@@ -687,7 +678,6 @@ def run_batch(
             test,
             dir,
             mode,
-            stage,
             test_plan,
             docker,
             rate_limiter,
@@ -723,13 +713,6 @@ if __name__ == "__main__":
         "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"
     )
     parser.add_option(
-        "-s",
-        "--stage",
-        dest="stage",
-        help="STAGE: learn, test",
-        default=sieve_stages.TEST,
-    )
-    parser.add_option(
         "-m",
         "--mode",
         dest="mode",
@@ -762,7 +745,7 @@ if __name__ == "__main__":
         "--rate_limiter",
         dest="rate_limiter",
         action="store_true",
-        help="use RATE LIMITER in learning stage or not",
+        help="use RATE LIMITER in learning mode or not",
         default=False,
     )
 
@@ -771,33 +754,20 @@ if __name__ == "__main__":
     if options.controller is None:
         parser.error("parameter project required")
 
-    if options.stage not in [sieve_stages.LEARN, sieve_stages.TEST]:
-        parser.error("invalid stage option: %s" % options.stage)
-
-    if options.stage == sieve_stages.LEARN:
-        if options.mode is None:
-            options.mode = sieve_modes.LEARN_ONCE
-        elif options.mode not in [
-            sieve_modes.LEARN_ONCE,
-            sieve_modes.LEARN_TWICE,
-        ]:
-            parser.error("invalid learn mode option: %s" % options.mode)
+    if (
+        options.mode == sieve_modes.LEARN_ONCE
+        or options.mode == sieve_modes.LEARN_TWICE
+    ):
         options.test_plan = "learn.yaml"
-
-    if options.stage == sieve_stages.TEST:
-        if options.mode is None:
-            options.mode = sieve_modes.TEST
-        elif options.mode not in [sieve_modes.TEST, sieve_modes.VANILLA]:
-            parser.error("invalid test mode option: %s" % options.mode)
-        if options.mode == sieve_modes.VANILLA:
-            options.test_plan = "vanilla.yaml"
-        else:
-            if options.test_plan is None:
-                parser.error("parameter config required in test stage")
+    elif options.mode == sieve_modes.VANILLA:
+        options.test_plan = "vanilla.yaml"
+    else:
+        if options.test_plan is None:
+            parser.error("parameter test_plan required in test mode")
 
     if options.test is None:
-        if options.stage != sieve_stages.TEST or options.mode != sieve_stages.TEST:
-            parser.error("parameter test required")
+        if options.mode != sieve_modes.TEST:
+            parser.error("parameter test required in learn and vanilla mode")
 
     if options.phase not in [
         "all",
@@ -809,7 +779,7 @@ if __name__ == "__main__":
     ]:
         parser.error("invalid phase option: %s" % options.phase)
 
-    print("Running Sieve with %s: %s..." % (options.stage, options.mode))
+    print("Running Sieve with mode: %s..." % options.mode)
 
     if options.batch:
         run_batch(
@@ -817,7 +787,6 @@ if __name__ == "__main__":
             options.test,
             options.log,
             options.mode,
-            options.stage,
             options.test_plan,
             common_config.container_registry,
             options.rate_limiter,
@@ -831,7 +800,6 @@ if __name__ == "__main__":
                 options.test,
                 options.log,
                 sieve_modes.LEARN_ONCE,
-                options.stage,
                 options.test_plan,
                 common_config.container_registry,
                 options.rate_limiter,
@@ -843,7 +811,6 @@ if __name__ == "__main__":
             options.test,
             options.log,
             options.mode,
-            options.stage,
             options.test_plan,
             common_config.container_registry,
             options.rate_limiter,
