@@ -60,7 +60,7 @@ if __name__ == "__main__":
                                 os.path.abspath("../log"),
                                 controller,
                                 testcase,
-                                "learn/learn-once/learn.yaml",
+                                "generate-oracle/learn.yaml",
                                 mode,
                                 "*.yaml",
                             )

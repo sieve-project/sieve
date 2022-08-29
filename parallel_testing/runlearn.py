@@ -60,7 +60,7 @@ if __name__ == "__main__":
         )
         for testcase in controllers_to_run[controller]:
             os.system(
-                "python3 sieve.py -m learn-once -c {} -w {} -r {}".format(
+                "python3 sieve.py -m learn -c {} -w {} -r {}".format(
                     controller, testcase, "ghcr.io/sieve-project/action"
                 )
             )

@@ -1,4 +1,4 @@
-name: Kubernetes Image Build
+name: Kind Image Build
 'on':
   workflow_dispatch: null
   # schedule:
@@ -28,6 +28,6 @@ jobs:
           pip install pyyaml
       - name: Build Image
         run: |
-          python3 build.py -p kind -m vanilla -d $IMAGE_NAMESPACE -r
-          python3 build.py -p kind -m learn -d $IMAGE_NAMESPACE -r
-          python3 build.py -p kind -m test -d $IMAGE_NAMESPACE -r
+          python3 build.py -m vanilla -p -r $IMAGE_NAMESPACE
+          python3 build.py -m learn -p -r $IMAGE_NAMESPACE
+          python3 build.py -m test -p -r $IMAGE_NAMESPACE

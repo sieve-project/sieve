@@ -273,8 +273,8 @@ def setup_cluster(test_context: TestContext):
     cmd_early_exit("rm -rf %s" % test_context.result_dir)
     os.makedirs(test_context.result_dir)
     if (
-        test_context.mode == sieve_modes.LEARN_ONCE
-        or test_context.mode == sieve_modes.LEARN_TWICE
+        test_context.mode == sieve_modes.LEARN
+        or test_context.mode == sieve_modes.GEN_ORACLE
     ):
         print("Learn with: %s" % test_context.test_plan)
         generate_learn_plan(
@@ -524,10 +524,10 @@ def check_result(
     persist_history(test_context)
     persist_state(test_context)
     if (
-        test_context.mode == sieve_modes.LEARN_ONCE
-        or test_context.mode == sieve_modes.LEARN_TWICE
+        test_context.mode == sieve_modes.LEARN
+        or test_context.mode == sieve_modes.GEN_ORACLE
     ):
-        if test_context.mode == sieve_modes.LEARN_TWICE:
+        if test_context.mode == sieve_modes.GEN_ORACLE:
             canonicalize_history_and_state(test_context)
         analyze.analyze_trace(test_context)
         return None
@@ -634,11 +634,7 @@ def run(
         log_dir, controller, test_workload, mode, os.path.basename(test_plan)
     )
     print("Log dir: %s" % result_dir)
-    image_tag = (
-        sieve_modes.LEARN
-        if mode == sieve_modes.LEARN_ONCE or mode == sieve_modes.LEARN_TWICE
-        else mode
-    )
+    image_tag = sieve_modes.LEARN if mode == sieve_modes.GEN_ORACLE else mode
     test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
     test_context = TestContext(
         controller=controller,
@@ -714,7 +710,7 @@ if __name__ == "__main__":
         "-m",
         "--mode",
         dest="mode",
-        help="MODE: vanilla, test, learn-once, learn-twice",
+        help="MODE: vanilla, test, learn, generate-oracle",
         metavar="MODE",
     )
     parser.add_option(
@@ -753,10 +749,7 @@ if __name__ == "__main__":
     if options.controller is None:
         parser.error("parameter controller required")
 
-    if (
-        options.mode == sieve_modes.LEARN_ONCE
-        or options.mode == sieve_modes.LEARN_TWICE
-    ):
+    if options.mode == sieve_modes.LEARN or options.mode == sieve_modes.GEN_ORACLE:
         options.test_plan = "learn.yaml"
     elif options.mode == sieve_modes.VANILLA:
         options.test_plan = "vanilla.yaml"
@@ -791,13 +784,13 @@ if __name__ == "__main__":
             options.phase,
         )
     else:
-        if options.mode == sieve_modes.LEARN_TWICE:
-            # Run learn-once first
+        if options.mode == sieve_modes.GEN_ORACLE:
+            # Run learn mode first
             run(
                 options.controller,
                 options.test_workload,
                 options.log,
-                sieve_modes.LEARN_ONCE,
+                sieve_modes.LEARN,
                 options.test_plan,
                 options.registry,
                 options.phase,

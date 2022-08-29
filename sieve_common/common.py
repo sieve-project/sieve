@@ -56,8 +56,7 @@ class sieve_modes:
     TEST = "test"
     VANILLA = "vanilla"
     LEARN = "learn"
-    LEARN_ONCE = "learn-once"
-    LEARN_TWICE = "learn-twice"
+    GEN_ORACLE = "generate-oracle"
     ALL = "all"
     NONE = "none"
 

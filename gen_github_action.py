@@ -167,7 +167,7 @@ def generate_oracle_build_jobs(self_hosted):
         sieve_learn = [
             {
                 "name": "Sieve Learn - %s %s" % (operator, workload),
-                "run": "python3 sieve.py -c %s -w %s -m learn-twice -r $IMAGE_NAMESPACE"
+                "run": "python3 sieve.py -c %s -w %s -m generate-oracle -r $IMAGE_NAMESPACE"
                 % (operator, workload),
             }
             for workload in sorted(workload_set)
@@ -228,7 +228,7 @@ def generate_test_jobs(self_hosted):
             sieve_learn = [
                 {
                     "name": "Sieve Learn - %s %s" % (operator, workload),
-                    "run": "python3 sieve.py -c %s -w %s -m learn-twice -r $IMAGE_NAMESPACE"
+                    "run": "python3 sieve.py -c %s -w %s -m generate-oracle -r $IMAGE_NAMESPACE"
                     % (operator, workload),
                 }
                 for workload in sorted(workload_set)
