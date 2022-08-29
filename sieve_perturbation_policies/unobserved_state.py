@@ -189,7 +189,7 @@ def generate_unobserved_state_test_plan(
         ]
         trigger_for_action2["expression"] = "trigger2|trigger3"
     return {
-        "workload": test_context.test_name,
+        "workload": test_context.test_workload,
         "actions": [
             {
                 "actionType": "pauseController",

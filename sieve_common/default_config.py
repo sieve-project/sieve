@@ -5,7 +5,7 @@ import os
 class CommonConfig:
     def __init__(
         self,
-        docker_registry,
+        container_registry,
         controller_folder,
         namespace,
         leading_api,
@@ -28,7 +28,7 @@ class CommonConfig:
         state_update_summary_checker_mask,
         update_oracle_file_enabled,
     ):
-        self.docker_registry = docker_registry
+        self.container_registry = container_registry
         self.controller_folder = controller_folder
         self.namespace = namespace
         self.leading_api = leading_api
@@ -64,7 +64,7 @@ def get_common_config():
         for key in override_config:
             common_config[key] = override_config[key]
     return CommonConfig(
-        docker_registry=common_config["docker_registry"],
+        container_registry=common_config["container_registry"],
         controller_folder=common_config["controller_folder"],
         namespace=common_config["namespace"],
         leading_api=common_config["leading_api"],

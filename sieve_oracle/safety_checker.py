@@ -14,12 +14,12 @@ from sieve_common.k8s_event import (
 def masked_resource_key_for_state_update_summary_checker(
     resource_key, test_context: TestContext
 ):
-    test_name = test_context.test_name
+    test_workload = test_context.test_workload
     controller_mask = test_context.controller_config.state_update_summary_checker_mask
     common_mask = test_context.common_config.state_update_summary_checker_mask
-    for masked_test_name in controller_mask:
-        if masked_test_name == "*" or masked_test_name == test_name:
-            for masked_key in controller_mask[masked_test_name]:
+    for masked_test_workload in controller_mask:
+        if masked_test_workload == "*" or masked_test_workload == test_workload:
+            for masked_key in controller_mask[masked_test_workload]:
                 if masked_key == resource_key or PurePath("/" + resource_key).match(
                     "/" + masked_key
                 ):

@@ -23,7 +23,7 @@ func main() {
 	case sieve.TEST:
 		rpc.Register(NewTestCoordinator())
 	default:
-		log.Fatalf("Cannot recognize stage: %s\n", phase)
+		log.Fatalf("Cannot recognize mode: %s\n", phase)
 	}
 	log.Println("setting up connection...")
 	addr, err := net.ResolveTCPAddr("tcp", ":12345")

@@ -2,13 +2,13 @@
 
 ### How to run
 1. Finish the learning mode and generate all the test configs on a master node(could be any worker node)
-2. Create a file called `hosts` under this test_script directory and list all the node's address. Except for this master node, write `:` to indicate that this is a local node. An example of a `hosts` file with the vm1.com being the master:
+2. Create a file called `hosts` under this parallel_testing directory and list all the node's address. Except for this master node, write `:` to indicate that this is a local node. An example of a `hosts` file with the vm1.com being the master:
     ```
     :
     ubuntu@vm2.com
     ubuntu@vm3.com
     ```
-3. On this master node's test_script directory, run:
+3. On this master node's parallel_testing directory, run:
     `bash runtest.sh`
     If you want to pull from your own docker repo, modify the first step in the runtest.sh to add `-d ${DOCKERREPO}` to the python command.
 
@@ -34,9 +34,9 @@ This shell script will
     python3 sieve.py -p yugabyte-operator -c config-2.yaml
     ```
 6. collect run results back to master node
-7. squash all the test results into one file and save it with a uniqle name under test_script directory
+7. squash all the test results into one file and save it with a uniqle name under parallel_testing directory
 8. Clean up kind clusters after massive testing
 
 ### Note
 - It assumes the sieve project home directory is under `/home/ubuntu`
-- CAUTION: Do not leave critical results in sieve_test_results directory. It gets cleared every time when the testrun.sh script is executed. The results are automatically saved in a summary file under test_script directory after each mass testing.
+- CAUTION: Do not leave critical results in sieve_test_results directory. It gets cleared every time when the testrun.sh script is executed. The results are automatically saved in a summary file under parallel_testing directory after each mass testing.

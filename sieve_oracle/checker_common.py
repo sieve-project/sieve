@@ -165,7 +165,7 @@ def convert_occurrence(occurrence):
 
 
 def generate_perturbation_description(test_context: TestContext):
-    test_plan_content = yaml.safe_load(open(test_context.test_config))
+    test_plan_content = yaml.safe_load(open(test_context.test_plan))
     if test_plan_content["actions"] is None:
         return "Sieve does not perform any actions."
     desc = ""

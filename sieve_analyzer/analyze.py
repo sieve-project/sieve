@@ -387,8 +387,8 @@ def analyze_trace(
         return
     event_graph = build_event_graph(test_context, log_path, oracle_dir)
     sieve_learn_result = {
-        "project": test_context.project,
-        "test": test_context.test_name,
+        "controller": test_context.controller,
+        "test": test_context.test_workload,
     }
     for analysis_mode in [
         sieve_built_in_test_patterns.STALE_STATE,
@@ -409,7 +409,7 @@ def analyze_trace(
         }
 
     result_filename = "sieve_learn_results/{}-{}.json".format(
-        test_context.project, test_context.test_name
+        test_context.controller, test_context.test_workload
     )
     os.makedirs("sieve_learn_results", exist_ok=True)
     with open(result_filename, "w") as test_result_json:

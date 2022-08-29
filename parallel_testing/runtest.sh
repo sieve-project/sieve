@@ -15,8 +15,8 @@ parallel --workdir '/home/ubuntu/sieve' \
 
 # 2. Generate test commands and docker pull commands
 rm -rf ../log
-python3 runlearn.py -p $1
-python3 gen_commands.py -p $1
+python3 runlearn.py -c $1
+python3 gen_commands.py -c $1
 
 # 3. Run docker pull commands on all nodes
 #

@@ -17,14 +17,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o", dest="output", help="Output file name", default="commands.txt"
     )
-    parser.add_argument("-p", dest="operators", help="Operators to test", nargs="+")
+    parser.add_argument("-c", dest="controllers", help="Controllers to test", nargs="+")
     parser.add_argument("-m", dest="modes", help="Modes to test", nargs="+")
     args = parser.parse_args()
 
-    if args.operators is None:
-        operators = os.listdir("../log")
+    if args.controllers is None:
+        controllers = os.listdir("../log")
     else:
-        operators = args.operators
+        controllers = args.controllers
 
     if args.modes is not None:
         modes = args.modes
@@ -39,26 +39,26 @@ if __name__ == "__main__":
         pull_command_file.write(
             "docker pull {}/node:v1.18.9-vanilla\n".format(args.docker)
         )
-        for operator in operators:
+        for controller in controllers:
             pull_command_file.write(
-                "docker pull {}/{}:test\n".format(args.docker, operator)
+                "docker pull {}/{}:test\n".format(args.docker, controller)
             )
             pull_command_file.write(
-                "docker pull {}/{}:vanilla\n".format(args.docker, operator)
+                "docker pull {}/{}:vanilla\n".format(args.docker, controller)
             )
             for mode in modes:
-                for testcase in os.listdir(os.path.join("../log", operator)):
+                for testcase in os.listdir(os.path.join("../log", controller)):
                     if mode == "vanilla":
                         command_file.write(
-                            "python3 sieve.py -s test -m vanilla -p {} -t {} -d {}\n".format(
-                                operator, testcase, args.docker
+                            "python3 sieve.py -m vanilla -c {} -w {} -r {}\n".format(
+                                controller, testcase, args.docker
                             )
                         )
                     else:
                         configs = glob.glob(
                             os.path.join(
                                 os.path.abspath("../log"),
-                                operator,
+                                controller,
                                 testcase,
                                 "learn/learn-once/learn.yaml",
                                 mode,
@@ -67,8 +67,8 @@ if __name__ == "__main__":
                         )
                         for config in configs:
                             command_file.write(
-                                "python3 sieve.py -s test -m test -p {} -t {} -c {} -d {}\n".format(
-                                    operator,
+                                "python3 sieve.py -m test -c {} -w {} -p {} -r {}\n".format(
+                                    controller,
                                     testcase,
                                     config,
                                     args.docker,

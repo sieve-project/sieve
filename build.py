@@ -1,7 +1,6 @@
 from sieve_common.common import (
     sieve_modes,
     cmd_early_exit,
-    sieve_stages,
     get_all_controllers,
 )
 import os
@@ -78,7 +77,7 @@ def instrument_kubernetes(mode):
     os.chdir(ORIGINAL_DIR)
 
 
-def build_kubernetes(version, img_repo, img_tag):
+def build_kubernetes(version, container_registry, image_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     cmd_early_exit(
         "GOPATH=%s/fakegopath KUBE_GIT_VERSION=%s-sieve-`git rev-parse HEAD` kind build node-image"
@@ -86,21 +85,22 @@ def build_kubernetes(version, img_repo, img_tag):
     )
     os.chdir(ORIGINAL_DIR)
     cmd_early_exit(
-        "docker image tag kindest/node:latest %s/node:%s" % (img_repo, img_tag)
+        "docker image tag kindest/node:latest %s/node:%s"
+        % (container_registry, image_tag)
     )
 
 
-def push_kubernetes(img_repo, img_tag):
-    cmd_early_exit("docker push %s/node:%s" % (img_repo, img_tag))
+def push_kubernetes(container_registry, image_tag):
+    cmd_early_exit("docker push %s/node:%s" % (container_registry, image_tag))
 
 
-def setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote):
+def setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote):
     download_kubernetes(version)
     install_lib_for_kubernetes(version)
     instrument_kubernetes(mode)
-    build_kubernetes(version, img_repo, img_tag)
+    build_kubernetes(version, container_registry, image_tag)
     if push_to_remote:
-        push_kubernetes(img_repo, img_tag)
+        push_kubernetes(container_registry, image_tag)
 
 
 def download_controller(
@@ -406,7 +406,7 @@ def update_go_mod_for_controller_with_vendor(
                 common_config.controller_folder, controller_config.controller_name
             ),
             application_dir,
-            controller_config.dockerfile_path,
+            controller_config.registryfile_path,
         )
     )
     os.chdir(application_dir)
@@ -444,28 +444,39 @@ def instrument_controller_with_vendor(
 
 
 def build_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig, img_repo, img_tag
+    common_config: CommonConfig,
+    controller_config: ControllerConfig,
+    image_tag,
+    container_registry,
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir(application_dir)
-    cmd_early_exit("./build.sh %s %s" % (img_repo, img_tag))
+    cmd_early_exit("./build.sh %s %s" % (container_registry, image_tag))
     os.chdir(ORIGINAL_DIR)
     os.system(
         "docker tag %s %s/%s:%s"
         % (
             controller_config.controller_image_name,
-            img_repo,
+            container_registry,
             controller_config.controller_name,
-            img_tag,
+            image_tag,
         )
     )
 
 
 def push_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig, img_repo, img_tag
+    common_config: CommonConfig,
+    controller_config: ControllerConfig,
+    image_tag,
+    container_registry,
 ):
     cmd_early_exit(
-        "docker push %s/%s:%s" % (img_repo, controller_config.controller_name, img_tag)
+        "docker push %s/%s:%s"
+        % (
+            container_registry,
+            controller_config.controller_name,
+            image_tag,
+        )
     )
 
 
@@ -473,10 +484,10 @@ def setup_controller(
     common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
-    img_repo,
-    img_tag,
+    image_tag,
     build_only,
     push_to_remote,
+    container_registry,
 ):
     if not build_only:
         download_controller(common_config, controller_config)
@@ -488,59 +499,65 @@ def setup_controller(
             install_lib_for_controller_with_vendor(common_config, controller_config)
             update_go_mod_for_controller_with_vendor(common_config, controller_config)
             instrument_controller_with_vendor(common_config, controller_config, mode)
-    build_controller(common_config, controller_config, img_repo, img_tag)
+    build_controller(common_config, controller_config, image_tag, container_registry)
     if push_to_remote:
-        push_controller(common_config, controller_config, img_repo, img_tag)
+        push_controller(common_config, controller_config, image_tag, container_registry)
 
 
-def setup_kubernetes_wrapper(version, mode, img_repo, push_to_remote):
+def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
     if mode == "all":
         for this_mode in [
-            sieve_stages.LEARN,
-            sieve_stages.TEST,
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]:
-            img_tag = version + "-" + this_mode
-            setup_kubernetes(version, this_mode, img_repo, img_tag, push_to_remote)
+            image_tag = version + "-" + this_mode
+            setup_kubernetes(
+                version,
+                this_mode,
+                container_registry,
+                image_tag,
+                push_to_remote,
+            )
     else:
-        img_tag = version + "-" + mode
-        setup_kubernetes(version, mode, img_repo, img_tag, push_to_remote)
+        image_tag = version + "-" + mode
+        setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote)
 
 
 def setup_controller_wrapper(
     common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
-    img_repo,
     build_only,
     push_to_remote,
+    container_registry,
 ):
-    img_tag = mode
+    image_tag = mode
     if mode == "all":
         for this_mode in [
-            sieve_stages.LEARN,
-            sieve_stages.TEST,
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]:
-            img_tag = this_mode
+            image_tag = this_mode
             setup_controller(
                 common_config,
                 controller_config,
                 this_mode,
-                img_repo,
-                img_tag,
+                image_tag,
                 build_only,
                 push_to_remote,
+                container_registry,
             )
     else:
         setup_controller(
             common_config,
             controller_config,
             mode,
-            img_repo,
-            img_tag,
+            image_tag,
             build_only,
             push_to_remote,
+            container_registry,
         )
 
 
@@ -549,18 +566,18 @@ if __name__ == "__main__":
     usage = "usage: python3 build.py [options]"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
-        "-p",
-        "--project",
-        dest="project",
-        help="specify PROJECT to build: Kubernetes or the controller",
-        metavar="PROJECT",
-        default=None,
+        "-c",
+        "--controller",
+        dest="controller",
+        help="specify the CONTROLLER or kind (default) image to build",
+        metavar="CONTROLLER",
+        default="kind",
     )
     parser.add_option(
         "-m",
         "--mode",
         dest="mode",
-        help="build MODE: learn, stale-state, unobserved-state, intermediate-state",
+        help="build MODE: vanilla, learn and test",
         metavar="MODE",
         default=None,
     )
@@ -568,38 +585,44 @@ if __name__ == "__main__":
         "-v",
         "--version",
         dest="version",
-        help="VERSION of Kubernetes",
-        metavar="VER",
+        help="VERSION of kind image to build",
+        metavar="VERSION",
         default=DEFAULT_K8S_VERSION,
     )
     parser.add_option(
         "-s",
         "--sha",
         dest="sha",
-        help="SHA of the controller project",
+        help="commit SHA checksum of the controller to build",
         metavar="SHA",
         default=None,
     )
     parser.add_option(
-        "-d",
-        "--docker",
-        dest="docker",
-        help="DOCKER repo that you have access",
-        metavar="DOCKER",
-        default=common_config.docker_registry,
-    )
-    parser.add_option(
-        "-b",
-        "--build",
+        "--build_only",
         dest="build_only",
         action="store_true",
-        help="build only",
+        help="build without downloading and instrumenting",
         default=False,
     )
-    parser.add_option("-r", action="store_true", dest="push_to_remote", default=False)
+    parser.add_option(
+        "-p",
+        "--push",
+        action="store_true",
+        dest="push_to_remote",
+        help="push to the container registry",
+        default=False,
+    )
+    parser.add_option(
+        "-r",
+        "--registry",
+        dest="registry",
+        help="the container REGISTRY to push the images to",
+        metavar="REGISTRY",
+        default=common_config.container_registry,
+    )
     (options, args) = parser.parse_args()
 
-    if options.project is None:
+    if options.controller is None:
         parser.error("parameter project required")
 
     if options.mode is None:
@@ -607,17 +630,20 @@ if __name__ == "__main__":
 
     if options.mode not in [
         sieve_modes.VANILLA,
-        sieve_stages.TEST,
-        sieve_stages.LEARN,
+        sieve_modes.TEST,
+        sieve_modes.LEARN,
         sieve_modes.ALL,
     ]:
         parser.error("invalid build mode option: %s" % options.mode)
 
-    if options.project == "kind":
+    if options.controller == "kind":
         setup_kubernetes_wrapper(
-            options.version, options.mode, options.docker, options.push_to_remote
+            options.version,
+            options.mode,
+            options.registry,
+            options.push_to_remote,
         )
-    elif options.project == "all":
+    elif options.controller == "all":
         all_controllers = get_all_controllers(common_config.controller_folder)
         for controller in all_controllers:
             controller_config = get_controller_config(
@@ -627,13 +653,13 @@ if __name__ == "__main__":
                 common_config,
                 controller_config,
                 options.mode,
-                options.docker,
                 options.build_only,
                 options.push_to_remote,
+                options.registry,
             )
     else:
         controller_config = get_controller_config(
-            common_config.controller_folder, options.project
+            common_config.controller_folder, options.controller
         )
         if options.sha is not None:
             controller_config.commit = options.sha
@@ -641,7 +667,7 @@ if __name__ == "__main__":
             common_config,
             controller_config,
             options.mode,
-            options.docker,
             options.build_only,
             options.push_to_remote,
+            options.registry,
         )

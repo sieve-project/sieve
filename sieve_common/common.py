@@ -52,14 +52,10 @@ IP_REG = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01
 MASK_REGS = [TIME_REG, IP_REG]
 
 
-class sieve_stages:
-    LEARN = "learn"
-    TEST = "test"
-
-
 class sieve_modes:
     TEST = "test"
     VANILLA = "vanilla"
+    LEARN = "learn"
     LEARN_ONCE = "learn-once"
     LEARN_TWICE = "learn-twice"
     ALL = "all"
@@ -75,48 +71,44 @@ class sieve_built_in_test_patterns:
 class TestContext:
     def __init__(
         self,
-        project,
-        test_name,
-        stage,
+        controller,
+        test_workload,
         mode,
         phase,
-        original_test_config,
-        test_config,
+        original_test_plan,
+        test_plan,
         result_dir,
         oracle_dir,
-        docker_repo,
-        docker_tag,
+        container_registry,
+        image_tag,
         num_apiservers,
         num_workers,
         use_csi_driver,
         common_config: CommonConfig,
         controller_config: ControllerConfig,
-        rate_limiter_enabled,
     ):
-        self.project = project
-        self.test_name = test_name
-        self.stage = stage
+        self.controller = controller
+        self.test_workload = test_workload
         self.mode = mode
         self.phase = phase
-        self.original_test_config = original_test_config
-        self.test_config = test_config
+        self.original_test_plan = original_test_plan
+        self.test_plan = test_plan
         self.result_dir = result_dir
         self.oracle_dir = oracle_dir
-        self.docker_repo = docker_repo
-        self.docker_tag = docker_tag
+        self.container_registry = container_registry
+        self.image_tag = image_tag
         self.num_apiservers = num_apiservers
         self.num_workers = num_workers
         self.use_csi_driver_for_ref = use_csi_driver
         self.use_csi_driver = use_csi_driver
         self.common_config = common_config
         self.controller_config = controller_config
-        self.rate_limiter_enabled = rate_limiter_enabled
-        self.test_plan = None
+        self.test_plan_content = None
         self.action_types = []
-        if self.stage == sieve_stages.TEST and self.mode == sieve_modes.TEST:
-            self.test_plan = yaml.safe_load(open(original_test_config))
-            if self.test_plan["actions"] is not None:
-                for action in self.test_plan["actions"]:
+        if self.mode == sieve_modes.TEST:
+            self.test_plan_content = yaml.safe_load(open(original_test_plan))
+            if self.test_plan_content["actions"] is not None:
+                for action in self.test_plan_content["actions"]:
                     self.action_types.append(action["actionType"])
             if "reconnectController" in self.action_types:
                 if self.num_apiservers < 3:
@@ -178,25 +170,25 @@ def dump_json_file(dir, data, json_file_name):
 
 def build_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "build"
+        test_context.common_config.controller_folder, test_context.controller, "build"
     )
 
 
 def deploy_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "deploy"
+        test_context.common_config.controller_folder, test_context.controller, "deploy"
     )
 
 
 def test_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "test"
+        test_context.common_config.controller_folder, test_context.controller, "test"
     )
 
 
 def oracle_directory(test_context: TestContext):
     return os.path.join(
-        test_context.common_config.controller_folder, test_context.project, "oracle"
+        test_context.common_config.controller_folder, test_context.controller, "oracle"
     )
 
 

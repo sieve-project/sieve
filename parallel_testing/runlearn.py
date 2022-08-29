@@ -43,24 +43,24 @@ if __name__ == "__main__":
         help="Docker account",
         default="ghcr.io/sieve-project/action",
     )
-    parser.add_argument("-p", dest="operators", help="Operators to test", nargs="+")
+    parser.add_argument("-c", dest="controllers", help="Controllers to test", nargs="+")
     args = parser.parse_args()
     os.chdir("..")
 
-    if args.operators is None:
-        print("No operator specified, running learning mode for all operators")
-        operators = controllers_to_run.keys()
+    if args.controllers is None:
+        print("No controller specified, running learning mode for all controllers")
+        controllers = controllers_to_run.keys()
     else:
-        operators = args.operators
+        controllers = args.controllers
 
     os.system("docker pull %s/node:learn" % "ghcr.io/sieve-project/action")
-    for operator in operators:
+    for controller in controllers:
         os.system(
-            "docker pull %s/%s:learn" % ("ghcr.io/sieve-project/action", operator)
+            "docker pull %s/%s:learn" % ("ghcr.io/sieve-project/action", controller)
         )
-        for testcase in controllers_to_run[operator]:
+        for testcase in controllers_to_run[controller]:
             os.system(
-                "python3 sieve.py -s learn -p {} -t {} -d {}".format(
-                    operator, testcase, "ghcr.io/sieve-project/action"
+                "python3 sieve.py -m learn-once -c {} -w {} -r {}".format(
+                    controller, testcase, "ghcr.io/sieve-project/action"
                 )
             )
