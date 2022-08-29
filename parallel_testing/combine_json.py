@@ -33,7 +33,7 @@ if __name__ == "__main__":
             "log",
             controller,
             "*",
-            "learn/learn-once/learn.yaml",
+            "generate-oracle/learn.yaml",
             "*",
             "*-test-plan-*.yaml",
         )

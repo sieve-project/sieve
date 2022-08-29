@@ -55,12 +55,12 @@ def generate_state(test_context: TestContext):
 
 
 def canonicalize_state(test_context: TestContext):
-    assert test_context.mode == sieve_modes.LEARN_TWICE
+    assert test_context.mode == sieve_modes.GEN_ORACLE
     learn_twice_dir = test_context.result_dir
     cur_state = json.loads(open(os.path.join(learn_twice_dir, "state.json")).read())
     learn_once_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-once",
+        sieve_modes.LEARN,
         "learn.yaml",
     )
     prev_state = json.loads(open(os.path.join(learn_once_dir, "state.json")).read())
@@ -142,7 +142,7 @@ def get_canonicalized_state(test_context: TestContext):
 def get_learning_once_state(test_context: TestContext):
     learn_once_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-once",
+        sieve_modes.LEARN,
         "learn.yaml",
     )
     learning_once_state = json.load(open(os.path.join(learn_once_dir, "state.json")))
@@ -152,7 +152,7 @@ def get_learning_once_state(test_context: TestContext):
 def get_learning_twice_state(test_context: TestContext):
     learn_twice_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-twice",
+        sieve_modes.GEN_ORACLE,
         "learn.yaml",
     )
     learning_twice_state = json.load(open(os.path.join(learn_twice_dir, "state.json")))

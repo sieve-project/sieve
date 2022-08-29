@@ -81,14 +81,14 @@ def generate_history_digest(test_context: TestContext):
 
 
 def canonicalize_history_digest(test_context: TestContext):
-    assert test_context.mode == sieve_modes.LEARN_TWICE
+    assert test_context.mode == sieve_modes.GEN_ORACLE
     learn_twice_dir = test_context.result_dir
     cur_history_digest = json.loads(
         open(os.path.join(learn_twice_dir, "event.json")).read()
     )
     learn_once_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-once",
+        sieve_modes.LEARN,
         "learn.yaml",
     )
     prev_history_digest = json.loads(
@@ -123,7 +123,7 @@ def get_canonicalized_history_digest(test_context: TestContext):
 def get_learning_once_history_digest(test_context: TestContext):
     learn_once_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-once",
+        sieve_modes.LEARN,
         "learn.yaml",
     )
     learning_once_history_digest = json.load(
@@ -135,7 +135,7 @@ def get_learning_once_history_digest(test_context: TestContext):
 def get_learning_twice_history_digest(test_context: TestContext):
     learn_twice_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-twice",
+        sieve_modes.GEN_ORACLE,
         "learn.yaml",
     )
     learning_twice_history_digest = json.load(
@@ -161,7 +161,7 @@ def get_testing_history_digest(test_context: TestContext):
 def get_learning_once_history(test_context: TestContext):
     learn_once_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-once",
+        sieve_modes.LEARN,
         "learn.yaml",
     )
     learning_once_history = json.load(
@@ -173,7 +173,7 @@ def get_learning_once_history(test_context: TestContext):
 def get_learning_twice_history(test_context: TestContext):
     learn_twice_dir = os.path.join(
         os.path.dirname(os.path.dirname(test_context.result_dir)),
-        "learn-twice",
+        sieve_modes.GEN_ORACLE,
         "learn.yaml",
     )
     learning_twice_history = json.load(

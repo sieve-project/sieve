@@ -25,7 +25,7 @@ def check_massive_testing_results(current_dir, previous_dir):
                         current_dir,
                         operator,
                         test,
-                        "learn/learn-once/learn.yaml/" + mode + "/*.yaml",
+                        "generate-oracle/learn.yaml/" + mode + "/*.yaml",
                     )
                 )
                 pre_specs = glob.glob(
@@ -33,7 +33,7 @@ def check_massive_testing_results(current_dir, previous_dir):
                         previous_dir,
                         operator,
                         test,
-                        "learn/learn-once/learn.yaml/" + mode + "/*.yaml",
+                        "generate-oracle/learn.yaml/" + mode + "/*.yaml",
                     )
                 )
                 prev_map = specs_to_map(pre_specs)
@@ -52,7 +52,7 @@ def check_massive_testing_results(current_dir, previous_dir):
 def check_bug_reproduction_test_plans():
     gen_configs = glob.glob(
         os.path.join(
-            "log/*-operator/*/learn/learn-once/learn.yaml/*/*.yaml",
+            "log/*-operator/*/generate-oracle/learn.yaml/*/*.yaml",
         )
     )
 
