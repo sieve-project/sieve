@@ -34,7 +34,7 @@ After that, please specify following entries in `examples/your-controller/config
 - `dockerfile_path`: the relative path from the cloned controller project to the Dockerfile in the project
 - `controller_image_name`: the name of the image built by `examples/your-controller/build/build.sh` (e.g., your-controller/latest)
 
-Now run `python3 build.py -p your-controller -m learn`. This command will do the following:
+Now run `python3 build.py -c your-controller -m learn`. This command will do the following:
 1. download the controller project to `app/your-controller`
 2. download and instrument the `controller-runtime` and `client-go` libraries used by the controller
 3. copy the instrumented libraries to `app/your-controller/sieve-dependency`
@@ -73,24 +73,24 @@ Of course, if a bug gets triggered and prevents the controller's action forever,
 
 Now you are all set. To test your controllers, just build the images:
 ```
-python3 build.py -p kind -m all
-python3 build.py -p your-controller -m all
+python3 build.py -m all
+python3 build.py -c your-controller -m all
 ```
 First run Sieve learning stage
 ```
-python3 sieve.py -p your-controller -t your-test-case-name -s learn -m learn-twice
+python3 sieve.py -c your-controller -w your-test-workload-name -m generate-oracle
 ```
-Sieve will generate the test plans for intermediate-states, unobserved-states and stale-stateing testing patterns in `log/your-controller/your-test-case-name/learn/learn-twice/learn.yaml/{intermediate-state, unobserved-states, stale-state}`.
+Sieve will generate the test plans for intermediate-states, unobserved-states and stale-states testing patterns in `log/your-controller/your-test-workload-name/generate-oracle/learn.yaml/{intermediate-state, unobserved-states, stale-state}`.
 
 If you want to run one of the test plans:
 ```
-python3 sieve.py -p your-controller -c path-to-the-test-plan
+python3 sieve.py -c your-controller -p path-to-the-test-plan
 ```
 Sieve will report any bugs it find after the test case is finished.
 
 If you want to run all the test plans in a folder:
 ```
-python3 sieve.py -p your-controller -c path-to-the-folder --batch
+python3 sieve.py -c your-controller -p path-to-the-folder --batch
 ```
 All the test results will appear in `sieve_test_results` as json files.
 You can focus on the test results that indicate potential bugs by
@@ -110,7 +110,7 @@ Each test result file contains information for debugging:
 ```
 {
     "your-controller": {
-        "your-test-case": {
+        "your-test-workload": {
             "test": {
                 "path-to-the-test-plan": {
                     "duration": xxx,
@@ -132,5 +132,5 @@ and you might need to look into the controller to figure out the bug.
 
 To help diagnosis, you can reproduce the test failure by
 ```
-python3 sieve.py -p your-controller -c path-to-the-test-plan
+python3 sieve.py -c your-controller -p path-to-the-test-plan
 ```
