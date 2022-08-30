@@ -14,8 +14,9 @@
 3. [Pre-requisites for use](#pre-requisites-for-use)
 4. [Getting started](#getting-started)
 5. [Bugs found by Sieve](#bugs-found-by-sieve)
-6. [Learn more](#learn-more)
-7. [Artifact evaluation](#artifact-evaluation)
+6. [Contributing](#contributing)
+7. [Learn more](#learn-more)
+8. [Artifact evaluation](#artifact-evaluation)
 
 ### Overview
 The Kubernetes ecosystem has thousands of controller implementations for different applications and platform capabilities. A controller’s correctness is critical as it manages the application's deployment, scaling and configurations. However, a controller's correctness can be compromised by myriad factors, such as asynchrony, unexpected failures, networking issues, and controller restarts. This in turn can lead to severe safety and liveness violations.
@@ -61,6 +62,10 @@ Users need to port the controller before testing it with Sieve. Basically, users
 
 ### Bugs found by Sieve
 Sieve has found 46 bugs in 10 different controllers, which are listed [here](docs/bugs.md). We also provide [steps](docs/reprod.md) to reproduce all the intermediate-state/unobserved-states/stale-state bugs found by Sieve. We would appreciate a lot if you mention Sieve and inform us when you report bugs found by Sieve.
+
+### Contributing
+
+We welcome all feedback and [contributions](https://github.com/sieve-project/sieve/issues/93). Please use Github issues for user questions and bug reports.
 
 ### Learn more
 You can learn more about Sieve from the following references:
