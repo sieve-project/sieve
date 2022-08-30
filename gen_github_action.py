@@ -257,7 +257,7 @@ open(".github/workflows/regression-testing.yml", "w").write(
     % (datetime.now())
     + yaml.dump(
         {
-            "name": "Sieve Test",
+            "name": "Regression Testing",
             "on": {"pull_request": None, "workflow_dispatch": None},
             "env": {"IMAGE_NAMESPACE": "ghcr.io/sieve-project/action"},
             "jobs": generate_test_jobs(False),
@@ -273,7 +273,7 @@ open(".github/workflows/example-controller-image-build.yml", "w").write(
     % (datetime.now())
     + yaml.dump(
         {
-            "name": "Sieve Controller Image Build",
+            "name": "Example Controller Image Build",
             # "on": {"workflow_dispatch": None, "schedule": [{"cron": "0 6 * * *"}]},
             "on": {"workflow_dispatch": None},
             "env": {"IMAGE_NAMESPACE": "ghcr.io/sieve-project/action"},
@@ -290,7 +290,7 @@ open(".github/workflows/oracle-generation.yml", "w").write(
     % (datetime.now())
     + yaml.dump(
         {
-            "name": "Sieve Learning Phase",
+            "name": "Oracle Generation",
             "on": {"workflow_dispatch": None},
             "env": {"IMAGE_NAMESPACE": "ghcr.io/sieve-project/action"},
             "jobs": generate_oracle_build_jobs(True),
@@ -306,7 +306,7 @@ open(".github/workflows/bug-reproduction.yml", "w").write(
     % (datetime.now())
     + yaml.dump(
         {
-            "name": "Sieve Bug Reproduction",
+            "name": "Bug Reproduction",
             "on": {"workflow_dispatch": None},
             "env": {"IMAGE_NAMESPACE": "ghcr.io/sieve-project/action"},
             "jobs": generate_bug_reproduction_jobs(True),
