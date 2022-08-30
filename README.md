@@ -80,5 +80,9 @@ Xudong Sun, Wenqing Luo, Jiawei Tyler Gu, Aishwarya Ganesan, Ramnatthan Alagappa
 * [Reasoning about modern datacenter infrastructures using partial histories](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-sun.pdf) <br>
 Xudong Sun, Lalith Suresh, Aishwarya Ganesan, Ramnatthan Alagappan, Michael Gasch, Lilia Tang, and Tianyin Xu. In Proceedings of the 18th Workshop on Hot Topics in Operating Systems (HotOS-XVIII), Virtual Event, May 2021.
 
+Others:
+* [Paper review](https://www.micahlerner.com/2022/07/24/automatic-reliability-testing-for-cluster-management-controllers.html?utm_campaign=Systems%20Papers&utm_medium=email&utm_source=Revue%20newsletter) by [Micah Lerner](https://www.micahlerner.com/)
+* [KBE Insider interview](https://www.youtube.com/watch?v=-W2gsCGRBN0)
+
 ### Artifact evaluation
 If you are looking for how to reproduce the evaluation results in the paper [Automatic Reliability Testing for Cluster Management Controllers](https://www.usenix.org/conference/osdi22/presentation/sun), please follow the instructions [here](https://github.com/sieve-project/sieve/tree/osdi-ae#readme).
