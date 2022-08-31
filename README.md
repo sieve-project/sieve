@@ -1,11 +1,11 @@
 # Sieve: Automated Reliability Testing for Kubernetes Controllers
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![Regression Testing](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml)
 [![Kind Image Build](https://github.com/sieve-project/sieve/actions/workflows/kind-image-build.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kind-image-build.yml)
 [![Controller Image Build](https://github.com/sieve-project/sieve/actions/workflows/example-controller-image-build.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/example-controller-image-build.yml)
-[![Oracle Generation](https://github.com/sieve-project/sieve/actions/workflows/oracle-generation.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/oracle-generation.yml)
-[![Bug Reproduction](https://github.com/sieve-project/sieve/actions/workflows/bug-reproduction.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/bug-reproduction.yml)
-[![Regression Testing](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml)
+<!-- [![Oracle Generation](https://github.com/sieve-project/sieve/actions/workflows/oracle-generation.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/oracle-generation.yml)
+[![Bug Reproduction](https://github.com/sieve-project/sieve/actions/workflows/bug-reproduction.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/bug-reproduction.yml) -->
 
 
 ## Sieve
