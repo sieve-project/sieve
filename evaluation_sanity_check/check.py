@@ -52,7 +52,7 @@ def check_massive_testing_results(current_dir, previous_dir):
 def check_bug_reproduction_test_plans():
     gen_configs = glob.glob(
         os.path.join(
-            "log/*-operator/*/generate-oracle/learn.yaml/*/*.yaml",
+            "log/*-operator/*/learn/learn.yaml/*/*.yaml",
         )
     )
 
