@@ -135,6 +135,9 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 	checkResponse(response)
 }
 
+func NotifyLearnBeforeCacheGet(items []interface{}) {
+}
+
 func NotifyLearnAfterCacheGet(key string, item interface{}, exists bool) {
 	if err := loadSieveConfigFromEnv(true); err != nil {
 		return
@@ -177,6 +180,9 @@ func NotifyLearnAfterCacheGet(key string, item interface{}, exists bool) {
 		return
 	}
 	checkResponse(response)
+}
+
+func NotifyLearnBeforeCacheList(items []interface{}) {
 }
 
 func NotifyLearnAfterCacheList(items []interface{}, listErr error) {

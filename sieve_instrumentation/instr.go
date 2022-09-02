@@ -68,7 +68,7 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 }
 
 func instrumentControllerForTest(configMap map[string]interface{}) {
-	controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
+	// controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
 	client_go_filepath := configMap["client_go_filepath"].(string)
 	application_file_path := configMap["app_file_path"].(string)
 	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
@@ -84,14 +84,6 @@ func instrumentControllerForTest(configMap map[string]interface{}) {
 	storeGoFile := path.Join(client_go_filepath, "tools", "cache", "store.go")
 	fmt.Printf("instrumenting %s\n", storeGoFile)
 	instrumentStoreGoForAll(storeGoFile, storeGoFile, "Test")
-
-	// splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
-	// fmt.Printf("instrumenting %s\n", splitGoFile)
-	// instrumentSplitGoForAll(splitGoFile, splitGoFile, "Test")
-
-	informerCacheGoFile := path.Join(controller_runtime_filepath, "pkg", "cache", "informer_cache.go")
-	fmt.Printf("instrumenting %s\n", informerCacheGoFile)
-	instrumentInformerCacheGoForTest(informerCacheGoFile, informerCacheGoFile)
 
 	for _, api_to_instrument := range apis_to_instrument {
 		entry := api_to_instrument.(map[string]interface{})
