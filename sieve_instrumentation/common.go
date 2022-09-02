@@ -392,12 +392,22 @@ func instrumentStoreGoForAll(ifilepath, ofilepath, mode string) {
 }
 
 func instrumentCacheGetForAll(f *dst.File, mode string) {
+	funNameBefore := "Notify" + mode + "BeforeCacheGet"
 	funNameAfter := "Notify" + mode + "AfterCacheGet"
 
 	_, funcDecl := findFuncDecl(f, "GetByKey", "*cache")
 	if funcDecl == nil {
 		panic("instrumentStoreGo error")
 	}
+
+	instrumentationBeforeCacheGet := &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+			Args: []dst.Expr{&dst.Ident{Name: "key"}, &dst.Ident{Name: "c.cacheStorage.List()"}},
+		},
+	}
+	instrumentationBeforeCacheGet.Decs.End.Append("//sieve")
+	insertStmt(&funcDecl.Body.List, 0, instrumentationBeforeCacheGet)
 
 	instrumentationAfterCacheGet := &dst.ExprStmt{
 		X: &dst.CallExpr{
@@ -406,16 +416,26 @@ func instrumentCacheGetForAll(f *dst.File, mode string) {
 		},
 	}
 	instrumentationAfterCacheGet.Decs.End.Append("//sieve")
-	insertStmt(&funcDecl.Body.List, 1, instrumentationAfterCacheGet)
+	insertStmt(&funcDecl.Body.List, 2, instrumentationAfterCacheGet)
 }
 
 func instrumentCacheListForAll(f *dst.File, mode string) {
+	funNameBefore := "Notify" + mode + "BeforeCacheList"
 	funNameAfter := "Notify" + mode + "AfterCacheList"
 
 	_, funcDecl := findFuncDecl(f, "List", "*cache")
 	if funcDecl == nil {
 		panic("instrumentStoreGo error")
 	}
+
+	instrumentationBeforeCacheList := &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+			Args: []dst.Expr{&dst.Ident{Name: "c.cacheStorage.List()"}},
+		},
+	}
+	instrumentationBeforeCacheList.Decs.End.Append("//sieve")
+	insertStmt(&funcDecl.Body.List, 0, instrumentationBeforeCacheList)
 
 	if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 		modifiedInstruction := &dst.AssignStmt{
@@ -446,12 +466,22 @@ func instrumentCacheListForAll(f *dst.File, mode string) {
 }
 
 func instrumentCacheByIndexForAll(f *dst.File, mode string) {
+	funNameBefore := "Notify" + mode + "BeforeCacheList"
 	funNameAfter := "Notify" + mode + "AfterCacheList"
 
 	_, funcDecl := findFuncDecl(f, "ByIndex", "*cache")
 	if funcDecl == nil {
 		panic("instrumentStoreGo error")
 	}
+
+	instrumentationBeforeCacheList := &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+			Args: []dst.Expr{&dst.Ident{Name: "c.cacheStorage.List()"}},
+		},
+	}
+	instrumentationBeforeCacheList.Decs.End.Append("//sieve")
+	insertStmt(&funcDecl.Body.List, 0, instrumentationBeforeCacheList)
 
 	if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
 		modifiedInstruction := &dst.AssignStmt{

@@ -76,82 +76,22 @@ func NotifyTestAfterControllerRecv(recvID int, operationType string, object inte
 	checkResponse(response)
 }
 
-func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
-	// if err := loadSieveConfigFromEnv(true); err != nil {
-	// 	return
-	// }
-	// if k8sErr != nil {
-	// 	return
-	// }
-	// if err := initRPCClient(); err != nil {
-	// 	return
-	// }
-	// reconcilerType := getReconcilerFromStackTrace()
-	// resourceType := getResourceTypeFromObj(object)
-	// resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	// if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
-	// 	return
-	// }
-	// if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
-	// 	return
-	// }
-	// jsonObject, err := json.Marshal(object)
-	// if err != nil {
-	// 	printSerializationError(err)
-	// 	return
-	// }
-	// log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceKey, string(jsonObject))
-	// request := &NotifyTestAfterControllerGetRequest{
-	// 	ResourceKey:    resourceKey,
-	// 	ReconcilerType: reconcilerType,
-	// 	Object:         string(jsonObject),
-	// }
-	// var response Response
-	// err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
-	// if err != nil {
-	// 	printRPCError(err)
-	// 	return
-	// }
-	// checkResponse(response)
-}
-
-func NotifyTestAfterControllerList(readType string, fromCache bool, object interface{}, k8sErr error) {
-	// if err := loadSieveConfigFromEnv(true); err != nil {
-	// 	return
-	// }
-	// if k8sErr != nil {
-	// 	return
-	// }
-	// if err := initRPCClient(); err != nil {
-	// 	return
-	// }
-	// reconcilerType := getReconcilerFromStackTrace()
-	// unTrimmedResourceType := getResourceTypeFromObj(object)
-	// resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
-	// if !checkKVPairInTriggerObservationPoint(resourceType, "when", "afterControllerWrite", true) {
-	// 	return
-	// }
-	// if !checkKVPairInTriggerObservationPoint(resourceType, "by", reconcilerType, true) {
-	// 	return
-	// }
-	// jsonObject, err := json.Marshal(object)
-	// if err != nil {
-	// 	printSerializationError(err)
-	// 	return
-	// }
-	// log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceType, string(jsonObject))
-	// request := &NotifyTestAfterControllerListRequest{
-	// 	ResourceType:   resourceType,
-	// 	ReconcilerType: reconcilerType,
-	// 	ObjectList:     string(jsonObject),
-	// }
-	// var response Response
-	// err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
-	// if err != nil {
-	// 	printRPCError(err)
-	// 	return
-	// }
-	// checkResponse(response)
+func NotifyTestBeforeCacheGet(key string, items []interface{}) {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	if len(items) == 0 {
+		return
+	}
+	resourceKey := path.Join(getResourceTypeFromObj(items[0]), key)
+	log.Printf("NotifyTestBeforeCacheGet %s", resourceKey)
 }
 
 func NotifyTestAfterCacheGet(key string, item interface{}, exists bool) {
@@ -193,6 +133,23 @@ func NotifyTestAfterCacheGet(key string, item interface{}, exists bool) {
 		return
 	}
 	checkResponse(response)
+}
+
+func NotifyTestBeforeCacheList(items []interface{}) {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	if len(items) == 0 {
+		return
+	}
+	log.Printf("NotifyTestBeforeCacheList %s", getResourceTypeFromObj(items[0]))
 }
 
 func NotifyTestAfterCacheList(items []interface{}, listErr error) {
