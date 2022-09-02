@@ -382,3 +382,101 @@ func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentB
 
 	writeInstrumentedFile(ofilepath, "cacher", f, map[string]string{})
 }
+
+func instrumentStoreGoForAll(ifilepath, ofilepath, mode string) {
+	f := parseSourceFile(ifilepath, "cache", map[string]string{})
+	instrumentCacheGetForAll(f, mode)
+	instrumentCacheListForAll(f, mode)
+	instrumentCacheByIndexForAll(f, mode)
+	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
+}
+
+func instrumentCacheGetForAll(f *dst.File, mode string) {
+	funNameAfter := "Notify" + mode + "AfterCacheGet"
+
+	_, funcDecl := findFuncDecl(f, "GetByKey", "*cache")
+	if funcDecl == nil {
+		panic("instrumentStoreGo error")
+	}
+
+	instrumentationAfterCacheGet := &dst.ExprStmt{
+		X: &dst.CallExpr{
+			Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+			Args: []dst.Expr{&dst.Ident{Name: "key"}, &dst.Ident{Name: "item"}, &dst.Ident{Name: "exists"}},
+		},
+	}
+	instrumentationAfterCacheGet.Decs.End.Append("//sieve")
+	insertStmt(&funcDecl.Body.List, 1, instrumentationAfterCacheGet)
+}
+
+func instrumentCacheListForAll(f *dst.File, mode string) {
+	funNameAfter := "Notify" + mode + "AfterCacheList"
+
+	_, funcDecl := findFuncDecl(f, "List", "*cache")
+	if funcDecl == nil {
+		panic("instrumentStoreGo error")
+	}
+
+	if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
+		modifiedInstruction := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: "items"}},
+			Tok: token.DEFINE,
+			Rhs: returnStmt.Results,
+		}
+		modifiedInstruction.Decs.End.Append("//sieve")
+		funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
+
+		instrumentationAfterCacheList := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "items"}, &dst.Ident{Name: "nil"}},
+			},
+		}
+		instrumentationAfterCacheList.Decs.End.Append("//sieve")
+		funcDecl.Body.List = append(funcDecl.Body.List, instrumentationAfterCacheList)
+
+		instrumentationReturn := &dst.ReturnStmt{
+			Results: []dst.Expr{&dst.Ident{Name: "items"}},
+		}
+		instrumentationReturn.Decs.End.Append("//sieve")
+		funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
+	} else {
+		panic("last stmt is not return")
+	}
+}
+
+func instrumentCacheByIndexForAll(f *dst.File, mode string) {
+	funNameAfter := "Notify" + mode + "AfterCacheList"
+
+	_, funcDecl := findFuncDecl(f, "ByIndex", "*cache")
+	if funcDecl == nil {
+		panic("instrumentStoreGo error")
+	}
+
+	if returnStmt, ok := funcDecl.Body.List[len(funcDecl.Body.List)-1].(*dst.ReturnStmt); ok {
+		modifiedInstruction := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: "items"}, &dst.Ident{Name: "err"}},
+			Tok: token.DEFINE,
+			Rhs: returnStmt.Results,
+		}
+		modifiedInstruction.Decs.End.Append("//sieve")
+		funcDecl.Body.List[len(funcDecl.Body.List)-1] = modifiedInstruction
+
+		instrumentationAfterCacheList := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "items"}, &dst.Ident{Name: "err"}},
+			},
+		}
+		instrumentationAfterCacheList.Decs.End.Append("//sieve")
+		funcDecl.Body.List = append(funcDecl.Body.List, instrumentationAfterCacheList)
+
+		instrumentationReturn := &dst.ReturnStmt{
+			Results: []dst.Expr{&dst.Ident{Name: "items"}, &dst.Ident{Name: "err"}},
+		}
+		instrumentationReturn.Decs.End.Append("//sieve")
+		funcDecl.Body.List = append(funcDecl.Body.List, instrumentationReturn)
+	} else {
+		panic("last stmt is not return")
+	}
+}

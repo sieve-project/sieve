@@ -86,12 +86,12 @@ func (l *LearnListener) NotifyLearnAfterAnnotatedAPICall(request *sieve.NotifyLe
 	return l.Server.NotifyLearnAfterAnnotatedAPICall(request, response)
 }
 
-func (l *LearnListener) NotifyLearnAfterControllerGet(request *sieve.NotifyLearnAfterControllerGetRequest, response *sieve.Response) error {
-	return l.Server.NotifyLearnAfterControllerGet(request, response)
+func (l *LearnListener) NotifyLearnAfterCacheGet(request *sieve.NotifyLearnAfterCacheGetRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterCacheGet(request, response)
 }
 
-func (l *LearnListener) NotifyLearnAfterControllerList(request *sieve.NotifyLearnAfterControllerListRequest, response *sieve.Response) error {
-	return l.Server.NotifyLearnAfterControllerList(request, response)
+func (l *LearnListener) NotifyLearnAfterCacheList(request *sieve.NotifyLearnAfterCacheListRequest, response *sieve.Response) error {
+	return l.Server.NotifyLearnAfterCacheList(request, response)
 }
 
 type NotificationType int
@@ -232,14 +232,14 @@ func (s *learnServer) NotifyLearnAfterAnnotatedAPICall(request *sieve.NotifyLear
 	return nil
 }
 
-func (s *learnServer) NotifyLearnAfterControllerGet(request *sieve.NotifyLearnAfterControllerGetRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterControllerReadForLearn, payload: fmt.Sprintf("Get\t%t\t%s\t%s\t%s\t%s\t%s\t%s", request.FromCache, request.ResourceType, request.Namespace, request.Name, request.ReconcilerType, request.Error, request.Object)}
+func (s *learnServer) NotifyLearnAfterCacheGet(request *sieve.NotifyLearnAfterCacheGetRequest, response *sieve.Response) error {
+	s.notificationCh <- notificationWrapper{ntype: afterControllerReadForLearn, payload: fmt.Sprintf("Get\t%s\t%s\t%s\t%s\t%s\t%s", request.ResourceType, request.Namespace, request.Name, request.ReconcilerType, request.Error, request.Object)}
 	*response = sieve.Response{Message: "Get", Ok: true}
 	return nil
 }
 
-func (s *learnServer) NotifyLearnAfterControllerList(request *sieve.NotifyLearnAfterControllerListRequest, response *sieve.Response) error {
-	s.notificationCh <- notificationWrapper{ntype: afterControllerReadForLearn, payload: fmt.Sprintf("List\t%t\t%s\t%s\t%s\t%s", request.FromCache, request.ResourceType, request.ReconcilerType, request.Error, request.ObjectList)}
+func (s *learnServer) NotifyLearnAfterCacheList(request *sieve.NotifyLearnAfterCacheListRequest, response *sieve.Response) error {
+	s.notificationCh <- notificationWrapper{ntype: afterControllerReadForLearn, payload: fmt.Sprintf("List\t%s\t%s\t%s\t%s", request.ResourceType, request.ReconcilerType, request.Error, request.ObjectList)}
 	*response = sieve.Response{Message: "List", Ok: true}
 	return nil
 }

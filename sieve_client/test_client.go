@@ -153,6 +153,48 @@ func NotifyTestAfterControllerList(readType string, fromCache bool, object inter
 	checkResponse(response)
 }
 
+func NotifyTestAfterCacheGet(key string, item interface{}, exists bool) {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	serializedObj, err := json.Marshal(item)
+	if err != nil {
+		printSerializationError(err)
+		return
+	}
+	if exists {
+		resourceType := getResourceTypeFromObj(item)
+		log.Printf("NotifyTestAfterCacheGet %s %s %s", resourceType, key, string(serializedObj))
+	}
+}
+
+func NotifyTestAfterCacheList(items []interface{}, err error) {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	serializedObjList, err := json.Marshal(items)
+	if err != nil {
+		printSerializationError(err)
+		return
+	}
+	resourceType := getResourceTypeFromObj(items)
+	log.Printf("NotifyTestAfterCacheList %s %s", resourceType, string(serializedObjList))
+}
+
 func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}) int {
 	if err := loadSieveConfigFromEnv(true); err != nil {
 		return 1

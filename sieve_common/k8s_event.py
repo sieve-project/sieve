@@ -654,7 +654,7 @@ class OperatorRead:
             self.key_set.add(key)
             self.key_to_obj[key] = json.loads(obj_str)
         else:
-            objs = json.loads(obj_str)["items"]
+            objs = json.loads(obj_str)
             if objs is not None:
                 for obj in objs:
                     key = generate_key(
@@ -826,26 +826,26 @@ def parse_operator_read(line: str) -> OperatorRead:
     if tokens[1] == "Get":
         return OperatorRead(
             tokens[1],
+            True,
             tokens[2],
             tokens[3],
             tokens[4],
             tokens[5],
             tokens[6],
             tokens[7],
-            tokens[8],
         )
     elif tokens[1] == "List":
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
-        assert tokens[3].endswith("list")
+        # assert tokens[3].endswith("list")
         return OperatorRead(
             tokens[1],
+            True,
             tokens[2],
-            tokens[3][:-4],
             "",
             "",
+            tokens[3],
             tokens[4],
             tokens[5],
-            tokens[6],
         )
     else:
         assert False, "read type should be: Get, List"
