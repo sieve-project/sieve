@@ -135,7 +135,7 @@ func NotifyLearnAfterReconcile(reconciler interface{}) {
 	checkResponse(response)
 }
 
-func NotifyLearnBeforeCacheGet(items []interface{}) {
+func NotifyLearnBeforeCacheGet(key string, items []interface{}) {
 }
 
 func NotifyLearnAfterCacheGet(key string, item interface{}, exists bool) {
