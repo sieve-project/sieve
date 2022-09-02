@@ -454,9 +454,8 @@ func (tc *testCoordinator) NotifyTestAfterControllerGet(request *sieve.NotifyTes
 
 func (tc *testCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTestAfterControllerListRequest, response *sieve.Response) error {
 	log.Printf("NotifyTestAfterControllerList\t%s\t%s\t%s", request.ResourceType, request.ReconcilerType, request.ObjectList)
-	objects := strToMap(request.ObjectList)["items"].([]interface{})
-	for _, object := range objects {
-		objectState := object.(map[string]interface{})
+	objects := strToSlice(request.ObjectList)
+	for _, objectState := range objects {
 		name, namespace := extractNameNamespaceFromObjMap(objectState)
 		resourceKey := generateResourceKey(request.ResourceType, namespace, name)
 		tc.InitializeObjectStatesEntry(request.ReconcilerType, beforeControllerWrite, resourceKey)
