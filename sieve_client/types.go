@@ -73,8 +73,7 @@ type NotifyLearnAfterAnnotatedAPICallRequest struct {
 	ReconcilerType string
 }
 
-type NotifyLearnAfterControllerGetRequest struct {
-	FromCache      bool
+type NotifyLearnAfterCacheGetRequest struct {
 	ResourceType   string
 	Namespace      string
 	Name           string
@@ -83,8 +82,7 @@ type NotifyLearnAfterControllerGetRequest struct {
 	Error          string
 }
 
-type NotifyLearnAfterControllerListRequest struct {
-	FromCache      bool
+type NotifyLearnAfterCacheListRequest struct {
 	ResourceType   string
 	ObjectList     string
 	ReconcilerType string

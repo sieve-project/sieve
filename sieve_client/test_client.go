@@ -3,9 +3,7 @@ package sieve
 import (
 	"encoding/json"
 	"log"
-	"strings"
-
-	"k8s.io/apimachinery/pkg/types"
+	"path"
 )
 
 func NotifyTestBeforeControllerRecv(operationType string, object interface{}) int {
@@ -75,35 +73,57 @@ func NotifyTestAfterControllerRecv(recvID int, operationType string, object inte
 	checkResponse(response)
 }
 
-func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedName types.NamespacedName, object interface{}, k8sErr error) {
+func NotifyTestBeforeCacheGet(key string, items []interface{}) {
 	if err := loadSieveConfigFromEnv(true); err != nil {
-		return
-	}
-	if k8sErr != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	resourceType := getResourceTypeFromObj(object)
-	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	if len(items) == 0 {
+		return
+	}
+	resourceKey := path.Join(getResourceTypeFromObj(items[0]), key)
+	log.Printf("NotifyTestBeforeCacheGet %s", resourceKey)
+	NotifyTestBeforeCacheGetPause(resourceKey)
+}
+
+func NotifyTestAfterCacheGet(key string, item interface{}, exists bool) {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	if !exists {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	resourceKey := path.Join(getResourceTypeFromObj(item), key)
+	serializedObj, err := json.Marshal(item)
+	if err != nil {
+		printSerializationError(err)
+		return
+	}
+	defer NotifyTestAfterCacheGetPause(resourceKey)
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
 		return
 	}
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
 		return
 	}
-	jsonObject, err := json.Marshal(object)
-	if err != nil {
-		printSerializationError(err)
-		return
-	}
-	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceKey, string(jsonObject))
+	log.Printf("NotifyTestAfterCacheGet %s %s", resourceKey, string(serializedObj))
 	request := &NotifyTestAfterControllerGetRequest{
 		ResourceKey:    resourceKey,
 		ReconcilerType: reconcilerType,
-		Object:         string(jsonObject),
+		Object:         string(serializedObj),
 	}
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
@@ -114,38 +134,147 @@ func NotifyTestAfterControllerGet(readType string, fromCache bool, namespacedNam
 	checkResponse(response)
 }
 
-func NotifyTestAfterControllerList(readType string, fromCache bool, object interface{}, k8sErr error) {
+func NotifyTestBeforeCacheList(items []interface{}) {
 	if err := loadSieveConfigFromEnv(true); err != nil {
-		return
-	}
-	if k8sErr != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
 		return
 	}
 	reconcilerType := getReconcilerFromStackTrace()
-	unTrimmedResourceType := getResourceTypeFromObj(object)
-	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	if len(items) == 0 {
+		return
+	}
+	resourceType := getResourceTypeFromObj(items[0])
+	log.Printf("NotifyTestBeforeCacheList %s", resourceType)
+	NotifyTestBeforeCacheListPause(resourceType)
+}
+
+func NotifyTestAfterCacheList(items []interface{}, listErr error) {
+	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if err := initRPCClient(); err != nil {
+		return
+	}
+	if listErr != nil {
+		return
+	}
+	if len(items) == 0 {
+		return
+	}
+	reconcilerType := getReconcilerFromStackTrace()
+	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+		return
+	}
+	serializedObjList, err := json.Marshal(items)
+	if err != nil {
+		printSerializationError(err)
+		return
+	}
+	resourceType := getResourceTypeFromObj(items[0])
+	defer NotifyTestAfterCacheListPause(resourceType)
 	if !checkKVPairInTriggerObservationPoint(resourceType, "when", "afterControllerWrite", true) {
 		return
 	}
 	if !checkKVPairInTriggerObservationPoint(resourceType, "by", reconcilerType, true) {
 		return
 	}
-	jsonObject, err := json.Marshal(object)
-	if err != nil {
-		printSerializationError(err)
-		return
-	}
-	log.Printf("NotifyTestAfterControllerGet %s %s %s\n", readType, resourceType, string(jsonObject))
+	log.Printf("NotifyTestAfterCacheList %s %s", resourceType, string(serializedObjList))
 	request := &NotifyTestAfterControllerListRequest{
 		ResourceType:   resourceType,
 		ReconcilerType: reconcilerType,
-		ObjectList:     string(jsonObject),
+		ObjectList:     string(serializedObjList),
 	}
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
+	if err != nil {
+		printRPCError(err)
+		return
+	}
+	checkResponse(response)
+}
+
+func NotifyTestBeforeCacheGetPause(resourceKey string) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
+		return
+	}
+	log.Printf("NotifyTestBeforeCacheGetPause %s\n", resourceKey)
+	request := &NotifyTestBeforeControllerReadPauseRequest{
+		OperationType: GET,
+		ResourceKey:   resourceKey,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
+	if err != nil {
+		printRPCError(err)
+		return
+	}
+	checkResponse(response)
+}
+
+func NotifyTestAfterCacheGetPause(resourceKey string) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
+		return
+	}
+	log.Printf("NotifyTestAfterCacheGetPause %s\n", resourceKey)
+	request := &NotifyTestAfterControllerReadPauseRequest{
+		OperationType: GET,
+		ResourceKey:   resourceKey,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)
+	if err != nil {
+		printRPCError(err)
+		return
+	}
+	checkResponse(response)
+}
+
+func NotifyTestBeforeCacheListPause(resourceType string) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
+		return
+	}
+	log.Printf("NotifyTestBeforeCacheListPause %s\n", resourceType)
+	request := &NotifyTestBeforeControllerReadPauseRequest{
+		OperationType: LIST,
+		ResourceType:  resourceType,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
+	if err != nil {
+		printRPCError(err)
+		return
+	}
+	checkResponse(response)
+}
+
+func NotifyTestAfterCacheListPause(resourceType string) {
+	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
+		return
+	}
+	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
+		return
+	}
+	log.Printf("NotifyTestAfterCacheListPause %s\n", resourceType)
+	request := &NotifyTestAfterControllerReadPauseRequest{
+		OperationType: LIST,
+		ResourceType:  resourceType,
+	}
+	var response Response
+	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)
 	if err != nil {
 		printRPCError(err)
 		return
@@ -291,122 +420,6 @@ func NotifyTestAfterControllerWritePause(writeType string, resourceKey string) {
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWritePause", request, &response)
-	if err != nil {
-		printRPCError(err)
-		return
-	}
-	checkResponse(response)
-}
-
-func NotifyTestBeforeControllerGetPause(readType string, namespacedName types.NamespacedName, object interface{}) {
-	if err := loadSieveConfigFromEnv(true); err != nil {
-		return
-	}
-	if err := initRPCClient(); err != nil {
-		return
-	}
-	resourceType := getResourceTypeFromObj(object)
-	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
-		return
-	}
-	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
-		return
-	}
-	log.Printf("NotifyTestBeforeControllerGetPause %s %s\n", readType, resourceKey)
-	request := &NotifyTestBeforeControllerReadPauseRequest{
-		OperationType: GET,
-		ResourceKey:   resourceKey,
-	}
-	var response Response
-	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
-	if err != nil {
-		printRPCError(err)
-		return
-	}
-	checkResponse(response)
-}
-
-func NotifyTestAfterControllerGetPause(readType string, namespacedName types.NamespacedName, object interface{}) {
-	if err := loadSieveConfigFromEnv(true); err != nil {
-		return
-	}
-	if err := initRPCClient(); err != nil {
-		return
-	}
-	resourceType := getResourceTypeFromObj(object)
-	resourceKey := generateResourceKey(resourceType, namespacedName.Namespace, namespacedName.Name)
-	if !checkKVPairInAction("pauseController", "pauseScope", resourceKey, false) {
-		return
-	}
-	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
-		return
-	}
-	log.Printf("NotifyTestAfterControllerGetPause %s %s\n", readType, resourceKey)
-	request := &NotifyTestAfterControllerReadPauseRequest{
-		OperationType: GET,
-		ResourceKey:   resourceKey,
-	}
-	var response Response
-	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)
-	if err != nil {
-		printRPCError(err)
-		return
-	}
-	checkResponse(response)
-}
-
-func NotifyTestBeforeControllerListPause(readType string, object interface{}) {
-	if err := loadSieveConfigFromEnv(true); err != nil {
-		return
-	}
-	if err := initRPCClient(); err != nil {
-		return
-	}
-	unTrimmedResourceType := getResourceTypeFromObj(object)
-	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
-	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
-		return
-	}
-	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
-		return
-	}
-	log.Printf("NotifyTestBeforeControllerListPause %s %s\n", readType, resourceType)
-	request := &NotifyTestBeforeControllerReadPauseRequest{
-		OperationType: LIST,
-		ResourceType:  resourceType,
-	}
-	var response Response
-	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerReadPause", request, &response)
-	if err != nil {
-		printRPCError(err)
-		return
-	}
-	checkResponse(response)
-}
-
-func NotifyTestAfterControllerListPause(readType string, object interface{}) {
-	if err := loadSieveConfigFromEnv(true); err != nil {
-		return
-	}
-	if err := initRPCClient(); err != nil {
-		return
-	}
-	unTrimmedResourceType := getResourceTypeFromObj(object)
-	resourceType := strings.TrimSuffix(unTrimmedResourceType, "list")
-	if !checkKVPairInAction("pauseController", "pauseScope", resourceType, true) {
-		return
-	}
-	if !checkKVPairInAction("pauseController", "pauseAt", "beforeControllerRead", false) && !checkKVPairInAction("pauseController", "pauseAt", "afterControllerRead", false) {
-		return
-	}
-	log.Printf("NotifyTestAfterControllerListPause %s %s\n", readType, resourceType)
-	request := &NotifyTestAfterControllerReadPauseRequest{
-		OperationType: LIST,
-		ResourceType:  resourceType,
-	}
-	var response Response
-	err := rpcClient.Call("TestCoordinator.NotifyTestAfterControllerReadPause", request, &response)
 	if err != nil {
 		printRPCError(err)
 		return
