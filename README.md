@@ -4,8 +4,6 @@
 [![Regression Testing](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml)
 [![Kind Image Build](https://github.com/sieve-project/sieve/actions/workflows/kind-image-build.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kind-image-build.yml)
 [![Controller Image Build](https://github.com/sieve-project/sieve/actions/workflows/example-controller-image-build.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/example-controller-image-build.yml)
-<!-- [![Oracle Generation](https://github.com/sieve-project/sieve/actions/workflows/oracle-generation.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/oracle-generation.yml)
-[![Bug Reproduction](https://github.com/sieve-project/sieve/actions/workflows/bug-reproduction.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/bug-reproduction.yml) -->
 
 
 ## Sieve
@@ -46,14 +44,10 @@ We welcome any users who want to test their controllers using Sieve and we are m
 * Docker daemon must be running (please ensure you can run `docker` commands without sudo)
 * A docker repo that you have write access to
 * [python3](https://www.python.org/downloads/) installed
-* [go](https://golang.org/doc/install) (preferably 1.13.9) installed and `$GOPATH` set
+* [go](https://golang.org/doc/install) (preferably 1.19.1) installed and `$GOPATH` set
 * [kind](https://kind.sigs.k8s.io/) installed and `$KUBECONFIG` set (Sieve runs tests in a kind cluster)
 * [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/) installed
 * python3 installed and dependency packages installed: run `pip3 install -r requirements.txt`
-    <!-- * `kubernetes`, `docker`, `pyyaml`, `jsondiff`, `pysqlite3`, `py-cui`, `docker`, `jsondiff`, `deepdiff` -->
-    <!-- * simply run `pip3 install -r requirements.txt` to install all the packages -->
-<!-- * [sqlite3](https://help.dreamhost.com/hc/en-us/articles/360028047592-Installing-a-custom-version-of-SQLite3) (>=3.32) installed -->
-<!-- Note: sqlite3 is not required if you want to only reproduce the bugs. -->
 
 You can run `python3 check_env.py` to check whether your environment meets the requirement.
 
