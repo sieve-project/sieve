@@ -1,11 +1,9 @@
 # Sieve: Automated Reliability Testing for Kubernetes Controllers
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![Kubernetes Image Build](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kubernetes.yml)
+[![Regression Testing](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml)
+[![Kind Image Build](https://github.com/sieve-project/sieve/actions/workflows/kind-image-build.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/kind-image-build.yml)
 [![Controller Image Build](https://github.com/sieve-project/sieve/actions/workflows/example-controller-image-build.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/example-controller-image-build.yml)
-[![Learning Phase](https://github.com/sieve-project/sieve/actions/workflows/sieve-learning-phase.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-learning-phase.yml)
-[![Bug Reproduction](https://github.com/sieve-project/sieve/actions/workflows/sieve-bug-reproduction.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-bug-reproduction.yml)
-[![Test](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/sieve-test.yml)
 
 This is the source code repo for "Automatic Reliability Testing for Cluster Management Controllers" (accepted by OSDI'2022).
 We used a different name (Sonar) for the tool in the paper to be anonymous.
