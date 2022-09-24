@@ -71,6 +71,7 @@ We welcome all feedback and [contributions](https://github.com/sieve-project/sie
 You can learn more about Sieve from the following references:
 
 Talks:
+* [OSDI 2022](https://www.youtube.com/watch?v=eEdTn9Mj4sE) (18 minutes)
 * [KubeCon 2021](https://www.youtube.com/watch?v=6JnhjgOaZVk) (27 minutes)
 * [HotOS 2021](https://www.youtube.com/watch?v=l1Ze_Xd7gME&list=PLl-7Fg11LUZe_6cCrz6sVvTbE_8SEobNB) (10 minutes)
 
