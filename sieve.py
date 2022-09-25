@@ -81,7 +81,8 @@ def save_run_result(
     }
 
     # Testing mode, write test result under sieve_test_result directory
-    result_filename = "sieve_test_results/{}-{}-{}.json".format(
+    result_filename = "{}/{}-{}-{}.json".format(
+        test_context.result_root_dir,
         test_context.controller,
         test_context.test_workload,
         os.path.basename(test_context.original_test_plan),
@@ -598,7 +599,7 @@ def get_test_workload_from_test_plan(test_plan_file):
 def run(
     controller,
     test_workload,
-    log_dir,
+    result_root_dir,
     mode,
     test_plan,
     container_registry,
@@ -631,7 +632,7 @@ def run(
     )
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
-        log_dir, controller, test_workload, mode, os.path.basename(test_plan)
+        result_root_dir, controller, test_workload, mode, os.path.basename(test_plan)
     )
     print("Log dir: %s" % result_dir)
     image_tag = sieve_modes.LEARN if mode == sieve_modes.GEN_ORACLE else mode
@@ -643,6 +644,7 @@ def run(
         phase=phase,
         original_test_plan=test_plan,
         test_plan=test_plan_to_run,
+        result_root_dir=result_root_dir,
         result_dir=result_dir,
         oracle_dir=oracle_dir,
         container_registry=container_registry,
@@ -704,7 +706,11 @@ if __name__ == "__main__":
         metavar="TEST_WORKLOAD",
     )
     parser.add_option(
-        "-l", "--log", dest="log", help="save to LOG", metavar="LOG", default="log"
+        "-d",
+        "--dir",
+        dest="dir",
+        help="save results to DIR",
+        metavar="DIR",
     )
     parser.add_option(
         "-m",
@@ -751,9 +757,15 @@ if __name__ == "__main__":
 
     if options.mode == sieve_modes.LEARN or options.mode == sieve_modes.GEN_ORACLE:
         options.test_plan = "learn.yaml"
+        if options.dir is None:
+            options.dir = "sieve_learn_results"
     elif options.mode == sieve_modes.VANILLA:
         options.test_plan = "vanilla.yaml"
+        if options.dir is None:
+            options.dir = "sieve_vanilla_results"
     else:
+        if options.dir is None:
+            options.dir = "sieve_test_results"
         if options.test_plan is None:
             parser.error("parameter test_plan required in test mode")
 
@@ -777,7 +789,7 @@ if __name__ == "__main__":
         run_batch(
             options.controller,
             options.test_workload,
-            options.log,
+            options.dir,
             options.mode,
             options.test_plan,
             options.registry,
@@ -789,7 +801,7 @@ if __name__ == "__main__":
             run(
                 options.controller,
                 options.test_workload,
-                options.log,
+                options.dir,
                 sieve_modes.LEARN,
                 options.test_plan,
                 options.registry,
@@ -799,7 +811,7 @@ if __name__ == "__main__":
         test_result, test_context = run(
             options.controller,
             options.test_workload,
-            options.log,
+            options.dir,
             options.mode,
             options.test_plan,
             options.registry,

@@ -76,6 +76,7 @@ class TestContext:
         phase,
         original_test_plan,
         test_plan,
+        result_root_dir,
         result_dir,
         oracle_dir,
         container_registry,
@@ -92,6 +93,7 @@ class TestContext:
         self.phase = phase
         self.original_test_plan = original_test_plan
         self.test_plan = test_plan
+        self.result_root_dir = result_root_dir
         self.result_dir = result_dir
         self.oracle_dir = oracle_dir
         self.container_registry = container_registry

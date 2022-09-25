@@ -408,10 +408,11 @@ def analyze_trace(
             "final": final_spec_number,
         }
 
-    result_filename = "sieve_learn_results/{}-{}.json".format(
-        test_context.controller, test_context.test_workload
+    result_filename = "{}/{}-{}.json".format(
+        test_context.result_root_dir,
+        test_context.controller,
+        test_context.test_workload,
     )
-    os.makedirs("sieve_learn_results", exist_ok=True)
     with open(result_filename, "w") as test_result_json:
         json.dump(
             sieve_learn_result,
