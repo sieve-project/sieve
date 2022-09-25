@@ -228,7 +228,7 @@ The command will run the test workload `recreate`, collect the controller's trac
 
 After it finishes, you will see
 ```
-Generated 1 stale-state test plan(s) in log/rabbitmq-operator/recreate/generate-oracle/learn.yaml/stale-state
+Generated 1 stale-state test plan(s) in sieve_learn_results/rabbitmq-operator/recreate/generate-oracle/learn.yaml/stale-state
 ```
 
 The generated test plan is exactly the same as used in test.

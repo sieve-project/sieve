@@ -80,7 +80,7 @@ First run Sieve learning stage
 ```
 python3 sieve.py -c your-controller -w your-test-workload-name -m generate-oracle
 ```
-Sieve will generate the test plans for intermediate-states, unobserved-states and stale-states testing patterns in `log/your-controller/your-test-workload-name/generate-oracle/learn.yaml/{intermediate-state, unobserved-states, stale-state}`.
+Sieve will generate the test plans for intermediate-states, unobserved-states and stale-states testing patterns in `sieve_learn_results/your-controller/your-test-workload-name/generate-oracle/learn.yaml/{intermediate-state, unobserved-states, stale-state}`.
 
 If you want to run one of the test plans:
 ```
