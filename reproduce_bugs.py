@@ -56,6 +56,19 @@ def after_reproducing_cassandra_operator_indirect_1():
     os.system("python3 build.py -c cassandra-operator -m test > /dev/null 2>&1")
 
 
+manifest_map = {
+    "cass-operator": "examples/cass-operator/",
+    "cassandra-operator": "examples/cassandra-operator/",
+    "casskop-operator": "examples/casskop-operator/",
+    "elastic-operator": "examples/elastic-operator/",
+    "mongodb-operator": "examples/mongodb-operator/",
+    "nifikop-operator": "examples/nifikop-operator/",
+    "rabbitmq-operator": "examples/rabbitmq-operator/",
+    "xtradb-operator": "examples/xtradb-operator/",
+    "yugabyte-operator": "examples/yugabyte-operator/",
+    "zookeeper-operator": "examples/zookeeper-operator/",
+}
+
 reprod_map = {
     "cass-operator": {
         "intermediate-state-1": ["recreate", "cass-operator-intermediate-state-1.yaml"],
@@ -216,7 +229,7 @@ def reproduce_single_bug(controller, bug, phase, registry, skip):
         "bug_reproduction_test_plans", reprod_map[controller][bug][1]
     )
     sieve_cmd = "python3 sieve.py -c %s -m test -p %s --phase=%s -r %s" % (
-        controller,
+        manifest_map[controller],
         test_plan,
         phase,
         registry,
