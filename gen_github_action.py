@@ -48,6 +48,19 @@ operators_to_run_tests = [
     "zookeeper-operator",
 ]
 
+manifest_map = {
+    "cass-operator": "examples/cass-operator/",
+    "cassandra-operator": "examples/cassandra-operator/",
+    "casskop-operator": "examples/casskop-operator/",
+    "elastic-operator": "examples/elastic-operator/",
+    "mongodb-operator": "examples/mongodb-operator/",
+    "nifikop-operator": "examples/nifikop-operator/",
+    "rabbitmq-operator": "examples/rabbitmq-operator/",
+    "xtradb-operator": "examples/xtradb-operator/",
+    "yugabyte-operator": "examples/yugabyte-operator/",
+    "zookeeper-operator": "examples/zookeeper-operator/",
+}
+
 
 def job_template(self_hosted):
     return {
@@ -149,7 +162,7 @@ def generate_controller_image_build_jobs(self_hosted):
             {
                 "name": "Build Image - %s" % (mode),
                 "run": "python3 build.py -c %s -m %s -p -r $IMAGE_NAMESPACE "
-                % (operator, mode),
+                % (manifest_map[operator], mode),
             }
             for mode in build_modes
         ]
@@ -168,7 +181,7 @@ def generate_oracle_build_jobs(self_hosted):
             {
                 "name": "Sieve Learn - %s %s" % (operator, workload),
                 "run": "python3 sieve.py -c %s -w %s -m generate-oracle -r $IMAGE_NAMESPACE"
-                % (operator, workload),
+                % (manifest_map[operator], workload),
             }
             for workload in sorted(workload_set)
         ]
@@ -219,7 +232,7 @@ def generate_test_jobs(self_hosted):
             {
                 "name": "Build Image - %s" % (mode),
                 "run": "python3 build.py -c %s -m %s -r $IMAGE_NAMESPACE"
-                % (operator, mode),
+                % (manifest_map[operator], mode),
             }
             for mode in build_modes
         ]
@@ -229,7 +242,7 @@ def generate_test_jobs(self_hosted):
                 {
                     "name": "Sieve Learn - %s %s" % (operator, workload),
                     "run": "python3 sieve.py -c %s -w %s -m generate-oracle -r $IMAGE_NAMESPACE"
-                    % (operator, workload),
+                    % (manifest_map[operator], workload),
                 }
                 for workload in sorted(workload_set)
             ]
