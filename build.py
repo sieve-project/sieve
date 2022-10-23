@@ -228,7 +228,7 @@ def install_lib_for_controller(
 
 
 def update_go_mod_for_controller(
-    controller_manifest_dir,
+    controller_config_dir,
     common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
@@ -286,14 +286,14 @@ def update_go_mod_for_controller(
     cmd_early_exit(
         "cp %s %s"
         % (
-            os.path.join(controller_manifest_dir, "build", "build.sh"),
+            os.path.join(controller_config_dir, "build", "build.sh"),
             os.path.join(application_dir, "build.sh"),
         )
     )
     cmd_early_exit(
         "cp %s %s"
         % (
-            os.path.join(controller_manifest_dir, "build", "Dockerfile"),
+            os.path.join(controller_config_dir, "build", "Dockerfile"),
             os.path.join(application_dir, controller_config.dockerfile_path),
         )
     )
@@ -362,7 +362,7 @@ def install_lib_for_controller_with_vendor(
 
 
 def update_go_mod_for_controller_with_vendor(
-    controller_manifest_dir,
+    controller_config_dir,
     common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
@@ -392,14 +392,14 @@ def update_go_mod_for_controller_with_vendor(
     cmd_early_exit(
         "cp %s %s"
         % (
-            os.path.join(controller_manifest_dir, "build", "build.sh"),
+            os.path.join(controller_config_dir, "build", "build.sh"),
             os.path.join(application_dir, "build.sh"),
         )
     )
     cmd_early_exit(
         "cp %s %s"
         % (
-            os.path.join(controller_manifest_dir, "build", "Dockerfile"),
+            os.path.join(controller_config_dir, "build", "Dockerfile"),
             os.path.join(application_dir, controller_config.dockerfile_path),
         )
     )
@@ -475,7 +475,7 @@ def push_controller(
 
 
 def setup_controller(
-    controller_manifest_dir,
+    controller_config_dir,
     common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
@@ -489,13 +489,13 @@ def setup_controller(
         if controller_config.go_mod == "mod":
             install_lib_for_controller(common_config, controller_config)
             update_go_mod_for_controller(
-                controller_manifest_dir, common_config, controller_config
+                controller_config_dir, common_config, controller_config
             )
             instrument_controller(common_config, controller_config, mode)
         else:
             install_lib_for_controller_with_vendor(common_config, controller_config)
             update_go_mod_for_controller_with_vendor(
-                controller_manifest_dir, common_config, controller_config
+                controller_config_dir, common_config, controller_config
             )
             instrument_controller_with_vendor(common_config, controller_config, mode)
     build_controller(common_config, controller_config, image_tag, container_registry)
@@ -524,7 +524,7 @@ def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
 
 
 def setup_controller_wrapper(
-    controller_manifest_dir,
+    controller_config_dir,
     common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
@@ -541,7 +541,7 @@ def setup_controller_wrapper(
         ]:
             image_tag = this_mode
             setup_controller(
-                controller_manifest_dir,
+                controller_config_dir,
                 common_config,
                 controller_config,
                 this_mode,
@@ -552,7 +552,7 @@ def setup_controller_wrapper(
             )
     else:
         setup_controller(
-            controller_manifest_dir,
+            controller_config_dir,
             common_config,
             controller_config,
             mode,
@@ -569,10 +569,10 @@ if __name__ == "__main__":
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
         "-c",
-        "--controller_manifest_dir",
-        dest="controller_manifest_dir",
-        help="specify the CONTROLLER_MANIFEST_DIR",
-        metavar="CONTROLLER_MANIFEST_DIR",
+        "--controller_config_dir",
+        dest="controller_config_dir",
+        help="specify the CONTROLLER_CONFIG_DIR",
+        metavar="CONTROLLER_CONFIG_DIR",
         default=None,
     )
     parser.add_option(
@@ -635,7 +635,7 @@ if __name__ == "__main__":
     ]:
         parser.error("invalid build mode option: %s" % options.mode)
 
-    if options.controller_manifest_dir is None:
+    if options.controller_config_dir is None:
         setup_kubernetes_wrapper(
             options.version,
             options.mode,
@@ -643,11 +643,11 @@ if __name__ == "__main__":
             options.push_to_remote,
         )
     else:
-        controller_config = load_controller_config(options.controller_manifest_dir)
+        controller_config = load_controller_config(options.controller_config_dir)
         if options.sha is not None:
             controller_config.commit = options.sha
         setup_controller_wrapper(
-            options.controller_manifest_dir,
+            options.controller_config_dir,
             common_config,
             controller_config,
             options.mode,

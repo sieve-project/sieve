@@ -597,7 +597,7 @@ def get_test_workload_from_test_plan(test_plan_file):
 
 
 def run(
-    controller_manifest_dir,
+    controller_config_dir,
     test_workload,
     result_root_dir,
     mode,
@@ -605,7 +605,7 @@ def run(
     container_registry,
     phase="all",
 ):
-    controller_config = load_controller_config(controller_manifest_dir)
+    controller_config = load_controller_config(controller_config_dir)
     num_apiservers = 1
     num_workers = 2
     use_csi_driver = False
@@ -624,7 +624,7 @@ def run(
             use_csi_driver = controller_config.test_setting[test_workload][
                 "use_csi_driver"
             ]
-    oracle_dir = os.path.join(controller_manifest_dir, "oracle", test_workload)
+    oracle_dir = os.path.join(controller_config_dir, "oracle", test_workload)
     os.makedirs(oracle_dir, exist_ok=True)
     result_dir = os.path.join(
         result_root_dir,
@@ -638,7 +638,7 @@ def run(
     test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
     test_context = TestContext(
         controller=controller_config.controller_name,
-        controller_manifest_dir=controller_manifest_dir,
+        controller_config_dir=controller_config_dir,
         test_workload=test_workload,
         mode=mode,
         phase=phase,
@@ -693,10 +693,10 @@ if __name__ == "__main__":
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
         "-c",
-        "--controller_manifest_dir",
-        dest="controller_manifest_dir",
-        help="specify the CONTROLLER_MANIFEST_DIR",
-        metavar="CONTROLLER_MANIFEST_DIR",
+        "--controller_config_dir",
+        dest="controller_config_dir",
+        help="specify the CONTROLLER_CONFIG_DIR",
+        metavar="CONTROLLER_CONFIG_DIR",
     )
     parser.add_option(
         "-w",
@@ -752,7 +752,7 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
 
-    if options.controller_manifest_dir is None:
+    if options.controller_config_dir is None:
         parser.error("parameter controller required")
 
     if options.mode == sieve_modes.LEARN or options.mode == sieve_modes.GEN_ORACLE:
@@ -787,7 +787,7 @@ if __name__ == "__main__":
 
     if options.batch:
         run_batch(
-            options.controller_manifest_dir,
+            options.controller_config_dir,
             options.test_workload,
             options.dir,
             options.mode,
@@ -799,7 +799,7 @@ if __name__ == "__main__":
         if options.mode == sieve_modes.GEN_ORACLE:
             # Run learn mode first
             run(
-                options.controller_manifest_dir,
+                options.controller_config_dir,
                 options.test_workload,
                 options.dir,
                 sieve_modes.LEARN,
@@ -809,7 +809,7 @@ if __name__ == "__main__":
             )
 
         test_result, test_context = run(
-            options.controller_manifest_dir,
+            options.controller_config_dir,
             options.test_workload,
             options.dir,
             options.mode,

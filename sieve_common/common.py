@@ -71,7 +71,7 @@ class TestContext:
     def __init__(
         self,
         controller,
-        controller_manifest_dir,
+        controller_config_dir,
         test_workload,
         mode,
         phase,
@@ -89,7 +89,7 @@ class TestContext:
         controller_config: ControllerConfig,
     ):
         self.controller = controller
-        self.controller_manifest_dir = controller_manifest_dir
+        self.controller_config_dir = controller_config_dir
         self.test_workload = test_workload
         self.mode = mode
         self.phase = phase
@@ -172,19 +172,19 @@ def dump_json_file(dir, data, json_file_name):
 
 
 def build_directory(test_context: TestContext):
-    return os.path.join(test_context.controller_manifest_dir, "build")
+    return os.path.join(test_context.controller_config_dir, "build")
 
 
 def deploy_directory(test_context: TestContext):
-    return os.path.join(test_context.controller_manifest_dir, "deploy")
+    return os.path.join(test_context.controller_config_dir, "deploy")
 
 
 def test_directory(test_context: TestContext):
-    return os.path.join(test_context.controller_manifest_dir, "test")
+    return os.path.join(test_context.controller_config_dir, "test")
 
 
 def oracle_directory(test_context: TestContext):
-    return os.path.join(test_context.controller_manifest_dir, "oracle")
+    return os.path.join(test_context.controller_config_dir, "oracle")
 
 
 class bcolors:

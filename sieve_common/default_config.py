@@ -156,8 +156,8 @@ class ControllerConfig:
         self.state_update_summary_checker_mask = state_update_summary_checker_mask
 
 
-def load_controller_config(controller_manifest_dir):
-    controller_config_path = os.path.join(controller_manifest_dir, "config.json")
+def load_controller_config(controller_config_dir):
+    controller_config_path = os.path.join(controller_config_dir, "config.json")
     controller_config = json.load(open(controller_config_path))
     return ControllerConfig(
         controller_name=controller_config["name"],
