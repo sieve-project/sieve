@@ -3,7 +3,7 @@ import yaml
 import re
 import json
 import glob
-from sieve_common.default_config import CommonConfig, ControllerConfig
+from sieve_common.config import CommonConfig, ControllerConfig
 
 NO_ERROR_MESSAGE = ""
 

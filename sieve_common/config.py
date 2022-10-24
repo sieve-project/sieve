@@ -55,7 +55,7 @@ class CommonConfig:
 
 
 def get_common_config():
-    common_config_path = "default_config.json"
+    common_config_path = "config.json"
     common_config = json.load(open(common_config_path))
     if os.path.isfile("sieve_config.json"):
         override_config = json.loads(open("sieve_config.json").read())

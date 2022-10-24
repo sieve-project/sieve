@@ -1,5 +1,5 @@
 import optparse
-from sieve_common.default_config import get_common_config
+from sieve_common.config import get_common_config
 import os
 import json
 import time

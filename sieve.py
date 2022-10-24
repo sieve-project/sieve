@@ -4,7 +4,7 @@ import docker
 import optparse
 import os
 import kubernetes
-from sieve_common.default_config import (
+from sieve_common.config import (
     get_common_config,
     load_controller_config,
 )

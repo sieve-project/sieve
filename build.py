@@ -6,7 +6,7 @@ from sieve_common.common import (
 import os
 import optparse
 import json
-from sieve_common.default_config import (
+from sieve_common.config import (
     CommonConfig,
     load_controller_config,
     get_common_config,

@@ -1,6 +1,6 @@
 import os
 import json
-from sieve_common.default_config import get_common_config
+from sieve_common.config import get_common_config
 from evaluation_sanity_check import common
 
 total_result_map = {}

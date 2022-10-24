@@ -1,7 +1,7 @@
 import sys
 import os
 import json
-from sieve_common.default_config import *
+from sieve_common.config import *
 
 port_folder = sys.argv[1]
 build_folder = os.path.join(port_folder, "build")
