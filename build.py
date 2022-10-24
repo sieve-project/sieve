@@ -6,9 +6,9 @@ from sieve_common.common import (
 import os
 import optparse
 import json
-from sieve_common.default_config import (
+from sieve_common.config import (
     CommonConfig,
-    get_controller_config,
+    load_controller_config,
     get_common_config,
     ControllerConfig,
 )
@@ -228,7 +228,9 @@ def install_lib_for_controller(
 
 
 def update_go_mod_for_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig
+    controller_config_dir,
+    common_config: CommonConfig,
+    controller_config: ControllerConfig,
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     # modify the go.mod to import the libs
@@ -282,22 +284,17 @@ def update_go_mod_for_controller(
 
     # copy the build.sh and Dockerfile
     cmd_early_exit(
-        "cp %s/build/build.sh %s/build.sh"
+        "cp %s %s"
         % (
-            os.path.join(
-                common_config.controller_folder, controller_config.controller_name
-            ),
-            application_dir,
+            os.path.join(controller_config_dir, "build", "build.sh"),
+            os.path.join(application_dir, "build.sh"),
         )
     )
     cmd_early_exit(
-        "cp %s/build/Dockerfile %s/%s"
+        "cp %s %s"
         % (
-            os.path.join(
-                common_config.controller_folder, controller_config.controller_name
-            ),
-            application_dir,
-            controller_config.dockerfile_path,
+            os.path.join(controller_config_dir, "build", "Dockerfile"),
+            os.path.join(application_dir, controller_config.dockerfile_path),
         )
     )
     os.chdir(application_dir)
@@ -365,7 +362,9 @@ def install_lib_for_controller_with_vendor(
 
 
 def update_go_mod_for_controller_with_vendor(
-    common_config: CommonConfig, controller_config: ControllerConfig
+    controller_config_dir,
+    common_config: CommonConfig,
+    controller_config: ControllerConfig,
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     with open(os.path.join(application_dir, "go.mod"), "a") as go_mod_file:
@@ -391,22 +390,17 @@ def update_go_mod_for_controller_with_vendor(
 
     # copy the build.sh and Dockerfile
     cmd_early_exit(
-        "cp %s/build/build.sh %s/build.sh"
+        "cp %s %s"
         % (
-            os.path.join(
-                common_config.controller_folder, controller_config.controller_name
-            ),
-            application_dir,
+            os.path.join(controller_config_dir, "build", "build.sh"),
+            os.path.join(application_dir, "build.sh"),
         )
     )
     cmd_early_exit(
-        "cp %s/build/Dockerfile %s/%s"
+        "cp %s %s"
         % (
-            os.path.join(
-                common_config.controller_folder, controller_config.controller_name
-            ),
-            application_dir,
-            controller_config.registryfile_path,
+            os.path.join(controller_config_dir, "build", "Dockerfile"),
+            os.path.join(application_dir, controller_config.dockerfile_path),
         )
     )
     os.chdir(application_dir)
@@ -481,6 +475,7 @@ def push_controller(
 
 
 def setup_controller(
+    controller_config_dir,
     common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
@@ -493,11 +488,15 @@ def setup_controller(
         download_controller(common_config, controller_config)
         if controller_config.go_mod == "mod":
             install_lib_for_controller(common_config, controller_config)
-            update_go_mod_for_controller(common_config, controller_config)
+            update_go_mod_for_controller(
+                controller_config_dir, common_config, controller_config
+            )
             instrument_controller(common_config, controller_config, mode)
         else:
             install_lib_for_controller_with_vendor(common_config, controller_config)
-            update_go_mod_for_controller_with_vendor(common_config, controller_config)
+            update_go_mod_for_controller_with_vendor(
+                controller_config_dir, common_config, controller_config
+            )
             instrument_controller_with_vendor(common_config, controller_config, mode)
     build_controller(common_config, controller_config, image_tag, container_registry)
     if push_to_remote:
@@ -525,6 +524,7 @@ def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
 
 
 def setup_controller_wrapper(
+    controller_config_dir,
     common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
@@ -541,6 +541,7 @@ def setup_controller_wrapper(
         ]:
             image_tag = this_mode
             setup_controller(
+                controller_config_dir,
                 common_config,
                 controller_config,
                 this_mode,
@@ -551,6 +552,7 @@ def setup_controller_wrapper(
             )
     else:
         setup_controller(
+            controller_config_dir,
             common_config,
             controller_config,
             mode,
@@ -567,11 +569,11 @@ if __name__ == "__main__":
     parser = optparse.OptionParser(usage=usage)
     parser.add_option(
         "-c",
-        "--controller",
-        dest="controller",
-        help="specify the CONTROLLER or kind (default) image to build",
-        metavar="CONTROLLER",
-        default="kind",
+        "--controller_config_dir",
+        dest="controller_config_dir",
+        help="specify the CONTROLLER_CONFIG_DIR",
+        metavar="CONTROLLER_CONFIG_DIR",
+        default=None,
     )
     parser.add_option(
         "-m",
@@ -622,9 +624,6 @@ if __name__ == "__main__":
     )
     (options, args) = parser.parse_args()
 
-    if options.controller is None:
-        parser.error("parameter project required")
-
     if options.mode is None:
         parser.error("parameter mode required")
 
@@ -636,34 +635,19 @@ if __name__ == "__main__":
     ]:
         parser.error("invalid build mode option: %s" % options.mode)
 
-    if options.controller == "kind":
+    if options.controller_config_dir is None:
         setup_kubernetes_wrapper(
             options.version,
             options.mode,
             options.registry,
             options.push_to_remote,
         )
-    elif options.controller == "all":
-        all_controllers = get_all_controllers(common_config.controller_folder)
-        for controller in all_controllers:
-            controller_config = get_controller_config(
-                common_config.controller_folder, controller
-            )
-            setup_controller_wrapper(
-                common_config,
-                controller_config,
-                options.mode,
-                options.build_only,
-                options.push_to_remote,
-                options.registry,
-            )
     else:
-        controller_config = get_controller_config(
-            common_config.controller_folder, options.controller
-        )
+        controller_config = load_controller_config(options.controller_config_dir)
         if options.sha is not None:
             controller_config.commit = options.sha
         setup_controller_wrapper(
+            options.controller_config_dir,
             common_config,
             controller_config,
             options.mode,

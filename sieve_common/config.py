@@ -6,7 +6,6 @@ class CommonConfig:
     def __init__(
         self,
         container_registry,
-        controller_folder,
         namespace,
         leading_api,
         following_api,
@@ -29,7 +28,6 @@ class CommonConfig:
         update_oracle_file_enabled,
     ):
         self.container_registry = container_registry
-        self.controller_folder = controller_folder
         self.namespace = namespace
         self.leading_api = leading_api
         self.following_api = following_api
@@ -57,7 +55,7 @@ class CommonConfig:
 
 
 def get_common_config():
-    common_config_path = "default_config.json"
+    common_config_path = "config.json"
     common_config = json.load(open(common_config_path))
     if os.path.isfile("sieve_config.json"):
         override_config = json.loads(open("sieve_config.json").read())
@@ -65,7 +63,6 @@ def get_common_config():
             common_config[key] = override_config[key]
     return CommonConfig(
         container_registry=common_config["container_registry"],
-        controller_folder=common_config["controller_folder"],
         namespace=common_config["namespace"],
         leading_api=common_config["leading_api"],
         following_api=common_config["following_api"],
@@ -159,13 +156,11 @@ class ControllerConfig:
         self.state_update_summary_checker_mask = state_update_summary_checker_mask
 
 
-def get_controller_config(controller_folder, controller_name):
-    controller_config_path = os.path.join(
-        controller_folder, controller_name, "config.json"
-    )
+def load_controller_config(controller_config_dir):
+    controller_config_path = os.path.join(controller_config_dir, "config.json")
     controller_config = json.load(open(controller_config_path))
     return ControllerConfig(
-        controller_name=controller_name,
+        controller_name=controller_config["name"],
         github_link=controller_config["github_link"],
         commit=controller_config["commit"],
         cherry_pick_commits=controller_config["cherry_pick_commits"]

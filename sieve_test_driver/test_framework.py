@@ -15,7 +15,7 @@ from sieve_common.common import (
 )
 import time
 import traceback
-from sieve_common.default_config import get_common_config
+from sieve_common.config import get_common_config
 import datetime
 import subprocess
 import json
@@ -446,10 +446,13 @@ class TestWaitForExistence:
         while True:
             duration = time.time() - s
             if use_soft_timeout and duration > self.soft_time_out:
-                error_message = "soft timeout: %s does not become %s within %d seconds; we will continue" % (
-                    self.resource_name,
-                    "exist" if self.exist else "non-exist",
-                    self.soft_time_out,
+                error_message = (
+                    "soft timeout: %s does not become %s within %d seconds; we will continue"
+                    % (
+                        self.resource_name,
+                        "exist" if self.exist else "non-exist",
+                        self.soft_time_out,
+                    )
                 )
                 print(error_message)
                 return 0, NO_ERROR_MESSAGE

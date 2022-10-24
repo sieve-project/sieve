@@ -1,6 +1,8 @@
 # Bug Reproduction
 
-**Before reproducing the bugs**, please ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements) otherwise Sieve may not work, and set `docker_repo` in your `sieve_config.json` to `ghcr.io/sieve-project/action` (the default value).
+Before reproducing the bugs, please:
+- Check out to the `osdi-ae` branch by `git fetch origin && git checkout osdi-ae`
+- Ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements), and set `container_registry` in your `config.json` to `ghcr.io/sieve-project/action` (the default value).
 
 ## 31 intermediate-, stale-, and unobservable-state bugs
 Sieve can consistently reproduce all the 31 intermediate-, stale-, and unobservable-state bugs.

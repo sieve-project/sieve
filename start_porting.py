@@ -1,11 +1,9 @@
 import sys
 import os
 import json
-from sieve_common.default_config import *
+from sieve_common.config import *
 
-controller_name = sys.argv[1]
-controller_folder = get_common_config().controller_folder
-port_folder = os.path.join(controller_folder, controller_name)
+port_folder = sys.argv[1]
 build_folder = os.path.join(port_folder, "build")
 deploy_folder = os.path.join(port_folder, "deploy")
 test_folder = os.path.join(port_folder, "test")
