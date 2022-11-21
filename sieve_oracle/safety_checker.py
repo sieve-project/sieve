@@ -196,7 +196,6 @@ def get_event_mask(test_context: TestContext):
 def apply_safety_checker(
     test_context: TestContext, resource_keys, checker_name, customized_checker
 ):
-    ret_val = 0
     messages = []
     current_state = {}
     history = get_testing_history(test_context)
@@ -215,7 +214,6 @@ def apply_safety_checker(
                     existing_resource_cnt += 1
             if existing_resource_cnt == len(current_state):
                 if not customized_checker(current_state):
-                    ret_val += 1
                     messages.append(
                         generate_alarm(
                             "Safety violation:",
@@ -225,7 +223,7 @@ def apply_safety_checker(
                         )
                     )
     messages.sort()
-    return ret_val, messages
+    return messages
 
 
 def compare_history_digests(test_context: TestContext):
@@ -233,7 +231,6 @@ def compare_history_digests(test_context: TestContext):
     testing_events = get_testing_history_digest(test_context)
     controller_family = get_current_controller_related_list(test_context)
 
-    ret_val = 0
     messages = []
 
     # checking events inconsistency for each key
@@ -255,7 +252,6 @@ def compare_history_digests(test_context: TestContext):
             if canonicalized_events[key][etype] == SIEVE_LEARN_VALUE_MASK:
                 continue
             if testing_events[key][etype] != canonicalized_events[key][etype]:
-                ret_val += 1
                 messages.append(
                     generate_alarm(
                         "State-update summaries inconsistency:",
@@ -268,4 +264,4 @@ def compare_history_digests(test_context: TestContext):
                     )
                 )
     messages.sort()
-    return ret_val, messages
+    return messages

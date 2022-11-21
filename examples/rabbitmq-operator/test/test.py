@@ -35,4 +35,4 @@ test_cases = {
     .wait_for_sts_storage_size("rabbitmq-cluster-server", "15Gi"),
 }
 
-test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])
+test_cases[sys.argv[1]].run(sys.argv[2])

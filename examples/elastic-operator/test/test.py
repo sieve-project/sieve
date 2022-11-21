@@ -36,4 +36,4 @@ test_cases = {
     .wait_for_pod_status("elasticsearch-cluster-es-default-1", RUNNING),
 }
 
-test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])
+test_cases[sys.argv[1]].run(sys.argv[2])

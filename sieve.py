@@ -464,15 +464,10 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
-    use_soft_timeout = "0"
-    if "pauseController" in test_context.action_types:
-        use_soft_timeout = "1"
-
     cprint("Running test workload...", bcolors.OKGREEN)
-    test_command = "%s %s %s %s" % (
+    test_command = "%s %s %s" % (
         test_context.controller_config.test_command,
         test_context.test_workload,
-        use_soft_timeout,
         os.path.join(test_context.result_dir, "workload.log"),
     )
     process = subprocess.Popen(test_command, shell=True)

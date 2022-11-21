@@ -45,7 +45,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - cass-operator recreate
@@ -109,7 +109,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - cassandra-operator recreate
@@ -173,7 +173,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - casskop-operator recreate
@@ -239,7 +239,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - elastic-operator recreate
@@ -303,7 +303,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - mongodb-operator disable-enable-arbiter
@@ -373,7 +373,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - nifikop-operator change-config
@@ -439,7 +439,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - rabbitmq-operator recreate
@@ -505,7 +505,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - xtradb-operator disable-enable-haproxy
@@ -575,7 +575,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - yugabyte-operator disable-enable-tls
@@ -643,7 +643,7 @@ jobs:
 
         helm'
     - name: Sieve CI config generate
-      run: 'echo "{\"workload_hard_timeout\": 1000}" > sieve_config.json
+      run: 'echo "{\"workload_conditional_wait_timeout\": 1000}" > sieve_config.json
 
         cat sieve_config.json'
     - name: Sieve Learn - zookeeper-operator recreate

@@ -84,11 +84,6 @@ def get_pvc(resource_name, namespace):
 
 
 def get_secret(resource_name, namespace):
-    """Return Secret object with specified name
-
-    Parameters:
-    resource_name -- name of the secret object
-    """
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     secrets = core_v1.list_namespaced_secret(namespace=namespace, watch=False).items
@@ -99,11 +94,6 @@ def get_secret(resource_name, namespace):
 
 
 def get_service(resource_name, namespace):
-    """Return Secret object with specified name
-
-    Parameters:
-    resource_name -- name of the secret object
-    """
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
     services = core_v1.list_namespaced_service(namespace=namespace, watch=False).items
@@ -128,34 +118,37 @@ def get_custom_resource(custom_resource_type, resource_name, namespace):
 
 
 class TestCmd:
-    def __init__(self, cmd):
+    def __init__(self, cmd, timeout):
         self.cmd = cmd
+        self.timeout = timeout
 
-    def run(self, use_soft_timeout) -> Tuple[int, str]:
+    def run(self) -> Tuple[int, str]:
         print()
         print(self.cmd)
-        # TODO: need to check the return code of the cmd
         proc = subprocess.Popen(self.cmd, shell=True)
         try:
-            proc.wait(timeout=60)
+            proc.wait(timeout=self.timeout)
             if proc.returncode != 0:
-                return 1, "cmd '%s' return non-zero code %d " % (
+                return 1, "Command error code: '%s' returns %d " % (
                     self.cmd,
                     proc.returncode,
                 )
         except subprocess.TimeoutExpired:
             proc.terminate()
-            return 2, "cmd: '%s' cannot terminate within 20 seconds" % (self.cmd)
+            return 2, "Command timeout: '%s' does not finish within %d seconds" % (
+                self.cmd,
+                self.timeout,
+            )
         return 0, NO_ERROR_MESSAGE
 
 
 class TestWait:
     def __init__(self, time_out):
-        self.hard_time_out = time_out
+        self.timeout = time_out
 
-    def run(self, use_soft_timeout) -> Tuple[int, str]:
-        print("wait for %s seconds" % str(self.hard_time_out))
-        time.sleep(self.hard_time_out)
+    def run(self) -> Tuple[int, str]:
+        print("wait for %s seconds" % str(self.timeout))
+        time.sleep(self.timeout)
         return 0, NO_ERROR_MESSAGE
 
 
@@ -165,16 +158,14 @@ class TestWaitForStatus:
         resource_type,
         resource_name,
         status,
-        soft_time_out,
-        hard_time_out,
+        timeout,
         namespace,
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.status = status
         self.namespace = namespace
-        self.soft_time_out = soft_time_out
-        self.hard_time_out = hard_time_out
+        self.timeout = timeout
 
     def check_pod(self):
         try:
@@ -215,7 +206,7 @@ class TestWaitForStatus:
             assert False, "status not supported yet"
         return False
 
-    def run(self, use_soft_timeout) -> Tuple[int, str]:
+    def run(self) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s becomes %s..."
@@ -223,17 +214,14 @@ class TestWaitForStatus:
         )
         while True:
             duration = time.time() - s
-            if use_soft_timeout and duration > self.soft_time_out:
+            if duration > self.timeout:
                 error_message = (
-                    "soft timeout: %s does not become %s within %d seconds; we will continue"
-                    % (self.resource_name, self.status, self.soft_time_out)
-                )
-                print(error_message)
-                return 0, NO_ERROR_MESSAGE
-            if duration > self.hard_time_out:
-                error_message = (
-                    "hard timeout: %s does not become %s within %d seconds"
-                    % (self.resource_name, self.status, self.hard_time_out)
+                    "Conditional wait timeout: %s does not become %s within %d seconds"
+                    % (
+                        self.resource_name,
+                        self.status,
+                        self.timeout,
+                    )
                 )
                 print(error_message)
                 return 1, error_message
@@ -257,16 +245,14 @@ class TestWaitForNumber:
         resource_type,
         resource_name_prefix,
         number,
-        soft_time_out,
-        hard_time_out,
+        timeout,
         namespace,
     ):
         self.resource_type = resource_type
         self.resource_name_prefix = resource_name_prefix
         self.number = number
         self.namespace = namespace
-        self.soft_time_out = soft_time_out
-        self.hard_time_out = hard_time_out
+        self.timeout = timeout
 
     def check_pod(self):
         try:
@@ -281,7 +267,7 @@ class TestWaitForNumber:
                 running_pods.append(pod)
         return len(running_pods) == self.number
 
-    def run(self, use_soft_timeout) -> Tuple[int, str]:
+    def run(self) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until the number of running %s %s becomes %s..."
@@ -289,17 +275,14 @@ class TestWaitForNumber:
         )
         while True:
             duration = time.time() - s
-            if use_soft_timeout and duration > self.soft_time_out:
+            if duration > self.timeout:
                 error_message = (
-                    "soft timeout: %s does not become %s within %d seconds; we will continue"
-                    % (self.resource_name_prefix, self.number, self.soft_time_out)
-                )
-                print(error_message)
-                return 0, NO_ERROR_MESSAGE
-            if duration > self.hard_time_out:
-                error_message = (
-                    "hard timeout: %s does not become %s within %d seconds"
-                    % (self.resource_name_prefix, self.number, self.hard_time_out)
+                    "Conditional wait timeout: %s does not become %s within %d seconds"
+                    % (
+                        self.resource_name_prefix,
+                        self.number,
+                        self.timeout,
+                    )
                 )
                 print(error_message)
                 return 1, error_message
@@ -320,16 +303,14 @@ class TestWaitForStorage:
         resource_type,
         resource_name,
         storage_size,
-        soft_time_out,
-        hard_time_out,
+        timeout,
         namespace,
     ):
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.storage_size = storage_size
         self.namespace = namespace
-        self.soft_time_out = soft_time_out
-        self.hard_time_out = hard_time_out
+        self.timeout = timeout
 
     def check_sts(self):
         sts = get_sts(self.resource_name, self.namespace)
@@ -343,7 +324,7 @@ class TestWaitForStorage:
                 return True
         return False
 
-    def run(self, use_soft_timeout) -> Tuple[int, str]:
+    def run(self) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s has storage size %s..."
@@ -351,17 +332,10 @@ class TestWaitForStorage:
         )
         while True:
             duration = time.time() - s
-            if use_soft_timeout and duration > self.soft_time_out:
+            if duration > self.timeout:
                 error_message = (
-                    "soft timeout: %s does not have storage size %s within %d seconds; we will continue"
-                    % (self.resource_name, self.storage_size, self.soft_time_out)
-                )
-                print(error_message)
-                return 0, NO_ERROR_MESSAGE
-            if duration > self.hard_time_out:
-                error_message = (
-                    "hard timeout: %s does not have storage size %s within %d seconds"
-                    % (self.resource_name, self.storage_size, self.hard_time_out)
+                    "Conditional wait timeout: %s does not have storage size %s within %d seconds"
+                    % (self.resource_name, self.storage_size, self.timeout)
                 )
                 print(error_message)
                 return 1, error_message
@@ -382,26 +356,16 @@ class TestWaitForExistence:
         resource_type,
         resource_name,
         exist: bool,
-        soft_time_out,
-        hard_time_out,
+        timeout,
         namespace,
     ):
-        """Constructor
-
-        Parameters:
-        resource_type -- type of resource, e.g. Secret, Service
-        resource_name -- name of the resource
-        exist -- True for waiting for the resource to exist, False to waiting for the resource to disappear
-        """
         self.resource_type = resource_type
         self.resource_name = resource_name
         self.exist = exist
         self.namespace = namespace
-        self.soft_time_out = soft_time_out
-        self.hard_time_out = hard_time_out
+        self.timeout = timeout
 
     def check_secret(self):
-        """Return if a secret with the name self.resource_name meets the self.exist"""
         try:
             secret = get_secret(self.resource_name, self.namespace)
         except Exception as err:
@@ -433,36 +397,25 @@ class TestWaitForExistence:
                 return True
         return False
 
-    def run(self, use_soft_timeout) -> Tuple[int, str]:
+    def run(self) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s %s..."
             % (
                 self.resource_type,
                 self.resource_name,
-                "exist" if self.exist else "nonexist",
+                "created" if self.exist else "deleted",
             )
         )
         while True:
             duration = time.time() - s
-            if use_soft_timeout and duration > self.soft_time_out:
+            if duration > self.timeout:
                 error_message = (
-                    "soft timeout: %s does not become %s within %d seconds; we will continue"
+                    "Conditional wait timeout: %s does not become %s within %d seconds"
                     % (
                         self.resource_name,
-                        "exist" if self.exist else "non-exist",
-                        self.soft_time_out,
-                    )
-                )
-                print(error_message)
-                return 0, NO_ERROR_MESSAGE
-            if duration > self.hard_time_out:
-                error_message = (
-                    "hard timeout: %s does not become %s within %d seconds"
-                    % (
-                        self.resource_name,
-                        "exist" if self.exist else "non-exist",
-                        self.hard_time_out,
+                        "created" if self.exist else "deleted",
+                        self.timeout,
                     )
                 )
                 print(error_message)
@@ -487,16 +440,14 @@ class TestWaitForCRConditions:
         custom_resource_type,
         resource_name,
         conditions,
-        soft_time_out,
-        hard_time_out,
+        timeout,
         namespace,
     ):
         self.custom_resource_type = custom_resource_type
         self.resource_name = resource_name
         self.conditions = conditions
         self.namespace = namespace
-        self.soft_time_out = soft_time_out
-        self.hard_time_out = hard_time_out
+        self.timeout = timeout
 
     def check_cr_conditions(self, custom_resource):
         for condition in self.conditions:
@@ -508,14 +459,11 @@ class TestWaitForCRConditions:
                 if not token in inner_resource:
                     return False
                 inner_resource = inner_resource[token]
-            # print(inner_resource, desired_value)
             if not inner_resource == desired_value:
-                # print("false")
-                # print(inner_resource, desired_value)
                 return False
         return True
 
-    def run(self, use_soft_timeout) -> Tuple[int, str]:
+    def run(self) -> Tuple[int, str]:
         s = time.time()
         print(
             "wait until %s %s %s..."
@@ -527,17 +475,14 @@ class TestWaitForCRConditions:
         )
         while True:
             duration = time.time() - s
-            if use_soft_timeout and duration > self.soft_time_out:
+            if duration > self.timeout:
                 error_message = (
-                    "soft timeout: %s does not achieve %s within %d seconds; we will continue"
-                    % (self.resource_name, self.conditions, self.soft_time_out)
-                )
-                print(error_message)
-                return 0, NO_ERROR_MESSAGE
-            if duration > self.hard_time_out:
-                error_message = (
-                    "hard timeout: %s does not achieve %s within %d seconds"
-                    % (self.resource_name, self.conditions, self.hard_time_out)
+                    "Conditional wait timeout: %s does not achieve %s within %d seconds"
+                    % (
+                        self.resource_name,
+                        self.conditions,
+                        self.timeout,
+                    )
                 )
                 print(error_message)
                 return 1, error_message
@@ -560,7 +505,7 @@ class BuiltInWorkLoad:
         self.final_grace_period = final_grace_period
 
     def cmd(self, cmd):
-        test_cmd = TestCmd(cmd)
+        test_cmd = TestCmd(cmd, timeout=common_config.workload_command_wait_timeout)
         self.work_list.append(test_cmd)
         return self
 
@@ -568,13 +513,10 @@ class BuiltInWorkLoad:
         self,
         pod_name_prefix,
         number,
-        soft_time_out=common_config.workload_soft_timeout,
-        hard_time_out=common_config.workload_hard_timeout,
+        timeout=common_config.workload_conditional_wait_timeout,
         namespace=common_config.namespace,
     ):
-        test_wait = TestWaitForNumber(
-            POD, pod_name_prefix, number, soft_time_out, hard_time_out, namespace
-        )
+        test_wait = TestWaitForNumber(POD, pod_name_prefix, number, timeout, namespace)
         self.work_list.append(test_wait)
         return self
 
@@ -582,16 +524,14 @@ class BuiltInWorkLoad:
         self,
         pod_name,
         status,
-        soft_time_out=common_config.workload_soft_timeout,
-        hard_time_out=common_config.workload_hard_timeout,
+        timeout=common_config.workload_conditional_wait_timeout,
         namespace=common_config.namespace,
     ):
         test_wait = TestWaitForStatus(
             POD,
             pod_name,
             status,
-            soft_time_out,
-            hard_time_out,
+            timeout,
             namespace,
         )
         self.work_list.append(test_wait)
@@ -601,16 +541,14 @@ class BuiltInWorkLoad:
         self,
         pvc_name,
         status,
-        soft_time_out=common_config.workload_soft_timeout,
-        hard_time_out=common_config.workload_hard_timeout,
+        timeout=common_config.workload_conditional_wait_timeout,
         namespace=common_config.namespace,
     ):
         test_wait = TestWaitForStatus(
             PVC,
             pvc_name,
             status,
-            soft_time_out,
-            hard_time_out,
+            timeout,
             namespace,
         )
         self.work_list.append(test_wait)
@@ -620,16 +558,14 @@ class BuiltInWorkLoad:
         self,
         secret_name,
         exist: bool,
-        soft_time_out=common_config.workload_soft_timeout,
-        hard_time_out=common_config.workload_hard_timeout,
+        timeout=common_config.workload_conditional_wait_timeout,
         namespace=common_config.namespace,
     ):
         test_wait = TestWaitForExistence(
             SECRET,
             secret_name,
             exist,
-            soft_time_out,
-            hard_time_out,
+            timeout,
             namespace,
         )
         self.work_list.append(test_wait)
@@ -639,16 +575,14 @@ class BuiltInWorkLoad:
         self,
         service_name,
         exist: bool,
-        soft_time_out=common_config.workload_soft_timeout,
-        hard_time_out=common_config.workload_hard_timeout,
+        timeout=common_config.workload_conditional_wait_timeout,
         namespace=common_config.namespace,
     ):
         test_wait = TestWaitForExistence(
             SERVICE,
             service_name,
             exist,
-            soft_time_out,
-            hard_time_out,
+            timeout,
             namespace,
         )
         self.work_list.append(test_wait)
@@ -658,16 +592,14 @@ class BuiltInWorkLoad:
         self,
         sts_name,
         storage_size,
-        soft_time_out=common_config.workload_soft_timeout,
-        hard_time_out=common_config.workload_hard_timeout,
+        timeout=common_config.workload_conditional_wait_timeout,
         namespace=common_config.namespace,
     ):
         test_wait = TestWaitForStorage(
             STS,
             sts_name,
             storage_size,
-            soft_time_out,
-            hard_time_out,
+            timeout,
             namespace,
         )
         self.work_list.append(test_wait)
@@ -678,16 +610,14 @@ class BuiltInWorkLoad:
         custom_resource_type,
         resource_name,
         conditions,
-        soft_time_out=common_config.workload_soft_timeout,
-        hard_time_out=common_config.workload_hard_timeout,
+        timeout=common_config.workload_conditional_wait_timeout,
         namespace=common_config.namespace,
     ):
         test_wait = TestWaitForCRConditions(
             custom_resource_type,
             resource_name,
             conditions,
-            soft_time_out,
-            hard_time_out,
+            timeout,
             namespace,
         )
         self.work_list.append(test_wait)
@@ -698,17 +628,14 @@ class BuiltInWorkLoad:
         self.work_list.append(test_wait)
         return self
 
-    def run(self, use_soft_timeout_str, output_file):
-        use_soft_timeout = False
-        if int(use_soft_timeout_str) == 1:
-            use_soft_timeout = True
+    def run(self, output_file):
         with open(output_file, "w") as f:
             for work in self.work_list:
-                return_code, error_message = work.run(use_soft_timeout)
+                return_code, error_message = work.run()
                 print(datetime.datetime.now())
                 if return_code != 0:
-                    print("error: " + error_message)
-                    f.write("error: " + error_message + "\n")
+                    print(error_message)
+                    f.write(error_message + "\n")
                     if return_code == 2:
                         return
             print()
@@ -723,20 +650,3 @@ class BuiltInWorkLoad:
 def new_built_in_workload(final_grace_period=50):
     workload = BuiltInWorkLoad(final_grace_period)
     return workload
-
-
-# class ExtendedWorkload:
-#     def __init__(self, test_dir, test_cmd, check_mode=False):
-#         self.test_dir = test_dir
-#         self.test_cmd = test_cmd
-#         self.check_mode = check_mode
-
-#     def run(self, mode):
-#         org_dir = os.getcwd()
-#         os.chdir(self.test_dir)
-#         # TODO: need to check the return code of the os.system
-#         if self.check_mode:
-#             os.system(self.test_cmd + " " + mode)
-#         else:
-#             os.system(self.test_cmd)
-#         os.chdir(org_dir)

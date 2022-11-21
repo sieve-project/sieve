@@ -107,7 +107,7 @@ def job_template(self_hosted):
             },
             {
                 "name": "Sieve CI config generate",
-                "run": 'echo "{\\"workload_hard_timeout\\": 1000}" > sieve_config.json\ncat sieve_config.json',
+                "run": 'echo "{\\"workload_conditional_wait_timeout\\": 1000}" > sieve_config.json\ncat sieve_config.json',
             },
         ],
     }

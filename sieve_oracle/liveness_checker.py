@@ -165,7 +165,6 @@ def get_testing_state(test_context: TestContext):
 
 
 def check_single_state(state, resource_keys, checker_name, customized_checker):
-    ret_val = 0
     messages = []
     final_state = {}
     for resource_key in resource_keys:
@@ -175,7 +174,6 @@ def check_single_state(state, resource_keys, checker_name, customized_checker):
         name = tokens[2]
         final_state[resource_key] = state[rtype][name]
     if not customized_checker(final_state):
-        ret_val += 1
         messages.append(
             generate_alarm(
                 "[CUSTOMIZED-LIVENESS]",
@@ -184,7 +182,7 @@ def check_single_state(state, resource_keys, checker_name, customized_checker):
                 ),
             )
         )
-    return ret_val, messages
+    return messages
 
 
 def get_objects_from_state_by_type(state, rtype):
@@ -291,7 +289,6 @@ def compare_states(test_context: TestContext):
     reference_state = get_canonicalized_state(test_context)
     testing_state = get_testing_state(test_context)
 
-    ret_val = 0
     messages = []
     resource_existence_messages = []
     fields_diff_messages = []
@@ -338,7 +335,6 @@ def compare_states(test_context: TestContext):
             continue
         resource_type, namespace, name = parse_key(resource_key)
         if resource_type not in resource_type_with_random_names:
-            ret_val += 1
             resource_existence_messages.append(
                 generate_alarm(
                     "End state inconsistency - more objects than reference:",
@@ -355,7 +351,6 @@ def compare_states(test_context: TestContext):
             continue
         resource_type, namespace, name = parse_key(resource_key)
         if resource_type not in resource_type_with_random_names:
-            ret_val += 1
             resource_existence_messages.append(
                 generate_alarm(
                     "End state inconsistency - fewer objects than reference:",
@@ -380,7 +375,6 @@ def compare_states(test_context: TestContext):
             reference_list = reference_resource_to_object_map[resource_type]
             testing_list.sort()
             reference_list.sort()
-            ret_val += 1
             resource_existence_messages.append(
                 generate_alarm(
                     "End state inconsistency - more objects than reference:"
@@ -482,7 +476,6 @@ def compare_states(test_context: TestContext):
             ):
                 continue
 
-            ret_val += 1
             if delta_type in ["dictionary_item_added", "iterable_item_added"]:
                 fields_existence_messages.append(
                     generate_alarm(
@@ -538,4 +531,4 @@ def compare_states(test_context: TestContext):
     messages = (
         resource_existence_messages + fields_diff_messages + fields_existence_messages
     )
-    return ret_val, messages
+    return messages
