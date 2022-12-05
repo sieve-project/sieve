@@ -173,7 +173,7 @@ def rmtree_if_exists(dir_name):
         shutil.rmtree(dir_name)
 
 
-def cmd_early_exit(cmd, early_exit=True):
+def os_system(cmd, early_exit=True):
     return_code = os.WEXITSTATUS(os.system(cmd))
     if return_code != 0 and early_exit:
         fail(cmd)

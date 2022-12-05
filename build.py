@@ -1,6 +1,6 @@
 from sieve_common.common import (
     sieve_modes,
-    cmd_early_exit,
+    os_system,
     add_mod_recursively,
     rmtree_if_exists,
 )
@@ -40,12 +40,12 @@ def update_sieve_client_go_mod_with_version(go_mod_path, version):
 def download_kubernetes(version):
     rmtree_if_exists("fakegopath")
     os.makedirs("fakegopath/src/k8s.io")
-    cmd_early_exit(
+    os_system(
         "git clone --single-branch --branch %s https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null"
         % version
     )
     os.chdir("fakegopath/src/k8s.io/kubernetes")
-    cmd_early_exit("git checkout -b sieve >> /dev/null")
+    os_system("git checkout -b sieve >> /dev/null")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -77,27 +77,27 @@ def instrument_kubernetes(mode):
         "k8s_filepath": "%s/fakegopath/src/k8s.io/kubernetes" % (ORIGINAL_DIR),
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
-    cmd_early_exit("go mod tidy")
-    cmd_early_exit("go build")
-    cmd_early_exit("./instrumentation config.json")
+    os_system("go mod tidy")
+    os_system("go build")
+    os_system("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
 
 def build_kubernetes(version, container_registry, image_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
-    cmd_early_exit(
+    os_system(
         "GOPATH=%s/fakegopath KUBE_GIT_VERSION=%s-sieve-`git rev-parse HEAD` kind build node-image"
         % (ORIGINAL_DIR, version)
     )
     os.chdir(ORIGINAL_DIR)
-    cmd_early_exit(
+    os_system(
         "docker image tag kindest/node:latest %s/node:%s"
         % (container_registry, image_tag)
     )
 
 
 def push_kubernetes(container_registry, image_tag):
-    cmd_early_exit("docker push %s/node:%s" % (container_registry, image_tag))
+    os_system("docker push %s/node:%s" % (container_registry, image_tag))
 
 
 def setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote):
@@ -115,15 +115,15 @@ def download_controller(
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     rmtree_if_exists(application_dir)
-    cmd_early_exit(
+    os_system(
         "git clone %s %s >> /dev/null"
         % (controller_config.github_link, application_dir)
     )
     os.chdir(application_dir)
-    cmd_early_exit("git checkout %s >> /dev/null" % controller_config.commit)
-    cmd_early_exit("git checkout -b sieve >> /dev/null")
+    os_system("git checkout %s >> /dev/null" % controller_config.commit)
+    os_system("git checkout -b sieve >> /dev/null")
     for commit in controller_config.cherry_pick_commits:
-        cmd_early_exit("git cherry-pick %s" % commit)
+        os_system("git cherry-pick %s" % commit)
     os.chdir(ORIGINAL_DIR)
 
 
@@ -145,7 +145,7 @@ def install_lib_for_controller(
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     # download controller_runtime
-    cmd_early_exit(
+    os_system(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
         % controller_config.controller_runtime_version
     )
@@ -169,7 +169,7 @@ def install_lib_for_controller(
     )
 
     # download client_go
-    cmd_early_exit(
+    os_system(
         "go mod download k8s.io/client-go@%s >> /dev/null"
         % controller_config.client_go_version
     )
@@ -212,7 +212,7 @@ def install_lib_for_controller(
         if module in downloaded_module:
             continue
         downloaded_module.add(module)
-        cmd_early_exit("go mod download %s >> /dev/null" % module)
+        os_system("go mod download %s >> /dev/null" % module)
         os.makedirs(
             "%s/sieve-dependency/src/%s" % (application_dir, os.path.dirname(module))
         )
@@ -225,8 +225,8 @@ def install_lib_for_controller(
         )
 
     os.chdir(application_dir)
-    cmd_early_exit("git add -A >> /dev/null")
-    cmd_early_exit('git commit -m "install the lib" >> /dev/null')
+    os_system("git add -A >> /dev/null")
+    os_system('git commit -m "install the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
 
@@ -295,8 +295,8 @@ def update_go_mod_for_controller(
         os.path.join(application_dir, controller_config.dockerfile_path),
     )
     os.chdir(application_dir)
-    cmd_early_exit("git add -A >> /dev/null")
-    cmd_early_exit('git commit -m "import the lib" >> /dev/null')
+    os_system("git add -A >> /dev/null")
+    os_system('git commit -m "import the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
 
@@ -324,9 +324,9 @@ def instrument_controller(
         "apis_to_instrument": controller_config.apis_to_instrument,
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
-    cmd_early_exit("go mod tidy")
-    cmd_early_exit("go build")
-    cmd_early_exit("./instrumentation config.json")
+    os_system("go mod tidy")
+    os_system("go build")
+    os_system("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -353,8 +353,8 @@ def install_lib_for_controller_with_vendor(
             controller_config.apimachinery_version,
         )
     os.chdir(application_dir)
-    cmd_early_exit("git add -A >> /dev/null")
-    cmd_early_exit('git commit -m "install the lib" >> /dev/null')
+    os_system("git add -A >> /dev/null")
+    os_system('git commit -m "install the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
 
@@ -395,8 +395,8 @@ def update_go_mod_for_controller_with_vendor(
         os.path.join(application_dir, controller_config.dockerfile_path),
     )
     os.chdir(application_dir)
-    cmd_early_exit("git add -A >> /dev/null")
-    cmd_early_exit('git commit -m "import the lib" >> /dev/null')
+    os_system("git add -A >> /dev/null")
+    os_system('git commit -m "import the lib" >> /dev/null')
     os.chdir(ORIGINAL_DIR)
 
 
@@ -422,9 +422,9 @@ def instrument_controller_with_vendor(
         "apis_to_instrument": controller_config.apis_to_instrument,
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
-    cmd_early_exit("go mod tidy")
-    cmd_early_exit("go build")
-    cmd_early_exit("./instrumentation config.json")
+    os_system("go mod tidy")
+    os_system("go build")
+    os_system("./instrumentation config.json")
     os.chdir(ORIGINAL_DIR)
 
 
@@ -436,7 +436,7 @@ def build_controller(
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir(application_dir)
-    cmd_early_exit("./build.sh %s %s" % (container_registry, image_tag))
+    os_system("./build.sh %s %s" % (container_registry, image_tag))
     os.chdir(ORIGINAL_DIR)
     os.system(
         "docker tag %s %s/%s:%s"
@@ -455,7 +455,7 @@ def push_controller(
     image_tag,
     container_registry,
 ):
-    cmd_early_exit(
+    os_system(
         "docker push %s/%s:%s"
         % (
             container_registry,

@@ -36,7 +36,7 @@ from sieve_common.common import (
     ok,
     fail,
     sieve_modes,
-    cmd_early_exit,
+    os_system,
     deploy_directory,
     rmtree_if_exists,
 )
@@ -106,7 +106,7 @@ def save_run_result(
 def watch_crd(crds, addrs):
     for addr in addrs:
         for crd in crds:
-            cmd_early_exit("kubectl get %s -s %s --ignore-not-found=true" % (crd, addr))
+            os_system("kubectl get %s -s %s --ignore-not-found=true" % (crd, addr))
 
 
 def generate_configmap(test_plan):
@@ -148,11 +148,11 @@ def redirect_workers(test_context: TestContext):
     leading_api = test_context.common_config.leading_api
     for i in range(test_context.num_workers):
         worker = "kind-worker" + (str(i + 1) if i > 0 else "")
-        cmd_early_exit(
+        os_system(
             "docker exec %s bash -c \"sed -i 's/kind-external-load-balancer/%s/g' /etc/kubernetes/kubelet.conf\""
             % (worker, leading_api)
         )
-        cmd_early_exit('docker exec %s bash -c "systemctl restart kubelet"' % worker)
+        os_system('docker exec %s bash -c "systemctl restart kubelet"' % worker)
 
 
 def redirect_kubectl():
@@ -217,11 +217,11 @@ def prepare_sieve_server(test_context: TestContext):
     shutil.copy(test_context.test_plan, "sieve_server/server.yaml")
     org_dir = os.getcwd()
     os.chdir("sieve_server")
-    cmd_early_exit("go mod tidy")
+    os_system("go mod tidy")
     # TODO: we should build a container image for sieve server
-    cmd_early_exit("env GOOS=linux GOARCH=amd64 go build")
+    os_system("env GOOS=linux GOARCH=amd64 go build")
     os.chdir(org_dir)
-    cmd_early_exit("docker cp sieve_server kind-control-plane:/sieve_server")
+    os_system("docker cp sieve_server kind-control-plane:/sieve_server")
 
 
 def start_sieve_server(test_context: TestContext):
@@ -230,14 +230,14 @@ def start_sieve_server(test_context: TestContext):
         if test_context.mode == sieve_modes.TEST
         else sieve_modes.LEARN
     )
-    cmd_early_exit(
+    os_system(
         "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server %s &> sieve-server.log &'"
         % sieve_server_mode
     )
 
 
 def stop_sieve_server():
-    cmd_early_exit("docker exec kind-control-plane bash -c 'pkill sieve-server'")
+    os_system("docker exec kind-control-plane bash -c 'pkill sieve-server'")
 
 
 def setup_kind_cluster(test_context: TestContext):
@@ -251,16 +251,16 @@ def setup_kind_cluster(test_context: TestContext):
     retry_cnt = 0
     while retry_cnt < 5:
         try:
-            cmd_early_exit("kind delete cluster")
+            os_system("kind delete cluster")
             # sleep here in case if the machine is slow and kind cluster deletion is not done before creating a new cluster
             time.sleep(5 + 10 * retry_cnt)
             retry_cnt += 1
             print("try to create kind cluster; retry count {}".format(retry_cnt))
-            cmd_early_exit(
+            os_system(
                 "kind create cluster --image %s/node:%s --config %s"
                 % (k8s_container_registry, k8s_image_tag, kind_config)
             )
-            cmd_early_exit(
+            os_system(
                 "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
             )
             return
@@ -289,7 +289,7 @@ def setup_cluster(test_context: TestContext):
     else:
         assert test_context.mode == sieve_modes.TEST
         print("Test with: %s" % test_context.test_plan)
-        cmd_early_exit(
+        os_system(
             "cp %s %s" % (test_context.original_test_plan, test_context.test_plan)
         )
 
@@ -335,7 +335,7 @@ def setup_cluster(test_context: TestContext):
 
     time.sleep(3)  # ensure that every apiserver will see the configmap is created
     configmap = generate_configmap(test_context.test_plan)
-    cmd_early_exit("kubectl apply -f %s" % configmap)
+    os_system("kubectl apply -f %s" % configmap)
 
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (
@@ -345,10 +345,10 @@ def setup_cluster(test_context: TestContext):
     )
     kind_load_cmd = "kind load docker-image %s" % (image)
     print("Loading image %s to kind nodes..." % (image))
-    if cmd_early_exit(kind_load_cmd, early_exit=False) != 0:
+    if os_system(kind_load_cmd, early_exit=False) != 0:
         print("Cannot load image %s locally, try to pull from remote" % (image))
-        cmd_early_exit("docker pull %s" % (image))
-        cmd_early_exit(kind_load_cmd)
+        os_system("docker pull %s" % (image))
+        os_system(kind_load_cmd)
 
 
 def deploy_controller(test_context: TestContext):
@@ -356,7 +356,7 @@ def deploy_controller(test_context: TestContext):
         print("Installing csi provisioner...")
         org_dir = os.getcwd()
         os.chdir("sieve_aux/csi-driver")
-        cmd_early_exit("./install.sh")
+        os_system("./install.sh")
         os.chdir(org_dir)
 
     deployment_file = test_context.controller_config.controller_deployment_file_path
@@ -377,7 +377,7 @@ def deploy_controller(test_context: TestContext):
     # run the deploy script
     org_dir = os.getcwd()
     os.chdir(deploy_directory(test_context))
-    cmd_early_exit("./deploy.sh")
+    os_system("./deploy.sh")
     os.chdir(org_dir)
 
     # restore deployment file
@@ -493,18 +493,18 @@ def run_workload(
             "" if i == 0 else str(i + 1)
         )
         apiserver_log = "apiserver%s.log" % (str(i + 1))
-        cmd_early_exit(
+        os_system(
             "kubectl logs %s -n kube-system > %s/%s"
             % (apiserver_name, test_context.result_dir, apiserver_log)
         )
 
     if test_context.mode != sieve_modes.VANILLA:
-        cmd_early_exit(
+        os_system(
             "docker cp kind-control-plane:/sieve_server/sieve-server.log %s/sieve-server.log"
             % (test_context.result_dir)
         )
 
-    cmd_early_exit(
+    os_system(
         "kubectl logs %s %s > %s/operator.log"
         % (pod_name, select_container_from_pod, test_context.result_dir)
     )
@@ -822,5 +822,5 @@ if __name__ == "__main__":
             test_result,
             start_time,
         )
-    cmd_early_exit("kind delete cluster")
+    os_system("kind delete cluster")
     print("Total time: {} seconds".format(time.time() - start_time))
