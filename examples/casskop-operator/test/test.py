@@ -33,4 +33,4 @@ test_cases = {
     .cmd("kubectl apply -f examples/casskop-operator/test/nodes-0.yaml"),
 }
 
-test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])
+test_cases[sys.argv[1]].run(sys.argv[2])

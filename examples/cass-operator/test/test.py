@@ -39,4 +39,4 @@ test_cases = {
     .wait_for_pod_status("cluster1-cassandra-datacenter-default-sts-1", RUNNING, 150),
 }
 
-test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])
+test_cases[sys.argv[1]].run(sys.argv[2])

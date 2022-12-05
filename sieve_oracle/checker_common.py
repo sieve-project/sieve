@@ -311,9 +311,7 @@ def print_error_and_debugging_info(test_context: TestContext, test_result: TestR
 
     if len(test_result.common_errors) > 0:
         cprint(
-            "{} detected common errors as follows".format(
-                len(test_result.common_errors)
-            ),
+            "{} detected errors as follows".format(len(test_result.common_errors)),
             bcolors.FAIL,
         )
         cprint("\n".join(test_result.common_errors) + "\n", bcolors.FAIL)

@@ -78,4 +78,4 @@ test_cases = {
     .wait_for_pod_status("mongodb-cluster-cfg-2", RUNNING),
 }
 
-test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])
+test_cases[sys.argv[1]].run(sys.argv[2])

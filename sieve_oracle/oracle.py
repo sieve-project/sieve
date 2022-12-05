@@ -57,7 +57,6 @@ def canonicalize_history_and_state(test_context: TestContext):
 
 def operator_panic_checker(test_context: TestContext):
     operator_log = os.path.join(test_context.result_dir, "streamed-operator.log")
-    ret_val = 0
     messages = []
     file = open(operator_log)
     for line in file.readlines():
@@ -66,41 +65,39 @@ def operator_panic_checker(test_context: TestContext):
             messages.append(
                 generate_alarm("Exception from controller:", panic_in_file.strip())
             )
-            ret_val += 1
     messages.sort()
-    return ret_val, messages
+    return messages
 
 
-def test_failure_checker(test_context: TestContext):
+def workload_error_checker(test_context: TestContext):
     workload_log = os.path.join(test_context.result_dir, "workload.log")
-    ret_val = 0
     messages = []
     file = open(workload_log)
     for line in file.readlines():
-        if line.startswith("error:"):
-            ret_val += 1
-            messages.append(generate_alarm("Error from the workload:", line.strip()))
+        if line.startswith("FINISH-SIEVE-TEST"):
+            break
+        if "pauseController" in test_context.action_types and line.startswith(
+            "Conditional wait timeout"
+        ):
+            continue
+        messages.append(generate_alarm("Error:", line.strip()))
     messages.sort()
-    return ret_val, messages
+    return messages
 
 
 def textbook_checker(test_context: TestContext):
-    ret_val = 0
     messages = []
     if test_context.common_config.controller_exception_check_enabled:
-        panic_ret_val, panic_messages = operator_panic_checker(test_context)
-        ret_val += panic_ret_val
+        panic_messages = operator_panic_checker(test_context)
         messages.extend(panic_messages)
 
     if test_context.common_config.workload_error_check_enabled:
-        workload_ret_val, workload_messages = test_failure_checker(test_context)
-        ret_val += workload_ret_val
+        workload_messages = workload_error_checker(test_context)
         messages.extend(workload_messages)
-    return ret_val, messages
+    return messages
 
 
 def safety_checker(test_context: TestContext):
-    ret_val = 0
     messages = []
     if test_context.common_config.state_update_summary_check_enabled:
         if not (
@@ -110,42 +107,32 @@ def safety_checker(test_context: TestContext):
             and test_context.test_plan_content["actions"][0]["pauseAt"]
             == "beforeControllerRead"
         ):
-            (
-                compare_history_digests_ret_val,
-                compare_history_digests_messages,
-            ) = compare_history_digests(test_context)
-            ret_val += compare_history_digests_ret_val
+            compare_history_digests_messages = compare_history_digests(test_context)
             messages.extend(compare_history_digests_messages)
     for checker_suite in customized_safety_checker_suites:
-        (safety_checker_ret_val, safety_checker_messages) = apply_safety_checker(
+        safety_checker_messages = apply_safety_checker(
             test_context,
             checker_suite.resource_keys,
             checker_suite.checker_name,
             checker_suite.checker_function,
         )
-        ret_val += safety_checker_ret_val
         messages.extend(safety_checker_messages)
-    return ret_val, messages
+    return messages
 
 
 def liveness_checker(test_context: TestContext):
-    ret_val = 0
     messages = []
     if test_context.common_config.end_state_check_enabled:
         # TODO: this is overkill; we should exclude the csi related objects only
         if not (
             test_context.use_csi_driver_for_ref and not test_context.use_csi_driver
         ):
-            compare_states_ret_val, compare_states_messages = compare_states(
-                test_context
-            )
-            ret_val += compare_states_ret_val
+            compare_states_messages = compare_states(test_context)
             messages.extend(compare_states_messages)
-    return ret_val, messages
+    return messages
 
 
 def check(test_context: TestContext):
-    ret_val = 0
     common_errors = []
     end_state_errors = []
     history_errors = []
@@ -154,16 +141,13 @@ def check(test_context: TestContext):
 
     injection_completed, workload_completed = test_run_validation(test_context)
 
-    textbook_ret_val, textbook_messages = textbook_checker(test_context)
-    ret_val += textbook_ret_val
+    textbook_messages = textbook_checker(test_context)
     common_errors.extend(textbook_messages)
 
-    safety_ret_val, safety_messages = safety_checker(test_context)
-    ret_val += safety_ret_val
+    safety_messages = safety_checker(test_context)
     history_errors.extend(safety_messages)
 
-    liveness_ret_val, liveness_messages = liveness_checker(test_context)
-    ret_val += liveness_ret_val
+    liveness_messages = liveness_checker(test_context)
     end_state_errors.extend(liveness_messages)
 
     return TestResult(

@@ -63,4 +63,4 @@ test_cases = {
     .wait_for_pod_status("xtradb-cluster-pxc-4", TERMINATED, 300),
 }
 
-test_cases[sys.argv[1]].run(sys.argv[2], sys.argv[3])
+test_cases[sys.argv[1]].run(sys.argv[2])

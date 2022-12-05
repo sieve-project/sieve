@@ -15,8 +15,8 @@ class CommonConfig:
         controller_exception_check_enabled,
         state_update_summary_check_event_list,
         compress_trivial_reconcile_enabled,
-        workload_hard_timeout,
-        workload_soft_timeout,
+        workload_conditional_wait_timeout,
+        workload_command_wait_timeout,
         generate_debugging_information_enabled,
         causality_pruning_enabled,
         effective_updates_pruning_enabled,
@@ -39,8 +39,8 @@ class CommonConfig:
             state_update_summary_check_event_list
         )
         self.compress_trivial_reconcile_enabled = compress_trivial_reconcile_enabled
-        self.workload_hard_timeout = workload_hard_timeout
-        self.workload_soft_timeout = workload_soft_timeout
+        self.workload_conditional_wait_timeout = workload_conditional_wait_timeout
+        self.workload_command_wait_timeout = workload_command_wait_timeout
         self.generate_debugging_information_enabled = (
             generate_debugging_information_enabled
         )
@@ -80,8 +80,10 @@ def get_common_config():
         compress_trivial_reconcile_enabled=common_config[
             "compress_trivial_reconcile_enabled"
         ],
-        workload_hard_timeout=common_config["workload_hard_timeout"],
-        workload_soft_timeout=common_config["workload_soft_timeout"],
+        workload_conditional_wait_timeout=common_config[
+            "workload_conditional_wait_timeout"
+        ],
+        workload_command_wait_timeout=common_config["workload_command_wait_timeout"],
         generate_debugging_information_enabled=[
             "generate_debugging_information_enabled"
         ],
