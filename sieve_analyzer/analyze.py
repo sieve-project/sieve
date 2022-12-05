@@ -1,11 +1,11 @@
 import copy
 import os
-import shutil
 from typing import List
 from sieve_common.common import (
     TestContext,
     fail,
     sieve_built_in_test_patterns,
+    rmtree_if_exists,
 )
 from sieve_perturbation_policies.intermediate_state import intermediate_state_analysis
 from sieve_perturbation_policies.stale_state import stale_state_analysis
@@ -357,9 +357,8 @@ def generate_test_config(
 ):
     log_dir = test_context.result_dir
     generated_config_dir = os.path.join(log_dir, analysis_mode)
-    if os.path.isdir(generated_config_dir):
-        shutil.rmtree(generated_config_dir)
-    os.makedirs(generated_config_dir, exist_ok=True)
+    rmtree_if_exists(generated_config_dir)
+    os.makedirs(generated_config_dir)
     if analysis_mode == sieve_built_in_test_patterns.STALE_STATE:
         return stale_state_analysis(event_graph, generated_config_dir, test_context)
     elif analysis_mode == sieve_built_in_test_patterns.UNOBSERVED_STATE:

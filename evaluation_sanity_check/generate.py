@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from sieve_common.config import get_common_config
 from evaluation_sanity_check import common
 
@@ -56,7 +57,7 @@ def collect_spec():
 
 
 def overwrite_config_json(new_config):
-    os.system("cp sieve_config.json sieve_config.json.bkp")
+    shutil.copy("sieve_config.json", "sieve_config.json.bkp")
     my_config = json.load(open("sieve_config.json"))
     for key in new_config:
         my_config[key] = new_config[key]
@@ -64,7 +65,7 @@ def overwrite_config_json(new_config):
 
 
 def recover_config_json():
-    os.system("cp sieve_config.json.bkp sieve_config.json")
+    shutil.copy("sieve_config.json.bkp", "sieve_config.json")
 
 
 def learn_all():

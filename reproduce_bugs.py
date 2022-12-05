@@ -3,7 +3,8 @@ from sieve_common.config import get_common_config
 import os
 import json
 import time
-from sieve_common.common import cprint, bcolors
+from sieve_common.common import cprint, bcolors, rmtree_if_exists
+import shutil
 
 
 def before_reproducing_yugabyte_operator_indirect_1():
@@ -13,7 +14,7 @@ def before_reproducing_yugabyte_operator_indirect_1():
     bkp_crd = (
         "examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml.bkp"
     )
-    os.system("cp {} {}".format(current_crd, bkp_crd))
+    shutil.copy(current_crd, bkp_crd)
     fin = open(current_crd)
     data = fin.read()
     data = data.replace("# minimum: 1", "minimum: 1")
@@ -30,13 +31,13 @@ def after_reproducing_yugabyte_operator_indirect_1():
     bkp_crd = (
         "examples/yugabyte-operator/deploy/crds/yugabyte.com_ybclusters_crd.yaml.bkp"
     )
-    os.system("mv {} {}".format(bkp_crd, current_crd))
+    shutil.move(bkp_crd, current_crd)
 
 
 def before_reproducing_cassandra_operator_indirect_1():
     current_cfg = "examples/cassandra-operator/config.json"
     bkp_cfg = "examples/cassandra-operator/config.json.bkp"
-    os.system("cp {} {}".format(current_cfg, bkp_cfg))
+    shutil.copy(current_cfg, bkp_cfg)
     data = json.load(open(current_cfg))
     del data["cherry_pick_commits"]
     json.dump(data, open(current_cfg, "w"), indent=4)
@@ -49,7 +50,7 @@ def before_reproducing_cassandra_operator_indirect_1():
 def after_reproducing_cassandra_operator_indirect_1():
     current_cfg = "examples/cassandra-operator/config.json"
     bkp_cfg = "examples/cassandra-operator/config.json.bkp"
-    os.system("mv {} {}".format(bkp_cfg, current_cfg))
+    shutil.move(bkp_cfg, current_cfg)
     print(
         "building cassandra-operator image with the fix of https://github.com/instaclustr/cassandra-operator/issues/400"
     )
@@ -325,20 +326,6 @@ def generate_table3():
         open("table3.tsv", "w").write(table)
 
 
-def backup_old_results():
-    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    if os.path.exists("sieve_test_results"):
-        os.system("cp -r sieve_test_results/ sieve_test_results.{}/".format(timestamp))
-    if os.path.exists("bug_reproduction_stats.tsv"):
-        os.system(
-            "cp bug_reproduction_stats.tsv bug_reproduction_stats.{}.tsv".format(
-                timestamp
-            )
-        )
-    if os.path.exists("table3.tsv"):
-        os.system("cp table3.tsv table3.{}.tsv".format(timestamp))
-
-
 if __name__ == "__main__":
     common_config = get_common_config()
     usage = "usage: python3 sieve.py [options]"
@@ -391,7 +378,7 @@ if __name__ == "__main__":
         parser.error("parameter bug required")
 
     if not options.skip:
-        os.system("rm -rf sieve_test_results")
+        rmtree_if_exists("sieve_test_results")
 
     stats_map = {}
     if options.controller == "all":

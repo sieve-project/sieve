@@ -38,6 +38,7 @@ from sieve_common.common import (
     sieve_modes,
     cmd_early_exit,
     deploy_directory,
+    rmtree_if_exists,
 )
 
 
@@ -204,16 +205,16 @@ def prepare_sieve_server(test_context: TestContext):
             sort_keys=True,
         )
         learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
-        cmd_early_exit(
-            "mv %s sieve_server/%s"
-            % (configured_field_key_mask_json, configured_field_key_mask_json)
+        shutil.move(
+            configured_field_key_mask_json,
+            "sieve_server/%s" % (configured_field_key_mask_json),
         )
-        cmd_early_exit(
-            "mv %s sieve_server/%s"
-            % (configured_field_path_mask_json, configured_field_path_mask_json)
+        shutil.move(
+            configured_field_path_mask_json,
+            "sieve_server/%s" % (configured_field_path_mask_json),
         )
-        cmd_early_exit("cp %s sieve_server/learned_field_path_mask.json" % learned_mask)
-    cmd_early_exit("cp %s sieve_server/server.yaml" % test_context.test_plan)
+        shutil.copy(learned_mask, "sieve_server/learned_field_path_mask.json")
+    shutil.copy(test_context.test_plan, "sieve_server/server.yaml")
     org_dir = os.getcwd()
     os.chdir("sieve_server")
     cmd_early_exit("go mod tidy")
@@ -271,7 +272,7 @@ def setup_cluster(test_context: TestContext):
     setup_kind_cluster(test_context)
     print("\n\n")
 
-    cmd_early_exit("rm -rf %s" % test_context.result_dir)
+    rmtree_if_exists(test_context.result_dir)
     os.makedirs(test_context.result_dir)
     if (
         test_context.mode == sieve_modes.LEARN
@@ -353,7 +354,10 @@ def setup_cluster(test_context: TestContext):
 def deploy_controller(test_context: TestContext):
     if test_context.use_csi_driver:
         print("Installing csi provisioner...")
-        cmd_early_exit("cd sieve_aux/csi-driver && ./install.sh")
+        org_dir = os.getcwd()
+        os.chdir("sieve_aux/csi-driver")
+        cmd_early_exit("./install.sh")
+        os.chdir(org_dir)
 
     deployment_file = test_context.controller_config.controller_deployment_file_path
     # backup deployment file
