@@ -14,7 +14,7 @@ test_cases = {
     .cmd("kubectl apply -f examples/casskop-operator/test/cc-1.yaml")
     .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING)
     .cmd("kubectl delete CassandraCluster cassandra-cluster")
-    .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", TERMINATED, soft_time_out=20)
+    .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", TERMINATED, timeout=20)
     .cmd("kubectl apply -f examples/casskop-operator/test/cc-1.yaml")
     .wait_for_pod_status("cassandra-cluster-dc1-rack1-0", RUNNING),
     "reducepdb": new_built_in_workload(110)
