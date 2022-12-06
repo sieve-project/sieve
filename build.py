@@ -29,7 +29,7 @@ def update_sieve_client_go_mod_with_version(go_mod_path, version):
     data = fin.read()
     data = data.replace(
         "k8s.io/apimachinery v0.18.9",
-        "k8s.io/apimachinery %s" % version,
+        "k8s.io/apimachinery {}".format(version),
     )
     fin.close()
     fout = open(go_mod_path, "w")
@@ -41,8 +41,9 @@ def download_kubernetes(version):
     rmtree_if_exists("fakegopath")
     os.makedirs("fakegopath/src/k8s.io")
     os_system(
-        "git clone --single-branch --branch %s https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null"
-        % version
+        "git clone --single-branch --branch {} https://github.com/kubernetes/kubernetes.git fakegopath/src/k8s.io/kubernetes >> /dev/null".format(
+            version
+        )
     )
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     os_system("git checkout -b sieve >> /dev/null")
@@ -74,7 +75,7 @@ def instrument_kubernetes(mode):
     instrumentation_config = {
         "project": "kubernetes",
         "mode": mode,
-        "k8s_filepath": "%s/fakegopath/src/k8s.io/kubernetes" % (ORIGINAL_DIR),
+        "k8s_filepath": "{}/fakegopath/src/k8s.io/kubernetes".format(ORIGINAL_DIR),
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
     os_system("go mod tidy")
@@ -86,18 +87,20 @@ def instrument_kubernetes(mode):
 def build_kubernetes(version, container_registry, image_tag):
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     os_system(
-        "GOPATH=%s/fakegopath KUBE_GIT_VERSION=%s-sieve-`git rev-parse HEAD` kind build node-image"
-        % (ORIGINAL_DIR, version)
+        "GOPATH={}/fakegopath KUBE_GIT_VERSION={}-sieve-`git rev-parse HEAD` kind build node-image".format(
+            ORIGINAL_DIR, version
+        )
     )
     os.chdir(ORIGINAL_DIR)
     os_system(
-        "docker image tag kindest/node:latest %s/node:%s"
-        % (container_registry, image_tag)
+        "docker image tag kindest/node:latest {}/node:{}".format(
+            container_registry, image_tag
+        )
     )
 
 
 def push_kubernetes(container_registry, image_tag):
-    os_system("docker push %s/node:%s" % (container_registry, image_tag))
+    os_system("docker push {}/node:{}".format(container_registry, image_tag))
 
 
 def setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote):
@@ -116,14 +119,15 @@ def download_controller(
     application_dir = os.path.join("app", controller_config.controller_name)
     rmtree_if_exists(application_dir)
     os_system(
-        "git clone %s %s >> /dev/null"
-        % (controller_config.github_link, application_dir)
+        "git clone {} {} >> /dev/null".format(
+            controller_config.github_link, application_dir
+        )
     )
     os.chdir(application_dir)
-    os_system("git checkout %s >> /dev/null" % controller_config.commit)
+    os_system("git checkout {} >> /dev/null".format(controller_config.commit))
     os_system("git checkout -b sieve >> /dev/null")
     for commit in controller_config.cherry_pick_commits:
-        os_system("git cherry-pick %s" % commit)
+        os_system("git cherry-pick {}".format(commit))
     os.chdir(ORIGINAL_DIR)
 
 
@@ -140,71 +144,57 @@ def remove_replacement_in_go_mod_file(file):
             go_mod_file.write(line)
 
 
+def install_module(module, sieve_dep_src_dir):
+    module_src = os.path.join(GOPATH, "pkg/mod", module)
+    module_dst = os.path.join(sieve_dep_src_dir, module)
+    os_system("go mod download {} >> /dev/null".format(module))
+    os.makedirs(os.path.join(sieve_dep_src_dir, os.path.dirname(module)))
+    shutil.copytree(
+        module_src,
+        module_dst,
+    )
+    add_mod_recursively(module_dst, stat.S_IWRITE)
+
+
 def install_lib_for_controller(
     common_config: CommonConfig, controller_config: ControllerConfig
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
-    # download controller_runtime
-    os_system(
-        "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
-        % controller_config.controller_runtime_version
-    )
-    os.makedirs("%s/sieve-dependency/src/sigs.k8s.io" % application_dir)
-    shutil.copytree(
-        "%s/pkg/mod/sigs.k8s.io/controller-runtime@%s"
-        % (GOPATH, controller_config.controller_runtime_version),
-        "%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
-        % (
-            application_dir,
-            controller_config.controller_runtime_version,
-        ),
-    )
-    add_mod_recursively(
-        "%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
-        % (
-            application_dir,
-            controller_config.controller_runtime_version,
-        ),
-        stat.S_IWRITE,
+    sieve_dep_src_dir = os.path.join(
+        application_dir,
+        "sieve-dependency/src",
     )
 
-    # download client_go
-    os_system(
-        "go mod download k8s.io/client-go@%s >> /dev/null"
-        % controller_config.client_go_version
-    )
-    os.makedirs("%s/sieve-dependency/src/k8s.io" % application_dir)
-    shutil.copytree(
-        "%s/pkg/mod/k8s.io/client-go@%s"
-        % (GOPATH, controller_config.client_go_version),
-        "%s/sieve-dependency/src/k8s.io/client-go@%s"
-        % (
-            application_dir,
-            controller_config.client_go_version,
-        ),
-    )
-    add_mod_recursively(
-        "%s/sieve-dependency/src/k8s.io/client-go@%s"
-        % (
-            application_dir,
-            controller_config.client_go_version,
-        ),
-        stat.S_IWRITE,
-    )
+    # install sieve_client
     shutil.copytree(
         "sieve_client",
-        "%s/sieve-dependency/src/sieve.client" % (application_dir),
+        os.path.join(
+            sieve_dep_src_dir,
+            "sieve.client",
+        ),
     )
     if controller_config.kubernetes_version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
-            "%s/sieve-dependency/src/sieve.client/go.mod" % application_dir,
+            os.path.join(sieve_dep_src_dir, "sieve.client", "go.mod"),
             K8S_VER_TO_APIMACHINERY_VER[controller_config.kubernetes_version],
         )
     elif controller_config.apimachinery_version is not None:
         update_sieve_client_go_mod_with_version(
-            "%s/sieve-dependency/src/sieve.client/go.mod" % application_dir,
+            os.path.join(sieve_dep_src_dir, "sieve.client", "go.mod"),
             controller_config.apimachinery_version,
         )
+
+    install_module(
+        "sigs.k8s.io/controller-runtime@{}".format(
+            controller_config.controller_runtime_version
+        ),
+        sieve_dep_src_dir,
+    )
+    install_module(
+        "k8s.io/client-go@{}".format(controller_config.client_go_version),
+        sieve_dep_src_dir,
+    )
+
     # download the other dependencies
     downloaded_module = set()
     for api_to_instrument in controller_config.apis_to_instrument:
@@ -212,17 +202,7 @@ def install_lib_for_controller(
         if module in downloaded_module:
             continue
         downloaded_module.add(module)
-        os_system("go mod download %s >> /dev/null" % module)
-        os.makedirs(
-            "%s/sieve-dependency/src/%s" % (application_dir, os.path.dirname(module))
-        )
-        shutil.copytree(
-            "%s/pkg/mod/%s" % (GOPATH, module),
-            "%s/sieve-dependency/src/%s" % (application_dir, module),
-        )
-        add_mod_recursively(
-            "%s/sieve-dependency/src/%s" % (application_dir, module), stat.S_IWRITE
-        )
+        install_module(module, sieve_dep_src_dir)
 
     os.chdir(application_dir)
     os_system("git add -A >> /dev/null")
@@ -236,20 +216,27 @@ def update_go_mod_for_controller(
     controller_config: ControllerConfig,
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
+    sieve_dep_src_dir = os.path.join(
+        application_dir,
+        "sieve-dependency/src",
+    )
+
     # modify the go.mod to import the libs
-    remove_replacement_in_go_mod_file("%s/go.mod" % application_dir)
-    with open("%s/go.mod" % application_dir, "a") as go_mod_file:
+    remove_replacement_in_go_mod_file(os.path.join(application_dir, "go.mod"))
+    with open("{}/go.mod".format(application_dir), "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write(
             "replace sieve.client => ./sieve-dependency/src/sieve.client\n"
         )
         go_mod_file.write(
-            "replace sigs.k8s.io/controller-runtime => ./sieve-dependency/src/sigs.k8s.io/controller-runtime@%s\n"
-            % controller_config.controller_runtime_version
+            "replace sigs.k8s.io/controller-runtime => ./sieve-dependency/src/sigs.k8s.io/controller-runtime@{}\n".format(
+                controller_config.controller_runtime_version
+            )
         )
         go_mod_file.write(
-            "replace k8s.io/client-go => ./sieve-dependency/src/k8s.io/client-go@%s\n"
-            % controller_config.client_go_version
+            "replace k8s.io/client-go => ./sieve-dependency/src/k8s.io/client-go@{}\n".format(
+                controller_config.client_go_version
+            )
         )
         added_module = set()
         for api_to_instrument in controller_config.apis_to_instrument:
@@ -258,28 +245,36 @@ def update_go_mod_for_controller(
                 continue
             added_module.add(module)
             go_mod_file.write(
-                "replace %s => ./sieve-dependency/src/%s\n"
-                % (module.split("@")[0], module)
+                "replace {} => ./sieve-dependency/src/{}\n".format(
+                    module.split("@")[0], module
+                )
             )
 
     # TODO: do we need to modify go.mod in controller-runtime and client-go?
-    with open(
-        "%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s/go.mod"
-        % (
-            application_dir,
-            controller_config.controller_runtime_version,
+    controller_runtime_go_mod = os.path.join(
+        sieve_dep_src_dir,
+        "sigs.k8s.io/controller-runtime@{}/go.mod".format(
+            controller_config.controller_runtime_version
         ),
+    )
+    with open(
+        controller_runtime_go_mod,
         "a",
     ) as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
         go_mod_file.write("replace sieve.client => ../../sieve.client\n")
         go_mod_file.write(
-            "replace k8s.io/client-go => ../../k8s.io/client-go@%s\n"
-            % controller_config.client_go_version
+            "replace k8s.io/client-go => ../../k8s.io/client-go@{}\n".format(
+                controller_config.client_go_version
+            )
         )
+
+    client_go_go_mod = os.path.join(
+        sieve_dep_src_dir,
+        "k8s.io/client-go@{}/go.mod".format(controller_config.client_go_version),
+    )
     with open(
-        "%s/sieve-dependency/src/k8s.io/client-go@%s/go.mod"
-        % (application_dir, controller_config.client_go_version),
+        client_go_go_mod,
         "a",
     ) as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
@@ -308,15 +303,13 @@ def instrument_controller(
     instrumentation_config = {
         "project": controller_config.controller_name,
         "mode": mode,
-        "app_file_path": "%s/%s" % (ORIGINAL_DIR, application_dir),
-        "controller_runtime_filepath": "%s/%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
-        % (
+        "app_file_path": os.path.join(ORIGINAL_DIR, application_dir),
+        "controller_runtime_filepath": "{}/{}/sieve-dependency/src/sigs.k8s.io/controller-runtime@{}".format(
             ORIGINAL_DIR,
             application_dir,
             controller_config.controller_runtime_version,
         ),
-        "client_go_filepath": "%s/%s/sieve-dependency/src/k8s.io/client-go@%s"
-        % (
+        "client_go_filepath": "{}/{}/sieve-dependency/src/k8s.io/client-go@{}".format(
             ORIGINAL_DIR,
             application_dir,
             controller_config.client_go_version,
@@ -436,11 +429,10 @@ def build_controller(
 ):
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir(application_dir)
-    os_system("./build.sh %s %s" % (container_registry, image_tag))
+    os_system("./build.sh {} {}".format(container_registry, image_tag))
     os.chdir(ORIGINAL_DIR)
     os.system(
-        "docker tag %s %s/%s:%s"
-        % (
+        "docker tag {} {}/{}:{}".format(
             controller_config.controller_image_name,
             container_registry,
             controller_config.controller_name,
@@ -456,8 +448,7 @@ def push_controller(
     container_registry,
 ):
     os_system(
-        "docker push %s/%s:%s"
-        % (
+        "docker push {}/{}:{}".format(
             container_registry,
             controller_config.controller_name,
             image_tag,
@@ -624,7 +615,7 @@ if __name__ == "__main__":
         sieve_modes.LEARN,
         sieve_modes.ALL,
     ]:
-        parser.error("invalid build mode option: %s" % options.mode)
+        parser.error("invalid build mode option: {}".format(options.mode))
 
     if options.controller_config_dir is None:
         setup_kubernetes_wrapper(

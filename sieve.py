@@ -106,7 +106,7 @@ def save_run_result(
 def watch_crd(crds, addrs):
     for addr in addrs:
         for crd in crds:
-            os_system("kubectl get %s -s %s --ignore-not-found=true" % (crd, addr))
+            os_system("kubectl get {} -s {} --ignore-not-found=true".format(crd, addr))
 
 
 def generate_configmap(test_plan):
@@ -116,7 +116,7 @@ def generate_configmap(test_plan):
     configmap["kind"] = "ConfigMap"
     configmap["metadata"] = {"name": "sieve-testing-global-config"}
     configmap["data"] = {"sieveTestPlan": test_plan_content}
-    configmap_path = "%s-configmap.yaml" % test_plan[:-5]
+    configmap_path = "{}-configmap.yaml".format(test_plan[:-5])
     yaml.dump(configmap, open(configmap_path, "w"), sort_keys=False)
     return configmap_path
 
@@ -126,8 +126,7 @@ def generate_kind_config(num_apiservers, num_workers):
     os.makedirs(kind_config_dir, exist_ok=True)
     kind_config_filename = os.path.join(
         kind_config_dir,
-        "kind-%sa-%sw.yaml"
-        % (
+        "kind-{}a-{}w.yaml".format(
             str(num_apiservers),
             str(num_workers),
         ),
@@ -149,10 +148,11 @@ def redirect_workers(test_context: TestContext):
     for i in range(test_context.num_workers):
         worker = "kind-worker" + (str(i + 1) if i > 0 else "")
         os_system(
-            "docker exec %s bash -c \"sed -i 's/kind-external-load-balancer/%s/g' /etc/kubernetes/kubelet.conf\""
-            % (worker, leading_api)
+            "docker exec {} bash -c \"sed -i 's/kind-external-load-balancer/{}/g' /etc/kubernetes/kubelet.conf\"".format(
+                worker, leading_api
+            )
         )
-        os_system('docker exec %s bash -c "systemctl restart kubelet"' % worker)
+        os_system('docker exec {} bash -c "systemctl restart kubelet"'.format(worker))
 
 
 def redirect_kubectl():
@@ -167,7 +167,7 @@ def redirect_kubectl():
     target_prefix = "    server: https://127.0.0.1:"
     fin = open(kube_config)
     data = fin.read()
-    print("replace %s w %s in %s" % (balancer_port, cp_port, kube_config))
+    print("replace {} w {} in {}".format(balancer_port, cp_port, kube_config))
     data = data.replace(target_prefix + balancer_port, target_prefix + cp_port)
     fin.close()
     fin = open(kube_config, "w")
@@ -207,11 +207,11 @@ def prepare_sieve_server(test_context: TestContext):
         learned_mask = os.path.join(test_context.oracle_dir, "mask.json")
         shutil.move(
             configured_field_key_mask_json,
-            "sieve_server/%s" % (configured_field_key_mask_json),
+            "sieve_server/{}".format(configured_field_key_mask_json),
         )
         shutil.move(
             configured_field_path_mask_json,
-            "sieve_server/%s" % (configured_field_path_mask_json),
+            "sieve_server/{}".format(configured_field_path_mask_json),
         )
         shutil.copy(learned_mask, "sieve_server/learned_field_path_mask.json")
     shutil.copy(test_context.test_plan, "sieve_server/server.yaml")
@@ -231,8 +231,9 @@ def start_sieve_server(test_context: TestContext):
         else sieve_modes.LEARN
     )
     os_system(
-        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server %s &> sieve-server.log &'"
-        % sieve_server_mode
+        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server {} &> sieve-server.log &'".format(
+            sieve_server_mode
+        )
     )
 
 
@@ -257,8 +258,9 @@ def setup_kind_cluster(test_context: TestContext):
             retry_cnt += 1
             print("try to create kind cluster; retry count {}".format(retry_cnt))
             os_system(
-                "kind create cluster --image %s/node:%s --config %s"
-                % (k8s_container_registry, k8s_image_tag, kind_config)
+                "kind create cluster --image {}/node:{} --config {}".format(
+                    k8s_container_registry, k8s_image_tag, kind_config
+                )
             )
             os_system(
                 "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
@@ -278,19 +280,19 @@ def setup_cluster(test_context: TestContext):
         test_context.mode == sieve_modes.LEARN
         or test_context.mode == sieve_modes.GEN_ORACLE
     ):
-        print("Learn with: %s" % test_context.test_plan)
+        print("Learn with: {}".format(test_context.test_plan))
         generate_learn_plan(
             test_context.test_plan,
             test_context.controller_config.custom_resource_definitions,
         )
     elif test_context.mode == sieve_modes.VANILLA:
-        print("Vanilla with: %s" % test_context.test_plan)
+        print("Vanilla with: {}".format(test_context.test_plan))
         generate_vanilla_plan(test_context.test_plan)
     else:
         assert test_context.mode == sieve_modes.TEST
-        print("Test with: %s" % test_context.test_plan)
+        print("Test with: {}".format(test_context.test_plan))
         os_system(
-            "cp %s %s" % (test_context.original_test_plan, test_context.test_plan)
+            "cp {} {}".format(test_context.original_test_plan, test_context.test_plan)
         )
 
     # when testing stale-state, we need to pause the apiserver
@@ -335,19 +337,19 @@ def setup_cluster(test_context: TestContext):
 
     time.sleep(3)  # ensure that every apiserver will see the configmap is created
     configmap = generate_configmap(test_context.test_plan)
-    os_system("kubectl apply -f %s" % configmap)
+    os_system("kubectl apply -f {}".format(configmap))
 
     # Preload operator image to kind nodes
-    image = "%s/%s:%s" % (
+    image = "{}/{}:{}".format(
         test_context.container_registry,
         test_context.controller,
         test_context.image_tag,
     )
-    kind_load_cmd = "kind load docker-image %s" % (image)
-    print("Loading image %s to kind nodes..." % (image))
+    kind_load_cmd = "kind load docker-image {}".format(image)
+    print("Loading image {} to kind nodes...".format(image))
     if os_system(kind_load_cmd, early_exit=False) != 0:
-        print("Cannot load image %s locally, try to pull from remote" % (image))
-        os_system("docker pull %s" % (image))
+        print("Cannot load image {} locally, try to pull from remote".format(image))
+        os_system("docker pull {}".format(image))
         os_system(kind_load_cmd)
 
 
@@ -450,7 +452,7 @@ def run_workload(
         os.path.join(test_context.result_dir, "streamed-operator.log"), "w+"
     )
     streaming = subprocess.Popen(
-        "kubectl logs %s %s -f" % (pod_name, select_container_from_pod),
+        "kubectl logs {} {} -f".format(pod_name, select_container_from_pod),
         stdout=streamed_log_file,
         stderr=streamed_log_file,
         shell=True,
@@ -469,7 +471,7 @@ def run_workload(
     )
 
     cprint("Running test workload...", bcolors.OKGREEN)
-    test_command = "%s %s %s" % (
+    test_command = "{} {} {}".format(
         test_context.controller_config.test_command,
         test_context.test_workload,
         os.path.join(test_context.result_dir, "workload.log"),
@@ -492,21 +494,24 @@ def run_workload(
         apiserver_name = "kube-apiserver-kind-control-plane" + (
             "" if i == 0 else str(i + 1)
         )
-        apiserver_log = "apiserver%s.log" % (str(i + 1))
+        apiserver_log = "apiserver{}.log".format(str(i + 1))
         os_system(
-            "kubectl logs %s -n kube-system > %s/%s"
-            % (apiserver_name, test_context.result_dir, apiserver_log)
+            "kubectl logs {} -n kube-system > {}/{}".format(
+                apiserver_name, test_context.result_dir, apiserver_log
+            )
         )
 
     if test_context.mode != sieve_modes.VANILLA:
         os_system(
-            "docker cp kind-control-plane:/sieve_server/sieve-server.log %s/sieve-server.log"
-            % (test_context.result_dir)
+            "docker cp kind-control-plane:/sieve_server/sieve-server.log {}/sieve-server.log".format(
+                test_context.result_dir
+            )
         )
 
     os_system(
-        "kubectl logs %s %s > %s/operator.log"
-        % (pod_name, select_container_from_pod, test_context.result_dir)
+        "kubectl logs {} {} > {}/operator.log".format(
+            pod_name, select_container_from_pod, test_context.result_dir
+        )
     )
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
@@ -632,7 +637,7 @@ def run(
         mode,
         os.path.basename(test_plan),
     )
-    print("Log dir: %s" % result_dir)
+    print("Log dir: {}".format(result_dir))
     image_tag = sieve_modes.LEARN if mode == sieve_modes.GEN_ORACLE else mode
     test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
     test_context = TestContext(
@@ -780,9 +785,9 @@ if __name__ == "__main__":
         "setup_workload",
         "workload_check",
     ]:
-        parser.error("invalid phase option: %s" % options.phase)
+        parser.error("invalid phase option: {}".format(options.phase))
 
-    print("Running Sieve with mode: %s..." % options.mode)
+    print("Running Sieve with mode: {}...".format(options.mode))
 
     if options.batch:
         run_batch(

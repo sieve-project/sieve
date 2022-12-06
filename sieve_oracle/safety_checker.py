@@ -23,13 +23,17 @@ def masked_resource_key_for_state_update_summary_checker(
                 if masked_key == resource_key or PurePath("/" + resource_key).match(
                     "/" + masked_key
                 ):
-                    print("Skipping %s for state-update-summary checker" % resource_key)
+                    print(
+                        "Skipping {} for state-update-summary checker".format(
+                            resource_key
+                        )
+                    )
                     return True
     for masked_key in common_mask:
         if masked_key == resource_key or PurePath("/" + resource_key).match(
             "/" + masked_key
         ):
-            print("Skipping %s for state-update-summary checker" % resource_key)
+            print("Skipping {} for state-update-summary checker".format(resource_key))
             return True
     return False
 

@@ -270,7 +270,7 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[EventVertex]]):
                 pruned_vertex_pairs.append(pair)
         else:
             pruned_vertex_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
+    print("<e, s> pairs: {} -> {}".format(len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
@@ -284,7 +284,7 @@ def error_msg_filtering_pass(vertex_pairs: List[List[EventVertex]]):
                 pruned_vertex_pairs.append(pair)
         else:
             pruned_vertex_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
+    print("<e, s> pairs: {} -> {}".format(len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
@@ -378,7 +378,7 @@ def analyze_trace(
     oracle_dir = test_context.oracle_dir
 
     log_path = os.path.join(log_dir, "sieve-server.log")
-    print("Sanity checking the sieve log %s..." % log_path)
+    print("Sanity checking the sieve log {}...".format(log_path))
     sanity_check_sieve_log(log_path)
 
     if not os.path.exists(os.path.join(oracle_dir, "mask.json")):

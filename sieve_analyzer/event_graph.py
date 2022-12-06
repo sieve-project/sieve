@@ -229,15 +229,17 @@ class EventGraph:
         # Be careful!!! The operator_hear_id and operator_write_id are only used to differentiate operator_hears/operator_writes
         # the id value does not indicate which operator_hear/operator_write happens earlier/later
         # TODO(xudong): maybe we should also make the id consistent with start_timestamp?
-        print("%d operator_hear vertices" % len(self.operator_hear_vertices))
-        print("%d operator_write vertices" % len(self.operator_write_vertices))
+        print("{} operator_hear vertices".format(len(self.operator_hear_vertices)))
+        print("{} operator_write vertices".format(len(self.operator_write_vertices)))
         print(
-            "%d edges from operator_hear to operator_write"
-            % len(self.operator_hear_operator_write_edges)
+            "{} edges from operator_hear to operator_write".format(
+                len(self.operator_hear_operator_write_edges)
+            )
         )
         print(
-            "%d edges from operator_write to operator_hear"
-            % len(self.operator_write_operator_hear_edges)
+            "{} edges from operator_write to operator_hear".format(
+                len(self.operator_write_operator_hear_edges)
+            )
         )
         for i in range(len(self.operator_hear_vertices)):
             if i > 0:

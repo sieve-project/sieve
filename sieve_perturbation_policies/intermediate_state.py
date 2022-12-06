@@ -36,7 +36,7 @@ def intermediate_state_detectable_pass(
             operator_write.signature_counter,
         ):
             candidate_vertices.append(vertex)
-    print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
+    print("{} -> {} writes".format(len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -78,7 +78,7 @@ def effective_write_filtering_pass(event_vertices: List[EventVertex]):
                 empty_write = True
             if not empty_write:
                 candidate_vertices.append(vertex)
-    print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
+    print("{} -> {} writes".format(len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -89,7 +89,7 @@ def no_error_write_filtering_pass(event_vertices: List[EventVertex]):
         assert vertex.is_operator_write()
         if vertex.content.error in ALLOWED_ERROR_TYPE:
             candidate_vertices.append(vertex)
-    print("%d -> %d writes" % (len(event_vertices), len(candidate_vertices)))
+    print("{} -> {} writes".format(len(event_vertices), len(candidate_vertices)))
     return candidate_vertices
 
 
@@ -219,7 +219,7 @@ def intermediate_state_analysis(
         )
         i += 1
         file_name = os.path.join(
-            path, "intermediate-state-test-plan-%s.yaml" % (str(i))
+            path, "intermediate-state-test-plan-{}.yaml".format(str(i))
         )
         if test_context.common_config.persist_test_plans_enabled:
             dump_to_yaml(intermediate_state_test_plan, file_name)
@@ -233,12 +233,12 @@ def intermediate_state_analysis(
         )
         i += 1
         file_name = os.path.join(
-            path, "intermediate-state-test-plan-%s.yaml" % (str(i))
+            path, "intermediate-state-test-plan-{}.yaml".format(str(i))
         )
         if test_context.common_config.persist_test_plans_enabled:
             dump_to_yaml(intermediate_state_test_plan, file_name)
     cprint(
-        "Generated %d intermediate-state test plan(s) in %s" % (i, path),
+        "Generated {} intermediate-state test plan(s) in {}".format(i, path),
         bcolors.OKGREEN,
     )
     return (

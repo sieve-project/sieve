@@ -461,9 +461,9 @@ def compare_states(test_context: TestContext):
             for field in map(str, path[1:]):
                 field_path_list.append(str(field))
                 if field.isdigit():
-                    field_path_for_print += "[%s]" % field
+                    field_path_for_print += "[{}]".format(field)
                 else:
-                    field_path_for_print += '["%s"]' % field
+                    field_path_for_print += '["{}"]'.format(field)
 
             if resource_key_should_be_masked(
                 test_context,
