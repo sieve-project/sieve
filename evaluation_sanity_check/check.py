@@ -17,13 +17,13 @@ def specs_to_map(specs):
 
 
 def check_massive_testing_results(current_dir, previous_dir):
-    for operator in common.controllers_to_check:
-        for test in common.controllers_to_check[operator]:
+    for controller in common.controllers_to_check:
+        for test in common.controllers_to_check[controller]:
             for mode in ["intermediate-state", "unobserved-state", "stale-state"]:
                 cur_specs = glob.glob(
                     os.path.join(
                         current_dir,
-                        operator,
+                        controller,
                         test,
                         "generate-oracle/learn.yaml/" + mode + "/*.yaml",
                     )
@@ -31,7 +31,7 @@ def check_massive_testing_results(current_dir, previous_dir):
                 pre_specs = glob.glob(
                     os.path.join(
                         previous_dir,
-                        operator,
+                        controller,
                         test,
                         "generate-oracle/learn.yaml/" + mode + "/*.yaml",
                     )
@@ -52,7 +52,7 @@ def check_massive_testing_results(current_dir, previous_dir):
 def check_bug_reproduction_test_plans():
     gen_configs = glob.glob(
         os.path.join(
-            "sieve_learn_results/*-operator/*/learn/learn.yaml/*/*.yaml",
+            "sieve_learn_results/*-controller/*/learn/learn.yaml/*/*.yaml",
         )
     )
 

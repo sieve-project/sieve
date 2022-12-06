@@ -131,15 +131,14 @@ def generate_kind_config(num_apiservers, num_workers):
             str(num_workers),
         ),
     )
-    kind_config_file = open(kind_config_filename, "w")
-    kind_config_file.writelines(
-        ["kind: Cluster\n", "apiVersion: kind.x-k8s.io/v1alpha4\n", "nodes:\n"]
-    )
-    for i in range(num_apiservers):
-        kind_config_file.write("- role: control-plane\n")
-    for i in range(num_workers):
-        kind_config_file.write("- role: worker\n")
-    kind_config_file.close()
+    with open(kind_config_filename, "w") as kind_config_file:
+        kind_config_file.writelines(
+            ["kind: Cluster\n", "apiVersion: kind.x-k8s.io/v1alpha4\n", "nodes:\n"]
+        )
+        for i in range(num_apiservers):
+            kind_config_file.write("- role: control-plane\n")
+        for i in range(num_workers):
+            kind_config_file.write("- role: worker\n")
     return kind_config_filename
 
 
@@ -167,7 +166,7 @@ def redirect_kubectl():
     target_prefix = "    server: https://127.0.0.1:"
     fin = open(kube_config)
     data = fin.read()
-    print("replace {} w {} in {}".format(balancer_port, cp_port, kube_config))
+    # print("Replace {} w {} in {}".format(balancer_port, cp_port, kube_config))
     data = data.replace(target_prefix + balancer_port, target_prefix + cp_port)
     fin.close()
     fin = open(kube_config, "w")
@@ -254,9 +253,14 @@ def setup_kind_cluster(test_context: TestContext):
         try:
             os_system("kind delete cluster")
             # sleep here in case if the machine is slow and kind cluster deletion is not done before creating a new cluster
-            time.sleep(5 + 10 * retry_cnt)
+            time.sleep(10 * retry_cnt)
+            if retry_cnt == 0:
+                print("Trying to create kind cluster")
+            else:
+                print(
+                    "Retrying to create kind cluster; retry count {}".format(retry_cnt)
+                )
             retry_cnt += 1
-            print("try to create kind cluster; retry count {}".format(retry_cnt))
             os_system(
                 "kind create cluster --image {}/node:{} --config {}".format(
                     k8s_container_registry, k8s_image_tag, kind_config
@@ -280,17 +284,17 @@ def setup_cluster(test_context: TestContext):
         test_context.mode == sieve_modes.LEARN
         or test_context.mode == sieve_modes.GEN_ORACLE
     ):
-        print("Learn with: {}".format(test_context.test_plan))
+        print("Test plan: {}".format(test_context.test_plan))
         generate_learn_plan(
             test_context.test_plan,
             test_context.controller_config.custom_resource_definitions,
         )
     elif test_context.mode == sieve_modes.VANILLA:
-        print("Vanilla with: {}".format(test_context.test_plan))
+        print("Test plan: {}".format(test_context.test_plan))
         generate_vanilla_plan(test_context.test_plan)
     else:
         assert test_context.mode == sieve_modes.TEST
-        print("Test with: {}".format(test_context.test_plan))
+        print("Test plan: {}".format(test_context.test_plan))
         os_system(
             "cp {} {}".format(test_context.original_test_plan, test_context.test_plan)
         )
@@ -339,7 +343,7 @@ def setup_cluster(test_context: TestContext):
     configmap = generate_configmap(test_context.test_plan)
     os_system("kubectl apply -f {}".format(configmap))
 
-    # Preload operator image to kind nodes
+    # Preload controller image to kind nodes
     image = "{}/{}:{}".format(
         test_context.container_registry,
         test_context.controller,
@@ -387,7 +391,7 @@ def deploy_controller(test_context: TestContext):
     os.remove(backup_deployment_file)
 
 
-def start_operator(test_context: TestContext):
+def start_controller(test_context: TestContext):
     controller = test_context.controller
     num_apiservers = test_context.num_apiservers
     deploy_controller(test_context)
@@ -396,7 +400,7 @@ def start_operator(test_context: TestContext):
     core_v1 = kubernetes.client.CoreV1Api()
 
     # Wait for controller pod ready
-    print("Wait for the operator pod to be ready...")
+    print("Wait for the controller pod to be ready...")
     pod_ready = False
     for tick in range(600):
         controller_pod = core_v1.list_namespaced_pod(
@@ -410,7 +414,7 @@ def start_operator(test_context: TestContext):
                 break
         time.sleep(1)
     if not pod_ready:
-        fail("waiting for the operator pod to be ready")
+        fail("waiting for the controller pod to be ready")
         raise Exception("Wait timeout after 600 seconds")
 
     apiserver_addr_list = []
@@ -427,9 +431,9 @@ def run_workload(
     test_context: TestContext,
 ) -> Tuple[int, str]:
 
-    cprint("Deploying operator...", bcolors.OKGREEN)
-    start_operator(test_context)
-    ok("Operator deployed")
+    cprint("Deploying controller...", bcolors.OKGREEN)
+    start_controller(test_context)
+    ok("Controller deployed")
 
     select_container_from_pod = (
         " -c {} ".format(test_context.controller_config.container_name)
@@ -449,7 +453,7 @@ def run_workload(
         .metadata.name
     )
     streamed_log_file = open(
-        os.path.join(test_context.result_dir, "streamed-operator.log"), "w+"
+        os.path.join(test_context.result_dir, "streamed-controller.log"), "w+"
     )
     streaming = subprocess.Popen(
         "kubectl logs {} {} -f".format(pod_name, select_container_from_pod),
@@ -509,7 +513,7 @@ def run_workload(
         )
 
     os_system(
-        "kubectl logs {} {} > {}/operator.log".format(
+        "kubectl logs {} {} > {}/controller.log".format(
             pod_name, select_container_from_pod, test_context.result_dir
         )
     )
@@ -616,7 +620,7 @@ def run(
     if test_workload is None:
         assert mode == sieve_modes.TEST
         test_workload = get_test_workload_from_test_plan(test_plan)
-        print("get test workload {} from test plan".format(test_workload))
+        print("Get test workload {} from test plan".format(test_workload))
     if test_workload in controller_config.test_setting:
         if "num_apiservers" in controller_config.test_setting[test_workload]:
             num_apiservers = controller_config.test_setting[test_workload][
@@ -637,7 +641,7 @@ def run(
         mode,
         os.path.basename(test_plan),
     )
-    print("Log dir: {}".format(result_dir))
+    print("Log dir: {}/".format(result_dir))
     image_tag = sieve_modes.LEARN if mode == sieve_modes.GEN_ORACLE else mode
     test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
     test_context = TestContext(
