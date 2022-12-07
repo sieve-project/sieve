@@ -116,7 +116,7 @@ def readable_resource_diff(event_type, diff_content):
     ):
         return ""
     else:
-        return " : %s" % diff_content
+        return " : {}".format(diff_content)
 
 
 def generate_alarm(sub_alarm, msg):

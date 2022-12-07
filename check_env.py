@@ -26,11 +26,12 @@ def check_go_env():
     major = int(version_breakdown[0])
     minor = int(version_breakdown[1])
     if major > 1 or (major == 1 and minor >= 13):
-        ok("go version %s satisfies the requirement" % (version))
+        ok("go version {} satisfies the requirement".format(version))
     else:
         warn(
-            "go version %s not satisfies the requirement, the minimum go version should be above 1.13.0"
-            % (version)
+            "go version {} not satisfies the requirement, the minimum go version should be above 1.13.0".format(
+                version
+            )
         )
 
     if "GOPATH" in os.environ:
@@ -93,11 +94,12 @@ def check_kind_env():
     major = parsed[0]
     minor = parsed[1]
     if major > 0 or (major == 0 and minor >= 10):
-        ok("kind version %s satisfies the requirement" % (version))
+        ok("kind version {} satisfies the requirement".format(version))
     else:
         warn(
-            "kind version %s not satisfies the requirement, the minimum kind version should be above 0.10.0"
-            % (version)
+            "kind version {} not satisfies the requirement, the minimum kind version should be above 0.10.0".format(
+                version
+            )
         )
 
     if "KUBECONFIG" in os.environ:
@@ -129,11 +131,12 @@ def check_sqlite_env():
     major = int(version.split(".")[0])
     minor = int(version.split(".")[1])
     if major > 3 or (major == 3 and minor >= 32):
-        ok("sqlite3 version %s satisfies the requirement" % (version))
+        ok("sqlite3 version {} satisfies the requirement".format(version))
     else:
         fail(
-            "sqlite3 version %s not satisfies the requirement, the minimum sqlite3 version should be above 3.32, please update according to https://help.dreamhost.com/hc/en-us/articles/360028047592-Installing-a-custom-version-of-SQLite3"
-            % (version)
+            "sqlite3 version {} not satisfies the requirement, the minimum sqlite3 version should be above 3.32, please update according to https://help.dreamhost.com/hc/en-us/articles/360028047592-Installing-a-custom-version-of-SQLite3".format(
+                version
+            )
         )
 
     try:
@@ -188,28 +191,28 @@ if __name__ == "__main__":
     try:
         check_go_env()
     except Exception as e:
-        warn("unable to check go env due to exception %s" % str(e))
+        warn("unable to check go env due to exception {}".format(str(e)))
     try:
         check_kubectl_env()
     except Exception as e:
-        warn("unable to check kubectl env due to exception %s" % str(e))
+        warn("unable to check kubectl env due to exception {}".format(str(e)))
     try:
         check_kind_env()
     except Exception as e:
-        warn("unable to check kind env due to exception %s" % str(e))
+        warn("unable to check kind env due to exception {}".format(str(e)))
     try:
         check_python_env()
     except Exception as e:
-        warn("unable to check python env due to exception %s" % str(e))
+        warn("unable to check python env due to exception {}".format(str(e)))
     try:
         check_helm_env()
     except Exception as e:
-        warn("unable to check helm env due to exception %s" % str(e))
+        warn("unable to check helm env due to exception {}".format(str(e)))
     try:
         check_mage_env()
     except Exception as e:
-        warn("unable to check mage env due to exception %s" % str(e))
+        warn("unable to check mage env due to exception {}".format(str(e)))
     # try:
     #     check_sqlite_env()
     # except Exception as e:
-    #     warn("unable to check sqlite env due to exception %s" % str(e))
+    #     warn("unable to check sqlite env due to exception {}".format(str(e)))

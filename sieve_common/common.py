@@ -1,5 +1,6 @@
 import os
 import yaml
+import shutil
 import re
 import json
 import glob
@@ -145,7 +146,6 @@ class TestResult:
 
 
 def match_mask_regex(val):
-    # Search for ignore regex
     if type(val) is str:
         for reg in MASK_REGS:
             pat = re.compile(reg)
@@ -154,11 +154,29 @@ def match_mask_regex(val):
     return False
 
 
-def cmd_early_exit(cmd, early_exit=True):
+def add_mod(file_name, mod):
+    st = os.stat(file_name)
+    os.chmod(file_name, st.st_mode | mod)
+
+
+def add_mod_recursively(dir_name, mod):
+    add_mod(dir_name, mod)
+    for root, dirs, files in os.walk(dir_name):
+        for d in dirs:
+            add_mod(os.path.join(root, d), mod)
+        for f in files:
+            add_mod(os.path.join(root, f), mod)
+
+
+def rmtree_if_exists(dir_name):
+    if os.path.exists(dir_name):
+        shutil.rmtree(dir_name)
+
+
+def os_system(cmd, early_exit=True):
     return_code = os.WEXITSTATUS(os.system(cmd))
     if return_code != 0 and early_exit:
         fail(cmd)
-        # sys.exit(1)
         raise Exception(
             "Failed to execute {} with return code {}".format(cmd, return_code)
         )

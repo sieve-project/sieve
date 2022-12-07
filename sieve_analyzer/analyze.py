@@ -1,11 +1,11 @@
 import copy
 import os
-import shutil
 from typing import List
 from sieve_common.common import (
     TestContext,
     fail,
     sieve_built_in_test_patterns,
+    rmtree_if_exists,
 )
 from sieve_perturbation_policies.intermediate_state import intermediate_state_analysis
 from sieve_perturbation_policies.stale_state import stale_state_analysis
@@ -270,7 +270,7 @@ def hear_read_overlap_filtering_pass(vertex_pairs: List[List[EventVertex]]):
                 pruned_vertex_pairs.append(pair)
         else:
             pruned_vertex_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
+    print("<e, s> pairs: {} -> {}".format(len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
@@ -284,7 +284,7 @@ def error_msg_filtering_pass(vertex_pairs: List[List[EventVertex]]):
                 pruned_vertex_pairs.append(pair)
         else:
             pruned_vertex_pairs.append(pair)
-    print("<e, s> pairs: %d -> %d" % (len(vertex_pairs), len(pruned_vertex_pairs)))
+    print("<e, s> pairs: {} -> {}".format(len(vertex_pairs), len(pruned_vertex_pairs)))
     return pruned_vertex_pairs
 
 
@@ -357,9 +357,8 @@ def generate_test_config(
 ):
     log_dir = test_context.result_dir
     generated_config_dir = os.path.join(log_dir, analysis_mode)
-    if os.path.isdir(generated_config_dir):
-        shutil.rmtree(generated_config_dir)
-    os.makedirs(generated_config_dir, exist_ok=True)
+    rmtree_if_exists(generated_config_dir)
+    os.makedirs(generated_config_dir)
     if analysis_mode == sieve_built_in_test_patterns.STALE_STATE:
         return stale_state_analysis(event_graph, generated_config_dir, test_context)
     elif analysis_mode == sieve_built_in_test_patterns.UNOBSERVED_STATE:
@@ -379,7 +378,7 @@ def analyze_trace(
     oracle_dir = test_context.oracle_dir
 
     log_path = os.path.join(log_dir, "sieve-server.log")
-    print("Sanity checking the sieve log %s..." % log_path)
+    print("Sanity checking the sieve log {}...".format(log_path))
     sanity_check_sieve_log(log_path)
 
     if not os.path.exists(os.path.join(oracle_dir, "mask.json")):

@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from sieve_common.config import get_common_config
 from evaluation_sanity_check import common
 
@@ -8,8 +9,8 @@ total_result_map = {}
 
 def collect_spec():
     sub_result_map = {}
-    for operator in common.controllers_to_check:
-        sub_result_map[operator] = {}
+    for controller in common.controllers_to_check:
+        sub_result_map[controller] = {}
         ds_base_cnt = 0
         ms_base_cnt = 0
         ss_base_cnt = 0
@@ -22,8 +23,8 @@ def collect_spec():
         ds_cnt = 0
         ms_cnt = 0
         ss_cnt = 0
-        for test in common.controllers_to_check[operator]:
-            result_filename = "sieve_learn_results/{}-{}.json".format(operator, test)
+        for test in common.controllers_to_check[controller]:
+            result_filename = "sieve_learn_results/{}-{}.json".format(controller, test)
             result_map = json.load(open(result_filename))
             ds_base_cnt += result_map["intermediate-state"]["baseline"]
             ds_after_p1_cnt += result_map["intermediate-state"]["after_p1"]
@@ -38,25 +39,25 @@ def collect_spec():
             ss_after_p2_cnt += result_map["stale-state"]["after_p2"]
             ss_cnt += result_map["stale-state"]["final"]
 
-        sub_result_map[operator]["baseline-ds"] = ds_base_cnt
-        sub_result_map[operator]["after-p1-ds"] = ds_after_p1_cnt
-        sub_result_map[operator]["after-p2-ds"] = ds_after_p2_cnt
-        sub_result_map[operator]["ds"] = ds_cnt
+        sub_result_map[controller]["baseline-ds"] = ds_base_cnt
+        sub_result_map[controller]["after-p1-ds"] = ds_after_p1_cnt
+        sub_result_map[controller]["after-p2-ds"] = ds_after_p2_cnt
+        sub_result_map[controller]["ds"] = ds_cnt
 
-        sub_result_map[operator]["baseline-ss"] = ss_base_cnt
-        sub_result_map[operator]["after-p1-ss"] = ss_after_p1_cnt
-        sub_result_map[operator]["after-p2-ss"] = ss_after_p2_cnt
-        sub_result_map[operator]["ss"] = ss_cnt
+        sub_result_map[controller]["baseline-ss"] = ss_base_cnt
+        sub_result_map[controller]["after-p1-ss"] = ss_after_p1_cnt
+        sub_result_map[controller]["after-p2-ss"] = ss_after_p2_cnt
+        sub_result_map[controller]["ss"] = ss_cnt
 
-        sub_result_map[operator]["baseline-ms"] = ms_base_cnt
-        sub_result_map[operator]["after-p1-ms"] = ms_after_p1_cnt
-        sub_result_map[operator]["after-p2-ms"] = ms_after_p2_cnt
-        sub_result_map[operator]["ms"] = ms_cnt
+        sub_result_map[controller]["baseline-ms"] = ms_base_cnt
+        sub_result_map[controller]["after-p1-ms"] = ms_after_p1_cnt
+        sub_result_map[controller]["after-p2-ms"] = ms_after_p2_cnt
+        sub_result_map[controller]["ms"] = ms_cnt
     return sub_result_map
 
 
 def overwrite_config_json(new_config):
-    os.system("cp sieve_config.json sieve_config.json.bkp")
+    shutil.copy("sieve_config.json", "sieve_config.json.bkp")
     my_config = json.load(open("sieve_config.json"))
     for key in new_config:
         my_config[key] = new_config[key]
@@ -64,7 +65,7 @@ def overwrite_config_json(new_config):
 
 
 def recover_config_json():
-    os.system("cp sieve_config.json.bkp sieve_config.json")
+    shutil.copy("sieve_config.json.bkp", "sieve_config.json")
 
 
 def learn_all():
@@ -86,22 +87,22 @@ def generate_test_plan_stat():
     )
     learn_all()
     sub_map = collect_spec()
-    for operator in common.controllers_to_check:
-        baseline_ds = sub_map[operator]["baseline-ds"]
-        baseline_ss = sub_map[operator]["baseline-ss"]
-        baseline_ms = sub_map[operator]["baseline-ms"]
-        after_p1_ds = sub_map[operator]["after-p1-ds"]
-        after_p1_ss = sub_map[operator]["after-p1-ss"]
-        after_p1_ms = sub_map[operator]["after-p1-ms"]
-        after_p2_ds = sub_map[operator]["after-p2-ds"]
-        after_p2_ss = sub_map[operator]["after-p2-ss"]
-        after_p2_ms = sub_map[operator]["after-p2-ms"]
-        ds = sub_map[operator]["ds"]
-        ss = sub_map[operator]["ss"]
-        ms = sub_map[operator]["ms"]
+    for controller in common.controllers_to_check:
+        baseline_ds = sub_map[controller]["baseline-ds"]
+        baseline_ss = sub_map[controller]["baseline-ss"]
+        baseline_ms = sub_map[controller]["baseline-ms"]
+        after_p1_ds = sub_map[controller]["after-p1-ds"]
+        after_p1_ss = sub_map[controller]["after-p1-ss"]
+        after_p1_ms = sub_map[controller]["after-p1-ms"]
+        after_p2_ds = sub_map[controller]["after-p2-ds"]
+        after_p2_ss = sub_map[controller]["after-p2-ss"]
+        after_p2_ms = sub_map[controller]["after-p2-ms"]
+        ds = sub_map[controller]["ds"]
+        ss = sub_map[controller]["ss"]
+        ms = sub_map[controller]["ms"]
 
         table += "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-            operator,
+            controller,
             baseline_ds,
             after_p1_ds,
             after_p2_ds,
@@ -120,7 +121,7 @@ def generate_test_plan_stat():
             ds + ss + ms,
         )
         short_table += "{}\t{}\t{}\t{}\t{}\n".format(
-            operator,
+            controller,
             ds,
             ss,
             ms,

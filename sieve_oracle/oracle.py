@@ -55,10 +55,10 @@ def canonicalize_history_and_state(test_context: TestContext):
     )
 
 
-def operator_panic_checker(test_context: TestContext):
-    operator_log = os.path.join(test_context.result_dir, "streamed-operator.log")
+def controller_panic_checker(test_context: TestContext):
+    controller_log = os.path.join(test_context.result_dir, "streamed-controller.log")
     messages = []
-    file = open(operator_log)
+    file = open(controller_log)
     for line in file.readlines():
         if "Observed a panic" in line:
             panic_in_file = line[line.find("Observed a panic") :]
@@ -88,7 +88,7 @@ def workload_error_checker(test_context: TestContext):
 def textbook_checker(test_context: TestContext):
     messages = []
     if test_context.common_config.controller_exception_check_enabled:
-        panic_messages = operator_panic_checker(test_context)
+        panic_messages = controller_panic_checker(test_context)
         messages.extend(panic_messages)
 
     if test_context.common_config.workload_error_check_enabled:

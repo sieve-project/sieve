@@ -37,7 +37,7 @@ def stale_state_detectable_pass(
             operator_hear.signature_counter,
         ):
             candidate_pairs.append(pair)
-    print("%d -> %d edges" % (len(event_pairs), len(candidate_pairs)))
+    print(".formatd -> .formatd edges".format(len(event_pairs), len(candidate_pairs)))
     return candidate_pairs
 
 
@@ -71,7 +71,7 @@ def causality_pair_filtering_pass(
         sink = pair[1]
         if event_vertices_connected(source, sink):
             candidate_pairs.append(pair)
-    print("%d -> %d edges" % (len(event_pairs), len(candidate_pairs)))
+    print("{} -> {} edges".format(len(event_pairs), len(candidate_pairs)))
     return candidate_pairs
 
 
@@ -104,7 +104,7 @@ def reversed_effect_filtering_pass(
             reversed_effect = True
         if reversed_effect:
             candidate_pairs.append(pair)
-    print("%d -> %d edges" % (len(event_pairs), len(candidate_pairs)))
+    print("{} -> {} edges".format(len(event_pairs), len(candidate_pairs)))
     return candidate_pairs
 
 
@@ -280,7 +280,9 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
                 test_context, operator_hear, operator_write, timing
             )
             i += 1
-            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
+            file_name = os.path.join(
+                path, "stale-state-test-plan-{}.yaml".format(str(i))
+            )
             if test_context.common_config.persist_test_plans_enabled:
                 dump_to_yaml(stale_state_test_plan, file_name)
         elif timing == "before":
@@ -288,7 +290,9 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
                 test_context, operator_hear, operator_write, timing
             )
             i += 1
-            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
+            file_name = os.path.join(
+                path, "stale-state-test-plan-{}.yaml".format(str(i))
+            )
             if test_context.common_config.persist_test_plans_enabled:
                 dump_to_yaml(stale_state_test_plan, file_name)
         else:
@@ -296,7 +300,9 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
                 test_context, operator_hear, operator_write, "after"
             )
             i += 1
-            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
+            file_name = os.path.join(
+                path, "stale-state-test-plan-{}.yaml".format(str(i))
+            )
             if test_context.common_config.persist_test_plans_enabled:
                 dump_to_yaml(stale_state_test_plan, file_name)
 
@@ -304,7 +310,9 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
                 test_context, operator_hear, operator_write, "before"
             )
             i += 1
-            file_name = os.path.join(path, "stale-state-test-plan-%s.yaml" % (str(i)))
+            file_name = os.path.join(
+                path, "stale-state-test-plan-{}.yaml".format(str(i))
+            )
             if test_context.common_config.persist_test_plans_enabled:
                 dump_to_yaml(stale_state_test_plan, file_name)
             baseline_spec_number += 1
@@ -312,7 +320,9 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
             after_p2_spec_number += 1
             final_spec_number += 1
 
-    cprint("Generated %d stale-state test plan(s) in %s" % (i, path), bcolors.OKGREEN)
+    cprint(
+        "Generated {} stale-state test plan(s) in {}".format(i, path), bcolors.OKGREEN
+    )
     return (
         baseline_spec_number,
         after_p1_spec_number,
