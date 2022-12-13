@@ -1,5 +1,5 @@
-## Port a new controller:
-To port a controller, please first run `python3 start_porting.py your-controller`.
+## Testing a new controller:
+To test a new controller using Sieve, please first run `python3 start_porting.py your-controller`.
 It will create a folder like this
 ```
 examples/
@@ -12,7 +12,7 @@ examples/
     |- oracle/
     |- test/
 ```
-It takes four steps to port a controller:
+It takes four steps to get started with testing the controller:
 1. provide the Dockerfile and necessary steps to build the controller in `build.sh`
 2. provide the necessary files to deploy the controller and the steps to deploy in `deploy.sh`
 3. provide test workloads
