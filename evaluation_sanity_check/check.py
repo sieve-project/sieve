@@ -52,7 +52,7 @@ def check_massive_testing_results(current_dir, previous_dir):
 def check_bug_reproduction_test_plans():
     gen_configs = glob.glob(
         os.path.join(
-            "sieve_learn_results/*-controller/*/learn/learn.yaml/*/*.yaml",
+            "sieve_learn_results/*/*/learn/learn.yaml/*/*.yaml",
         )
     )
 

@@ -154,9 +154,9 @@ def generate_controller_image_build_jobs(self_hosted):
     for operator in operators_for_CI:
         job = job_template(self_hosted)
         build_modes = [
-            "learn",
-            "test",
-            "vanilla",
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
+            sieve_modes.VANILLA,
         ]
         build_image = [
             {
@@ -223,8 +223,8 @@ def generate_test_jobs(self_hosted):
     for operator in operators_for_CI:
         job = job_template(self_hosted)
         build_modes = [
-            "learn",
-            "test",
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]
         workload_set = set(operators_for_CI[operator])

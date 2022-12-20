@@ -11,5 +11,5 @@ actions:
         occurrence: 1
       observationPoint:
         when: afterControllerWrite
-        by: github.com/rabbitmq/cluster-operator/controllers.(*RabbitmqClusterReconciler)
+        by: github.com/rabbitmq/cluster-operator/controllers.(*RabbitmqClusterReconciler).Reconcile
     expression: trigger1

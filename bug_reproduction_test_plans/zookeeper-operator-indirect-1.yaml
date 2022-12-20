@@ -14,7 +14,7 @@ actions:
         occurrence: 1
       observationPoint:
         when: afterControllerWrite
-        by: github.com/pravega/zookeeper-operator/pkg/controller/zookeepercluster.(*ReconcileZookeeperCluster)
+        by: github.com/pravega/zookeeper-operator/pkg/controller/zookeepercluster.(*ReconcileZookeeperCluster).Reconcile
     expression: trigger1
 - actionType: resumeController
   pauseAt: afterControllerWrite

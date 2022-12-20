@@ -3,7 +3,6 @@
     "github_link": "https://github.com/Orange-OpenSource/casskop.git",
     "commit": "f87c8e05c1a2896732fc5f3a174f1eb99e936907",
     "kubernetes_version": "v1.18.9",
-    "controller_runtime_version": "v0.6.0",
     "client_go_version": "v0.18.2",
     "dockerfile_path": "build/Dockerfile",
     "controller_image_name": "orangeopensource/casskop-operator:latest",
@@ -13,6 +12,9 @@
         "cassandrarestore",
         "cassandrabackup"
     ],
+    "annotated_reconcile_functions": {
+        "pkg/controller/cassandracluster/cassandracluster_controller.go": "github.com/Orange-OpenSource/casskop/pkg/controller/cassandracluster.(*ReconcileCassandraCluster).Reconcile"
+    },
     "controller_pod_label": "casskop-operator",
     "controller_deployment_file_path": "examples/casskop-operator/deploy/values.yaml"
 }

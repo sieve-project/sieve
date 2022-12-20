@@ -3,7 +3,6 @@
     "github_link": "https://github.com/rabbitmq/cluster-operator.git",
     "commit": "4f13b9a942ad34fece0171d2174aa0264b10e947",
     "kubernetes_version": "v1.18.9",
-    "controller_runtime_version": "v0.8.3",
     "client_go_version": "v0.20.2",
     "dockerfile_path": "Dockerfile",
     "controller_image_name": "rabbitmq/rabbitmq-operator:latest",
@@ -11,6 +10,9 @@
     "custom_resource_definitions": [
         "rabbitmqcluster"
     ],
+    "annotated_reconcile_functions": {
+        "controllers/rabbitmqcluster_controller.go": "github.com/rabbitmq/cluster-operator/controllers.(*RabbitmqClusterReconciler).Reconcile"
+    },
     "controller_pod_label": "rabbitmq-operator",
     "controller_deployment_file_path": "examples/rabbitmq-operator/deploy/cluster-operator.yaml",
     "test_setting": {

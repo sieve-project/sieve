@@ -112,7 +112,6 @@ class ControllerConfig:
         commit,
         cherry_pick_commits,
         kubernetes_version,
-        controller_runtime_version,
         client_go_version,
         apimachinery_version,
         go_mod,
@@ -125,6 +124,7 @@ class ControllerConfig:
         test_command,
         loosen_reconciler_boundary,
         custom_resource_definitions,
+        annotated_reconcile_functions,
         controller_pod_label,
         container_name,
         controller_deployment_file_path,
@@ -137,7 +137,6 @@ class ControllerConfig:
         self.commit = commit
         self.cherry_pick_commits = cherry_pick_commits
         self.kubernetes_version = kubernetes_version
-        self.controller_runtime_version = controller_runtime_version
         self.client_go_version = client_go_version
         self.apimachinery_version = apimachinery_version
         self.go_mod = go_mod
@@ -150,6 +149,7 @@ class ControllerConfig:
         self.test_command = test_command
         self.loosen_reconciler_boundary = loosen_reconciler_boundary
         self.custom_resource_definitions = custom_resource_definitions
+        self.annotated_reconcile_functions = annotated_reconcile_functions
         self.controller_pod_label = controller_pod_label
         self.container_name = container_name
         self.controller_deployment_file_path = controller_deployment_file_path
@@ -169,7 +169,6 @@ def load_controller_config(controller_config_dir):
         if "cherry_pick_commits" in controller_config
         else [],
         kubernetes_version=controller_config["kubernetes_version"],
-        controller_runtime_version=controller_config["controller_runtime_version"],
         client_go_version=controller_config["client_go_version"],
         apimachinery_version=controller_config["apimachinery_version"]
         if "apimachinery_version" in controller_config
@@ -196,6 +195,9 @@ def load_controller_config(controller_config_dir):
         if "loosen_reconciler_boundary" in controller_config
         else False,
         custom_resource_definitions=controller_config["custom_resource_definitions"],
+        annotated_reconcile_functions=controller_config[
+            "annotated_reconcile_functions"
+        ],
         controller_pod_label=controller_config["controller_pod_label"],
         container_name=controller_config["container_name"]
         if "container_name" in controller_config

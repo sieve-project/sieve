@@ -185,12 +185,6 @@ def install_lib_for_controller(
         )
 
     install_module(
-        "sigs.k8s.io/controller-runtime@{}".format(
-            controller_config.controller_runtime_version
-        ),
-        sieve_dep_src_dir,
-    )
-    install_module(
         "k8s.io/client-go@{}".format(controller_config.client_go_version),
         sieve_dep_src_dir,
     )
@@ -229,11 +223,6 @@ def update_go_mod_for_controller(
             "replace sieve.client => ./sieve-dependency/src/sieve.client\n"
         )
         go_mod_file.write(
-            "replace sigs.k8s.io/controller-runtime => ./sieve-dependency/src/sigs.k8s.io/controller-runtime@{}\n".format(
-                controller_config.controller_runtime_version
-            )
-        )
-        go_mod_file.write(
             "replace k8s.io/client-go => ./sieve-dependency/src/k8s.io/client-go@{}\n".format(
                 controller_config.client_go_version
             )
@@ -250,36 +239,6 @@ def update_go_mod_for_controller(
                 )
             )
 
-    # TODO: do we need to modify go.mod in controller-runtime and client-go?
-    controller_runtime_go_mod = os.path.join(
-        sieve_dep_src_dir,
-        "sigs.k8s.io/controller-runtime@{}/go.mod".format(
-            controller_config.controller_runtime_version
-        ),
-    )
-    with open(
-        controller_runtime_go_mod,
-        "a",
-    ) as go_mod_file:
-        go_mod_file.write("require sieve.client v0.0.0\n")
-        go_mod_file.write("replace sieve.client => ../../sieve.client\n")
-        go_mod_file.write(
-            "replace k8s.io/client-go => ../../k8s.io/client-go@{}\n".format(
-                controller_config.client_go_version
-            )
-        )
-
-    client_go_go_mod = os.path.join(
-        sieve_dep_src_dir,
-        "k8s.io/client-go@{}/go.mod".format(controller_config.client_go_version),
-    )
-    with open(
-        client_go_go_mod,
-        "a",
-    ) as go_mod_file:
-        go_mod_file.write("require sieve.client v0.0.0\n")
-        go_mod_file.write("replace sieve.client => ../../sieve.client\n")
-
     # copy the build.sh and Dockerfile
     shutil.copy(
         os.path.join(controller_config_dir, "build", "build.sh"),
@@ -289,10 +248,10 @@ def update_go_mod_for_controller(
         os.path.join(controller_config_dir, "build", "Dockerfile"),
         os.path.join(application_dir, controller_config.dockerfile_path),
     )
-    os.chdir(application_dir)
-    os_system("git add -A >> /dev/null")
-    os_system('git commit -m "import the lib" >> /dev/null')
-    os.chdir(ORIGINAL_DIR)
+    # os.chdir(application_dir)
+    # os_system("git add -A >> /dev/null")
+    # os_system('git commit -m "import the lib" >> /dev/null')
+    # os.chdir(ORIGINAL_DIR)
 
 
 def instrument_controller(
@@ -304,16 +263,12 @@ def instrument_controller(
         "project": controller_config.controller_name,
         "mode": mode,
         "app_file_path": os.path.join(ORIGINAL_DIR, application_dir),
-        "controller_runtime_filepath": "{}/{}/sieve-dependency/src/sigs.k8s.io/controller-runtime@{}".format(
-            ORIGINAL_DIR,
-            application_dir,
-            controller_config.controller_runtime_version,
-        ),
         "client_go_filepath": "{}/{}/sieve-dependency/src/k8s.io/client-go@{}".format(
             ORIGINAL_DIR,
             application_dir,
             controller_config.client_go_version,
         ),
+        "annotated_reconcile_functions": controller_config.annotated_reconcile_functions,
         "apis_to_instrument": controller_config.apis_to_instrument,
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
@@ -359,25 +314,6 @@ def update_go_mod_for_controller_with_vendor(
     application_dir = os.path.join("app", controller_config.controller_name)
     with open(os.path.join(application_dir, "go.mod"), "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
-    with open(
-        os.path.join(
-            application_dir,
-            controller_config.vendored_controller_runtime_path,
-            "go.mod",
-        ),
-        "a",
-    ) as go_mod_file:
-        go_mod_file.write("require sieve.client v0.0.0\n")
-    with open(
-        os.path.join(
-            application_dir,
-            controller_config.vendored_client_go_path,
-            "go.mod",
-        ),
-        "a",
-    ) as go_mod_file:
-        go_mod_file.write("require sieve.client v0.0.0\n")
-
     # copy the build.sh and Dockerfile
     shutil.copy(
         os.path.join(controller_config_dir, "build", "build.sh"),
@@ -402,11 +338,6 @@ def instrument_controller_with_vendor(
         "project": controller_config.controller_name,
         "mode": mode,
         "app_file_path": os.path.join(ORIGINAL_DIR, application_dir),
-        "controller_runtime_filepath": os.path.join(
-            ORIGINAL_DIR,
-            application_dir,
-            controller_config.vendored_controller_runtime_path,
-        ),
         "client_go_filepath": os.path.join(
             ORIGINAL_DIR,
             application_dir,

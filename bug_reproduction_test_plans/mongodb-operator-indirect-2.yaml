@@ -30,7 +30,7 @@ actions:
         occurrence: 1
       observationPoint:
         when: afterControllerWrite
-        by: github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB)
+        by: github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB).Reconcile
     expression: trigger1
 - actionType: resumeController
   pauseAt: afterControllerWrite

@@ -80,7 +80,7 @@ func NotifyTestBeforeCacheGet(key string, items []interface{}) {
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return
 	}
@@ -102,7 +102,7 @@ func NotifyTestAfterCacheGet(key string, item interface{}, exists bool) {
 	if !exists {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return
 	}
@@ -141,7 +141,7 @@ func NotifyTestBeforeCacheList(items []interface{}) {
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return
 	}
@@ -166,7 +166,7 @@ func NotifyTestAfterCacheList(items []interface{}, listErr error) {
 	if len(items) == 0 {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return
 	}
@@ -289,7 +289,7 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 	if err := initRPCClient(); err != nil {
 		return 1
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return 1
 	}
@@ -343,7 +343,7 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
 		return
 	}
@@ -437,7 +437,7 @@ func NotifyTestBeforeAnnotatedAPICall(moduleName string, filePath string, receiv
 	if !checkKVPairInAnnotatedAPICallTriggerCondition(receiverType + funName) {
 		return -1
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	log.Printf("NotifyTestBeforeAnnotatedAPICall %s %s %s %s\n", moduleName, filePath, receiverType, funName)
 	request := &NotifyTestBeforeAnnotatedAPICallRequest{
 		ModuleName:     moduleName,
@@ -466,7 +466,7 @@ func NotifyTestAfterAnnotatedAPICall(invocationID int, moduleName string, filePa
 	if !checkKVPairInAnnotatedAPICallTriggerCondition(receiverType + funName) {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcilerType := getMatchedReconcileStackFrame()
 	log.Printf("NotifyTestAfterAnnotatedAPICall %s %s %s %s\n", moduleName, filePath, receiverType, funName)
 	request := &NotifyTestAfterAnnotatedAPICallRequest{
 		ModuleName:     moduleName,

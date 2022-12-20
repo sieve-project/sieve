@@ -65,9 +65,16 @@ func findTypeDecl(f *dst.File, typeName string) (int, int, *dst.TypeSpec) {
 	return -1, -1, nil
 }
 
-func parseSourceFile(ifilepath, pkg string, customizedImportMap map[string]string) *dst.File {
+// Bad hack: we should report this issue
+func auxiliaryImportMap() map[string]string {
 	importMap := map[string]string{}
 	importMap["k8s.io/klog/v2"] = "klog"
+	importMap["github.com/robfig/cron/v3"] = "cron"
+	return importMap
+}
+
+func parseSourceFile(ifilepath, pkg string, customizedImportMap map[string]string) *dst.File {
+	importMap := auxiliaryImportMap()
 	for k, v := range customizedImportMap {
 		importMap[k] = v
 	}
@@ -95,8 +102,7 @@ func insertField(list *[]*dst.Field, index int, instrumentation *dst.Field) {
 }
 
 func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportMap map[string]string) {
-	importMap := map[string]string{}
-	importMap["k8s.io/klog/v2"] = "klog"
+	importMap := auxiliaryImportMap()
 	for k, v := range customizedImportMap {
 		importMap[k] = v
 	}
@@ -111,6 +117,37 @@ func writeInstrumentedFile(ofilepath, pkg string, f *dst.File, customizedImportM
 	err = fres.Fprint(&buf, f)
 	check(err)
 	autoInstrFile.Write(buf.Bytes())
+}
+
+func instrumentAnnotatedReconcile(ifilepath, ofilepath, pkg, funName, recvType, stackFrame string) {
+	f := parseSourceFile(ifilepath, pkg, map[string]string{})
+	_, funcDecl := findFuncDecl(f, funName, recvType)
+
+	if funcDecl != nil {
+		index := 0
+		beforeReconcileInstrumentation := &dst.ExprStmt{
+			X: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: "NotifyLearnBeforeReconcile", Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", stackFrame)}},
+			},
+		}
+		beforeReconcileInstrumentation.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, index, beforeReconcileInstrumentation)
+
+		index += 1
+		afterReconcileInstrumentation := &dst.DeferStmt{
+			Call: &dst.CallExpr{
+				Fun:  &dst.Ident{Name: "NotifyLearnAfterReconcile", Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: fmt.Sprintf("\"%s\"", stackFrame)}},
+			},
+		}
+		afterReconcileInstrumentation.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, index, afterReconcileInstrumentation)
+	} else {
+		panic(fmt.Errorf("cannot find function reconcileHandler"))
+	}
+
+	writeInstrumentedFile(ofilepath, pkg, f, map[string]string{})
 }
 
 func instrumentAnnotatedAPI(ifilepath, ofilepath, module, filePath, pkg, funName, recvTypeName, mode string, customizedImportMap map[string]string, instrumentBefore bool) {

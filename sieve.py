@@ -285,19 +285,14 @@ def setup_cluster(test_context: TestContext):
         or test_context.mode == sieve_modes.GEN_ORACLE
     ):
         print("Test plan: {}".format(test_context.test_plan))
-        generate_learn_plan(
-            test_context.test_plan,
-            test_context.controller_config.custom_resource_definitions,
-        )
+        generate_plan_for_learn_mode(test_context)
     elif test_context.mode == sieve_modes.VANILLA:
         print("Test plan: {}".format(test_context.test_plan))
-        generate_vanilla_plan(test_context.test_plan)
+        generate_plan_for_vanilla_mode(test_context)
     else:
         assert test_context.mode == sieve_modes.TEST
         print("Test plan: {}".format(test_context.test_plan))
-        os_system(
-            "cp {} {}".format(test_context.original_test_plan, test_context.test_plan)
-        )
+        generate_plan_for_test_mode(test_context)
 
     # when testing stale-state, we need to pause the apiserver
     # if workers talks to the paused apiserver, the whole cluster will be slowed down
@@ -585,18 +580,30 @@ def run_test(test_context: TestContext) -> TestResult:
         )
 
 
-def generate_learn_plan(learn_plan, crd_list):
-    learn_plan_map = {}
-    learn_plan_map["crdList"] = crd_list
+def generate_plan_for_test_mode(test_context: TestContext):
+    test_plan_content = yaml.load(open(test_context.original_test_plan))
+    test_plan_content["annotatedReconcileStackFrame"] = [
+        i for i in test_context.controller_config.annotated_reconcile_functions.values()
+    ]
+    yaml.dump(test_plan_content, open(test_context.test_plan, "w"), sort_keys=False)
+
+
+def generate_plan_for_learn_mode(test_context: TestContext):
+    crd_list = test_context.controller_config.custom_resource_definitions
+    learn_plan_content = {}
+    learn_plan_content["crdList"] = crd_list
     # hardcode rate limiter to disabled for now
-    learn_plan_map["rateLimiterEnabled"] = False
-    learn_plan_map["rateLimiterInterval"] = 3
-    yaml.dump(learn_plan_map, open(learn_plan, "w"), sort_keys=False)
+    learn_plan_content["rateLimiterEnabled"] = False
+    learn_plan_content["rateLimiterInterval"] = 3
+    learn_plan_content["annotatedReconcileStackFrame"] = [
+        i for i in test_context.controller_config.annotated_reconcile_functions.values()
+    ]
+    yaml.dump(learn_plan_content, open(test_context.test_plan, "w"), sort_keys=False)
 
 
-def generate_vanilla_plan(vanilla_plan):
-    vanilla_plan_map = {}
-    yaml.dump(vanilla_plan_map, open(vanilla_plan, "w"), sort_keys=False)
+def generate_plan_for_vanilla_mode(test_context: TestContext):
+    vanilla_plan_content = {}
+    yaml.dump(vanilla_plan_content, open(test_context.test_plan, "w"), sort_keys=False)
 
 
 def get_test_workload_from_test_plan(test_plan_file):
