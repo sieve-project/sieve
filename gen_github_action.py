@@ -78,7 +78,7 @@ def job_template(self_hosted):
             {
                 "name": "Setup Go environment",
                 "uses": "actions/setup-go@v2.1.3",
-                "with": {"go-version": 1.15},
+                "with": {"go-version": 1.19},
             },
             {
                 "name": "Setup Python",
