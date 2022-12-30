@@ -6,10 +6,10 @@ from sieve_common.common import sieve_modes
 from datetime import datetime
 
 operators_for_CI = {
-    "cass-operator": ["recreate", "scaledown-scaleup"],
+    # "cass-operator": ["recreate", "scaledown-scaleup"],
     "cassandra-operator": ["recreate", "scaledown-scaleup"],
     "casskop-operator": ["recreate", "scaledown-to-zero", "reducepdb"],
-    "elastic-operator": ["recreate", "scaledown-scaleup"],
+    # "elastic-operator": ["recreate", "scaledown-scaleup"],
     "mongodb-operator": [
         "recreate",
         "scaleup-scaledown",
@@ -95,12 +95,12 @@ def job_template(self_hosted):
             },
             {
                 "name": "Install Kind",
-                "run": 'GO111MODULE="on" go get sigs.k8s.io/kind@v0.13.0\nkind',
+                "run": 'GO111MODULE="on" go install sigs.k8s.io/kind@v0.13.0\nkind',
             },
-            {
-                "name": "Install Mage",
-                "run": "go get -u github.com/magefile/mage\nmage -h",
-            },
+            # {
+            #     "name": "Install Mage",
+            #     "run": "go get -u github.com/magefile/mage\nmage -h",
+            # },
             {
                 "name": "Install Helm",
                 "run": "wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz\ntar -zxvf helm-v3.6.0-linux-amd64.tar.gz\nsudo mv linux-amd64/helm /usr/local/bin/helm\nhelm",
