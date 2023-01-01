@@ -443,25 +443,25 @@ func (tc *testCoordinator) NotifyTestAfterControllerRecv(request *sieve.NotifyTe
 }
 
 func (tc *testCoordinator) NotifyTestAfterControllerGet(request *sieve.NotifyTestAfterControllerGetRequest, response *sieve.Response) error {
-	log.Printf("NotifyTestAfterControllerGet\t%s\t%s\t%s", request.ResourceKey, request.ReconcilerType, request.Object)
-	tc.InitializeObjectStatesEntry(request.ReconcilerType, beforeControllerWrite, request.ResourceKey)
-	tc.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
-	tc.WriteToObjectStates(request.ReconcilerType, beforeControllerWrite, request.ResourceKey, request.Object)
-	tc.WriteToObjectStates(request.ReconcilerType, afterControllerWrite, request.ResourceKey, request.Object)
+	log.Printf("NotifyTestAfterControllerGet\t%s\t%s\t%s", request.ResourceKey, request.ReconcileFun, request.Object)
+	tc.InitializeObjectStatesEntry(request.ReconcileFun, beforeControllerWrite, request.ResourceKey)
+	tc.InitializeObjectStatesEntry(request.ReconcileFun, afterControllerWrite, request.ResourceKey)
+	tc.WriteToObjectStates(request.ReconcileFun, beforeControllerWrite, request.ResourceKey, request.Object)
+	tc.WriteToObjectStates(request.ReconcileFun, afterControllerWrite, request.ResourceKey, request.Object)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
 
 func (tc *testCoordinator) NotifyTestAfterControllerList(request *sieve.NotifyTestAfterControllerListRequest, response *sieve.Response) error {
-	log.Printf("NotifyTestAfterControllerList\t%s\t%s\t%s", request.ResourceType, request.ReconcilerType, request.ObjectList)
+	log.Printf("NotifyTestAfterControllerList\t%s\t%s\t%s", request.ResourceType, request.ReconcileFun, request.ObjectList)
 	objects := strToSlice(request.ObjectList)
 	for _, objectState := range objects {
 		name, namespace := extractNameNamespaceFromObjMap(objectState)
 		resourceKey := generateResourceKey(request.ResourceType, namespace, name)
-		tc.InitializeObjectStatesEntry(request.ReconcilerType, beforeControllerWrite, resourceKey)
-		tc.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, resourceKey)
-		tc.WriteToObjectStates(request.ReconcilerType, beforeControllerWrite, resourceKey, mapToStr(objectState))
-		tc.WriteToObjectStates(request.ReconcilerType, afterControllerWrite, resourceKey, mapToStr(objectState))
+		tc.InitializeObjectStatesEntry(request.ReconcileFun, beforeControllerWrite, resourceKey)
+		tc.InitializeObjectStatesEntry(request.ReconcileFun, afterControllerWrite, resourceKey)
+		tc.WriteToObjectStates(request.ReconcileFun, beforeControllerWrite, resourceKey, mapToStr(objectState))
+		tc.WriteToObjectStates(request.ReconcileFun, afterControllerWrite, resourceKey, mapToStr(objectState))
 	}
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
@@ -485,20 +485,20 @@ func (tc *testCoordinator) NotifyTestAfterControllerWritePause(request *sieve.No
 
 func (tc *testCoordinator) NotifyTestBeforeControllerWrite(request *sieve.NotifyTestBeforeControllerWriteRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestBeforeControllerWrite"
-	log.Printf("%s\t%s\t%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey, request.ReconcilerType, request.Object)
-	tc.InitializeObjectStatesEntry(request.ReconcilerType, beforeControllerWrite, request.ResourceKey)
-	prevObjectStateStr := tc.ReadFromObjectStates(request.ReconcilerType, beforeControllerWrite, request.ResourceKey)
+	log.Printf("%s\t%s\t%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey, request.ReconcileFun, request.Object)
+	tc.InitializeObjectStatesEntry(request.ReconcileFun, beforeControllerWrite, request.ResourceKey)
+	prevObjectStateStr := tc.ReadFromObjectStates(request.ReconcileFun, beforeControllerWrite, request.ResourceKey)
 	switch request.WriteType {
 	case WRITE_CREATE:
-		tc.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerWrite, request.ReconcilerType)
+		tc.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerWrite, request.ReconcileFun)
 	case WRITE_UPDATE, WRITE_PATCH, WRITE_STATUS_UPDATE, WRITE_STATUS_PATCH:
 		prevObjectState := strToMap(prevObjectStateStr)
 		trimKindApiversion(prevObjectState)
 		curObjectState := strToMap(request.Object)
 		trimKindApiversion(curObjectState)
-		tc.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerWrite, request.ReconcilerType, prevObjectState, curObjectState)
+		tc.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerWrite, request.ReconcileFun, prevObjectState, curObjectState)
 	case WRITE_DELETE:
-		tc.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerWrite, request.ReconcilerType)
+		tc.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, beforeControllerWrite, request.ReconcileFun)
 	default:
 		log.Printf("do not support %s\n", request.WriteType)
 	}
@@ -509,20 +509,20 @@ func (tc *testCoordinator) NotifyTestBeforeControllerWrite(request *sieve.Notify
 
 func (tc *testCoordinator) NotifyTestAfterControllerWrite(request *sieve.NotifyTestAfterControllerWriteRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestAfterControllerWrite"
-	log.Printf("%s\t%s\t%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey, request.ReconcilerType, request.Object)
-	tc.InitializeObjectStatesEntry(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
-	prevObjectStateStr := tc.ReadFromObjectStates(request.ReconcilerType, afterControllerWrite, request.ResourceKey)
+	log.Printf("%s\t%s\t%s\t%s\t%s", handlerName, request.WriteType, request.ResourceKey, request.ReconcileFun, request.Object)
+	tc.InitializeObjectStatesEntry(request.ReconcileFun, afterControllerWrite, request.ResourceKey)
+	prevObjectStateStr := tc.ReadFromObjectStates(request.ReconcileFun, afterControllerWrite, request.ResourceKey)
 	switch request.WriteType {
 	case WRITE_CREATE:
-		tc.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType)
+		tc.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcileFun)
 	case WRITE_UPDATE, WRITE_PATCH, WRITE_STATUS_UPDATE, WRITE_STATUS_PATCH:
 		prevObjectState := strToMap(prevObjectStateStr)
 		trimKindApiversion(prevObjectState)
 		curObjectState := strToMap(request.Object)
 		trimKindApiversion(curObjectState)
-		tc.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType, prevObjectState, curObjectState)
+		tc.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcileFun, prevObjectState, curObjectState)
 	case WRITE_DELETE:
-		tc.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcilerType)
+		tc.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, afterControllerWrite, request.ReconcileFun)
 	default:
 		log.Printf("do not support %s\n", request.WriteType)
 	}
@@ -549,16 +549,16 @@ func (tc *testCoordinator) NotifyTestAfterControllerReadPause(request *sieve.Not
 
 func (tc *testCoordinator) NotifyTestBeforeAnnotatedAPICall(request *sieve.NotifyTestBeforeAnnotatedAPICallRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestBeforeAnnotatedAPICall"
-	log.Printf("%s\t%s\t%s\t%s\t%s\t%s", handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, request.ReconcilerType)
-	tc.SendAnnotatedAPICallNotificationAndBlock(handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, beforeAnnotatedAPICall, request.ReconcilerType)
+	log.Printf("%s\t%s\t%s\t%s\t%s\t%s", handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, request.ReconcileFun)
+	tc.SendAnnotatedAPICallNotificationAndBlock(handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, beforeAnnotatedAPICall, request.ReconcileFun)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }
 
 func (tc *testCoordinator) NotifyTestAfterAnnotatedAPICall(request *sieve.NotifyTestAfterAnnotatedAPICallRequest, response *sieve.Response) error {
 	handlerName := "NotifyTestAfterAnnotatedAPICall"
-	log.Printf("%s\t%s\t%s\t%s\t%s\t%s", handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, request.ReconcilerType)
-	tc.SendAnnotatedAPICallNotificationAndBlock(handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, afterAnnotatedAPICall, request.ReconcilerType)
+	log.Printf("%s\t%s\t%s\t%s\t%s\t%s", handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, request.ReconcileFun)
+	tc.SendAnnotatedAPICallNotificationAndBlock(handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, afterAnnotatedAPICall, request.ReconcileFun)
 	*response = sieve.Response{Message: "", Ok: true}
 	return nil
 }

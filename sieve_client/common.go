@@ -19,7 +19,7 @@ import (
 
 const LEARN string = "learn"
 const TEST string = "test"
-const UNKNOWN_RECONCILER_TYPE = "Unknown"
+const UNKNOWN_RECONCILE_FUN = "Unknown"
 
 // TODO(xudong): make DEFAULT_SIEVE_SERVER_ADDR configurable
 const DEFAULT_SIEVE_SERVER_ADDR string = "kind-control-plane:12345"
@@ -550,7 +550,7 @@ func getMatchedReconcileStackFrame() string {
 			}
 		}
 	}
-	return UNKNOWN_RECONCILER_TYPE
+	return UNKNOWN_RECONCILE_FUN
 }
 
 func getResourceNamespaceNameFromAPIKey(key string) (string, string, error) {

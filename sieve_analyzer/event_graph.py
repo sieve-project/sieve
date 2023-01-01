@@ -448,8 +448,7 @@ class EventGraph:
                             operator_read.end_timestamp < operator_write.start_timestamp
                         )
                         if (
-                            operator_read.reconciler_type
-                            == operator_write.reconciler_type
+                            operator_read.reconcile_fun == operator_write.reconcile_fun
                             and operator_read.reconcile_id
                             == operator_write.reconcile_id
                         ):

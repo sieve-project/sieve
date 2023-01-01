@@ -131,7 +131,7 @@ def generate_intermediate_state_test_plan_for_controller_write(
                             "condition": condition,
                             "observationPoint": {
                                 "when": "afterControllerWrite",
-                                "by": operator_write.reconciler_type,
+                                "by": operator_write.reconcile_fun,
                             },
                         }
                     ],
@@ -165,7 +165,7 @@ def generate_intermediate_state_test_plan_for_annotated_api_invocation(
                             },
                             "observationPoint": {
                                 "when": "afterAnnotatedAPICall",
-                                "by": api_invocation.reconciler_type,
+                                "by": api_invocation.reconcile_fun,
                             },
                         }
                     ],
