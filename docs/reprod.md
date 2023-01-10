@@ -4,6 +4,8 @@ Before reproducing the bugs, please:
 - Check out to the `osdi-ae` branch by `git fetch origin && git checkout osdi-ae`
 - Ensure your local environment meets all the [requirements](https://github.com/sieve-project/sieve#requirements), and set `container_registry` in your `config.json` to `ghcr.io/sieve-project/action` (the default value).
 
+**Note: after upgrading to Go 1.19 we are no longer able to build the version of cass-operator and elastic-operator used in our evaluation. To reproduce the bugs, please refer to [osdi-ae](https://github.com/sieve-project/sieve/tree/osdi-ae) branch as mentioned above.**
+
 ## 31 intermediate-, stale-, and unobservable-state bugs
 Sieve can consistently reproduce all the 31 intermediate-, stale-, and unobservable-state bugs.
 

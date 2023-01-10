@@ -6,7 +6,6 @@
         "bd8077a478997f63862848d66d4912c59e4c46ff"
     ],
     "kubernetes_version": "v1.18.9",
-    "controller_runtime_version": "v0.4.0",
     "client_go_version": "v0.0.0-20190918160344-1fbdaa4c8d90",
     "dockerfile_path": "docker/cassandra-operator/Dockerfile",
     "controller_image_name": "cassandra-operator:latest",
@@ -16,6 +15,9 @@
         "cassandracluster",
         "cassandrabackup"
     ],
+    "annotated_reconcile_functions": {
+        "pkg/controller/cassandradatacenter/cassandradatacenter_controller.go": "github.com/instaclustr/cassandra-operator/pkg/controller/cassandradatacenter.(*ReconcileCassandraDataCenter).Reconcile"
+    },
     "controller_pod_label": "cassandra-operator",
     "controller_deployment_file_path": "examples/cassandra-operator/deploy/bundle.yaml",
     "end_state_checker_mask": {

@@ -80,8 +80,8 @@ func NotifyTestBeforeCacheGet(key string, items []interface{}) {
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+	reconcileFun := getMatchedReconcileStackFrame()
+	if reconcileFun == UNKNOWN_RECONCILE_FUN {
 		return
 	}
 	if len(items) == 0 {
@@ -102,8 +102,8 @@ func NotifyTestAfterCacheGet(key string, item interface{}, exists bool) {
 	if !exists {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+	reconcileFun := getMatchedReconcileStackFrame()
+	if reconcileFun == UNKNOWN_RECONCILE_FUN {
 		return
 	}
 	resourceKey := path.Join(getResourceTypeFromObj(item), key)
@@ -116,14 +116,14 @@ func NotifyTestAfterCacheGet(key string, item interface{}, exists bool) {
 	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
 		return
 	}
-	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+	if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcileFun, false) {
 		return
 	}
 	log.Printf("NotifyTestAfterCacheGet %s %s", resourceKey, string(serializedObj))
 	request := &NotifyTestAfterControllerGetRequest{
-		ResourceKey:    resourceKey,
-		ReconcilerType: reconcilerType,
-		Object:         string(serializedObj),
+		ResourceKey:  resourceKey,
+		ReconcileFun: reconcileFun,
+		Object:       string(serializedObj),
 	}
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
@@ -141,8 +141,8 @@ func NotifyTestBeforeCacheList(items []interface{}) {
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+	reconcileFun := getMatchedReconcileStackFrame()
+	if reconcileFun == UNKNOWN_RECONCILE_FUN {
 		return
 	}
 	if len(items) == 0 {
@@ -166,8 +166,8 @@ func NotifyTestAfterCacheList(items []interface{}, listErr error) {
 	if len(items) == 0 {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+	reconcileFun := getMatchedReconcileStackFrame()
+	if reconcileFun == UNKNOWN_RECONCILE_FUN {
 		return
 	}
 	serializedObjList, err := json.Marshal(items)
@@ -180,14 +180,14 @@ func NotifyTestAfterCacheList(items []interface{}, listErr error) {
 	if !checkKVPairInTriggerObservationPoint(resourceType, "when", "afterControllerWrite", true) {
 		return
 	}
-	if !checkKVPairInTriggerObservationPoint(resourceType, "by", reconcilerType, true) {
+	if !checkKVPairInTriggerObservationPoint(resourceType, "by", reconcileFun, true) {
 		return
 	}
 	log.Printf("NotifyTestAfterCacheList %s %s", resourceType, string(serializedObjList))
 	request := &NotifyTestAfterControllerListRequest{
-		ResourceType:   resourceType,
-		ReconcilerType: reconcilerType,
-		ObjectList:     string(serializedObjList),
+		ResourceType: resourceType,
+		ReconcileFun: reconcileFun,
+		ObjectList:   string(serializedObjList),
 	}
 	var response Response
 	err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
@@ -289,8 +289,8 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 	if err := initRPCClient(); err != nil {
 		return 1
 	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+	reconcileFun := getMatchedReconcileStackFrame()
+	if reconcileFun == UNKNOWN_RECONCILE_FUN {
 		return 1
 	}
 	serializedObj, err := json.Marshal(object)
@@ -309,15 +309,15 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
 			return -1
 		}
-		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcileFun, false) {
 			return -1
 		}
-		log.Printf("NotifyTestBeforeRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
+		log.Printf("NotifyTestBeforeRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcileFun, pathPrefix, subpath, string(serializedObj))
 		request := &NotifyTestBeforeControllerWriteRequest{
-			WriteType:      controllerOperationType,
-			ResourceKey:    resourceKey,
-			ReconcilerType: reconcilerType,
-			Object:         string(serializedObj),
+			WriteType:    controllerOperationType,
+			ResourceKey:  resourceKey,
+			ReconcileFun: reconcileFun,
+			Object:       string(serializedObj),
 		}
 		var response Response
 		err = rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerWrite", request, &response)
@@ -343,8 +343,8 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
-	if reconcilerType == UNKNOWN_RECONCILER_TYPE {
+	reconcileFun := getMatchedReconcileStackFrame()
+	if reconcileFun == UNKNOWN_RECONCILE_FUN {
 		return
 	}
 	serializedObj, err := json.Marshal(object)
@@ -363,15 +363,15 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
 			return
 		}
-		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcilerType, false) {
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcileFun, false) {
 			return
 		}
-		log.Printf("NotifyTestAfterRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcilerType, pathPrefix, subpath, string(serializedObj))
+		log.Printf("NotifyTestAfterRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcileFun, pathPrefix, subpath, string(serializedObj))
 		request := &NotifyTestAfterControllerWriteRequest{
-			WriteType:      controllerOperationType,
-			ReconcilerType: reconcilerType,
-			ResourceKey:    resourceKey,
-			Object:         string(serializedObj),
+			WriteType:    controllerOperationType,
+			ReconcileFun: reconcileFun,
+			ResourceKey:  resourceKey,
+			Object:       string(serializedObj),
 		}
 		var response Response
 		err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerWrite", request, &response)
@@ -437,14 +437,14 @@ func NotifyTestBeforeAnnotatedAPICall(moduleName string, filePath string, receiv
 	if !checkKVPairInAnnotatedAPICallTriggerCondition(receiverType + funName) {
 		return -1
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcileFun := getMatchedReconcileStackFrame()
 	log.Printf("NotifyTestBeforeAnnotatedAPICall %s %s %s %s\n", moduleName, filePath, receiverType, funName)
 	request := &NotifyTestBeforeAnnotatedAPICallRequest{
-		ModuleName:     moduleName,
-		FilePath:       filePath,
-		ReceiverType:   receiverType,
-		FunName:        funName,
-		ReconcilerType: reconcilerType,
+		ModuleName:   moduleName,
+		FilePath:     filePath,
+		ReceiverType: receiverType,
+		FunName:      funName,
+		ReconcileFun: reconcileFun,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestBeforeAnnotatedAPICall", request, &response)
@@ -466,14 +466,14 @@ func NotifyTestAfterAnnotatedAPICall(invocationID int, moduleName string, filePa
 	if !checkKVPairInAnnotatedAPICallTriggerCondition(receiverType + funName) {
 		return
 	}
-	reconcilerType := getReconcilerFromStackTrace()
+	reconcileFun := getMatchedReconcileStackFrame()
 	log.Printf("NotifyTestAfterAnnotatedAPICall %s %s %s %s\n", moduleName, filePath, receiverType, funName)
 	request := &NotifyTestAfterAnnotatedAPICallRequest{
-		ModuleName:     moduleName,
-		FilePath:       filePath,
-		ReceiverType:   receiverType,
-		FunName:        funName,
-		ReconcilerType: reconcilerType,
+		ModuleName:   moduleName,
+		FilePath:     filePath,
+		ReceiverType: receiverType,
+		FunName:      funName,
+		ReconcileFun: reconcileFun,
 	}
 	var response Response
 	err := rpcClient.Call("TestCoordinator.NotifyTestAfterAnnotatedAPICall", request, &response)

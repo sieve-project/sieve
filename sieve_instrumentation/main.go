@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 
 	"encoding/json"
 )
@@ -24,8 +25,8 @@ func instrumentKubernetesForLearn(k8s_filepath string) {
 
 func instrumentControllerForLearn(configMap map[string]interface{}) {
 	application_file_path := configMap["app_file_path"].(string)
-	controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
 	client_go_filepath := configMap["client_go_filepath"].(string)
+	annotated_reconcile_functions := configMap["annotated_reconcile_functions"].(map[string]interface{})
 	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
 
 	sharedInformerGoFile := path.Join(client_go_filepath, "tools", "cache", "shared_informer.go")
@@ -40,13 +41,15 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 	fmt.Printf("instrumenting %s\n", storeGoFile)
 	instrumentStoreGoForAll(storeGoFile, storeGoFile, "Learn")
 
-	controllerGoFile := path.Join(controller_runtime_filepath, "pkg", "internal", "controller", "controller.go")
-	fmt.Printf("instrumenting %s\n", controllerGoFile)
-	instrumentControllerGoForLearn(controllerGoFile, controllerGoFile)
-
-	// splitGoFile := path.Join(controller_runtime_filepath, "pkg", "client", "split.go")
-	// fmt.Printf("instrumenting %s\n", splitGoFile)
-	// instrumentSplitGoForAll(splitGoFile, splitGoFile, "Learn")
+	for filePath, stackFrame := range annotated_reconcile_functions {
+		source_file_to_instrument := path.Join(application_file_path, filePath)
+		tokens := strings.Split(strings.Split(stackFrame.(string), "/")[len(strings.Split(stackFrame.(string), "/"))-1], ".")
+		pkg := tokens[len(tokens)-3]
+		recvType := strings.Trim(tokens[len(tokens)-2], "()")
+		funName := tokens[len(tokens)-1]
+		fmt.Printf("instrumenting %s\n", source_file_to_instrument)
+		instrumentAnnotatedReconcile(source_file_to_instrument, source_file_to_instrument, pkg, funName, recvType, stackFrame.(string))
+	}
 
 	for _, api_to_instrument := range apis_to_instrument {
 		entry := api_to_instrument.(map[string]interface{})
@@ -63,12 +66,12 @@ func instrumentControllerForLearn(configMap map[string]interface{}) {
 			}
 		}
 		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, filePath)
+		fmt.Printf("instrumenting %s\n", source_file_to_instrument)
 		instrumentAnnotatedAPI(source_file_to_instrument, source_file_to_instrument, module, filePath, pkg, funName, recvType, "Learn", customizedImportMap, true)
 	}
 }
 
 func instrumentControllerForTest(configMap map[string]interface{}) {
-	// controller_runtime_filepath := configMap["controller_runtime_filepath"].(string)
 	client_go_filepath := configMap["client_go_filepath"].(string)
 	application_file_path := configMap["app_file_path"].(string)
 	apis_to_instrument := configMap["apis_to_instrument"].([]interface{})
@@ -100,6 +103,7 @@ func instrumentControllerForTest(configMap map[string]interface{}) {
 			}
 		}
 		source_file_to_instrument := path.Join(application_file_path, "sieve-dependency", "src", module, filePath)
+		fmt.Printf("instrumenting %s\n", source_file_to_instrument)
 		instrumentAnnotatedAPI(source_file_to_instrument, source_file_to_instrument, module, filePath, pkg, funName, recvType, "Test", customizedImportMap, true)
 	}
 }

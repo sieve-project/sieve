@@ -27,7 +27,7 @@ NON_K8S_WRITE = "NON_K8S_WRITE"
 
 DEFAULT_NS = "default"
 
-UNKNOWN_RECONCILER_TYPE = "unknown"
+UNKNOWN_RECONCILE_FUN = "unknown"
 
 
 class APIEventTypes:
@@ -361,14 +361,14 @@ class OperatorNonK8sWrite:
         file_path: str,
         recv_type: str,
         fun_name: str,
-        reconciler_type: str,
+        reconcile_fun: str,
     ):
         self.__id = int(id)
         self.__module = module
         self.__file_path = file_path
         self.__recv_type = recv_type
         self.__fun_name = fun_name
-        self.__reconciler_type = reconciler_type
+        self.__reconcile_fun = reconcile_fun
         self.__reconcile_id = -1
         self.__start_timestamp = -1
         self.__end_timestamp = -1
@@ -397,8 +397,8 @@ class OperatorNonK8sWrite:
         return self.__fun_name
 
     @property
-    def reconciler_type(self):
-        return self.__reconciler_type
+    def reconcile_fun(self):
+        return self.__reconcile_fun
 
     @property
     def reconcile_id(self):
@@ -424,9 +424,9 @@ class OperatorNonK8sWrite:
     def signature_counter(self):
         return self.__signature_counter
 
-    @reconciler_type.setter
-    def reconciler_type(self, reconciler_type: str):
-        self.__reconciler_type = reconciler_type
+    @reconcile_fun.setter
+    def reconcile_fun(self, reconcile_fun: str):
+        self.__reconcile_fun = reconcile_fun
 
     @reconcile_id.setter
     def reconcile_id(self, reconcile_id: int):
@@ -458,7 +458,7 @@ class OperatorWrite:
         self,
         id: str,
         etype: str,
-        reconciler_type: str,
+        reconcile_fun: str,
         error: str,
         rtype: str,
         namespace: str,
@@ -470,7 +470,7 @@ class OperatorWrite:
         assert etype != OperatorWriteTypes.DELETEALLOF
         self.__etype = etype
         self.__rtype = rtype
-        self.__reconciler_type = reconciler_type
+        self.__reconcile_fun = reconcile_fun
         self.__reconcile_id = -1
         self.__error = error
         self.__obj_str = obj_str
@@ -503,8 +503,8 @@ class OperatorWrite:
         return self.__rtype
 
     @property
-    def reconciler_type(self):
-        return self.__reconciler_type
+    def reconcile_fun(self):
+        return self.__reconcile_fun
 
     @property
     def reconcile_id(self):
@@ -578,9 +578,9 @@ class OperatorWrite:
     def signature_counter(self):
         return self.__signature_counter
 
-    @reconciler_type.setter
-    def reconciler_type(self, reconciler_type: str):
-        self.__reconciler_type = reconciler_type
+    @reconcile_fun.setter
+    def reconcile_fun(self, reconcile_fun: str):
+        self.__reconcile_fun = reconcile_fun
 
     @reconcile_id.setter
     def reconcile_id(self, reconcile_id: int):
@@ -636,14 +636,14 @@ class OperatorRead:
         rtype: str,
         namespace: str,
         name: str,
-        reconciler_type: str,
+        reconcile_fun: str,
         error: str,
         obj_str: str,
     ):
         self.__etype = etype
         self.__from_cache = True if from_cache == "true" else False
         self.__rtype = rtype
-        self.__reconciler_type = reconciler_type
+        self.__reconcile_fun = reconcile_fun
         self.__reconcile_id = -1
         self.__error = error
         self.__key_to_obj = {}
@@ -682,8 +682,8 @@ class OperatorRead:
         return self.__rtype
 
     @property
-    def reconciler_type(self):
-        return self.__reconciler_type
+    def reconcile_fun(self):
+        return self.__reconcile_fun
 
     @property
     def reconcile_id(self):
@@ -742,14 +742,14 @@ class OperatorNonK8sWriteIDOnly:
 
 
 class ReconcileBegin:
-    def __init__(self, reconciler_type: str, reconcile_id: str):
-        self.__reconciler_type = reconciler_type
+    def __init__(self, reconcile_fun: str, reconcile_id: str):
+        self.__reconcile_fun = reconcile_fun
         self.__reconcile_id = reconcile_id
         self.__end_timestamp = -1
 
     @property
-    def reconciler_type(self):
-        return self.__reconciler_type
+    def reconcile_fun(self):
+        return self.__reconcile_fun
 
     @property
     def reconcile_id(self):
@@ -765,14 +765,14 @@ class ReconcileBegin:
 
 
 class ReconcileEnd:
-    def __init__(self, reconciler_type: str, reconcile_id: str):
-        self.__reconciler_type = reconciler_type
+    def __init__(self, reconcile_fun: str, reconcile_id: str):
+        self.__reconcile_fun = reconcile_fun
         self.__reconcile_id = reconcile_id
         self.__end_timestamp = -1
 
     @property
-    def reconciler_type(self):
-        return self.__reconciler_type
+    def reconcile_fun(self):
+        return self.__reconcile_fun
 
     @property
     def reconcile_id(self):

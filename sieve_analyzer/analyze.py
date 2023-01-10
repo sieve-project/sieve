@@ -41,24 +41,23 @@ def sanity_check_sieve_log(path):
             assert operator_hear_id in operator_hear_status, line
             operator_hear_status[operator_hear_id] += 1
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
-            reconciler_type = parse_reconcile(line).reconciler_type
-            if reconciler_type not in reconcile_status:
-                reconcile_status[reconciler_type] = 0
-            reconcile_status[reconciler_type] += 1
-            assert reconcile_status[reconciler_type] == 1, line
+            reconcile_fun = parse_reconcile(line).reconcile_fun
+            if reconcile_fun not in reconcile_status:
+                reconcile_status[reconcile_fun] = 0
+            reconcile_status[reconcile_fun] += 1
+            assert reconcile_status[reconcile_fun] == 1, line
         elif SIEVE_AFTER_RECONCILE_MARK in line:
-            reconciler_type = parse_reconcile(line).reconciler_type
-            assert reconciler_type in reconcile_status, line
-            reconcile_status[reconciler_type] -= 1
-            assert reconcile_status[reconciler_type] == 0, line
+            reconcile_fun = parse_reconcile(line).reconcile_fun
+            assert reconcile_fun in reconcile_status, line
+            reconcile_status[reconcile_fun] -= 1
+            assert reconcile_status[reconcile_fun] == 0, line
     for key in operator_write_status:
         assert operator_write_status[key] == 1 or operator_write_status[key] == 2
     for key in operator_hear_status:
         assert operator_hear_status[key] == 1 or operator_hear_status[key] == 2
     for key in reconcile_status:
         assert (
-            reconcile_status[reconciler_type] == 0
-            or reconcile_status[reconciler_type] == 1
+            reconcile_status[reconcile_fun] == 0 or reconcile_status[reconcile_fun] == 1
         )
 
 
@@ -103,7 +102,7 @@ def parse_reconciler_events(test_context: TestContext, path):
     # we need to record all the ongoing controllers
     # there could be multiple workers running for a single controller
     # so we need to count each worker for each controller
-    # ongoing_reconcile = { reconciler_type -> number of ongoing workers for this controller }
+    # ongoing_reconcile = { reconcile_fun -> number of ongoing workers for this controller }
     ongoing_reconciles = {}
     lines = open(path).readlines()
     for i in range(len(lines)):
@@ -118,7 +117,7 @@ def parse_reconciler_events(test_context: TestContext, path):
             # though it should not happen at all.
             # TODO: handle the writes that are not in any reconcile
             operator_write = parse_operator_write(line)
-            if operator_write.reconciler_type not in cur_reconcile_per_type:
+            if operator_write.reconcile_fun not in cur_reconcile_per_type:
                 if not test_context.controller_config.loosen_reconciler_boundary:
                     continue
             # Do deepcopy here to ensure the later changes to the two sets
@@ -130,9 +129,9 @@ def parse_reconciler_events(test_context: TestContext, path):
                 operator_write.id
             ]
             operator_write.end_timestamp = i
-            if operator_write.reconciler_type in cur_reconcile_per_type:
-                prev_reconcile = prev_reconcile_per_type[operator_write.reconciler_type]
-                cur_reconcile = cur_reconcile_per_type[operator_write.reconciler_type]
+            if operator_write.reconcile_fun in cur_reconcile_per_type:
+                prev_reconcile = prev_reconcile_per_type[operator_write.reconcile_fun]
+                cur_reconcile = cur_reconcile_per_type[operator_write.reconcile_fun]
                 earliest_timestamp = -1
                 if prev_reconcile is not None:
                     earliest_timestamp = prev_reconcile.end_timestamp
@@ -146,20 +145,18 @@ def parse_reconciler_events(test_context: TestContext, path):
             for key in cur_reconcile_is_trivial:
                 cur_reconcile_is_trivial[key] = False
             operator_nk_write = parse_operator_non_k8s_write(line)
-            if operator_nk_write.reconciler_type not in cur_reconcile_per_type:
+            if operator_nk_write.reconcile_fun not in cur_reconcile_per_type:
                 if not test_context.controller_config.loosen_reconciler_boundary:
                     continue
             operator_nk_write.start_timestamp = operator_nk_write_start_timestamp_map[
                 operator_nk_write.id
             ]
             operator_nk_write.end_timestamp = i
-            if operator_nk_write.reconciler_type in cur_reconcile_per_type:
+            if operator_nk_write.reconcile_fun in cur_reconcile_per_type:
                 prev_reconcile = prev_reconcile_per_type[
-                    operator_nk_write.reconciler_type
+                    operator_nk_write.reconcile_fun
                 ]
-                cur_reconcile = cur_reconcile_per_type[
-                    operator_nk_write.reconciler_type
-                ]
+                cur_reconcile = cur_reconcile_per_type[operator_nk_write.reconcile_fun]
                 earliest_timestamp = -1
                 if prev_reconcile is not None:
                     earliest_timestamp = prev_reconcile.end_timestamp
@@ -170,10 +167,10 @@ def parse_reconciler_events(test_context: TestContext, path):
         elif SIEVE_AFTER_CACHE_READ_MARK in line:
             # TODO: handle the reads that are not in any reconcile
             operator_read = parse_operator_read(line)
-            if operator_read.reconciler_type not in cur_reconcile_per_type:
+            if operator_read.reconcile_fun not in cur_reconcile_per_type:
                 continue
             operator_read.end_timestamp = i
-            cur_reconcile = cur_reconcile_per_type[operator_read.reconciler_type]
+            cur_reconcile = cur_reconcile_per_type[operator_read.reconcile_fun]
             operator_read.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[operator_read.end_timestamp] = operator_read
             if operator_read.etype == "Get":
@@ -184,39 +181,39 @@ def parse_reconciler_events(test_context: TestContext, path):
             reconcile_begin = parse_reconcile(line)
             reconcile_begin.end_timestamp = i
             ts_to_event_map[reconcile_begin.end_timestamp] = reconcile_begin
-            reconciler_type = reconcile_begin.reconciler_type
-            if reconciler_type not in ongoing_reconciles:
-                ongoing_reconciles[reconciler_type] = 1
+            reconcile_fun = reconcile_begin.reconcile_fun
+            if reconcile_fun not in ongoing_reconciles:
+                ongoing_reconciles[reconcile_fun] = 1
             else:
-                ongoing_reconciles[reconciler_type] += 1
+                ongoing_reconciles[reconcile_fun] += 1
             # let's assume there should be only one worker for each controller here
-            assert ongoing_reconciles[reconciler_type] == 1
-            if reconciler_type not in cur_reconcile_per_type:
-                prev_reconcile_per_type[reconciler_type] = None
-                cur_reconcile_per_type[reconciler_type] = reconcile_begin
+            assert ongoing_reconciles[reconcile_fun] == 1
+            if reconcile_fun not in cur_reconcile_per_type:
+                prev_reconcile_per_type[reconcile_fun] = None
+                cur_reconcile_per_type[reconcile_fun] = reconcile_begin
             else:
                 if not test_context.common_config.compress_trivial_reconcile_enabled:
-                    prev_reconcile_per_type[reconciler_type] = cur_reconcile_per_type[
-                        reconciler_type
+                    prev_reconcile_per_type[reconcile_fun] = cur_reconcile_per_type[
+                        reconcile_fun
                     ]
-                    cur_reconcile_per_type[reconciler_type] = reconcile_begin
+                    cur_reconcile_per_type[reconcile_fun] = reconcile_begin
                 elif (
                     test_context.common_config.compress_trivial_reconcile_enabled
-                    and not cur_reconcile_is_trivial[reconciler_type]
+                    and not cur_reconcile_is_trivial[reconcile_fun]
                 ):
-                    prev_reconcile_per_type[reconciler_type] = cur_reconcile_per_type[
-                        reconciler_type
+                    prev_reconcile_per_type[reconcile_fun] = cur_reconcile_per_type[
+                        reconcile_fun
                     ]
-                    cur_reconcile_per_type[reconciler_type] = reconcile_begin
-            cur_reconcile_is_trivial[reconciler_type] = True
+                    cur_reconcile_per_type[reconcile_fun] = reconcile_begin
+            cur_reconcile_is_trivial[reconcile_fun] = True
         elif SIEVE_AFTER_RECONCILE_MARK in line:
             reconcile_end = parse_reconcile(line)
             reconcile_end.end_timestamp = i
             ts_to_event_map[reconcile_end.end_timestamp] = reconcile_end
-            reconciler_type = reconcile_end.reconciler_type
-            ongoing_reconciles[reconciler_type] -= 1
-            if ongoing_reconciles[reconciler_type] == 0:
-                del ongoing_reconciles[reconciler_type]
+            reconcile_fun = reconcile_end.reconcile_fun
+            ongoing_reconciles[reconcile_fun] -= 1
+            if ongoing_reconciles[reconcile_fun] == 0:
+                del ongoing_reconciles[reconcile_fun]
             # Clear the read keys and types set since all the ongoing reconciles are done
             if len(ongoing_reconciles) == 0:
                 read_keys_this_reconcile = set()

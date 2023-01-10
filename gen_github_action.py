@@ -6,10 +6,10 @@ from sieve_common.common import sieve_modes
 from datetime import datetime
 
 operators_for_CI = {
-    "cass-operator": ["recreate", "scaledown-scaleup"],
+    # "cass-operator": ["recreate", "scaledown-scaleup"],
     "cassandra-operator": ["recreate", "scaledown-scaleup"],
     "casskop-operator": ["recreate", "scaledown-to-zero", "reducepdb"],
-    "elastic-operator": ["recreate", "scaledown-scaleup"],
+    # "elastic-operator": ["recreate", "scaledown-scaleup"],
     "mongodb-operator": [
         "recreate",
         "scaleup-scaledown",
@@ -78,7 +78,7 @@ def job_template(self_hosted):
             {
                 "name": "Setup Go environment",
                 "uses": "actions/setup-go@v2.1.3",
-                "with": {"go-version": 1.15},
+                "with": {"go-version": 1.19},
             },
             {
                 "name": "Setup Python",
@@ -95,12 +95,12 @@ def job_template(self_hosted):
             },
             {
                 "name": "Install Kind",
-                "run": 'GO111MODULE="on" go get sigs.k8s.io/kind@v0.13.0\nkind',
+                "run": 'GO111MODULE="on" go install sigs.k8s.io/kind@v0.13.0\nkind',
             },
-            {
-                "name": "Install Mage",
-                "run": "go get -u github.com/magefile/mage\nmage -h",
-            },
+            # {
+            #     "name": "Install Mage",
+            #     "run": "go get -u github.com/magefile/mage\nmage -h",
+            # },
             {
                 "name": "Install Helm",
                 "run": "wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz\ntar -zxvf helm-v3.6.0-linux-amd64.tar.gz\nsudo mv linux-amd64/helm /usr/local/bin/helm\nhelm",
@@ -154,9 +154,9 @@ def generate_controller_image_build_jobs(self_hosted):
     for operator in operators_for_CI:
         job = job_template(self_hosted)
         build_modes = [
-            "learn",
-            "test",
-            "vanilla",
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
+            sieve_modes.VANILLA,
         ]
         build_image = [
             {
@@ -223,8 +223,8 @@ def generate_test_jobs(self_hosted):
     for operator in operators_for_CI:
         job = job_template(self_hosted)
         build_modes = [
-            "learn",
-            "test",
+            sieve_modes.LEARN,
+            sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]
         workload_set = set(operators_for_CI[operator])

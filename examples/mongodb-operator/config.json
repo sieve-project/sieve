@@ -3,7 +3,6 @@
     "github_link": "https://github.com/percona/percona-server-mongodb-operator.git",
     "commit": "c12b69e2c41efc67336a890039394250420f60bb",
     "kubernetes_version": "v1.18.9",
-    "controller_runtime_version": "v0.5.2",
     "client_go_version": "v0.17.2",
     "dockerfile_path": "build/Dockerfile",
     "controller_image_name": "percona/mongodb-operator:latest",
@@ -13,6 +12,9 @@
         "perconaservermongodbbackup",
         "perconaservermongodbrestore"
     ],
+    "annotated_reconcile_functions": {
+        "pkg/controller/perconaservermongodb/psmdb_controller.go": "github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB).Reconcile"
+    },
     "controller_pod_label": "mongodb-operator",
     "controller_deployment_file_path": "examples/mongodb-operator/deploy/bundle.yaml",
     "test_setting": {
