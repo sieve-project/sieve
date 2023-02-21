@@ -21,7 +21,13 @@ ORIGINAL_DIR = os.getcwd()
 GOPATH = os.environ["GOPATH"]
 
 DEFAULT_K8S_VERSION = "v1.18.9"
-K8S_VER_TO_APIMACHINERY_VER = {"v1.18.9": "v0.18.9", "v1.23.1": "v0.23.1"}
+
+# TODO: it is a bit ad-hoc to decide the compatible apimachinery version
+def k8s_version_to_apimachinery_version(k8s_version):
+    apimachinery_version = "v0" + k8s_version[2:]
+    print(
+        "Use the apimachinery version {} in sieve client".format(apimachinery_version)
+    )
 
 
 def update_sieve_client_go_mod_with_version(go_mod_path, version):
@@ -62,7 +68,7 @@ def install_lib_for_kubernetes(version):
     if version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
             "fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client/go.mod",
-            K8S_VER_TO_APIMACHINERY_VER[version],
+            k8s_version_to_apimachinery_version(version),
         )
     os.symlink(
         "../staging/src/sieve.client",
@@ -176,7 +182,7 @@ def install_lib_for_controller(
     if controller_config.kubernetes_version != DEFAULT_K8S_VERSION:
         update_sieve_client_go_mod_with_version(
             os.path.join(sieve_dep_src_dir, "sieve.client", "go.mod"),
-            K8S_VER_TO_APIMACHINERY_VER[controller_config.kubernetes_version],
+            k8s_version_to_apimachinery_version(controller_config.kubernetes_version),
         )
     elif controller_config.apimachinery_version is not None:
         update_sieve_client_go_mod_with_version(
@@ -291,7 +297,7 @@ def install_lib_for_controller_with_vendor(
             os.path.join(
                 application_dir, controller_config.vendored_sieve_client_path, "go.mod"
             ),
-            K8S_VER_TO_APIMACHINERY_VER[controller_config.kubernetes_version],
+            k8s_version_to_apimachinery_version(controller_config.kubernetes_version),
         )
     elif controller_config.apimachinery_version is not None:
         update_sieve_client_go_mod_with_version(
