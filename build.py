@@ -268,7 +268,7 @@ def install_lib_for_controller(controller_config: ControllerConfig):
 
 def remove_replacement_in_go_mod_file(file):
     """
-    Remove the existing `k8s.io/client-go` in the go.mod of the controller
+    Remove the existing `k8s.io/client-go => ` in the go.mod of the controller
     because later we will modify the go.mod to import the instrumented client-go.
 
     :param file: the go.mod file of the controller
@@ -279,7 +279,7 @@ def remove_replacement_in_go_mod_file(file):
         lines = go_mod_file.readlines()
     with open(file, "w") as go_mod_file:
         for line in lines:
-            if "k8s.io/client-go" in line:
+            if "k8s.io/client-go => " in line:
                 continue
             go_mod_file.write(line)
 
