@@ -22,15 +22,30 @@ GOPATH = os.environ["GOPATH"]
 
 DEFAULT_K8S_VERSION = "v1.18.9"
 
-# TODO: it is a bit ad-hoc to decide the compatible apimachinery version
+
 def k8s_version_to_apimachinery_version(k8s_version):
+    """
+    Generate the version number of apimachinery imported by sieve client.
+
+    :param k8s_version: the Kubernetes version
+    :return: the apimachinery version
+    """
+    # TODO: It is a bit ad-hoc to decide the compatible apimachinery version
     apimachinery_version = "v0" + k8s_version[2:]
     print(
         "Use the apimachinery version {} in sieve client".format(apimachinery_version)
     )
+    return apimachinery_version
 
 
 def update_sieve_client_go_mod_with_version(go_mod_path, version):
+    """
+    Update the apimachinery version number in the go.mod of sieve client.
+    We need to hack the go.mod because sieve client will be imported by Kubernetes after instrumentation.
+
+    :param go_mod_path: the file path of go.mod in sieve client
+    :param version: the apimachinery version number
+    """
     fin = open(go_mod_path)
     data = fin.read()
     data = data.replace(
@@ -44,6 +59,11 @@ def update_sieve_client_go_mod_with_version(go_mod_path, version):
 
 
 def download_kubernetes(version):
+    """
+    Download Kubernetes to fakegopath and checkout to the specified version.
+
+    :param version: the Kubernetes version that will be used to build kind node image
+    """
     rmtree_if_exists("fakegopath")
     os.makedirs("fakegopath/src/k8s.io")
     os_system(
@@ -57,6 +77,11 @@ def download_kubernetes(version):
 
 
 def install_lib_for_kubernetes(version):
+    """
+    Import sieve client to Kubernetes.
+
+    :param version: the Kubernetes version
+    """
     with open(
         "fakegopath/src/k8s.io/kubernetes/staging/src/k8s.io/apiserver/go.mod", "a"
     ) as go_mod_file:
@@ -77,6 +102,11 @@ def install_lib_for_kubernetes(version):
 
 
 def instrument_kubernetes(mode):
+    """
+    Instrument the Kubernetes source code using the instrumentation tool.
+
+    :param mode: the building mode which decides the instrumentation
+    """
     os.chdir("sieve_instrumentation")
     instrumentation_config = {
         "project": "kubernetes",
@@ -91,6 +121,13 @@ def instrument_kubernetes(mode):
 
 
 def build_kubernetes(version, container_registry, image_tag):
+    """
+    Build the Kubernetes source code into kind node image.
+
+    :param version: the Kubernetes version
+    :param container_registry: the name of the container registry as part of the image name
+    :param image_tag: the tag of the image
+    """
     os.chdir("fakegopath/src/k8s.io/kubernetes")
     os_system(
         "GOPATH={}/fakegopath KUBE_GIT_VERSION={}-sieve-`git rev-parse HEAD` kind build node-image".format(
@@ -106,10 +143,26 @@ def build_kubernetes(version, container_registry, image_tag):
 
 
 def push_kubernetes(container_registry, image_tag):
+    """
+    Push the kind node image to a remote registry.
+
+    :param container_registry: the name of the container registry to push the image to
+    :param image_tag: the tag of the image
+    """
     os_system("docker push {}/node:{}".format(container_registry, image_tag))
 
 
 def setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote):
+    """
+    Download Kubernetes, import sieve client, instrument the source code, build the kind node image
+    and push to the remote registry if needed.
+
+    :param version: the Kubernetes version
+    :param mode: the building mode which decides what the instrumentation look like
+    :param container_registry: the name of the container registry to push the image to
+    :param image_tag: the tag of the image
+    :param push_to_remote: if true then push the image to container_registry
+    """
     download_kubernetes(version)
     install_lib_for_kubernetes(version)
     instrument_kubernetes(mode)
@@ -119,9 +172,13 @@ def setup_kubernetes(version, mode, container_registry, image_tag, push_to_remot
 
 
 def download_controller(
-    common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
+    """
+    Download the controller.
+
+    :param controller_config: the controller configuration
+    """
     application_dir = os.path.join("app", controller_config.controller_name)
     rmtree_if_exists(application_dir)
     os_system(
@@ -137,20 +194,14 @@ def download_controller(
     os.chdir(ORIGINAL_DIR)
 
 
-def remove_replacement_in_go_mod_file(file):
-    lines = []
-    with open(file, "r") as go_mod_file:
-        lines = go_mod_file.readlines()
-    with open(file, "w") as go_mod_file:
-        for line in lines:
-            if "k8s.io/client-go =>" in line:
-                continue
-            elif "sigs.k8s.io/controller-runtime =>" in line:
-                continue
-            go_mod_file.write(line)
-
-
 def install_module(module, sieve_dep_src_dir):
+    """
+    Download the module that is imported by the controller and copy it to the controller folder
+    because we later need to instrument these modules.
+
+    :param module: the module to download
+    :param sieve_dep_src_dir: the dst folder to copy the downloaded module to
+    """
     module_src = os.path.join(GOPATH, "pkg/mod", module)
     module_dst = os.path.join(sieve_dep_src_dir, module)
     os_system("go mod download {} >> /dev/null".format(module))
@@ -162,9 +213,13 @@ def install_module(module, sieve_dep_src_dir):
     add_mod_recursively(module_dst, stat.S_IWRITE)
 
 
-def install_lib_for_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig
-):
+def install_lib_for_controller(controller_config: ControllerConfig):
+    """
+    Copy (1) sieve client, (2) client-go and (3) other modules that require instrumentation to the controller folder
+    for later instrumentation.
+
+    :param controller_config: the controller configuration
+    """
     application_dir = os.path.join("app", controller_config.controller_name)
     sieve_dep_src_dir = os.path.join(
         application_dir,
@@ -190,6 +245,7 @@ def install_lib_for_controller(
             controller_config.apimachinery_version,
         )
 
+    # download client-go
     install_module(
         "k8s.io/client-go@{}".format(controller_config.client_go_version),
         sieve_dep_src_dir,
@@ -210,17 +266,35 @@ def install_lib_for_controller(
     os.chdir(ORIGINAL_DIR)
 
 
+def remove_replacement_in_go_mod_file(file):
+    """
+    Remove the existing `k8s.io/client-go => ` in the go.mod of the controller
+    because later we will modify the go.mod to import the instrumented client-go.
+
+    :param file: the go.mod file of the controller
+    """
+    # TODO: we should also remove the replace entry for other instrumented modules
+    lines = []
+    with open(file, "r") as go_mod_file:
+        lines = go_mod_file.readlines()
+    with open(file, "w") as go_mod_file:
+        for line in lines:
+            if "k8s.io/client-go => " in line:
+                continue
+            go_mod_file.write(line)
+
+
 def update_go_mod_for_controller(
     controller_config_dir,
-    common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
-    sieve_dep_src_dir = os.path.join(
-        application_dir,
-        "sieve-dependency/src",
-    )
+    """
+    Update the go.mod of the controller to import sieve client and the local client-go and other modules.
 
+    :param controller_config_dir: the folder containing the build script provided by controller developers
+    :param controller_config: the controller configuration
+    """
+    application_dir = os.path.join("app", controller_config.controller_name)
     # modify the go.mod to import the libs
     remove_replacement_in_go_mod_file(os.path.join(application_dir, "go.mod"))
     with open("{}/go.mod".format(application_dir), "a") as go_mod_file:
@@ -254,15 +328,15 @@ def update_go_mod_for_controller(
         os.path.join(controller_config_dir, "build", "Dockerfile"),
         os.path.join(application_dir, controller_config.dockerfile_path),
     )
-    # os.chdir(application_dir)
-    # os_system("git add -A >> /dev/null")
-    # os_system('git commit -m "import the lib" >> /dev/null')
-    # os.chdir(ORIGINAL_DIR)
 
 
-def instrument_controller(
-    common_config: CommonConfig, controller_config: ControllerConfig, mode
-):
+def instrument_controller(controller_config: ControllerConfig, mode):
+    """
+    Instrument the controller source code including client-go and other modules.
+
+    :param controller_config: the controller configuration
+    :param mode: the building mode
+    """
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
     instrumentation_config = {
@@ -284,9 +358,12 @@ def instrument_controller(
     os.chdir(ORIGINAL_DIR)
 
 
-def install_lib_for_controller_with_vendor(
-    common_config: CommonConfig, controller_config: ControllerConfig
-):
+def install_lib_for_controller_with_vendor(controller_config: ControllerConfig):
+    """
+    A variant of install_lib_for_controller for controllers that use vendor.
+
+    :param controller_config: the controller configuration
+    """
     application_dir = os.path.join("app", controller_config.controller_name)
     shutil.copytree(
         "sieve_client",
@@ -314,9 +391,14 @@ def install_lib_for_controller_with_vendor(
 
 def update_go_mod_for_controller_with_vendor(
     controller_config_dir,
-    common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
+    """
+    A variant of update_go_mod_for_controller for controllers that use vendor.
+
+    :param controller_config_dir: the folder containing the build script provided by controller developers
+    :param controller_config: the controller configuration
+    """
     application_dir = os.path.join("app", controller_config.controller_name)
     with open(os.path.join(application_dir, "go.mod"), "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
@@ -335,9 +417,13 @@ def update_go_mod_for_controller_with_vendor(
     os.chdir(ORIGINAL_DIR)
 
 
-def instrument_controller_with_vendor(
-    common_config: CommonConfig, controller_config: ControllerConfig, mode
-):
+def instrument_controller_with_vendor(controller_config: ControllerConfig, mode):
+    """
+    A variant of instrument_controller for controllers that use vendor.
+
+    :param controller_config: the controller configuration
+    :param mode: the building mode
+    """
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
     instrumentation_config = {
@@ -359,11 +445,17 @@ def instrument_controller_with_vendor(
 
 
 def build_controller(
-    common_config: CommonConfig,
     controller_config: ControllerConfig,
     image_tag,
     container_registry,
 ):
+    """
+    Build the controller docker image.
+
+    :param controller_config: the controller configuration
+    :param container_registry: the name of the container registry as part of the image name
+    :param image_tag: the tag of the image
+    """
     application_dir = os.path.join("app", controller_config.controller_name)
     os.chdir(application_dir)
     os_system("./build.sh {} {}".format(container_registry, image_tag))
@@ -379,11 +471,17 @@ def build_controller(
 
 
 def push_controller(
-    common_config: CommonConfig,
     controller_config: ControllerConfig,
     image_tag,
     container_registry,
 ):
+    """
+    Push the controller image to a remote registry.
+
+    :param controller_config: the controller configuration
+    :param container_registry: the name of the container registry to push the image to
+    :param image_tag: the tag of the image
+    """
     os_system(
         "docker push {}/{}:{}".format(
             container_registry,
@@ -395,7 +493,6 @@ def push_controller(
 
 def setup_controller(
     controller_config_dir,
-    common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
     image_tag,
@@ -403,23 +500,34 @@ def setup_controller(
     push_to_remote,
     container_registry,
 ):
+    """
+    Download the controller, import sieve client, client-go and other modules that require instrumentation,
+    build the controller image and push to the remote registry if needed.
+    It works for controllers that use mod or vendor.
+
+    :param controller_config_dir: the folder containing the build script provided by the controller developer
+    :param controller_config: the controller configuration
+    :param mode: the building mode
+    :param image_tag: the tag of the image
+    :param build_only: if true then directly build the local controller code instead of downloading it
+    :param push_to_remote: if true then push the image to container_registry
+    :param container_registry: the name of the container registry to push the image to
+    """
     if not build_only:
-        download_controller(common_config, controller_config)
+        download_controller(controller_config)
         if controller_config.go_mod == "mod":
-            install_lib_for_controller(common_config, controller_config)
-            update_go_mod_for_controller(
-                controller_config_dir, common_config, controller_config
-            )
-            instrument_controller(common_config, controller_config, mode)
+            install_lib_for_controller(controller_config)
+            update_go_mod_for_controller(controller_config_dir, controller_config)
+            instrument_controller(controller_config, mode)
         else:
-            install_lib_for_controller_with_vendor(common_config, controller_config)
+            install_lib_for_controller_with_vendor(controller_config)
             update_go_mod_for_controller_with_vendor(
-                controller_config_dir, common_config, controller_config
+                controller_config_dir, controller_config
             )
-            instrument_controller_with_vendor(common_config, controller_config, mode)
-    build_controller(common_config, controller_config, image_tag, container_registry)
+            instrument_controller_with_vendor(controller_config, mode)
+    build_controller(controller_config, image_tag, container_registry)
     if push_to_remote:
-        push_controller(common_config, controller_config, image_tag, container_registry)
+        push_controller(controller_config, image_tag, container_registry)
 
 
 def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
@@ -444,7 +552,6 @@ def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
 
 def setup_controller_wrapper(
     controller_config_dir,
-    common_config: CommonConfig,
     controller_config: ControllerConfig,
     mode,
     build_only,
@@ -461,7 +568,6 @@ def setup_controller_wrapper(
             image_tag = this_mode
             setup_controller(
                 controller_config_dir,
-                common_config,
                 controller_config,
                 this_mode,
                 image_tag,
@@ -472,7 +578,6 @@ def setup_controller_wrapper(
     else:
         setup_controller(
             controller_config_dir,
-            common_config,
             controller_config,
             mode,
             image_tag,
@@ -567,7 +672,6 @@ if __name__ == "__main__":
             controller_config.commit = options.sha
         setup_controller_wrapper(
             options.controller_config_dir,
-            common_config,
             controller_config,
             options.mode,
             options.build_only,
