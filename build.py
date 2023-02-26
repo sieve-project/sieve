@@ -435,6 +435,7 @@ def instrument_controller_with_vendor(controller_config: ControllerConfig, mode)
             application_dir,
             controller_config.vendored_client_go_path,
         ),
+        "annotated_reconcile_functions": controller_config.annotated_reconcile_functions,
         "apis_to_instrument": controller_config.apis_to_instrument,
     }
     json.dump(instrumentation_config, open("config.json", "w"), indent=4)
