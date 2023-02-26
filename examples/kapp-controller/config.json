@@ -9,11 +9,18 @@
     "vendored_sieve_client_path": "vendor/sieve.client",
     "dockerfile_path": "Dockerfile",
     "controller_image_name": "kapp-controller:latest",
-    "test_command": "",
-    "custom_resource_definitions": [],
+    "test_command": "python3 examples/kapp-controller/test/test.py",
+    "custom_resource_definitions": [
+        "internalpackagemetadata",
+        "internalpackage",
+        "app",
+        "packageinstall",
+        "packagerepository"
+    ],
     "annotated_reconcile_functions": {
-        "pkg/app/reconciler.go": "github.com/carvel-dev/kapp-controller/pkg/app.(*Reconciler).Reconcile"
+        "pkg/app/reconciler.go": "github.com/vmware-tanzu/carvel-kapp-controller/pkg/app.(*Reconciler).Reconcile"
     },
-    "controller_pod_label": "",
-    "controller_deployment_file_path": ""
+    "controller_pod_label": "kapp-controller",
+    "container_name": "kapp-controller",
+    "controller_deployment_file_path": "examples/kapp-controller/deploy/release.yml"
 }
