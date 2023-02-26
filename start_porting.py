@@ -28,12 +28,14 @@ os.system("chmod +x " + deploy_script)
 
 config_json = os.path.join(port_folder, "config.json")
 controller_config_map = {
+    "name": "",
     "github_link": "",
     "commit": "",
     "kubernetes_version": "",
-    "controller_runtime_version": "",
     "client_go_version": "",
     "dockerfile_path": "",
+    "controller_image_name": "",
+    "annotated_reconcile_functions": {},
     "test_command": "",
     "custom_resource_definitions": [],
     "controller_pod_label": "",
