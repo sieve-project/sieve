@@ -1,0 +1,26 @@
+{
+    "name": "kapp-controller",
+    "github_link": "git@github.com:carvel-dev/kapp-controller.git",
+    "commit": "8d8de5c2fb080a23db604e1c4f4c0f29a4b13ca0",
+    "kubernetes_version": "v1.24.10",
+    "client_go_version": "v0.25.6",
+    "go_mod": "vendor",
+    "vendored_client_go_path": "vendor/k8s.io/client-go",
+    "vendored_sieve_client_path": "vendor/sieve.client",
+    "dockerfile_path": "Dockerfile",
+    "controller_image_name": "kapp-controller:latest",
+    "test_command": "python3 examples/kapp-controller/test/test.py",
+    "custom_resource_definitions": [
+        "internalpackagemetadata",
+        "internalpackage",
+        "app",
+        "packageinstall",
+        "packagerepository"
+    ],
+    "annotated_reconcile_functions": {
+        "pkg/app/reconciler.go": "github.com/vmware-tanzu/carvel-kapp-controller/pkg/app.(*Reconciler).Reconcile"
+    },
+    "controller_pod_label": "kapp-controller",
+    "container_name": "kapp-controller",
+    "controller_deployment_file_path": "examples/kapp-controller/deploy/release.yml"
+}

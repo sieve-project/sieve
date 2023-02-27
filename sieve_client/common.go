@@ -540,6 +540,7 @@ func extractNameNamespaceFromObj(object interface{}) (string, string) {
 }
 
 func getMatchedReconcileStackFrame() string {
+	// log.Println(string(debug.Stack()))
 	for _, stackframe := range strings.Split(string(debug.Stack()), "\n") {
 		if strings.HasPrefix(stackframe, "\t") {
 			continue

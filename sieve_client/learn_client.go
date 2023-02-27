@@ -119,8 +119,8 @@ func NotifyLearnAfterReconcile(stackFrame string) {
 	if err := initRPCClient(); err != nil {
 		return
 	}
-	log.Printf("NotifyLearnBeforeReconcile %s", stackFrame)
-	request := &NotifyLearnBeforeReconcileRequest{
+	log.Printf("NotifyLearnAfterReconcile %s", stackFrame)
+	request := &NotifyLearnAfterReconcileRequest{
 		ReconcilerName: stackFrame,
 	}
 	var response Response
@@ -250,6 +250,7 @@ func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, n
 		// checkResponse(response)
 		// return response.Number
 	} else {
+		log.Println("Write operation")
 		request := &NotifyLearnBeforeRestWriteRequest{}
 		var response Response
 		err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestWrite", request, &response)
@@ -296,6 +297,7 @@ func NotifyLearnAfterRestCall(controllerOperationID int, verb string, pathPrefix
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
 		log.Println("Get and List not supported yet")
 	} else {
+		log.Println("Write operation")
 		request := &NotifyLearnAfterRestWriteRequest{
 			ControllerOperationID:   controllerOperationID,
 			ControllerOperationType: controllerOperationType,
