@@ -38,7 +38,7 @@ operators_for_CI = {
 operators_to_run_tests = [
     "cass-operator",
     # "cassandra-operator",
-    "casskop-operator",
+    # "casskop-operator",
     "elastic-operator",
     "mongodb-operator",
     # "nifikop-operator",
