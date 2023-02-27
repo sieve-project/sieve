@@ -14,6 +14,7 @@ SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-HEAR]"
 SIEVE_AFTER_HEAR_MARK = "[SIEVE-AFTER-HEAR]"
 SIEVE_BEFORE_REST_WRITE_MARK = "[SIEVE-BEFORE-REST-WRITE]"
 SIEVE_AFTER_REST_WRITE_MARK = "[SIEVE-AFTER-REST-WRITE]"
+SIEVE_AFTER_REST_READ_MARK = "[SIEVE-AFTER-REST-READ]"
 SIEVE_AFTER_CACHE_READ_MARK = "[SIEVE-AFTER-CACHE-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
@@ -630,7 +631,7 @@ class ControllerWrite:
         self.__range_end_timestamp = end_timestamp
 
 
-class ControllerCacheRead:
+class ControllerRead:
     def __init__(
         self,
         etype: str,
@@ -810,6 +811,38 @@ def parse_controller_write(line: str) -> ControllerWrite:
     )
 
 
+def parse_controller_read(line: str) -> ControllerRead:
+    assert SIEVE_AFTER_REST_READ_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_REST_READ_MARK) :].strip("\n").split("\t")
+    tokens = tokens[1:]
+    if tokens[1] == "Get":
+        return ControllerRead(
+            tokens[1],
+            False,
+            tokens[4],
+            tokens[5],
+            tokens[6],
+            tokens[2],
+            tokens[3],
+            tokens[7],
+        )
+    elif tokens[1] == "List":
+        # When using List, the resource type is like xxxlist so we need to trim the last four characters here
+        # assert tokens[3].endswith("list")
+        return ControllerRead(
+            tokens[1],
+            False,
+            tokens[4],
+            "",
+            "",
+            tokens[2],
+            tokens[3],
+            tokens[5],
+        )
+    else:
+        assert False, "read type should be: Get, List"
+
+
 def parse_controller_non_k8s_write(line: str) -> ControllerNonK8sWrite:
     assert SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line
     tokens = (
@@ -822,11 +855,11 @@ def parse_controller_non_k8s_write(line: str) -> ControllerNonK8sWrite:
     )
 
 
-def parse_controller_cache_read(line: str) -> ControllerCacheRead:
+def parse_controller_cache_read(line: str) -> ControllerRead:
     assert SIEVE_AFTER_CACHE_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_CACHE_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
-        return ControllerCacheRead(
+        return ControllerRead(
             tokens[1],
             True,
             tokens[2],
@@ -839,7 +872,7 @@ def parse_controller_cache_read(line: str) -> ControllerCacheRead:
     elif tokens[1] == "List":
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
         # assert tokens[3].endswith("list")
-        return ControllerCacheRead(
+        return ControllerRead(
             tokens[1],
             True,
             tokens[2],

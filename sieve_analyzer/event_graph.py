@@ -3,7 +3,7 @@ from sieve_common.k8s_event import (
     ControllerHear,
     ControllerWrite,
     ControllerNonK8sWrite,
-    ControllerCacheRead,
+    ControllerRead,
     ReconcileBegin,
     ReconcileEnd,
     EVENT_NONE_TYPE,
@@ -27,7 +27,7 @@ class EventVertex:
             ControllerHear,
             ControllerWrite,
             ControllerNonK8sWrite,
-            ControllerCacheRead,
+            ControllerRead,
             ReconcileBegin,
             ReconcileEnd,
         ],
@@ -68,8 +68,8 @@ class EventVertex:
     def is_controller_non_k8s_write(self) -> bool:
         return isinstance(self.content, ControllerNonK8sWrite)
 
-    def is_controller_cache_read(self) -> bool:
-        return isinstance(self.content, ControllerCacheRead)
+    def is_controller_read(self) -> bool:
+        return isinstance(self.content, ControllerRead)
 
     def is_reconcile_begin(self) -> bool:
         return isinstance(self.content, ReconcileBegin)
@@ -111,10 +111,10 @@ class EventGraph:
         self.__controller_hear_vertices = []
         self.__controller_write_vertices = []
         self.__controller_non_k8s_write_vertices = []
-        self.__controller_cache_read_vertices = []
+        self.__controller_read_vertices = []
         self.__reconcile_begin_vertices = []
         self.__reconcile_end_vertices = []
-        self.__controller_cache_read_key_to_vertices = {}
+        self.__controller_read_key_to_vertices = {}
         self.__controller_write_key_to_vertices = {}
         self.__controller_hear_key_to_vertices = {}
         self.__controller_hear_id_to_vertices = {}
@@ -147,8 +147,8 @@ class EventGraph:
         return self.__controller_non_k8s_write_vertices
 
     @property
-    def controller_cache_read_vertices(self) -> List[EventVertex]:
-        return self.__controller_cache_read_vertices
+    def controller_read_vertices(self) -> List[EventVertex]:
+        return self.__controller_read_vertices
 
     @property
     def reconcile_begin_vertices(self) -> List[EventVertex]:
@@ -159,10 +159,10 @@ class EventGraph:
         return self.__reconcile_end_vertices
 
     @property
-    def controller_cache_read_key_to_vertices(
+    def controller_read_key_to_vertices(
         self,
     ) -> Dict[str, List[EventVertex]]:
-        return self.__controller_cache_read_key_to_vertices
+        return self.__controller_read_key_to_vertices
 
     @property
     def controller_write_key_to_vertices(
@@ -328,7 +328,7 @@ class EventGraph:
             Union[
                 ControllerWrite,
                 ControllerNonK8sWrite,
-                ControllerCacheRead,
+                ControllerRead,
                 ReconcileBegin,
                 ReconcileEnd,
             ]
@@ -346,12 +346,12 @@ class EventGraph:
                 self.controller_write_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_controller_non_k8s_write():
                 self.controller_non_k8s_write_vertices.append(event_vertex)
-            elif event_vertex.is_controller_cache_read():
-                self.controller_cache_read_vertices.append(event_vertex)
+            elif event_vertex.is_controller_read():
+                self.controller_read_vertices.append(event_vertex)
                 for key in event_vertex.content.key_set:
-                    if key not in self.controller_cache_read_key_to_vertices:
-                        self.controller_cache_read_key_to_vertices[key] = []
-                    self.controller_cache_read_key_to_vertices[key].append(event_vertex)
+                    if key not in self.controller_read_key_to_vertices:
+                        self.controller_read_key_to_vertices[key] = []
+                    self.controller_read_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_reconcile_begin():
                 self.reconcile_begin_vertices.append(event_vertex)
             elif event_vertex.is_reconcile_end():
@@ -443,31 +443,31 @@ class EventGraph:
                 prev_read_etype = EVENT_NONE_TYPE
                 controller_write = controller_write_vertex.content
                 key = controller_write.key
-                if key in self.controller_cache_read_key_to_vertices:
-                    for (
-                        controller_cache_read_vertex
-                    ) in self.controller_cache_read_key_to_vertices[key]:
-                        controller_cache_read = controller_cache_read_vertex.content
+                if key in self.controller_read_key_to_vertices:
+                    for controller_read_vertex in self.controller_read_key_to_vertices[
+                        key
+                    ]:
+                        controller_read = controller_read_vertex.content
                         # TODO: we should only consider the read in the same reconcile round as the write
                         # if the read happens after write, break
                         if (
-                            controller_cache_read.end_timestamp
+                            controller_read.end_timestamp
                             > controller_write.start_timestamp
                         ):
                             break
-                        assert controller_write.key in controller_cache_read.key_set
+                        assert controller_write.key in controller_read.key_set
                         assert (
-                            controller_cache_read.end_timestamp
+                            controller_read.end_timestamp
                             < controller_write.start_timestamp
                         )
                         if (
-                            controller_cache_read.reconcile_fun
+                            controller_read.reconcile_fun
                             == controller_write.reconcile_fun
-                            and controller_cache_read.reconcile_id
+                            and controller_read.reconcile_id
                             == controller_write.reconcile_id
                         ):
-                            prev_read_obj_map = controller_cache_read.key_to_obj[key]
-                            prev_read_etype = controller_cache_read.etype
+                            prev_read_obj_map = controller_read.key_to_obj[key]
+                            prev_read_etype = controller_read.etype
 
                 masked_keys, masked_paths = self.retrieve_masked(controller_write.key)
                 slim_prev_object, slim_cur_object = diff_event(

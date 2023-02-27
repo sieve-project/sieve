@@ -166,8 +166,16 @@ def parse_reconciler_events(test_context: TestContext, path):
                 controller_nk_write.reconcile_id = cur_reconcile.reconcile_id
             ts_to_event_map[controller_nk_write.start_timestamp] = controller_nk_write
             print("nk write end")
+        elif SIEVE_AFTER_REST_READ_MARK in line:
+            # TODO: Consider rest read when calculating causality
+            controller_rest_read = parse_controller_read(line)
+            if controller_rest_read.reconcile_fun not in cur_reconcile_per_type:
+                continue
+            controller_rest_read.end_timestamp = i
+            cur_reconcile = cur_reconcile_per_type[controller_rest_read.reconcile_fun]
+            controller_rest_read.reconcile_id = cur_reconcile.reconcile_id
+            ts_to_event_map[controller_rest_read.end_timestamp] = controller_rest_read
         elif SIEVE_AFTER_CACHE_READ_MARK in line:
-            # TODO: handle the reads that are not in any reconcile
             controller_cache_read = parse_controller_cache_read(line)
             if controller_cache_read.reconcile_fun not in cur_reconcile_per_type:
                 continue
@@ -188,7 +196,7 @@ def parse_reconciler_events(test_context: TestContext, path):
                 ongoing_reconciles[reconcile_fun] = 1
             else:
                 ongoing_reconciles[reconcile_fun] += 1
-            # let's assume there should be only one worker for each controller here
+            # NOTE: We assume there is only one worker for each reconciler here
             assert ongoing_reconciles[reconcile_fun] == 1
             if reconcile_fun not in cur_reconcile_per_type:
                 prev_reconcile_per_type[reconcile_fun] = None

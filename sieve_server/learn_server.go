@@ -212,7 +212,7 @@ func (s *learnServer) NotifyLearnBeforeRestRead(request *sieve.NotifyLearnBefore
 
 func (s *learnServer) NotifyLearnAfterRestRead(request *sieve.NotifyLearnAfterRestReadRequest, response *sieve.Response) error {
 	s.notificationCh <- notificationWrapper{ntype: afterRestReadForLearn, payload: fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s", request.ControllerOperationID, request.ControllerOperationType, request.ReconcileFun, request.Error, request.ResourceType, request.Namespace, request.Name, request.ObjectBody)}
-	*response = sieve.Response{Message: "OK", Ok: true}
+	*response = sieve.Response{Message: request.ControllerOperationType, Ok: true}
 	return nil
 }
 

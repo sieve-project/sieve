@@ -238,17 +238,16 @@ func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, n
 		log.Println("Unknown operation")
 		return -1
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
-		log.Println("Get and List not supported yet")
-		return -1
-		// request := &NotifyLearnBeforeRestReadRequest{}
-		// var response Response
-		// err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestRead", request, &response)
-		// if err != nil {
-		// 	printRPCError(err)
-		// 	return -1
-		// }
-		// checkResponse(response)
-		// return response.Number
+		log.Println("Read operation")
+		request := &NotifyLearnBeforeRestReadRequest{}
+		var response Response
+		err := rpcClient.Call("LearnListener.NotifyLearnBeforeRestRead", request, &response)
+		if err != nil {
+			printRPCError(err)
+			return -1
+		}
+		checkResponse(response)
+		return response.Number
 	} else {
 		log.Println("Write operation")
 		request := &NotifyLearnBeforeRestWriteRequest{}
@@ -295,7 +294,24 @@ func NotifyLearnAfterRestCall(controllerOperationID int, verb string, pathPrefix
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
-		log.Println("Get and List not supported yet")
+		log.Println("READ operation")
+		request := &NotifyLearnAfterRestReadRequest{
+			ControllerOperationID:   controllerOperationID,
+			ControllerOperationType: controllerOperationType,
+			ReconcileFun:            reconcileFun,
+			ResourceType:            pluralToSingular(resourceType),
+			Namespace:               namespace,
+			Name:                    resourceName,
+			ObjectBody:              string(serializedObj),
+			Error:                   errorString,
+		}
+		var response Response
+		err = rpcClient.Call("LearnListener.NotifyLearnAfterRestRead", request, &response)
+		if err != nil {
+			printRPCError(err)
+			return
+		}
+		checkResponse(response)
 	} else {
 		log.Println("Write operation")
 		request := &NotifyLearnAfterRestWriteRequest{
