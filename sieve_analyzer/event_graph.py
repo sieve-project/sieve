@@ -3,7 +3,7 @@ from sieve_common.k8s_event import (
     OperatorHear,
     OperatorWrite,
     OperatorNonK8sWrite,
-    OperatorRead,
+    OperatorCacheRead,
     ReconcileBegin,
     ReconcileEnd,
     EVENT_NONE_TYPE,
@@ -27,7 +27,7 @@ class EventVertex:
             OperatorHear,
             OperatorWrite,
             OperatorNonK8sWrite,
-            OperatorRead,
+            OperatorCacheRead,
             ReconcileBegin,
             ReconcileEnd,
         ],
@@ -68,8 +68,8 @@ class EventVertex:
     def is_operator_non_k8s_write(self) -> bool:
         return isinstance(self.content, OperatorNonK8sWrite)
 
-    def is_operator_read(self) -> bool:
-        return isinstance(self.content, OperatorRead)
+    def is_operator_cache_read(self) -> bool:
+        return isinstance(self.content, OperatorCacheRead)
 
     def is_reconcile_begin(self) -> bool:
         return isinstance(self.content, ReconcileBegin)
@@ -111,10 +111,10 @@ class EventGraph:
         self.__operator_hear_vertices = []
         self.__operator_write_vertices = []
         self.__operator_non_k8s_write_vertices = []
-        self.__operator_read_vertices = []
+        self.__operator_cache_read_vertices = []
         self.__reconcile_begin_vertices = []
         self.__reconcile_end_vertices = []
-        self.__operator_read_key_to_vertices = {}
+        self.__operator_cache_read_key_to_vertices = {}
         self.__operator_write_key_to_vertices = {}
         self.__operator_hear_key_to_vertices = {}
         self.__operator_hear_id_to_vertices = {}
@@ -147,8 +147,8 @@ class EventGraph:
         return self.__operator_non_k8s_write_vertices
 
     @property
-    def operator_read_vertices(self) -> List[EventVertex]:
-        return self.__operator_read_vertices
+    def operator_cache_read_vertices(self) -> List[EventVertex]:
+        return self.__operator_cache_read_vertices
 
     @property
     def reconcile_begin_vertices(self) -> List[EventVertex]:
@@ -159,10 +159,10 @@ class EventGraph:
         return self.__reconcile_end_vertices
 
     @property
-    def operator_read_key_to_vertices(
+    def operator_cache_read_key_to_vertices(
         self,
     ) -> Dict[str, List[EventVertex]]:
-        return self.__operator_read_key_to_vertices
+        return self.__operator_cache_read_key_to_vertices
 
     @property
     def operator_write_key_to_vertices(
@@ -323,7 +323,7 @@ class EventGraph:
             Union[
                 OperatorWrite,
                 OperatorNonK8sWrite,
-                OperatorRead,
+                OperatorCacheRead,
                 ReconcileBegin,
                 ReconcileEnd,
             ]
@@ -341,12 +341,12 @@ class EventGraph:
                 self.operator_write_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_operator_non_k8s_write():
                 self.operator_non_k8s_write_vertices.append(event_vertex)
-            elif event_vertex.is_operator_read():
-                self.operator_read_vertices.append(event_vertex)
+            elif event_vertex.is_operator_cache_read():
+                self.operator_cache_read_vertices.append(event_vertex)
                 for key in event_vertex.content.key_set:
-                    if key not in self.operator_read_key_to_vertices:
-                        self.operator_read_key_to_vertices[key] = []
-                    self.operator_read_key_to_vertices[key].append(event_vertex)
+                    if key not in self.operator_cache_read_key_to_vertices:
+                        self.operator_cache_read_key_to_vertices[key] = []
+                    self.operator_cache_read_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_reconcile_begin():
                 self.reconcile_begin_vertices.append(event_vertex)
             elif event_vertex.is_reconcile_end():
@@ -436,24 +436,31 @@ class EventGraph:
                 prev_read_etype = EVENT_NONE_TYPE
                 operator_write = operator_write_vertex.content
                 key = operator_write.key
-                if key in self.operator_read_key_to_vertices:
-                    for operator_read_vertex in self.operator_read_key_to_vertices[key]:
-                        operator_read = operator_read_vertex.content
+                if key in self.operator_cache_read_key_to_vertices:
+                    for (
+                        operator_cache_read_vertex
+                    ) in self.operator_cache_read_key_to_vertices[key]:
+                        operator_cache_read = operator_cache_read_vertex.content
                         # TODO: we should only consider the read in the same reconcile round as the write
                         # if the read happens after write, break
-                        if operator_read.end_timestamp > operator_write.start_timestamp:
+                        if (
+                            operator_cache_read.end_timestamp
+                            > operator_write.start_timestamp
+                        ):
                             break
-                        assert operator_write.key in operator_read.key_set
+                        assert operator_write.key in operator_cache_read.key_set
                         assert (
-                            operator_read.end_timestamp < operator_write.start_timestamp
+                            operator_cache_read.end_timestamp
+                            < operator_write.start_timestamp
                         )
                         if (
-                            operator_read.reconcile_fun == operator_write.reconcile_fun
-                            and operator_read.reconcile_id
+                            operator_cache_read.reconcile_fun
+                            == operator_write.reconcile_fun
+                            and operator_cache_read.reconcile_id
                             == operator_write.reconcile_id
                         ):
-                            prev_read_obj_map = operator_read.key_to_obj[key]
-                            prev_read_etype = operator_read.etype
+                            prev_read_obj_map = operator_cache_read.key_to_obj[key]
+                            prev_read_etype = operator_cache_read.etype
 
                 masked_keys, masked_paths = self.retrieve_masked(operator_write.key)
                 slim_prev_object, slim_cur_object = diff_event(

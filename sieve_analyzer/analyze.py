@@ -166,17 +166,17 @@ def parse_reconciler_events(test_context: TestContext, path):
             print("nk write end")
         elif SIEVE_AFTER_CACHE_READ_MARK in line:
             # TODO: handle the reads that are not in any reconcile
-            operator_read = parse_operator_read(line)
-            if operator_read.reconcile_fun not in cur_reconcile_per_type:
+            operator_cache_read = parse_operator_cache_read(line)
+            if operator_cache_read.reconcile_fun not in cur_reconcile_per_type:
                 continue
-            operator_read.end_timestamp = i
-            cur_reconcile = cur_reconcile_per_type[operator_read.reconcile_fun]
-            operator_read.reconcile_id = cur_reconcile.reconcile_id
-            ts_to_event_map[operator_read.end_timestamp] = operator_read
-            if operator_read.etype == "Get":
-                read_keys_this_reconcile.update(operator_read.key_set)
+            operator_cache_read.end_timestamp = i
+            cur_reconcile = cur_reconcile_per_type[operator_cache_read.reconcile_fun]
+            operator_cache_read.reconcile_id = cur_reconcile.reconcile_id
+            ts_to_event_map[operator_cache_read.end_timestamp] = operator_cache_read
+            if operator_cache_read.etype == "Get":
+                read_keys_this_reconcile.update(operator_cache_read.key_set)
             else:
-                read_types_this_reconcile.add(operator_read.rtype)
+                read_types_this_reconcile.add(operator_cache_read.rtype)
         elif SIEVE_BEFORE_RECONCILE_MARK in line:
             reconcile_begin = parse_reconcile(line)
             reconcile_begin.end_timestamp = i

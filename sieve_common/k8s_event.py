@@ -628,7 +628,7 @@ class OperatorWrite:
         self.__range_end_timestamp = end_timestamp
 
 
-class OperatorRead:
+class OperatorCacheRead:
     def __init__(
         self,
         etype: str,
@@ -820,11 +820,11 @@ def parse_operator_non_k8s_write(line: str) -> OperatorNonK8sWrite:
     )
 
 
-def parse_operator_read(line: str) -> OperatorRead:
+def parse_operator_cache_read(line: str) -> OperatorCacheRead:
     assert SIEVE_AFTER_CACHE_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_CACHE_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
-        return OperatorRead(
+        return OperatorCacheRead(
             tokens[1],
             True,
             tokens[2],
@@ -837,7 +837,7 @@ def parse_operator_read(line: str) -> OperatorRead:
     elif tokens[1] == "List":
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
         # assert tokens[3].endswith("list")
-        return OperatorRead(
+        return OperatorCacheRead(
             tokens[1],
             True,
             tokens[2],
