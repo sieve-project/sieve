@@ -20,19 +20,19 @@ def unobserved_state_detectable_pass(
     print("Running unobserved state detectable pass...")
     candidate_vertices = []
     for vertex in event_vertices:
-        operator_hear = vertex.content
+        controller_hear = vertex.content
         if nondeterministic_key(
             test_context,
-            operator_hear,
+            controller_hear,
         ):
             continue
         if detectable_event_diff(
             True,
-            operator_hear.slim_prev_obj_map,
-            operator_hear.slim_cur_obj_map,
-            operator_hear.prev_etype,
-            operator_hear.etype,
-            operator_hear.signature_counter,
+            controller_hear.slim_prev_obj_map,
+            controller_hear.slim_cur_obj_map,
+            controller_hear.prev_etype,
+            controller_hear.etype,
+            controller_hear.signature_counter,
         ):
             candidate_vertices.append(vertex)
     print("{} -> {} receipts".format(len(event_vertices), len(candidate_vertices)))
@@ -76,20 +76,20 @@ def overwrite_filtering_pass(event_vertices: List[EventVertex]):
 
 def generate_unobserved_state_test_plan(
     test_context: TestContext,
-    operator_hear: OperatorHear,
+    controller_hear: ControllerHear,
 ):
     resource_key = generate_key(
-        operator_hear.rtype, operator_hear.namespace, operator_hear.name
+        controller_hear.rtype, controller_hear.namespace, controller_hear.name
     )
     condition_for_trigger1 = {}
     trigger_for_action2 = {
         "definitions": None,
         "expression": None,
     }
-    if operator_hear.etype == OperatorHearTypes.ADDED:
+    if controller_hear.etype == ControllerHearTypes.ADDED:
         condition_for_trigger1["conditionType"] = "onObjectCreate"
         condition_for_trigger1["resourceKey"] = resource_key
-        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = controller_hear.signature_counter
         trigger_for_action2["definitions"] = [
             {
                 "triggerName": "trigger2",
@@ -117,10 +117,10 @@ def generate_unobserved_state_test_plan(
             },
         ]
         trigger_for_action2["expression"] = "trigger2|trigger3"
-    elif operator_hear.etype == OperatorHearTypes.DELETED:
+    elif controller_hear.etype == ControllerHearTypes.DELETED:
         condition_for_trigger1["conditionType"] = "onObjectDelete"
         condition_for_trigger1["resourceKey"] = resource_key
-        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = controller_hear.signature_counter
         trigger_for_action2["definitions"] = [
             {
                 "triggerName": "trigger2",
@@ -152,12 +152,12 @@ def generate_unobserved_state_test_plan(
         condition_for_trigger1["conditionType"] = "onObjectUpdate"
         condition_for_trigger1["resourceKey"] = resource_key
         condition_for_trigger1["prevStateDiff"] = json.dumps(
-            operator_hear.slim_prev_obj_map, sort_keys=True
+            controller_hear.slim_prev_obj_map, sort_keys=True
         )
         condition_for_trigger1["curStateDiff"] = json.dumps(
-            operator_hear.slim_cur_obj_map, sort_keys=True
+            controller_hear.slim_cur_obj_map, sort_keys=True
         )
-        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = controller_hear.signature_counter
         trigger_for_action2["definitions"] = [
             {
                 "triggerName": "trigger2",
@@ -165,7 +165,7 @@ def generate_unobserved_state_test_plan(
                     "conditionType": "onAnyFieldModification",
                     "resourceKey": resource_key,
                     "prevStateDiff": json.dumps(
-                        operator_hear.slim_cur_obj_map, sort_keys=True
+                        controller_hear.slim_cur_obj_map, sort_keys=True
                     ),
                     "occurrence": 1,
                 },
@@ -223,7 +223,7 @@ def generate_unobserved_state_test_plan(
 def unobserved_state_analysis(
     event_graph: EventGraph, path: str, test_context: TestContext
 ):
-    candidate_vertices = event_graph.operator_hear_vertices
+    candidate_vertices = event_graph.controller_hear_vertices
     candidate_vertices = overwrite_filtering_pass(candidate_vertices)
     baseline_spec_number = len(candidate_vertices)
     after_p1_spec_number = -1
@@ -240,11 +240,11 @@ def unobserved_state_analysis(
     final_spec_number = len(candidate_vertices)
     i = 0
     for vertex in candidate_vertices:
-        operator_hear = vertex.content
-        assert isinstance(operator_hear, OperatorHear)
+        controller_hear = vertex.content
+        assert isinstance(controller_hear, ControllerHear)
 
         unobserved_state_test_plan = generate_unobserved_state_test_plan(
-            test_context, operator_hear
+            test_context, controller_hear
         )
 
         i += 1

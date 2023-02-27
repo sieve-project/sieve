@@ -3,7 +3,7 @@ import copy
 from deepdiff import DeepDiff
 from sieve_common.k8s_event import (
     APIEventTypes,
-    OperatorWriteTypes,
+    ControllerWriteTypes,
     SIEVE_API_EVENT_MARK,
     parse_api_event,
     parse_key,
@@ -109,8 +109,8 @@ def learn_twice_trim(base_resources, twice_resources):
 
 def readable_resource_diff(event_type, diff_content):
     if (
-        event_type == OperatorWriteTypes.CREATE
-        or event_type == OperatorWriteTypes.DELETE
+        event_type == ControllerWriteTypes.CREATE
+        or event_type == ControllerWriteTypes.DELETE
         or event_type == APIEventTypes.ADDED
         or event_type == APIEventTypes.DELETED
     ):

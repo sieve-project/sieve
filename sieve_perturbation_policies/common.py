@@ -6,11 +6,11 @@ from sieve_common.k8s_event import *
 
 
 def convert_deltafifo_etype_to_API_etype(etype: str) -> str:
-    if etype == OperatorHearTypes.ADDED:
+    if etype == ControllerHearTypes.ADDED:
         return APIEventTypes.ADDED
-    elif etype == OperatorHearTypes.UPDATED:
+    elif etype == ControllerHearTypes.UPDATED:
         return APIEventTypes.MODIFIED
-    elif etype == OperatorHearTypes.DELETED:
+    elif etype == ControllerHearTypes.DELETED:
         return APIEventTypes.DELETED
     else:
         return APIEventTypes.MODIFIED
@@ -18,21 +18,22 @@ def convert_deltafifo_etype_to_API_etype(etype: str) -> str:
 
 def event_diff_validation_check(prev_etype: str, cur_etype: str):
     if prev_etype == cur_etype and (
-        prev_etype == OperatorHearTypes.ADDED or prev_etype == OperatorHearTypes.DELETED
+        prev_etype == ControllerHearTypes.ADDED
+        or prev_etype == ControllerHearTypes.DELETED
     ):
         # this should never happen
         assert False, "There should not be consecutive Deleted | Added"
     if (
-        prev_etype == OperatorHearTypes.DELETED
-        and cur_etype != OperatorHearTypes.ADDED
-        and cur_etype != OperatorHearTypes.UPDATED
+        prev_etype == ControllerHearTypes.DELETED
+        and cur_etype != ControllerHearTypes.ADDED
+        and cur_etype != ControllerHearTypes.UPDATED
     ):
         # this should never happen
         assert False, "Deleted must be followed with Added | Updated"
     if (
         prev_etype != EVENT_NONE_TYPE
-        and prev_etype != OperatorHearTypes.DELETED
-        and cur_etype == OperatorHearTypes.ADDED
+        and prev_etype != ControllerHearTypes.DELETED
+        and cur_etype == ControllerHearTypes.ADDED
     ):
         # this should never happen
         assert False, "Added must be the first or follow Deleted"
@@ -51,26 +52,26 @@ def detectable_event_diff(
     if recv_event:
         event_diff_validation_check(prev_etype, cur_etype)
         # undetectable if the first event is not ADDED
-        if prev_etype == EVENT_NONE_TYPE and cur_etype != OperatorHearTypes.ADDED:
+        if prev_etype == EVENT_NONE_TYPE and cur_etype != ControllerHearTypes.ADDED:
             return False
-        # undetectable if not in detectable_operator_hear_types
-        if cur_etype not in detectable_operator_hear_types:
+        # undetectable if not in detectable_controller_hear_types
+        if cur_etype not in detectable_controller_hear_types:
             return False
         # undetectable if nothing changed after update
-        elif diff_prev_obj == diff_cur_obj and cur_etype == OperatorHearTypes.UPDATED:
+        elif diff_prev_obj == diff_cur_obj and cur_etype == ControllerHearTypes.UPDATED:
             return False
         else:
             return True
     else:
-        # undetectable if not in detectable_operator_write_types
-        if cur_etype not in detectable_operator_write_types:
+        # undetectable if not in detectable_controller_write_types
+        if cur_etype not in detectable_controller_write_types:
             return False
         # undetectable if nothing changed after update or patch
         elif diff_prev_obj == diff_cur_obj and (
-            cur_etype == OperatorWriteTypes.UPDATE
-            or cur_etype == OperatorWriteTypes.PATCH
-            or cur_etype == OperatorWriteTypes.STATUS_UPDATE
-            or cur_etype == OperatorWriteTypes.STATUS_PATCH
+            cur_etype == ControllerWriteTypes.UPDATE
+            or cur_etype == ControllerWriteTypes.PATCH
+            or cur_etype == ControllerWriteTypes.STATUS_UPDATE
+            or cur_etype == ControllerWriteTypes.STATUS_PATCH
         ):
             return False
         # undetectable if status update/patch does not modify status
@@ -80,8 +81,8 @@ def detectable_event_diff(
             and diff_cur_obj is not None
             and "status" not in diff_cur_obj
             and (
-                cur_etype == OperatorWriteTypes.STATUS_UPDATE
-                or cur_etype == OperatorWriteTypes.STATUS_PATCH
+                cur_etype == ControllerWriteTypes.STATUS_UPDATE
+                or cur_etype == ControllerWriteTypes.STATUS_PATCH
             )
         ):
             return False
@@ -90,7 +91,7 @@ def detectable_event_diff(
 
 
 def nondeterministic_key(
-    test_context: TestContext, event: Union[OperatorHear, OperatorWrite]
+    test_context: TestContext, event: Union[ControllerHear, ControllerWrite]
 ):
     generate_name = extract_generate_name(event.obj_map)
     end_state = json.load(

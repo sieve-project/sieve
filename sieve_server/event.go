@@ -406,7 +406,7 @@ func capitalizeEventAsMap(event map[string]interface{}) map[string]interface{} {
 }
 
 func convertObjectStateToAPIForm(event map[string]interface{}) map[string]interface{} {
-	// The event object representation is different between the API side and the operator side if it is not CR
+	// The event object representation is different between the API side and the controller side if it is not CR
 	// There are mainly two difference:
 	// 1. `metadata` is missing at the API side but the inner fields still exist
 	// 2. field name starts with a capitalized word if not inside `metadata` at the API side

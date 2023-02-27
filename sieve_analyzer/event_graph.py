@@ -1,9 +1,9 @@
 from typing import Dict, List, Optional, Set, Tuple, Union
 from sieve_common.k8s_event import (
-    OperatorHear,
-    OperatorWrite,
-    OperatorNonK8sWrite,
-    OperatorCacheRead,
+    ControllerHear,
+    ControllerWrite,
+    ControllerNonK8sWrite,
+    ControllerCacheRead,
     ReconcileBegin,
     ReconcileEnd,
     EVENT_NONE_TYPE,
@@ -24,10 +24,10 @@ class EventVertex:
         self,
         gid: int,
         content: Union[
-            OperatorHear,
-            OperatorWrite,
-            OperatorNonK8sWrite,
-            OperatorCacheRead,
+            ControllerHear,
+            ControllerWrite,
+            ControllerNonK8sWrite,
+            ControllerCacheRead,
             ReconcileBegin,
             ReconcileEnd,
         ],
@@ -59,17 +59,17 @@ class EventVertex:
     def add_out_intra_reconciler_edge(self, edge):
         self.out_intra_reconciler_edges.append(edge)
 
-    def is_operator_hear(self) -> bool:
-        return isinstance(self.content, OperatorHear)
+    def is_controller_hear(self) -> bool:
+        return isinstance(self.content, ControllerHear)
 
-    def is_operator_write(self) -> bool:
-        return isinstance(self.content, OperatorWrite)
+    def is_controller_write(self) -> bool:
+        return isinstance(self.content, ControllerWrite)
 
-    def is_operator_non_k8s_write(self) -> bool:
-        return isinstance(self.content, OperatorNonK8sWrite)
+    def is_controller_non_k8s_write(self) -> bool:
+        return isinstance(self.content, ControllerNonK8sWrite)
 
-    def is_operator_cache_read(self) -> bool:
-        return isinstance(self.content, OperatorCacheRead)
+    def is_controller_cache_read(self) -> bool:
+        return isinstance(self.content, ControllerCacheRead)
 
     def is_reconcile_begin(self) -> bool:
         return isinstance(self.content, ReconcileBegin)
@@ -108,18 +108,18 @@ class EventGraph:
         self.__configured_masked_keys = configured_masked_keys
         self.__configured_masked_paths = configured_masked_paths
         self.__vertex_cnt = 0
-        self.__operator_hear_vertices = []
-        self.__operator_write_vertices = []
-        self.__operator_non_k8s_write_vertices = []
-        self.__operator_cache_read_vertices = []
+        self.__controller_hear_vertices = []
+        self.__controller_write_vertices = []
+        self.__controller_non_k8s_write_vertices = []
+        self.__controller_cache_read_vertices = []
         self.__reconcile_begin_vertices = []
         self.__reconcile_end_vertices = []
-        self.__operator_cache_read_key_to_vertices = {}
-        self.__operator_write_key_to_vertices = {}
-        self.__operator_hear_key_to_vertices = {}
-        self.__operator_hear_id_to_vertices = {}
-        self.__operator_hear_operator_write_edges = []
-        self.__operator_write_operator_hear_edges = []
+        self.__controller_cache_read_key_to_vertices = {}
+        self.__controller_write_key_to_vertices = {}
+        self.__controller_hear_key_to_vertices = {}
+        self.__controller_hear_id_to_vertices = {}
+        self.__controller_hear_controller_write_edges = []
+        self.__controller_write_controller_hear_edges = []
         self.__intra_reconciler_edges = []
 
     @property
@@ -135,20 +135,20 @@ class EventGraph:
         return self.__configured_masked_keys
 
     @property
-    def operator_hear_vertices(self) -> List[EventVertex]:
-        return self.__operator_hear_vertices
+    def controller_hear_vertices(self) -> List[EventVertex]:
+        return self.__controller_hear_vertices
 
     @property
-    def operator_write_vertices(self) -> List[EventVertex]:
-        return self.__operator_write_vertices
+    def controller_write_vertices(self) -> List[EventVertex]:
+        return self.__controller_write_vertices
 
     @property
-    def operator_non_k8s_write_vertices(self) -> List[EventVertex]:
-        return self.__operator_non_k8s_write_vertices
+    def controller_non_k8s_write_vertices(self) -> List[EventVertex]:
+        return self.__controller_non_k8s_write_vertices
 
     @property
-    def operator_cache_read_vertices(self) -> List[EventVertex]:
-        return self.__operator_cache_read_vertices
+    def controller_cache_read_vertices(self) -> List[EventVertex]:
+        return self.__controller_cache_read_vertices
 
     @property
     def reconcile_begin_vertices(self) -> List[EventVertex]:
@@ -159,36 +159,36 @@ class EventGraph:
         return self.__reconcile_end_vertices
 
     @property
-    def operator_cache_read_key_to_vertices(
+    def controller_cache_read_key_to_vertices(
         self,
     ) -> Dict[str, List[EventVertex]]:
-        return self.__operator_cache_read_key_to_vertices
+        return self.__controller_cache_read_key_to_vertices
 
     @property
-    def operator_write_key_to_vertices(
+    def controller_write_key_to_vertices(
         self,
     ) -> Dict[str, List[EventVertex]]:
-        return self.__operator_write_key_to_vertices
+        return self.__controller_write_key_to_vertices
 
     @property
-    def operator_hear_key_to_vertices(
+    def controller_hear_key_to_vertices(
         self,
     ) -> Dict[str, List[EventVertex]]:
-        return self.__operator_hear_key_to_vertices
+        return self.__controller_hear_key_to_vertices
 
     @property
-    def operator_hear_id_to_vertices(
+    def controller_hear_id_to_vertices(
         self,
     ) -> Dict[int, List[EventVertex]]:
-        return self.__operator_hear_id_to_vertices
+        return self.__controller_hear_id_to_vertices
 
     @property
-    def operator_hear_operator_write_edges(self) -> List[EventEdge]:
-        return self.__operator_hear_operator_write_edges
+    def controller_hear_controller_write_edges(self) -> List[EventEdge]:
+        return self.__controller_hear_controller_write_edges
 
     @property
-    def operator_write_operator_hear_edges(self) -> List[EventEdge]:
-        return self.__operator_write_operator_hear_edges
+    def controller_write_controller_hear_edges(self) -> List[EventEdge]:
+        return self.__controller_write_controller_hear_edges
 
     @property
     def intra_reconciler_edges(self) -> List[EventEdge]:
@@ -208,122 +208,127 @@ class EventGraph:
         )
         return (masked_keys, masked_paths)
 
-    def get_operator_hear_with_id(self, operator_hear_id) -> Optional[EventVertex]:
-        if operator_hear_id in self.operator_hear_id_to_vertices:
-            return self.operator_hear_id_to_vertices[operator_hear_id]
+    def get_controller_hear_with_id(self, controller_hear_id) -> Optional[EventVertex]:
+        if controller_hear_id in self.controller_hear_id_to_vertices:
+            return self.controller_hear_id_to_vertices[controller_hear_id]
         else:
             return None
 
-    def get_prev_operator_hear_with_key(
-        self, key, cur_operator_hear_id
+    def get_prev_controller_hear_with_key(
+        self, key, cur_controller_hear_id
     ) -> Optional[EventVertex]:
-        for i in range(len(self.operator_hear_key_to_vertices[key])):
-            operator_hear_vertex = self.operator_hear_key_to_vertices[key][i]
-            if operator_hear_vertex.content.id == cur_operator_hear_id:
+        for i in range(len(self.controller_hear_key_to_vertices[key])):
+            controller_hear_vertex = self.controller_hear_key_to_vertices[key][i]
+            if controller_hear_vertex.content.id == cur_controller_hear_id:
                 if i == 0:
                     return None
                 else:
-                    return self.operator_hear_key_to_vertices[key][i - 1]
+                    return self.controller_hear_key_to_vertices[key][i - 1]
 
     def sanity_check(self):
-        # Be careful!!! The operator_hear_id and operator_write_id are only used to differentiate operator_hears/operator_writes
-        # the id value does not indicate which operator_hear/operator_write happens earlier/later
+        # Be careful!!! The controller_hear_id and controller_write_id are only used to differentiate controller_hears/controller_writes
+        # the id value does not indicate which controller_hear/controller_write happens earlier/later
         # TODO(xudong): maybe we should also make the id consistent with start_timestamp?
-        print("{} operator_hear vertices".format(len(self.operator_hear_vertices)))
-        print("{} operator_write vertices".format(len(self.operator_write_vertices)))
+        print("{} controller_hear vertices".format(len(self.controller_hear_vertices)))
         print(
-            "{} edges from operator_hear to operator_write".format(
-                len(self.operator_hear_operator_write_edges)
+            "{} controller_write vertices".format(len(self.controller_write_vertices))
+        )
+        print(
+            "{} edges from controller_hear to controller_write".format(
+                len(self.controller_hear_controller_write_edges)
             )
         )
         print(
-            "{} edges from operator_write to operator_hear".format(
-                len(self.operator_write_operator_hear_edges)
+            "{} edges from controller_write to controller_hear".format(
+                len(self.controller_write_controller_hear_edges)
             )
         )
-        for i in range(len(self.operator_hear_vertices)):
+        for i in range(len(self.controller_hear_vertices)):
             if i > 0:
                 assert (
-                    self.operator_hear_vertices[i].content.start_timestamp
-                    > self.operator_hear_vertices[i - 1].content.start_timestamp
+                    self.controller_hear_vertices[i].content.start_timestamp
+                    > self.controller_hear_vertices[i - 1].content.start_timestamp
                 )
-            assert self.operator_hear_vertices[i].is_operator_hear
-            assert self.operator_hear_vertices[i].content.start_timestamp != -1
-            assert self.operator_hear_vertices[i].content.end_timestamp != -1
+            assert self.controller_hear_vertices[i].is_controller_hear
+            assert self.controller_hear_vertices[i].content.start_timestamp != -1
+            assert self.controller_hear_vertices[i].content.end_timestamp != -1
             assert (
-                self.operator_hear_vertices[i].content.start_timestamp
-                < self.operator_hear_vertices[i].content.end_timestamp
+                self.controller_hear_vertices[i].content.start_timestamp
+                < self.controller_hear_vertices[i].content.end_timestamp
             )
-            for edge in self.operator_hear_vertices[i].out_inter_reconciler_edges:
-                assert self.operator_hear_vertices[i].gid == edge.source.gid
-        for i in range(len(self.operator_write_vertices)):
+            for edge in self.controller_hear_vertices[i].out_inter_reconciler_edges:
+                assert self.controller_hear_vertices[i].gid == edge.source.gid
+        for i in range(len(self.controller_write_vertices)):
             if i > 0:
                 assert (
-                    self.operator_write_vertices[i].content.start_timestamp
-                    > self.operator_write_vertices[i - 1].content.start_timestamp
+                    self.controller_write_vertices[i].content.start_timestamp
+                    > self.controller_write_vertices[i - 1].content.start_timestamp
                 )
             assert (
-                self.operator_write_vertices[i].content.start_timestamp
-                < self.operator_write_vertices[i].content.end_timestamp
+                self.controller_write_vertices[i].content.start_timestamp
+                < self.controller_write_vertices[i].content.end_timestamp
             )
-            assert self.operator_write_vertices[i].is_operator_write
-            for edge in self.operator_write_vertices[i].out_inter_reconciler_edges:
-                assert self.operator_write_vertices[i].gid == edge.source.gid
-            if self.operator_write_vertices[i].content.reconcile_id != -1:
-                assert self.operator_write_vertices[i].content.range_end_timestamp != -1
+            assert self.controller_write_vertices[i].is_controller_write
+            for edge in self.controller_write_vertices[i].out_inter_reconciler_edges:
+                assert self.controller_write_vertices[i].gid == edge.source.gid
+            if self.controller_write_vertices[i].content.reconcile_id != -1:
                 assert (
-                    self.operator_write_vertices[i].content.range_start_timestamp
-                    < self.operator_write_vertices[i].content.range_end_timestamp
+                    self.controller_write_vertices[i].content.range_end_timestamp != -1
                 )
                 assert (
-                    self.operator_write_vertices[i].content.end_timestamp
-                    == self.operator_write_vertices[i].content.range_end_timestamp
+                    self.controller_write_vertices[i].content.range_start_timestamp
+                    < self.controller_write_vertices[i].content.range_end_timestamp
                 )
-        for edge in self.operator_hear_operator_write_edges:
+                assert (
+                    self.controller_write_vertices[i].content.end_timestamp
+                    == self.controller_write_vertices[i].content.range_end_timestamp
+                )
+        for edge in self.controller_hear_controller_write_edges:
             assert isinstance(edge.source, EventVertex)
             assert isinstance(edge.sink, EventVertex)
-            assert edge.source.is_operator_hear() and edge.sink.is_operator_write()
+            assert edge.source.is_controller_hear() and edge.sink.is_controller_write()
             assert (
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
             )
-        for edge in self.operator_write_operator_hear_edges:
+        for edge in self.controller_write_controller_hear_edges:
             assert isinstance(edge.source, EventVertex)
             assert isinstance(edge.sink, EventVertex)
-            assert edge.sink.is_operator_hear() and edge.source.is_operator_write()
+            assert edge.sink.is_controller_hear() and edge.source.is_controller_write()
             assert (
                 edge.source.content.start_timestamp < edge.sink.content.start_timestamp
             )
 
-    def add_sorted_operator_hears(self, operator_hear_list: List[OperatorHear]):
-        for i in range(len(operator_hear_list)):
-            operator_hear = operator_hear_list[i]
-            operator_hear_vertex = EventVertex(self.__vertex_cnt, operator_hear)
+    def add_sorted_controller_hears(self, controller_hear_list: List[ControllerHear]):
+        for i in range(len(controller_hear_list)):
+            controller_hear = controller_hear_list[i]
+            controller_hear_vertex = EventVertex(self.__vertex_cnt, controller_hear)
             self.__vertex_cnt += 1
-            self.operator_hear_vertices.append(operator_hear_vertex)
+            self.controller_hear_vertices.append(controller_hear_vertex)
             if (
-                operator_hear_vertex.content.key
-                not in self.operator_hear_key_to_vertices
+                controller_hear_vertex.content.key
+                not in self.controller_hear_key_to_vertices
             ):
-                self.operator_hear_key_to_vertices[
-                    operator_hear_vertex.content.key
+                self.controller_hear_key_to_vertices[
+                    controller_hear_vertex.content.key
                 ] = []
-            self.operator_hear_key_to_vertices[operator_hear_vertex.content.key].append(
-                operator_hear_vertex
-            )
+            self.controller_hear_key_to_vertices[
+                controller_hear_vertex.content.key
+            ].append(controller_hear_vertex)
             assert (
-                operator_hear_vertex.content.id not in self.operator_hear_id_to_vertices
+                controller_hear_vertex.content.id
+                not in self.controller_hear_id_to_vertices
             )
-            self.operator_hear_id_to_vertices[
-                operator_hear_vertex.content.id
-            ] = operator_hear_vertex
+            self.controller_hear_id_to_vertices[
+                controller_hear_vertex.content.id
+            ] = controller_hear_vertex
 
     def add_sorted_reconciler_events(
         self,
         reconciler_event_list: List[
             Union[
-                OperatorWrite,
-                OperatorNonK8sWrite,
-                OperatorCacheRead,
+                ControllerWrite,
+                ControllerNonK8sWrite,
+                ControllerCacheRead,
                 ReconcileBegin,
                 ReconcileEnd,
             ]
@@ -333,20 +338,20 @@ class EventGraph:
         for event in reconciler_event_list:
             event_vertex = EventVertex(self.__vertex_cnt, event)
             self.__vertex_cnt += 1
-            if event_vertex.is_operator_write():
-                self.operator_write_vertices.append(event_vertex)
+            if event_vertex.is_controller_write():
+                self.controller_write_vertices.append(event_vertex)
                 key = event_vertex.content.key
-                if key not in self.operator_write_key_to_vertices:
-                    self.operator_write_key_to_vertices[key] = []
-                self.operator_write_key_to_vertices[key].append(event_vertex)
-            elif event_vertex.is_operator_non_k8s_write():
-                self.operator_non_k8s_write_vertices.append(event_vertex)
-            elif event_vertex.is_operator_cache_read():
-                self.operator_cache_read_vertices.append(event_vertex)
+                if key not in self.controller_write_key_to_vertices:
+                    self.controller_write_key_to_vertices[key] = []
+                self.controller_write_key_to_vertices[key].append(event_vertex)
+            elif event_vertex.is_controller_non_k8s_write():
+                self.controller_non_k8s_write_vertices.append(event_vertex)
+            elif event_vertex.is_controller_cache_read():
+                self.controller_cache_read_vertices.append(event_vertex)
                 for key in event_vertex.content.key_set:
-                    if key not in self.operator_cache_read_key_to_vertices:
-                        self.operator_cache_read_key_to_vertices[key] = []
-                    self.operator_cache_read_key_to_vertices[key].append(event_vertex)
+                    if key not in self.controller_cache_read_key_to_vertices:
+                        self.controller_cache_read_key_to_vertices[key] = []
+                    self.controller_cache_read_key_to_vertices[key].append(event_vertex)
             elif event_vertex.is_reconcile_begin():
                 self.reconcile_begin_vertices.append(event_vertex)
             elif event_vertex.is_reconcile_end():
@@ -363,163 +368,167 @@ class EventGraph:
 
     def connect_hear_to_write(
         self,
-        operator_hear_vertex: EventVertex,
-        operator_write_vertex: EventVertex,
+        controller_hear_vertex: EventVertex,
+        controller_write_vertex: EventVertex,
     ):
-        assert operator_hear_vertex.is_operator_hear()
+        assert controller_hear_vertex.is_controller_hear()
         assert (
-            operator_write_vertex.is_operator_write()
-            or operator_write_vertex.is_operator_non_k8s_write()
+            controller_write_vertex.is_controller_write()
+            or controller_write_vertex.is_controller_non_k8s_write()
         )
         assert (
-            operator_hear_vertex.content.start_timestamp
-            < operator_write_vertex.content.start_timestamp
+            controller_hear_vertex.content.start_timestamp
+            < controller_write_vertex.content.start_timestamp
         )
         edge = EventEdge(
-            operator_hear_vertex, operator_write_vertex, INTER_RECONCILER_EDGE
+            controller_hear_vertex, controller_write_vertex, INTER_RECONCILER_EDGE
         )
-        operator_hear_vertex.add_out_inter_reconciler_edge(edge)
-        self.operator_hear_operator_write_edges.append(edge)
+        controller_hear_vertex.add_out_inter_reconciler_edge(edge)
+        self.controller_hear_controller_write_edges.append(edge)
 
     def connect_write_to_hear(
         self,
-        operator_write_vertex: EventVertex,
-        operator_hear_vertex: EventVertex,
+        controller_write_vertex: EventVertex,
+        controller_hear_vertex: EventVertex,
     ):
-        assert operator_hear_vertex.is_operator_hear()
-        assert operator_write_vertex.is_operator_write()
+        assert controller_hear_vertex.is_controller_hear()
+        assert controller_write_vertex.is_controller_write()
         assert (
-            operator_write_vertex.content.start_timestamp
-            < operator_hear_vertex.content.start_timestamp
+            controller_write_vertex.content.start_timestamp
+            < controller_hear_vertex.content.start_timestamp
         )
         edge = EventEdge(
-            operator_write_vertex, operator_hear_vertex, INTER_RECONCILER_EDGE
+            controller_write_vertex, controller_hear_vertex, INTER_RECONCILER_EDGE
         )
-        operator_write_vertex.add_out_inter_reconciler_edge(edge)
-        self.operator_write_operator_hear_edges.append(edge)
+        controller_write_vertex.add_out_inter_reconciler_edge(edge)
+        self.controller_write_controller_hear_edges.append(edge)
 
     def compute_event_diff(self):
-        for key in self.operator_hear_key_to_vertices:
-            vertices = self.operator_hear_key_to_vertices[key]
+        for key in self.controller_hear_key_to_vertices:
+            vertices = self.controller_hear_key_to_vertices[key]
             event_signature_to_counter = {}
             prev_hear_obj_map = {}
             prev_hear_etype = EVENT_NONE_TYPE
             for i in range(len(vertices)):
-                cur_operator_hear = vertices[i].content
+                cur_controller_hear = vertices[i].content
                 if not i == 0:
-                    prev_operator_hear = vertices[i - 1].content
-                    prev_hear_obj_map = prev_operator_hear.obj_map
-                    prev_hear_etype = prev_operator_hear.etype
-                masked_keys, masked_paths = self.retrieve_masked(cur_operator_hear.key)
+                    prev_controller_hear = vertices[i - 1].content
+                    prev_hear_obj_map = prev_controller_hear.obj_map
+                    prev_hear_etype = prev_controller_hear.etype
+                masked_keys, masked_paths = self.retrieve_masked(
+                    cur_controller_hear.key
+                )
                 slim_prev_object, slim_cur_object = diff_event(
                     prev_hear_obj_map,
-                    cur_operator_hear.obj_map,
+                    cur_controller_hear.obj_map,
                     masked_keys,
                     masked_paths,
                 )
-                cur_operator_hear.slim_prev_obj_map = slim_prev_object
-                cur_operator_hear.slim_cur_obj_map = slim_cur_object
-                cur_operator_hear.prev_etype = prev_hear_etype
-                event_signature = get_event_signature(cur_operator_hear)
+                cur_controller_hear.slim_prev_obj_map = slim_prev_object
+                cur_controller_hear.slim_cur_obj_map = slim_cur_object
+                cur_controller_hear.prev_etype = prev_hear_etype
+                event_signature = get_event_signature(cur_controller_hear)
                 if event_signature not in event_signature_to_counter:
                     event_signature_to_counter[event_signature] = 0
                 event_signature_to_counter[event_signature] += 1
-                cur_operator_hear.signature_counter = event_signature_to_counter[
+                cur_controller_hear.signature_counter = event_signature_to_counter[
                     event_signature
                 ]
 
-        for key in self.operator_write_key_to_vertices:
-            vertices = self.operator_write_key_to_vertices[key]
+        for key in self.controller_write_key_to_vertices:
+            vertices = self.controller_write_key_to_vertices[key]
             event_signature_to_counter = {}
-            for operator_write_vertex in vertices:
+            for controller_write_vertex in vertices:
                 prev_read_obj_map = {}
                 prev_read_etype = EVENT_NONE_TYPE
-                operator_write = operator_write_vertex.content
-                key = operator_write.key
-                if key in self.operator_cache_read_key_to_vertices:
+                controller_write = controller_write_vertex.content
+                key = controller_write.key
+                if key in self.controller_cache_read_key_to_vertices:
                     for (
-                        operator_cache_read_vertex
-                    ) in self.operator_cache_read_key_to_vertices[key]:
-                        operator_cache_read = operator_cache_read_vertex.content
+                        controller_cache_read_vertex
+                    ) in self.controller_cache_read_key_to_vertices[key]:
+                        controller_cache_read = controller_cache_read_vertex.content
                         # TODO: we should only consider the read in the same reconcile round as the write
                         # if the read happens after write, break
                         if (
-                            operator_cache_read.end_timestamp
-                            > operator_write.start_timestamp
+                            controller_cache_read.end_timestamp
+                            > controller_write.start_timestamp
                         ):
                             break
-                        assert operator_write.key in operator_cache_read.key_set
+                        assert controller_write.key in controller_cache_read.key_set
                         assert (
-                            operator_cache_read.end_timestamp
-                            < operator_write.start_timestamp
+                            controller_cache_read.end_timestamp
+                            < controller_write.start_timestamp
                         )
                         if (
-                            operator_cache_read.reconcile_fun
-                            == operator_write.reconcile_fun
-                            and operator_cache_read.reconcile_id
-                            == operator_write.reconcile_id
+                            controller_cache_read.reconcile_fun
+                            == controller_write.reconcile_fun
+                            and controller_cache_read.reconcile_id
+                            == controller_write.reconcile_id
                         ):
-                            prev_read_obj_map = operator_cache_read.key_to_obj[key]
-                            prev_read_etype = operator_cache_read.etype
+                            prev_read_obj_map = controller_cache_read.key_to_obj[key]
+                            prev_read_etype = controller_cache_read.etype
 
-                masked_keys, masked_paths = self.retrieve_masked(operator_write.key)
+                masked_keys, masked_paths = self.retrieve_masked(controller_write.key)
                 slim_prev_object, slim_cur_object = diff_event(
                     prev_read_obj_map,
-                    operator_write.obj_map,
+                    controller_write.obj_map,
                     masked_keys,
                     masked_paths,
                     True,
                 )
-                operator_write.prev_obj_map = prev_read_obj_map
-                operator_write.slim_prev_obj_map = slim_prev_object
-                operator_write.slim_cur_obj_map = slim_cur_object
-                operator_write.prev_etype = prev_read_etype
-                event_signature = get_event_signature(operator_write)
+                controller_write.prev_obj_map = prev_read_obj_map
+                controller_write.slim_prev_obj_map = slim_prev_object
+                controller_write.slim_cur_obj_map = slim_cur_object
+                controller_write.prev_etype = prev_read_etype
+                event_signature = get_event_signature(controller_write)
                 if event_signature not in event_signature_to_counter:
                     event_signature_to_counter[event_signature] = 0
                 event_signature_to_counter[event_signature] += 1
-                operator_write.signature_counter = event_signature_to_counter[
+                controller_write.signature_counter = event_signature_to_counter[
                     event_signature
                 ]
 
         non_k8s_signature_counter_map = {}
-        for operator_non_k8s_write in self.operator_non_k8s_write_vertices:
+        for controller_non_k8s_write in self.controller_non_k8s_write_vertices:
             signature = (
-                operator_non_k8s_write.content.recv_type
+                controller_non_k8s_write.content.recv_type
                 + "/"
-                + operator_non_k8s_write.content.fun_name
+                + controller_non_k8s_write.content.fun_name
             )
             if signature not in non_k8s_signature_counter_map:
                 non_k8s_signature_counter_map[signature] = 0
             non_k8s_signature_counter_map[signature] += 1
-            operator_non_k8s_write.content.signature_counter = (
+            controller_non_k8s_write.content.signature_counter = (
                 non_k8s_signature_counter_map[signature]
             )
 
     def compute_event_cancel(self):
-        for key in self.operator_hear_key_to_vertices:
-            for i in range(len(self.operator_hear_key_to_vertices[key]) - 1):
+        for key in self.controller_hear_key_to_vertices:
+            for i in range(len(self.controller_hear_key_to_vertices[key]) - 1):
                 cancelled_by = set()
-                cur_operator_hear = self.operator_hear_key_to_vertices[key][i].content
-                for j in range(i + 1, len(self.operator_hear_key_to_vertices[key])):
-                    future_operator_hear = self.operator_hear_key_to_vertices[key][
+                cur_controller_hear = self.controller_hear_key_to_vertices[key][
+                    i
+                ].content
+                for j in range(i + 1, len(self.controller_hear_key_to_vertices[key])):
+                    future_controller_hear = self.controller_hear_key_to_vertices[key][
                         j
                     ].content
-                    # TODO: why do we always add the future_operator_hear when i == 0?
+                    # TODO: why do we always add the future_controller_hear when i == 0?
                     if i == 0:
-                        cancelled_by.add(future_operator_hear.id)
+                        cancelled_by.add(future_controller_hear.id)
                         continue
                     masked_keys, masked_paths = self.retrieve_masked(
-                        cur_operator_hear.key
+                        cur_controller_hear.key
                     )
                     if conflicting_event(
-                        cur_operator_hear,
-                        future_operator_hear,
+                        cur_controller_hear,
+                        future_controller_hear,
                         masked_keys,
                         masked_paths,
                     ):
-                        cancelled_by.add(future_operator_hear.id)
-                cur_operator_hear.cancelled_by = cancelled_by
+                        cancelled_by.add(future_controller_hear.id)
+                cur_controller_hear.cancelled_by = cancelled_by
 
     def finalize(self):
         self.compute_event_diff()
