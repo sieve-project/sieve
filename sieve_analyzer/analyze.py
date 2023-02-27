@@ -169,12 +169,12 @@ def parse_reconciler_events(test_context: TestContext, path):
         elif SIEVE_AFTER_REST_READ_MARK in line:
             # TODO: Consider rest read when calculating causality
             controller_rest_read = parse_controller_read(line)
-            if controller_rest_read.reconcile_fun not in cur_reconcile_per_type:
-                continue
-            controller_rest_read.end_timestamp = i
-            cur_reconcile = cur_reconcile_per_type[controller_rest_read.reconcile_fun]
-            controller_rest_read.reconcile_id = cur_reconcile.reconcile_id
-            ts_to_event_map[controller_rest_read.end_timestamp] = controller_rest_read
+            # if controller_rest_read.reconcile_fun not in cur_reconcile_per_type:
+            #     continue
+            # controller_rest_read.end_timestamp = i
+            # cur_reconcile = cur_reconcile_per_type[controller_rest_read.reconcile_fun]
+            # controller_rest_read.reconcile_id = cur_reconcile.reconcile_id
+            # ts_to_event_map[controller_rest_read.end_timestamp] = controller_rest_read
         elif SIEVE_AFTER_CACHE_READ_MARK in line:
             controller_cache_read = parse_controller_cache_read(line)
             if controller_cache_read.reconcile_fun not in cur_reconcile_per_type:
