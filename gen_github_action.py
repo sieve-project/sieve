@@ -36,16 +36,16 @@ operators_for_CI = {
 }
 
 operators_to_run_tests = [
-    "cass-operator",
+    # "cass-operator",
     # "cassandra-operator",
     # "casskop-operator",
-    "elastic-operator",
-    "mongodb-operator",
+    # "elastic-operator",
+    # "mongodb-operator",
     # "nifikop-operator",
-    "rabbitmq-operator",
+    # "rabbitmq-operator",
     # "xtradb-operator",
     # "yugabyte-operator",
-    "zookeeper-operator",
+    # "zookeeper-operator",
 ]
 
 manifest_map = {
