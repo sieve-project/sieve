@@ -1,4 +1,3 @@
-from evaluation_sanity_check import check, generate
 import glob
 import os
 
