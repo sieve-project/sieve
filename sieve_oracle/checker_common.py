@@ -83,7 +83,7 @@ def generate_controller_related_list(test_context: TestContext):
     return controller_related_list
 
 
-def learn_twice_trim(base_resources, twice_resources):
+def second_pass_learn_trim(base_resources, twice_resources):
     def nested_set(dic, keys, value):
         for key in keys[:-1]:
             dic = dic[key]

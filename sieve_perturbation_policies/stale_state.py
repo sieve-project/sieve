@@ -37,7 +37,7 @@ def stale_state_detectable_pass(
             controller_hear.signature_counter,
         ):
             candidate_pairs.append(pair)
-    print(".formatd -> .formatd edges".format(len(event_pairs), len(candidate_pairs)))
+    print("{} -> {} edges".format(len(event_pairs), len(candidate_pairs)))
     return candidate_pairs
 
 

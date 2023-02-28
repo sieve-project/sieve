@@ -17,7 +17,7 @@ from sieve_analyzer.event_graph import (
 )
 
 
-def sanity_check_sieve_log(path):
+def sanity_check_sieve_server_log(path):
     lines = open(path).readlines()
     reconcile_status = {}
     controller_write_status = {}
@@ -334,7 +334,7 @@ def generate_write_hear_pairs(event_graph: EventGraph):
     return vertex_pairs
 
 
-def build_event_graph(test_context: TestContext, log_path, oracle_dir):
+def build_controller_event_graph(test_context: TestContext, log_path, oracle_dir):
     learned_masked_paths = json.load(open(os.path.join(oracle_dir, "mask.json")))
 
     controller_hear_list = parse_receiver_events(log_path)
@@ -363,7 +363,7 @@ def build_event_graph(test_context: TestContext, log_path, oracle_dir):
     return event_graph
 
 
-def generate_test_config(
+def generate_test_plans(
     test_context: TestContext, analysis_mode, event_graph: EventGraph
 ):
     log_dir = test_context.result_dir
@@ -382,7 +382,7 @@ def generate_test_config(
         )
 
 
-def analyze_trace(
+def generate_test_plans_from_learn_run(
     test_context: TestContext,
 ):
     log_dir = test_context.result_dir
@@ -390,12 +390,13 @@ def analyze_trace(
 
     log_path = os.path.join(log_dir, "sieve-server.log")
     print("Sanity checking the sieve log {}...".format(log_path))
-    sanity_check_sieve_log(log_path)
+    sanity_check_sieve_server_log(log_path)
 
-    if not os.path.exists(os.path.join(oracle_dir, "mask.json")):
-        fail("cannot find mask.json")
-        return
-    event_graph = build_event_graph(test_context, log_path, oracle_dir)
+    assert os.path.exists(
+        os.path.join(oracle_dir, "mask.json")
+    ), "cannot find mask.json"
+
+    event_graph = build_controller_event_graph(test_context, log_path, oracle_dir)
     sieve_learn_result = {
         "controller": test_context.controller,
         "test": test_context.test_workload,
@@ -410,7 +411,7 @@ def analyze_trace(
             after_p1_spec_number,
             after_p2_spec_number,
             final_spec_number,
-        ) = generate_test_config(test_context, analysis_mode, event_graph)
+        ) = generate_test_plans(test_context, analysis_mode, event_graph)
         sieve_learn_result[analysis_mode] = {
             "baseline": baseline_spec_number,
             "after_p1": after_p1_spec_number,

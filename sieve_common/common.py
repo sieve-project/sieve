@@ -57,7 +57,6 @@ class sieve_modes:
     TEST = "test"
     VANILLA = "vanilla"
     LEARN = "learn"
-    GEN_ORACLE = "generate-oracle"
     ALL = "all"
     NONE = "none"
 
@@ -75,7 +74,8 @@ class TestContext:
         controller_config_dir,
         test_workload,
         mode,
-        phase,
+        postprocess,
+        build_oracle,
         original_test_plan,
         test_plan,
         result_root_dir,
@@ -93,7 +93,8 @@ class TestContext:
         self.controller_config_dir = controller_config_dir
         self.test_workload = test_workload
         self.mode = mode
-        self.phase = phase
+        self.postprocess = postprocess
+        self.build_oracle = build_oracle
         self.original_test_plan = original_test_plan
         self.test_plan = test_plan
         self.result_root_dir = result_root_dir
@@ -181,6 +182,14 @@ def os_system(cmd, early_exit=True):
             "Failed to execute {} with return code {}".format(cmd, return_code)
         )
     return return_code
+
+
+def first_pass_learn_result_dir(learn_result_dir):
+    learn_prev_res_dir = os.path.join(
+        os.path.dirname(learn_result_dir),
+        sieve_modes.LEARN + "_prev",
+    )
+    return learn_prev_res_dir
 
 
 def dump_json_file(dir, data, json_file_name):

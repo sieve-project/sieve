@@ -55,16 +55,16 @@ def generate_state(test_context: TestContext):
 
 
 def canonicalize_state(test_context: TestContext):
-    assert test_context.mode == sieve_modes.GEN_ORACLE
-    learn_twice_dir = test_context.result_dir
-    cur_state = json.loads(open(os.path.join(learn_twice_dir, "state.json")).read())
-    learn_once_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.LEARN,
-        "learn.yaml",
+    assert test_context.mode == sieve_modes.LEARN and test_context.build_oracle
+    second_pass_learn_dir = test_context.result_dir
+    cur_state = json.loads(
+        open(os.path.join(second_pass_learn_dir, "state.json")).read()
     )
-    prev_state = json.loads(open(os.path.join(learn_once_dir, "state.json")).read())
-    canonicalized_state = learn_twice_trim(prev_state, cur_state)
+    first_pass_learn_dir = first_pass_learn_result_dir(test_context.result_dir)
+    prev_state = json.loads(
+        open(os.path.join(first_pass_learn_dir, "state.json")).read()
+    )
+    canonicalized_state = second_pass_learn_trim(prev_state, cur_state)
     return canonicalized_state
 
 
@@ -140,22 +140,18 @@ def get_canonicalized_state(test_context: TestContext):
 
 
 def get_learning_once_state(test_context: TestContext):
-    learn_once_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.LEARN,
-        "learn.yaml",
+    first_pass_learn_dir = first_pass_learn_result_dir(test_context.result_dir)
+    learning_once_state = json.load(
+        open(os.path.join(first_pass_learn_dir, "state.json"))
     )
-    learning_once_state = json.load(open(os.path.join(learn_once_dir, "state.json")))
     return learning_once_state
 
 
 def get_learning_twice_state(test_context: TestContext):
-    learn_twice_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.GEN_ORACLE,
-        "learn.yaml",
+    second_pass_learn_dir = test_context.result_dir
+    learning_twice_state = json.load(
+        open(os.path.join(second_pass_learn_dir, "state.json"))
     )
-    learning_twice_state = json.load(open(os.path.join(learn_twice_dir, "state.json")))
     return learning_twice_state
 
 
