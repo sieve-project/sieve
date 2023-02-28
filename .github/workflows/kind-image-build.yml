@@ -32,12 +32,12 @@ jobs:
           python3 build.py -m learn -p -r $IMAGE_NAMESPACE
           python3 build.py -m test -p -r $IMAGE_NAMESPACE
           docker system prune -af
-      - name: Build Image for v1.23
-        run: |
-          python3 build.py -v v1.23.16 -m vanilla -p -r $IMAGE_NAMESPACE
-          python3 build.py -v v1.23.16 -m learn -p -r $IMAGE_NAMESPACE
-          python3 build.py -v v1.23.16 -m test -p -r $IMAGE_NAMESPACE
-          docker system prune -af
+      # - name: Build Image for v1.23
+      #   run: |
+      #     python3 build.py -v v1.23.16 -m vanilla -p -r $IMAGE_NAMESPACE
+      #     python3 build.py -v v1.23.16 -m learn -p -r $IMAGE_NAMESPACE
+      #     python3 build.py -v v1.23.16 -m test -p -r $IMAGE_NAMESPACE
+      #     docker system prune -af
       - name: Build Image for v1.24
         run: |
           python3 build.py -v v1.24.10 -m vanilla -p -r $IMAGE_NAMESPACE

@@ -165,9 +165,9 @@ func waitForPodTermination(namespace, controllerLabel, leadingAPI string) {
 		pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
 		checkError(err)
 		if len(pods.Items) != 0 {
-			log.Printf("operator pod not deleted yet\n")
+			log.Printf("controller pod not deleted yet\n")
 		} else {
-			log.Printf("operator pod gets deleted\n")
+			log.Printf("controller pod gets deleted\n")
 			break
 		}
 	}
@@ -188,14 +188,14 @@ func waitForPodRunning(namespace, controllerLabel, leadingAPI string) {
 		pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
 		checkError(err)
 		if len(pods.Items) == 0 {
-			log.Printf("operator pod not created yet\n")
+			log.Printf("controller pod not created yet\n")
 		} else {
 			ready := true
 			for i := 0; i < len(pods.Items); i++ {
 				if pods.Items[i].Status.Phase == "Running" {
-					log.Printf("operator pod %d ready now\n", i)
+					log.Printf("controller pod %d ready now\n", i)
 				} else {
-					log.Printf("operator pod %d not ready yet\n", i)
+					log.Printf("controller pod %d not ready yet\n", i)
 					ready = false
 				}
 			}
@@ -221,35 +221,35 @@ func restartAndreconnectController(namespace, controllerLabel, leadingAPI, follo
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), listOptions)
 	checkError(err)
 
-	operatorPod := pods.Items[0]
-	operatorOwnerName := ""
-	operatorOwnerKind := ""
-	log.Printf("operator pod owner type: %s", operatorPod.OwnerReferences[0].Kind)
-	log.Printf("operator pod owner name: %s", operatorPod.OwnerReferences[0].Name)
-	if operatorPod.OwnerReferences[0].Kind == "ReplicaSet" {
-		ownerName := operatorPod.OwnerReferences[0].Name
+	controllerPod := pods.Items[0]
+	controllerOwnerName := ""
+	controllerOwnerKind := ""
+	log.Printf("controller pod owner type: %s", controllerPod.OwnerReferences[0].Kind)
+	log.Printf("controller pod owner name: %s", controllerPod.OwnerReferences[0].Name)
+	if controllerPod.OwnerReferences[0].Kind == "ReplicaSet" {
+		ownerName := controllerPod.OwnerReferences[0].Name
 		replicaset, err := clientset.AppsV1().ReplicaSets(namespace).Get(context.TODO(), ownerName, metav1.GetOptions{})
 		checkError(err)
 		log.Printf("replicaset owner type: %s", replicaset.OwnerReferences[0].Kind)
 		log.Printf("replicaset owner name: %s", replicaset.OwnerReferences[0].Name)
 		if replicaset.OwnerReferences[0].Kind == "Deployment" {
-			operatorOwnerKind = replicaset.OwnerReferences[0].Kind
-			operatorOwnerName = replicaset.OwnerReferences[0].Name
+			controllerOwnerKind = replicaset.OwnerReferences[0].Kind
+			controllerOwnerName = replicaset.OwnerReferences[0].Name
 		} else {
 			checkError(fmt.Errorf("the owner of the replicaset should be a deployment"))
 		}
-	} else if operatorPod.OwnerReferences[0].Kind == "StatefulSet" {
-		operatorOwnerKind = operatorPod.OwnerReferences[0].Kind
-		operatorOwnerName = operatorPod.OwnerReferences[0].Name
+	} else if controllerPod.OwnerReferences[0].Kind == "StatefulSet" {
+		controllerOwnerKind = controllerPod.OwnerReferences[0].Kind
+		controllerOwnerName = controllerPod.OwnerReferences[0].Name
 	} else {
 		checkError(fmt.Errorf("the owner of the pod should be either replicaset or statefulset"))
 	}
 
-	if operatorOwnerKind == "Deployment" {
-		deployment, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), operatorOwnerName, metav1.GetOptions{})
+	if controllerOwnerKind == "Deployment" {
+		deployment, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), controllerOwnerName, metav1.GetOptions{})
 		checkError(err)
 		log.Println(deployment.Spec.Template.Spec.Containers[0].Env)
-		clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
+		clientset.AppsV1().Deployments(namespace).Delete(context.TODO(), controllerOwnerName, metav1.DeleteOptions{})
 
 		waitForPodTermination(namespace, controllerLabel, leadingAPI)
 
@@ -280,10 +280,10 @@ func restartAndreconnectController(namespace, controllerLabel, leadingAPI, follo
 
 		waitForPodRunning(namespace, controllerLabel, leadingAPI)
 	} else {
-		statefulset, err := clientset.AppsV1().StatefulSets(namespace).Get(context.TODO(), operatorOwnerName, metav1.GetOptions{})
+		statefulset, err := clientset.AppsV1().StatefulSets(namespace).Get(context.TODO(), controllerOwnerName, metav1.GetOptions{})
 		checkError(err)
 		log.Println(statefulset.Spec.Template.Spec.Containers[0].Env)
-		clientset.AppsV1().StatefulSets(namespace).Delete(context.TODO(), operatorOwnerName, metav1.DeleteOptions{})
+		clientset.AppsV1().StatefulSets(namespace).Delete(context.TODO(), controllerOwnerName, metav1.DeleteOptions{})
 
 		waitForPodTermination(namespace, controllerLabel, leadingAPI)
 

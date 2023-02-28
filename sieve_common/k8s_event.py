@@ -14,6 +14,7 @@ SIEVE_BEFORE_HEAR_MARK = "[SIEVE-BEFORE-HEAR]"
 SIEVE_AFTER_HEAR_MARK = "[SIEVE-AFTER-HEAR]"
 SIEVE_BEFORE_REST_WRITE_MARK = "[SIEVE-BEFORE-REST-WRITE]"
 SIEVE_AFTER_REST_WRITE_MARK = "[SIEVE-AFTER-REST-WRITE]"
+SIEVE_AFTER_REST_READ_MARK = "[SIEVE-AFTER-REST-READ]"
 SIEVE_AFTER_CACHE_READ_MARK = "[SIEVE-AFTER-CACHE-READ]"
 SIEVE_BEFORE_RECONCILE_MARK = "[SIEVE-BEFORE-RECONCILE]"
 SIEVE_AFTER_RECONCILE_MARK = "[SIEVE-AFTER-RECONCILE]"
@@ -36,7 +37,7 @@ class APIEventTypes:
     DELETED = "DELETED"
 
 
-class OperatorHearTypes:
+class ControllerHearTypes:
     ADDED = "Added"
     UPDATED = "Updated"
     DELETED = "Deleted"
@@ -44,7 +45,7 @@ class OperatorHearTypes:
     SYNC = "Sync"  # Sync is for synthetic events during a periodic resync
 
 
-class OperatorWriteTypes:
+class ControllerWriteTypes:
     CREATE = "Create"
     UPDATE = "Update"
     DELETE = "Delete"
@@ -55,48 +56,50 @@ class OperatorWriteTypes:
 
 
 # We do not include Sync and Replaced here
-detectable_operator_hear_types = [
-    OperatorHearTypes.ADDED,
-    OperatorHearTypes.UPDATED,
-    OperatorHearTypes.DELETED,
+detectable_controller_hear_types = [
+    ControllerHearTypes.ADDED,
+    ControllerHearTypes.UPDATED,
+    ControllerHearTypes.DELETED,
 ]
 
-detectable_operator_write_types = [
-    OperatorWriteTypes.CREATE,
-    OperatorWriteTypes.UPDATE,
-    OperatorWriteTypes.DELETE,
-    OperatorWriteTypes.PATCH,
-    OperatorWriteTypes.STATUS_UPDATE,
-    OperatorWriteTypes.STATUS_PATCH,
+detectable_controller_write_types = [
+    ControllerWriteTypes.CREATE,
+    ControllerWriteTypes.UPDATE,
+    ControllerWriteTypes.DELETE,
+    ControllerWriteTypes.PATCH,
+    ControllerWriteTypes.STATUS_UPDATE,
+    ControllerWriteTypes.STATUS_PATCH,
 ]
 
 
-def consistent_event_type(operator_hear_type: str, operator_write_type: str):
+def consistent_event_type(controller_hear_type: str, controller_write_type: str):
     both_create = (
-        operator_hear_type == OperatorHearTypes.ADDED
-        and operator_write_type == OperatorWriteTypes.CREATE
+        controller_hear_type == ControllerHearTypes.ADDED
+        and controller_write_type == ControllerWriteTypes.CREATE
     )
-    both_update = operator_hear_type == OperatorHearTypes.UPDATED and (
-        operator_write_type == OperatorWriteTypes.UPDATE
-        or operator_write_type == OperatorWriteTypes.PATCH
-        or operator_write_type == OperatorWriteTypes.STATUS_UPDATE
-        or operator_write_type == OperatorWriteTypes.STATUS_PATCH
+    both_update = controller_hear_type == ControllerHearTypes.UPDATED and (
+        controller_write_type == ControllerWriteTypes.UPDATE
+        or controller_write_type == ControllerWriteTypes.PATCH
+        or controller_write_type == ControllerWriteTypes.STATUS_UPDATE
+        or controller_write_type == ControllerWriteTypes.STATUS_PATCH
     )
     both_delete = (
-        operator_hear_type == OperatorHearTypes.DELETED
-        and operator_write_type == OperatorWriteTypes.DELETE
+        controller_hear_type == ControllerHearTypes.DELETED
+        and controller_write_type == ControllerWriteTypes.DELETE
     )
     return both_create or both_update or both_delete
 
 
-def conflicting_event_type(prev_operator_hear_type: str, cur_operator_hear_type: str):
+def conflicting_event_type(
+    prev_controller_hear_type: str, cur_controller_hear_type: str
+):
     other_then_delete = (
-        prev_operator_hear_type != OperatorHearTypes.DELETED
-        and cur_operator_hear_type == OperatorHearTypes.DELETED
+        prev_controller_hear_type != ControllerHearTypes.DELETED
+        and cur_controller_hear_type == ControllerHearTypes.DELETED
     )
     delete_then_other = (
-        prev_operator_hear_type == OperatorHearTypes.DELETED
-        and cur_operator_hear_type != OperatorHearTypes.DELETED
+        prev_controller_hear_type == ControllerHearTypes.DELETED
+        and cur_controller_hear_type != ControllerHearTypes.DELETED
     )
     return other_then_delete or delete_then_other
 
@@ -137,7 +140,7 @@ def extract_generate_name(obj: Dict):
     return obj_generate_name
 
 
-# def operator_related_resource(
+# def controller_related_resource(
 #     project: str,
 #     rtype: str,
 #     name: str,
@@ -247,7 +250,7 @@ class APIEvent:
             return None
 
 
-class OperatorHear:
+class ControllerHear:
     def __init__(self, id: str, etype: str, rtype: str, obj_str: str):
         self.__id = int(id)
         self.__etype = etype
@@ -353,7 +356,7 @@ class OperatorHear:
         self.__signature_counter = signature_counter
 
 
-class OperatorNonK8sWrite:
+class ControllerNonK8sWrite:
     def __init__(
         self,
         id: str,
@@ -453,7 +456,7 @@ class OperatorNonK8sWrite:
         self.__signature_counter = signature_counter
 
 
-class OperatorWrite:
+class ControllerWrite:
     def __init__(
         self,
         id: str,
@@ -467,7 +470,7 @@ class OperatorWrite:
     ):
         self.__id = int(id)
         # do not handle DELETEALLOF for now
-        assert etype != OperatorWriteTypes.DELETEALLOF
+        assert etype != ControllerWriteTypes.DELETEALLOF
         self.__etype = etype
         self.__rtype = rtype
         self.__reconcile_fun = reconcile_fun
@@ -628,7 +631,7 @@ class OperatorWrite:
         self.__range_end_timestamp = end_timestamp
 
 
-class OperatorRead:
+class ControllerRead:
     def __init__(
         self,
         etype: str,
@@ -714,7 +717,7 @@ class OperatorRead:
         self.__reconcile_id = reconcile_id
 
 
-class OperatorHearIDOnly:
+class ControllerHearIDOnly:
     def __init__(self, id: str):
         self.__id = int(id)
 
@@ -723,7 +726,7 @@ class OperatorHearIDOnly:
         return self.__id
 
 
-class OperatorWriteIDOnly:
+class ControllerWriteIDOnly:
     def __init__(self, id: str):
         self.__id = int(id)
 
@@ -732,7 +735,7 @@ class OperatorWriteIDOnly:
         return self.__id
 
 
-class OperatorNonK8sWriteIDOnly:
+class ControllerNonK8sWriteIDOnly:
     def __init__(self, id: str):
         self.__id = int(id)
 
@@ -787,16 +790,16 @@ class ReconcileEnd:
         self.__end_timestamp = end_timestamp
 
 
-def parse_operator_hear(line: str) -> OperatorHear:
+def parse_controller_hear(line: str) -> ControllerHear:
     assert SIEVE_BEFORE_HEAR_MARK in line
     tokens = line[line.find(SIEVE_BEFORE_HEAR_MARK) :].strip("\n").split("\t")
-    return OperatorHear(tokens[1], tokens[2], tokens[3], tokens[4])
+    return ControllerHear(tokens[1], tokens[2], tokens[3], tokens[4])
 
 
-def parse_operator_write(line: str) -> OperatorWrite:
+def parse_controller_write(line: str) -> ControllerWrite:
     assert SIEVE_AFTER_REST_WRITE_MARK in line
     tokens = line[line.find(SIEVE_AFTER_REST_WRITE_MARK) :].strip("\n").split("\t")
-    return OperatorWrite(
+    return ControllerWrite(
         tokens[1],
         tokens[2],
         tokens[3],
@@ -808,23 +811,55 @@ def parse_operator_write(line: str) -> OperatorWrite:
     )
 
 
-def parse_operator_non_k8s_write(line: str) -> OperatorNonK8sWrite:
+def parse_controller_read(line: str) -> ControllerRead:
+    assert SIEVE_AFTER_REST_READ_MARK in line
+    tokens = line[line.find(SIEVE_AFTER_REST_READ_MARK) :].strip("\n").split("\t")
+    tokens = tokens[1:]
+    if tokens[1] == "Get":
+        return ControllerRead(
+            tokens[1],
+            False,
+            tokens[4],
+            tokens[5],
+            tokens[6],
+            tokens[2],
+            tokens[3],
+            tokens[7],
+        )
+    elif tokens[1] == "List":
+        # When using List, the resource type is like xxxlist so we need to trim the last four characters here
+        # assert tokens[3].endswith("list")
+        return ControllerRead(
+            tokens[1],
+            False,
+            tokens[4],
+            "",
+            "",
+            tokens[2],
+            tokens[3],
+            tokens[5],
+        )
+    else:
+        assert False, "read type should be: Get, List"
+
+
+def parse_controller_non_k8s_write(line: str) -> ControllerNonK8sWrite:
     assert SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line
     tokens = (
         line[line.find(SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK) :]
         .strip("\n")
         .split("\t")
     )
-    return OperatorNonK8sWrite(
+    return ControllerNonK8sWrite(
         tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6]
     )
 
 
-def parse_operator_read(line: str) -> OperatorRead:
+def parse_controller_cache_read(line: str) -> ControllerRead:
     assert SIEVE_AFTER_CACHE_READ_MARK in line
     tokens = line[line.find(SIEVE_AFTER_CACHE_READ_MARK) :].strip("\n").split("\t")
     if tokens[1] == "Get":
-        return OperatorRead(
+        return ControllerRead(
             tokens[1],
             True,
             tokens[2],
@@ -837,7 +872,7 @@ def parse_operator_read(line: str) -> OperatorRead:
     elif tokens[1] == "List":
         # When using List, the resource type is like xxxlist so we need to trim the last four characters here
         # assert tokens[3].endswith("list")
-        return OperatorRead(
+        return ControllerRead(
             tokens[1],
             True,
             tokens[2],
@@ -851,27 +886,27 @@ def parse_operator_read(line: str) -> OperatorRead:
         assert False, "read type should be: Get, List"
 
 
-def parse_operator_hear_id_only(line: str) -> OperatorHearIDOnly:
+def parse_controller_hear_id_only(line: str) -> ControllerHearIDOnly:
     assert SIEVE_AFTER_HEAR_MARK in line or SIEVE_BEFORE_HEAR_MARK in line
     if SIEVE_AFTER_HEAR_MARK in line:
         tokens = line[line.find(SIEVE_AFTER_HEAR_MARK) :].strip("\n").split("\t")
-        return OperatorHearIDOnly(tokens[1])
+        return ControllerHearIDOnly(tokens[1])
     else:
         tokens = line[line.find(SIEVE_BEFORE_HEAR_MARK) :].strip("\n").split("\t")
-        return OperatorHearIDOnly(tokens[1])
+        return ControllerHearIDOnly(tokens[1])
 
 
-def parse_operator_write_id_only(line: str) -> OperatorWriteIDOnly:
+def parse_controller_write_id_only(line: str) -> ControllerWriteIDOnly:
     assert SIEVE_AFTER_REST_WRITE_MARK in line or SIEVE_BEFORE_REST_WRITE_MARK in line
     if SIEVE_AFTER_REST_WRITE_MARK in line:
         tokens = line[line.find(SIEVE_AFTER_REST_WRITE_MARK) :].strip("\n").split("\t")
-        return OperatorWriteIDOnly(tokens[1])
+        return ControllerWriteIDOnly(tokens[1])
     else:
         tokens = line[line.find(SIEVE_BEFORE_REST_WRITE_MARK) :].strip("\n").split("\t")
-        return OperatorWriteIDOnly(tokens[1])
+        return ControllerWriteIDOnly(tokens[1])
 
 
-def parse_operator_non_k8s_write_id_only(line: str) -> OperatorNonK8sWriteIDOnly:
+def parse_controller_non_k8s_write_id_only(line: str) -> ControllerNonK8sWriteIDOnly:
     assert (
         SIEVE_AFTER_ANNOTATED_API_INVOCATION_MARK in line
         or SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK in line
@@ -882,14 +917,14 @@ def parse_operator_non_k8s_write_id_only(line: str) -> OperatorNonK8sWriteIDOnly
             .strip("\n")
             .split("\t")
         )
-        return OperatorNonK8sWriteIDOnly(tokens[1])
+        return ControllerNonK8sWriteIDOnly(tokens[1])
     else:
         tokens = (
             line[line.find(SIEVE_BEFORE_ANNOTATED_API_INVOCATION_MARK) :]
             .strip("\n")
             .split("\t")
         )
-        return OperatorNonK8sWriteIDOnly(tokens[1])
+        return ControllerNonK8sWriteIDOnly(tokens[1])
 
 
 def parse_reconcile(line: str) -> Union[ReconcileBegin, ReconcileEnd]:
@@ -909,19 +944,19 @@ def parse_api_event(line: str) -> APIEvent:
 
 
 def conflicting_event(
-    prev_operator_hear: OperatorHear,
-    cur_operator_hear: OperatorHear,
+    prev_controller_hear: ControllerHear,
+    cur_controller_hear: ControllerHear,
     masked_keys: Set[str],
     masked_paths: Set[str],
 ) -> bool:
-    if conflicting_event_type(prev_operator_hear.etype, cur_operator_hear.etype):
+    if conflicting_event_type(prev_controller_hear.etype, cur_controller_hear.etype):
         return True
     elif (
-        prev_operator_hear.etype != OperatorHearTypes.DELETED
-        and cur_operator_hear.etype != OperatorHearTypes.DELETED
+        prev_controller_hear.etype != ControllerHearTypes.DELETED
+        and cur_controller_hear.etype != ControllerHearTypes.DELETED
         and conflicting_event_payload(
-            prev_operator_hear.slim_cur_obj_map,
-            cur_operator_hear.obj_map,
+            prev_controller_hear.slim_cur_obj_map,
+            cur_controller_hear.obj_map,
             masked_keys,
             masked_paths,
         )
@@ -932,16 +967,16 @@ def conflicting_event(
 
 def is_creation_or_deletion(etype: str):
     is_hear_creation_or_deletion = (
-        etype == OperatorHearTypes.ADDED or etype == OperatorHearTypes.DELETED
+        etype == ControllerHearTypes.ADDED or etype == ControllerHearTypes.DELETED
     )
     is_write_creation_or_deletion = (
-        etype == OperatorWriteTypes.CREATE or etype == OperatorWriteTypes.DELETE
+        etype == ControllerWriteTypes.CREATE or etype == ControllerWriteTypes.DELETE
     )
     return is_hear_creation_or_deletion or is_write_creation_or_deletion
 
 
-def get_event_signature(event: Union[OperatorHear, OperatorWrite]):
-    assert isinstance(event, OperatorHear) or isinstance(event, OperatorWrite)
+def get_event_signature(event: Union[ControllerHear, ControllerWrite]):
+    assert isinstance(event, ControllerHear) or isinstance(event, ControllerWrite)
     signature = (
         event.etype
         if is_creation_or_deletion(event.etype)

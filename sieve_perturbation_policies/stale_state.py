@@ -22,19 +22,19 @@ def stale_state_detectable_pass(
     print("Running stale state detectable pass...")
     candidate_pairs = []
     for pair in event_pairs:
-        operator_hear = pair[0].content
-        operator_write = pair[1].content
-        if nondeterministic_key(test_context, operator_hear) or nondeterministic_key(
-            test_context, operator_write
+        controller_hear = pair[0].content
+        controller_write = pair[1].content
+        if nondeterministic_key(test_context, controller_hear) or nondeterministic_key(
+            test_context, controller_write
         ):
             continue
         if detectable_event_diff(
             True,
-            operator_hear.slim_prev_obj_map,
-            operator_hear.slim_cur_obj_map,
-            operator_hear.prev_etype,
-            operator_hear.etype,
-            operator_hear.signature_counter,
+            controller_hear.slim_prev_obj_map,
+            controller_hear.slim_cur_obj_map,
+            controller_hear.prev_etype,
+            controller_hear.etype,
+            controller_hear.signature_counter,
         ):
             candidate_pairs.append(pair)
     print(".formatd -> .formatd edges".format(len(event_pairs), len(candidate_pairs)))
@@ -42,21 +42,21 @@ def stale_state_detectable_pass(
 
 
 def get_stale_state_baseline(event_graph: EventGraph):
-    operator_hear_vertices = event_graph.operator_hear_vertices
-    operator_write_vertices = event_graph.operator_write_vertices
+    controller_hear_vertices = event_graph.controller_hear_vertices
+    controller_write_vertices = event_graph.controller_write_vertices
     candidate_pairs = []
-    for operator_write_vertex in operator_write_vertices:
-        for operator_hear_vertex in operator_hear_vertices:
-            operator_write = operator_write_vertex.content
-            operator_hear = operator_hear_vertex.content
-            if not operator_write.etype == OperatorWriteTypes.DELETE:
+    for controller_write_vertex in controller_write_vertices:
+        for controller_hear_vertex in controller_hear_vertices:
+            controller_write = controller_write_vertex.content
+            controller_hear = controller_hear_vertex.content
+            if not controller_write.etype == ControllerWriteTypes.DELETE:
                 continue
             write_after_hear = (
-                operator_write.start_timestamp > operator_hear.start_timestamp
+                controller_write.start_timestamp > controller_hear.start_timestamp
             )
 
             if write_after_hear:
-                pair = (operator_hear_vertex, operator_write_vertex)
+                pair = (controller_hear_vertex, controller_write_vertex)
                 candidate_pairs.append(pair)
     return candidate_pairs
 
@@ -81,24 +81,24 @@ def reversed_effect_filtering_pass(
 ):
     print("Running optional pass: reversed-effect-filtering...")
     candidate_pairs = []
-    hear_key_to_vertices = event_graph.operator_hear_key_to_vertices
+    hear_key_to_vertices = event_graph.controller_hear_key_to_vertices
     for pair in event_pairs:
-        operator_write = pair[1].content
-        assert operator_write.etype == OperatorWriteTypes.DELETE
-        if operator_write.error not in ALLOWED_ERROR_TYPE:
+        controller_write = pair[1].content
+        assert controller_write.etype == ControllerWriteTypes.DELETE
+        if controller_write.error not in ALLOWED_ERROR_TYPE:
             continue
         reversed_effect = False
-        if operator_write.key in hear_key_to_vertices:
-            for operator_hear_vertex in hear_key_to_vertices[operator_write.key]:
-                operator_hear = operator_hear_vertex.content
-                if operator_hear.start_timestamp <= operator_write.end_timestamp:
+        if controller_write.key in hear_key_to_vertices:
+            for controller_hear_vertex in hear_key_to_vertices[controller_write.key]:
+                controller_hear = controller_hear_vertex.content
+                if controller_hear.start_timestamp <= controller_write.end_timestamp:
                     continue
-                if operator_hear.etype == OperatorHearTypes.ADDED:
+                if controller_hear.etype == ControllerHearTypes.ADDED:
                     reversed_effect = True
-                if operator_hear.etype == OperatorHearTypes.UPDATED:
+                if controller_hear.etype == ControllerHearTypes.UPDATED:
                     reversed_effect = True
         else:
-            # if the operator_write key never appears in the operator_hear_key_map
+            # if the controller_write key never appears in the controller_hear_key_map
             # it means the operator does not watch on the resource
             # so we should be cautious and keep this edge
             reversed_effect = True
@@ -109,9 +109,9 @@ def reversed_effect_filtering_pass(
 
 
 def decide_stale_state_timing(source_vertex: EventVertex, sink_vertex: EventVertex):
-    assert source_vertex.is_operator_hear()
-    assert sink_vertex.is_operator_write()
-    assert sink_vertex.content.etype == OperatorWriteTypes.DELETE
+    assert source_vertex.is_controller_hear()
+    assert sink_vertex.is_controller_write()
+    assert sink_vertex.content.etype == ControllerWriteTypes.DELETE
     if source_vertex.content.slim_prev_obj_map is None:
         return "after"
     if not same_key(
@@ -127,9 +127,9 @@ def decide_stale_state_timing(source_vertex: EventVertex, sink_vertex: EventVert
                 reconcile_cnt += 1
                 if reconcile_cnt == 2:
                     return "after"
-            elif next_vertex.is_operator_write():
+            elif next_vertex.is_controller_write():
                 if (
-                    next_vertex.content.etype == OperatorWriteTypes.CREATE
+                    next_vertex.content.etype == ControllerWriteTypes.CREATE
                     and next_vertex.content.key == sink_vertex.content.key
                 ):
                     if reconcile_cnt == 0:
@@ -147,40 +147,40 @@ def decide_stale_state_timing(source_vertex: EventVertex, sink_vertex: EventVert
 
 def generate_stale_state_test_plan(
     test_context: TestContext,
-    operator_hear: OperatorHear,
-    operator_write: OperatorWrite,
+    controller_hear: ControllerHear,
+    controller_write: ControllerWrite,
     pause_timing,
 ):
     resource_key1 = generate_key(
-        operator_hear.rtype, operator_hear.namespace, operator_hear.name
+        controller_hear.rtype, controller_hear.namespace, controller_hear.name
     )
     resource_key2 = generate_key(
-        operator_write.rtype, operator_write.namespace, operator_write.name
+        controller_write.rtype, controller_write.namespace, controller_write.name
     )
     condition_for_trigger1 = {}
-    if operator_hear.etype == OperatorHearTypes.ADDED:
+    if controller_hear.etype == ControllerHearTypes.ADDED:
         condition_for_trigger1["conditionType"] = "onObjectCreate"
         condition_for_trigger1["resourceKey"] = resource_key1
-        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
-    elif operator_hear.etype == OperatorHearTypes.DELETED:
+        condition_for_trigger1["occurrence"] = controller_hear.signature_counter
+    elif controller_hear.etype == ControllerHearTypes.DELETED:
         condition_for_trigger1["conditionType"] = "onObjectDelete"
         condition_for_trigger1["resourceKey"] = resource_key1
-        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = controller_hear.signature_counter
     else:
         condition_for_trigger1["conditionType"] = "onObjectUpdate"
         condition_for_trigger1["resourceKey"] = resource_key1
         condition_for_trigger1["prevStateDiff"] = json.dumps(
-            operator_hear.slim_prev_obj_map, sort_keys=True
+            controller_hear.slim_prev_obj_map, sort_keys=True
         )
         condition_for_trigger1["curStateDiff"] = json.dumps(
-            operator_hear.slim_cur_obj_map, sort_keys=True
+            controller_hear.slim_cur_obj_map, sort_keys=True
         )
         if (
-            operator_hear.rtype
+            controller_hear.rtype
             not in test_context.controller_config.custom_resource_definitions
         ):
             condition_for_trigger1["convertStateToAPIForm"] = True
-        condition_for_trigger1["occurrence"] = operator_hear.signature_counter
+        condition_for_trigger1["occurrence"] = controller_hear.signature_counter
     return {
         "workload": test_context.test_workload,
         "actions": [
@@ -268,16 +268,16 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
     for pair in candidate_pairs:
         source = pair[0]
         sink = pair[1]
-        operator_hear = source.content
-        operator_write = sink.content
-        assert isinstance(operator_hear, OperatorHear)
-        assert isinstance(operator_write, OperatorWrite)
+        controller_hear = source.content
+        controller_write = sink.content
+        assert isinstance(controller_hear, ControllerHear)
+        assert isinstance(controller_write, ControllerWrite)
 
         timing = decide_stale_state_timing(source, sink)
 
         if timing == "after":
             stale_state_test_plan = generate_stale_state_test_plan(
-                test_context, operator_hear, operator_write, timing
+                test_context, controller_hear, controller_write, timing
             )
             i += 1
             file_name = os.path.join(
@@ -287,7 +287,7 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
                 dump_to_yaml(stale_state_test_plan, file_name)
         elif timing == "before":
             stale_state_test_plan = generate_stale_state_test_plan(
-                test_context, operator_hear, operator_write, timing
+                test_context, controller_hear, controller_write, timing
             )
             i += 1
             file_name = os.path.join(
@@ -297,7 +297,7 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
                 dump_to_yaml(stale_state_test_plan, file_name)
         else:
             stale_state_test_plan = generate_stale_state_test_plan(
-                test_context, operator_hear, operator_write, "after"
+                test_context, controller_hear, controller_write, "after"
             )
             i += 1
             file_name = os.path.join(
@@ -307,7 +307,7 @@ def stale_state_analysis(event_graph: EventGraph, path: str, test_context: TestC
                 dump_to_yaml(stale_state_test_plan, file_name)
 
             stale_state_test_plan = generate_stale_state_test_plan(
-                test_context, operator_hear, operator_write, "before"
+                test_context, controller_hear, controller_write, "before"
             )
             i += 1
             file_name = os.path.join(

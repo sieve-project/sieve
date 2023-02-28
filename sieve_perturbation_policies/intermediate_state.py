@@ -20,20 +20,20 @@ def intermediate_state_detectable_pass(
     print("Running intermediate state detectable pass...")
     candidate_vertices = []
     for vertex in event_vertices:
-        assert vertex.is_operator_write()
-        operator_write = vertex.content
+        assert vertex.is_controller_write()
+        controller_write = vertex.content
         if nondeterministic_key(
             test_context,
-            operator_write,
+            controller_write,
         ):
             continue
         if detectable_event_diff(
             False,
-            operator_write.slim_prev_obj_map,
-            operator_write.slim_cur_obj_map,
-            operator_write.prev_etype,
-            operator_write.etype,
-            operator_write.signature_counter,
+            controller_write.slim_prev_obj_map,
+            controller_write.slim_cur_obj_map,
+            controller_write.prev_etype,
+            controller_write.etype,
+            controller_write.signature_counter,
         ):
             candidate_vertices.append(vertex)
     print("{} -> {} writes".format(len(event_vertices), len(candidate_vertices)))
@@ -44,7 +44,7 @@ def effective_write_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass:  effective-write-filtering...")
     candidate_vertices = []
     for vertex in event_vertices:
-        assert vertex.is_operator_write()
+        assert vertex.is_controller_write()
         if is_creation_or_deletion(vertex.content.etype):
             candidate_vertices.append(vertex)
         else:
@@ -59,10 +59,10 @@ def effective_write_filtering_pass(event_vertices: List[EventVertex]):
             cur_etype = vertex.content.etype
             empty_write = False
             if unmasked_prev_object == unmasked_cur_object and (
-                cur_etype == OperatorWriteTypes.UPDATE
-                or cur_etype == OperatorWriteTypes.PATCH
-                or cur_etype == OperatorWriteTypes.STATUS_UPDATE
-                or cur_etype == OperatorWriteTypes.STATUS_PATCH
+                cur_etype == ControllerWriteTypes.UPDATE
+                or cur_etype == ControllerWriteTypes.PATCH
+                or cur_etype == ControllerWriteTypes.STATUS_UPDATE
+                or cur_etype == ControllerWriteTypes.STATUS_PATCH
             ):
                 empty_write = True
             elif (
@@ -71,8 +71,8 @@ def effective_write_filtering_pass(event_vertices: List[EventVertex]):
                 and unmasked_cur_object is not None
                 and "status" not in unmasked_cur_object
                 and (
-                    cur_etype == OperatorWriteTypes.STATUS_UPDATE
-                    or cur_etype == OperatorWriteTypes.STATUS_PATCH
+                    cur_etype == ControllerWriteTypes.STATUS_UPDATE
+                    or cur_etype == ControllerWriteTypes.STATUS_PATCH
                 )
             ):
                 empty_write = True
@@ -86,7 +86,7 @@ def no_error_write_filtering_pass(event_vertices: List[EventVertex]):
     print("Running optional pass:  no-error-write-filtering...")
     candidate_vertices = []
     for vertex in event_vertices:
-        assert vertex.is_operator_write()
+        assert vertex.is_controller_write()
         if vertex.content.error in ALLOWED_ERROR_TYPE:
             candidate_vertices.append(vertex)
     print("{} -> {} writes".format(len(event_vertices), len(candidate_vertices)))
@@ -94,30 +94,30 @@ def no_error_write_filtering_pass(event_vertices: List[EventVertex]):
 
 
 def generate_intermediate_state_test_plan_for_controller_write(
-    test_context: TestContext, operator_write: OperatorWrite
+    test_context: TestContext, controller_write: ControllerWrite
 ):
     resource_key = generate_key(
-        operator_write.rtype, operator_write.namespace, operator_write.name
+        controller_write.rtype, controller_write.namespace, controller_write.name
     )
     condition = {}
-    if operator_write.etype == OperatorWriteTypes.CREATE:
+    if controller_write.etype == ControllerWriteTypes.CREATE:
         condition["conditionType"] = "onObjectCreate"
         condition["resourceKey"] = resource_key
-        condition["occurrence"] = operator_write.signature_counter
-    elif operator_write.etype == OperatorWriteTypes.DELETE:
+        condition["occurrence"] = controller_write.signature_counter
+    elif controller_write.etype == ControllerWriteTypes.DELETE:
         condition["conditionType"] = "onObjectDelete"
         condition["resourceKey"] = resource_key
-        condition["occurrence"] = operator_write.signature_counter
+        condition["occurrence"] = controller_write.signature_counter
     else:
         condition["conditionType"] = "onObjectUpdate"
         condition["resourceKey"] = resource_key
         condition["prevStateDiff"] = json.dumps(
-            operator_write.slim_prev_obj_map, sort_keys=True
+            controller_write.slim_prev_obj_map, sort_keys=True
         )
         condition["curStateDiff"] = json.dumps(
-            operator_write.slim_cur_obj_map, sort_keys=True
+            controller_write.slim_cur_obj_map, sort_keys=True
         )
-        condition["occurrence"] = operator_write.signature_counter
+        condition["occurrence"] = controller_write.signature_counter
     return {
         "workload": test_context.test_workload,
         "actions": [
@@ -131,7 +131,7 @@ def generate_intermediate_state_test_plan_for_controller_write(
                             "condition": condition,
                             "observationPoint": {
                                 "when": "afterControllerWrite",
-                                "by": operator_write.reconcile_fun,
+                                "by": controller_write.reconcile_fun,
                             },
                         }
                     ],
@@ -143,7 +143,7 @@ def generate_intermediate_state_test_plan_for_controller_write(
 
 
 def generate_intermediate_state_test_plan_for_annotated_api_invocation(
-    test_context: TestContext, api_invocation: OperatorNonK8sWrite
+    test_context: TestContext, api_invocation: ControllerNonK8sWrite
 ):
     return {
         "workload": test_context.test_workload,
@@ -179,9 +179,9 @@ def generate_intermediate_state_test_plan_for_annotated_api_invocation(
 def intermediate_state_analysis(
     event_graph: EventGraph, path: str, test_context: TestContext
 ):
-    candidate_write_vertices = event_graph.operator_write_vertices
+    candidate_write_vertices = event_graph.controller_write_vertices
     candidate_annotated_api_invocation_vertices = (
-        event_graph.operator_non_k8s_write_vertices
+        event_graph.controller_non_k8s_write_vertices
     )
     baseline_spec_number = len(candidate_write_vertices) + len(
         candidate_annotated_api_invocation_vertices
@@ -211,10 +211,10 @@ def intermediate_state_analysis(
     )
     i = 0
     for vertex in candidate_write_vertices:
-        operator_write = vertex.content
+        controller_write = vertex.content
         intermediate_state_test_plan = (
             generate_intermediate_state_test_plan_for_controller_write(
-                test_context, operator_write
+                test_context, controller_write
             )
         )
         i += 1

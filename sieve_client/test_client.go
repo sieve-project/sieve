@@ -302,6 +302,7 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
+		// TODO: support read operations
 		log.Println("Get and List not supported yet")
 	} else {
 		resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
@@ -356,6 +357,7 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
+		// TODO: support read operations
 		log.Println("Get and List not supported yet")
 	} else {
 		resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
