@@ -2,32 +2,32 @@ import glob
 import os
 import argparse
 
-modes = ["intermediate-state", "unobserved-state", "stale-state"]
+patterns = ["intermediate-state", "unobserved-state", "stale-state"]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate testcase commands into a file."
     )
     parser.add_argument(
-        "-d",
-        dest="docker",
-        help="Docker account",
+        "-r",
+        dest="registry",
+        help="Container registry",
         default="ghcr.io/sieve-project/action",
     )
     parser.add_argument(
         "-o", dest="output", help="Output file name", default="commands.txt"
     )
     parser.add_argument("-c", dest="controllers", help="Controllers to test", nargs="+")
-    parser.add_argument("-m", dest="modes", help="Modes to test", nargs="+")
+    parser.add_argument(
+        "--pattern", dest="patterns", help="Patterns to test", nargs="+"
+    )
     args = parser.parse_args()
 
     if args.controllers is None:
-        controllers = os.listdir("../log")
-    else:
-        controllers = args.controllers
+        args.controllers = os.listdir("../log")
 
-    if args.modes is not None:
-        modes = args.modes
+    if args.patterns is None:
+        args.patterns = patterns
 
     with open(args.output, "w") as command_file, open(
         "pull-commands.txt", "w"
@@ -36,41 +36,30 @@ if __name__ == "__main__":
         pull_command_file.write(
             "docker pull {}/node:v1.18.9-test\n".format(args.docker)
         )
-        pull_command_file.write(
-            "docker pull {}/node:v1.18.9-vanilla\n".format(args.docker)
-        )
-        for controller in controllers:
+        for controller in args.controllers:
             pull_command_file.write(
                 "docker pull {}/{}:test\n".format(args.docker, controller)
             )
-            pull_command_file.write(
-                "docker pull {}/{}:vanilla\n".format(args.docker, controller)
-            )
-            for mode in modes:
-                for testcase in os.listdir(os.path.join("../log", controller)):
-                    if mode == "vanilla":
+            for pattern in args.patterns:
+                for test_workload in os.listdir(
+                    os.path.join("../sieve_learn_results", controller)
+                ):
+                    test_plans = glob.glob(
+                        os.path.join(
+                            os.path.abspath("../sieve_learn_results"),
+                            controller,
+                            test_workload,
+                            "learn",
+                            pattern,
+                            "*.yaml",
+                        )
+                    )
+                    for test_plan in test_plans:
                         command_file.write(
-                            "python3 sieve.py -m vanilla -c {} -w {} -r {}\n".format(
-                                controller, testcase, args.docker
-                            )
-                        )
-                    else:
-                        configs = glob.glob(
-                            os.path.join(
-                                os.path.abspath("../log"),
+                            "python3 sieve.py -m test -c {} -w {} -p {} -r {}\n".format(
                                 controller,
-                                testcase,
-                                "generate-oracle/learn.yaml",
-                                mode,
-                                "*.yaml",
+                                test_workload,
+                                test_plan,
+                                args.docker,
                             )
                         )
-                        for config in configs:
-                            command_file.write(
-                                "python3 sieve.py -m test -c {} -w {} -p {} -r {}\n".format(
-                                    controller,
-                                    testcase,
-                                    config,
-                                    args.docker,
-                                )
-                            )

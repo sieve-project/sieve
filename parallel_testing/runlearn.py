@@ -38,9 +38,9 @@ controllers_to_run = {
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Automate learning run.")
     parser.add_argument(
-        "-d",
-        dest="docker",
-        help="Docker account",
+        "-r",
+        dest="registry",
+        help="Container registry",
         default="ghcr.io/sieve-project/action",
     )
     parser.add_argument("-c", dest="controllers", help="Controllers to test", nargs="+")
@@ -53,14 +53,12 @@ if __name__ == "__main__":
     else:
         controllers = args.controllers
 
-    os.system("docker pull %s/node:learn" % "ghcr.io/sieve-project/action")
+    os.system("docker pull %s/node:learn" % args.registry)
     for controller in controllers:
-        os.system(
-            "docker pull %s/%s:learn" % ("ghcr.io/sieve-project/action", controller)
-        )
+        os.system("docker pull %s/%s:learn" % (args.registry, controller))
         for testcase in controllers_to_run[controller]:
             os.system(
                 "python3 sieve.py -m learn -c {} -w {} -r {}".format(
-                    controller, testcase, "ghcr.io/sieve-project/action"
+                    controller, testcase, args.registry
                 )
             )
