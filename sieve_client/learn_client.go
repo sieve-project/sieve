@@ -229,6 +229,10 @@ func NotifyLearnBeforeRestCall(verb string, pathPrefix string, subpath string, n
 	if err := initRPCClient(); err != nil {
 		return -1
 	}
+	// NOTE: sometimes the resourceType is empty string, and we skip these cases
+	if len(resourceType) == 0 {
+		return -1
+	}
 	reconcileFun := getMatchedReconcileStackFrame()
 	if reconcileFun == UNKNOWN_RECONCILE_FUN {
 		return -1
@@ -274,6 +278,10 @@ func NotifyLearnAfterRestCall(controllerOperationID int, verb string, pathPrefix
 	if serializationErr != nil {
 		return
 	}
+	// NOTE: sometimes the resourceType is empty string, and we skip these cases
+	if len(resourceType) == 0 {
+		return
+	}
 	if err := initRPCClient(); err != nil {
 		return
 	}
@@ -294,7 +302,7 @@ func NotifyLearnAfterRestCall(controllerOperationID int, verb string, pathPrefix
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
-		log.Println("READ operation")
+		log.Println("Read operation")
 		request := &NotifyLearnAfterRestReadRequest{
 			ControllerOperationID:   controllerOperationID,
 			ControllerOperationType: controllerOperationType,

@@ -506,7 +506,11 @@ func generateResourceKey(resourceType, namespace, name string) string {
 
 // TODO: handle more complex plural cases
 func pluralToSingular(plural string) string {
-	return plural[:len(plural)-1]
+	if len(plural) == 0 {
+		return plural
+	} else {
+		return plural[:len(plural)-1]
+	}
 }
 
 func generateResourceKeyFromRestCall(verb, resourceType, namespace, name string, object interface{}) string {

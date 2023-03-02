@@ -813,6 +813,7 @@ def parse_controller_write(line: str) -> ControllerWrite:
 
 def parse_controller_read(line: str) -> ControllerRead:
     assert SIEVE_AFTER_REST_READ_MARK in line
+    print(line)
     tokens = line[line.find(SIEVE_AFTER_REST_READ_MARK) :].strip("\n").split("\t")
     tokens = tokens[1:]
     if tokens[1] == "Get":
@@ -837,7 +838,7 @@ def parse_controller_read(line: str) -> ControllerRead:
             "",
             tokens[2],
             tokens[3],
-            tokens[5],
+            tokens[7],
         )
     else:
         assert False, "read type should be: Get, List"
