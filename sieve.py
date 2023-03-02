@@ -13,10 +13,10 @@ import json
 import glob
 from sieve_analyzer import analyze
 from sieve_oracle.oracle import (
-    persist_state,
-    persist_history,
-    generate_controller_family,
-    canonicalize_history_and_state,
+    save_state,
+    save_history,
+    save_controller_related_object_list,
+    create_differential_oracles,
     check,
 )
 from sieve_oracle.checker_common import (
@@ -39,6 +39,7 @@ from sieve_common.common import (
     os_system,
     deploy_directory,
     rmtree_if_exists,
+    first_pass_learn_result_dir,
 )
 
 
@@ -47,11 +48,15 @@ def save_run_result(
     test_result: TestResult,
     start_time,
 ):
+    """
+    Save the testing result into a json file for later debugging.
+    The test result json contains the test plan, the errors detected by the oracles and so on.
+    """
     if test_context.mode != sieve_modes.TEST:
         return
 
     if test_result is None:
-        return
+        assert False, "test result should not be None"
 
     result_map = {
         test_context.controller: {
@@ -81,7 +86,7 @@ def save_run_result(
         }
     }
 
-    # Testing mode, write test result under sieve_test_result directory
+    # Write test result under sieve_test_result directory
     result_filename = "{}/{}-{}-{}.json".format(
         test_context.result_root_dir,
         test_context.controller,
@@ -103,13 +108,7 @@ def save_run_result(
         )
 
 
-def watch_crd(crds, addrs):
-    for addr in addrs:
-        for crd in crds:
-            os_system("kubectl get {} -s {} --ignore-not-found=true".format(crd, addr))
-
-
-def generate_configmap(test_plan):
+def create_configmap(test_plan):
     test_plan_content = open(test_plan).read()
     configmap = {}
     configmap["apiVersion"] = "v1"
@@ -121,7 +120,7 @@ def generate_configmap(test_plan):
     return configmap_path
 
 
-def generate_kind_config(num_apiservers, num_workers):
+def create_kind_config(num_apiservers, num_workers):
     kind_config_dir = "kind_configs"
     os.makedirs(kind_config_dir, exist_ok=True)
     kind_config_filename = os.path.join(
@@ -217,7 +216,7 @@ def prepare_sieve_server(test_context: TestContext):
     org_dir = os.getcwd()
     os.chdir("sieve_server")
     os_system("go mod tidy")
-    # TODO: we should build a container image for sieve server
+    # TODO: we should build a container image for sieve server.
     os_system("env GOOS=linux GOARCH=amd64 go build")
     os.chdir(org_dir)
     os_system("docker cp sieve_server kind-control-plane:/sieve_server")
@@ -241,7 +240,7 @@ def stop_sieve_server():
 
 
 def setup_kind_cluster(test_context: TestContext):
-    kind_config = generate_kind_config(
+    kind_config = create_kind_config(
         test_context.num_apiservers, test_context.num_workers
     )
     k8s_container_registry = test_context.container_registry
@@ -249,10 +248,11 @@ def setup_kind_cluster(test_context: TestContext):
         test_context.controller_config.kubernetes_version + "-" + test_context.image_tag
     )
     retry_cnt = 0
+    # Retry cluster creation for 5 times.
     while retry_cnt < 5:
         try:
             os_system("kind delete cluster")
-            # sleep here in case if the machine is slow and kind cluster deletion is not done before creating a new cluster
+            # Sleep here in case if the machine is slow and kind cluster deletion is not done before creating a new cluster.
             time.sleep(10 * retry_cnt)
             if retry_cnt == 0:
                 print("Trying to create kind cluster")
@@ -275,41 +275,32 @@ def setup_kind_cluster(test_context: TestContext):
 
 
 def setup_cluster(test_context: TestContext):
+    """
+    Set up the kind cluster for testing and wait until the control plane is ready.
+    """
     setup_kind_cluster(test_context)
     print("\n\n")
 
-    rmtree_if_exists(test_context.result_dir)
-    os.makedirs(test_context.result_dir)
-    if (
-        test_context.mode == sieve_modes.LEARN
-        or test_context.mode == sieve_modes.GEN_ORACLE
-    ):
-        print("Test plan: {}".format(test_context.test_plan))
-        generate_plan_for_learn_mode(test_context)
-    elif test_context.mode == sieve_modes.VANILLA:
-        print("Test plan: {}".format(test_context.test_plan))
-        generate_plan_for_vanilla_mode(test_context)
-    else:
-        assert test_context.mode == sieve_modes.TEST
-        print("Test plan: {}".format(test_context.test_plan))
-        generate_plan_for_test_mode(test_context)
-
-    # when testing stale-state, we need to pause the apiserver
-    # if workers talks to the paused apiserver, the whole cluster will be slowed down
-    # so we need to redirect the workers to other apiservers
+    # When testing stale-state, we need to pause the apiserver
+    # if workers talks to the paused apiserver, the whole cluster will be slowed down.
+    # In a multi-apiserver set up (HA mode), each worker (kubelet) talks to a load balancer
+    # which might forward the request to any backend apiserver.
+    # We want to focus on testing how the controller handles staleness
+    # so here we redirect the workers to an apiserver (configurable in config.json)
+    # which Sieve will NOT slow down later.
     if "reconnectController" in test_context.action_types:
         cprint(
             "Redirecting workers and kubectl to the leading API server...",
             bcolors.OKGREEN,
         )
-        redirect_workers(test_context)
-        redirect_kubectl()
+        redirect_workers(test_context)  # Redirect the kubelet on each worker node.
+        redirect_kubectl()  # Redirect the local kubectl.
         ok("Redirection done")
 
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
 
-    # Then we wait apiservers to be ready
+    # Then we wait apiservers to be ready.
     print("Waiting for apiservers to be ready...")
     apiserver_list = []
     for i in range(test_context.num_apiservers):
@@ -317,7 +308,7 @@ def setup_cluster(test_context: TestContext):
             "" if i == 0 else str(i + 1)
         )
         apiserver_list.append(apiserver_name)
-
+    # TODO: this can be better replaced by a watch.
     for tick in range(600):
         created = core_v1.list_namespaced_pod(
             "kube-system", watch=False, label_selector="component=kube-apiserver"
@@ -329,16 +320,26 @@ def setup_cluster(test_context: TestContext):
         time.sleep(1)
 
     if test_context.mode != sieve_modes.VANILLA:
+        # Start the Sieve server.
+        # In learn mode, it will record the controller events used for generating test plans.
+        # In test mode, it reads the test plan and injects fault accordingly.
         prepare_sieve_server(test_context)
         cprint("Setting up Sieve server...", bcolors.OKGREEN)
         start_sieve_server(test_context)
         ok("Sieve server set up")
 
-    time.sleep(3)  # ensure that every apiserver will see the configmap is created
-    configmap = generate_configmap(test_context.test_plan)
+    time.sleep(3)  # Ensure that every apiserver will see the configmap is created.
+
+    # We store the test plan into a configmap and create this configmap
+    # so that the instrumentation at the apiserver side can also read the test plan
+    # (by examining each incoming confimap creation event).
+    # This is a bit hacky.
+    # TODO: find a more elegant way to communicate with the instrumented apiserver.
+    configmap = create_configmap(test_context.test_plan)
     os_system("kubectl apply -f {}".format(configmap))
 
-    # Preload controller image to kind nodes
+    # Preload controller image to kind nodes.
+    # This makes it faster to start the controller.
     image = "{}/{}:{}".format(
         test_context.container_registry,
         test_context.controller,
@@ -353,6 +354,7 @@ def setup_cluster(test_context: TestContext):
 
 
 def deploy_controller(test_context: TestContext):
+    # Install csi driver if some controller needs it.
     if test_context.use_csi_driver:
         print("Installing csi provisioner...")
         org_dir = os.getcwd()
@@ -361,11 +363,13 @@ def deploy_controller(test_context: TestContext):
         os.chdir(org_dir)
 
     deployment_file = test_context.controller_config.controller_deployment_file_path
-    # backup deployment file
+
+    # Backup the provided deployment file.
     backup_deployment_file = deployment_file + ".bkp"
     shutil.copyfile(deployment_file, backup_deployment_file)
 
-    # modify container_registry and image_tag
+    # Modify the marked container_registry and image_tag in the deployment yaml.
+    # TODO: there should be a better way to parameterize the deployment yaml file.
     fin = open(deployment_file)
     data = fin.read()
     data = data.replace("${SIEVE-DR}", test_context.container_registry)
@@ -375,18 +379,21 @@ def deploy_controller(test_context: TestContext):
     fin.write(data)
     fin.close()
 
-    # run the deploy script
+    # Run the provided deploy script.
     org_dir = os.getcwd()
     os.chdir(deploy_directory(test_context))
     os_system("./deploy.sh")
     os.chdir(org_dir)
 
-    # restore deployment file
+    # Restore deployment file for later use.
     shutil.copyfile(backup_deployment_file, deployment_file)
     os.remove(backup_deployment_file)
 
 
 def start_controller(test_context: TestContext):
+    """
+    Deploy the controller and wait until the controller becomes ready
+    """
     controller = test_context.controller
     num_apiservers = test_context.num_apiservers
     deploy_controller(test_context)
@@ -394,7 +401,8 @@ def start_controller(test_context: TestContext):
     kubernetes.config.load_kube_config()
     core_v1 = kubernetes.client.CoreV1Api()
 
-    # Wait for controller pod ready
+    # Wait for controller pod to be ready
+    # TODO: this can be better replaced by a watch.
     print("Wait for the controller pod to be ready...")
     pod_ready = False
     for tick in range(600):
@@ -412,24 +420,33 @@ def start_controller(test_context: TestContext):
         fail("waiting for the controller pod to be ready")
         raise Exception("Wait timeout after 600 seconds")
 
+    # Issue a get crd operation to each apiserver (i.e., addr)
+    # to make sure the instrumentation at the apiserver side
+    # can observe the crd change.
+    # This is necessary because sometimes the instrumentation at the apiserver
+    # side needs to talk to the Sieve server when certain changes happen to
+    # the custom resource objects (depending on the test plan).
     apiserver_addr_list = []
     apiserver_ports = get_apiserver_ports(num_apiservers)
-    # print("apiserver ports", apiserver_ports)
     for port in apiserver_ports:
         apiserver_addr_list.append("https://127.0.0.1:" + port)
-    watch_crd(
-        test_context.controller_config.custom_resource_definitions, apiserver_addr_list
-    )
+    for addr in apiserver_addr_list:
+        for crd in test_context.controller_config.custom_resource_definitions:
+            os_system("kubectl get {} -s {} --ignore-not-found=true".format(crd, addr))
 
 
 def run_workload(
     test_context: TestContext,
-) -> Tuple[int, str]:
+):
+    """
+    Deploy the controller and run the provided testing workload.
+    """
 
     cprint("Deploying controller...", bcolors.OKGREEN)
     start_controller(test_context)
     ok("Controller deployed")
 
+    # If there are multiple contains in the controller pod then we need to find the correct one.
     select_container_from_pod = (
         " -c {} ".format(test_context.controller_config.container_name)
         if test_context.controller_config.container_name is not None
@@ -447,6 +464,9 @@ def run_workload(
         .items[0]
         .metadata.name
     )
+    # Stream the controller log to streamed-controller.log for debugging purpose.
+    # If the controller crashes due to some panic, Sieve will report that by checking
+    # the streamed log.
     streamed_log_file = open(
         os.path.join(test_context.result_dir, "streamed-controller.log"), "w+"
     )
@@ -458,6 +478,15 @@ def run_workload(
         preexec_fn=os.setsid,
     )
 
+    # Stream the apiserver log.
+    # The apiserver log should contain the state changes (i.e., creation, deletion and update events)
+    # during the test workload and the log content will be later used for
+    # (1) generating differential oracles for learn mode and
+    # (2) detecting errors (e.g., inconsistency in end states) for test mode.
+    # TODO: Storing everything in a log is a bit hacky,
+    # and it is better to save all the recorded state changes in a database during runtime,
+    # if that does not hurt the performance too much.
+    # Another alternative is to just watch all the objects using the local kubectl.
     streamed_api_server_log_file = open(
         os.path.join(test_context.result_dir, "apiserver1.log"), "w+"
     )
@@ -489,6 +518,7 @@ def run_workload(
         .metadata.name
     )
 
+    # Also save the log of other apiservers (for multi-apiserver set up) for debugging purpose.
     for i in range(1, test_context.num_apiservers):
         apiserver_name = "kube-apiserver-kind-control-plane" + (
             "" if i == 0 else str(i + 1)
@@ -500,6 +530,9 @@ def run_workload(
             )
         )
 
+    # Save the Sieve server log.
+    # In learn mode, the Sieve server log contains the collected controller events
+    # which will be used to generate test plans.
     if test_context.mode != sieve_modes.VANILLA:
         os_system(
             "docker cp kind-control-plane:/sieve_server/sieve-server.log {}/sieve-server.log".format(
@@ -507,13 +540,16 @@ def run_workload(
             )
         )
 
+    # Save the controller log as well mainly for debugging purpose.
     os_system(
         "kubectl logs {} {} > {}/controller.log".format(
             pod_name, select_container_from_pod, test_context.result_dir
         )
     )
+    # Stop streaming controller log.
     os.killpg(streaming.pid, signal.SIGTERM)
     streamed_log_file.close()
+    # Stop streaming apiserver log.
     os.killpg(streaming_api_server.pid, signal.SIGTERM)
     streamed_api_server_log_file.close()
 
@@ -521,19 +557,32 @@ def run_workload(
         stop_sieve_server()
 
 
-def check_result(
+def save_history_and_end_state(test_context: TestContext):
+    """
+    Generate three files:
+    (1) a list of controller related objects (e.g., the controller pod) which will not be considered when applying differential oracles
+    because the injected fault (e.g., controller crash) directly affects their states.
+    (2) the entire history, including all the creation, deletion and update events, during the test workload,
+    which is used for generating and applying differential oracles.
+    (3) the end state after the test workload, which is used for generating and applying differential oracles.
+    """
+    save_controller_related_object_list(test_context)
+    save_history(test_context)
+    save_state(test_context)
+
+
+def post_process(
     test_context: TestContext,
 ) -> TestResult:
-    generate_controller_family(test_context)
-    persist_history(test_context)
-    persist_state(test_context)
-    if (
-        test_context.mode == sieve_modes.LEARN
-        or test_context.mode == sieve_modes.GEN_ORACLE
-    ):
-        if test_context.mode == sieve_modes.GEN_ORACLE:
-            canonicalize_history_and_state(test_context)
-        analyze.analyze_trace(test_context)
+    """
+    Postprocess the collected logs and results.
+    For learn mode, it will generate the test plan and differential oracles.
+    For test mode, it will apply the differential oracles and report any detected errors.
+    """
+    if test_context.mode == sieve_modes.LEARN:
+        if test_context.build_oracle:
+            create_differential_oracles(test_context)
+        analyze.generate_test_plans_from_learn_run(test_context)
         return None
     elif test_context.mode == sieve_modes.VANILLA:
         return None
@@ -544,29 +593,84 @@ def check_result(
         return test_result
 
 
+def teardown_cluster():
+    os_system("kind delete cluster")
+
+
+def save_previous_learn_results(test_context: TestContext):
+    """
+    Move the learn result to a differen folder.
+    This should be only called in learn mode with build_oracle enabled.
+    To build the differential oracles, we need to run the same workload twice
+    to eliminate the non-determinism from the end state and state updates.
+    """
+    assert test_context.mode == sieve_modes.LEARN and test_context.build_oracle
+    learn_res_dir = test_context.result_dir
+    learn_prev_res_dir = first_pass_learn_result_dir(test_context.result_dir)
+    assert os.path.isdir(
+        learn_res_dir
+    ), "{} should exist after first pass of learn run".format(learn_res_dir)
+    print(
+        "Moving the first pass learn result from {} to {}...".format(
+            learn_res_dir, learn_prev_res_dir
+        )
+    )
+    rmtree_if_exists(learn_prev_res_dir)
+    shutil.move(learn_res_dir, learn_prev_res_dir)
+
+
+def prepare_test_plan(test_context: TestContext):
+    """
+    Prepare the test plan.
+    The test plan for test mode details what fault to inject and when to inject.
+    The plans for learn and vanilla mode are rather simple:
+    for learn mode, it only needs to contain the list of CRD to help filter out the irrevelant events;
+    for vanilla mode it is empty.
+    """
+    # Clean this result dir if it exists
+    rmtree_if_exists(test_context.result_dir)
+    os.makedirs(test_context.result_dir)
+    print("Sieve result dir: {}".format(test_context.result_dir))
+    # Prepare the test plan for different modes
+    if test_context.mode == sieve_modes.LEARN:
+        # The plan for learn mode just contains the CRD list to fliter out events irrelevant to the controller
+        print("Config for learn mode: {}".format(test_context.test_plan))
+        create_plan_for_learn_mode(test_context)
+    elif test_context.mode == sieve_modes.VANILLA:
+        # The plan for vanilla mode is basically empty
+        print("Config for vanilla mode: {}".format(test_context.test_plan))
+        create_plan_for_vanilla_mode(test_context)
+    else:
+        # The test plan details what fault to inject and where to inject
+        # and is generated by learn mode
+        assert test_context.mode == sieve_modes.TEST
+        print("Test plan: {}".format(test_context.test_plan))
+        create_plan_for_test_mode(test_context)
+
+
 def run_test(test_context: TestContext) -> TestResult:
     try:
-        if (
-            test_context.phase == "all"
-            or test_context.phase == "setup"
-            or test_context.phase == "setup_workload"
-        ):
+        if test_context.postprocess:
+            return post_process(test_context)
+        prepare_test_plan(test_context)
+        setup_cluster(test_context)
+        run_workload(test_context)
+        teardown_cluster()
+        save_history_and_end_state(test_context)
+        # if the build_oracle is enabled, then we need to run the learn run again
+        # to eliminate nondeterminism in the end-state and state-update collected by Sieve
+        if test_context.mode == sieve_modes.LEARN and test_context.build_oracle:
+            print(
+                "\nTo build the differential oracle, we need to run the learn run twice"
+            )
+            print("Starting the second learn run...")
+            save_previous_learn_results(test_context)
+            prepare_test_plan(test_context)
             setup_cluster(test_context)
-        if (
-            test_context.phase == "all"
-            or test_context.phase == "setup_workload"
-            or test_context.phase == "workload"
-            or test_context.phase == "workload_check"
-        ):
             run_workload(test_context)
-        if (
-            test_context.phase == "all"
-            or test_context.phase == "check"
-            or test_context.phase == "workload_check"
-        ):
-            test_result = check_result(test_context)
-            return test_result
-        return None
+            teardown_cluster()
+            save_history_and_end_state(test_context)
+        return post_process(test_context)
     except Exception:
         print(traceback.format_exc())
         return TestResult(
@@ -580,19 +684,23 @@ def run_test(test_context: TestContext) -> TestResult:
         )
 
 
-def generate_plan_for_test_mode(test_context: TestContext):
+def create_plan_for_test_mode(test_context: TestContext):
     test_plan_content = yaml.load(open(test_context.original_test_plan))
+    # TODO: we should probably just add the annotatedReconcileStackFrame when generating the test plan.
     test_plan_content["annotatedReconcileStackFrame"] = [
         i for i in test_context.controller_config.annotated_reconcile_functions.values()
     ]
     yaml.dump(test_plan_content, open(test_context.test_plan, "w"), sort_keys=False)
 
 
-def generate_plan_for_learn_mode(test_context: TestContext):
+def create_plan_for_learn_mode(test_context: TestContext):
     crd_list = test_context.controller_config.custom_resource_definitions
     learn_plan_content = {}
+    # NOTE: we use the CRD list to focus on recording the events relevant to the controller during learn run
+    # Here we assume all the relevant events are related to the CR objects or their owned objects
+    # TODO: support customized defintion of "relevant events"
     learn_plan_content["crdList"] = crd_list
-    # hardcode rate limiter to disabled for now
+    # NOTE: rateLimiterEnabled is deprecated, will remove later
     learn_plan_content["rateLimiterEnabled"] = False
     learn_plan_content["rateLimiterInterval"] = 3
     learn_plan_content["annotatedReconcileStackFrame"] = [
@@ -601,7 +709,7 @@ def generate_plan_for_learn_mode(test_context: TestContext):
     yaml.dump(learn_plan_content, open(test_context.test_plan, "w"), sort_keys=False)
 
 
-def generate_plan_for_vanilla_mode(test_context: TestContext):
+def create_plan_for_vanilla_mode(test_context: TestContext):
     vanilla_plan_content = {}
     yaml.dump(vanilla_plan_content, open(test_context.test_plan, "w"), sort_keys=False)
 
@@ -611,23 +719,11 @@ def get_test_workload_from_test_plan(test_plan_file):
     return test_plan["workload"]
 
 
-def run(
-    controller_config_dir,
-    test_workload,
-    result_root_dir,
-    mode,
-    test_plan,
-    container_registry,
-    phase="all",
-):
-    controller_config = load_controller_config(controller_config_dir)
+def generate_testing_cluster_config(mode, controller_config, test_plan, test_workload):
     num_apiservers = 1
     num_workers = 2
     use_csi_driver = False
-    if test_workload is None:
-        assert mode == sieve_modes.TEST
-        test_workload = get_test_workload_from_test_plan(test_plan)
-        print("Get test workload {} from test plan".format(test_workload))
+
     if test_workload in controller_config.test_setting:
         if "num_apiservers" in controller_config.test_setting[test_workload]:
             num_apiservers = controller_config.test_setting[test_workload][
@@ -639,24 +735,70 @@ def run(
             use_csi_driver = controller_config.test_setting[test_workload][
                 "use_csi_driver"
             ]
-    oracle_dir = os.path.join(controller_config_dir, "oracle", test_workload)
-    os.makedirs(oracle_dir, exist_ok=True)
-    result_dir = os.path.join(
-        result_root_dir,
-        controller_config.controller_name,
-        test_workload,
-        mode,
-        os.path.basename(test_plan),
+    return (
+        num_apiservers,
+        num_workers,
+        use_csi_driver,
     )
-    print("Log dir: {}/".format(result_dir))
-    image_tag = sieve_modes.LEARN if mode == sieve_modes.GEN_ORACLE else mode
+
+
+def run(
+    controller_config_dir,
+    test_workload,
+    result_root_dir,
+    mode,
+    test_plan,
+    container_registry,
+    postprocess,
+    build_oracle,
+):
+    """
+    Prepare the test context based on the input options and the configurations
+    and start to run the test.
+    """
+    controller_config = load_controller_config(controller_config_dir)
+    if test_workload is None:
+        assert mode == sieve_modes.TEST
+        test_workload = get_test_workload_from_test_plan(test_plan)
+        print("Get test workload {} from test plan".format(test_workload))
+    num_apiservers, num_workers, use_csi_driver = generate_testing_cluster_config(
+        mode, controller_config, test_plan, test_workload
+    )
+    oracle_dir = os.path.join(controller_config_dir, "oracle", test_workload)
+    assert (
+        os.path.isdir(oracle_dir)
+        or (mode == sieve_modes.LEARN and build_oracle)
+        or mode == sieve_modes.VANILLA
+    ), "The oracle dir: {} must exist unless (1) you are running vanilla mode or (2) build_oracle is enabled".format(
+        oracle_dir
+    )
+    os.makedirs(oracle_dir, exist_ok=True)
+    if mode == sieve_modes.TEST:
+        result_dir = os.path.join(
+            result_root_dir,
+            controller_config.controller_name,
+            test_workload,
+            mode,
+            os.path.splitext(os.path.basename(test_plan))[0],
+        )
+    else:
+        result_dir = os.path.join(
+            result_root_dir,
+            controller_config.controller_name,
+            test_workload,
+            mode,
+        )
+
+    image_tag = mode
     test_plan_to_run = os.path.join(result_dir, os.path.basename(test_plan))
+    # Prepare the context for testing the controller
     test_context = TestContext(
         controller=controller_config.controller_name,
         controller_config_dir=controller_config_dir,
         test_workload=test_workload,
         mode=mode,
-        phase=phase,
+        postprocess=postprocess,
+        build_oracle=build_oracle,
         original_test_plan=test_plan,
         test_plan=test_plan_to_run,
         result_root_dir=result_root_dir,
@@ -674,8 +816,20 @@ def run(
     return test_result, test_context
 
 
-def run_batch(controller, test_workload, dir, mode, test_plan_folder, docker, phase):
-    assert mode == sieve_modes.TEST, "batch mode only allowed in test mode"
+def run_batch(
+    controller,
+    test_workload,
+    dir,
+    mode,
+    test_plan_folder,
+    docker,
+    postprocess,
+    build_oracle,
+):
+    """
+    Run multiple test plans in the test_plan_folder in a batch.
+    """
+    assert mode == sieve_modes.TEST, "batch mode only allowed in test mode for now"
     assert os.path.isdir(test_plan_folder), "{} should be a folder".format(
         test_plan_folder
     )
@@ -692,7 +846,8 @@ def run_batch(controller, test_workload, dir, mode, test_plan_folder, docker, ph
             mode,
             test_plan,
             docker,
-            phase,
+            postprocess,
+            build_oracle,
         )
         save_run_result(
             test_context,
@@ -731,7 +886,7 @@ if __name__ == "__main__":
         "-m",
         "--mode",
         dest="mode",
-        help="MODE: vanilla, test, learn, generate-oracle",
+        help="MODE: vanilla, test, learn",
         metavar="MODE",
     )
     parser.add_option(
@@ -758,11 +913,18 @@ if __name__ == "__main__":
         default=False,
     )
     parser.add_option(
-        "--phase",
-        dest="phase",
-        help="run the PHASE: setup, workload, check or all",
-        metavar="PHASE",
-        default="all",
+        "--postprocess",
+        dest="postprocess",
+        action="store_true",
+        help="run postprocess only: report bugs for test mode, generate test plans for learn mode",
+        default=False,
+    )
+    parser.add_option(
+        "--build-oracle",
+        dest="build_oracle",
+        action="store_true",
+        help="build the oracle by running learn twice",
+        default=False,
     )
 
     (options, args) = parser.parse_args()
@@ -770,7 +932,7 @@ if __name__ == "__main__":
     if options.controller_config_dir is None:
         parser.error("parameter controller required")
 
-    if options.mode == sieve_modes.LEARN or options.mode == sieve_modes.GEN_ORACLE:
+    if options.mode == sieve_modes.LEARN:
         options.test_plan = "learn.yaml"
         if options.dir is None:
             options.dir = "sieve_learn_results"
@@ -788,15 +950,13 @@ if __name__ == "__main__":
         if options.mode != sieve_modes.TEST:
             parser.error("parameter test required in learn and vanilla mode")
 
-    if options.phase not in [
-        "all",
-        "setup",
-        "workload",
-        "check",
-        "setup_workload",
-        "workload_check",
-    ]:
-        parser.error("invalid phase option: {}".format(options.phase))
+    if options.mode != sieve_modes.LEARN and options.build_oracle:
+        parser.error("parameter build_oracle cannot be enabled when mode is not learn")
+
+    if options.postprocess and options.build_oracle:
+        parser.error(
+            "parameter postprocess cannot be enabled when build_oracle is enabled"
+        )
 
     print("Running Sieve with mode: {}...".format(options.mode))
 
@@ -808,21 +968,10 @@ if __name__ == "__main__":
             options.mode,
             options.test_plan,
             options.registry,
-            options.phase,
+            options.postprocess,
+            options.build_oracle,
         )
     else:
-        if options.mode == sieve_modes.GEN_ORACLE:
-            # Run learn mode first
-            run(
-                options.controller_config_dir,
-                options.test_workload,
-                options.dir,
-                sieve_modes.LEARN,
-                options.test_plan,
-                options.registry,
-                options.phase,
-            )
-
         test_result, test_context = run(
             options.controller_config_dir,
             options.test_workload,
@@ -830,7 +979,8 @@ if __name__ == "__main__":
             options.mode,
             options.test_plan,
             options.registry,
-            options.phase,
+            options.postprocess,
+            options.build_oracle,
         )
 
         save_run_result(
@@ -838,5 +988,4 @@ if __name__ == "__main__":
             test_result,
             start_time,
         )
-    os_system("kind delete cluster")
     print("Total time: {} seconds".format(time.time() - start_time))

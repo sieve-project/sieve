@@ -85,20 +85,16 @@ def generate_history_digest(test_context: TestContext):
 
 
 def canonicalize_history_digest(test_context: TestContext):
-    assert test_context.mode == sieve_modes.GEN_ORACLE
-    learn_twice_dir = test_context.result_dir
+    assert test_context.mode == sieve_modes.LEARN and test_context.build_oracle
+    second_pass_learn_dir = test_context.result_dir
     cur_history_digest = json.loads(
-        open(os.path.join(learn_twice_dir, "event.json")).read()
+        open(os.path.join(second_pass_learn_dir, "event.json")).read()
     )
-    learn_once_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.LEARN,
-        "learn.yaml",
-    )
+    first_pass_learn_dir = first_pass_learn_result_dir(test_context.result_dir)
     prev_history_digest = json.loads(
-        open(os.path.join(learn_once_dir, "event.json")).read()
+        open(os.path.join(first_pass_learn_dir, "event.json")).read()
     )
-    can_history_digest = learn_twice_trim(prev_history_digest, cur_history_digest)
+    can_history_digest = second_pass_learn_trim(prev_history_digest, cur_history_digest)
 
     def remove_ignored_value(event_map):
         ignored = set()
@@ -125,25 +121,17 @@ def get_canonicalized_history_digest(test_context: TestContext):
 
 
 def get_learning_once_history_digest(test_context: TestContext):
-    learn_once_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.LEARN,
-        "learn.yaml",
-    )
+    first_pass_learn_dir = first_pass_learn_result_dir(test_context.result_dir)
     learning_once_history_digest = json.load(
-        open(os.path.join(learn_once_dir, "event.json"))
+        open(os.path.join(first_pass_learn_dir, "event.json"))
     )
     return learning_once_history_digest
 
 
 def get_learning_twice_history_digest(test_context: TestContext):
-    learn_twice_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.GEN_ORACLE,
-        "learn.yaml",
-    )
+    second_pass_learn_dir = test_context.result_dir
     learning_twice_history_digest = json.load(
-        open(os.path.join(learn_twice_dir, "event.json"))
+        open(os.path.join(second_pass_learn_dir, "event.json"))
     )
     return learning_twice_history_digest
 
@@ -163,25 +151,17 @@ def get_testing_history_digest(test_context: TestContext):
 
 
 def get_learning_once_history(test_context: TestContext):
-    learn_once_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.LEARN,
-        "learn.yaml",
-    )
+    first_pass_learn_dir = first_pass_learn_result_dir(test_context.result_dir)
     learning_once_history = json.load(
-        open(os.path.join(learn_once_dir, "history.json"))
+        open(os.path.join(first_pass_learn_dir, "history.json"))
     )
     return learning_once_history
 
 
 def get_learning_twice_history(test_context: TestContext):
-    learn_twice_dir = os.path.join(
-        os.path.dirname(os.path.dirname(test_context.result_dir)),
-        sieve_modes.GEN_ORACLE,
-        "learn.yaml",
-    )
+    second_pass_learn_dir = test_context.result_dir
     learning_twice_history = json.load(
-        open(os.path.join(learn_twice_dir, "history.json"))
+        open(os.path.join(second_pass_learn_dir, "history.json"))
     )
     return learning_twice_history
 

@@ -7,7 +7,7 @@ from sieve_oracle.liveness_checker import *
 from sieve_oracle.customized_safety_checker import *
 
 
-def persist_history(test_context: TestContext):
+def save_history(test_context: TestContext):
     cprint("Generating state update summary...", bcolors.OKGREEN)
     history = generate_history(test_context)
     history_digest = generate_history_digest(test_context)
@@ -15,13 +15,13 @@ def persist_history(test_context: TestContext):
     dump_json_file(test_context.result_dir, history_digest, "event.json")
 
 
-def persist_state(test_context: TestContext):
+def save_state(test_context: TestContext):
     cprint("Generating end state...", bcolors.OKGREEN)
     state = generate_state(test_context)
     dump_json_file(test_context.result_dir, state, "state.json")
 
 
-def generate_controller_family(test_context: TestContext):
+def save_controller_related_object_list(test_context: TestContext):
     cprint("Generating controller family list...", bcolors.OKGREEN)
     controller_related_list = generate_controller_related_list(test_context)
     dump_json_file(
@@ -29,10 +29,10 @@ def generate_controller_family(test_context: TestContext):
     )
 
 
-def canonicalize_history_and_state(test_context: TestContext):
+def create_differential_oracles(test_context: TestContext):
     if not test_context.common_config.update_oracle_file_enabled:
         return
-    assert test_context.mode == sieve_modes.GEN_ORACLE
+    assert test_context.mode == sieve_modes.LEARN and test_context.build_oracle
     cprint("Generating canonicalized state update summary...", bcolors.OKGREEN)
     can_history_digest = canonicalize_history_digest(test_context)
     dump_json_file(test_context.oracle_dir, can_history_digest, "event.json")

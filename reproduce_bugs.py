@@ -210,7 +210,7 @@ reprod_map = {
 }
 
 
-def reproduce_single_bug(controller, bug, phase, registry, skip):
+def reproduce_single_bug(controller, bug, registry, skip):
     before_reproduce = None
     after_reproduce = None
     if (
@@ -229,10 +229,9 @@ def reproduce_single_bug(controller, bug, phase, registry, skip):
     test_plan = os.path.join(
         "bug_reproduction_test_plans", reprod_map[controller][bug][1]
     )
-    sieve_cmd = "python3 sieve.py -c {} -m test -p {} --phase={} -r {}".format(
+    sieve_cmd = "python3 sieve.py -c {} -m test -p {} -r {}".format(
         manifest_map[controller],
         test_plan,
-        phase,
         registry,
     )
     cprint(sieve_cmd, bcolors.OKGREEN)
@@ -259,13 +258,13 @@ def reproduce_single_bug(controller, bug, phase, registry, skip):
         return {"reproduced": False, "test-result-file": test_result_file}
 
 
-def reproduce_bug(controller, bug, phase, registry, skip):
+def reproduce_bug(controller, bug, registry, skip):
     stats_map = {}
     if bug == "all":
         for b in reprod_map[controller]:
             if "indirect" in b:
                 continue
-            stats_map[b] = reproduce_single_bug(controller, b, phase, registry, skip)
+            stats_map[b] = reproduce_single_bug(controller, b, registry, skip)
     elif (
         bug == "intermediate-state"
         or bug == "unobserved-state"
@@ -274,11 +273,9 @@ def reproduce_bug(controller, bug, phase, registry, skip):
     ):
         for b in reprod_map[controller]:
             if b.startswith(bug):
-                stats_map[b] = reproduce_single_bug(
-                    controller, b, phase, registry, skip
-                )
+                stats_map[b] = reproduce_single_bug(controller, b, registry, skip)
     else:
-        stats_map[bug] = reproduce_single_bug(controller, bug, phase, registry, skip)
+        stats_map[bug] = reproduce_single_bug(controller, bug, registry, skip)
     return stats_map
 
 
@@ -346,13 +343,6 @@ if __name__ == "__main__":
         default="all",
     )
     parser.add_option(
-        "--phase",
-        dest="phase",
-        help="run the PHASE: setup, workload, check or all",
-        metavar="PHASE",
-        default="all",
-    )
-    parser.add_option(
         "-r",
         "--registry",
         dest="registry",
@@ -384,13 +374,12 @@ if __name__ == "__main__":
     if options.controller == "all":
         for controller in reprod_map:
             stats_map[controller] = reproduce_bug(
-                controller, options.bug, options.phase, options.registry, options.skip
+                controller, options.bug, options.registry, options.skip
             )
     else:
         stats_map[options.controller] = reproduce_bug(
             options.controller,
             options.bug,
-            options.phase,
             options.registry,
             options.skip,
         )

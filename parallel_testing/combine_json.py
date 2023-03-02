@@ -30,10 +30,9 @@ if __name__ == "__main__":
     generated_test_plans = glob.glob(
         os.path.join(
             result_folder,
-            "log",
             controller,
             "*",
-            "generate-oracle/learn.yaml",
+            "learn",
             "*",
             "*-test-plan-*.yaml",
         )

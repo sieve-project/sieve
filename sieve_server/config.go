@@ -19,7 +19,7 @@ func getConfig() map[interface{}]interface{} {
 
 	err = yaml.Unmarshal([]byte(data), &m)
 	checkError(err)
-	log.Printf("config:\n%v\n", m)
+	log.Printf("config: %v\n", m)
 
 	return m
 }
@@ -31,7 +31,7 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 
 	err = json.Unmarshal([]byte(data), &learnedFieldPathMask)
 	checkError(err)
-	log.Printf("learned mask:\n%v\n", learnedFieldPathMask)
+	log.Printf("learned mask: %v\n", learnedFieldPathMask)
 
 	data, err = ioutil.ReadFile("configured_field_path_mask.json")
 	checkError(err)
@@ -39,7 +39,7 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 
 	err = json.Unmarshal([]byte(data), &configuredFieldPathMask)
 	checkError(err)
-	log.Printf("configured mask:\n%v\n", configuredFieldPathMask)
+	log.Printf("configured mask: %v\n", configuredFieldPathMask)
 
 	data, err = ioutil.ReadFile("configured_field_key_mask.json")
 	checkError(err)
@@ -47,7 +47,7 @@ func getMask() (map[string][][]string, map[string][][]string, map[string][][]str
 
 	err = json.Unmarshal([]byte(data), &configuredFieldKeyMask)
 	checkError(err)
-	log.Printf("configured mask:\n%v\n", configuredFieldKeyMask)
+	log.Printf("configured mask: %v\n", configuredFieldKeyMask)
 
 	return learnedFieldPathMask, configuredFieldPathMask, configuredFieldKeyMask
 }
