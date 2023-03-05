@@ -284,34 +284,40 @@ func NotifyTestAfterCacheListPause(resourceType string) {
 
 func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}) int {
 	if err := loadSieveConfigFromEnv(true); err != nil {
-		return 1
+		return -1
 	}
 	if err := initRPCClient(); err != nil {
-		return 1
+		return -1
+	}
+	// NOTE: sometimes the resourceType is empty string, and we skip these cases
+	if len(resourceType) == 0 {
+		return -1
 	}
 	reconcileFun := getMatchedReconcileStackFrame()
 	if reconcileFun == UNKNOWN_RECONCILE_FUN {
-		return 1
+		return -1
 	}
 	serializedObj, err := json.Marshal(object)
 	if err != nil {
 		printSerializationError(err)
-		return 1
+		return -1
 	}
 	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
+		return -1
 	} else if controllerOperationType == GET || controllerOperationType == LIST {
 		// TODO: support read operations
-		log.Println("Get and List not supported yet")
+		log.Println("Get and List not supported in NotifyTestBeforeRestCall yet")
+		return 1
 	} else {
 		resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 		defer NotifyTestBeforeControllerWritePause(controllerOperationType, resourceKey)
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeControllerWrite", false) {
-			return -1
+			return 1
 		}
 		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcileFun, false) {
-			return -1
+			return 1
 		}
 		log.Printf("NotifyTestBeforeRestWrite %s %s %s %s %s %s\n", verb, resourceKey, reconcileFun, pathPrefix, subpath, string(serializedObj))
 		request := &NotifyTestBeforeControllerWriteRequest{
@@ -324,15 +330,18 @@ func NotifyTestBeforeRestCall(verb string, pathPrefix string, subpath string, na
 		err = rpcClient.Call("TestCoordinator.NotifyTestBeforeControllerWrite", request, &response)
 		if err != nil {
 			printRPCError(err)
-			return 1
+			return -1
 		}
 		checkResponse(response)
+		return 1
 	}
-	return 1
 }
 
 func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix string, subpath string, namespace string, namespaceSet bool, resourceType string, resourceName string, subresource string, object interface{}, serializationErr error, respErr error) {
 	if err := loadSieveConfigFromEnv(true); err != nil {
+		return
+	}
+	if controllerOperationID == -1 {
 		return
 	}
 	if serializationErr != nil {
@@ -342,6 +351,10 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 		return
 	}
 	if err := initRPCClient(); err != nil {
+		return
+	}
+	// NOTE: sometimes the resourceType is empty string, and we skip these cases
+	if len(resourceType) == 0 {
 		return
 	}
 	reconcileFun := getMatchedReconcileStackFrame()
@@ -356,9 +369,48 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 	controllerOperationType := HttpVerbToControllerOperation(verb, resourceName, subresource)
 	if controllerOperationType == UNKNOWN {
 		log.Println("Unknown operation")
-	} else if controllerOperationType == GET || controllerOperationType == LIST {
-		// TODO: support read operations
-		log.Println("Get and List not supported yet")
+	} else if controllerOperationType == GET {
+		resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "afterControllerWrite", false) {
+			return
+		}
+		if !checkKVPairInTriggerObservationPoint(resourceKey, "by", reconcileFun, false) {
+			return
+		}
+		log.Printf("NotifyTestAfterRestRead %s %s %s %s %s %s\n", verb, resourceKey, reconcileFun, pathPrefix, subpath, string(serializedObj))
+		request := &NotifyTestAfterControllerGetRequest{
+			ResourceKey:  resourceKey,
+			ReconcileFun: reconcileFun,
+			Object:       string(serializedObj),
+		}
+		var response Response
+		err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerGet", request, &response)
+		if err != nil {
+			printRPCError(err)
+			return
+		}
+		checkResponse(response)
+	} else if controllerOperationType == LIST {
+		resourceType = pluralToSingular(resourceType)
+		if !checkKVPairInTriggerObservationPoint(resourceType, "when", "afterControllerWrite", true) {
+			return
+		}
+		if !checkKVPairInTriggerObservationPoint(resourceType, "by", reconcileFun, true) {
+			return
+		}
+		log.Printf("NotifyTestAfterRestList %s %s", resourceType, string(serializedObj))
+		request := &NotifyTestAfterControllerListRequest{
+			ResourceType: resourceType,
+			ReconcileFun: reconcileFun,
+			ObjectList:   string(serializedObj),
+		}
+		var response Response
+		err = rpcClient.Call("TestCoordinator.NotifyTestAfterControllerList", request, &response)
+		if err != nil {
+			printRPCError(err)
+			return
+		}
+		checkResponse(response)
 	} else {
 		resourceKey := generateResourceKeyFromRestCall(verb, resourceType, namespace, resourceName, object)
 		defer NotifyTestAfterControllerWritePause(controllerOperationType, resourceKey)
