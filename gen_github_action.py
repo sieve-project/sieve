@@ -42,7 +42,7 @@ operators_to_run_tests = [
     # "elastic-operator",
     # "mongodb-operator",
     # "nifikop-operator",
-    # "rabbitmq-operator",
+    "rabbitmq-operator",
     # "xtradb-operator",
     # "yugabyte-operator",
     # "zookeeper-operator",
