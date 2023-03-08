@@ -547,7 +547,10 @@ def run_workload(
         )
     )
     # Stop streaming controller log.
-    os.killpg(streaming.pid, signal.SIGTERM)
+    try:
+        os.killpg(streaming.pid, signal.SIGTERM)
+    except Exception as e:
+        print("Unable to kill controller log streaming process: ", e)
     streamed_log_file.close()
     # Stop streaming apiserver log.
     os.killpg(streaming_api_server.pid, signal.SIGTERM)
