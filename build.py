@@ -660,6 +660,10 @@ if __name__ == "__main__":
     ]:
         parser.error("invalid build mode option: {}".format(options.mode))
 
+    if options.mode == sieve_modes.ALL and options.build_only:
+        parser.error("Building controller docker image for ALL mode not"
+                     " supported. Supported modes:  vanilla, learn and test")
+
     if options.controller_config_dir is None:
         setup_kubernetes_wrapper(
             options.version,
