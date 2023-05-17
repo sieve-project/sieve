@@ -9,6 +9,7 @@ import os
 import stat
 import optparse
 import json
+import sys
 from sieve_common.config import (
     CommonConfig,
     load_controller_config,
@@ -532,13 +533,17 @@ def setup_controller(
 
 
 def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
+    platform = ""
+    # Add a platform tag when building on macOS
+    if sys.platform == "darwin":
+        platform = "macos-"
     if mode == "all":
         for this_mode in [
             sieve_modes.LEARN,
             sieve_modes.TEST,
             sieve_modes.VANILLA,
         ]:
-            image_tag = version + "-" + this_mode
+            image_tag = version + "-" + platform + this_mode
             setup_kubernetes(
                 version,
                 this_mode,
@@ -547,7 +552,7 @@ def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
                 push_to_remote,
             )
     else:
-        image_tag = version + "-" + mode
+        image_tag = version + "-" + platform + mode
         setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote)
 
 

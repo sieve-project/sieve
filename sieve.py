@@ -11,6 +11,7 @@ from sieve_common.config import (
 import time
 import json
 import glob
+import sys
 from sieve_analyzer import analyze
 from sieve_oracle.oracle import (
     save_state,
@@ -243,9 +244,12 @@ def setup_kind_cluster(test_context: TestContext):
     kind_config = create_kind_config(
         test_context.num_apiservers, test_context.num_workers
     )
+    platform = ""
+    if sys.platform == "darwin":
+        platform = "macos-"
     k8s_container_registry = test_context.container_registry
     k8s_image_tag = (
-        test_context.controller_config.kubernetes_version + "-" + test_context.image_tag
+        test_context.controller_config.kubernetes_version + "-" + platform + test_context.image_tag
     )
     retry_cnt = 0
     # Retry cluster creation for 5 times.
