@@ -1,0 +1,201 @@
+# A reusable action to test Sieve with a controller. The script expects the
+# following arguments:
+# Inputs:
+# 1. platform-os           (optional)
+# 2. controller-name       (required)
+# 3. github-repo           (required)
+# 5. github-ref            (optional)
+# 4. subdirectory          (optional)
+# 5. workload_name         (required)
+#
+# Secrets:
+# 1. DOCKER_USER           (required)
+# 2. DOCKER_TOKEN          (required)
+#
+# Please see below for a description of each of these arguments and
+# https://github.com/sieve-project/sieve/blob/main/docs/port.md for details
+# about generating the test files.
+#
+# The workflow does the following actions -
+# 1. Build the controller with Sieve instrumentation in "learn" mode
+# 2. Run the controller in "learn" mode with the provided test workload so that
+#    Sieve can generate test plans.
+# 3. Build the controller with Sieve instrumentation in "test" mode
+# 4. Run the controller in "test" mode with the provided test workload and
+#    injected perturbations to identify any bugs in the controller.
+
+name: 'Run Sieve against a controller'
+
+on:
+  workflow_call:
+    secrets:
+      DOCKER_USER:
+        description: Docker username
+        required: true
+      DOCKER_TOKEN:
+        description: Docker token for logging in
+        required: true
+
+    inputs:
+      platform-os:
+        description: 'The GitHub runner OS to be used: ubuntu-latest or macos-latest (optional)'
+        default: 'ubuntu-latest'
+        required: false
+        type: string
+
+      controller-name:
+        description: 'Name of the Controller being tested (required)'
+        required: true
+        type: string
+
+      github-repo:
+        description: 'URL to the GitHub repository hosting test files (required)'
+        required: true
+        type: string
+
+      github-ref:
+        description: 'The branch, tag or SHA to checkout. Defaults to the SHA or reference to the event triggering the workflow (optional)'
+        required: false
+        default: ''
+        type: string
+
+      subdirectory:
+        description: 'Repo subdirectory containing the test files (optional)'
+        required: false
+        type: string
+
+      workload_name:
+        description: 'Name of test workload to run Sieve with'
+        required: true
+        type: string
+
+jobs:
+  run-sieve:
+    runs-on: ${{ inputs.platform-os }}
+
+    steps:
+      - name: Set up environment variables
+        run: |
+             if [ "$RUNNER_OS" == "Linux" ]; then
+               echo "GOPATH=/home/runner/go" >> "$GITHUB_ENV"
+               echo "KUBECONFIG=/home/runner/.kube/config" >> "$GITHUB_ENV"
+             else
+               echo "GOPATH=/Users/runner/go" >> "$GITHUB_ENV"
+               echo "KUBECONFIG=/Users/runner/.kube/config" >> "$GITHUB_ENV"
+             fi
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          repository: sieve-project/sieve
+          ref: main
+
+      - name: Setup Git
+        run: |
+              git config --global user.name "sieve"
+              git config --global user.email "sieve@sieve.com"
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.19.1'
+
+      - name: Install tools needed (macOS)
+        if: runner.os == 'macos'
+        run: brew install kind helm mage
+
+      - name: Install tools needed (linux)
+        if: runner.os == 'Linux'
+        run: |
+              # Install kind
+              curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.19.0/kind-linux-amd64
+
+              # Install Helm
+              wget https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
+              tar -zxvf helm-v3.6.0-linux-amd64.tar.gz
+              sudo mv linux-amd64/helm /usr/local/bin/helm
+              helm
+
+              # Install mage
+               wget https://github.com/magefile/mage/releases/download/v1.15.0/mage_1.15.0_Linux-64bit.tar.gz
+               tar -zxvf mage_1.15.0_Linux-64bit.tar.gz
+               sudo mv mage /usr/local/bin/mage
+
+      - name: Install Sieve dependencies
+        run: pip3 install -r ./requirements.txt
+
+      - name: Setup Docker (macOS)
+        if: runner.os == 'macos'
+        uses: docker-practice/actions-setup-docker@master
+        timeout-minutes: 12
+
+      - name: Upgrade Docker (Linux)
+        if: runner.os == 'Linux'
+        run: |
+              # Reinstalling docker due to issues w/ preinstalled version in runner
+              sudo apt-get remove docker docker-engine docker.io containerd runc
+              sudo apt-get update
+              sudo apt-get install ca-certificates curl gnupg
+              sudo install -m 0755 -d /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+              sudo chmod a+r /etc/apt/keyrings/docker.gpg
+              echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              sudo apt-get update
+              sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+              sudo docker run hello-world
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Run check_env
+        run: python3 check_env.py
+
+      - name: Sieve CI config changes
+        run: |
+              tmp=$(mktemp)
+              jq '.workload_command_wait_timeout = 1500' config.json >  "$tmp" && mv "$tmp" config.json
+
+      - name: Download necessary files for running the test
+        run: |
+              rm -rf ./examples/* # remove any conflicting files
+              REPO_NAME=$( basename ${{ inputs.github-repo }} .git )
+              GITHUB_REF=${{ inputs.github-ref }}
+              if [ -z "$GITHUB_REF" ]
+              then
+                GITHUB_REF=$GITHUB_SHA
+              fi
+              curDir=`pwd`
+              git clone ${{ inputs.github-repo }} "/tmp/$REPO_NAME/"
+              cd "/tmp/$REPO_NAME/"
+              git checkout $GITHUB_REF
+              cd "$curDir"
+              mv "/tmp/$REPO_NAME/${{ inputs.subdirectory }}/" "examples/${{ inputs.controller-name }}/"
+
+      - name: Download controller image and build in learn mode
+        run: python3 ./build.py -c "examples/${{ inputs.controller-name }}/" -m learn
+
+      - name: Run sieve in learn mode
+        run: python3 sieve.py -c "examples/${{ inputs.controller-name }}/"  -w ${{ inputs.workload_name }} -m learn --build-oracle
+
+      - name: Download controller image and build in test mode
+        run: python3 ./build.py -c "examples/${{ inputs.controller-name }}/" -m test
+
+      - name: Run sieve in test mode
+        run: |
+              learn_results_dir="sieve_learn_results/${{ inputs.controller-name }}/${{ inputs.workload_name }}/learn/"
+              test_classes=("intermediate-state" "unobserved-state" "stale-state")
+              for test_class in ${test_classes[@]}; do
+                test_dir="${learn_results_dir}${test_class}/"
+                if [ -d "$test_dir" ]; then
+                  echo "Test class $test_class"
+                  python3 sieve.py -c "examples/${{ inputs.controller-name }}/" -m test -p "$test_dir" --batch
+                fi
+              done
