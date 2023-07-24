@@ -1,4 +1,4 @@
-# Sieve: Automated Reliability Testing for Kubernetes Controllers
+# Sieve: Automated Reliability Testing for Kubernetes Controllers/Operators
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Regression Testing](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml/badge.svg)](https://github.com/sieve-project/sieve/actions/workflows/regression-testing.yml)
