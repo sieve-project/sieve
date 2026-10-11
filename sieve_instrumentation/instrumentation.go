@@ -209,6 +209,10 @@ func instrumentSharedInformerGoForAll(ifilepath, ofilepath, mode string) {
 	if funcDecl == nil || !instrumentDeltaLoop(funcDecl, mode, false) {
 		panic("cannot find the processDeltas event loop")
 	}
+	_, replaceFunc := findFuncDecl(f, "processReplacedAllInfo", "")
+	if replaceFunc != nil {
+		instrumentAtomicReplacement(replaceFunc, mode)
+	}
 	_, batchFunc := findFuncDecl(f, "processDeltasInBatch", "")
 	if batchFunc != nil && !instrumentDeltaLoop(batchFunc, mode, true) {
 		panic("cannot find the processDeltasInBatch event loop")
@@ -225,17 +229,9 @@ func instrumentDeltaLoop(funcDecl *dst.FuncDecl, mode string, batch bool) bool {
 			if !ok || value.Name != "d" {
 				continue
 			}
-			// Aggregated deltas need their own per-object observation points.
-			dst.Inspect(rangeStmt, func(n dst.Node) bool {
-				if clause, ok := n.(*dst.CaseClause); ok {
-					for _, expr := range clause.List {
-						if name, ok := expr.(*dst.Ident); ok && (name.Name == "ReplacedAll" || name.Name == "SyncAll") {
-							panic("aggregated informer deltas are not supported")
-						}
-					}
-				}
+			if !batch && instrumentAtomicDeltaCases(rangeStmt, mode) {
 				return true
-			})
+			}
 			instrBeforeControllerRecv := &dst.AssignStmt{
 				Lhs: []dst.Expr{&dst.Ident{Name: "recvID"}},
 				Rhs: []dst.Expr{&dst.CallExpr{
@@ -276,6 +272,114 @@ func instrumentDeltaLoop(funcDecl *dst.FuncDecl, mode string, batch bool) bool {
 		}
 	}
 	return false
+}
+
+// Parse injected blocks with import resolution so the restorer adds sieve.client.
+func instrumentationStatements(source, mode string) []dst.Stmt {
+	dec := decorator.NewDecoratorWithImports(token.NewFileSet(), "cache", goast.WithResolver(guess.WithMap(auxiliaryImportMap())))
+	f, err := dec.Parse("package cache\nimport sieve \"sieve.client\"\nfunc injected() {\n" + strings.ReplaceAll(source, "$MODE", mode) + "\n}")
+	check(err)
+	_, fn := findFuncDecl(f, "injected", "")
+	return fn.Body.List
+}
+
+func instrumentAtomicDeltaCases(loop *dst.RangeStmt, mode string) bool {
+	for _, stmt := range loop.Body.List {
+		switchStmt, ok := stmt.(*dst.SwitchStmt)
+		if !ok {
+			continue
+		}
+		clauses := map[string]*dst.CaseClause{}
+		for _, stmt := range switchStmt.Body.List {
+			clause := stmt.(*dst.CaseClause)
+			for _, expr := range clause.List {
+				if name, ok := expr.(*dst.Ident); ok {
+					clauses[name.Name] = clause
+				}
+			}
+		}
+		if clauses["ReplacedAll"] == nil {
+			continue
+		}
+		for _, name := range []string{"Sync", "Deleted"} {
+			clause := clauses[name]
+			if clause == nil {
+				panic("cannot find ordinary delta case " + name)
+			}
+			before := instrumentationStatements(`recvID := sieve.Notify$MODEBeforeControllerRecv(string(d.Type), d.Object)`, mode)
+			clause.Body = append(before, clause.Body...)
+			clause.Body = append(clause.Body, instrumentationStatements(`sieve.Notify$MODEAfterControllerRecv(recvID, string(d.Type), d.Object)`, mode)...)
+		}
+		syncClause := clauses["SyncAll"]
+		if syncClause == nil || clauses["Bookmark"] == nil {
+			panic("cannot find SyncAll and Bookmark cases")
+		}
+		for _, stmt := range syncClause.Body {
+			if syncLoop, ok := stmt.(*dst.RangeStmt); ok {
+				before := instrumentationStatements(`recvID := sieve.Notify$MODEBeforeControllerRecv(string(Sync), obj)`, mode)
+				syncLoop.Body.List = append(before, syncLoop.Body.List...)
+				syncLoop.Body.List = append(syncLoop.Body.List, instrumentationStatements(`sieve.Notify$MODEAfterControllerRecv(recvID, string(Sync), obj)`, mode)...)
+				// ReplacedAll is observed around the atomic Replace below. Bookmarks
+				// advance the store resource version without delivering an object.
+				return true
+			}
+		}
+		panic("cannot find the SyncAll callback loop")
+	}
+	return false
+}
+
+func instrumentAtomicReplacement(fn *dst.FuncDecl, mode string) {
+	before := instrumentationStatements(`
+sieveDeletionRecvIDs := make([]int, len(deletions))
+for i, obj := range deletions {
+	if obj.Obj != nil {
+		sieveDeletionRecvIDs[i] = sieve.Notify$MODEBeforeControllerRecv(string(Deleted), obj.Obj)
+	}
+}
+sieveReplacementRecvIDs := make([]int, len(replacements))
+for i, r := range replacements {
+	sieveReplacementRecvIDs[i] = sieve.Notify$MODEBeforeControllerRecv(string(Replaced), r.newObj)
+}`, mode)
+	inserted := false
+	callbacks := 0
+	for i, stmt := range fn.Body.List {
+		if conditional, ok := stmt.(*dst.IfStmt); ok {
+			if assign, ok := conditional.Init.(*dst.AssignStmt); ok && len(assign.Rhs) == 1 {
+				if call, ok := assign.Rhs[0].(*dst.CallExpr); ok {
+					if selector, ok := call.Fun.(*dst.SelectorExpr); ok && selector.Sel.Name == "Replace" {
+						// Insert outside Replace: no hook can expose a partially replaced cache.
+						fn.Body.List = append(append(fn.Body.List[:i:i], before...), fn.Body.List[i:]...)
+						inserted = true
+					}
+				}
+			}
+		}
+		loop, ok := stmt.(*dst.RangeStmt)
+		if !ok {
+			continue
+		}
+		objects, ok := loop.X.(*dst.Ident)
+		if !ok {
+			continue
+		}
+		switch objects.Name {
+		case "deletions":
+			loop.Key = dst.NewIdent("i")
+			loop.Body.List = append(loop.Body.List, instrumentationStatements(`
+if objToDelete.Obj != nil {
+	sieve.Notify$MODEAfterControllerRecv(sieveDeletionRecvIDs[i], string(Deleted), objToDelete.Obj)
+}`, mode)...)
+			callbacks++
+		case "replacements":
+			loop.Key = dst.NewIdent("i")
+			loop.Body.List = append(loop.Body.List, instrumentationStatements(`sieve.Notify$MODEAfterControllerRecv(sieveReplacementRecvIDs[i], string(Replaced), r.newObj)`, mode)...)
+			callbacks++
+		}
+	}
+	if !inserted || callbacks != 2 {
+		panic("cannot find the atomic Replace and its callback loops")
+	}
 }
 
 func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {

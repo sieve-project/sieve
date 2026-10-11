@@ -136,7 +136,7 @@ func NotifyLearnBeforeCacheGet(key string, items []interface{}) {
 }
 
 func NotifyLearnAfterCacheGet(key string, item interface{}, exists bool) {
-	if err := loadSieveConfigFromEnv(true); err != nil {
+	if err := loadSieveConfigFromEnv(false); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
@@ -183,7 +183,7 @@ func NotifyLearnBeforeCacheList(items []interface{}) {
 }
 
 func NotifyLearnAfterCacheList(items []interface{}, listErr error) {
-	if err := loadSieveConfigFromEnv(true); err != nil {
+	if err := loadSieveConfigFromEnv(false); err != nil {
 		return
 	}
 	if err := initRPCClient(); err != nil {
