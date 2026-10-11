@@ -262,17 +262,30 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 	funNameAfter := "Notify" + mode + "AfterRestCall"
 	if funcDecl != nil {
 
+		resourceTypeVar := "sieveResourceType"
+		resolveResource := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: resourceTypeVar}},
+			Rhs: []dst.Expr{&dst.CallExpr{
+				Fun: &dst.Ident{Name: "ResolveResourceType", Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "ctx"}, &dst.Ident{Name: "r.c.Client"},
+					&dst.CallExpr{Fun: &dst.Ident{Name: "r.URL"}}, &dst.Ident{Name: "r.pathPrefix"},
+					&dst.Ident{Name: "r.resource"}, &dst.BasicLit{Kind: token.STRING, Value: fmt.Sprintf("%q", strings.ToLower(mode))}},
+			}},
+			Tok: token.DEFINE,
+		}
+		resolveResource.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, 0, resolveResource)
 		operationIDVar := "operationID"
 		instrNotifyLearnBeforeRestWrite := &dst.AssignStmt{
 			Lhs: []dst.Expr{&dst.Ident{Name: operationIDVar}},
 			Rhs: []dst.Expr{&dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.pathPrefix"}, &dst.Ident{Name: "r.subpath"}, &dst.Ident{Name: "r.namespace"}, &dst.Ident{Name: "r.namespaceSet"}, &dst.Ident{Name: "r.resource"}, &dst.Ident{Name: "r.resourceName"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "r.obj"}},
+				Args: []dst.Expr{&dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.pathPrefix"}, &dst.Ident{Name: "r.subpath"}, &dst.Ident{Name: "r.namespace"}, &dst.Ident{Name: "r.namespaceSet"}, &dst.Ident{Name: resourceTypeVar}, &dst.Ident{Name: "r.resourceName"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "r.obj"}},
 			}},
 			Tok: token.DEFINE,
 		}
 		instrNotifyLearnBeforeRestWrite.Decs.End.Append("//sieve")
-		insertStmt(&funcDecl.Body.List, 0, instrNotifyLearnBeforeRestWrite)
+		insertStmt(&funcDecl.Body.List, 1, instrNotifyLearnBeforeRestWrite)
 
 		instruIndex := -1
 		for index, stmt := range funcDecl.Body.List {
@@ -308,7 +321,7 @@ func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {
 		instrNotifyLearnAfterRestWrite := &dst.ExprStmt{
 			X: &dst.CallExpr{
 				Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: operationIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.pathPrefix"}, &dst.Ident{Name: "r.subpath"}, &dst.Ident{Name: "r.namespace"}, &dst.Ident{Name: "r.namespaceSet"}, &dst.Ident{Name: "r.resource"}, &dst.Ident{Name: "r.resourceName"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "resultObj"}, &dst.Ident{Name: "decodingError"}, &dst.Ident{Name: "result.Error()"}},
+				Args: []dst.Expr{&dst.Ident{Name: operationIDVar}, &dst.Ident{Name: "r.verb"}, &dst.Ident{Name: "r.pathPrefix"}, &dst.Ident{Name: "r.subpath"}, &dst.Ident{Name: "r.namespace"}, &dst.Ident{Name: "r.namespaceSet"}, &dst.Ident{Name: resourceTypeVar}, &dst.Ident{Name: "r.resourceName"}, &dst.Ident{Name: "r.subresource"}, &dst.Ident{Name: "resultObj"}, &dst.Ident{Name: "decodingError"}, &dst.Ident{Name: "result.Error()"}},
 			},
 		}
 		instrNotifyLearnAfterRestWrite.Decs.End.Append("//sieve")

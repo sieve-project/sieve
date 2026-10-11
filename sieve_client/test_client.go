@@ -391,7 +391,6 @@ func NotifyTestAfterRestCall(controllerOperationID int, verb string, pathPrefix 
 		}
 		checkResponse(response)
 	} else if controllerOperationType == LIST {
-		resourceType = pluralToSingular(resourceType)
 		if !checkKVPairInTriggerObservationPoint(resourceType, "when", "afterControllerWrite", true) {
 			return
 		}
