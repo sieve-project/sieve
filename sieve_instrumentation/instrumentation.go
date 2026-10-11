@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/dave/dst"
@@ -28,6 +29,9 @@ func check(e error) {
 func findFuncDecl(f *dst.File, funName, recvTypeName string) (int, *dst.FuncDecl) {
 	for i, decl := range f.Decls {
 		if funcDecl, ok := decl.(*dst.FuncDecl); ok {
+			if funcDecl.Recv == nil && recvTypeName == "" && funcDecl.Name.Name == funName {
+				return i, funcDecl
+			}
 			if funcDecl.Recv != nil {
 				if funcDecl.Name.Name == funName {
 					for _, field := range funcDecl.Recv.List {
@@ -189,40 +193,89 @@ func instrumentAnnotatedAPI(ifilepath, ofilepath, module, filePath, pkg, funName
 }
 
 func instrumentSharedInformerGoForAll(ifilepath, ofilepath, mode string) {
-	funNameBefore := "Notify" + mode + "BeforeControllerRecv"
-	funNameAfter := "Notify" + mode + "AfterControllerRecv"
 	f := parseSourceFile(ifilepath, "cache", map[string]string{})
 	_, funcDecl := findFuncDecl(f, "HandleDeltas", "*sharedIndexInformer")
-	if funcDecl != nil {
-		for _, stmt := range funcDecl.Body.List {
-			if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
-				instrBeforeControllerRecv := &dst.AssignStmt{
-					Lhs: []dst.Expr{&dst.Ident{Name: "recvID"}},
-					Rhs: []dst.Expr{&dst.CallExpr{
-						Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
-					}},
-					Tok: token.DEFINE,
-				}
-				instrBeforeControllerRecv.Decs.End.Append("//sieve")
-				insertStmt(&rangeStmt.Body.List, 0, instrBeforeControllerRecv)
-
-				instrAfterControllerRecv := &dst.ExprStmt{
-					X: &dst.CallExpr{
-						Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
-						Args: []dst.Expr{&dst.Ident{Name: "recvID"}, &dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
-					},
-				}
-				instrAfterControllerRecv.Decs.End.Append("//sieve")
-				rangeStmt.Body.List = append(rangeStmt.Body.List, instrAfterControllerRecv)
-				break
-			}
-		}
-	} else {
-		panic(fmt.Errorf("cannot find function HandleDeltas"))
+	if funcDecl != nil && instrumentDeltaLoop(funcDecl, mode, false) {
+		writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
+		return
 	}
 
+	// Newer informers delegate cache updates to controller.go. Hook the updates,
+	// not just the informer callbacks, so pauses still precede cache mutation.
+	ifilepath = filepath.Join(filepath.Dir(ifilepath), "controller.go")
+	ofilepath = filepath.Join(filepath.Dir(ofilepath), "controller.go")
+	f = parseSourceFile(ifilepath, "cache", map[string]string{})
+	_, funcDecl = findFuncDecl(f, "processDeltas", "")
+	if funcDecl == nil || !instrumentDeltaLoop(funcDecl, mode, false) {
+		panic("cannot find the processDeltas event loop")
+	}
+	_, batchFunc := findFuncDecl(f, "processDeltasInBatch", "")
+	if batchFunc != nil && !instrumentDeltaLoop(batchFunc, mode, true) {
+		panic("cannot find the processDeltasInBatch event loop")
+	}
 	writeInstrumentedFile(ofilepath, "cache", f, map[string]string{})
+}
+
+func instrumentDeltaLoop(funcDecl *dst.FuncDecl, mode string, batch bool) bool {
+	funNameBefore := "Notify" + mode + "BeforeControllerRecv"
+	funNameAfter := "Notify" + mode + "AfterControllerRecv"
+	for _, stmt := range funcDecl.Body.List {
+		if rangeStmt, ok := stmt.(*dst.RangeStmt); ok {
+			value, ok := rangeStmt.Value.(*dst.Ident)
+			if !ok || value.Name != "d" {
+				continue
+			}
+			// Aggregated deltas need their own per-object observation points.
+			dst.Inspect(rangeStmt, func(n dst.Node) bool {
+				if clause, ok := n.(*dst.CaseClause); ok {
+					for _, expr := range clause.List {
+						if name, ok := expr.(*dst.Ident); ok && (name.Name == "ReplacedAll" || name.Name == "SyncAll") {
+							panic("aggregated informer deltas are not supported")
+						}
+					}
+				}
+				return true
+			})
+			instrBeforeControllerRecv := &dst.AssignStmt{
+				Lhs: []dst.Expr{&dst.Ident{Name: "recvID"}},
+				Rhs: []dst.Expr{&dst.CallExpr{
+					Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+					Args: []dst.Expr{&dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
+				}},
+				Tok: token.DEFINE,
+			}
+			instrBeforeControllerRecv.Decs.End.Append("//sieve")
+			insertStmt(&rangeStmt.Body.List, 0, instrBeforeControllerRecv)
+
+			instrAfterControllerRecv := &dst.ExprStmt{
+				X: &dst.CallExpr{
+					Fun:  &dst.Ident{Name: funNameAfter, Path: "sieve.client"},
+					Args: []dst.Expr{&dst.Ident{Name: "recvID"}, &dst.Ident{Name: "string(d.Type)"}, &dst.Ident{Name: "d.Object"}},
+				},
+			}
+			instrAfterControllerRecv.Decs.End.Append("//sieve")
+			if batch {
+				// A batch mutates the cache atomically, then calls only successful
+				// callbacks. Observe completion there, not while assembling it.
+				callbacks := 0
+				dst.Inspect(rangeStmt, func(n dst.Node) bool {
+					if callback, ok := n.(*dst.FuncLit); ok {
+						callback.Body.List = append(callback.Body.List, dst.Clone(instrAfterControllerRecv).(dst.Stmt))
+						callbacks++
+						return false
+					}
+					return true
+				})
+				if callbacks != 3 {
+					panic("cannot find the add, update and delete batch callbacks")
+				}
+			} else {
+				rangeStmt.Body.List = append(rangeStmt.Body.List, instrAfterControllerRecv)
+			}
+			return true
+		}
+	}
+	return false
 }
 
 func instrumentRequestGoForAll(ifilepath, ofilepath, mode string) {

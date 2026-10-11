@@ -96,10 +96,19 @@ def install_lib_for_kubernetes(version):
             "fakegopath/src/k8s.io/kubernetes/staging/src/sieve.client/go.mod",
             k8s_version_to_apimachinery_version(version),
         )
-    os.symlink(
-        "../staging/src/sieve.client",
-        "fakegopath/src/k8s.io/kubernetes/vendor/sieve.client",
-    )
+    kubernetes_dir = "fakegopath/src/k8s.io/kubernetes"
+    if os.path.exists(os.path.join(kubernetes_dir, "go.work")):
+        os.chdir(kubernetes_dir)
+        try:
+            os_system("go work use ./staging/src/sieve.client")
+            os_system("go work vendor")
+        finally:
+            os.chdir(ORIGINAL_DIR)
+    else:
+        os.symlink(
+            "../staging/src/sieve.client",
+            os.path.join(kubernetes_dir, "vendor/sieve.client"),
+        )
 
 
 def instrument_kubernetes(mode):
