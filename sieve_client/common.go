@@ -504,24 +504,16 @@ func generateResourceKey(resourceType, namespace, name string) string {
 	return path.Join(resourceType, namespace, name)
 }
 
-// TODO: handle more complex plural cases
-func pluralToSingular(plural string) string {
-	if len(plural) == 0 {
-		return plural
-	} else {
-		return plural[:len(plural)-1]
-	}
-}
-
+// resourceType is the lowercase Kind resolved from API discovery.
 func generateResourceKeyFromRestCall(verb, resourceType, namespace, name string, object interface{}) string {
 	if verb == HTTP_POST {
 		if o, err := meta.Accessor(object); err == nil {
-			return generateResourceKey(pluralToSingular(resourceType), namespace, o.GetName())
+			return generateResourceKey(resourceType, namespace, o.GetName())
 		} else {
-			return generateResourceKey(pluralToSingular(resourceType), namespace, name)
+			return generateResourceKey(resourceType, namespace, name)
 		}
 	} else {
-		return generateResourceKey(pluralToSingular(resourceType), namespace, name)
+		return generateResourceKey(resourceType, namespace, name)
 	}
 }
 
