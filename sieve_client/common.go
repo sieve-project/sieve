@@ -585,5 +585,6 @@ func LogAPIEvent(eventType, key string, object interface{}) {
 		return
 	}
 	resourceType := getResourceTypeFromObj(object)
-	log.Printf("[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
+	// Preserve the tab-delimited format when Kubernetes redirects the standard logger.
+	fmt.Fprintf(os.Stderr, "[SIEVE-API-EVENT]\t%s\t%s\t%s\t%s\t%s\t%s\n", eventType, key, resourceType, namespace, name, string(jsonObject))
 }
