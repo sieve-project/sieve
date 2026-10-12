@@ -218,7 +218,10 @@ def prepare_sieve_server(test_context: TestContext):
     os.chdir("sieve_server")
     os_system("go mod tidy")
     # TODO: we should build a container image for sieve server.
-    os_system("env GOOS=linux GOARCH=amd64 go build")
+    # Build for the kind node's architecture, which may differ from the host's.
+    node = docker.from_env().containers.get("kind-control-plane")
+    node_arch = node.image.attrs["Architecture"]
+    os_system("env GOOS=linux GOARCH={} go build".format(node_arch))
     os.chdir(org_dir)
     os_system("docker cp sieve_server kind-control-plane:/sieve_server")
 
